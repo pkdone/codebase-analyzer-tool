@@ -15,6 +15,7 @@ import { LLMOutputFormat } from "../../../../common/llm/types/llm.types";
 import { promptRegistry } from "../../../prompts/prompt-registry";
 import { BASE_PROMPT_TEMPLATE } from "../../../prompts/templates";
 import { appSummaryRecordCategoriesSchema } from "../insights.types";
+import { isOk } from "../../../../common/types/result.types";
 
 // Type for validating the LLM response for all categories
 type AppSummaryRecordCategories = z.infer<typeof appSummaryRecordCategoriesSchema>;
@@ -94,12 +95,16 @@ export default class InsightsFromRawCodeGenerator implements IInsightsProcessor 
         },
       );
       const prompt = this.createInsightsAllCategoriesPrompt(instructions, codeBlocksContent);
-      const llmResponse = await this.llmRouter.executeCompletion("all-categories", prompt, {
+      const result = await this.llmRouter.executeCompletion("all-categories", prompt, {
         outputFormat: LLMOutputFormat.JSON,
         jsonSchema: appSummaryRecordCategoriesSchema,
         hasComplexSchema: ALL_CATEGORIES_SCHEMA_IS_VERTEXAI_INCOMPATIBLE,
       });
-      return llmResponse;
+      if (!isOk(result)) {
+        logOneLineWarning(`LLM completion failed for all categories: ${result.error.message}`);
+        return null;
+      }
+      return result.value;
     } catch (error: unknown) {
       logOneLineWarning(
         `${error instanceof Error ? error.message : "Unknown error"} for getting summary data for all categories`,

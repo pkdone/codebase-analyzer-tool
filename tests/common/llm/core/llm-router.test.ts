@@ -19,6 +19,7 @@ import { describe, test, expect, jest } from "@jest/globals";
 import type { LLMProviderManifest } from "../../../../src/common/llm/providers/llm-provider.types";
 import * as manifestLoader from "../../../../src/common/llm/utils/manifest-loader";
 import type { LLMModuleConfig } from "../../../../src/common/llm/config/llm-module-config.types";
+import { isOk } from "../../../../src/common/types/result.types";
 
 // Mock the dependencies
 // Note: extractTokensAmountFromMetadataDefaultingMissingValues and
@@ -565,7 +566,10 @@ describe("LLM Router tests", () => {
         null,
       );
 
-      expect(result).toBe(mockCompletion);
+      expect(isOk(result)).toBe(true);
+      if (isOk(result)) {
+        expect(result.value).toBe(mockCompletion);
+      }
       expect(mockProvider.executeCompletionPrimary).toHaveBeenCalled();
     });
 
@@ -590,7 +594,10 @@ describe("LLM Router tests", () => {
         null,
       );
 
-      expect(result).toEqual(mockCompletion);
+      expect(isOk(result)).toBe(true);
+      if (isOk(result)) {
+        expect(result.value).toEqual(mockCompletion);
+      }
       expect(mockProvider.executeCompletionPrimary).toHaveBeenCalledWith(
         "test prompt",
         expect.any(Object),
@@ -622,7 +629,10 @@ describe("LLM Router tests", () => {
         LLMModelQuality.SECONDARY,
       );
 
-      expect(result).toBe(mockCompletion);
+      expect(isOk(result)).toBe(true);
+      if (isOk(result)) {
+        expect(result.value).toBe(mockCompletion);
+      }
       expect(mockProvider.executeCompletionSecondary).toHaveBeenCalled();
     });
 
@@ -657,10 +667,10 @@ describe("LLM Router tests", () => {
         null,
       );
 
-      expect(result).toBeNull();
+      expect(isOk(result)).toBe(false);
     });
 
-    test("should return null for TEXT format with invalid type (type guard protection)", async () => {
+    test("should return err for TEXT format with invalid type (type guard protection)", async () => {
       const { router } = createLLMRouter();
       // Mock the execution pipeline to return a failure result for invalid type
       jest.spyOn((router as any).executionPipeline, "execute").mockResolvedValue({
@@ -677,8 +687,8 @@ describe("LLM Router tests", () => {
         null,
       );
 
-      // Type guard now protects against invalid types, returning null instead
-      expect(result).toBeNull();
+      // Type guard now protects against invalid types, returning err instead
+      expect(isOk(result)).toBe(false);
     });
 
     test("should infer return type from Zod schema (type safety verification)", async () => {
@@ -707,10 +717,10 @@ describe("LLM Router tests", () => {
         null,
       );
 
-      expect(result).toEqual(mockResponse);
+      expect(isOk(result)).toBe(true);
       // Verify type inference: result should match schema type
-      if (result) {
-        const typedResult: z.infer<typeof testSchema> = result;
+      if (isOk(result)) {
+        const typedResult: z.infer<typeof testSchema> = result.value;
         expect(typedResult.name).toBe("Test");
         expect(typedResult.age).toBe(42);
       }
@@ -737,11 +747,11 @@ describe("LLM Router tests", () => {
         null,
       );
 
-      expect(result).toBe(mockTextResponse);
-      // Verify type: result should be string | null when outputFormat is TEXT
-      if (result !== null) {
-        // Type inference now correctly types result as string (no cast needed)
-        expect(typeof result).toBe("string");
+      expect(isOk(result)).toBe(true);
+      // Verify type: result should be Result<string, LLMError> when outputFormat is TEXT
+      if (isOk(result)) {
+        // Type inference now correctly types result.value as string (no cast needed)
+        expect(typeof result.value).toBe("string");
       }
     });
   });
@@ -792,9 +802,9 @@ describe("LLM Router tests", () => {
       );
 
       // Type inference should work for nested objects
-      expect(result).toEqual(mockResponse);
-      if (result) {
-        const typedResult: z.infer<typeof nestedSchema> = result;
+      expect(isOk(result)).toBe(true);
+      if (isOk(result)) {
+        const typedResult: z.infer<typeof nestedSchema> = result.value;
         expect(typedResult.user.name).toBe("John Doe");
         expect(typedResult.user.address.city).toBe("Springfield");
         expect(typedResult.tags).toContain("developer");
@@ -831,11 +841,11 @@ describe("LLM Router tests", () => {
         null,
       );
 
-      // After checking for null, TypeScript should narrow the type
-      expect(result).not.toBeNull();
-      if (result !== null) {
+      // After checking isOk, TypeScript should narrow the type
+      expect(isOk(result)).toBe(true);
+      if (isOk(result)) {
         // Type should be fully inferred here without casts
-        const typedResult: z.infer<typeof testSchema> = result;
+        const typedResult: z.infer<typeof testSchema> = result.value;
         expect(typedResult.status).toBe("success");
         expect(typedResult.data).toBe("test data");
       }
@@ -869,9 +879,9 @@ describe("LLM Router tests", () => {
         null,
       );
 
-      expect(result).toEqual(mockArrayResponse);
-      if (result) {
-        const typedResult: z.infer<typeof arraySchema> = result;
+      expect(isOk(result)).toBe(true);
+      if (isOk(result)) {
+        const typedResult: z.infer<typeof arraySchema> = result.value;
         expect(Array.isArray(typedResult)).toBe(true);
         expect(typedResult[0].name).toBe("Item 1");
       }
@@ -911,9 +921,9 @@ describe("LLM Router tests", () => {
         null,
       );
 
-      expect(result).toEqual(mockResponse);
-      if (result) {
-        const typedResult: z.infer<typeof schemaWithOptionals> = result;
+      expect(isOk(result)).toBe(true);
+      if (isOk(result)) {
+        const typedResult: z.infer<typeof schemaWithOptionals> = result.value;
         expect(typedResult.required).toBe("always present");
         expect(typedResult.optional).toBe("sometimes present");
         expect(typedResult.nullable).toBeNull();
@@ -950,14 +960,14 @@ describe("LLM Router tests", () => {
         null,
       );
 
-      // This test demonstrates that after the null check, the type is correctly inferred
+      // This test demonstrates that after the isOk check, the type is correctly inferred
       // without needing any type assertions
-      expect(result).not.toBeNull();
-      if (result !== null) {
+      expect(isOk(result)).toBe(true);
+      if (isOk(result)) {
         // No 'as' cast needed - type is inferred from schema
-        expect(result.count).toBe(3);
-        expect(result.items).toHaveLength(3);
-        expect(result.items[0]).toBe("one");
+        expect(result.value.count).toBe(3);
+        expect(result.value.items).toHaveLength(3);
+        expect(result.value.items[0]).toBe("one");
       }
     });
 
@@ -989,9 +999,9 @@ describe("LLM Router tests", () => {
         null,
       );
 
-      expect(result).toEqual(mockResponse);
-      if (result) {
-        const typedResult: z.infer<typeof unionSchema> = result;
+      expect(isOk(result)).toBe(true);
+      if (isOk(result)) {
+        const typedResult: z.infer<typeof unionSchema> = result.value;
         expect(typeof typedResult.value).toBe("string");
       }
     });
@@ -1042,7 +1052,7 @@ describe("LLM Router tests", () => {
         null,
       );
 
-      expect(result).toBeNull();
+      expect(isOk(result)).toBe(false);
     });
 
     test("should handle prompt that becomes empty after cropping", async () => {
@@ -1082,7 +1092,7 @@ describe("LLM Router tests", () => {
         null,
       );
 
-      expect(result).toBeNull();
+      expect(isOk(result)).toBe(false);
     });
 
     test("should handle completion with null generated content", async () => {
@@ -1103,7 +1113,10 @@ describe("LLM Router tests", () => {
         null,
       );
 
-      expect(result).toBeNull();
+      expect(isOk(result)).toBe(true);
+      if (isOk(result)) {
+        expect(result.value).toBeNull();
+      }
     });
 
     test("should properly handle context modification during execution", async () => {
@@ -1126,7 +1139,10 @@ describe("LLM Router tests", () => {
         null,
       );
 
-      expect(result).toBe(mockCompletion);
+      expect(isOk(result)).toBe(true);
+      if (isOk(result)) {
+        expect(result.value).toBe(mockCompletion);
+      }
     });
   });
 
@@ -1165,7 +1181,10 @@ describe("LLM Router tests", () => {
         null,
       );
 
-      expect(result).toBe(mockCompletion);
+      expect(isOk(result)).toBe(true);
+      if (isOk(result)) {
+        expect(result.value).toBe(mockCompletion);
+      }
       expect(mockProvider.executeCompletionPrimary).toHaveBeenCalled();
       expect(mockProvider.executeCompletionSecondary).toHaveBeenCalled();
     });
@@ -1206,7 +1225,10 @@ describe("LLM Router tests", () => {
         null,
       );
 
-      expect(result).toBe("Secondary completion success");
+      expect(isOk(result)).toBe(true);
+      if (isOk(result)) {
+        expect(result.value).toBe("Secondary completion success");
+      }
       expect(mockProvider.executeCompletionPrimary).toHaveBeenCalled();
       expect(mockProvider.executeCompletionSecondary).toHaveBeenCalled();
     });

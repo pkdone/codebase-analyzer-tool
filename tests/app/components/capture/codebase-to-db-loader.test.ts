@@ -8,6 +8,8 @@ import * as fileOperations from "../../../../src/common/fs/file-operations";
 import * as directoryOperations from "../../../../src/common/fs/directory-operations";
 import * as pathUtils from "../../../../src/common/fs/path-utils";
 import * as textAnalysis from "../../../../src/common/utils/text-utils";
+import { ok, err } from "../../../../src/common/types/result.types";
+import { LLMError, LLMErrorCode } from "../../../../src/common/llm/types/llm-errors.types";
 
 // Mock dependencies
 jest.mock("../../../../src/common/fs/file-operations");
@@ -71,7 +73,7 @@ describe("CodebaseToDBLoader", () => {
 
     // Mock FileSummarizerService
     mockFileSummarizer = {
-      summarize: jest.fn().mockResolvedValue({
+      summarize: jest.fn().mockResolvedValue(ok({
         namespace: "TestClass",
         purpose: "Testing component",
         implementation: "Test implementation",
@@ -80,7 +82,7 @@ describe("CodebaseToDBLoader", () => {
           description: "n/a",
           codeExample: "n/a",
         },
-      }),
+      })),
     } as unknown as jest.Mocked<FileSummarizerService>;
 
     // Default mock for sortFilesBySize - returns files in same order
@@ -190,7 +192,7 @@ describe("CodebaseToDBLoader", () => {
       mockPath.basename.mockReturnValue("file1.ts");
       mockFileOperations.readFile.mockResolvedValue("const x = 1;");
       mockTextUtils.countLines.mockReturnValue(1);
-      mockFileSummarizer.summarize.mockRejectedValue(new Error("LLM failed"));
+      mockFileSummarizer.summarize.mockResolvedValue(err(new LLMError(LLMErrorCode.BAD_RESPONSE_CONTENT, "Failed to generate summary: LLM error")));
 
       await loader.captureCodebaseToDatabase("test-project", "/src", false);
 

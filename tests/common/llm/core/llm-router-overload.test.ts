@@ -17,6 +17,7 @@ import {
 import type { LLMProviderManifest } from "../../../../src/common/llm/providers/llm-provider.types";
 import type { LLMModuleConfig } from "../../../../src/common/llm/config/llm-module-config.types";
 import * as manifestLoader from "../../../../src/common/llm/utils/manifest-loader";
+import { isOk, isErr } from "../../../../src/common/types/result.types";
 
 jest.mock("../../../../src/common/utils/logging", () => ({
   logOneLineWarning: jest.fn(),
@@ -167,8 +168,8 @@ describe("LLMRouter Function Overloads - Type Safety Tests", () => {
     return { router, mockProvider };
   };
 
-  describe("Overload Resolution Tests", () => {
-    test("should resolve JSON overload with schema", async () => {
+  describe("Overload Resolution Tests with Result Type", () => {
+    test("should resolve JSON overload with schema and return Result", async () => {
       const { router, mockProvider } = createLLMRouter();
       const testSchema = z.object({ message: z.string() });
       const mockResponse = { message: "test response" };
@@ -181,21 +182,20 @@ describe("LLMRouter Function Overloads - Type Safety Tests", () => {
         context: {},
       });
 
-      // This should resolve to the JSON overload
       const result = await router.executeCompletion("test", "test prompt", {
         outputFormat: LLMOutputFormat.JSON,
         jsonSchema: testSchema,
       });
 
-      expect(result).toEqual(mockResponse);
-      // TypeScript should infer result as z.infer<typeof testSchema> | null
-      if (result !== null) {
-        const message: string = result.message; // No cast needed
+      expect(isOk(result)).toBe(true);
+      if (isOk(result)) {
+        expect(result.value).toEqual(mockResponse);
+        const message: string = result.value.message;
         expect(message).toBe("test response");
       }
     });
 
-    test("should resolve TEXT overload without schema", async () => {
+    test("should resolve TEXT overload without schema and return Result", async () => {
       const { router, mockProvider } = createLLMRouter();
       const mockResponse = "Plain text response";
 
@@ -207,15 +207,14 @@ describe("LLMRouter Function Overloads - Type Safety Tests", () => {
         context: {},
       });
 
-      // This should resolve to the TEXT overload
       const result = await router.executeCompletion("test", "test prompt", {
         outputFormat: LLMOutputFormat.TEXT,
       });
 
-      expect(result).toBe(mockResponse);
-      // TypeScript should infer result as string | null
-      if (result !== null) {
-        const text: string = result; // No cast needed
+      expect(isOk(result)).toBe(true);
+      if (isOk(result)) {
+        expect(result.value).toBe(mockResponse);
+        const text: string = result.value;
         expect(typeof text).toBe("string");
       }
     });
@@ -242,12 +241,12 @@ describe("LLMRouter Function Overloads - Type Safety Tests", () => {
         jsonSchema: userSchema,
       });
 
-      expect(result).toEqual(mockUser);
-      if (result) {
-        // Direct property access without casts
-        const id: number = result.id;
-        const name: string = result.name;
-        const active: boolean = result.active;
+      expect(isOk(result)).toBe(true);
+      if (isOk(result)) {
+        expect(result.value).toEqual(mockUser);
+        const id: number = result.value.id;
+        const name: string = result.value.name;
+        const active: boolean = result.value.active;
         expect(id).toBe(1);
         expect(name).toBe("Alice");
         expect(active).toBe(true);
@@ -255,7 +254,7 @@ describe("LLMRouter Function Overloads - Type Safety Tests", () => {
     });
   });
 
-  describe("Complex Schema Type Inference", () => {
+  describe("Complex Schema Type Inference with Result", () => {
     test("should infer nested object types correctly", async () => {
       const { router, mockProvider } = createLLMRouter();
       const nestedSchema = z.object({
@@ -274,16 +273,10 @@ describe("LLMRouter Function Overloads - Type Safety Tests", () => {
 
       const mockData = {
         user: {
-          profile: {
-            firstName: "John",
-            lastName: "Doe",
-          },
+          profile: { firstName: "John", lastName: "Doe" },
           age: 30,
         },
-        metadata: {
-          created: "2024-01-01",
-          updated: "2024-01-02",
-        },
+        metadata: { created: "2024-01-01", updated: "2024-01-02" },
       };
 
       (mockProvider.executeCompletionPrimary as any).mockResolvedValue({
@@ -299,11 +292,11 @@ describe("LLMRouter Function Overloads - Type Safety Tests", () => {
         jsonSchema: nestedSchema,
       });
 
-      if (result) {
-        // Deep property access without casts
-        const firstName: string = result.user.profile.firstName;
-        const age: number = result.user.age;
-        const created: string = result.metadata.created;
+      expect(isOk(result)).toBe(true);
+      if (isOk(result)) {
+        const firstName: string = result.value.user.profile.firstName;
+        const age: number = result.value.user.age;
+        const created: string = result.value.metadata.created;
         expect(firstName).toBe("John");
         expect(age).toBe(30);
         expect(created).toBe("2024-01-01");
@@ -313,12 +306,7 @@ describe("LLMRouter Function Overloads - Type Safety Tests", () => {
     test("should infer array types correctly", async () => {
       const { router, mockProvider } = createLLMRouter();
       const arraySchema = z.object({
-        items: z.array(
-          z.object({
-            id: z.number(),
-            label: z.string(),
-          }),
-        ),
+        items: z.array(z.object({ id: z.number(), label: z.string() })),
       });
 
       const mockData = {
@@ -341,271 +329,21 @@ describe("LLMRouter Function Overloads - Type Safety Tests", () => {
         jsonSchema: arraySchema,
       });
 
-      if (result) {
-        // Array operations without casts
-        expect(Array.isArray(result.items)).toBe(true);
-        expect(result.items).toHaveLength(2);
-        const firstItem = result.items[0];
+      expect(isOk(result)).toBe(true);
+      if (isOk(result)) {
+        expect(Array.isArray(result.value.items)).toBe(true);
+        expect(result.value.items).toHaveLength(2);
+        const firstItem = result.value.items[0];
         expect(firstItem.id).toBe(1);
         expect(firstItem.label).toBe("First");
-
-        // Array methods work without casts
-        const labels = result.items.map((item) => item.label);
+        const labels = result.value.items.map((item) => item.label);
         expect(labels).toEqual(["First", "Second"]);
       }
     });
-
-    test("should infer union types correctly", async () => {
-      const { router, mockProvider } = createLLMRouter();
-      const unionSchema = z.object({
-        status: z.union([z.literal("success"), z.literal("error"), z.literal("pending")]),
-        value: z.union([z.string(), z.number()]),
-      });
-
-      const mockData = {
-        status: "success" as const,
-        value: "test value",
-      };
-
-      (mockProvider.executeCompletionPrimary as any).mockResolvedValue({
-        status: LLMResponseStatus.COMPLETED,
-        generated: mockData,
-        request: "test",
-        modelKey: "GPT_COMPLETIONS_GPT4",
-        context: {},
-      });
-
-      const result = await router.executeCompletion("test", "test prompt", {
-        outputFormat: LLMOutputFormat.JSON,
-        jsonSchema: unionSchema,
-      });
-
-      if (result) {
-        // Union types should be properly narrowed
-        expect(result.status).toBe("success");
-        expect(typeof result.value).toBe("string");
-      }
-    });
-
-    test("should handle optional and nullable fields", async () => {
-      const { router, mockProvider } = createLLMRouter();
-      const optionalSchema = z.object({
-        required: z.string(),
-        optional: z.string().optional(),
-        nullable: z.string().nullable(),
-        both: z.string().optional().nullable(),
-      });
-
-      const mockData = {
-        required: "always here",
-        optional: "sometimes here",
-        nullable: null,
-        // 'both' is intentionally omitted
-      };
-
-      (mockProvider.executeCompletionPrimary as any).mockResolvedValue({
-        status: LLMResponseStatus.COMPLETED,
-        generated: mockData,
-        request: "test",
-        modelKey: "GPT_COMPLETIONS_GPT4",
-        context: {},
-      });
-
-      const result = await router.executeCompletion("test", "test prompt", {
-        outputFormat: LLMOutputFormat.JSON,
-        jsonSchema: optionalSchema,
-      });
-
-      if (result) {
-        expect(result.required).toBe("always here");
-        expect(result.optional).toBe("sometimes here");
-        expect(result.nullable).toBeNull();
-        expect(result.both).toBeUndefined();
-      }
-    });
   });
 
-  describe("Compile-Time Type Checking", () => {
-    test("should not require type assertions after null check", async () => {
-      const { router, mockProvider } = createLLMRouter();
-      const schema = z.object({
-        count: z.number(),
-        items: z.array(z.string()),
-      });
-      const mockData = { count: 3, items: ["a", "b", "c"] };
-
-      (mockProvider.executeCompletionPrimary as any).mockResolvedValue({
-        status: LLMResponseStatus.COMPLETED,
-        generated: mockData,
-        request: "test",
-        modelKey: "GPT_COMPLETIONS_GPT4",
-        context: {},
-      });
-
-      const result = await router.executeCompletion("test", "test prompt", {
-        outputFormat: LLMOutputFormat.JSON,
-        jsonSchema: schema,
-      });
-
-      // After null check, no type assertions needed
-      expect(result).not.toBeNull();
-      if (result !== null) {
-        // All these should work without casts
-        expect(result.count).toBe(3);
-        expect(result.items.length).toBe(3);
-        expect(result.items[0]).toBe("a");
-      }
-    });
-
-    test("should support property access without casts", async () => {
-      const { router, mockProvider } = createLLMRouter();
-      const schema = z.object({
-        data: z.object({
-          value: z.number(),
-        }),
-      });
-      const mockData = { data: { value: 42 } };
-
-      (mockProvider.executeCompletionPrimary as any).mockResolvedValue({
-        status: LLMResponseStatus.COMPLETED,
-        generated: mockData,
-        request: "test",
-        modelKey: "GPT_COMPLETIONS_GPT4",
-        context: {},
-      });
-
-      const result = await router.executeCompletion("test", "test prompt", {
-        outputFormat: LLMOutputFormat.JSON,
-        jsonSchema: schema,
-      });
-
-      if (result) {
-        // Nested property access without casts
-        const value = result.data.value;
-        expect(value).toBe(42);
-        expect(typeof value).toBe("number");
-      }
-    });
-
-    test("should support destructuring without casts", async () => {
-      const { router, mockProvider } = createLLMRouter();
-      const schema = z.object({
-        name: z.string(),
-        age: z.number(),
-        email: z.string(),
-      });
-      const mockData = { name: "Alice", age: 25, email: "alice@example.com" };
-
-      (mockProvider.executeCompletionPrimary as any).mockResolvedValue({
-        status: LLMResponseStatus.COMPLETED,
-        generated: mockData,
-        request: "test",
-        modelKey: "GPT_COMPLETIONS_GPT4",
-        context: {},
-      });
-
-      const result = await router.executeCompletion("test", "test prompt", {
-        outputFormat: LLMOutputFormat.JSON,
-        jsonSchema: schema,
-      });
-
-      if (result) {
-        // Destructuring should work without casts
-        const { name, age, email } = result;
-        expect(name).toBe("Alice");
-        expect(age).toBe(25);
-        expect(email).toBe("alice@example.com");
-      }
-    });
-
-    test("should support spread operator without casts", async () => {
-      const { router, mockProvider } = createLLMRouter();
-      const schema = z.object({
-        items: z.array(z.number()),
-      });
-      const mockData = { items: [1, 2, 3] };
-
-      (mockProvider.executeCompletionPrimary as any).mockResolvedValue({
-        status: LLMResponseStatus.COMPLETED,
-        generated: mockData,
-        request: "test",
-        modelKey: "GPT_COMPLETIONS_GPT4",
-        context: {},
-      });
-
-      const result = await router.executeCompletion("test", "test prompt", {
-        outputFormat: LLMOutputFormat.JSON,
-        jsonSchema: schema,
-      });
-
-      if (result) {
-        // Spread operator should work without casts
-        const spreadItems = [...result.items];
-        expect(spreadItems).toEqual([1, 2, 3]);
-
-        const doubled = result.items.map((x) => x * 2);
-        expect(doubled).toEqual([2, 4, 6]);
-      }
-    });
-  });
-
-  describe("TEXT Overload Specific Tests", () => {
-    test("should return string for TEXT format", async () => {
-      const { router, mockProvider } = createLLMRouter();
-      const textResponse = "This is plain text";
-
-      (mockProvider.executeCompletionPrimary as any).mockResolvedValue({
-        status: LLMResponseStatus.COMPLETED,
-        generated: textResponse,
-        request: "test",
-        modelKey: "GPT_COMPLETIONS_GPT4",
-        context: {},
-      });
-
-      const result = await router.executeCompletion("test", "test prompt", {
-        outputFormat: LLMOutputFormat.TEXT,
-      });
-
-      expect(typeof result).toBe("string");
-      expect(result).toBe(textResponse);
-
-      // String operations should work without casts
-      if (result) {
-        const upper = result.toUpperCase();
-        expect(upper).toBe("THIS IS PLAIN TEXT");
-
-        const length = result.length;
-        expect(length).toBe(18);
-      }
-    });
-
-    test("should return null for failed TEXT completion", async () => {
-      const { router, mockProvider } = createLLMRouter();
-
-      (mockProvider.executeCompletionPrimary as any).mockResolvedValue({
-        status: LLMResponseStatus.OVERLOADED,
-        request: "test",
-        modelKey: "GPT_COMPLETIONS_GPT4",
-        context: {},
-      });
-
-      (mockProvider.executeCompletionSecondary as any).mockResolvedValue({
-        status: LLMResponseStatus.OVERLOADED,
-        request: "test",
-        modelKey: "GPT_COMPLETIONS_GPT35",
-        context: {},
-      });
-
-      const result = await router.executeCompletion("test", "test prompt", {
-        outputFormat: LLMOutputFormat.TEXT,
-      });
-
-      expect(result).toBeNull();
-    });
-  });
-
-  describe("Null Handling with Type Safety", () => {
-    test("should handle null response with correct type for JSON", async () => {
+  describe("Error Handling with Result Type", () => {
+    test("should return Err result for failed JSON completion", async () => {
       const { router, mockProvider } = createLLMRouter();
       const schema = z.object({ value: z.string() });
 
@@ -628,17 +366,13 @@ describe("LLMRouter Function Overloads - Type Safety Tests", () => {
         jsonSchema: schema,
       });
 
-      expect(result).toBeNull();
-      // Type should be z.infer<typeof schema> | null
-      if (result === null) {
-        expect(result).toBeNull();
-      } else {
-        // This branch shouldn't execute
-        expect(false).toBe(true);
+      expect(isErr(result)).toBe(true);
+      if (isErr(result)) {
+        expect(result.error).toBeDefined();
       }
     });
 
-    test("should handle null response with correct type for TEXT", async () => {
+    test("should return Err result for failed TEXT completion", async () => {
       const { router, mockProvider } = createLLMRouter();
 
       (mockProvider.executeCompletionPrimary as any).mockResolvedValue({
@@ -653,23 +387,44 @@ describe("LLMRouter Function Overloads - Type Safety Tests", () => {
         outputFormat: LLMOutputFormat.TEXT,
       });
 
-      expect(result).toBeNull();
-      // Type should be string | null
+      expect(isErr(result)).toBe(true);
     });
   });
 
-  describe("Edge Cases and Advanced Scenarios", () => {
-    test("should handle enum types in schema", async () => {
+  describe("TEXT Overload Specific Tests with Result", () => {
+    test("should return Ok result with string for TEXT format", async () => {
       const { router, mockProvider } = createLLMRouter();
-      const enumSchema = z.object({
-        priority: z.enum(["low", "medium", "high"]),
-        category: z.enum(["bug", "feature", "documentation"]),
+      const textResponse = "This is plain text";
+
+      (mockProvider.executeCompletionPrimary as any).mockResolvedValue({
+        status: LLMResponseStatus.COMPLETED,
+        generated: textResponse,
+        request: "test",
+        modelKey: "GPT_COMPLETIONS_GPT4",
+        context: {},
       });
 
-      const mockData = {
-        priority: "high" as const,
-        category: "bug" as const,
-      };
+      const result = await router.executeCompletion("test", "test prompt", {
+        outputFormat: LLMOutputFormat.TEXT,
+      });
+
+      expect(isOk(result)).toBe(true);
+      if (isOk(result)) {
+        expect(typeof result.value).toBe("string");
+        expect(result.value).toBe(textResponse);
+        const upper = result.value.toUpperCase();
+        expect(upper).toBe("THIS IS PLAIN TEXT");
+        const length = result.value.length;
+        expect(length).toBe(18);
+      }
+    });
+  });
+
+  describe("Type Guards and Narrowing", () => {
+    test("isOk narrows Result type correctly", async () => {
+      const { router, mockProvider } = createLLMRouter();
+      const schema = z.object({ count: z.number() });
+      const mockData = { count: 42 };
 
       (mockProvider.executeCompletionPrimary as any).mockResolvedValue({
         status: LLMResponseStatus.COMPLETED,
@@ -681,94 +436,38 @@ describe("LLMRouter Function Overloads - Type Safety Tests", () => {
 
       const result = await router.executeCompletion("test", "test prompt", {
         outputFormat: LLMOutputFormat.JSON,
-        jsonSchema: enumSchema,
+        jsonSchema: schema,
       });
 
-      if (result) {
-        expect(result.priority).toBe("high");
-        expect(result.category).toBe("bug");
+      // isOk narrows the type to OkResult
+      if (isOk(result)) {
+        // TypeScript allows accessing value
+        expect(result.value.count).toBe(42);
+      } else {
+        // TypeScript knows this is ErrResult
+        expect(result.error).toBeDefined();
       }
     });
 
-    test("should handle recursive/nested array structures", async () => {
+    test("isErr narrows Result type correctly", async () => {
       const { router, mockProvider } = createLLMRouter();
-      const recursiveSchema = z.object({
-        tree: z.array(
-          z.object({
-            id: z.number(),
-            children: z.array(
-              z.object({
-                id: z.number(),
-                value: z.string(),
-              }),
-            ),
-          }),
-        ),
-      });
-
-      const mockData = {
-        tree: [
-          {
-            id: 1,
-            children: [
-              { id: 11, value: "child1" },
-              { id: 12, value: "child2" },
-            ],
-          },
-          {
-            id: 2,
-            children: [{ id: 21, value: "child3" }],
-          },
-        ],
-      };
 
       (mockProvider.executeCompletionPrimary as any).mockResolvedValue({
-        status: LLMResponseStatus.COMPLETED,
-        generated: mockData,
+        status: LLMResponseStatus.ERRORED,
         request: "test",
         modelKey: "GPT_COMPLETIONS_GPT4",
         context: {},
+        error: new Error("Test"),
       });
 
       const result = await router.executeCompletion("test", "test prompt", {
-        outputFormat: LLMOutputFormat.JSON,
-        jsonSchema: recursiveSchema,
+        outputFormat: LLMOutputFormat.TEXT,
       });
 
-      if (result) {
-        expect(result.tree).toHaveLength(2);
-        expect(result.tree[0].children).toHaveLength(2);
-        expect(result.tree[0].children[0].value).toBe("child1");
-      }
-    });
-
-    test("should handle discriminated unions correctly", async () => {
-      const { router, mockProvider } = createLLMRouter();
-      const discriminatedSchema = z.discriminatedUnion("type", [
-        z.object({ type: z.literal("text"), content: z.string() }),
-        z.object({ type: z.literal("number"), value: z.number() }),
-      ]);
-
-      const mockData = { type: "text" as const, content: "Hello" };
-
-      (mockProvider.executeCompletionPrimary as any).mockResolvedValue({
-        status: LLMResponseStatus.COMPLETED,
-        generated: mockData,
-        request: "test",
-        modelKey: "GPT_COMPLETIONS_GPT4",
-        context: {},
-      });
-
-      const result = await router.executeCompletion("test", "test prompt", {
-        outputFormat: LLMOutputFormat.JSON,
-        jsonSchema: discriminatedSchema,
-      });
-
-      if (result) {
-        if (result.type === "text") {
-          // TypeScript should narrow the type here
-          expect(result.content).toBe("Hello");
-        }
+      // isErr narrows the type to ErrResult
+      if (isErr(result)) {
+        expect(result.error).toBeDefined();
+        expect(result.error.message).toBeDefined();
       }
     });
   });

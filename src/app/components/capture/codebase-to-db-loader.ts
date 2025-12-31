@@ -13,6 +13,7 @@ import { getCanonicalFileType } from "./config/file-types.config";
 import type { SourcesRepository } from "../../repositories/sources/sources.repository.interface";
 import type { SourceRecord } from "../../repositories/sources/sources.model";
 import { repositoryTokens, llmTokens, captureTokens } from "../../di/tokens";
+import { isOk } from "../../../common/types/result.types";
 
 /**
  * Loads each source file into a class to represent it.
@@ -57,7 +58,7 @@ export default class CodebaseToDBLoader {
    * Loops through a list of file paths, loads each file's content, and prints the content.
    */
   private async processAndStoreFiles(
-    filepaths: string[],
+    filepaths: readonly string[],
     projectName: string,
     srcDirPath: string,
     skipIfAlreadyCaptured: boolean,
@@ -65,7 +66,7 @@ export default class CodebaseToDBLoader {
     console.log(
       `Creating metadata for ${filepaths.length} files to go into the MongoDB database sources collection`,
     );
-    let existingFiles = new Set<string>();
+    let existingFiles: ReadonlySet<string> = new Set<string>();
 
     if (skipIfAlreadyCaptured) {
       const existingFilePaths = await this.sourcesRepository.getProjectFilesPaths(projectName);
@@ -122,7 +123,7 @@ export default class CodebaseToDBLoader {
     projectName: string,
     srcDirPath: string,
     skipIfAlreadyCaptured: boolean,
-    existingFiles: Set<string>,
+    existingFiles: ReadonlySet<string>,
   ) {
     const fileType = getFileExtension(fullFilepath).toLowerCase();
 
@@ -181,15 +182,17 @@ export default class CodebaseToDBLoader {
     let summaryError: string | undefined;
     let summaryVector: number[] | undefined;
 
-    try {
-      summary = await this.fileSummarizer.summarize(filepath, type, content);
+    const summaryResult = await this.fileSummarizer.summarize(filepath, type, content);
+
+    if (isOk(summaryResult)) {
+      summary = summaryResult.value;
       const summaryVectorResult = await this.getContentEmbeddings(
         filepath,
         JSON.stringify(summary),
       );
       summaryVector = summaryVectorResult ?? undefined;
-    } catch (error: unknown) {
-      summaryError = `Failed to generate summary: ${error instanceof Error ? error.message : String(error)}`;
+    } else {
+      summaryError = `Failed to generate summary: ${summaryResult.error.message}`;
     }
 
     return { summary, summaryError, summaryVector };

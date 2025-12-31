@@ -16,6 +16,7 @@ import {
 import { getSchemaSpecificSanitizerConfig } from "../config/sanitizer.config";
 import { executeInsightCompletion } from "./completion-executor";
 import { chunkTextByTokenLimit } from "../../../../common/llm/utils/text-chunking";
+import { isOk } from "../../../../common/types/result.types";
 
 // Individual category schemas are simple and compatible with all LLM providers including VertexAI
 const CATEGORY_SCHEMA_IS_VERTEXAI_COMPATIBLE = true;
@@ -44,7 +45,7 @@ export class MapReduceCompletionStrategy implements ICompletionStrategy {
    */
   async generateInsights<C extends AppSummaryCategoryEnum>(
     category: C,
-    sourceFileSummaries: string[],
+    sourceFileSummaries: readonly string[],
   ): Promise<CategoryInsightResult<C> | null> {
     const categoryLabel = promptRegistry.appSummaries[category].label ?? category;
 
@@ -158,12 +159,19 @@ export class MapReduceCompletionStrategy implements ICompletionStrategy {
 
     try {
       // Use strongly-typed schema lookup - enables correct return type inference.
-      return (await this.llmRouter.executeCompletion(`${category}-reduce`, renderedPrompt, {
+      const result = await this.llmRouter.executeCompletion(`${category}-reduce`, renderedPrompt, {
         outputFormat: LLMOutputFormat.JSON,
         jsonSchema: schema,
         hasComplexSchema: !CATEGORY_SCHEMA_IS_VERTEXAI_COMPATIBLE,
         sanitizerConfig: getSchemaSpecificSanitizerConfig(),
-      })) as CategoryInsightResult<C> | null;
+      });
+      if (!isOk(result)) {
+        logOneLineWarning(
+          `LLM completion failed for ${config.label ?? category} reduce: ${result.error.message}`,
+        );
+        return null;
+      }
+      return result.value as CategoryInsightResult<C>;
     } catch (error: unknown) {
       logOneLineWarning(
         `Failed to consolidate partial insights for ${config.label ?? category}: ${error instanceof Error ? error.message : "Unknown error"}`,

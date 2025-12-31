@@ -11,6 +11,8 @@ import { LLMOutputFormat } from "../../../../../src/common/llm/types/llm.types";
 import { promptRegistry } from "../../../../../src/app/prompts/prompt-registry";
 const appSummaryPromptMetadata = promptRegistry.appSummaries;
 import { z } from "zod";
+import { ok, err } from "../../../../../src/common/types/result.types";
+import { LLMError, LLMErrorCode } from "../../../../../src/common/llm/types/llm-errors.types";
 
 describe("MapReduceCompletionStrategy", () => {
   let mockLLMRouter: jest.Mocked<LLMRouter>;
@@ -53,8 +55,8 @@ describe("MapReduceCompletionStrategy", () => {
 
       mockLLMRouter.executeCompletion = jest
         .fn()
-        .mockResolvedValueOnce(mockMapResponse) // Map phase
-        .mockResolvedValueOnce(mockReduceResponse); // Reduce phase
+        .mockResolvedValueOnce(ok(mockMapResponse)) // Map phase
+        .mockResolvedValueOnce(ok(mockReduceResponse)); // Reduce phase
 
       const result = await strategy.generateInsights(category, [
         "* file1.ts: purpose implementation",
@@ -64,10 +66,10 @@ describe("MapReduceCompletionStrategy", () => {
       expect(result).toEqual(mockReduceResponse);
     });
 
-    it("should return null when all map phases return null", async () => {
+    it("should return null when all map phases return err", async () => {
       const category: AppSummaryCategoryEnum = "technologies";
 
-      mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(null);
+      mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(err(new LLMError(LLMErrorCode.BAD_RESPONSE_CONTENT, "No response")));
 
       const result = await strategy.generateInsights(category, [
         "* file1.ts: purpose implementation",
@@ -77,7 +79,7 @@ describe("MapReduceCompletionStrategy", () => {
       expect(result).toBeNull();
     });
 
-    it("should return null when reduce phase returns null", async () => {
+    it("should return null when reduce phase returns err", async () => {
       const category: AppSummaryCategoryEnum = "technologies";
       // Use category-specific type for stronger typing
       const mockMapResponse = {
@@ -86,8 +88,8 @@ describe("MapReduceCompletionStrategy", () => {
 
       mockLLMRouter.executeCompletion = jest
         .fn()
-        .mockResolvedValueOnce(mockMapResponse)
-        .mockResolvedValueOnce(null); // Reduce returns null
+        .mockResolvedValueOnce(ok(mockMapResponse))
+        .mockResolvedValueOnce(err(new LLMError(LLMErrorCode.BAD_RESPONSE_CONTENT, "Reduce failed"))); // Reduce returns err
 
       const result = await strategy.generateInsights(category, [
         "* file1.ts: purpose implementation",
@@ -117,8 +119,8 @@ describe("MapReduceCompletionStrategy", () => {
 
       mockLLMRouter.executeCompletion = jest
         .fn()
-        .mockResolvedValueOnce(mockResponse)
-        .mockResolvedValueOnce(mockResponse);
+        .mockResolvedValueOnce(ok(mockResponse))
+        .mockResolvedValueOnce(ok(mockResponse));
 
       const result = await strategy.generateInsights(category, [
         "* file1.ts: purpose implementation",
@@ -141,8 +143,8 @@ describe("MapReduceCompletionStrategy", () => {
 
       mockLLMRouter.executeCompletion = jest
         .fn()
-        .mockResolvedValueOnce(mockResponse)
-        .mockResolvedValueOnce(mockResponse);
+        .mockResolvedValueOnce(ok(mockResponse))
+        .mockResolvedValueOnce(ok(mockResponse));
 
       const result = await strategy.generateInsights(category, ["* file1.ts: implementation"]);
 
@@ -163,8 +165,8 @@ describe("MapReduceCompletionStrategy", () => {
 
       mockLLMRouter.executeCompletion = jest
         .fn()
-        .mockResolvedValueOnce(mockResponse)
-        .mockResolvedValueOnce(mockResponse);
+        .mockResolvedValueOnce(ok(mockResponse))
+        .mockResolvedValueOnce(ok(mockResponse));
 
       const result = await strategy.generateInsights(category, ["* file1.ts: implementation"]);
 
@@ -186,8 +188,8 @@ describe("MapReduceCompletionStrategy", () => {
 
       mockLLMRouter.executeCompletion = jest
         .fn()
-        .mockResolvedValueOnce(mockResponse)
-        .mockResolvedValueOnce(mockResponse);
+        .mockResolvedValueOnce(ok(mockResponse))
+        .mockResolvedValueOnce(ok(mockResponse));
 
       await strategy.generateInsights(category, ["* file1.ts: implementation"]);
 
@@ -212,8 +214,8 @@ describe("MapReduceCompletionStrategy", () => {
 
       mockLLMRouter.executeCompletion = jest
         .fn()
-        .mockResolvedValueOnce(mockResponse)
-        .mockResolvedValueOnce(mockResponse);
+        .mockResolvedValueOnce(ok(mockResponse))
+        .mockResolvedValueOnce(ok(mockResponse));
 
       await strategy.generateInsights(category, ["* file1.ts: implementation"]);
 
@@ -240,8 +242,8 @@ describe("MapReduceCompletionStrategy", () => {
 
       mockLLMRouter.executeCompletion = jest
         .fn()
-        .mockResolvedValueOnce(mockResponse)
-        .mockResolvedValueOnce(mockResponse);
+        .mockResolvedValueOnce(ok(mockResponse))
+        .mockResolvedValueOnce(ok(mockResponse));
 
       // This should compile without any type assertions
       // The result is strongly typed based on the category
@@ -278,8 +280,8 @@ describe("MapReduceCompletionStrategy", () => {
 
         mockLLMRouter.executeCompletion = jest
           .fn()
-          .mockResolvedValueOnce(mockResponse)
-          .mockResolvedValueOnce(mockResponse);
+          .mockResolvedValueOnce(ok(mockResponse))
+          .mockResolvedValueOnce(ok(mockResponse));
 
         const result = await strategy.generateInsights(category, ["* file1.ts: implementation"]);
 
@@ -304,8 +306,8 @@ describe("MapReduceCompletionStrategy", () => {
 
       mockLLMRouter.executeCompletion = jest
         .fn()
-        .mockResolvedValueOnce(mockResponse)
-        .mockResolvedValueOnce(mockResponse);
+        .mockResolvedValueOnce(ok(mockResponse))
+        .mockResolvedValueOnce(ok(mockResponse));
 
       const result = await strategy.generateInsights("technologies", [
         "* file1.ts: implementation",
@@ -329,8 +331,8 @@ describe("MapReduceCompletionStrategy", () => {
 
       mockLLMRouter.executeCompletion = jest
         .fn()
-        .mockResolvedValueOnce(mockResponse)
-        .mockResolvedValueOnce(mockResponse);
+        .mockResolvedValueOnce(ok(mockResponse))
+        .mockResolvedValueOnce(ok(mockResponse));
 
       const result = await strategy.generateInsights("technologies", [
         "* file1.ts: implementation",
@@ -363,8 +365,8 @@ describe("MapReduceCompletionStrategy", () => {
 
       mockLLMRouter.executeCompletion = jest
         .fn()
-        .mockResolvedValueOnce(mockResponse)
-        .mockResolvedValueOnce(mockResponse);
+        .mockResolvedValueOnce(ok(mockResponse))
+        .mockResolvedValueOnce(ok(mockResponse));
 
       const result = await strategy.generateInsights("boundedContexts", [
         "* file1.ts: implementation",
@@ -392,8 +394,8 @@ describe("MapReduceCompletionStrategy", () => {
 
       mockLLMRouter.executeCompletion = jest
         .fn()
-        .mockResolvedValueOnce(mapResponse)
-        .mockResolvedValueOnce(reduceResponse);
+        .mockResolvedValueOnce(ok(mapResponse))
+        .mockResolvedValueOnce(ok(reduceResponse));
 
       const result = await strategy.generateInsights("technologies", [
         "* file1.ts: implementation",
@@ -421,8 +423,8 @@ describe("MapReduceCompletionStrategy", () => {
 
       mockLLMRouter.executeCompletion = jest
         .fn()
-        .mockResolvedValueOnce(mockResponse)
-        .mockResolvedValueOnce(mockResponse);
+        .mockResolvedValueOnce(ok(mockResponse))
+        .mockResolvedValueOnce(ok(mockResponse));
 
       const result = await strategy.generateInsights("businessProcesses", [
         "* file1.ts: implementation",
@@ -452,8 +454,8 @@ describe("MapReduceCompletionStrategy", () => {
       // The map phase returns partialResult1, then reduce combines and returns finalResult
       mockLLMRouter.executeCompletion = jest
         .fn()
-        .mockResolvedValueOnce(partialResult1) // Map phase for chunk 1
-        .mockResolvedValueOnce(finalResult); // Reduce phase
+        .mockResolvedValueOnce(ok(partialResult1)) // Map phase for chunk 1
+        .mockResolvedValueOnce(ok(finalResult)); // Reduce phase
 
       const result = await strategy.generateInsights("technologies", [
         "* file1.ts: implementation",
@@ -478,8 +480,8 @@ describe("MapReduceCompletionStrategy", () => {
 
       mockLLMRouter.executeCompletion = jest
         .fn()
-        .mockResolvedValueOnce(mockMapResponse)
-        .mockResolvedValueOnce(mockReduceResponse);
+        .mockResolvedValueOnce(ok(mockMapResponse))
+        .mockResolvedValueOnce(ok(mockReduceResponse));
 
       const result = await strategy.generateInsights("boundedContexts", [
         "* file1.ts: implementation",
@@ -501,8 +503,8 @@ describe("MapReduceCompletionStrategy", () => {
 
       mockLLMRouter.executeCompletion = jest
         .fn()
-        .mockResolvedValueOnce(mockResponse)
-        .mockResolvedValueOnce(mockResponse);
+        .mockResolvedValueOnce(ok(mockResponse))
+        .mockResolvedValueOnce(ok(mockResponse));
 
       const result = await strategy.generateInsights("businessProcesses", [
         "* file1.ts: implementation",
@@ -576,9 +578,9 @@ describe("MapReduceCompletionStrategy", () => {
 
       mockLLMRouter.executeCompletion = jest
         .fn()
-        .mockResolvedValueOnce(partialResult1) // Map phase chunk 1
-        .mockResolvedValueOnce(partialResult2) // Map phase chunk 2
-        .mockResolvedValueOnce(consolidatedResult); // Reduce phase
+        .mockResolvedValueOnce(ok(partialResult1)) // Map phase chunk 1
+        .mockResolvedValueOnce(ok(partialResult2)) // Map phase chunk 2
+        .mockResolvedValueOnce(ok(consolidatedResult)); // Reduce phase
 
       const result = await strategy.generateInsights("technologies", [longSummary1, longSummary2]);
 
@@ -609,8 +611,8 @@ describe("MapReduceCompletionStrategy", () => {
 
       mockLLMRouter.executeCompletion = jest
         .fn()
-        .mockResolvedValueOnce(mockMapResponse)
-        .mockResolvedValueOnce(mockReduceResponse);
+        .mockResolvedValueOnce(ok(mockMapResponse))
+        .mockResolvedValueOnce(ok(mockReduceResponse));
 
       const result = await strategy.generateInsights("technologies", [
         "* file1.ts: implementation",
@@ -684,9 +686,9 @@ describe("MapReduceCompletionStrategy", () => {
 
       mockLLMRouter.executeCompletion = jest
         .fn()
-        .mockResolvedValueOnce(partialResult1)
-        .mockResolvedValueOnce(partialResult2)
-        .mockResolvedValueOnce(consolidatedResult);
+        .mockResolvedValueOnce(ok(partialResult1))
+        .mockResolvedValueOnce(ok(partialResult2))
+        .mockResolvedValueOnce(ok(consolidatedResult));
 
       const result = await strategy.generateInsights("potentialMicroservices", [
         longSummary1,
@@ -795,9 +797,9 @@ describe("MapReduceCompletionStrategy", () => {
 
       mockLLMRouter.executeCompletion = jest
         .fn()
-        .mockResolvedValueOnce(partialResult1)
-        .mockResolvedValueOnce(partialResult2)
-        .mockResolvedValueOnce(consolidatedResult);
+        .mockResolvedValueOnce(ok(partialResult1))
+        .mockResolvedValueOnce(ok(partialResult2))
+        .mockResolvedValueOnce(ok(consolidatedResult));
 
       const result = await strategy.generateInsights("boundedContexts", [
         longSummary1,
@@ -841,9 +843,9 @@ describe("MapReduceCompletionStrategy", () => {
 
       mockLLMRouter.executeCompletion = jest
         .fn()
-        .mockResolvedValueOnce(partialResult1)
-        .mockResolvedValueOnce(partialResult2)
-        .mockResolvedValueOnce(consolidatedResult);
+        .mockResolvedValueOnce(ok(partialResult1))
+        .mockResolvedValueOnce(ok(partialResult2))
+        .mockResolvedValueOnce(ok(consolidatedResult));
 
       const result = await strategy.generateInsights("technologies", [longSummary1, longSummary2]);
 
@@ -891,8 +893,8 @@ describe("MapReduceCompletionStrategy", () => {
 
       mockLLMRouter.executeCompletion = jest
         .fn()
-        .mockResolvedValueOnce(partialResult)
-        .mockResolvedValueOnce(consolidatedResult);
+        .mockResolvedValueOnce(ok(partialResult))
+        .mockResolvedValueOnce(ok(consolidatedResult));
 
       const result = await strategy.generateInsights("businessProcesses", [
         "* file1.ts: implementation",

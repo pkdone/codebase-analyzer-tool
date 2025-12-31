@@ -6,6 +6,8 @@ import LLMRouter from "../../../../../src/common/llm/llm-router";
 import { LLMOutputFormat } from "../../../../../src/common/llm/types/llm.types";
 import { llmProviderConfig } from "../../../../../src/common/llm/config/llm.config";
 import * as logging from "../../../../../src/common/utils/logging";
+import { ok, err } from "../../../../../src/common/types/result.types";
+import { LLMError, LLMErrorCode } from "../../../../../src/common/llm/types/llm-errors.types";
 
 // Mock the logging utilities
 jest.mock("../../../../../src/common/utils/logging", () => ({
@@ -117,7 +119,7 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
       const summaries = ["Summary 1", "Summary 2"];
       const mockResponse = { technologies: [{ name: "Entity1", description: "Test entity" }] };
 
-      (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(mockResponse);
+      (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(ok(mockResponse));
 
       await (generator as any).generateAndRecordDataForCategory("technologies", summaries);
 
@@ -153,11 +155,11 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
       };
 
       // Mock partial results for MAP phase and final result for REDUCE phase
-      (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(mockPartialResult);
+      (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(ok(mockPartialResult));
       // Override the last call to return the final result
-      (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValueOnce(mockPartialResult);
-      (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValueOnce(mockPartialResult);
-      (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValueOnce(mockFinalResult);
+      (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValueOnce(ok(mockPartialResult));
+      (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValueOnce(ok(mockPartialResult));
+      (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValueOnce(ok(mockFinalResult));
 
       await (generator as any).generateAndRecordDataForCategory("technologies", summaries);
 
@@ -188,11 +190,11 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
       const largeSummary = "x".repeat(Math.floor(charsPerChunk * 0.9));
       const summaries = [largeSummary, largeSummary];
 
-      // First chunk returns valid result, second chunk returns null
+      // First chunk returns valid result, second chunk returns err
       (mockLLMRouter.executeCompletion as jest.Mock)
-        .mockResolvedValueOnce({ technologies: [{ name: "Entity1", description: "Test" }] })
-        .mockResolvedValueOnce(null)
-        .mockResolvedValueOnce({ technologies: [{ name: "Entity1", description: "Final" }] });
+        .mockResolvedValueOnce(ok({ technologies: [{ name: "Entity1", description: "Test" }] }))
+        .mockResolvedValueOnce(err(new LLMError(LLMErrorCode.BAD_RESPONSE_CONTENT, "No response")))
+        .mockResolvedValueOnce(ok({ technologies: [{ name: "Entity1", description: "Final" }] }));
 
       await (generator as any).generateAndRecordDataForCategory("technologies", summaries);
 
@@ -203,14 +205,14 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
       );
     });
 
-    it("should skip REDUCE if all partial results are null", async () => {
+    it("should skip REDUCE if all partial results are err", async () => {
       const tokenLimitPerChunk = 128000 * 0.7;
       const charsPerChunk = tokenLimitPerChunk * llmProviderConfig.AVERAGE_CHARS_PER_TOKEN;
       const largeSummary = "x".repeat(Math.floor(charsPerChunk * 0.9));
       const summaries = [largeSummary, largeSummary];
 
-      // All chunks return null
-      (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(null);
+      // All chunks return err
+      (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(err(new LLMError(LLMErrorCode.BAD_RESPONSE_CONTENT, "No response")));
 
       await (generator as any).generateAndRecordDataForCategory("technologies", summaries);
 
@@ -221,7 +223,7 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
       );
     });
 
-    it("should handle REDUCE phase returning null", async () => {
+    it("should handle REDUCE phase returning err", async () => {
       const tokenLimitPerChunk = 128000 * 0.7;
       const charsPerChunk = tokenLimitPerChunk * llmProviderConfig.AVERAGE_CHARS_PER_TOKEN;
       const largeSummary = "x".repeat(Math.floor(charsPerChunk * 0.9));
@@ -229,9 +231,9 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
 
       // MAP phase succeeds, REDUCE phase fails
       (mockLLMRouter.executeCompletion as jest.Mock)
-        .mockResolvedValueOnce({ technologies: [{ name: "Entity1", description: "Test" }] })
-        .mockResolvedValueOnce({ technologies: [{ name: "Entity2", description: "Test" }] })
-        .mockResolvedValueOnce(null); // REDUCE fails
+        .mockResolvedValueOnce(ok({ technologies: [{ name: "Entity1", description: "Test" }] }))
+        .mockResolvedValueOnce(ok({ technologies: [{ name: "Entity2", description: "Test" }] }))
+        .mockResolvedValueOnce(err(new LLMError(LLMErrorCode.BAD_RESPONSE_CONTENT, "REDUCE failed"))); // REDUCE fails
 
       await (generator as any).generateAndRecordDataForCategory("technologies", summaries);
 
@@ -269,9 +271,9 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
       ]);
 
       // Mock LLM responses for all categories
-      (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue({
+      (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(ok({
         entities: [{ name: "Entity1", description: "Test" }],
-      });
+      }));
 
       await generator.generateAndStoreInsights();
 

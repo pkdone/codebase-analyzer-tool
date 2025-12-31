@@ -7,6 +7,8 @@ import type { AppSummariesRepository } from "../../../../../src/app/repositories
 import type { EnvVars } from "../../../../../src/app/env/env.types";
 import { LLMOutputFormat } from "../../../../../src/common/llm/types/llm.types";
 import { appSummaryRecordCategoriesSchema } from "../../../../../src/app/components/insights/insights.types";
+import { ok, err } from "../../../../../src/common/types/result.types";
+import { LLMError, LLMErrorCode } from "../../../../../src/common/llm/types/llm-errors.types";
 
 // Mock dependencies
 jest.mock("../../../../../src/common/utils/logging", () => ({
@@ -94,7 +96,7 @@ describe("InsightsFromRawCodeGenerator - Type Inference", () => {
         ],
       };
 
-      (mockLLMRouter.executeCompletion as any).mockResolvedValue(mockResponse);
+      (mockLLMRouter.executeCompletion as any).mockResolvedValue(ok(mockResponse));
 
       await generator.generateAndStoreInsights();
 
@@ -126,7 +128,7 @@ describe("InsightsFromRawCodeGenerator - Type Inference", () => {
         // Other categories intentionally omitted
       };
 
-      (mockLLMRouter.executeCompletion as any).mockResolvedValue(partialResponse);
+      (mockLLMRouter.executeCompletion as any).mockResolvedValue(ok(partialResponse));
 
       await generator.generateAndStoreInsights();
 
@@ -147,7 +149,7 @@ describe("InsightsFromRawCodeGenerator - Type Inference", () => {
         technologies: [{ name: "TypeScript", description: "TypeScript language" }],
       };
 
-      (mockLLMRouter.executeCompletion as any).mockResolvedValue(mockResponse);
+      (mockLLMRouter.executeCompletion as any).mockResolvedValue(ok(mockResponse));
 
       await generator.generateAndStoreInsights();
 
@@ -185,7 +187,7 @@ describe("InsightsFromRawCodeGenerator - Type Inference", () => {
         technologies: [{ name: "TypeScript", description: "TypeScript language" }],
       };
 
-      (mockLLMRouter.executeCompletion as any).mockResolvedValue(mockResponse);
+      (mockLLMRouter.executeCompletion as any).mockResolvedValue(ok(mockResponse));
 
       await generator.generateAndStoreInsights();
 
@@ -198,8 +200,10 @@ describe("InsightsFromRawCodeGenerator - Type Inference", () => {
       );
     });
 
-    test("should handle null response gracefully", async () => {
-      mockLLMRouter.executeCompletion.mockResolvedValue(null);
+    test("should handle error response gracefully", async () => {
+      mockLLMRouter.executeCompletion.mockResolvedValue(
+        err(new LLMError(LLMErrorCode.BAD_RESPONSE_CONTENT, "Mock error")),
+      );
 
       await generator.generateAndStoreInsights();
 
@@ -234,7 +238,7 @@ describe("InsightsFromRawCodeGenerator - Type Inference", () => {
         ],
       };
 
-      (mockLLMRouter.executeCompletion as any).mockResolvedValue(mockResponse);
+      (mockLLMRouter.executeCompletion as any).mockResolvedValue(ok(mockResponse));
 
       await generator.generateAndStoreInsights();
 
@@ -252,7 +256,7 @@ describe("InsightsFromRawCodeGenerator - Type Inference", () => {
         entities: [],
       };
 
-      (mockLLMRouter.executeCompletion as any).mockResolvedValue(mockResponse);
+      (mockLLMRouter.executeCompletion as any).mockResolvedValue(ok(mockResponse));
 
       await generator.generateAndStoreInsights();
 
@@ -273,7 +277,7 @@ describe("InsightsFromRawCodeGenerator - Type Inference", () => {
         technologies: [{ name: "TypeScript", description: "TypeScript language" }],
       };
 
-      (mockLLMRouter.executeCompletion as any).mockResolvedValue(mockResponse);
+      (mockLLMRouter.executeCompletion as any).mockResolvedValue(ok(mockResponse));
 
       await generator.generateAndStoreInsights();
 

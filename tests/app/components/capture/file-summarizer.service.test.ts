@@ -8,7 +8,8 @@ import type LLMRouter from "../../../../src/common/llm/llm-router";
 import type { PromptRegistry } from "../../../../src/app/prompts/prompt-registry";
 import type { SourceConfigMap } from "../../../../src/app/prompts/definitions/sources/sources.config";
 import { z } from "zod";
-import { LLMError } from "../../../../src/common/llm/types/llm-errors.types";
+import { LLMError, LLMErrorCode } from "../../../../src/common/llm/types/llm-errors.types";
+import { ok, err, isOk, isErr } from "../../../../src/common/types/result.types";
 
 // Mock dependencies
 jest.mock("../../../../src/common/utils/logging", () => ({
@@ -81,13 +82,16 @@ describe("FileSummarizerService", () => {
   });
 
   describe("summarize", () => {
-    it("should return summary when LLM returns valid response", async () => {
+    it("should return ok result with summary when LLM returns valid response", async () => {
       const mockResponse = { name: "TestClass", purpose: "Test purpose" };
-      (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(mockResponse);
+      (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(ok(mockResponse));
 
       const result = await service.summarize("test.js", "js", "const x = 1;");
 
-      expect(result).toEqual(mockResponse);
+      expect(isOk(result)).toBe(true);
+      if (isOk(result)) {
+        expect(result.value).toEqual(mockResponse);
+      }
       expect(mockLLMRouter.executeCompletion).toHaveBeenCalledWith(
         "test.js",
         "rendered prompt",
@@ -98,30 +102,40 @@ describe("FileSummarizerService", () => {
       );
     });
 
-    it("should throw error when file content is empty", async () => {
-      await expect(service.summarize("test.js", "js", "   ")).rejects.toThrow("File is empty");
+    it("should return err result when file content is empty", async () => {
+      const result = await service.summarize("test.js", "js", "   ");
+
+      expect(isErr(result)).toBe(true);
+      if (isErr(result)) {
+        expect(result.error.message).toContain("empty");
+      }
     });
 
-    it("should throw LLMError when LLM returns null", async () => {
-      (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(null);
+    it("should return err result when LLM returns err", async () => {
+      (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(err(new LLMError(LLMErrorCode.BAD_RESPONSE_CONTENT, "No response")));
 
-      await expect(service.summarize("test.js", "js", "const x = 1;")).rejects.toThrow(LLMError);
+      const result = await service.summarize("test.js", "js", "const x = 1;");
+
+      expect(isErr(result)).toBe(true);
     });
 
-    it("should propagate errors from LLM router", async () => {
+    it("should return err result when LLM router throws error", async () => {
       const error = new Error("LLM failed");
       (mockLLMRouter.executeCompletion as jest.Mock).mockRejectedValue(error);
 
-      await expect(service.summarize("test.js", "js", "const x = 1;")).rejects.toThrow(
-        "LLM failed",
-      );
+      const result = await service.summarize("test.js", "js", "const x = 1;");
+
+      expect(isErr(result)).toBe(true);
+      if (isErr(result)) {
+        expect(result.error.message).toContain("LLM failed");
+      }
     });
 
     it("should use correct schema from source config map", async () => {
-      (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue({
+      (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(ok({
         name: "Test",
         purpose: "Test",
-      });
+      }));
 
       await service.summarize("test.js", "js", "const x = 1;");
 

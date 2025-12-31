@@ -37,7 +37,7 @@ export interface TextChunkingConfig {
  * console.log(`Split into ${chunks.length} chunks`);
  * ```
  */
-export function chunkTextByTokenLimit(items: string[], config: TextChunkingConfig): string[][] {
+export function chunkTextByTokenLimit(items: readonly string[], config: TextChunkingConfig): string[][] {
   const chunks: string[][] = [];
   let currentChunk: string[] = [];
   let currentTokenCount = 0;
@@ -75,7 +75,7 @@ export function chunkTextByTokenLimit(items: string[], config: TextChunkingConfi
 
   // Edge case: if no chunks were created but we have items, force a single chunk
   if (chunks.length === 0 && items.length > 0) {
-    chunks.push(items);
+    chunks.push([...items]);
   }
 
   return chunks;

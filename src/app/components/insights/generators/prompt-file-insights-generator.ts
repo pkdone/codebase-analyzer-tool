@@ -18,6 +18,7 @@ import { LLMOutputFormat } from "../../../../common/llm/types/llm.types";
 import { formatDirectoryAsMarkdown } from "../../../../common/utils/directory-to-markdown";
 import { formatDateForFilename } from "../../../../common/utils/date-utils";
 import { inputConfig } from "../../../prompts/config/input.config";
+import { isOk } from "../../../../common/types/result.types";
 
 /**
  * Interface to define the filename and question of a file requirement prompt
@@ -80,15 +81,15 @@ export class PromptFileInsightsGenerator {
     let response = "";
 
     try {
-      const executionResult = await this.llmRouter.executeCompletion(resource, fullPrompt, {
+      const result = await this.llmRouter.executeCompletion(resource, fullPrompt, {
         outputFormat: LLMOutputFormat.TEXT,
       });
 
-      if (executionResult === null) {
-        response = "No response received from LLM.";
+      if (!isOk(result)) {
+        response = `LLM completion failed: ${result.error.message}`;
       } else {
         // Type-safe: return type correctly infers string for TEXT output format
-        response = executionResult;
+        response = result.value;
       }
     } catch (error: unknown) {
       logOneLineError("Problem introspecting and processing source files", error);

@@ -7,6 +7,8 @@ import {
   type AppSummaryCategorySchemas,
 } from "../../../../../src/app/components/insights/insights.types";
 import { z } from "zod";
+import { ok, err } from "../../../../../src/common/types/result.types";
+import { LLMError, LLMErrorCode } from "../../../../../src/common/llm/types/llm-errors.types";
 
 /**
  * Test suite to verify type inference improvements in completion-executor.ts
@@ -32,7 +34,7 @@ describe("completion-executor type inference improvements", () => {
         appDescription: "A comprehensive application for managing user data",
       };
 
-      mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(mockResponse);
+      mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(ok(mockResponse));
 
       const result = await executeInsightCompletion(mockLLMRouter, category, [
         "* file1.ts: User management",
@@ -56,7 +58,7 @@ describe("completion-executor type inference improvements", () => {
         ],
       };
 
-      mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(mockResponse);
+      mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(ok(mockResponse));
 
       const result = await executeInsightCompletion(mockLLMRouter, category, [
         "* file1.ts: Implementation",
@@ -81,7 +83,7 @@ describe("completion-executor type inference improvements", () => {
         ],
       };
 
-      mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(mockResponse);
+      mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(ok(mockResponse));
 
       const result = await executeInsightCompletion(mockLLMRouter, category, [
         "* file1.ts: Entity definitions",
@@ -108,7 +110,7 @@ describe("completion-executor type inference improvements", () => {
         ],
       };
 
-      mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(mockResponse);
+      mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(ok(mockResponse));
 
       const result = await executeInsightCompletion(mockLLMRouter, category, [
         "* file1.ts: Context implementation",
@@ -131,7 +133,7 @@ describe("completion-executor type inference improvements", () => {
         ],
       };
 
-      mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(mockResponse);
+      mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(ok(mockResponse));
 
       const result = await executeInsightCompletion(mockLLMRouter, category, [
         "* file1.ts: Process flows",
@@ -164,7 +166,7 @@ describe("completion-executor type inference improvements", () => {
         ],
       };
 
-      mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(mockResponse);
+      mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(ok(mockResponse));
 
       const result = await executeInsightCompletion(mockLLMRouter, category, [
         "* file1.ts: Aggregate roots",
@@ -194,7 +196,7 @@ describe("completion-executor type inference improvements", () => {
         ],
       };
 
-      mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(mockResponse);
+      mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(ok(mockResponse));
 
       const result = await executeInsightCompletion(mockLLMRouter, category, [
         "* file1.ts: Business process implementations",
@@ -217,7 +219,7 @@ describe("completion-executor type inference improvements", () => {
         ],
       };
 
-      mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(mockResponse);
+      mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(ok(mockResponse));
 
       const result = await executeInsightCompletion(mockLLMRouter, category, [
         "* file1.ts: Service boundaries",
@@ -239,7 +241,7 @@ describe("completion-executor type inference improvements", () => {
         technologies: [{ name: "Node.ts", description: "JavaScript runtime" }],
       };
 
-      mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(mockResponse);
+      mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(ok(mockResponse));
 
       // Call executeInsightCompletion
       const result = await executeInsightCompletion(mockLLMRouter, category, [
@@ -271,7 +273,7 @@ describe("completion-executor type inference improvements", () => {
       const category: AppSummaryCategoryEnum = "appDescription";
       const mockResponse = { appDescription: "Test application" };
 
-      mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(mockResponse);
+      mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(ok(mockResponse));
 
       const result = await executeInsightCompletion(mockLLMRouter, category, [
         "* file1.ts: Implementation",
@@ -293,7 +295,7 @@ describe("completion-executor type inference improvements", () => {
         ],
       };
 
-      mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(mockResponse);
+      mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(ok(mockResponse));
 
       const result = await executeInsightCompletion(mockLLMRouter, category, [
         "* file1.ts: Entities",
@@ -309,10 +311,10 @@ describe("completion-executor type inference improvements", () => {
   });
 
   describe("null handling with type safety", () => {
-    it("should return null with correct type when LLM returns null", async () => {
+    it("should return null with correct type when LLM returns err", async () => {
       const category: AppSummaryCategoryEnum = "appDescription";
 
-      mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(null);
+      mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(err(new LLMError(LLMErrorCode.BAD_RESPONSE_CONTENT, "No response")));
 
       const result = await executeInsightCompletion(mockLLMRouter, category, [
         "* file1.ts: Implementation",
@@ -351,7 +353,7 @@ describe("completion-executor type inference improvements", () => {
         technologies: [{ name: "TypeScript", description: "Typed JS" }],
       };
 
-      mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(mockResponse);
+      mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(ok(mockResponse));
 
       const result = await executeInsightCompletion(
         mockLLMRouter,
@@ -381,7 +383,7 @@ describe("completion-executor type inference improvements", () => {
         technologies: [{ name: "Entity1", description: "Description" }],
       };
 
-      mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(mockResponse);
+      mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(ok(mockResponse));
 
       const result = await executeInsightCompletion(
         mockLLMRouter,
@@ -407,7 +409,7 @@ describe("completion-executor type inference improvements", () => {
         cat: C,
         mockResp: z.infer<AppSummaryCategorySchemas[C]>,
       ): Promise<void> {
-        mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(mockResp);
+        mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(ok(mockResp));
 
         const result = await executeInsightCompletion(mockLLMRouter, cat, [
           "* file1.ts: Implementation",
@@ -441,7 +443,7 @@ describe("completion-executor type inference improvements", () => {
         technologies: [{ name: "TypeScript", description: "Typed JS" }],
       };
 
-      mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(mockResponse);
+      mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(ok(mockResponse));
 
       const result = await executeInsightCompletion(mockLLMRouter, category, [
         "* file1.ts: Implementation",
@@ -460,7 +462,7 @@ describe("completion-executor type inference improvements", () => {
       const category: AppSummaryCategoryEnum = "appDescription";
       const mockResponse = { appDescription: "Description text" };
 
-      mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(mockResponse);
+      mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(ok(mockResponse));
 
       const result = await executeInsightCompletion(mockLLMRouter, category, [
         "* file1.ts: Implementation",
@@ -479,7 +481,7 @@ describe("completion-executor type inference improvements", () => {
         technologies: [{ name: "Tech1", description: "Desc1" }],
       };
 
-      mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(mockResponse);
+      mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(ok(mockResponse));
 
       const result = await executeInsightCompletion(mockLLMRouter, category, [
         "* file1.ts: Implementation",
@@ -505,7 +507,7 @@ describe("completion-executor type inference improvements", () => {
         ],
       };
 
-      mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(mockResponse);
+      mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(ok(mockResponse));
 
       const result = await executeInsightCompletion(mockLLMRouter, category, [
         "* file1.ts: Implementation",
@@ -528,7 +530,7 @@ describe("completion-executor type inference improvements", () => {
         ],
       };
 
-      mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(mockResponse);
+      mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(ok(mockResponse));
 
       const result = await executeInsightCompletion(mockLLMRouter, category, [
         "* file1.ts: Implementation",
@@ -548,7 +550,7 @@ describe("completion-executor type inference improvements", () => {
       const category: AppSummaryCategoryEnum = "appDescription";
       const mockResponse = { appDescription: "Test description" };
 
-      mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(mockResponse);
+      mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(ok(mockResponse));
 
       const result = await executeInsightCompletion(mockLLMRouter, category, [
         "* file1.ts: Implementation",

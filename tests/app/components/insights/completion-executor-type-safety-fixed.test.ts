@@ -6,6 +6,8 @@ import { appSummaryCategorySchemas } from "../../../../src/app/components/insigh
 import { AppSummaryCategories } from "../../../../src/app/schemas/app-summaries.schema";
 import LLMRouter from "../../../../src/common/llm/llm-router";
 import { LLMOutputFormat } from "../../../../src/common/llm/types/llm.types";
+import { ok, err } from "../../../../src/common/types/result.types";
+import { LLMError, LLMErrorCode } from "../../../../src/common/llm/types/llm-errors.types";
 
 // Mock dependencies
 jest.mock("../../../../src/common/utils/logging", () => ({
@@ -37,7 +39,7 @@ describe("Completion Executor Type Safety - Post Fix", () => {
         ],
       };
 
-      mockLLMRouter.executeCompletion.mockResolvedValue(mockTechnologiesData as any);
+      mockLLMRouter.executeCompletion.mockResolvedValue(ok(mockTechnologiesData) as any);
 
       const result = await executeInsightCompletion(
         mockLLMRouter,
@@ -96,7 +98,7 @@ describe("Completion Executor Type Safety - Post Fix", () => {
         ],
       };
 
-      mockLLMRouter.executeCompletion.mockResolvedValue(mockBoundedContextsData as any);
+      mockLLMRouter.executeCompletion.mockResolvedValue(ok(mockBoundedContextsData) as any);
 
       const result = await executeInsightCompletion(
         mockLLMRouter,
@@ -144,7 +146,7 @@ describe("Completion Executor Type Safety - Post Fix", () => {
         ],
       };
 
-      mockLLMRouter.executeCompletion.mockResolvedValue(mockBoundedContextsData as any);
+      mockLLMRouter.executeCompletion.mockResolvedValue(ok(mockBoundedContextsData) as any);
 
       const result = await executeInsightCompletion(
         mockLLMRouter,
@@ -170,7 +172,7 @@ describe("Completion Executor Type Safety - Post Fix", () => {
         ],
       };
 
-      mockLLMRouter.executeCompletion.mockResolvedValue(mockTechData as any);
+      mockLLMRouter.executeCompletion.mockResolvedValue(ok(mockTechData) as any);
 
       const result = await executeInsightCompletion(
         mockLLMRouter,
@@ -195,7 +197,7 @@ describe("Completion Executor Type Safety - Post Fix", () => {
         entities: [{ name: "TestEntity", description: "Test" }],
       };
 
-      mockLLMRouter.executeCompletion.mockResolvedValue(mockData as any);
+      mockLLMRouter.executeCompletion.mockResolvedValue(ok(mockData) as any);
 
       await executeInsightCompletion(
         mockLLMRouter,
@@ -216,7 +218,7 @@ describe("Completion Executor Type Safety - Post Fix", () => {
         entities: [{ name: "TestEntity", description: "Test" }],
       };
 
-      mockLLMRouter.executeCompletion.mockResolvedValue(mockData as any);
+      mockLLMRouter.executeCompletion.mockResolvedValue(ok(mockData) as any);
 
       await executeInsightCompletion(
         mockLLMRouter,
@@ -233,8 +235,10 @@ describe("Completion Executor Type Safety - Post Fix", () => {
   });
 
   describe("Error Handling", () => {
-    test("should return null when LLM returns null", async () => {
-      mockLLMRouter.executeCompletion.mockResolvedValue(null);
+    test("should return null when LLM returns Err", async () => {
+      mockLLMRouter.executeCompletion.mockResolvedValue(
+        err(new LLMError(LLMErrorCode.BAD_RESPONSE_CONTENT, "Mock error")),
+      );
 
       const result = await executeInsightCompletion(
         mockLLMRouter,
@@ -262,7 +266,7 @@ describe("Completion Executor Type Safety - Post Fix", () => {
         technologies: [],
       };
 
-      mockLLMRouter.executeCompletion.mockResolvedValue(mockData as any);
+      mockLLMRouter.executeCompletion.mockResolvedValue(ok(mockData) as any);
 
       const result = await executeInsightCompletion(
         mockLLMRouter,
@@ -286,7 +290,7 @@ describe("Completion Executor Type Safety - Post Fix", () => {
         technologies: [{ name: "TypeScript", description: "Typed JavaScript" }],
       };
 
-      mockLLMRouter.executeCompletion.mockResolvedValue(mockTechnologiesData as any);
+      mockLLMRouter.executeCompletion.mockResolvedValue(ok(mockTechnologiesData) as any);
 
       // This function call should now have proper type inference
       const result = await executeInsightCompletion(
@@ -326,7 +330,7 @@ describe("Completion Executor Type Safety - Post Fix", () => {
         ],
       };
 
-      mockLLMRouter.executeCompletion.mockResolvedValue(mockData as any);
+      mockLLMRouter.executeCompletion.mockResolvedValue(ok(mockData) as any);
 
       // The function is generic over C extends AppSummaryCategoryEnum
       // The return type should be CategoryInsightResult<C> | null
@@ -367,7 +371,7 @@ describe("Completion Executor Type Safety - Post Fix", () => {
         entities: [],
       };
 
-      mockLLMRouter.executeCompletion.mockResolvedValue(mockData as any);
+      mockLLMRouter.executeCompletion.mockResolvedValue(ok(mockData) as any);
 
       await executeInsightCompletion(mockLLMRouter, AppSummaryCategories.enum.technologies, [
         "file1.ts",

@@ -4,6 +4,8 @@ import type { SourcesRepository } from "../../../../src/app/repositories/sources
 import type LLMRouter from "../../../../src/common/llm/llm-router";
 import { LLMOutputFormat } from "../../../../src/common/llm/types/llm.types";
 import type { ProjectedSourceMetataContentAndSummary } from "../../../../src/app/repositories/sources/sources.model";
+import { ok, err } from "../../../../src/common/types/result.types";
+import { LLMError, LLMErrorCode } from "../../../../src/common/llm/types/llm-errors.types";
 
 describe("queryCodebaseWithQuestion", () => {
   let mockSourcesRepository: jest.Mocked<SourcesRepository>;
@@ -48,7 +50,7 @@ describe("queryCodebaseWithQuestion", () => {
 
       mockLLMRouter.generateEmbeddings.mockResolvedValue(mockVector);
       mockSourcesRepository.vectorSearchProjectSourcesRawContent.mockResolvedValue(mockSourceFiles);
-      (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(mockLLMResponse);
+      (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(ok(mockLLMResponse));
 
       // Act
       const result = await queryCodebaseWithQuestion(
@@ -144,7 +146,7 @@ describe("queryCodebaseWithQuestion", () => {
 
       mockLLMRouter.generateEmbeddings.mockResolvedValue(mockVector);
       mockSourcesRepository.vectorSearchProjectSourcesRawContent.mockResolvedValue(mockSourceFiles);
-      (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(null);
+      (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(err(new LLMError(LLMErrorCode.BAD_RESPONSE_CONTENT, "No insight generated")));
 
       // Act
       const result = await queryCodebaseWithQuestion(
@@ -174,7 +176,7 @@ describe("queryCodebaseWithQuestion", () => {
 
       mockLLMRouter.generateEmbeddings.mockResolvedValue(mockVector);
       mockSourcesRepository.vectorSearchProjectSourcesRawContent.mockResolvedValue(mockSourceFiles);
-      (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(mockLLMResponse);
+      (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(ok(mockLLMResponse));
 
       // Act
       const result = await queryCodebaseWithQuestion(
@@ -202,7 +204,7 @@ describe("queryCodebaseWithQuestion", () => {
           content: "content",
         },
       ]);
-      (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue("response");
+      (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(ok("response"));
 
       // Act
       await queryCodebaseWithQuestion(
@@ -232,7 +234,7 @@ describe("queryCodebaseWithQuestion", () => {
 
       mockLLMRouter.generateEmbeddings.mockResolvedValue(mockVector);
       mockSourcesRepository.vectorSearchProjectSourcesRawContent.mockResolvedValue(mockSourceFiles);
-      (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue("response");
+      (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(ok("response"));
 
       // Act
       await queryCodebaseWithQuestion(

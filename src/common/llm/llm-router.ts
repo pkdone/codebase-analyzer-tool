@@ -11,6 +11,7 @@ import {
 } from "./types/llm.types";
 import type { LLMProvider, LLMCandidateFunction } from "./types/llm.types";
 import { LLMError, LLMErrorCode } from "./types/llm-errors.types";
+import { type Result, ok, err } from "../types/result.types";
 import type {
   LLMRetryConfig,
   LLMProviderManifest,
@@ -209,9 +210,9 @@ export default class LLMRouter {
    * If a particular LLM quality is not specified, will try to use the completion candidates
    * in the order they were configured during construction.
    *
-   * The return type is automatically inferred from the options parameter:
-   * - When jsonSchema is provided, returns z.infer<typeof schema> | null
-   * - When jsonSchema is not provided (TEXT mode), returns string | null
+   * The return type is a Result discriminated union that forces explicit error handling:
+   * - When jsonSchema is provided, returns Result<z.infer<typeof schema>, LLMError>
+   * - When jsonSchema is not provided (TEXT mode), returns Result<string, LLMError>
    *
    * Function overloads provide compile-time type safety based on output format.
    */
@@ -221,7 +222,7 @@ export default class LLMRouter {
     prompt: string,
     options: LLMCompletionOptions<S> & { jsonSchema: S },
     modelQualityOverride?: LLMModelQuality | null,
-  ): Promise<z.infer<S> | null>;
+  ): Promise<Result<z.infer<S>, LLMError>>;
 
   // Overload for plain TEXT (without jsonSchema)
   async executeCompletion(
@@ -229,7 +230,7 @@ export default class LLMRouter {
     prompt: string,
     options: Omit<LLMCompletionOptions, "jsonSchema">,
     modelQualityOverride?: LLMModelQuality | null,
-  ): Promise<string | null>;
+  ): Promise<Result<string, LLMError>>;
 
   // Implementation signature uses LLMGeneratedContent to cover all possible return types.
   // Type safety for callers is enforced by the overload signatures above.
@@ -238,7 +239,7 @@ export default class LLMRouter {
     prompt: string,
     options: LLMCompletionOptions<S>,
     modelQualityOverride: LLMModelQuality | null = null,
-  ): Promise<LLMGeneratedContent> {
+  ): Promise<Result<LLMGeneratedContent, LLMError>> {
     const { candidatesToUse, candidateFunctions } = getOverriddenCompletionCandidates(
       this.completionCandidates,
       modelQualityOverride,
@@ -269,11 +270,16 @@ export default class LLMRouter {
 
     if (!result.success) {
       logOneLineWarning(`Failed to execute completion: ${result.error.message}`, context);
-      return null;
+      return err(
+        new LLMError(LLMErrorCode.BAD_RESPONSE_CONTENT, result.error.message, {
+          resourceName,
+          context,
+        }),
+      );
     }
 
     // Type safety is enforced by the function overloads at the call site.
     // The implementation returns the concrete data, and overloads provide correct types to callers.
-    return result.data as LLMGeneratedContent;
+    return ok(result.data as LLMGeneratedContent);
   }
 }

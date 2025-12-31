@@ -6,6 +6,7 @@ import { queryingInputConfig } from "./querying-input.config";
 import { renderPrompt } from "../../prompts/prompt-renderer";
 import { promptRegistry } from "../../prompts/prompt-registry";
 import { formatFilesAsMarkdownCodeBlocks } from "../../../common/utils/markdown-formatter";
+import { isOk } from "../../../common/types/result.types";
 
 /**
  * Creates a prompt for querying the codebase with a specific question.
@@ -81,16 +82,16 @@ export async function queryCodebaseWithQuestion(
   const codeBlocksAsText = formatSourcesForPrompt(bestMatchFiles);
   const resourceName = `Codebase query`;
   const prompt = createCodebaseQueryPrompt(question, codeBlocksAsText);
-  const response = await llmRouter.executeCompletion(resourceName, prompt, {
+  const result = await llmRouter.executeCompletion(resourceName, prompt, {
     outputFormat: LLMOutputFormat.TEXT,
   });
 
-  if (response) {
+  if (isOk(result)) {
     const referencesText = bestMatchFiles.map((match) => ` * ${match.filepath}`).join("\n");
-    return `${response}\n\nReferences:\n${referencesText}`;
+    return `${result.value}\n\nReferences:\n${referencesText}`;
   } else {
     console.log(
-      "Called the LLN with some data returned by Vector Search but the LLM returned an empty response",
+      `Called the LLM with data from Vector Search but completion failed: ${result.error.message}`,
     );
     return "Unable to answer question because no insight was generated";
   }

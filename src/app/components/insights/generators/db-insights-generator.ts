@@ -121,7 +121,7 @@ export default class InsightsFromDBGenerator implements IInsightsProcessor {
    */
   private async generateAndRecordDataForCategory(
     category: AppSummaryCategoryEnum,
-    sourceFileSummaries: string[],
+    sourceFileSummaries: readonly string[],
   ): Promise<void> {
     const categoryLabel = promptRegistry.appSummaries[category].label ?? category;
 

@@ -19,7 +19,7 @@ export class SinglePassCompletionStrategy implements ICompletionStrategy {
    */
   async generateInsights<C extends AppSummaryCategoryEnum>(
     category: C,
-    sourceFileSummaries: string[],
+    sourceFileSummaries: readonly string[],
   ): Promise<CategoryInsightResult<C> | null> {
     return executeInsightCompletion(this.llmRouter, category, sourceFileSummaries);
   }

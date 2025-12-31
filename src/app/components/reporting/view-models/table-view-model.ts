@@ -1,4 +1,12 @@
 import { convertToDisplayName } from "../../../../common/utils/text-utils";
+import {
+  formatRow,
+  type ProcessedTableCell,
+  type ProcessedListItem,
+} from "../formatters/table-data-formatter";
+
+// Re-export formatter types for backwards compatibility
+export type { ProcessedTableCell, ProcessedListItem };
 
 /**
  * Interface for a table row that can be displayed
@@ -20,46 +28,40 @@ export function isDisplayableTableRowArray(value: unknown): value is Displayable
 }
 
 /**
- * Interface for processed table cell data
- */
-export interface ProcessedTableCell {
-  type: "text" | "link" | "code" | "list";
-  content: string | ProcessedListItem[];
-  columnClass?: string;
-}
-
-/**
- * Interface for processed list items
- */
-export interface ProcessedListItem {
-  type: "object" | "primitive";
-  content: string | Record<string, string>;
-}
-
-/**
- * View model for table data that pre-processes data for display
+ * View model for table data that serves as a pure data structure.
+ *
+ * This class holds table data and delegates formatting to the TableDataFormatter.
+ * It is responsible for:
+ * - Storing the table data
+ * - Extracting headers from the data
+ * - Coordinating with the formatter for display-ready output
+ *
+ * Formatting logic (how values are converted to display strings, determining cell
+ * types like link/code/text) is handled by the TableDataFormatter module.
  */
 export class TableViewModel<T extends DisplayableTableRow = DisplayableTableRow> {
-  private readonly data: T[];
-  private readonly headers: string[];
+  private readonly data: readonly T[];
+  private readonly headers: readonly string[];
 
-  constructor(data: T[]) {
+  constructor(data: readonly T[]) {
     this.data = data;
     this.headers = this.data.length > 0 ? Object.keys(this.data[0]) : [];
   }
 
   /**
-   * Get the display headers for the table
+   * Get the display headers for the table.
+   * Converts camelCase headers to Display Case.
    */
   getDisplayHeaders(): string[] {
     return this.headers.map((header) => convertToDisplayName(header));
   }
 
   /**
-   * Get processed rows ready for display
+   * Get processed rows ready for display.
+   * Delegates formatting to the TableDataFormatter.
    */
   getProcessedRows(): ProcessedTableCell[][] {
-    return this.data.map((row) => this.processRow(row));
+    return this.data.map((row) => formatRow(this.headers, row));
   }
 
   /**
@@ -70,104 +72,16 @@ export class TableViewModel<T extends DisplayableTableRow = DisplayableTableRow>
   }
 
   /**
-   * Process a single row into display-ready format
+   * Get the raw headers (column keys)
    */
-  private processRow(row: T): ProcessedTableCell[] {
-    return this.headers.map((key) => this.processCell(key, row[key]));
+  getRawHeaders(): readonly string[] {
+    return this.headers;
   }
 
   /**
-   * Process a single cell value into display format
+   * Get the raw data
    */
-  private processCell(key: string, value: unknown): ProcessedTableCell {
-    if (key === "link" && typeof value === "string") {
-      return {
-        type: "link",
-        content: value,
-      };
-    }
-
-    if (key === "codeExample" && typeof value === "string") {
-      return {
-        type: "code",
-        content: value,
-      };
-    }
-
-    if (Array.isArray(value)) {
-      return {
-        type: "list",
-        content: this.processArrayValue(value),
-      };
-    }
-
-    if (value === null || value === undefined) {
-      return {
-        type: "text",
-        content: "",
-      };
-    }
-
-    if (typeof value === "object") {
-      return {
-        type: "text",
-        content: JSON.stringify(value),
-      };
-    }
-
-    if (typeof value === "string") {
-      return {
-        type: "text",
-        content: value,
-      };
-    }
-
-    return {
-      type: "text",
-      content:
-        typeof value === "number" || typeof value === "boolean"
-          ? String(value)
-          : JSON.stringify(value),
-    };
-  }
-
-  /**
-   * Process array values into structured list items
-   */
-  private processArrayValue(value: unknown[]): ProcessedListItem[] {
-    return value.map((item) => {
-      if (item && typeof item === "object" && item.constructor === Object) {
-        const objectItem = item as Record<string, unknown>;
-        const processedKeys = Object.fromEntries(
-          Object.entries(objectItem).map(([key, value]) => [
-            convertToDisplayName(key),
-            typeof value === "object" && value !== null ? JSON.stringify(value) : String(value),
-          ]),
-        );
-
-        return {
-          type: "object" as const,
-          content: processedKeys,
-        };
-      } else {
-        // Handle primitives with proper type checking before conversion
-        const content =
-          typeof item === "string"
-            ? item
-            : typeof item === "number" || typeof item === "boolean"
-              ? String(item)
-              : item === null || item === undefined
-                ? ""
-                : typeof item === "object"
-                  ? JSON.stringify(item)
-                  : typeof item === "bigint" || typeof item === "symbol"
-                    ? String(item)
-                    : JSON.stringify(item);
-        return {
-          type: "primitive" as const,
-          content,
-        };
-      }
-    });
+  getRawData(): readonly T[] {
+    return this.data;
   }
 }

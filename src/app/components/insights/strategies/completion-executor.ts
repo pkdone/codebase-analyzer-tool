@@ -11,6 +11,7 @@ import {
   type AppSummaryCategorySchemas,
 } from "../insights.types";
 import { getSchemaSpecificSanitizerConfig } from "../config/sanitizer.config";
+import { isOk } from "../../../../common/types/result.types";
 
 // Individual category schemas are simple and compatible with all LLM providers including VertexAI
 const CATEGORY_SCHEMA_IS_VERTEXAI_COMPATIBLE = true;
@@ -43,7 +44,7 @@ export interface InsightCompletionOptions {
 export async function executeInsightCompletion<C extends AppSummaryCategoryEnum>(
   llmRouter: LLMRouter,
   category: C,
-  sourceFileSummaries: string[],
+  sourceFileSummaries: readonly string[],
   options: InsightCompletionOptions = {},
 ): Promise<z.infer<AppSummaryCategorySchemas[C]> | null> {
   const categoryLabel = promptRegistry.appSummaries[category].label ?? category;
@@ -79,12 +80,17 @@ export async function executeInsightCompletion<C extends AppSummaryCategoryEnum>
      * not a design flaw. The types are correct; the compiler just cannot prove it.
      */
     const schema = appSummaryCategorySchemas[category];
-    return (await llmRouter.executeCompletion(taskCategory, renderedPrompt, {
+    const result = await llmRouter.executeCompletion(taskCategory, renderedPrompt, {
       outputFormat: LLMOutputFormat.JSON,
       jsonSchema: schema,
       hasComplexSchema: !CATEGORY_SCHEMA_IS_VERTEXAI_COMPATIBLE,
       sanitizerConfig: getSchemaSpecificSanitizerConfig(),
-    })) as z.infer<AppSummaryCategorySchemas[C]> | null;
+    });
+    if (!isOk(result)) {
+      logOneLineWarning(`LLM completion failed for ${categoryLabel}: ${result.error.message}`);
+      return null;
+    }
+    return result.value as z.infer<AppSummaryCategorySchemas[C]>;
   } catch (error: unknown) {
     logOneLineWarning(
       `${error instanceof Error ? error.message : "Unknown error"} for ${categoryLabel}`,

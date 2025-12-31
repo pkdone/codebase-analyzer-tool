@@ -5,6 +5,7 @@ import { LLMModelQuality, LLMOutputFormat } from "../../../common/llm/types/llm.
 import LLMRouter from "../../../common/llm/llm-router";
 import { Task } from "../task.types";
 import { llmTokens } from "../../di/tokens";
+import { isOk } from "../../../common/types/result.types";
 
 /**
  * File path to the sample prompt file
@@ -54,7 +55,7 @@ export class PluggableLLMsTestTask implements Task {
       },
       LLMModelQuality.PRIMARY,
     );
-    console.log(completionPrimaryResult ?? "<empty>");
+    console.log(isOk(completionPrimaryResult) ? completionPrimaryResult.value : "<error>");
 
     // Test fallback LLM completion
     console.log("\n\n---COMPLETION (Secondary LLM)---");
@@ -66,6 +67,6 @@ export class PluggableLLMsTestTask implements Task {
       },
       LLMModelQuality.SECONDARY,
     );
-    console.log(completionSecondaryResult ?? "<empty>");
+    console.log(isOk(completionSecondaryResult) ? completionSecondaryResult.value : "<error>");
   }
 }
