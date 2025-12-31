@@ -27,7 +27,7 @@ export class LLMErrorLogger implements IErrorLogger {
     responseContent: LLMGeneratedContent,
     context: LLMContext,
   ): Promise<void> {
-    if (typeof responseContent !== "string") return;
+    if (!responseContent || typeof responseContent !== "string") return;
 
     try {
       const timestamp = new Date().toISOString().replaceAll(/[:.]/g, "-");

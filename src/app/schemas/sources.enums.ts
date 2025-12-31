@@ -51,6 +51,7 @@ export const DATABASE_MECHANISM_VALUES = [
   "FUNCTION",
   // Fallback
   "OTHER",
+  "INVALID",
 ] as const;
 
 /** Central list of valid database operation type values */
@@ -61,6 +62,7 @@ export const OPERATION_TYPE_VALUES = [
   "DDL",
   "ADMIN",
   "OTHER",
+  "INVALID",
 ] as const;
 
 /** Central list of common query pattern descriptors (kept intentionally generic) */
@@ -76,6 +78,7 @@ export const QUERY_PATTERN_VALUES = [
   "RAW DRIVER CALLS",
   "CACHE LOOKUPS",
   "OTHER",
+  "INVALID",
 ] as const;
 
 /** Central list of common transaction handling approaches */
@@ -91,10 +94,18 @@ export const TRANSACTION_HANDLING_VALUES = [
   "ROLLBACK ON ERROR",
   "UNKNOWN",
   "OTHER",
+  "INVALID",
 ] as const;
 
 /** Integration direction values (messaging) */
-export const DIRECTION_VALUES = ["PRODUCER", "CONSUMER", "BOTH", "BIDIRECTIONAL", "OTHER"] as const;
+export const DIRECTION_VALUES = [
+  "PRODUCER",
+  "CONSUMER",
+  "BOTH",
+  "BIDIRECTIONAL",
+  "OTHER",
+  "INVALID",
+] as const;
 
 /** Recognized code smell labels for individual methods */
 export const CODE_SMELL_VALUES = [
@@ -111,6 +122,7 @@ export const CODE_SMELL_VALUES = [
   "FEATURE ENVY",
   "SHOTGUN SURGERY",
   "OTHER",
+  "INVALID",
 ] as const;
 
 /** Recognized file-level smell labels */
@@ -121,6 +133,7 @@ export const FILE_SMELL_VALUES = [
   "DATA CLASS",
   "LARGE FILE",
   "OTHER",
+  "INVALID",
 ] as const;
 
 /** Integration mechanism values (REST, messaging, RPC, etc.) */
@@ -146,6 +159,7 @@ export const INTEGRATION_MECHANISM_VALUES = [
   "WEBHOOK",
   "SSE",
   "OTHER",
+  "INVALID",
 ] as const;
 
 /** Recognized kinds for the main entity represented in a source file summary */
@@ -159,10 +173,11 @@ export const SOURCE_ENTITY_KIND_VALUES = [
   "MODULE",
   "UNION",
   "FUNCTION",
+  "INVALID",
 ] as const;
 
 /** Complexity score values for procedures/triggers (and similar constructs) */
-export const COMPLEXITY_VALUES = ["LOW", "MEDIUM", "HIGH"] as const;
+export const COMPLEXITY_VALUES = ["LOW", "MEDIUM", "HIGH", "INVALID"] as const;
 
 /**
  * Set version of COMPLEXITY_VALUES for efficient membership checking.

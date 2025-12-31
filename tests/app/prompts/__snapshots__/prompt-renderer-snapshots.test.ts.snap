@@ -117,7 +117,8 @@ The JSON response must follow this JSON schema:
             "ANNOTATION-TYPE",
             "MODULE",
             "UNION",
-            "FUNCTION"
+            "FUNCTION",
+            "INVALID"
           ]
         }
       ],
@@ -251,7 +252,8 @@ The JSON response must follow this JSON schema:
                         "DATA CLASS",
                         "FEATURE ENVY",
                         "SHOTGUN SURGERY",
-                        "OTHER"
+                        "OTHER",
+                        "INVALID"
                       ]
                     },
                     {
@@ -316,7 +318,8 @@ The JSON response must follow this JSON schema:
                 "STORED-PROCEDURE",
                 "TRIGGER",
                 "FUNCTION",
-                "OTHER"
+                "OTHER",
+                "INVALID"
               ]
             }
           ],
@@ -356,7 +359,8 @@ The JSON response must follow this JSON schema:
                       "READ_WRITE",
                       "DDL",
                       "ADMIN",
-                      "OTHER"
+                      "OTHER",
+                      "INVALID"
                     ]
                   },
                   {
@@ -391,7 +395,8 @@ The JSON response must follow this JSON schema:
                 "ORM QUERIES",
                 "RAW DRIVER CALLS",
                 "CACHE LOOKUPS",
-                "OTHER"
+                "OTHER",
+                "INVALID"
               ]
             }
           ],
@@ -419,7 +424,8 @@ The JSON response must follow this JSON schema:
                 "EXPLICIT BEGIN/COMMIT",
                 "ROLLBACK ON ERROR",
                 "UNKNOWN",
-                "OTHER"
+                "OTHER",
+                "INVALID"
               ]
             }
           ],
@@ -479,7 +485,8 @@ The JSON response must follow this JSON schema:
                   "REDIS-PUBSUB",
                   "WEBHOOK",
                   "SSE",
-                  "OTHER"
+                  "OTHER",
+                  "INVALID"
                 ]
               }
             ],
@@ -523,7 +530,8 @@ The JSON response must follow this JSON schema:
                   "CONSUMER",
                   "BOTH",
                   "BIDIRECTIONAL",
-                  "OTHER"
+                  "OTHER",
+                  "INVALID"
                 ]
               }
             ],
@@ -591,7 +599,8 @@ The JSON response must follow this JSON schema:
                       "FEATURE ENVY",
                       "DATA CLASS",
                       "LARGE FILE",
-                      "OTHER"
+                      "OTHER",
+                      "INVALID"
                     ]
                   },
                   {
@@ -730,7 +739,8 @@ The JSON response must follow this JSON schema:
                 "STORED-PROCEDURE",
                 "TRIGGER",
                 "FUNCTION",
-                "OTHER"
+                "OTHER",
+                "INVALID"
               ]
             }
           ],
@@ -770,7 +780,8 @@ The JSON response must follow this JSON schema:
                       "READ_WRITE",
                       "DDL",
                       "ADMIN",
-                      "OTHER"
+                      "OTHER",
+                      "INVALID"
                     ]
                   },
                   {
@@ -805,7 +816,8 @@ The JSON response must follow this JSON schema:
                 "ORM QUERIES",
                 "RAW DRIVER CALLS",
                 "CACHE LOOKUPS",
-                "OTHER"
+                "OTHER",
+                "INVALID"
               ]
             }
           ],
@@ -833,7 +845,8 @@ The JSON response must follow this JSON schema:
                 "EXPLICIT BEGIN/COMMIT",
                 "ROLLBACK ON ERROR",
                 "UNKNOWN",
-                "OTHER"
+                "OTHER",
+                "INVALID"
               ]
             }
           ],
@@ -1192,7 +1205,8 @@ The JSON response must follow this JSON schema:
             "ANNOTATION-TYPE",
             "MODULE",
             "UNION",
-            "FUNCTION"
+            "FUNCTION",
+            "INVALID"
           ]
         }
       ],
@@ -1326,7 +1340,8 @@ The JSON response must follow this JSON schema:
                         "DATA CLASS",
                         "FEATURE ENVY",
                         "SHOTGUN SURGERY",
-                        "OTHER"
+                        "OTHER",
+                        "INVALID"
                       ]
                     },
                     {
@@ -1391,7 +1406,8 @@ The JSON response must follow this JSON schema:
                 "STORED-PROCEDURE",
                 "TRIGGER",
                 "FUNCTION",
-                "OTHER"
+                "OTHER",
+                "INVALID"
               ]
             }
           ],
@@ -1431,7 +1447,8 @@ The JSON response must follow this JSON schema:
                       "READ_WRITE",
                       "DDL",
                       "ADMIN",
-                      "OTHER"
+                      "OTHER",
+                      "INVALID"
                     ]
                   },
                   {
@@ -1466,7 +1483,8 @@ The JSON response must follow this JSON schema:
                 "ORM QUERIES",
                 "RAW DRIVER CALLS",
                 "CACHE LOOKUPS",
-                "OTHER"
+                "OTHER",
+                "INVALID"
               ]
             }
           ],
@@ -1494,7 +1512,8 @@ The JSON response must follow this JSON schema:
                 "EXPLICIT BEGIN/COMMIT",
                 "ROLLBACK ON ERROR",
                 "UNKNOWN",
-                "OTHER"
+                "OTHER",
+                "INVALID"
               ]
             }
           ],
@@ -1554,7 +1573,8 @@ The JSON response must follow this JSON schema:
                   "REDIS-PUBSUB",
                   "WEBHOOK",
                   "SSE",
-                  "OTHER"
+                  "OTHER",
+                  "INVALID"
                 ]
               }
             ],
@@ -1598,7 +1618,8 @@ The JSON response must follow this JSON schema:
                   "CONSUMER",
                   "BOTH",
                   "BIDIRECTIONAL",
-                  "OTHER"
+                  "OTHER",
+                  "INVALID"
                 ]
               }
             ],
@@ -1666,7 +1687,8 @@ The JSON response must follow this JSON schema:
                       "FEATURE ENVY",
                       "DATA CLASS",
                       "LARGE FILE",
-                      "OTHER"
+                      "OTHER",
+                      "INVALID"
                     ]
                   },
                   {
@@ -1850,7 +1872,8 @@ The JSON response must follow this JSON schema:
             "ANNOTATION-TYPE",
             "MODULE",
             "UNION",
-            "FUNCTION"
+            "FUNCTION",
+            "INVALID"
           ]
         }
       ],
@@ -1984,7 +2007,8 @@ The JSON response must follow this JSON schema:
                         "DATA CLASS",
                         "FEATURE ENVY",
                         "SHOTGUN SURGERY",
-                        "OTHER"
+                        "OTHER",
+                        "INVALID"
                       ]
                     },
                     {
@@ -2049,7 +2073,8 @@ The JSON response must follow this JSON schema:
                 "STORED-PROCEDURE",
                 "TRIGGER",
                 "FUNCTION",
-                "OTHER"
+                "OTHER",
+                "INVALID"
               ]
             }
           ],
@@ -2089,7 +2114,8 @@ The JSON response must follow this JSON schema:
                       "READ_WRITE",
                       "DDL",
                       "ADMIN",
-                      "OTHER"
+                      "OTHER",
+                      "INVALID"
                     ]
                   },
                   {
@@ -2124,7 +2150,8 @@ The JSON response must follow this JSON schema:
                 "ORM QUERIES",
                 "RAW DRIVER CALLS",
                 "CACHE LOOKUPS",
-                "OTHER"
+                "OTHER",
+                "INVALID"
               ]
             }
           ],
@@ -2152,7 +2179,8 @@ The JSON response must follow this JSON schema:
                 "EXPLICIT BEGIN/COMMIT",
                 "ROLLBACK ON ERROR",
                 "UNKNOWN",
-                "OTHER"
+                "OTHER",
+                "INVALID"
               ]
             }
           ],
@@ -2212,7 +2240,8 @@ The JSON response must follow this JSON schema:
                   "REDIS-PUBSUB",
                   "WEBHOOK",
                   "SSE",
-                  "OTHER"
+                  "OTHER",
+                  "INVALID"
                 ]
               }
             ],
@@ -2256,7 +2285,8 @@ The JSON response must follow this JSON schema:
                   "CONSUMER",
                   "BOTH",
                   "BIDIRECTIONAL",
-                  "OTHER"
+                  "OTHER",
+                  "INVALID"
                 ]
               }
             ],
@@ -2324,7 +2354,8 @@ The JSON response must follow this JSON schema:
                       "FEATURE ENVY",
                       "DATA CLASS",
                       "LARGE FILE",
-                      "OTHER"
+                      "OTHER",
+                      "INVALID"
                     ]
                   },
                   {
@@ -2463,7 +2494,8 @@ The JSON response must follow this JSON schema:
                 "STORED-PROCEDURE",
                 "TRIGGER",
                 "FUNCTION",
-                "OTHER"
+                "OTHER",
+                "INVALID"
               ]
             }
           ],
@@ -2503,7 +2535,8 @@ The JSON response must follow this JSON schema:
                       "READ_WRITE",
                       "DDL",
                       "ADMIN",
-                      "OTHER"
+                      "OTHER",
+                      "INVALID"
                     ]
                   },
                   {
@@ -2538,7 +2571,8 @@ The JSON response must follow this JSON schema:
                 "ORM QUERIES",
                 "RAW DRIVER CALLS",
                 "CACHE LOOKUPS",
-                "OTHER"
+                "OTHER",
+                "INVALID"
               ]
             }
           ],
@@ -2566,7 +2600,8 @@ The JSON response must follow this JSON schema:
                 "EXPLICIT BEGIN/COMMIT",
                 "ROLLBACK ON ERROR",
                 "UNKNOWN",
-                "OTHER"
+                "OTHER",
+                "INVALID"
               ]
             }
           ],
@@ -2741,7 +2776,8 @@ The JSON response must follow this JSON schema:
             "ANNOTATION-TYPE",
             "MODULE",
             "UNION",
-            "FUNCTION"
+            "FUNCTION",
+            "INVALID"
           ]
         }
       ],
@@ -2875,7 +2911,8 @@ The JSON response must follow this JSON schema:
                         "DATA CLASS",
                         "FEATURE ENVY",
                         "SHOTGUN SURGERY",
-                        "OTHER"
+                        "OTHER",
+                        "INVALID"
                       ]
                     },
                     {
@@ -2940,7 +2977,8 @@ The JSON response must follow this JSON schema:
                 "STORED-PROCEDURE",
                 "TRIGGER",
                 "FUNCTION",
-                "OTHER"
+                "OTHER",
+                "INVALID"
               ]
             }
           ],
@@ -2980,7 +3018,8 @@ The JSON response must follow this JSON schema:
                       "READ_WRITE",
                       "DDL",
                       "ADMIN",
-                      "OTHER"
+                      "OTHER",
+                      "INVALID"
                     ]
                   },
                   {
@@ -3015,7 +3054,8 @@ The JSON response must follow this JSON schema:
                 "ORM QUERIES",
                 "RAW DRIVER CALLS",
                 "CACHE LOOKUPS",
-                "OTHER"
+                "OTHER",
+                "INVALID"
               ]
             }
           ],
@@ -3043,7 +3083,8 @@ The JSON response must follow this JSON schema:
                 "EXPLICIT BEGIN/COMMIT",
                 "ROLLBACK ON ERROR",
                 "UNKNOWN",
-                "OTHER"
+                "OTHER",
+                "INVALID"
               ]
             }
           ],
@@ -3103,7 +3144,8 @@ The JSON response must follow this JSON schema:
                   "REDIS-PUBSUB",
                   "WEBHOOK",
                   "SSE",
-                  "OTHER"
+                  "OTHER",
+                  "INVALID"
                 ]
               }
             ],
@@ -3147,7 +3189,8 @@ The JSON response must follow this JSON schema:
                   "CONSUMER",
                   "BOTH",
                   "BIDIRECTIONAL",
-                  "OTHER"
+                  "OTHER",
+                  "INVALID"
                 ]
               }
             ],
@@ -3215,7 +3258,8 @@ The JSON response must follow this JSON schema:
                       "FEATURE ENVY",
                       "DATA CLASS",
                       "LARGE FILE",
-                      "OTHER"
+                      "OTHER",
+                      "INVALID"
                     ]
                   },
                   {
@@ -3389,7 +3433,8 @@ The JSON response must follow this JSON schema:
             "ANNOTATION-TYPE",
             "MODULE",
             "UNION",
-            "FUNCTION"
+            "FUNCTION",
+            "INVALID"
           ]
         }
       ],
@@ -3523,7 +3568,8 @@ The JSON response must follow this JSON schema:
                         "DATA CLASS",
                         "FEATURE ENVY",
                         "SHOTGUN SURGERY",
-                        "OTHER"
+                        "OTHER",
+                        "INVALID"
                       ]
                     },
                     {
@@ -3588,7 +3634,8 @@ The JSON response must follow this JSON schema:
                 "STORED-PROCEDURE",
                 "TRIGGER",
                 "FUNCTION",
-                "OTHER"
+                "OTHER",
+                "INVALID"
               ]
             }
           ],
@@ -3628,7 +3675,8 @@ The JSON response must follow this JSON schema:
                       "READ_WRITE",
                       "DDL",
                       "ADMIN",
-                      "OTHER"
+                      "OTHER",
+                      "INVALID"
                     ]
                   },
                   {
@@ -3663,7 +3711,8 @@ The JSON response must follow this JSON schema:
                 "ORM QUERIES",
                 "RAW DRIVER CALLS",
                 "CACHE LOOKUPS",
-                "OTHER"
+                "OTHER",
+                "INVALID"
               ]
             }
           ],
@@ -3691,7 +3740,8 @@ The JSON response must follow this JSON schema:
                 "EXPLICIT BEGIN/COMMIT",
                 "ROLLBACK ON ERROR",
                 "UNKNOWN",
-                "OTHER"
+                "OTHER",
+                "INVALID"
               ]
             }
           ],
@@ -3751,7 +3801,8 @@ The JSON response must follow this JSON schema:
                   "REDIS-PUBSUB",
                   "WEBHOOK",
                   "SSE",
-                  "OTHER"
+                  "OTHER",
+                  "INVALID"
                 ]
               }
             ],
@@ -3795,7 +3846,8 @@ The JSON response must follow this JSON schema:
                   "CONSUMER",
                   "BOTH",
                   "BIDIRECTIONAL",
-                  "OTHER"
+                  "OTHER",
+                  "INVALID"
                 ]
               }
             ],
@@ -3863,7 +3915,8 @@ The JSON response must follow this JSON schema:
                       "FEATURE ENVY",
                       "DATA CLASS",
                       "LARGE FILE",
-                      "OTHER"
+                      "OTHER",
+                      "INVALID"
                     ]
                   },
                   {
@@ -3999,7 +4052,8 @@ The JSON response must follow this JSON schema:
                 "enum": [
                   "LOW",
                   "MEDIUM",
-                  "HIGH"
+                  "HIGH",
+                  "INVALID"
                 ]
               }
             ],
@@ -4079,7 +4133,8 @@ The JSON response must follow this JSON schema:
                 "STORED-PROCEDURE",
                 "TRIGGER",
                 "FUNCTION",
-                "OTHER"
+                "OTHER",
+                "INVALID"
               ]
             }
           ],
@@ -4119,7 +4174,8 @@ The JSON response must follow this JSON schema:
                       "READ_WRITE",
                       "DDL",
                       "ADMIN",
-                      "OTHER"
+                      "OTHER",
+                      "INVALID"
                     ]
                   },
                   {
@@ -4154,7 +4210,8 @@ The JSON response must follow this JSON schema:
                 "ORM QUERIES",
                 "RAW DRIVER CALLS",
                 "CACHE LOOKUPS",
-                "OTHER"
+                "OTHER",
+                "INVALID"
               ]
             }
           ],
@@ -4182,7 +4239,8 @@ The JSON response must follow this JSON schema:
                 "EXPLICIT BEGIN/COMMIT",
                 "ROLLBACK ON ERROR",
                 "UNKNOWN",
-                "OTHER"
+                "OTHER",
+                "INVALID"
               ]
             }
           ],

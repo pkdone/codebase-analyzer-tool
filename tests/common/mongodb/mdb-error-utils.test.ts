@@ -111,7 +111,11 @@ describe("mdb-error-utils", () => {
         errorResponse: { errmsg: "Document failed validation", errInfo },
       });
       logMongoValidationErrorIfPresent(err, true);
-      expect(logOneLineWarning).toHaveBeenCalledWith("MongoDB document validation failed", errInfo);
+      // errInfo is now passed through util.inspect() for deep object expansion
+      expect(logOneLineWarning).toHaveBeenCalledWith(
+        "MongoDB document validation failed",
+        "{ details: 'validation schema mismatch' }",
+      );
     });
   });
 });

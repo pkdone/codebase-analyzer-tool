@@ -37,7 +37,8 @@ describe("report-gen.types - Set-based membership testing", () => {
 
     describe("invalid complexity values", () => {
       it("should return false for invalid strings", () => {
-        expect(isComplexityLevel("INVALID")).toBe(false);
+        // Note: "INVALID" is now a valid complexity value used as fallback for unrecognized values
+        expect(isComplexityLevel("INVALID")).toBe(true);
         expect(isComplexityLevel("EXTREME")).toBe(false);
         expect(isComplexityLevel("")).toBe(false);
         expect(isComplexityLevel("low ")).toBe(false);
@@ -92,19 +93,20 @@ describe("report-gen.types - Set-based membership testing", () => {
     describe("Set performance characteristics", () => {
       it("should handle rapid consecutive calls efficiently", () => {
         // Test that Set.has() is used for O(1) lookup
+        // Note: "INVALID" is now a valid complexity value
         const testCases = [
           "LOW",
           "MEDIUM",
           "HIGH",
-          "INVALID",
+          "INVALID", // Now valid
           "low",
           "medium",
           "high",
-          "invalid",
+          "invalid", // Now valid (case-insensitive)
           "Low",
           "Medium",
           "High",
-          "Invalid",
+          "Invalid", // Now valid (case-insensitive)
         ];
 
         const results = testCases.map((tc) => isComplexityLevel(tc));
@@ -113,15 +115,15 @@ describe("report-gen.types - Set-based membership testing", () => {
           true,
           true,
           true,
-          false,
+          true, // INVALID is now valid
           true,
           true,
           true,
-          false,
+          true, // invalid is now valid
           true,
           true,
           true,
-          false,
+          true, // Invalid is now valid
         ]);
       });
 
@@ -190,8 +192,9 @@ describe("report-gen.types - Set-based membership testing", () => {
 
     describe("comparison with array includes pattern", () => {
       it("should behave identically to array.includes for valid values", () => {
-        const testValues = ["LOW", "MEDIUM", "HIGH", "INVALID"];
-        const VALID_COMPLEXITY = ["LOW", "MEDIUM", "HIGH"] as const;
+        // Note: INVALID is now a valid complexity value
+        const testValues = ["LOW", "MEDIUM", "HIGH", "INVALID", "EXTREME"];
+        const VALID_COMPLEXITY = ["LOW", "MEDIUM", "HIGH", "INVALID"] as const;
 
         for (const value of testValues) {
           const setResult = isComplexityLevel(value);
@@ -224,7 +227,7 @@ describe("report-gen.types - Set-based membership testing", () => {
       it("should work correctly in switch statement", () => {
         const testComplexity = (value: unknown): string => {
           if (!isComplexityLevel(value)) {
-            return "invalid";
+            return "unknown";
           }
 
           switch (value) {
@@ -234,6 +237,8 @@ describe("report-gen.types - Set-based membership testing", () => {
               return "medium-priority";
             case "HIGH":
               return "high-priority";
+            case "INVALID":
+              return "invalid";
           }
         };
 
@@ -253,6 +258,8 @@ describe("report-gen.types - Set-based membership testing", () => {
               return 2;
             case "HIGH":
               return 3;
+            case "INVALID":
+              return 0;
             // TypeScript will error if we don't handle all cases
           }
         };
@@ -260,6 +267,7 @@ describe("report-gen.types - Set-based membership testing", () => {
         expect(handleComplexity("LOW")).toBe(1);
         expect(handleComplexity("MEDIUM")).toBe(2);
         expect(handleComplexity("HIGH")).toBe(3);
+        expect(handleComplexity("INVALID")).toBe(0);
       });
     });
 
@@ -269,8 +277,9 @@ describe("report-gen.types - Set-based membership testing", () => {
         const dbResults = [
           { name: "proc1", complexity: "LOW" },
           { name: "proc2", complexity: "low" },
-          { name: "proc3", complexity: "INVALID" },
+          { name: "proc3", complexity: "INVALID" }, // Now valid - used as fallback for unrecognized values
           { name: "proc4", complexity: "HIGH" },
+          { name: "proc5", complexity: "EXTREME" }, // Not valid
         ];
 
         const normalized = dbResults.map((item) => ({
@@ -281,8 +290,9 @@ describe("report-gen.types - Set-based membership testing", () => {
 
         expect(normalized[0].isValid).toBe(true);
         expect(normalized[1].isValid).toBe(true);
-        expect(normalized[2].isValid).toBe(false);
+        expect(normalized[2].isValid).toBe(true); // INVALID is now valid
         expect(normalized[3].isValid).toBe(true);
+        expect(normalized[4].isValid).toBe(false); // EXTREME is not valid
       });
 
       it("should filter valid complexities from mixed input", () => {
@@ -290,7 +300,7 @@ describe("report-gen.types - Set-based membership testing", () => {
           "LOW",
           "MEDIUM",
           "HIGH",
-          "invalid",
+          "invalid", // Now valid (case-insensitive INVALID)
           null,
           undefined,
           42,
@@ -300,7 +310,7 @@ describe("report-gen.types - Set-based membership testing", () => {
 
         const validComplexities = mixedInputs.filter(isComplexityLevel);
 
-        expect(validComplexities).toHaveLength(4); // LOW, MEDIUM, HIGH, low
+        expect(validComplexities).toHaveLength(5); // LOW, MEDIUM, HIGH, invalid, low
       });
 
       it("should validate user input safely", () => {

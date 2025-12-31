@@ -118,10 +118,12 @@ describe("DatabaseReportDataProvider", () => {
 
       const result = await provider.buildProceduresAndTriggersSummary("test-project");
 
-      // Invalid complexity should default to LOW
+      // INVALID complexity is now a valid value but gets skipped (not counted in any category)
       expect(result.procs.total).toBe(1);
-      expect(result.procs.low).toBe(1);
-      expect(result.procs.list[0].complexity).toBe("LOW");
+      expect(result.procs.low).toBe(0);
+      expect(result.procs.medium).toBe(0);
+      expect(result.procs.high).toBe(0);
+      expect(result.procs.list[0].complexity).toBe("INVALID");
     });
 
     test("should use type guard for complexity keys safely", async () => {

@@ -1,3 +1,4 @@
+import { inspect } from "util";
 import { MongoServerError } from "mongodb";
 import { logOneLineWarning } from "../utils/logging";
 
@@ -29,13 +30,21 @@ export function isMongoServerErrorWithResponse(
 
 /**
  * Logs a warning if the error is a MongoServerError for document validation failure.
+ * Uses util.inspect for deep object inspection to fully expand nested schema validation errors.
  *
  * @param error The error to check and log if it is a MongoServerError with validation failure.
  */
 export function logMongoValidationErrorIfPresent(error: unknown, doLog = true): void {
   if (doLog && isMongoServerErrorWithResponse(error)) {
     if (error.errorResponse.errmsg.toLowerCase().includes("document failed validation")) {
-      logOneLineWarning("MongoDB document validation failed", error.errorResponse.errInfo);
+      // Use inspect with depth: null to fully expand nested objects in validation errors
+      const detailedInfo = inspect(error.errorResponse.errInfo, {
+        depth: null,
+        colors: false,
+        maxArrayLength: null,
+        maxStringLength: null,
+      });
+      logOneLineWarning("MongoDB document validation failed", detailedInfo);
     }
   }
 }

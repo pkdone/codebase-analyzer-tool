@@ -108,6 +108,9 @@ export class DatabaseReportDataProvider {
           case "HIGH":
             acc.high++;
             break;
+          case "INVALID":
+            // Skip invalid complexity values - they indicate LLM returned unrecognized data
+            break;
           default: {
             // This ensures exhaustiveness. The `normalizeComplexity` function
             // should prevent this from being hit, but it's good practice.
