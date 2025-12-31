@@ -18,32 +18,129 @@ describe("extraPropertiesRemover", () => {
     expect(result.changed).toBe(false);
   });
 
-  it("should remove quoted extra_thoughts property", () => {
-    const input = '{"name": "test", "extra_thoughts": "some thoughts"}';
-    const result = extraPropertiesRemover.apply(input);
-    expect(result.content).not.toContain("extra_thoughts");
-    expect(result.changed).toBe(true);
+  describe("Original patterns (extra_thoughts, extra_text)", () => {
+    it("should remove quoted extra_thoughts property", () => {
+      const input = '{"name": "test", "extra_thoughts": "some thoughts"}';
+      const result = extraPropertiesRemover.apply(input);
+      expect(result.content).not.toContain("extra_thoughts");
+      expect(result.changed).toBe(true);
+    });
+
+    it("should remove quoted extra_text property", () => {
+      const input = '{"name": "test", "extra_text": "some text"}';
+      const result = extraPropertiesRemover.apply(input);
+      expect(result.content).not.toContain("extra_text");
+      expect(result.changed).toBe(true);
+    });
+
+    it("should remove unquoted extra_thoughts property", () => {
+      const input = '{"name": "test", extra_thoughts: "some thoughts"}';
+      const result = extraPropertiesRemover.apply(input);
+      expect(result.content).not.toContain("extra_thoughts");
+      expect(result.changed).toBe(true);
+    });
+
+    it("should remove extra_thoughts with object value", () => {
+      const input = '{"name": "test", "extra_thoughts": {"thought": "value"}}';
+      const result = extraPropertiesRemover.apply(input);
+      expect(result.content).not.toContain("extra_thoughts");
+      expect(result.changed).toBe(true);
+    });
   });
 
-  it("should remove quoted extra_text property", () => {
-    const input = '{"name": "test", "extra_text": "some text"}';
-    const result = extraPropertiesRemover.apply(input);
-    expect(result.content).not.toContain("extra_text");
-    expect(result.changed).toBe(true);
+  describe("Generic LLM artifact patterns", () => {
+    it("should remove extra_info property", () => {
+      const input = '{"name": "test", "extra_info": "some info"}';
+      const result = extraPropertiesRemover.apply(input);
+      expect(result.content).not.toContain("extra_info");
+      expect(result.changed).toBe(true);
+    });
+
+    it("should remove extra_notes property", () => {
+      const input = '{"name": "test", "extra_notes": "my notes"}';
+      const result = extraPropertiesRemover.apply(input);
+      expect(result.content).not.toContain("extra_notes");
+      expect(result.changed).toBe(true);
+    });
+
+    it("should remove extra_reasoning property", () => {
+      const input = '{"name": "test", "extra_reasoning": "my reasoning"}';
+      const result = extraPropertiesRemover.apply(input);
+      expect(result.content).not.toContain("extra_reasoning");
+      expect(result.changed).toBe(true);
+    });
+
+    it("should remove extra_analysis property", () => {
+      const input = '{"name": "test", "extra_analysis": "my analysis"}';
+      const result = extraPropertiesRemover.apply(input);
+      expect(result.content).not.toContain("extra_analysis");
+      expect(result.changed).toBe(true);
+    });
+
+    it("should remove llm_thoughts property", () => {
+      const input = '{"name": "test", "llm_thoughts": "thinking..."}';
+      const result = extraPropertiesRemover.apply(input);
+      expect(result.content).not.toContain("llm_thoughts");
+      expect(result.changed).toBe(true);
+    });
+
+    it("should remove llm_notes property", () => {
+      const input = '{"name": "test", "llm_notes": "my notes"}';
+      const result = extraPropertiesRemover.apply(input);
+      expect(result.content).not.toContain("llm_notes");
+      expect(result.changed).toBe(true);
+    });
+
+    it("should remove ai_notes property", () => {
+      const input = '{"name": "test", "ai_notes": "AI notes"}';
+      const result = extraPropertiesRemover.apply(input);
+      expect(result.content).not.toContain("ai_notes");
+      expect(result.changed).toBe(true);
+    });
+
+    it("should remove ai_reasoning property", () => {
+      const input = '{"name": "test", "ai_reasoning": "AI reasoning"}';
+      const result = extraPropertiesRemover.apply(input);
+      expect(result.content).not.toContain("ai_reasoning");
+      expect(result.changed).toBe(true);
+    });
+
+    it("should remove _internal_metadata property", () => {
+      const input = '{"name": "test", "_internal_metadata": "metadata"}';
+      const result = extraPropertiesRemover.apply(input);
+      expect(result.content).not.toContain("_internal_metadata");
+      expect(result.changed).toBe(true);
+    });
+
+    it("should remove _private_notes property", () => {
+      const input = '{"name": "test", "_private_notes": "private"}';
+      const result = extraPropertiesRemover.apply(input);
+      expect(result.content).not.toContain("_private_notes");
+      expect(result.changed).toBe(true);
+    });
   });
 
-  it("should remove unquoted extra_thoughts property", () => {
-    const input = '{"name": "test", extra_thoughts: "some thoughts"}';
-    const result = extraPropertiesRemover.apply(input);
-    expect(result.content).not.toContain("extra_thoughts");
-    expect(result.changed).toBe(true);
-  });
+  describe("Unquoted generic artifact patterns", () => {
+    it("should remove unquoted extra_info property", () => {
+      const input = '{"name": "test", extra_info: "some info"}';
+      const result = extraPropertiesRemover.apply(input);
+      expect(result.content).not.toContain("extra_info");
+      expect(result.changed).toBe(true);
+    });
 
-  it("should remove extra_thoughts with object value", () => {
-    const input = '{"name": "test", "extra_thoughts": {"thought": "value"}}';
-    const result = extraPropertiesRemover.apply(input);
-    expect(result.content).not.toContain("extra_thoughts");
-    expect(result.changed).toBe(true);
+    it("should remove unquoted llm_notes property", () => {
+      const input = '{"name": "test", llm_notes: "some notes"}';
+      const result = extraPropertiesRemover.apply(input);
+      expect(result.content).not.toContain("llm_notes");
+      expect(result.changed).toBe(true);
+    });
+
+    it("should remove unquoted ai_thoughts property", () => {
+      const input = '{"name": "test", ai_thoughts: "thinking"}';
+      const result = extraPropertiesRemover.apply(input);
+      expect(result.content).not.toContain("ai_thoughts");
+      expect(result.changed).toBe(true);
+    });
   });
 
   it("should preserve other properties", () => {

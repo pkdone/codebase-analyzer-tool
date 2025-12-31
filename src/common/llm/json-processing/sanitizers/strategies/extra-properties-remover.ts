@@ -1,6 +1,7 @@
 /**
- * Strategy for removing extra_thoughts and extra_text properties from JSON.
- * These are LLM artifacts that should not be in the final output.
+ * Strategy for removing LLM artifact properties from JSON.
+ * These include extra_*, llm_*, ai_*, and _* prefixed properties that
+ * are commonly added by LLMs as metadata or internal reasoning.
  */
 
 import type { LLMSanitizerConfig } from "../../../config/llm-module-config.types";
@@ -8,7 +9,26 @@ import type { SanitizerStrategy, StrategyResult } from "../pipeline/sanitizer-pi
 import { isInStringAt } from "../../utils/parser-context-utils";
 
 /**
- * Strategy that removes extra_thoughts and extra_text LLM artifact properties.
+ * Checks if a property name looks like an LLM artifact property.
+ * Generic detection for extra_*, llm_*, ai_*, and _* prefixed properties.
+ *
+ * @param propertyName - The property name to check
+ * @returns True if the property name looks like an LLM artifact
+ */
+function isLLMArtifactProperty(propertyName: string): boolean {
+  const lowerName = propertyName.toLowerCase();
+  // Match patterns: extra_*, llm_*, ai_*, _* (underscore prefix)
+  // Also match common suffixes: *_thoughts, *_text, *_notes, *_info, *_reasoning, *_analysis
+  return (
+    /^(extra|llm|ai)_[a-z_]+$/i.test(propertyName) ||
+    /^_[a-z_]+$/i.test(propertyName) ||
+    /_(thoughts?|text|notes?|info|reasoning|analysis|comment|metadata)$/i.test(lowerName)
+  );
+}
+
+/**
+ * Strategy that removes LLM artifact properties like extra_thoughts, extra_text,
+ * llm_notes, ai_reasoning, _internal_*, etc.
  */
 export const extraPropertiesRemover: SanitizerStrategy = {
   name: "ExtraPropertiesRemover",
@@ -22,18 +42,20 @@ export const extraPropertiesRemover: SanitizerStrategy = {
     const diagnostics: string[] = [];
     let hasChanges = false;
 
-    // Pattern 1: Handle malformed extra_text like `extra_text="  "property":`
-    const malformedExtraTextPattern =
-      /([,{])\s*extra_text\s*=\s*"\s*"\s*([a-zA-Z_$][a-zA-Z0-9_$]*"\s*:\s*)/g;
+    // Pattern 1: Handle malformed LLM artifact properties like `extra_text="  "property":`
+    // Generic pattern catches extra_*, llm_*, ai_* prefixed properties with malformed syntax
+    const malformedArtifactPattern =
+      /([,{])\s*((?:extra|llm|ai)_[a-z_]+)\s*=\s*"\s*"\s*([a-zA-Z_$][a-zA-Z0-9_$]*"\s*:\s*)/gi;
     sanitized = sanitized.replace(
-      malformedExtraTextPattern,
-      (match, delimiter, propertyNameWithQuote, offset: number) => {
+      malformedArtifactPattern,
+      (match, delimiter, artifactProp, propertyNameWithQuote, offset: number) => {
         if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         hasChanges = true;
-        diagnostics.push("Removed malformed extra_text property");
+        const artifactPropStr = typeof artifactProp === "string" ? artifactProp : "";
+        diagnostics.push(`Removed malformed ${artifactPropStr} property`);
         const delimiterStr = typeof delimiter === "string" ? delimiter : "";
         const propertyNameWithQuoteStr =
           typeof propertyNameWithQuote === "string" ? propertyNameWithQuote : "";
@@ -42,20 +64,28 @@ export const extraPropertiesRemover: SanitizerStrategy = {
       },
     );
 
-    // Pattern 2: Handle unquoted extra_thoughts/extra_text properties
-    const unquotedExtraPropertyPattern = /([,{])\s*(extra_thoughts|extra_text)\s*:\s*/g;
+    // Pattern 2: Handle unquoted LLM artifact properties
+    // Generic pattern matches extra_*, llm_*, ai_*, _* prefixed properties
+    const unquotedArtifactPropertyPattern =
+      /([,{])\s*((?:extra|llm|ai)_[a-z_]+|_[a-z_]+)\s*:\s*/gi;
     let previousUnquoted = "";
     while (previousUnquoted !== sanitized) {
       previousUnquoted = sanitized;
-      const matches: { start: number; end: number; delimiter: string }[] = [];
+      const matches: { start: number; end: number; delimiter: string; propName: string }[] = [];
       let match;
       const pattern = new RegExp(
-        unquotedExtraPropertyPattern.source,
-        unquotedExtraPropertyPattern.flags,
+        unquotedArtifactPropertyPattern.source,
+        unquotedArtifactPropertyPattern.flags,
       );
       while ((match = pattern.exec(sanitized)) !== null) {
         const numericOffset = match.index;
         if (isInStringAt(numericOffset, sanitized)) {
+          continue;
+        }
+
+        const propName = match[2] || "";
+        // Validate it's an LLM artifact property
+        if (!isLLMArtifactProperty(propName)) {
           continue;
         }
 
@@ -163,6 +193,7 @@ export const extraPropertiesRemover: SanitizerStrategy = {
           start: numericOffset,
           end: valueEndPos,
           delimiter: delimiterStr,
+          propName,
         });
       }
 
@@ -192,21 +223,32 @@ export const extraPropertiesRemover: SanitizerStrategy = {
 
         sanitized = before + replacement + after;
         hasChanges = true;
-        diagnostics.push("Removed unquoted extra_thoughts/extra_text property");
+        diagnostics.push(`Removed unquoted LLM artifact property: ${m.propName}`);
       }
     }
 
-    // Pattern 3: Handle quoted extra_thoughts/extra_text properties
-    const extraPropertyPattern = /([,{])\s*"(extra_thoughts|extra_text)"\s*:\s*/g;
+    // Pattern 3: Handle quoted LLM artifact properties
+    // Generic pattern matches "extra_*", "llm_*", "ai_*", "_*" prefixed properties
+    const quotedArtifactPropertyPattern =
+      /([,{])\s*"((?:extra|llm|ai)_[a-z_]+|_[a-z_]+)"\s*:\s*/gi;
     let previousExtraProperty = "";
     while (previousExtraProperty !== sanitized) {
       previousExtraProperty = sanitized;
-      const matches: { start: number; end: number; delimiter: string }[] = [];
+      const matches: { start: number; end: number; delimiter: string; propName: string }[] = [];
       let match;
-      const pattern = new RegExp(extraPropertyPattern.source, extraPropertyPattern.flags);
+      const pattern = new RegExp(
+        quotedArtifactPropertyPattern.source,
+        quotedArtifactPropertyPattern.flags,
+      );
       while ((match = pattern.exec(sanitized)) !== null) {
         const numericOffset = match.index;
         if (isInStringAt(numericOffset, sanitized)) {
+          continue;
+        }
+
+        const propName = match[2] || "";
+        // Validate it's an LLM artifact property
+        if (!isLLMArtifactProperty(propName)) {
           continue;
         }
 
@@ -275,6 +317,7 @@ export const extraPropertiesRemover: SanitizerStrategy = {
           start: numericOffset,
           end: valueEndPos,
           delimiter: delimiterStr,
+          propName,
         });
       }
 
@@ -304,7 +347,7 @@ export const extraPropertiesRemover: SanitizerStrategy = {
 
         sanitized = before + replacement + after;
         hasChanges = true;
-        diagnostics.push("Removed extra_thoughts/extra_text property");
+        diagnostics.push(`Removed LLM artifact property: ${m.propName}`);
       }
     }
 

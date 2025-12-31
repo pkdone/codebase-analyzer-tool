@@ -11,6 +11,64 @@ import { isInStringAt } from "../../utils/parser-context-utils";
 const MAX_DIAGNOSTICS = 20;
 
 /**
+ * Checks if a word looks like a stray filler word that shouldn't appear before JSON properties.
+ * Uses a curated list of known stray filler words rather than generic detection.
+ *
+ * @param word - The word to check
+ * @returns True if the word looks like a stray filler word
+ */
+function looksLikeStrayFillerWord(word: string): boolean {
+  const lowerWord = word.toLowerCase();
+  // Only match known stray filler words that commonly appear in LLM output
+  // This is more conservative than generic detection to avoid false positives
+  const strayFillerWords = [
+    "so",
+    "and",
+    "but",
+    "also",
+    "then",
+    "next",
+    "now",
+    "here",
+    "well",
+    "okay",
+    "ok",
+    "yes",
+    "no",
+    "again",
+    "finally",
+    "first",
+    "second",
+    "third",
+    "last",
+    "done",
+    "note",
+    "hint",
+    "basically",
+    "actually",
+    "thus",
+    "hence",
+    "therefore",
+    "meanwhile",
+  ];
+  return strayFillerWords.includes(lowerWord);
+}
+
+/**
+ * Checks if a property name looks like an LLM artifact or internal property.
+ *
+ * @param propertyName - The property name to check
+ * @returns True if the property looks like an LLM artifact
+ */
+function isLLMArtifactOrInternalProperty(propertyName: string): boolean {
+  // Match patterns: extra_*, llm_*, ai_*, _*, codeSmells, or anything ending with _thoughts/_text/_notes
+  return /^(extra|llm|ai)_[a-z_]+$/i.test(propertyName) ||
+         /^_[a-z_]+$/i.test(propertyName) ||
+         /^codeSmells$/i.test(propertyName) ||
+         /_(thoughts?|text|notes?|info|reasoning|analysis)$/i.test(propertyName);
+}
+
+/**
  * Strategy that removes text appearing outside JSON string values.
  */
 export const textOutsideJsonRemover: SanitizerStrategy = {
@@ -131,8 +189,9 @@ export const textOutsideJsonRemover: SanitizerStrategy = {
       },
     );
 
-    // Pattern 4: LLM thought markers (both quoted and unquoted)
-    const llmThoughtPattern = /(}\s*)\n\s*"?_llm_thought"?\s*:.*$/s;
+    // Pattern 4: LLM thought/metadata markers (both quoted and unquoted)
+    // Generic pattern catches _llm_*, _ai_*, *_thought(s), *_reasoning, etc.
+    const llmThoughtPattern = /(}\s*)\n\s*"?(?:_?(?:llm|ai)_[a-z_]+|[a-z_]*_thoughts?|[a-z_]*_reasoning)"?\s*:.*$/si;
     sanitized = sanitized.replace(llmThoughtPattern, (match, closingBrace, offset: number) => {
       if (isInStringAt(offset, sanitized)) {
         return match;
@@ -141,7 +200,7 @@ export const textOutsideJsonRemover: SanitizerStrategy = {
       const closingBraceStr = typeof closingBrace === "string" ? closingBrace : "";
       hasChanges = true;
       if (diagnostics.length < MAX_DIAGNOSTICS) {
-        diagnostics.push("Removed _llm_thought text after JSON structure");
+        diagnostics.push("Removed LLM thought/metadata text after JSON structure");
       }
       return closingBraceStr;
     });
@@ -183,6 +242,7 @@ export const textOutsideJsonRemover: SanitizerStrategy = {
 
     // Pattern 7: Stray short text before property name after closing brace
     // e.g., "}, so    "connectionInfo" -> "}, "connectionInfo"
+    // Generic pattern catches any short filler word (2-10 chars) before properties
     const strayTextBeforePropertyPattern = /([}\]],)\s*\n\s*([a-z]{2,10})\s+(")/gi;
     sanitized = sanitized.replace(
       strayTextBeforePropertyPattern,
@@ -195,9 +255,8 @@ export const textOutsideJsonRemover: SanitizerStrategy = {
         const delimiterStr = typeof delimiter === "string" ? delimiter : "";
         const quoteStr = typeof quote === "string" ? quote : "";
 
-        // Common stray words that appear before properties
-        const strayWords = ["so", "and", "but", "also", "then", "next", "now"];
-        if (strayWords.includes(strayWordStr.toLowerCase())) {
+        // Use generic detection for stray filler words
+        if (looksLikeStrayFillerWord(strayWordStr)) {
           hasChanges = true;
           if (diagnostics.length < MAX_DIAGNOSTICS) {
             diagnostics.push(`Removed stray word '${strayWordStr}' before property`);
@@ -236,12 +295,19 @@ export const textOutsideJsonRemover: SanitizerStrategy = {
 
     // Pattern 9: Orphaned properties after corrupted text (remove the orphan)
     // e.g., "},\n      "codeSmells": []\n    }," -> "},"
+    // Generic pattern catches any LLM artifact or internal property that appears orphaned
     const orphanedPropertyPattern =
-      /([}\]]),\s*\n\s*"(codeSmells|extra_\w+)"\s*:\s*\[[^\]]*\]\s*\n\s*\},/gi;
+      /([}\]]),\s*\n\s*"([a-zA-Z_][a-zA-Z0-9_]*)"\s*:\s*\[[^\]]*\]\s*\n\s*\},/gi;
     sanitized = sanitized.replace(
       orphanedPropertyPattern,
-      (match, delimiter, _propertyName, offset: number) => {
+      (match, delimiter, propertyName, offset: number) => {
         if (isInStringAt(offset, sanitized)) {
+          return match;
+        }
+
+        const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
+        // Only remove if it looks like an LLM artifact or internal property
+        if (!isLLMArtifactOrInternalProperty(propertyNameStr)) {
           return match;
         }
 
@@ -249,7 +315,7 @@ export const textOutsideJsonRemover: SanitizerStrategy = {
 
         hasChanges = true;
         if (diagnostics.length < MAX_DIAGNOSTICS) {
-          diagnostics.push("Removed orphaned property after corrupted structure");
+          diagnostics.push(`Removed orphaned property '${propertyNameStr}' after corrupted structure`);
         }
         return `${delimiterStr},`;
       },

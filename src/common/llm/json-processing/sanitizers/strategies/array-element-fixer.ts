@@ -13,6 +13,53 @@ import { processingConfig } from "../../constants/json-processing.config";
 import { looksLikeDotSeparatedIdentifier } from "../../utils/property-name-matcher";
 
 /**
+ * Checks if a word looks like a stray prefix word that shouldn't appear before array elements.
+ * Generic detection that extends beyond a hardcoded word list.
+ *
+ * @param word - The word to check
+ * @returns True if the word looks like a stray prefix that should be removed
+ */
+function looksLikeStrayPrefixWord(word: string): boolean {
+  const lowerWord = word.toLowerCase();
+
+  // JSON keywords should never be removed
+  const jsonKeywords = ["true", "false", "null"];
+  if (jsonKeywords.includes(lowerWord)) {
+    return false;
+  }
+
+  // Common stray prefix words (base list)
+  const commonStrayWords = [
+    "from",
+    "stop",
+    "package",
+    "import",
+    "and",
+    "or",
+    "the",
+    "a",
+    "an",
+    "to",
+    "of",
+    "in",
+    "for",
+    "with",
+    "by",
+  ];
+  if (commonStrayWords.includes(lowerWord)) {
+    return true;
+  }
+
+  // Generic detection: short words (1-4 chars) that are lowercase and don't look like identifiers
+  // This catches stray single chars like "e", "t", "ar" without being overly aggressive
+  if (word.length <= 4 && /^[a-z]+$/.test(word)) {
+    return true;
+  }
+
+  return false;
+}
+
+/**
  * Checks if position is in an array context by scanning backwards.
  * This is a specialized implementation for array element fixing that checks
  * if the position is DIRECTLY inside an array (not inside a nested object).
@@ -207,6 +254,7 @@ export const arrayElementFixer: SanitizerStrategy = {
     );
 
     // Pattern 3: Fix words before quoted strings in arrays (like "from" prefix)
+    // Uses generic stray word detection instead of hardcoded word list
     const wordBeforeQuotedStringInArrayPattern =
       /(\[|,\s*)(\s*)([a-zA-Z]+)\s*"([^"]+)"(\s*,|\s*\])/g;
     sanitized = sanitized.replace(
@@ -222,15 +270,13 @@ export const arrayElementFixer: SanitizerStrategy = {
           return match;
         }
 
-        // Generic pattern: common words that shouldn't precede array elements
-        const prefixWordsToRemove = ["from", "stop", "package", "import", "and", "or", "the", "a"];
-        const lowerPrefixWord = prefixWordStr.toLowerCase();
         const isInArray =
           prefixStr === "[" ||
           prefixStr.startsWith(",") ||
           isInArrayContextLocal(offset, sanitized);
 
-        if (isInArray && prefixWordsToRemove.includes(lowerPrefixWord)) {
+        // Use generic stray word detection
+        if (isInArray && looksLikeStrayPrefixWord(prefixWordStr)) {
           hasChanges = true;
           if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(

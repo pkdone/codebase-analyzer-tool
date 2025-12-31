@@ -43,18 +43,19 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     let hasChanges = false;
     const diagnostics: string[] = [];
 
-    // Fix corrupted entries like _MODULE"
+    // Fix corrupted entries like _MODULE", _CODE", _ANY_UPPERCASE_CONSTANT"
+    // Generic pattern matches any uppercase identifier starting with underscore in array context
 
-    // Pattern: Corrupted entries like _MODULE",
+    // Pattern: Corrupted entries like _MODULE", _CODE", _CONSTANT_NAME"
     sanitized = sanitized.replace(
-      /([}\],])\s*\n\s*_MODULE"\s*,?\s*\n/g,
+      /([}\],])\s*\n\s*_[A-Z0-9_]+"\s*,?\s*\n/g,
       (match, delimiter, offset: number) => {
         if (isInStringAt(offset, sanitized)) {
           return match;
         }
         hasChanges = true;
         if (diagnostics.length < 10) {
-          diagnostics.push("Removed _MODULE corrupted reference from array");
+          diagnostics.push("Removed corrupted uppercase identifier reference from array");
         }
         const delimiterStr = typeof delimiter === "string" ? delimiter : "";
         return `${delimiterStr}\n`;
@@ -162,12 +163,13 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // Pattern: Remove 'ar' prefix before quoted strings in arrays (run early)
-    // Pattern: `ar"stringValue"` -> `"stringValue"`
-    const arPrefixEarlyPattern = /([}\],]|\n|^)(\s*)ar"([^"]+)"(\s*,|\s*\])/g;
+    // Pattern: Remove short stray prefix (1-3 lowercase chars) before quoted strings in arrays (run early)
+    // Pattern: `ar"stringValue"` -> `"stringValue"`, `x"value"` -> `"value"`, `foo"bar"` -> `"bar"`
+    // Generic pattern catches common LLM "stutter" hallucinations like `ar"`, `y"`, `x"`, `foo"`
+    const shortPrefixEarlyPattern = /([}\],]|\n|^)(\s*)([a-z]{1,3})"([^"]+)"(\s*,|\s*\])/g;
     sanitized = sanitized.replace(
-      arPrefixEarlyPattern,
-      (match, delimiter, whitespace, stringValue, terminator, offset: number) => {
+      shortPrefixEarlyPattern,
+      (match, delimiter, whitespace, prefix, stringValue, terminator, offset: number) => {
         if (isInStringAt(offset, sanitized)) {
           return match;
         }
@@ -185,9 +187,10 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
           const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
           const stringValueStr = typeof stringValue === "string" ? stringValue : "";
           const terminatorStr = typeof terminator === "string" ? terminator : "";
+          const prefixStr = typeof prefix === "string" ? prefix : "";
           if (diagnostics.length < 10) {
             diagnostics.push(
-              `Removed 'ar' prefix before quoted string: "${stringValueStr.substring(0, 30)}..."`,
+              `Removed '${prefixStr}' prefix before quoted string: "${stringValueStr.substring(0, 30)}..."`,
             );
           }
           return `${delimiterStr}${whitespaceStr}"${stringValueStr}"${terminatorStr}`;
@@ -3053,22 +3056,117 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       return `{${newlineOrSpaceStr}`;
     });
 
-    // Pattern: `trib` -> remove (stray text)
-    // Pattern: `cmethod` -> remove (stray text)
-    // Pattern: `e"publicConstants"` -> remove (stray text)
-    // Pattern: `tribal-council-leader-thought` -> remove (stray text)
-    const strayTextPattern =
-      /([}\],]|\n|^)(\s*)(trib|cmethod|e"publicConstants"|tribal-council-leader-thought)(\s*)([}\],]|\n|$)/g;
+    // Pattern: Remove generic stray text between JSON delimiters
+    // Generic pattern catches alphanumeric stray text (2-30 chars) that appears on its own line
+    // between JSON structural elements. This replaces the previous hardcoded list of
+    // specific words like `trib`, `cmethod`, `tribal-council-leader-thought`
+    const genericStrayTextPattern =
+      /([}\],]|\n|^)(\s*)([a-zA-Z][a-zA-Z0-9_-]{1,29})(\s*)([}\],]|\n|$)/g;
     sanitized = sanitized.replace(
-      strayTextPattern,
+      genericStrayTextPattern,
       (match, before, _whitespace, strayText, _whitespaceAfter, after, offset: number) => {
         if (isInStringAt(offset, sanitized)) {
+          return match;
+        }
+        const strayTextStr = typeof strayText === "string" ? strayText : "";
+        const lowerStray = strayTextStr.toLowerCase();
+        // Skip JSON keywords and common English words that might appear contextually
+        const excludedWords = [
+          "true",
+          "false",
+          "null",
+          "undefined",
+          // Common English words that shouldn't be removed as stray text
+          "the",
+          "a",
+          "an",
+          "and",
+          "or",
+          "but",
+          "for",
+          "of",
+          "in",
+          "to",
+          "is",
+          "are",
+          "was",
+          "were",
+          "be",
+          "been",
+          "being",
+          "have",
+          "has",
+          "had",
+          "do",
+          "does",
+          "did",
+          "will",
+          "would",
+          "could",
+          "should",
+          "may",
+          "might",
+          "must",
+          "shall",
+          "can",
+          "need",
+          "dare",
+          "ought",
+          "used",
+          "this",
+          "that",
+          "these",
+          "those",
+          "it",
+          "its",
+          "with",
+          "from",
+          "by",
+          "at",
+          "on",
+          "as",
+          "if",
+          "then",
+          "else",
+          "when",
+          "where",
+          "while",
+          "which",
+          "what",
+          "who",
+          "whom",
+          "whose",
+          "why",
+          "how",
+          "all",
+          "each",
+          "every",
+          "both",
+          "few",
+          "more",
+          "most",
+          "other",
+          "some",
+          "such",
+          "no",
+          "nor",
+          "not",
+          "only",
+          "own",
+          "same",
+          "so",
+          "than",
+          "too",
+          "very",
+          "just",
+          "also",
+        ];
+        if (excludedWords.includes(lowerStray)) {
           return match;
         }
         hasChanges = true;
         const beforeStr = typeof before === "string" ? before : "";
         const afterStr = typeof after === "string" ? after : "";
-        const strayTextStr = typeof strayText === "string" ? strayText : "";
         if (diagnostics.length < 10) {
           diagnostics.push(`Removed stray text '${strayTextStr}'`);
         }
@@ -3266,9 +3364,10 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       return "";
     });
 
-    // Fix stray text like "trib" at end of property
-    // Pattern: `"propertyName": [\n...],\ntrib` -> `"propertyName": [\n...],`
-    const strayTextAtEndPattern = /([}\],])\s*\n\s*(trib[a-z-]*)(\s*)([}\],]|\n|$)/g;
+    // Fix generic stray text at end of property (e.g., LLM thought fragments)
+    // Pattern: `"propertyName": [\n...],\nstrayword` -> `"propertyName": [\n...],`
+    // Generic pattern catches alphanumeric stray text (2-30 chars) appearing after delimiters
+    const strayTextAtEndPattern = /([}\],])\s*\n\s*([a-zA-Z][a-zA-Z0-9_-]{1,29})(\s*)([}\],]|\n|$)/g;
     sanitized = sanitized.replace(
       strayTextAtEndPattern,
       (match, delimiter, strayText, _whitespace, after, offset: number) => {
@@ -3276,11 +3375,74 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
           return match;
         }
 
+        const strayTextStr = typeof strayText === "string" ? strayText : "";
+        const lowerStray = strayTextStr.toLowerCase();
+        // Skip JSON keywords and common English words that might appear contextually
+        const excludedWords = [
+          "true",
+          "false",
+          "null",
+          "undefined",
+          "the",
+          "a",
+          "an",
+          "and",
+          "or",
+          "but",
+          "for",
+          "of",
+          "in",
+          "to",
+          "is",
+          "are",
+          "was",
+          "were",
+          "be",
+          "been",
+          "being",
+          "have",
+          "has",
+          "had",
+          "with",
+          "from",
+          "by",
+          "at",
+          "on",
+          "as",
+          "if",
+          "then",
+          "else",
+          "when",
+          "where",
+          "while",
+          "which",
+          "what",
+          "who",
+          "it",
+          "its",
+          "this",
+          "that",
+          "these",
+          "those",
+          "so",
+          "also",
+          "just",
+          "very",
+          "too",
+          "than",
+          "only",
+          "not",
+          "no",
+        ];
+        if (excludedWords.includes(lowerStray)) {
+          return match;
+        }
+
         hasChanges = true;
         const delimiterStr = typeof delimiter === "string" ? delimiter : "";
         const afterStr = typeof after === "string" ? after : "";
         if (diagnostics.length < 10) {
-          diagnostics.push(`Removed stray text '${strayText}' after ${delimiterStr}`);
+          diagnostics.push(`Removed stray text '${strayTextStr}' after ${delimiterStr}`);
         }
         return `${delimiterStr}\n${afterStr}`;
       },
