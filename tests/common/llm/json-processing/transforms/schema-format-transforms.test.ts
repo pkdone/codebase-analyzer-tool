@@ -86,6 +86,366 @@ describe("schema-format-transforms", () => {
       expect(unwrapJsonSchemaStructure(123)).toBe(123);
       expect(unwrapJsonSchemaStructure(true)).toBe(true);
     });
+
+    describe("nested JSON Schema field extraction", () => {
+      it("should extract description values from nested schema field definitions", () => {
+        const schemaResponse = {
+          type: "object",
+          properties: {
+            purpose: {
+              type: "string",
+              description: "This is the actual purpose text",
+            },
+            implementation: {
+              type: "string",
+              description: "This is the actual implementation text",
+            },
+          },
+        };
+
+        const result = unwrapJsonSchemaStructure(schemaResponse);
+
+        expect(result).toEqual({
+          purpose: "This is the actual purpose text",
+          implementation: "This is the actual implementation text",
+        });
+      });
+
+      it("should handle full JSON Schema response with $schema and additionalProperties", () => {
+        // This is the exact pattern from the error logs
+        const schemaResponse = {
+          type: "object",
+          properties: {
+            purpose: {
+              type: "string",
+              description:
+                "This file serves as a comprehensive documentation guide for developers.",
+            },
+            implementation: {
+              type: "string",
+              description: "The file is implemented as a structured AsciiDoc document.",
+            },
+            databaseIntegration: {
+              type: "object",
+              properties: {
+                mechanism: "NONE",
+                name: "n/a",
+                description: "n/a",
+                codeExample: "n/a",
+              },
+              required: ["mechanism", "description", "codeExample"],
+              additionalProperties: true,
+              description: "Information about how the file interacts with a database.",
+            },
+          },
+          required: ["purpose", "implementation"],
+          additionalProperties: true,
+          $schema: "http://json-schema.org/draft-07/schema#",
+        };
+
+        const result = unwrapJsonSchemaStructure(schemaResponse);
+
+        expect(result).toEqual({
+          purpose: "This file serves as a comprehensive documentation guide for developers.",
+          implementation: "The file is implemented as a structured AsciiDoc document.",
+          databaseIntegration: {
+            mechanism: "NONE",
+            name: "n/a",
+            description: "n/a",
+            codeExample: "n/a",
+          },
+        });
+      });
+
+      it("should handle mixed content where some properties are schema-wrapped and some are not", () => {
+        const mixedResponse = {
+          type: "object",
+          properties: {
+            name: "DirectValue",
+            purpose: {
+              type: "string",
+              description: "Schema-wrapped value",
+            },
+            count: 42,
+          },
+        };
+
+        const result = unwrapJsonSchemaStructure(mixedResponse);
+
+        expect(result).toEqual({
+          name: "DirectValue",
+          purpose: "Schema-wrapped value",
+          count: 42,
+        });
+      });
+
+      it("should handle deeply nested schema field definitions with data in nested properties", () => {
+        // When a nested object has schema properties but the inner properties contain actual data
+        const deeplyNested = {
+          type: "object",
+          properties: {
+            outer: {
+              type: "object",
+              properties: {
+                inner: "Deep nested value", // actual data, not schema
+                count: 42,
+              },
+              required: ["inner"],
+              additionalProperties: true,
+              description: "Metadata about outer object",
+            },
+          },
+        };
+
+        const result = unwrapJsonSchemaStructure(deeplyNested);
+
+        // Should extract the properties object which contains actual data
+        expect(result).toEqual({
+          outer: {
+            inner: "Deep nested value",
+            count: 42,
+          },
+        });
+      });
+
+      it("should handle doubly nested objects where inner properties contain data values", () => {
+        // Pattern from error logs: nested object schema where the properties contain actual data
+        const doublyNested = {
+          type: "object",
+          properties: {
+            level1: {
+              type: "string",
+              description: "Level 1 value",
+            },
+            nested: {
+              type: "object",
+              properties: {
+                level2: "Actual data value", // This is DATA, not a schema field
+                count: 42,
+              },
+              required: ["level2"],
+              additionalProperties: true,
+              description: "Nested object metadata",
+            },
+          },
+        };
+
+        const result = unwrapJsonSchemaStructure(doublyNested);
+
+        expect(result).toEqual({
+          level1: "Level 1 value",
+          nested: {
+            level2: "Actual data value",
+            count: 42,
+          },
+        });
+      });
+
+      it("should pass through nested schema objects when inner properties are schema definitions", () => {
+        // When the nested object's properties are themselves schema definitions (not data),
+        // and there's no clear indication that properties contains data, we can't reliably extract
+        const nestedWithSchemaProps = {
+          type: "object",
+          properties: {
+            simple: {
+              type: "string",
+              description: "Simple value",
+            },
+            complex: {
+              type: "object",
+              properties: {
+                inner: {
+                  type: "string",
+                  description: "Inner value",
+                },
+              },
+              required: ["inner"],
+              additionalProperties: true,
+              description: "Complex object metadata",
+            },
+          },
+        };
+
+        const result = unwrapJsonSchemaStructure(nestedWithSchemaProps);
+
+        // The simple field gets extracted, but complex is more ambiguous
+        // Since complex.properties contains a schema field (not raw data),
+        // and we can't tell if this is intended data or pure schema,
+        // we extract based on the presence of additionalProperties/required
+        // which indicates it's likely schema wrapping actual data.
+        // But since the inner properties look like schema definitions too,
+        // the recursion handles it.
+        expect(result).toEqual({
+          simple: "Simple value",
+          complex: {
+            inner: "Inner value",
+          },
+        });
+      });
+
+      it("should handle arrays of schema-wrapped values", () => {
+        const arrayInput = {
+          type: "object",
+          properties: {
+            items: [
+              {
+                type: "string",
+                description: "First item",
+              },
+              {
+                type: "string",
+                description: "Second item",
+              },
+            ],
+          },
+        };
+
+        const result = unwrapJsonSchemaStructure(arrayInput);
+
+        expect(result).toEqual({
+          items: ["First item", "Second item"],
+        });
+      });
+
+      it("should handle schema fields with enum property", () => {
+        const schemaWithEnum = {
+          type: "object",
+          properties: {
+            status: {
+              type: "string",
+              enum: ["ACTIVE", "INACTIVE"],
+              description: "ACTIVE",
+            },
+          },
+        };
+
+        const result = unwrapJsonSchemaStructure(schemaWithEnum);
+
+        expect(result).toEqual({
+          status: "ACTIVE",
+        });
+      });
+
+      it("should handle schema fields with allOf patterns where type is present", () => {
+        // allOf with type at the same level as description
+        const schemaWithAllOf = {
+          type: "object",
+          properties: {
+            mechanism: {
+              type: "string",
+              allOf: [{ enum: ["NONE", "JDBC", "JPA"] }],
+              description: "JPA",
+            },
+          },
+        };
+
+        const result = unwrapJsonSchemaStructure(schemaWithAllOf);
+
+        expect(result).toEqual({
+          mechanism: "JPA",
+        });
+      });
+
+      it("should pass through complex allOf patterns without type at same level", () => {
+        // When allOf contains the type (not at same level), don't try to extract
+        const complexAllOf = {
+          type: "object",
+          properties: {
+            mechanism: {
+              allOf: [{ type: "string" }, { type: "string", enum: ["NONE", "JDBC", "JPA"] }],
+              description: "JPA",
+            },
+          },
+        };
+
+        const result = unwrapJsonSchemaStructure(complexAllOf);
+
+        // This pattern is ambiguous - the object doesn't have a direct "type" property
+        // so it won't be detected as a schema field definition
+        expect(result).toEqual({
+          mechanism: {
+            allOf: [{ type: "string" }, { type: "string", enum: ["NONE", "JDBC", "JPA"] }],
+            description: "JPA",
+          },
+        });
+      });
+
+      it("should not extract description from objects that are clearly data, not schema", () => {
+        // An object with "type" and "description" but other non-schema properties
+        // should be treated carefully - if it looks like actual data, leave it alone
+        const dataObject = {
+          name: "MyComponent",
+          type: "button", // This is data, not a JSON Schema type
+          description: "A button component",
+          onClick: "handleClick",
+        };
+
+        const result = unwrapJsonSchemaStructure(dataObject);
+
+        // "button" is not a JSON Schema type, so this should pass through unchanged
+        expect(result).toEqual(dataObject);
+      });
+
+      it("should handle numeric description values", () => {
+        const schemaWithNumber = {
+          type: "object",
+          properties: {
+            count: {
+              type: "number",
+              description: 42,
+            },
+            active: {
+              type: "boolean",
+              description: true,
+            },
+          },
+        };
+
+        const result = unwrapJsonSchemaStructure(schemaWithNumber);
+
+        expect(result).toEqual({
+          count: 42,
+          active: true,
+        });
+      });
+
+      it("should handle null and undefined description values", () => {
+        const schemaWithNull = {
+          type: "object",
+          properties: {
+            nullField: {
+              type: "string",
+              description: null,
+            },
+          },
+        };
+
+        const result = unwrapJsonSchemaStructure(schemaWithNull);
+
+        expect(result).toEqual({
+          nullField: null,
+        });
+      });
+
+      it("should handle array description values (tablesAccessed pattern)", () => {
+        const schemaWithArrayDescription = {
+          type: "object",
+          properties: {
+            tablesAccessed: {
+              type: "array",
+              items: { type: "string" },
+              description: ["users", "orders", "products"],
+            },
+          },
+        };
+
+        const result = unwrapJsonSchemaStructure(schemaWithArrayDescription);
+
+        expect(result).toEqual({
+          tablesAccessed: ["users", "orders", "products"],
+        });
+      });
+    });
   });
 
   describe("coerceNumericProperties", () => {

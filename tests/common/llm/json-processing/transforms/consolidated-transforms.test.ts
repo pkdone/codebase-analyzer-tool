@@ -48,7 +48,7 @@ describe("Consolidated Schema Fixing Transforms", () => {
     it("should return unchanged if not a JSON Schema structure", () => {
       const input = { name: "test", value: 123 };
       const result = unwrapJsonSchemaStructure(input);
-      expect(result).toBe(input);
+      expect(result).toEqual(input);
     });
 
     it("should return unchanged if properties is empty", () => {
@@ -57,7 +57,7 @@ describe("Consolidated Schema Fixing Transforms", () => {
         properties: {},
       };
       const result = unwrapJsonSchemaStructure(input);
-      expect(result).toBe(input);
+      expect(result).toEqual(input);
     });
   });
 
