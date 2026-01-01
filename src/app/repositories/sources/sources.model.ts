@@ -116,40 +116,6 @@ export interface ProjectedFileTypesCountAndLines {
 }
 
 /**
- * Interface representing a dependency entry for a Java class
- */
-export interface JavaClassDependency {
-  readonly level: number;
-  readonly namespace: string;
-  readonly references: readonly string[];
-}
-
-/**
- * Interface representing a hierarchical Java class dependency node
- */
-export interface HierarchicalJavaClassDependency {
-  readonly namespace: string;
-  readonly originalLevel?: number; // Preserve original level from flat data
-  readonly dependencies?: readonly HierarchicalJavaClassDependency[];
-}
-
-/**
- * Interface representing a top-level Java class with its hierarchical dependencies
- */
-export interface HierarchicalTopLevelJavaClassDependencies {
-  readonly namespace: string;
-  readonly dependencies: readonly HierarchicalJavaClassDependency[];
-}
-
-/**
- * Interface representing a top-level Java class with its dependencies (flat structure)
- */
-export interface ProjectedTopLevelJavaClassDependencies {
-  readonly namespace: string;
-  readonly dependencies: readonly JavaClassDependency[];
-}
-
-/**
  * Interface representing aggregated project file and line statistics
  */
 export interface ProjectedFileAndLineStats {

@@ -57,7 +57,6 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
       getProjectFilesPaths: jest.fn().mockResolvedValue([]),
       getProjectFileAndLineStats: jest.fn().mockResolvedValue({ fileCount: 0, linesOfCode: 0 }),
       getProjectFileTypesCountAndLines: jest.fn().mockResolvedValue([]),
-      getTopLevelClassDependencies: jest.fn().mockResolvedValue([]),
       getProjectIntegrationPoints: jest.fn().mockResolvedValue([]),
       getTopComplexMethods: jest.fn().mockResolvedValue([]),
       getCodeSmellStatistics: jest.fn().mockResolvedValue([]),

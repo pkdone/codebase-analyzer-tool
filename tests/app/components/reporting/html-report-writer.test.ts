@@ -56,7 +56,6 @@ describe("HtmlReportWriter", () => {
       procs: { total: 5, low: 2, medium: 2, high: 1, list: [] },
       trigs: { total: 2, low: 1, medium: 1, high: 0, list: [] },
     },
-    topLevelJavaClasses: [{ namespace: "com.example.MyClass", dependencies: [] }],
     integrationPoints: [
       {
         namespace: "com.example.UserController",
@@ -80,7 +79,6 @@ describe("HtmlReportWriter", () => {
         fileTypes: "file-types.tson",
         dbInteractions: "db-interactions.tson",
         procsAndTriggers: "procs-and-triggers.tson",
-        topLevelJavaClasses: "top-level-java-classes.tson",
         integrationPoints: "integration-points.tson",
       },
       getCategoryJSONFilename: (category: string) => `${category}.tson`,
@@ -93,9 +91,6 @@ describe("HtmlReportWriter", () => {
       "../../../../src/app/components/reporting/view-models/table-view-model",
     ).TableViewModel)([]),
     procsAndTriggersTableViewModel: new (jest.requireActual(
-      "../../../../src/app/components/reporting/view-models/table-view-model",
-    ).TableViewModel)([]),
-    topLevelJavaClassesTableViewModel: new (jest.requireActual(
       "../../../../src/app/components/reporting/view-models/table-view-model",
     ).TableViewModel)([]),
     integrationPointsTableViewModel: new (jest.requireActual(

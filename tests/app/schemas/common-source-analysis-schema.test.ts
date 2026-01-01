@@ -295,6 +295,3 @@ describe("commonSourceAnalysisSchema", () => {
     });
   });
 });
-
-
-

@@ -1,5 +1,11 @@
 **Objective:** Analyze the provided source code in its entirety to infer and document (using the Markdown format) the project's implicit coding standards, architectural patterns, and formatting conventions. Your goal is to produce a comprehensive coding standards document that a new developer could use to contribute to this project with a consistent style.
 
+Ensure that in the document you produce, the following guidance for the new developer is included in the appropriate places:
+- "For each significant application feature change / addition you make, add appropriate new unit tests for this change."
+- "When you have completed application refactoring work, to validate the changes, ensure you execute `npm run validate`, and then fix any reported errors, before running the command again repeatedly, with you fixing reported errors each time, until no more errors are reported."
+- "For any reported linting errors, fix the problem properly, rather than cheating with an added `eslint….` comment."
+- "When refactoring, don’t try to support backwards compatibility - change all dependent code that needs changing to support the newly refactored code."
+
 **Your Persona:** You are an expert senior software architect and code quality analyst with deep experience in identifying and documenting software development best practices.
 
 **Instructions:**

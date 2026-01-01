@@ -5,7 +5,6 @@
 // Define base directory names once
 const DIRECTORIES = {
   CHARTS: "charts",
-  DEPENDENCY_TREES: "dependency-trees",
 } as const;
 
 export const htmlReportConstants = {
@@ -14,7 +13,6 @@ export const htmlReportConstants = {
    */
   paths: {
     CHARTS_DIR: `${DIRECTORIES.CHARTS}/`,
-    DEPENDENCY_TREES_DIR: `${DIRECTORIES.DEPENDENCY_TREES}/`,
   },
 
   /**
@@ -29,8 +27,6 @@ export const htmlReportConstants = {
     FILE_TYPE: "File Type",
     FILES_COUNT: "Files Count",
     LINES_COUNT: "Lines Count",
-    CLASSPATH: "Classpath",
-    DEPENDENCIES_COUNT: "Dependencies Count",
   },
 
   /**

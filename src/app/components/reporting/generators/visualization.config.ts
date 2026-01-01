@@ -5,31 +5,6 @@
  */
 export const visualizationConfig = {
   /**
-   * Configuration for dependency tree diagrams.
-   * Used by DependencyTreeSvgGenerator for Java class hierarchy visualizations.
-   */
-  dependencyTree: {
-    /** Maximum depth for dependency tree traversal in Mermaid diagrams. */
-    MAX_DEPTH: 10,
-    /** Maximum number of nodes to include in a single diagram. */
-    MAX_NODES_PER_DIAGRAM: 100,
-    /** Maximum children to show per node to prevent overly wide diagrams. */
-    MAX_CHILDREN_PER_NODE: 10,
-    /** Default diagram width. */
-    DEFAULT_WIDTH: 1200,
-    /** Default diagram height. */
-    DEFAULT_HEIGHT: 800,
-    /** Maximum diagram width for dynamically calculated sizes. */
-    MAX_WIDTH: 4000,
-    /** Maximum diagram height for dynamically calculated sizes. */
-    MAX_HEIGHT: 4000,
-    /** Width multiplier per node for dynamic sizing. */
-    WIDTH_PER_NODE: 50,
-    /** Height multiplier per node for dynamic sizing. */
-    HEIGHT_PER_NODE: 30,
-  },
-
-  /**
    * Configuration for architecture diagrams.
    * Used by ArchitectureSvgGenerator for microservices architecture visualizations.
    */

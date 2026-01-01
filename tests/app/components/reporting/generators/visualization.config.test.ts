@@ -1,38 +1,6 @@
 import { visualizationConfig } from "../../../../../src/app/components/reporting/generators/visualization.config";
 
 describe("Visualization Configuration", () => {
-  describe("dependencyTree config", () => {
-    const depTreeConfig = visualizationConfig.dependencyTree;
-
-    it("should have MAX_DEPTH defined", () => {
-      expect(depTreeConfig.MAX_DEPTH).toBeDefined();
-      expect(typeof depTreeConfig.MAX_DEPTH).toBe("number");
-      expect(depTreeConfig.MAX_DEPTH).toBeGreaterThan(0);
-    });
-
-    it("should have MAX_NODES_PER_DIAGRAM defined", () => {
-      expect(depTreeConfig.MAX_NODES_PER_DIAGRAM).toBeDefined();
-      expect(typeof depTreeConfig.MAX_NODES_PER_DIAGRAM).toBe("number");
-      expect(depTreeConfig.MAX_NODES_PER_DIAGRAM).toBeGreaterThan(0);
-    });
-
-    it("should have MAX_CHILDREN_PER_NODE defined", () => {
-      expect(depTreeConfig.MAX_CHILDREN_PER_NODE).toBeDefined();
-      expect(typeof depTreeConfig.MAX_CHILDREN_PER_NODE).toBe("number");
-      expect(depTreeConfig.MAX_CHILDREN_PER_NODE).toBeGreaterThan(0);
-    });
-
-    it("should have valid default dimensions", () => {
-      expect(depTreeConfig.DEFAULT_WIDTH).toBeGreaterThan(0);
-      expect(depTreeConfig.DEFAULT_HEIGHT).toBeGreaterThan(0);
-    });
-
-    it("should have max dimensions greater than or equal to defaults", () => {
-      expect(depTreeConfig.MAX_WIDTH).toBeGreaterThanOrEqual(depTreeConfig.DEFAULT_WIDTH);
-      expect(depTreeConfig.MAX_HEIGHT).toBeGreaterThanOrEqual(depTreeConfig.DEFAULT_HEIGHT);
-    });
-  });
-
   describe("architecture config", () => {
     const archConfig = visualizationConfig.architecture;
 

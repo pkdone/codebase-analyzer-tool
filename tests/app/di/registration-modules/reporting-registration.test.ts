@@ -16,7 +16,6 @@ describe("Reporting Registration Module", () => {
       expect(container.isRegistered(reportingTokens.MermaidRenderer)).toBe(true);
       expect(container.isRegistered(reportingTokens.HtmlReportWriter)).toBe(true);
       expect(container.isRegistered(reportingTokens.JsonReportWriter)).toBe(true);
-      expect(container.isRegistered(reportingTokens.DependencyTreeSvgGenerator)).toBe(true);
       expect(container.isRegistered(reportingTokens.FlowchartSvgGenerator)).toBe(true);
       expect(container.isRegistered(reportingTokens.DomainModelSvgGenerator)).toBe(true);
       expect(container.isRegistered(reportingTokens.ArchitectureSvgGenerator)).toBe(true);

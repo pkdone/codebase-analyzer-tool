@@ -5,7 +5,6 @@ import { reportingTokens } from "../tokens";
 import { HtmlReportWriter } from "../../components/reporting/html-report-writer";
 import { JsonReportWriter } from "../../components/reporting/json-report-writer";
 import { MermaidRenderer } from "../../components/reporting/generators/mermaid/mermaid-renderer";
-import { DependencyTreeSvgGenerator } from "../../components/reporting/generators/svg/dependency-tree-svg-generator";
 import { PieChartGenerator } from "../../components/reporting/generators/png/pie-chart-generator";
 import { FlowchartSvgGenerator } from "../../components/reporting/generators/svg/flowchart-svg-generator";
 import { DomainModelSvgGenerator } from "../../components/reporting/generators/svg/domain-model-svg-generator";
@@ -13,7 +12,6 @@ import { ArchitectureSvgGenerator } from "../../components/reporting/generators/
 import { CurrentArchitectureSvgGenerator } from "../../components/reporting/generators/svg/current-architecture-svg-generator";
 import { DatabaseReportDataProvider } from "../../components/reporting/sections/database/database-report-data-provider";
 import { IntegrationPointsDataProvider } from "../../components/reporting/sections/integration-points/integration-points-data-provider";
-import { CodeStructureDataProvider } from "../../components/reporting/sections/code-structure/code-structure-data-provider";
 import { AppStatisticsDataProvider } from "../../components/reporting/sections/quality-metrics/app-statistics-data-provider";
 import { AppSummaryCategoriesProvider } from "../../components/reporting/sections/file-types/categories-data-provider";
 import { DomainModelDataProvider } from "../../components/reporting/sections/visualizations/domain-model-data-provider";
@@ -26,7 +24,6 @@ import AppReportGenerator from "../../components/reporting/app-report-generator"
 import { FileTypesSection } from "../../components/reporting/sections/file-types/file-types-section";
 import { DatabaseSection } from "../../components/reporting/sections/database/database-section";
 import { IntegrationPointsSection } from "../../components/reporting/sections/integration-points/integration-points-section";
-import { CodeStructureSection } from "../../components/reporting/sections/code-structure/code-structure-section";
 import { VisualizationsSection } from "../../components/reporting/sections/visualizations/visualizations-section";
 import { QualityMetricsSection } from "../../components/reporting/sections/quality-metrics/quality-metrics-section";
 
@@ -45,10 +42,6 @@ export function registerReportingComponents(): void {
   // Register report writers and generators
   container.registerSingleton(reportingTokens.HtmlReportWriter, HtmlReportWriter);
   container.registerSingleton(reportingTokens.JsonReportWriter, JsonReportWriter);
-  container.registerSingleton(
-    reportingTokens.DependencyTreeSvgGenerator,
-    DependencyTreeSvgGenerator,
-  );
   container.registerSingleton(reportingTokens.PieChartGenerator, PieChartGenerator);
   container.registerSingleton(reportingTokens.FlowchartSvgGenerator, FlowchartSvgGenerator);
   container.registerSingleton(reportingTokens.DomainModelSvgGenerator, DomainModelSvgGenerator);
@@ -65,7 +58,6 @@ export function registerReportingComponents(): void {
     reportingTokens.IntegrationPointsDataProvider,
     IntegrationPointsDataProvider,
   );
-  container.registerSingleton(reportingTokens.CodeStructureDataProvider, CodeStructureDataProvider);
   container.registerSingleton(reportingTokens.AppStatisticsDataProvider, AppStatisticsDataProvider);
   container.registerSingleton(
     reportingTokens.AppSummaryCategoriesProvider,
@@ -87,7 +79,6 @@ export function registerReportingComponents(): void {
   container.registerSingleton("ReportSection", FileTypesSection);
   container.registerSingleton("ReportSection", DatabaseSection);
   container.registerSingleton("ReportSection", IntegrationPointsSection);
-  container.registerSingleton("ReportSection", CodeStructureSection);
   container.registerSingleton("ReportSection", VisualizationsSection);
   container.registerSingleton("ReportSection", QualityMetricsSection);
 }

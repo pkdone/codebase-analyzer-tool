@@ -96,12 +96,6 @@
         <%- include('partials/section-header', { title: 'Module Coupling Analysis', jsonFile: 'module-coupling.json', jsonIconSvg: jsonIconSvg }) %>
         <%- include('partials/module-coupling', { couplingData: moduleCoupling, couplingStats: couplingStatistics }) %>
       <% } %>
-      
-      <%- include('partials/top-level-java-classes', { 
-        topLevelJavaClasses: topLevelJavaClasses, 
-        topLevelJavaClassesTableViewModel: topLevelJavaClassesTableViewModel, 
-        jsonFilesConfig: jsonFilesConfig 
-      }) %>
     </div>
 
     <div id="tab-ui" class="tab-content">

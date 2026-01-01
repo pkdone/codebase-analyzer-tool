@@ -9,10 +9,6 @@ describe("htmlReportConstants", () => {
     it("should have CHARTS_DIR", () => {
       expect(htmlReportConstants.paths.CHARTS_DIR).toBe("charts/");
     });
-
-    it("should have DEPENDENCY_TREES_DIR", () => {
-      expect(htmlReportConstants.paths.DEPENDENCY_TREES_DIR).toBe("dependency-trees/");
-    });
   });
 
   describe("directories", () => {
@@ -22,10 +18,6 @@ describe("htmlReportConstants", () => {
 
     it("should have CHARTS", () => {
       expect(htmlReportConstants.directories.CHARTS).toBe("charts");
-    });
-
-    it("should have DEPENDENCY_TREES", () => {
-      expect(htmlReportConstants.directories.DEPENDENCY_TREES).toBe("dependency-trees");
     });
   });
 
@@ -44,14 +36,6 @@ describe("htmlReportConstants", () => {
 
     it("should have LINES_COUNT", () => {
       expect(htmlReportConstants.columnHeaders.LINES_COUNT).toBe("Lines Count");
-    });
-
-    it("should have CLASSPATH", () => {
-      expect(htmlReportConstants.columnHeaders.CLASSPATH).toBe("Classpath");
-    });
-
-    it("should have DEPENDENCIES_COUNT", () => {
-      expect(htmlReportConstants.columnHeaders.DEPENDENCIES_COUNT).toBe("Dependencies Count");
     });
   });
 

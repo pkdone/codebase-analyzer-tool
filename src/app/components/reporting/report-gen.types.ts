@@ -1,9 +1,6 @@
 import { procedureTriggerSchema } from "../../schemas/sources.schema";
 import { COMPLEXITY_VALUES, COMPLEXITY_VALUES_SET } from "../../schemas/sources.enums";
-import type {
-  ProjectedFileTypesCountAndLines,
-  HierarchicalTopLevelJavaClassDependencies,
-} from "../../repositories/sources/sources.model";
+import type { ProjectedFileTypesCountAndLines } from "../../repositories/sources/sources.model";
 import type { TypeOf } from "zod";
 import type { CategorizedDataItem } from "./sections/file-types/categories-data-provider";
 
@@ -189,7 +186,6 @@ export interface ReportData {
   integrationPoints: IntegrationPointInfo[];
   dbInteractions: DatabaseIntegrationInfo[];
   procsAndTriggers: ProcsAndTriggers;
-  topLevelJavaClasses: HierarchicalTopLevelJavaClassDependencies[];
   billOfMaterials: BomDependency[];
   codeQualitySummary: CodeQualitySummary | null;
   scheduledJobsSummary: ScheduledJobsSummary | null;

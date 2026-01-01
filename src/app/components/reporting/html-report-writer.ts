@@ -13,10 +13,7 @@ import type {
   ModuleCoupling,
   UiTechnologyAnalysis,
 } from "./report-gen.types";
-import type {
-  ProjectedFileTypesCountAndLines,
-  HierarchicalTopLevelJavaClassDependencies,
-} from "../../repositories/sources/sources.model";
+import type { ProjectedFileTypesCountAndLines } from "../../repositories/sources/sources.model";
 import type { TableViewModel } from "./view-models/table-view-model";
 import type { CategorizedDataItem } from "./sections/file-types/categories-data-provider";
 
@@ -33,7 +30,6 @@ export interface PreparedHtmlReportData {
   integrationPoints: IntegrationPointInfo[];
   dbInteractions: DatabaseIntegrationInfo[];
   procsAndTriggers: ProcsAndTriggers;
-  topLevelJavaClasses: HierarchicalTopLevelJavaClassDependencies[];
   billOfMaterials: {
     readonly name: string;
     readonly groupId?: string;
@@ -71,7 +67,6 @@ export interface PreparedHtmlReportData {
   fileTypesTableViewModel: TableViewModel;
   dbInteractionsTableViewModel: TableViewModel;
   procsAndTriggersTableViewModel: TableViewModel;
-  topLevelJavaClassesTableViewModel: TableViewModel;
   integrationPointsTableViewModel: TableViewModel;
 
   // Enhanced UI data

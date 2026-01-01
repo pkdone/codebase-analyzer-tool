@@ -14,10 +14,6 @@ describe("reporting.constants", () => {
       expect(SECTION_NAMES.DATABASE).toBe("database");
     });
 
-    it("should have CODE_STRUCTURE", () => {
-      expect(SECTION_NAMES.CODE_STRUCTURE).toBe("code-structure");
-    });
-
     it("should have QUALITY_METRICS", () => {
       expect(SECTION_NAMES.QUALITY_METRICS).toBe("quality-metrics");
     });

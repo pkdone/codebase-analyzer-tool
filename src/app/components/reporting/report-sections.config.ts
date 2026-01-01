@@ -31,7 +31,6 @@ export const reportSectionsConfig = {
     integrationPoints: "integration-points.json",
     dbInteractions: "db-interactions.json",
     procsAndTriggers: "procs-and-triggers.json",
-    topLevelJavaClasses: "top-level-java-classes.json",
   },
 
   /**

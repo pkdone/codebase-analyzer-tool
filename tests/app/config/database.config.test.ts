@@ -49,25 +49,6 @@ describe("databaseConfig", () => {
     });
   });
 
-  describe("dependency graph configuration", () => {
-    it("should have DEPENDENCY_GRAPH_MAX_DEPTH defined", () => {
-      expect(databaseConfig.DEPENDENCY_GRAPH_MAX_DEPTH).toBeDefined();
-      expect(databaseConfig.DEPENDENCY_GRAPH_MAX_DEPTH).toBe(1);
-    });
-
-    it("should have DEPENDENCY_GRAPH_RESULT_LIMIT defined", () => {
-      expect(databaseConfig.DEPENDENCY_GRAPH_RESULT_LIMIT).toBeDefined();
-      expect(databaseConfig.DEPENDENCY_GRAPH_RESULT_LIMIT).toBe(5);
-    });
-
-    it("should have dependency graph values as positive integers", () => {
-      expect(databaseConfig.DEPENDENCY_GRAPH_MAX_DEPTH).toBeGreaterThan(0);
-      expect(databaseConfig.DEPENDENCY_GRAPH_RESULT_LIMIT).toBeGreaterThan(0);
-      expect(Number.isInteger(databaseConfig.DEPENDENCY_GRAPH_MAX_DEPTH)).toBe(true);
-      expect(Number.isInteger(databaseConfig.DEPENDENCY_GRAPH_RESULT_LIMIT)).toBe(true);
-    });
-  });
-
   describe("vector index configuration", () => {
     it("should have VECTOR_INDEX_CONFIGS defined", () => {
       expect(databaseConfig.VECTOR_INDEX_CONFIGS).toBeDefined();
@@ -111,19 +92,15 @@ describe("databaseConfig", () => {
     it("should be a readonly object", () => {
       const config = databaseConfig;
       expect(config).toHaveProperty("CODEBASE_DB_NAME");
-      expect(config).toHaveProperty("DEPENDENCY_GRAPH_MAX_DEPTH");
-      expect(config).toHaveProperty("DEPENDENCY_GRAPH_RESULT_LIMIT");
+      expect(config).toHaveProperty("SOURCES_COLLECTION_NAME");
+      expect(config).toHaveProperty("SUMMARIES_COLLECTION_NAME");
     });
 
     it("should be typed as const", () => {
       // This test verifies that TypeScript treats the config as readonly
       const dbName: "codebase-analyzed" = databaseConfig.CODEBASE_DB_NAME;
-      const maxDepth: 1 = databaseConfig.DEPENDENCY_GRAPH_MAX_DEPTH;
-      const resultLimit: 5 = databaseConfig.DEPENDENCY_GRAPH_RESULT_LIMIT;
 
       expect(dbName).toBe("codebase-analyzed");
-      expect(maxDepth).toBe(1);
-      expect(resultLimit).toBe(5);
     });
   });
 });

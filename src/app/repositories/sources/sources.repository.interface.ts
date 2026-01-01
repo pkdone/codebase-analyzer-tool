@@ -5,7 +5,6 @@ import {
   ProjectedDatabaseIntegrationFields,
   ProjectedIntegrationPointFields,
   ProjectedFileTypesCountAndLines,
-  ProjectedTopLevelJavaClassDependencies,
   ProjectedFileAndLineStats,
   ProjectedTopComplexFunction,
   ProjectedCodeSmellStatistic,
@@ -86,17 +85,6 @@ export interface SourcesRepository {
    * Get files count and lines of code count for each file type for a project
    */
   getProjectFileTypesCountAndLines(projectName: string): Promise<ProjectedFileTypesCountAndLines[]>;
-
-  /**
-   * Get top level classes for a project with their full dependency structures.
-   * Returns the complete dependency tree for each top-level class.
-   * @param projectName The project name to filter by
-   * @param fileType The file type to filter by (e.g., "java")
-   */
-  getTopLevelClassDependencies(
-    projectName: string,
-    fileType: string,
-  ): Promise<ProjectedTopLevelJavaClassDependencies[]>;
 
   /**
    * Get integration points (APIs, queues, topics, SOAP services) for a project

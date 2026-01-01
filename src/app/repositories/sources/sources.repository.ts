@@ -10,7 +10,6 @@ import {
   ProjectedIntegrationPointFields,
   ProjectedFilePath,
   ProjectedFileTypesCountAndLines,
-  ProjectedTopLevelJavaClassDependencies,
   SourceRecord,
   ProjectedFileAndLineStats,
   ProjectedTopComplexFunction,
@@ -299,91 +298,6 @@ export default class SourcesRepositoryImpl
       { $sort: { files: -1, lines: -1 } },
     ];
     return await this.collection.aggregate<ProjectedFileTypesCountAndLines>(pipeline).toArray();
-  }
-
-  /**
-   * Get top level classes for a project with their full dependency structures.
-   * Returns the complete dependency tree for each top-level class.
-   * @param projectName The project name to filter by
-   * @param fileType The file type to filter by (e.g., "java")
-   */
-  async getTopLevelClassDependencies(
-    projectName: string,
-    fileType: string,
-  ): Promise<ProjectedTopLevelJavaClassDependencies[]> {
-    // TODO: This is inneficient and should be optimized.
-    const pipeline = [
-      {
-        $match: {
-          projectName,
-          fileType,
-        },
-      },
-      {
-        $project: {
-          _id: 0,
-          references: { $concatArrays: [["$summary.namespace"], "$summary.internalReferences"] },
-        },
-      },
-      {
-        $unwind: {
-          path: "$references",
-        },
-      },
-      {
-        $match: {
-          references: { $not: /^javax\..*/ },
-        },
-      },
-      {
-        $group: {
-          _id: "$references",
-          count: { $sum: 1 },
-        },
-      },
-      {
-        $match: {
-          count: { $lte: 1 },
-        },
-      },
-      {
-        $graphLookup: {
-          from: "sources",
-          startWith: "$_id",
-          connectFromField: "summary.internalReferences",
-          connectToField: "summary.namespace",
-          depthField: "level",
-          maxDepth: databaseConfig.DEPENDENCY_GRAPH_MAX_DEPTH,
-          as: "dependency_documents",
-        },
-      },
-      {
-        $project: {
-          _id: 0,
-          namespace: "$_id",
-          dependency_count: { $size: "$dependency_documents" },
-          dependencies: {
-            $map: {
-              input: "$dependency_documents",
-              as: "dependency",
-              in: {
-                level: "$$dependency.level",
-                namespace: "$$dependency.summary.namespace",
-                references: "$$dependency.summary.internalReferences",
-              },
-            },
-          },
-        },
-      },
-      {
-        $sort: {
-          dependency_count: -1,
-        },
-      },
-      //{ $limit: databaseConfig.DEPENDENCY_GRAPH_RESULT_LIMIT },
-    ];
-
-    return this.collection.aggregate<ProjectedTopLevelJavaClassDependencies>(pipeline).toArray();
   }
 
   /**
