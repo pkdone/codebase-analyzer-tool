@@ -28,9 +28,9 @@ export interface VectorIndexConfig {
 export function createVectorSearchIndexDefinition(
   indexName: string,
   vectorPath: string,
-  dimensions = 1536,
-  similarity = "euclidean",
-  quantization = "scalar",
+  dimensions: number,
+  similarity: string,
+  quantization: string,
   filters: VectorSearchFilter[] = [],
 ) {
   return {
