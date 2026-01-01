@@ -1,9 +1,7 @@
 /**
  * Strategy for removing stray content from JSON.
  * Handles AI warnings, package name typos, stray characters, and comment markers.
- *
- * This refactored version uses more generic patterns for detecting stray text
- * instead of hardcoded specific strings, making it more schema-agnostic.
+ * Uses generic patterns for detecting stray text in a schema-agnostic manner.
  */
 
 import type { LLMSanitizerConfig } from "../../../config/llm-module-config.types";
@@ -205,7 +203,6 @@ export const strayContentRemover: SanitizerStrategy = {
     );
 
     // Pattern 7: Generic removal of stray text on its own line between JSON elements
-    // This catches patterns like "trib", "cmethod", "_ADDITIONAL_PROPERTIES"
     const strayTextOnOwnLinePattern =
       /([}\],])\s*\n\s*([a-zA-Z_][a-zA-Z0-9_-]{1,30})\s*\n(\s*"|\s*[}\]])/g;
     sanitized = sanitized.replace(

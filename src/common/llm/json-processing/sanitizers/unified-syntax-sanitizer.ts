@@ -11,7 +11,7 @@
  * 7. Stray content (AI warnings, package typos, comment markers)
  *
  * ## Architecture
- * This module now uses a pipeline-based architecture where each category of fixes
+ * This module uses a pipeline-based architecture where each category of fixes
  * is handled by a dedicated strategy. The strategies are composed into a pipeline
  * that executes them in the correct order.
  *

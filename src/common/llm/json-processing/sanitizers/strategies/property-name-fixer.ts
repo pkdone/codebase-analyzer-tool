@@ -1,9 +1,7 @@
 /**
  * Strategy for fixing property name issues in JSON.
  * Handles missing quotes, typos, truncations, and concatenated property names.
- *
- * This refactored version uses dynamic property name matching instead of
- * relying solely on hardcoded lookup tables.
+ * Uses dynamic property name matching for flexible processing.
  */
 
 import type { LLMSanitizerConfig } from "../../../config/llm-module-config.types";

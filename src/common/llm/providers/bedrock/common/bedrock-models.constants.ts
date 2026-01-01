@@ -1,9 +1,6 @@
 /**
  * Shared constants and factory functions for Bedrock model configuration.
  * These are used across multiple Bedrock provider manifests to avoid duplication.
- *
- * Note: Model family constants (BEDROCK_*_FAMILY) have been moved to their respective
- * manifest files to make each provider self-contained. Only truly shared constants remain here.
  */
 
 import { z } from "zod";

@@ -21,8 +21,7 @@ export interface ProcessedListItem {
 /**
  * Stateless utility module for formatting table cell values.
  * This module is responsible for presentation logic - converting raw data values
- * into display-ready formats. It separates formatting concerns from the TableViewModel,
- * which is now a pure data structure.
+ * into display-ready formats.
  *
  * Key responsibilities:
  * - Determine cell type (text, link, code, list) based on field name and value

@@ -26,13 +26,12 @@ export interface AppSummaryConfigEntry<S extends z.ZodType = z.ZodType> {
 
 /**
  * Centralized configuration for all app summary prompt definitions.
- * This replaces the individual prompt definition files with a data-driven approach.
  *
  * Note: The `instructions` field contains the specific instruction text that will be used
  * in the PromptDefinition. The PromptDefinition's contentDesc field will be set to a
  * generic value like "a set of source file summaries".
  *
- * Note: aggregates, entities, and repositories are now captured within the boundedContexts
+ * Note: aggregates, entities, and repositories are captured within the boundedContexts
  * category as a hierarchical structure to ensure naming consistency across domain elements.
  *
  * The `satisfies` pattern validates that the object conforms to the Record structure

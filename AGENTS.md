@@ -1,4 +1,3 @@
-
 # Coding Standards and Architectural Conventions
 
 This document outlines the inferred coding standards, architectural patterns, and formatting conventions for the project. It is intended to help new developers contribute to the project with a consistent style and understanding of its structure.
@@ -49,7 +48,7 @@ The project uses a combination of Prettier for automated formatting and ESLint f
 *   **Commenting:**
     *   **JSDoc (`/** ... */`):** Used for documenting exported classes, methods, functions, and types. This format is preferred for anything that forms a public API for a module.
     *   **Single-line (`//`):** Used for brief, single-line explanations or to clarify a specific line of code.
-    *   **ESLint Directives (`/* eslint-disable ... */`):** Used sparingly to bypass linting rules, with a clear intention, as noted in `NOTES.txt` for prototyping purposes.
+    *   **ESLint Directives (`/* eslint-disable ... */`):** While present for prototyping purposes (as noted in `NOTES.txt`), the project standard is to avoid using these to bypass linting rules. **For any reported linting errors, fix the problem properly, rather than cheating with an added `eslint….` comment.**
 
 ## 3. Naming Conventions
 
@@ -70,6 +69,7 @@ The project uses a combination of Prettier for automated formatting and ESLint f
     *   The project is a **CLI toolkit** for code analysis, built on a **Layered Architecture**. This is evident from the clear separation of concerns into `repositories` (Data Access), `components` (Business Logic/Services), `llm` (External Service Abstraction), and entry points (`src/app/*.ts`).
     *   **Dependency Injection (DI)** is a fundamental principle, implemented with `tsyringe`. This promotes loose coupling and testability by allowing components to declare their dependencies rather than creating them.
     *   A **Manifest-Driven** approach is used for LLM providers. Each provider is defined by a manifest file (`.manifest.ts`) that declaratively specifies its configuration, models, and factory function, making the system highly pluggable and extensible.
+    *   **Refactoring Philosophy:** **When refactoring, don’t try to support backwards compatibility - change all dependent code that needs changing to support the newly refactored code.** This ensures the codebase remains clean and modern without the burden of legacy support.
 *   **Directory Structure:**
     *   `src/`: Contains all TypeScript source code.
         *   `app/`: Contains the core application-specific logic.
@@ -115,7 +115,7 @@ The project uses a combination of Prettier for automated formatting and ESLint f
     *   **Functional:** Utility modules (`src/common/utils/`) favor pure or near-pure functions. Immutability is encouraged through `readonly` properties and `as const` assertions, especially in configuration files.
 *   **Error Handling:**
     *   **`try...catch` blocks** are used for handling synchronous and asynchronous errors, particularly around I/O and API calls.
-    *   **Custom Error Classes** (e.g., `BadResponseContentLLMError`, `ConfigurationError`) are defined to provide specific, typed error information.
+    *   **Custom Error Classes** (e.g., `ConfigurationError`, `DatabaseConnectionError`) are defined to provide specific, typed error information.
     *   The `LLMRouter` and its associated strategies (`RetryStrategy`, `fallback-strategy.ts`) implement a sophisticated, resilient error-handling mechanism for LLM API calls, including retries with backoff and model failover.
 *   **Asynchronous Programming:**
     *   **`async/await`** is the exclusive and preferred idiom for managing asynchronous code, making it clean and readable.
@@ -150,6 +150,7 @@ The project uses a combination of Prettier for automated formatting and ESLint f
         *   `npm test`: Runs all unit tests.
         *   `npm test:int`: Runs all integration tests.
         *   `npm test:verbose`: Runs unit tests with detailed output.
+    *   **Guidance:** **For each significant application feature change / addition you make, add appropriate new unit tests for this change.**
 *   **Documentation Style:**
     *   **Code Comments:** JSDoc (`/** ... */`) is used to document the public API of classes, methods, and functions.
     *   **Project Documentation:** `README.md` provides a comprehensive guide to setup, usage, and architecture.
@@ -165,9 +166,11 @@ The project uses a combination of Prettier for automated formatting and ESLint f
     *   **Command:** `npm run lint`
     *   **Tool:** ESLint, configured via `eslint.config.mjs`.
     *   **Rules:** Enforces strict, type-checked rules, including `prefer-readonly` and member ordering, to maintain high code quality.
+    *   **Guidance:** **For any reported linting errors, fix the problem properly, rather than cheating with an added `eslint….` comment.**
 *   **Formatting:**
     *   **Command:** `npm run format`
     *   **Tool:** Prettier is used to automatically format the code, ensuring a consistent style.
 *   **Comprehensive Validation:**
     *   **Command:** `npm run validate`
     *   **Action:** This is the primary pre-commit/pre-push script. It runs a full sequence of `build`, `lint`, `test`, and `test:int` to ensure the codebase is in a healthy state.
+    *   **Guidance:** **When you have completed application refactoring work, to validate the changes, ensure you execute `npm run validate`, and then fix any reported errors, before running the command again repeatedly, with you fixing reported errors each time, until no more errors are reported.**

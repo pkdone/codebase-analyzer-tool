@@ -21,9 +21,9 @@ export interface DomainRepository {
 }
 
 /**
- * Interface for domain aggregate (flattened for reporting)
- * Note: entities is now a string[] of names for backwards compatibility with SVG generator
- * Repository is now a direct child of aggregate
+ * Interface for domain aggregate (flattened for reporting).
+ * Entities are represented as a string array of names.
+ * Repository is a direct child of aggregate.
  */
 export interface DomainAggregate {
   name: string;

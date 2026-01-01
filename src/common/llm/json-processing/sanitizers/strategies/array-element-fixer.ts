@@ -1,9 +1,7 @@
 /**
  * Strategy for fixing array element issues in JSON.
  * Handles missing quotes, missing commas, and stray text in arrays.
- *
- * This refactored version uses generic dot-notation detection instead of
- * hardcoded package name prefixes, making it more schema-agnostic.
+ * Uses generic dot-notation detection for schema-agnostic processing.
  */
 
 import type { LLMSanitizerConfig } from "../../../config/llm-module-config.types";

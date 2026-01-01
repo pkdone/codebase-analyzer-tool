@@ -23,7 +23,6 @@ export interface SourceConfigEntry<S extends z.ZodType = z.ZodType> {
 
 /**
  * Centralized configuration for all source prompt definitions.
- * This replaces the individual prompt definition files with a data-driven approach.
  * Each entry directly defines its responseSchema using sourceSummarySchema.pick().
  *
  * The `satisfies` pattern validates that the object conforms to the Record structure

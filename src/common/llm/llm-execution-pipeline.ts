@@ -40,8 +40,7 @@ export interface LLMExecutionParams<T extends LLMGeneratedContent> {
 
 /**
  * Encapsulates the complex orchestration logic for executing LLM functions with retries,
- * fallbacks, and prompt adaptation. This class was extracted from LLMRouter to improve
- * separation of concerns and testability.
+ * fallbacks, and prompt adaptation.
  *
  * Handles both completions and embeddings through a unified code path:
  * - Completions: Pass multiple bound functions for fallback support

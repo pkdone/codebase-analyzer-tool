@@ -21,8 +21,6 @@ const appSummaryPrompts = createPromptMetadata(appSummaryConfigMap, BASE_PROMPT_
 /**
  * Source file type prompt definitions generated from centralized configuration.
  * These prompts are used to summarize individual source files based on their type.
- * Schemas are now defined directly in sourceConfigMap.responseSchema, eliminating
- * the need for dynamic schema building.
  */
 const sourcePrompts = createPromptMetadata(sourceConfigMap, BASE_PROMPT_TEMPLATE, {
   contentDescBuilder: (config) => `the ${config.contentDesc}`,
@@ -53,8 +51,6 @@ const codebaseQueryPrompt: PromptDefinition = {
 
 /**
  * Factory function to create a fully-typed prompt definition for reducing insights.
- * This replaces the static reduceInsightsPrompt that used z.unknown() and required
- * schema override at render time.
  *
  * @param category - The app summary category being reduced (e.g., "entities", "technologies")
  * @param categoryKey - The key name for the category data (e.g., "entities", "technologies")

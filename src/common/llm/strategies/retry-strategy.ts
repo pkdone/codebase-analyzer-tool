@@ -29,7 +29,6 @@ function isRetryableError(error: unknown): error is RetryableError {
 
 /**
  * Strategy class responsible for handling LLM function retries.
- * Encapsulates retry logic that was previously embedded in LLMRouter.
  */
 export class RetryStrategy {
   constructor(private readonly llmStats: LLMStats) {}
