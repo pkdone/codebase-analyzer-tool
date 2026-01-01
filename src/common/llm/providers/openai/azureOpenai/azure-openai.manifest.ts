@@ -3,6 +3,7 @@ import { LLMProviderManifest } from "../../llm-provider.types";
 import AzureOpenAILLM from "./azure-openai-llm";
 import { LLMPurpose } from "../../../types/llm.types";
 import { OPENAI_COMMON_ERROR_PATTERNS } from "../common/openai-error-patterns";
+import { defaultOpenAIProviderConfig } from "../common/openai-defaults.config";
 import { llmConfig } from "../../../config/llm.config";
 
 // Environment variable name constants
@@ -65,10 +66,11 @@ export const azureOpenAIProviderManifest: LLMProviderManifest = {
   },
   errorPatterns: OPENAI_COMMON_ERROR_PATTERNS,
   providerSpecificConfig: {
+    ...defaultOpenAIProviderConfig,
+    // Azure-specific overrides
     apiVersion: "2025-01-01-preview",
     temperature: llmConfig.DEFAULT_ZERO_TEMP,
     requestTimeoutMillis: 7 * 60 * 1000,
-    maxRetryAttempts: 3,
     minRetryDelayMillis: 15 * 1000,
     maxRetryDelayMillis: 120 * 1000,
   },

@@ -6,45 +6,10 @@
 import type { LLMSanitizerConfig } from "../../../config/llm-module-config.types";
 import type { SanitizerStrategy, StrategyResult } from "../pipeline/sanitizer-pipeline.types";
 import { isInStringAt } from "../../utils/parser-context-utils";
+import { STRAY_FILLER_WORDS } from "../../constants/json-processing.config";
 
 /** Maximum diagnostics to collect */
 const MAX_DIAGNOSTICS = 20;
-
-/**
- * Module-level Set for O(1) lookup of stray filler words.
- * Only match known stray filler words that commonly appear in LLM output.
- * This is more conservative than generic detection to avoid false positives.
- */
-const STRAY_FILLER_WORDS = new Set([
-  "so",
-  "and",
-  "but",
-  "also",
-  "then",
-  "next",
-  "now",
-  "here",
-  "well",
-  "okay",
-  "ok",
-  "yes",
-  "no",
-  "again",
-  "finally",
-  "first",
-  "second",
-  "third",
-  "last",
-  "done",
-  "note",
-  "hint",
-  "basically",
-  "actually",
-  "thus",
-  "hence",
-  "therefore",
-  "meanwhile",
-]);
 
 /**
  * Checks if a word looks like a stray filler word that shouldn't appear before JSON properties.

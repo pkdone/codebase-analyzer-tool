@@ -54,4 +54,25 @@ export const visualizationConfig = {
     /** Width per activity node for dynamic sizing. */
     WIDTH_PER_ACTIVITY: 200,
   },
+
+  /**
+   * Configuration for current/inferred architecture diagrams.
+   * Used by CurrentArchitectureSvgGenerator for inferred architecture visualizations.
+   */
+  currentArchitecture: {
+    /** Default diagram width. */
+    DEFAULT_WIDTH: 1600,
+    /** Default diagram height. */
+    DEFAULT_HEIGHT: 800,
+    /** Minimum width for a node in pixels. */
+    MIN_NODE_WIDTH: 200,
+    /** Character width multiplier for node names. */
+    CHAR_WIDTH_MULTIPLIER: 10,
+    /** Extra padding added to node width for spacing. */
+    WIDTH_PADDING: 200,
+    /** Extra padding added to diagram height for layout. */
+    HEIGHT_PADDING: 200,
+    /** Height per vertical node for dynamic sizing. */
+    HEIGHT_PER_NODE: 120,
+  },
 } as const;

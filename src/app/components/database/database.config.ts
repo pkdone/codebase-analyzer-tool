@@ -1,3 +1,6 @@
+import type { IndexSpecification } from "mongodb";
+import { SOURCE_FIELDS } from "../../repositories/sources/sources.model";
+
 /**
  * Database configuration
  */
@@ -5,6 +8,73 @@ const CONTENT_VECTOR_FIELD = "contentVector";
 const SUMMARY_VECTOR_FIELD = "summaryVector";
 const CONTENT_VECTOR_INDEX_NAME = "contentVector_vector_index";
 const SUMMARY_VECTOR_INDEX_NAME = "summaryVector_vector_index";
+
+/**
+ * Collection type identifier for index configurations.
+ * Used to determine which collection an index should be created on.
+ */
+export type CollectionType = "sources" | "summaries";
+
+/**
+ * Configuration for a standard MongoDB index.
+ */
+export interface StandardIndexConfig {
+  /** Which collection this index belongs to */
+  collection: CollectionType;
+  /** The index specification (field(s) and direction) */
+  spec: IndexSpecification;
+}
+
+/**
+ * Standard index configurations for the database.
+ * These indexes are created during database initialization.
+ * Using SOURCE_FIELDS constants ensures consistency with the schema.
+ */
+export const STANDARD_INDEX_CONFIGS: readonly StandardIndexConfig[] = [
+  {
+    collection: "sources",
+    spec: { [SOURCE_FIELDS.PROJECT_NAME]: 1, [SOURCE_FIELDS.FILEPATH]: 1 },
+  },
+  {
+    collection: "sources",
+    spec: { [SOURCE_FIELDS.PROJECT_NAME]: 1, [SOURCE_FIELDS.TYPE]: 1 },
+  },
+  {
+    collection: "sources",
+    spec: { [SOURCE_FIELDS.PROJECT_NAME]: 1, [SOURCE_FIELDS.CANONICAL_TYPE]: 1 },
+  },
+  {
+    collection: "sources",
+    spec: { [SOURCE_FIELDS.PROJECT_NAME]: 1, [SOURCE_FIELDS.SUMMARY_NAMESPACE]: 1 },
+  },
+  {
+    collection: "sources",
+    spec: { [SOURCE_FIELDS.PROJECT_NAME]: 1, [SOURCE_FIELDS.SUMMARY_PUBLIC_FUNCTIONS]: 1 },
+  },
+  {
+    collection: "sources",
+    spec: { [SOURCE_FIELDS.PROJECT_NAME]: 1, [SOURCE_FIELDS.SUMMARY_INTEGRATION_POINTS]: 1 },
+  },
+  {
+    collection: "sources",
+    spec: {
+      [SOURCE_FIELDS.PROJECT_NAME]: 1,
+      [SOURCE_FIELDS.SUMMARY_CODE_QUALITY_FILE_SMELLS]: 1,
+    },
+  },
+  {
+    collection: "sources",
+    spec: {
+      [SOURCE_FIELDS.PROJECT_NAME]: 1,
+      [SOURCE_FIELDS.SUMMARY_DB_INTEGRATION]: 1,
+      [SOURCE_FIELDS.SUMMARY_DB_INTEGRATION_MECHANISM]: 1,
+    },
+  },
+  {
+    collection: "summaries",
+    spec: { [SOURCE_FIELDS.PROJECT_NAME]: 1 },
+  },
+] as const;
 
 export const databaseConfig = {
   DEFAULT_MONGO_SERVICE_ID: "default",

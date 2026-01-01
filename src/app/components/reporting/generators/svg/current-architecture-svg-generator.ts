@@ -8,6 +8,7 @@ import {
 } from "../mermaid/mermaid-definition-builders";
 import { buildStyleDefinitions, applyStyle } from "../mermaid/mermaid-styles.config";
 import { BaseMermaidGenerator, type BaseDiagramOptions } from "./base-mermaid-generator";
+import { visualizationConfig } from "../visualization.config";
 
 /**
  * Represents an internal business component inferred from the codebase.
@@ -55,8 +56,8 @@ export type CurrentArchitectureDiagramSvgOptions = BaseDiagramOptions;
 @injectable()
 export class CurrentArchitectureSvgGenerator extends BaseMermaidGenerator<CurrentArchitectureDiagramSvgOptions> {
   protected readonly defaultOptions: Required<CurrentArchitectureDiagramSvgOptions> = {
-    width: 1600,
-    height: 800,
+    width: visualizationConfig.currentArchitecture.DEFAULT_WIDTH,
+    height: visualizationConfig.currentArchitecture.DEFAULT_HEIGHT,
   };
 
   constructor(
@@ -82,6 +83,8 @@ export class CurrentArchitectureSvgGenerator extends BaseMermaidGenerator<Curren
     // Build mermaid definition
     const mermaidDefinition = this.buildCurrentArchitectureDiagramDefinition(architectureData);
 
+    const archConfig = visualizationConfig.currentArchitecture;
+
     // Calculate dynamic dimensions based on content
     const internalCount = architectureData.internalComponents.length;
     const externalCount = architectureData.externalDependencies.length;
@@ -90,21 +93,24 @@ export class CurrentArchitectureSvgGenerator extends BaseMermaidGenerator<Curren
       ...architectureData.internalComponents.map((c) => c.name.length),
       ...architectureData.externalDependencies.map((d) => d.name.length + d.type.length),
     );
-    const nodeWidth = Math.max(200, maxNameLength * 10);
+    const nodeWidth = Math.max(
+      archConfig.MIN_NODE_WIDTH,
+      maxNameLength * archConfig.CHAR_WIDTH_MULTIPLIER,
+    );
 
     // Width: space for 2 subgraphs side by side plus padding
     const { width } = this.calculateDimensions(2, {
       minWidth: opts.width,
       minHeight: 0,
-      widthPerNode: nodeWidth + 200,
+      widthPerNode: nodeWidth + archConfig.WIDTH_PADDING,
     });
     // Height: based on number of vertical nodes
     const { height } = this.calculateDimensions(maxVerticalNodes, {
       minWidth: 0,
       minHeight: opts.height,
-      heightPerNode: 120,
+      heightPerNode: archConfig.HEIGHT_PER_NODE,
     });
-    const dynamicHeight = height + 200; // Add padding for layout
+    const dynamicHeight = height + archConfig.HEIGHT_PADDING; // Add padding for layout
 
     return this.renderDiagram(mermaidDefinition, width, dynamicHeight);
   }

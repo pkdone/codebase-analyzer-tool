@@ -1,9 +1,9 @@
 import "reflect-metadata";
 import { injectable, inject } from "tsyringe";
-import { MongoClient, Db, Collection, IndexSpecification, MongoServerError } from "mongodb";
+import { MongoClient, Db, Collection, MongoServerError, type IndexSpecification } from "mongodb";
 import type { JsonSchema7Type } from "zod-to-json-schema";
 import { coreTokens } from "../../di/tokens";
-import { databaseConfig } from "./database.config";
+import { databaseConfig, STANDARD_INDEX_CONFIGS, type CollectionType } from "./database.config";
 import { logOneLineError } from "../../../common/utils/logging";
 import {
   getJSONSchema as getSourcesJSONSchema,
@@ -58,65 +58,25 @@ export class DatabaseInitializer {
       getAppSummariesJSONSchema(),
     );
 
-    // Data-driven index configuration using SOURCE_FIELDS constants
-    const indexConfigurations: {
-      collection: Collection;
-      spec: IndexSpecification;
-    }[] = [
-      {
-        collection: this.sourcesCollection,
-        spec: { [SOURCE_FIELDS.PROJECT_NAME]: 1, [SOURCE_FIELDS.FILEPATH]: 1 },
-      },
-      {
-        collection: this.sourcesCollection,
-        spec: { [SOURCE_FIELDS.PROJECT_NAME]: 1, [SOURCE_FIELDS.TYPE]: 1 },
-      },
-      {
-        collection: this.sourcesCollection,
-        spec: { [SOURCE_FIELDS.PROJECT_NAME]: 1, [SOURCE_FIELDS.CANONICAL_TYPE]: 1 },
-      },
-      {
-        collection: this.sourcesCollection,
-        spec: { [SOURCE_FIELDS.PROJECT_NAME]: 1, [SOURCE_FIELDS.SUMMARY_NAMESPACE]: 1 },
-      },
-      {
-        collection: this.sourcesCollection,
-        spec: { [SOURCE_FIELDS.PROJECT_NAME]: 1, [SOURCE_FIELDS.SUMMARY_PUBLIC_FUNCTIONS]: 1 },
-      },
-      {
-        collection: this.sourcesCollection,
-        spec: { [SOURCE_FIELDS.PROJECT_NAME]: 1, [SOURCE_FIELDS.SUMMARY_INTEGRATION_POINTS]: 1 },
-      },
-      {
-        collection: this.sourcesCollection,
-        spec: { [SOURCE_FIELDS.PROJECT_NAME]: 1, [SOURCE_FIELDS.SUMMARY_PUBLIC_FUNCTIONS]: 1 },
-      },
-      {
-        collection: this.sourcesCollection,
-        spec: {
-          [SOURCE_FIELDS.PROJECT_NAME]: 1,
-          [SOURCE_FIELDS.SUMMARY_CODE_QUALITY_FILE_SMELLS]: 1,
-        },
-      },
-      {
-        collection: this.sourcesCollection,
-        spec: {
-          [SOURCE_FIELDS.PROJECT_NAME]: 1,
-          [SOURCE_FIELDS.SUMMARY_DB_INTEGRATION]: 1,
-          [SOURCE_FIELDS.SUMMARY_DB_INTEGRATION_MECHANISM]: 1,
-        },
-      },
-      {
-        collection: this.appSummariesCollection,
-        spec: { [SOURCE_FIELDS.PROJECT_NAME]: 1 },
-      },
-    ];
-
-    for (const config of indexConfigurations) {
-      await this.createStandardIndexIfNotExists(config.collection, config.spec);
+    // Create standard indexes from centralized configuration
+    for (const config of STANDARD_INDEX_CONFIGS) {
+      const collection = this.getCollectionByType(config.collection);
+      await this.createStandardIndexIfNotExists(collection, config.spec);
     }
 
     await this.ensureSourcesVectorSearchIndexes(numDimensions);
+  }
+
+  /**
+   * Maps a collection type identifier to the actual MongoDB collection.
+   */
+  private getCollectionByType(collectionType: CollectionType): Collection {
+    switch (collectionType) {
+      case "sources":
+        return this.sourcesCollection;
+      case "summaries":
+        return this.appSummariesCollection;
+    }
   }
 
   /**

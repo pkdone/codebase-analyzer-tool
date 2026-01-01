@@ -119,6 +119,167 @@ export const processingConfig = Object.freeze({
 });
 
 /**
+ * Stray filler words that commonly appear in LLM output before JSON properties.
+ * Used by text-outside-json-remover to detect and remove stray text.
+ * These are known filler words that shouldn't appear before property names.
+ */
+export const STRAY_FILLER_WORDS = Object.freeze(
+  new Set([
+    "so",
+    "and",
+    "but",
+    "also",
+    "then",
+    "next",
+    "now",
+    "here",
+    "well",
+    "okay",
+    "ok",
+    "yes",
+    "no",
+    "again",
+    "finally",
+    "first",
+    "second",
+    "third",
+    "last",
+    "done",
+    "note",
+    "hint",
+    "basically",
+    "actually",
+    "thus",
+    "hence",
+    "therefore",
+    "meanwhile",
+  ]),
+);
+
+/**
+ * Common introductory words that LLMs use before JSON structures.
+ * Used by structural-sanitizer to detect and remove introductory text.
+ */
+export const COMMON_INTRO_WORDS = Object.freeze(
+  new Set([
+    "here",
+    "this",
+    "that",
+    "the",
+    "a",
+    "an",
+    "command",
+    "data",
+    "result",
+    "output",
+    "json",
+    "response",
+    "object",
+    "content",
+    "payload",
+    "body",
+    "answer",
+  ]),
+);
+
+/**
+ * Words to exclude when detecting stray text in JSON.
+ * These are JSON keywords and common English words that might appear contextually
+ * and should not be removed as stray text.
+ * Used by fix-malformed-json-patterns to avoid false positives.
+ */
+export const EXCLUDED_STRAY_WORDS = Object.freeze(
+  new Set([
+    // JSON keywords
+    "true",
+    "false",
+    "null",
+    "undefined",
+    // Common English words that shouldn't be removed as stray text
+    "the",
+    "a",
+    "an",
+    "and",
+    "or",
+    "but",
+    "for",
+    "of",
+    "in",
+    "to",
+    "is",
+    "are",
+    "was",
+    "were",
+    "be",
+    "been",
+    "being",
+    "have",
+    "has",
+    "had",
+    "do",
+    "does",
+    "did",
+    "will",
+    "would",
+    "could",
+    "should",
+    "may",
+    "might",
+    "must",
+    "shall",
+    "can",
+    "need",
+    "dare",
+    "ought",
+    "used",
+    "with",
+    "from",
+    "by",
+    "at",
+    "on",
+    "as",
+    "if",
+    "when",
+    "where",
+    "why",
+    "how",
+    "what",
+    "which",
+    "who",
+    "whom",
+    "whose",
+    "that",
+    "this",
+    "these",
+    "those",
+    "it",
+    "its",
+    "they",
+    "them",
+    "their",
+    "we",
+    "us",
+    "our",
+    "you",
+    "your",
+    "he",
+    "him",
+    "his",
+    "she",
+    "her",
+    "not",
+    "no",
+    "so",
+    "such",
+    "than",
+    "too",
+    "very",
+    "just",
+    "also",
+  ]),
+);
+
+/**
  * Combined sanitization configuration.
  * Export this for convenient access to all config values.
  */

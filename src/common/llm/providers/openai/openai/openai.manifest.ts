@@ -3,6 +3,7 @@ import { LLMProviderManifest } from "../../llm-provider.types";
 import OpenAILLM from "./openai-llm";
 import { LLMPurpose, LLMModelFeature } from "../../../types/llm.types";
 import { OPENAI_COMMON_ERROR_PATTERNS } from "../common/openai-error-patterns";
+import { defaultOpenAIProviderConfig } from "../common/openai-defaults.config";
 
 // Environment variable name constants
 const OPENAI_LLM_API_KEY_KEY = "OPENAI_LLM_API_KEY";
@@ -57,10 +58,7 @@ export const openAIProviderManifest: LLMProviderManifest = {
   },
   errorPatterns: OPENAI_COMMON_ERROR_PATTERNS,
   providerSpecificConfig: {
-    requestTimeoutMillis: 5 * 60 * 1000,
-    maxRetryAttempts: 3,
-    minRetryDelayMillis: 10 * 1000,
-    maxRetryDelayMillis: 90 * 1000,
+    ...defaultOpenAIProviderConfig,
   },
   implementation: OpenAILLM,
 };

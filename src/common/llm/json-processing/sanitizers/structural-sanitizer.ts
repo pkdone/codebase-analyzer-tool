@@ -1,5 +1,5 @@
 import { Sanitizer, SanitizerResult } from "./sanitizers-types";
-import { CODE_FENCE_MARKERS } from "../constants/json-processing.config";
+import { CODE_FENCE_MARKERS, COMMON_INTRO_WORDS } from "../constants/json-processing.config";
 import { CODE_FENCE_REGEXES } from "../constants/regex.constants";
 import { logOneLineWarning } from "../../../utils/logging";
 
@@ -167,26 +167,7 @@ function removeInvalidPrefixesInternal(jsonString: string, diagnostics: string[]
 
     if (isAfterValidDelimiter && wordStr.length > 3) {
       const lowerWord = wordStr.toLowerCase();
-      const commonIntroWords = new Set([
-        "here",
-        "this",
-        "that",
-        "the",
-        "a",
-        "an",
-        "command",
-        "data",
-        "result",
-        "output",
-        "json",
-        "response",
-        "object",
-        "content",
-        "payload",
-        "body",
-        "answer",
-      ]);
-      if (!commonIntroWords.has(lowerWord)) {
+      if (!COMMON_INTRO_WORDS.has(lowerWord)) {
         return match;
       }
     }
