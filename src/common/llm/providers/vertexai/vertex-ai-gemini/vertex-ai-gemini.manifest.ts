@@ -65,7 +65,7 @@ export const vertexAIGeminiProviderManifest: LLMProviderManifest = {
     requestTimeoutMillis: 10 * 60 * 1000,
     maxRetryAttempts: 3,
     minRetryDelayMillis: 30 * 1000,
-    maxRetryDelayMillis: 200 * 1000,
+    maxRetryDelayMillis: 150 * 1000,
   },
   implementation: VertexAIGeminiLLM,
 };
