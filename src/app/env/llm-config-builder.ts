@@ -12,9 +12,8 @@ import { LLMError, LLMErrorCode } from "../../common/llm/types/llm-errors.types"
  * before passing them to the generic LLM module, decoupling the module from
  * knowledge of environment variable keys.
  *
- * Note: Sanitizer configuration is now passed per-call in completion options
- * rather than at module-level, allowing different calls to use different
- * sanitization rules if needed.
+ * Note: Sanitizer configuration is passed per-call in completion options,
+ * allowing different calls to use different sanitization rules if needed.
  *
  * @param envVars The application's environment variables
  * @param modelFamily The LLM model family to use

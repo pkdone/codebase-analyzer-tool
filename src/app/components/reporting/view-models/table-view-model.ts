@@ -5,7 +5,7 @@ import {
   type ProcessedListItem,
 } from "../formatters/table-data-formatter";
 
-// Re-export formatter types for backwards compatibility
+// Re-export formatter types for convenience (used by tests and other consumers)
 export type { ProcessedTableCell, ProcessedListItem };
 
 /**

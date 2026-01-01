@@ -126,7 +126,7 @@ export type LLMModelFeature =
  *    response is a fixed size array of numbers).
  */
 interface BaseLLMModelMetadata {
-  /** The string identifier for this model - changed from ModelKey enum to string */
+  /** The string identifier for this model */
   readonly modelKey: string;
   /** User-friendly name for the model, defined in its manifest */
   readonly name: string;

@@ -113,7 +113,6 @@ export const fixJsonStructureAndNoise: Sanitizer = (input: string): SanitizerRes
 
 /**
  * Internal helper to remove invalid prefixes and stray text.
- * Inlined from remove-invalid-prefixes.ts
  */
 function removeInvalidPrefixesInternal(jsonString: string, diagnostics: string[]): string {
   let sanitized = jsonString;
@@ -285,7 +284,6 @@ function removeInvalidPrefixesInternal(jsonString: string, diagnostics: string[]
 
 /**
  * Internal helper to extract the largest JSON span.
- * Extracted from extract-largest-json-span.ts for reuse.
  */
 function extractLargestJsonSpanInternal(input: string): string {
   // Find all potential JSON starts (both { and [)
@@ -440,7 +438,6 @@ function extractLargestJsonSpanInternal(input: string): string {
 
 /**
  * Internal helper to collapse duplicate JSON objects.
- * Extracted from collapse-duplicate-json-object.ts for reuse.
  */
 function collapseDuplicateJsonObjectInternal(input: string): string {
   const dupPattern = /^(\{[\s\S]+\})\s*\1\s*$/;
@@ -452,7 +449,6 @@ function collapseDuplicateJsonObjectInternal(input: string): string {
 
 /**
  * Internal helper to remove truncation markers.
- * Inlined from remove-truncation-markers.ts
  */
 function removeTruncationMarkersInternal(jsonString: string, diagnostics: string[]): string {
   let sanitized = jsonString;

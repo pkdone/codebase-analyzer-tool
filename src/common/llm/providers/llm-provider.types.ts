@@ -63,7 +63,7 @@ export interface ProviderInit {
 export interface LLMProviderManifest {
   /** User-friendly name for the provider */
   providerName: string;
-  /** Unique identifier for the provider/family - changed to string to decouple from ModelFamily enum */
+  /** Unique identifier for the provider/family */
   modelFamily: string;
   /** Zod schema for provider-specific environment variables */
   envSchema: z.ZodObject<z.ZodRawShape>;

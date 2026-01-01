@@ -492,8 +492,6 @@ a:hover svg {
   min-width: 120px;
 }
 
-/* Coupling badge styles removed - now uses unified badge-* classes */
-
 .card-code {
   margin-top: auto; /* Pushes code block to the bottom */
   padding-top: 12px;

@@ -9,7 +9,6 @@ import { isInArrayContext } from "../utils/parser-context-utils";
 
 /**
  * Internal helper: Adds missing commas between object properties on separate lines.
- * Inlined from add-missing-commas.ts
  */
 function addMissingCommasInternal(input: string): SanitizerResult {
   const trimmed = input.trim();
@@ -227,7 +226,6 @@ function addMissingCommasInternal(input: string): SanitizerResult {
 /**
  * Internal helper: Removes trailing commas before closing braces or brackets.
  * Enhanced to handle various whitespace arrangements including newlines and tabs.
- * Inlined from remove-trailing-commas.ts
  */
 function removeTrailingCommasInternal(input: string): SanitizerResult {
   const trimmed = input.trim();
@@ -293,7 +291,6 @@ function removeTrailingCommasInternal(input: string): SanitizerResult {
 
 /**
  * Internal helper: Fixes mismatched delimiters (brackets and braces).
- * Inlined from fix-mismatched-delimiters.ts
  */
 function fixMismatchedDelimitersInternal(input: string): SanitizerResult {
   const trimmed = input.trim();
@@ -444,7 +441,6 @@ function fixMismatchedDelimitersInternal(input: string): SanitizerResult {
 
 /**
  * Internal helper: Completes truncated JSON structures by adding missing closing delimiters.
- * Inlined from complete-truncated-structures.ts
  */
 function completeTruncatedStructuresInternal(input: string): SanitizerResult {
   const trimmed = input.trim();
@@ -519,7 +515,6 @@ function completeTruncatedStructuresInternal(input: string): SanitizerResult {
 
 /**
  * Internal helper: Fixes missing opening braces for new objects in arrays.
- * Inlined from fix-missing-array-object-braces.ts
  */
 function fixMissingArrayObjectBracesInternal(input: string): SanitizerResult {
   try {
