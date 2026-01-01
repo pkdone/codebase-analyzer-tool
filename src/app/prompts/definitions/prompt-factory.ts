@@ -1,5 +1,6 @@
 import { DataBlockHeader, PromptDefinition } from "../prompt.types";
 import { z } from "zod";
+import { LLMOutputFormat } from "../../../common/llm/types/llm.types";
 
 /**
  * Generic configuration entry that must have at least a label.
@@ -114,4 +115,42 @@ export function createPromptMetadata<TConfigMap extends Record<string, BaseConfi
       return [key, definition];
     }),
   ) as PromptMetadataResult<TConfigMap>;
+}
+
+/**
+ * Options for creating a TEXT-mode prompt definition.
+ * Excludes responseSchema and outputFormat as these are set automatically.
+ */
+export type TextPromptDefinitionOptions = Omit<PromptDefinition, "responseSchema" | "outputFormat">;
+
+/**
+ * Creates a TEXT-mode prompt definition with standard configuration.
+ * TEXT-mode prompts do not require JSON schema validation and return plain text responses.
+ *
+ * This helper ensures consistent configuration for TEXT-mode prompts:
+ * - Sets `responseSchema` to `z.string()` (placeholder for type consistency)
+ * - Sets `outputFormat` to `LLMOutputFormat.TEXT`
+ *
+ * @param options - The prompt definition options (excluding responseSchema and outputFormat)
+ * @returns A fully-typed PromptDefinition configured for TEXT output
+ *
+ * @example
+ * ```typescript
+ * const queryPrompt = createTextPromptDefinition({
+ *   label: "Codebase Query",
+ *   contentDesc: "source code files",
+ *   instructions: [],
+ *   template: CODEBASE_QUERY_TEMPLATE,
+ *   dataBlockHeader: "CODE",
+ * });
+ * ```
+ */
+export function createTextPromptDefinition(
+  options: TextPromptDefinitionOptions,
+): PromptDefinition<z.ZodString> {
+  return {
+    ...options,
+    responseSchema: z.string(),
+    outputFormat: LLMOutputFormat.TEXT,
+  };
 }

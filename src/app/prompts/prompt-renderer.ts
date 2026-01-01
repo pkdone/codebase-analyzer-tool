@@ -2,6 +2,7 @@ import { fillPrompt } from "type-safe-prompt";
 import { zodToJsonSchema } from "zod-to-json-schema";
 import { FORCE_JSON_FORMAT } from "./templates";
 import { type PromptDefinition, type DataBlockHeader } from "./prompt.types";
+import { LLMOutputFormat } from "../../common/llm/types/llm.types";
 
 /**
  * Interface defining the variables required by BASE_PROMPT_TEMPLATE.
@@ -36,7 +37,14 @@ interface BasePromptTemplateVariables {
  * @returns The fully rendered prompt string
  */
 export function renderPrompt(definition: PromptDefinition, data: Record<string, unknown>): string {
-  const jsonSchemaString = JSON.stringify(zodToJsonSchema(definition.responseSchema), null, 2);
+  // Determine if this is a JSON-mode prompt (default) or TEXT-mode
+  const isJsonMode = definition.outputFormat !== LLMOutputFormat.TEXT;
+
+  // Only compute JSON schema string if needed (optimization for TEXT-mode prompts)
+  const jsonSchemaString = isJsonMode
+    ? JSON.stringify(zodToJsonSchema(definition.responseSchema), null, 2)
+    : "";
+
   const wrapInCodeBlock = definition.wrapInCodeBlock ?? false;
   const contentWrapper = wrapInCodeBlock ? "```\n" : "";
 
@@ -53,7 +61,7 @@ export function renderPrompt(definition: PromptDefinition, data: Record<string, 
     content: data.content,
     contentDesc: definition.contentDesc,
     instructionsText,
-    forceJSON: FORCE_JSON_FORMAT,
+    forceJSON: isJsonMode ? FORCE_JSON_FORMAT : "",
     jsonSchema: jsonSchemaString,
     dataBlockHeader: definition.dataBlockHeader,
     contentWrapper,

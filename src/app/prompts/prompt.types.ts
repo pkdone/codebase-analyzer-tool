@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { LLMOutputFormat } from "../../common/llm/types/llm.types";
 
 /**
  * Valid values for the data section header in prompt templates.
@@ -30,4 +31,6 @@ export interface PromptDefinition<S extends z.ZodType = z.ZodType> {
   dataBlockHeader: DataBlockHeader;
   /** Whether to wrap the content in code block markers (```). Defaults to false. */
   wrapInCodeBlock?: boolean;
+  /** Output format for the LLM response. Defaults to JSON when undefined. */
+  outputFormat?: LLMOutputFormat;
 }

@@ -1,5 +1,15 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`renderPrompt Snapshot Tests TEXT mode prompts (codebaseQuery) codebaseQuery prompt should match snapshot 1`] = `
+"Act as a senior developer. I've provided the content of some source code files below in the section marked 'CODE'. Using all that code for context, answer the question a developer has asked about the code, where their question is shown in the section marked 'QUESTION' below. Provide your answer in a few paragraphs, referring to specific evidence in the provided code.
+
+QUESTION:
+What is the purpose of this code?
+
+CODE:
+export function calculate(x: number) { return x * 2; }"
+`;
+
 exports[`renderPrompt Snapshot Tests rendered prompts should match snapshots C# prompt should match snapshot 1`] = `
 "Act as a senior developer analyzing the code in a legacy application. Based on the the C# code shown below in the section marked 'CODE', return a JSON response that contains __Basic Information__
 The name of the main public class/interface of the file

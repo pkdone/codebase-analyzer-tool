@@ -1,5 +1,6 @@
 import { renderPrompt } from "../../../src/app/prompts/prompt-renderer";
 import { promptRegistry } from "../../../src/app/prompts/prompt-registry";
+import { LLMOutputFormat } from "../../../src/common/llm/types/llm.types";
 const fileTypePromptMetadata = promptRegistry.sources;
 
 describe("renderPrompt Snapshot Tests", () => {
@@ -219,6 +220,81 @@ describe("renderPrompt Snapshot Tests", () => {
       test(`${fileType} should render successfully`, () => {
         const definition = fileTypePromptMetadata[fileType];
         const data = { content: "test content" };
+
+        expect(() => {
+          const rendered = renderPrompt(definition, data);
+          expect(rendered).toBeTruthy();
+          expect(typeof rendered).toBe("string");
+          expect(rendered.length).toBeGreaterThan(0);
+        }).not.toThrow();
+      });
+    });
+  });
+
+  describe("TEXT mode prompts (codebaseQuery)", () => {
+    test("codebaseQuery prompt should be TEXT mode", () => {
+      const definition = promptRegistry.codebaseQuery;
+      expect(definition.outputFormat).toBe(LLMOutputFormat.TEXT);
+    });
+
+    test("codebaseQuery prompt should render without JSON schema", () => {
+      const definition = promptRegistry.codebaseQuery;
+      const data = {
+        question: "What does the main function do?",
+        content: "function main() { return 42; }",
+      };
+
+      const rendered = renderPrompt(definition, data);
+
+      // TEXT mode prompts should NOT include JSON schema or force JSON text
+      expect(rendered).not.toContain("The response MUST be valid JSON");
+      expect(rendered).not.toContain('"type":');
+      expect(rendered).not.toContain("```json");
+
+      // Should include the question and content
+      expect(rendered).toContain("What does the main function do?");
+      expect(rendered).toContain("function main()");
+    });
+
+    test("codebaseQuery prompt should match snapshot", () => {
+      const definition = promptRegistry.codebaseQuery;
+      const data = {
+        question: "What is the purpose of this code?",
+        content: "export function calculate(x: number) { return x * 2; }",
+      };
+
+      const rendered = renderPrompt(definition, data);
+      expect(rendered).toMatchSnapshot();
+    });
+  });
+
+  describe("app summary prompts (JSON mode)", () => {
+    const appSummaryTypes = Object.keys(
+      promptRegistry.appSummaries,
+    ) as (keyof typeof promptRegistry.appSummaries)[];
+
+    test("all app summary prompts should be JSON mode by default", () => {
+      appSummaryTypes.forEach((category) => {
+        const definition = promptRegistry.appSummaries[category];
+        // outputFormat is undefined or JSON for JSON mode prompts
+        expect(definition.outputFormat).not.toBe(LLMOutputFormat.TEXT);
+      });
+    });
+
+    test("app summary prompts should include JSON schema", () => {
+      const definition = promptRegistry.appSummaries[appSummaryTypes[0]];
+      const data = { content: "[{summary: 'test'}]" };
+
+      const rendered = renderPrompt(definition, data);
+
+      // JSON mode prompts should include JSON enforcement
+      expect(rendered).toContain("The response MUST be valid JSON");
+    });
+
+    appSummaryTypes.forEach((category) => {
+      test(`${category} app summary prompt should render successfully`, () => {
+        const definition = promptRegistry.appSummaries[category];
+        const data = { content: "[{summary: 'test file summary'}]" };
 
         expect(() => {
           const rendered = renderPrompt(definition, data);

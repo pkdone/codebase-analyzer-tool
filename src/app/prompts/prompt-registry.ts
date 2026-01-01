@@ -3,7 +3,7 @@ import { appSummaryConfigMap } from "./definitions/app-summaries/app-summaries.c
 import { buildReduceInsightsContentDesc } from "./definitions/app-summaries/app-summaries.fragments";
 import { sourceConfigMap } from "./definitions/sources/sources.config";
 import { BASE_PROMPT_TEMPLATE, CODEBASE_QUERY_TEMPLATE } from "./templates";
-import { createPromptMetadata } from "./definitions/prompt-factory";
+import { createPromptMetadata, createTextPromptDefinition } from "./definitions/prompt-factory";
 import { type PromptDefinition } from "./prompt.types";
 import { type AppSummaryCategoryEnum } from "../components/insights/insights.types";
 
@@ -38,16 +38,17 @@ Object.values(sourcePrompts).forEach((metadata) => {
  * Prompt definition for codebase queries.
  * Used for RAG workflows where vector search results are provided as context
  * for answering developer questions about the codebase.
+ *
+ * This is a TEXT-mode prompt that returns plain text responses without JSON validation.
  */
-const codebaseQueryPrompt: PromptDefinition = {
+const codebaseQueryPrompt = createTextPromptDefinition({
   label: "Codebase Query",
   contentDesc: "source code files",
   instructions: [],
-  responseSchema: z.string(),
   template: CODEBASE_QUERY_TEMPLATE,
   dataBlockHeader: "CODE",
   wrapInCodeBlock: false,
-};
+});
 
 /**
  * Factory function to create a fully-typed prompt definition for reducing insights.
