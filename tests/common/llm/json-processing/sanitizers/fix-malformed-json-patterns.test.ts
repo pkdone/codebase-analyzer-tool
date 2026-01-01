@@ -1427,8 +1427,10 @@ e"org.apache.fineract.interoperation.data.InteropTransactionsData",
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"externalReferences": [');
       // The pattern should add a comma after the closing bracket before extra_text
-      // Note: extra_text removal happens in another sanitizer, so we just verify the comma was added
-      expect(result.content).toMatch(/\]\s*,/);
+      // Note: extra_text removal happens in another sanitizer (YAML block pattern),
+      // which may remove extra_text: but the comma should remain for valid JSON structure
+      // We verify the JSON is valid after processing (comma ensures proper structure)
+      expect(() => JSON.parse(result.content)).not.toThrow();
     });
 
     it("should handle extra_thoughts after array", () => {

@@ -260,30 +260,15 @@ export const fixJsonStructure: Sanitizer = (input: string): SanitizerResult => {
         const whitespace2Str = typeof whitespace2 === "string" ? whitespace2 : "";
         const nextPropertyStr = typeof nextProperty === "string" ? nextProperty : "";
 
-        // Simple reconstruction: convert camelCase to UPPER_SNAKE_CASE with MAX_ prefix
-        const rest = truncatedValueStr.substring(2); // Remove "ax" if present
-        let reconstructedValue = truncatedValueStr;
-        if (
-          truncatedValueStr.toLowerCase().startsWith("ax") &&
-          rest.length > 0 &&
-          /^[A-Z]/.test(rest)
-        ) {
-          const camelCase = rest;
-          const snakeCase = camelCase
-            .replace(/([A-Z])/g, "_$1")
-            .replace(/^_/, "")
-            .toUpperCase();
-          reconstructedValue = `MAX_${snakeCase}`;
-        }
-
+        // Schema-agnostic fix: simply close the truncated value with a quote and comma
+        // This maintains valid JSON structure without making schema-specific assumptions
         hasChanges = true;
         diagnostics.push(
-          `Fixed truncated value in array element: inserted { and "name": "${reconstructedValue}" before "${truncatedValueStr}"`,
+          `Fixed truncated value in array element: closed truncated value "${truncatedValueStr}"`,
         );
 
-        const camelCaseValue =
-          truncatedValueStr.charAt(0).toUpperCase() + truncatedValueStr.substring(1);
-        return `${typePropertyStr}\n${whitespace1Str}  },\n${whitespace1Str}  {\n${whitespace1Str}    "name": "${reconstructedValue}",\n${whitespace1Str}    "value": "${camelCaseValue}",\n${whitespace2Str}"${nextPropertyStr}"`;
+        // Close the truncated value properly and continue with the next property
+        return `${typePropertyStr}\n${whitespace1Str}  },\n${whitespace1Str}  {\n${whitespace1Str}    "value": "${truncatedValueStr}",\n${whitespace2Str}"${nextPropertyStr}"`;
       },
     );
   }

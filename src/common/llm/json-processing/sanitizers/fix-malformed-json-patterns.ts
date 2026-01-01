@@ -201,8 +201,9 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     );
 
     // Pattern: Fix missing property name with underscore fragment after opening brace (run early)
-    // Pattern: `{_PARAM_TABLE": "table"` -> `{"name": "PARAM_TABLE"`
-    const missingPropertyNameWithBraceEarlyPattern = /\{\s*([_][A-Z_]+)"\s*:\s*"([^"]+)"/g;
+    // Generic pattern matches any underscore-prefixed identifier (not just uppercase)
+    // Pattern: `{_PARAM_TABLE": "table"` -> `{"name": "PARAM_TABLE"` or `{_someValue": "value"` -> `{"name": "someValue"`
+    const missingPropertyNameWithBraceEarlyPattern = /\{\s*([_][a-zA-Z0-9_]+)"\s*:\s*"([^"]+)"/g;
     sanitized = sanitized.replace(
       missingPropertyNameWithBraceEarlyPattern,
       (match, fragment, _value, offset: number) => {
@@ -435,10 +436,11 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     );
 
     // Remove invalid property names
+    // Generic pattern matches any extra_*, _llm_*, or _ai_* property followed by opening brace
     // Pattern: `extra_code_analysis: {` -> remove this entire property block
     // First, try to find and remove the property with its value
     sanitized = sanitized.replace(
-      /([}\],]|\n|^)(\s*)(extra_code_analysis:)\s*{/g,
+      /([}\],]|\n|^)(\s*)((?:extra_|_llm_|_ai_)[a-z_]+):\s*{/gi,
       (match, delimiter, whitespace, invalidProp, offset: number) => {
         if (isInStringAt(offset, sanitized)) {
           return match;
@@ -984,15 +986,16 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // Add missing comma after array when extra_text: appears
+    // Add missing comma after array when extra_* properties appear
     // Pattern: `]\n    extra_text:` -> `],\n    extra_text:`
-    // This handles cases where an array ends without a comma and extra_text: appears next
-    // Must run BEFORE the pattern that removes extra_text patterns
+    // Generic pattern matches any extra_*, _llm_*, or _ai_* property
+    // This handles cases where an array ends without a comma and extra_* properties appear next
+    // Must run BEFORE the pattern that removes extra_* patterns
     const missingCommaAfterArrayExtraTextPattern =
-      /(\])\s*\n\s*(extra_text|extra_thoughts|extra_code_analysis)\s*:/g;
+      /(\])\s*\n(\s*)((?:extra_|_llm_|_ai_)[a-z_]+)\s*:/gi;
     sanitized = sanitized.replace(
       missingCommaAfterArrayExtraTextPattern,
-      (match, closingBracket, extraText, offset: number) => {
+      (match, closingBracket, whitespace, extraText, offset: number) => {
         if (isInStringAt(offset, sanitized)) {
           return match;
         }
@@ -1000,11 +1003,12 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
         // The pattern already ensures we're matching ] followed by extra_text, so this is always valid
         hasChanges = true;
         const closingBracketStr = typeof closingBracket === "string" ? closingBracket : "";
+        const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
         const extraTextStr = typeof extraText === "string" ? extraText : "";
         if (diagnostics.length < 10) {
           diagnostics.push(`Added missing comma after array before ${extraTextStr}:`);
         }
-        return `${closingBracketStr},\n    ${extraTextStr}:`;
+        return `${closingBracketStr},\n${whitespaceStr}${extraTextStr}:`;
       },
     );
 
@@ -1029,11 +1033,12 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     );
 
     // Remove YAML-like blocks embedded in JSON
+    // Generic pattern matches YAML-like metadata blocks (extra_*, _llm_*, _ai_*, or kebab-case metadata)
     // Pattern: `semantically-similar-code-detection-results:\n  - score: 0.98\n  ...` -> remove entire block
     // This handles cases where LLM inserts YAML-like metadata blocks in the middle of JSON
     // Also handles single-line YAML-like entries: `extra_thoughts: I've identified all...`
     const yamlBlockPattern =
-      /(\n\s*)(semantically-similar-code-detection-results|extra_thoughts|extra_code_analysis|extra_notes|extra_info):\s*([\s\S]*?)(?=\n\s*"[a-zA-Z]|\n\s*[}\]]|$)/gi;
+      /(\n\s*)((?:extra_|_llm_|_ai_)[a-z_]+|[a-z]+(?:-[a-z]+)+):\s*([\s\S]*?)(?=\n\s*"[a-zA-Z]|\n\s*[}\]]|$)/gi;
     sanitized = sanitized.replace(
       yamlBlockPattern,
       (match, newlinePrefix, blockName, _blockContent, offset: number) => {
@@ -1051,11 +1056,11 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // Remove extra_text= style attributes embedded in JSON
+    // Remove extra_*= style attributes embedded in JSON
+    // Generic pattern matches any extra_*, _llm_*, or _ai_* attribute assignment
     // Pattern: `extra_text="  "externalReferences": [` -> remove the extra_text= part
-    // This handles cases where LLM wraps valid JSON in an extra_text= attribute
-    const extraTextEqualPattern =
-      /(\n\s*)(extra_text|extra_info|extra_notes)\s*=\s*"(\s*"[a-zA-Z])/gi;
+    // This handles cases where LLM wraps valid JSON in an extra_*= attribute
+    const extraTextEqualPattern = /(\n\s*)((?:extra_|_llm_|_ai_)[a-z_]+)\s*=\s*"(\s*"[a-zA-Z])/gi;
     sanitized = sanitized.replace(
       extraTextEqualPattern,
       (match, newlinePrefix, _attrName, jsonStart, offset: number) => {
@@ -2590,9 +2595,11 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     );
 
     // Fix missing property names
+    // Generic pattern matches short lowercase fragments or underscore-prefixed identifiers (any case)
     // Pattern: `ce": "value"` -> `"name": "value"`
-    // Also handles: `{_PARAM_TABLE":` -> `{"name": "PARAM_TABLE":`
-    const missingPropertyNamePattern = /([}\],]|\n|^)(\s*)([a-z]{1,3}|_[A-Z_]+)"\s*:\s*"([^"]+)"/g;
+    // Also handles: `{_PARAM_TABLE":` -> `{"name": "PARAM_TABLE":` or `{_someValue":` -> `{"name": "someValue":`
+    const missingPropertyNamePattern =
+      /([}\],]|\n|^)(\s*)([a-z]{1,3}|_[a-zA-Z0-9_]+)"\s*:\s*"([^"]+)"/g;
     sanitized = sanitized.replace(
       missingPropertyNamePattern,
       (match, delimiter, whitespace, fragment, value, offset: number) => {

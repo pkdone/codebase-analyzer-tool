@@ -182,17 +182,12 @@ export const propertyNameFixer: SanitizerStrategy = {
           // Use dynamic inference for short fragments
           let fixedName = inferFromShortFragment(shortNameStr, knownProperties);
 
-          // Fallback to specific known mappings for common patterns
+          // Fallback to dynamic property name matching
           if (!fixedName) {
-            const lowerShortName = shortNameStr.toLowerCase();
-            if (lowerShortName === "se") {
-              fixedName = "name";
-            } else {
-              fixedName = fixPropertyName(shortNameStr, knownProperties, PROPERTY_NAME_MAPPINGS);
-              if (fixedName === shortNameStr) {
-                // No match found, skip this replacement
-                return match;
-              }
+            fixedName = fixPropertyName(shortNameStr, knownProperties, PROPERTY_NAME_MAPPINGS);
+            if (fixedName === shortNameStr) {
+              // No match found, skip this replacement
+              return match;
             }
           }
 
