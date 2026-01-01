@@ -1,9 +1,7 @@
 import { injectable, inject } from "tsyringe";
 import type { ReportSection } from "../report-section.interface";
-import { reportingTokens } from "../../../../di/tokens";
 import { repositoryTokens } from "../../../../di/tokens";
 import type { SourcesRepository } from "../../../../repositories/sources/sources.repository.interface";
-import { PieChartGenerator } from "../../generators/png/pie-chart-generator";
 import { htmlReportConstants } from "../../html-report.constants";
 import { reportSectionsConfig } from "../../report-sections.config";
 import { TableViewModel } from "../../view-models/table-view-model";
@@ -12,18 +10,16 @@ import type { PreparedJsonData } from "../../json-report-writer";
 import type { ReportData } from "../../report-gen.types";
 import { SECTION_NAMES } from "../../reporting.constants";
 import { UNKNOWN_VALUE_PLACEHOLDER } from "../../../../../common/constants/application.constants";
-import path from "path";
 
 /**
- * Report section for file types data, including pie chart generation.
+ * Report section for file types data.
+ * Pie chart is rendered client-side via SVG in the EJS template.
  */
 @injectable()
 export class FileTypesSection implements ReportSection {
   constructor(
     @inject(repositoryTokens.SourcesRepository)
     private readonly sourcesRepository: SourcesRepository,
-    @inject(reportingTokens.PieChartGenerator)
-    private readonly pieChartGenerator: PieChartGenerator,
   ) {}
 
   getName(): string {
@@ -48,22 +44,14 @@ export class FileTypesSection implements ReportSection {
     }));
   }
 
-  // eslint-disable-next-line @typescript-eslint/member-ordering
+  // eslint-disable-next-line @typescript-eslint/member-ordering, @typescript-eslint/require-await
   async prepareHtmlData(
     _baseData: ReportData,
     sectionData: Partial<ReportData>,
-    htmlDir: string,
+    _htmlDir: string,
   ): Promise<Partial<PreparedHtmlReportData> | null> {
     const fileTypesData = sectionData.fileTypesData ?? [];
     const processedFileTypesData = this.processFileTypesData(fileTypesData);
-
-    // Generate pie chart
-    const chartsDir = path.join(htmlDir, htmlReportConstants.directories.CHARTS);
-    const fileTypesPieChartFilename = await this.pieChartGenerator.generateFileTypesPieChart(
-      processedFileTypesData,
-      chartsDir,
-    );
-    const fileTypesPieChartPath = htmlReportConstants.paths.CHARTS_DIR + fileTypesPieChartFilename;
 
     // Create display data for table
     const fileTypesDisplayData = processedFileTypesData.map((item) => ({
@@ -74,7 +62,6 @@ export class FileTypesSection implements ReportSection {
 
     return {
       fileTypesData: processedFileTypesData,
-      fileTypesPieChartPath,
       fileTypesTableViewModel: new TableViewModel(fileTypesDisplayData),
     };
   }

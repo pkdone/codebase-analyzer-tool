@@ -1,25 +1,19 @@
 import "reflect-metadata";
 import { FileTypesSection } from "../../../../../src/app/components/reporting/sections/file-types/file-types-section";
 import { SourcesRepository } from "../../../../../src/app/repositories/sources/sources.repository.interface";
-import { PieChartGenerator } from "../../../../../src/app/components/reporting/generators/png/pie-chart-generator";
 import type { ProjectedFileTypesCountAndLines } from "../../../../../src/app/repositories/sources/sources.model";
 import type { ReportData } from "../../../../../src/app/components/reporting/report-gen.types";
 
 describe("FileTypesSection", () => {
   let section: FileTypesSection;
   let mockSourcesRepository: jest.Mocked<SourcesRepository>;
-  let mockPieChartGenerator: jest.Mocked<PieChartGenerator>;
 
   beforeEach(() => {
     mockSourcesRepository = {
       getProjectFileTypesCountAndLines: jest.fn(),
     } as unknown as jest.Mocked<SourcesRepository>;
 
-    mockPieChartGenerator = {
-      generateFileTypesPieChart: jest.fn().mockResolvedValue("chart.png"),
-    } as unknown as jest.Mocked<PieChartGenerator>;
-
-    section = new FileTypesSection(mockSourcesRepository, mockPieChartGenerator);
+    section = new FileTypesSection(mockSourcesRepository);
   });
 
   describe("getName", () => {
@@ -47,7 +41,7 @@ describe("FileTypesSection", () => {
   });
 
   describe("prepareHtmlData", () => {
-    it("should process file types data and generate pie chart", async () => {
+    it("should process file types data for template rendering", async () => {
       const mockFileTypesData: ProjectedFileTypesCountAndLines[] = [
         { fileType: "java", files: 10, lines: 1000 },
         { fileType: "", files: 5, lines: 500 }, // Empty file type should become "unknown"
@@ -63,9 +57,7 @@ describe("FileTypesSection", () => {
       );
 
       expect(result).toBeDefined();
-      expect(result?.fileTypesPieChartPath).toBe("charts/chart.png");
       expect(result?.fileTypesData?.[1].fileType).toBe("unknown");
-      expect(mockPieChartGenerator.generateFileTypesPieChart).toHaveBeenCalled();
       expect(result?.fileTypesTableViewModel).toBeDefined();
     });
   });

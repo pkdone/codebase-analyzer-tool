@@ -4,8 +4,6 @@ import { reportingTokens } from "../tokens";
 // Reporting component imports
 import { HtmlReportWriter } from "../../components/reporting/html-report-writer";
 import { JsonReportWriter } from "../../components/reporting/json-report-writer";
-import { MermaidRenderer } from "../../components/reporting/generators/mermaid/mermaid-renderer";
-import { PieChartGenerator } from "../../components/reporting/generators/png/pie-chart-generator";
 import { FlowchartSvgGenerator } from "../../components/reporting/generators/svg/flowchart-svg-generator";
 import { DomainModelSvgGenerator } from "../../components/reporting/generators/svg/domain-model-svg-generator";
 import { ArchitectureSvgGenerator } from "../../components/reporting/generators/svg/architecture-svg-generator";
@@ -36,13 +34,9 @@ import { QualityMetricsSection } from "../../components/reporting/sections/quali
  * - Report generation orchestration
  */
 export function registerReportingComponents(): void {
-  // Register Mermaid renderer first (used by all diagram generators)
-  container.registerSingleton(reportingTokens.MermaidRenderer, MermaidRenderer);
-
   // Register report writers and generators
   container.registerSingleton(reportingTokens.HtmlReportWriter, HtmlReportWriter);
   container.registerSingleton(reportingTokens.JsonReportWriter, JsonReportWriter);
-  container.registerSingleton(reportingTokens.PieChartGenerator, PieChartGenerator);
   container.registerSingleton(reportingTokens.FlowchartSvgGenerator, FlowchartSvgGenerator);
   container.registerSingleton(reportingTokens.DomainModelSvgGenerator, DomainModelSvgGenerator);
   container.registerSingleton(reportingTokens.ArchitectureSvgGenerator, ArchitectureSvgGenerator);

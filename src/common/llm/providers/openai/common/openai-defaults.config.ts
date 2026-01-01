@@ -44,4 +44,3 @@ export const defaultOpenAIProviderConfig: Pick<
   minRetryDelayMillis: DEFAULT_OPENAI_MIN_RETRY_DELAY_MILLIS,
   maxRetryDelayMillis: DEFAULT_OPENAI_MAX_RETRY_DELAY_MILLIS,
 } as const;
-

@@ -1,6 +1,4 @@
-import { inject, injectable } from "tsyringe";
-import { reportingTokens } from "../../../../di/tokens";
-import type { MermaidRenderer } from "../mermaid/mermaid-renderer";
+import { injectable } from "tsyringe";
 import {
   escapeMermaidLabel,
   generateNodeId,
@@ -48,10 +46,12 @@ export interface InferredArchitectureData {
 export type CurrentArchitectureDiagramSvgOptions = BaseDiagramOptions;
 
 /**
- * Generates SVG diagrams for the current/inferred architecture using Mermaid.
+ * Generates Mermaid diagrams for the current/inferred architecture.
  * Creates component-style diagrams showing internal business components and
  * their relationships to external dependencies.
- * Extends BaseMermaidGenerator to share common rendering functionality.
+ * Extends BaseMermaidGenerator to share common functionality.
+ *
+ * Diagrams are rendered client-side using Mermaid.js.
  */
 @injectable()
 export class CurrentArchitectureSvgGenerator extends BaseMermaidGenerator<CurrentArchitectureDiagramSvgOptions> {
@@ -60,21 +60,15 @@ export class CurrentArchitectureSvgGenerator extends BaseMermaidGenerator<Curren
     height: visualizationConfig.currentArchitecture.DEFAULT_HEIGHT,
   };
 
-  constructor(
-    @inject(reportingTokens.MermaidRenderer)
-    mermaidRenderer: MermaidRenderer,
-  ) {
-    super(mermaidRenderer);
-  }
-
   /**
-   * Generate SVG diagram for the inferred/current architecture.
+   * Generate diagram for the inferred/current architecture.
+   * Returns HTML with embedded Mermaid definition for client-side rendering.
    */
-  async generateCurrentArchitectureDiagramSvg(
+  generateCurrentArchitectureDiagramSvg(
     architectureData: InferredArchitectureData | null,
     options: CurrentArchitectureDiagramSvgOptions = {},
-  ): Promise<string> {
-    const opts = this.mergeOptions(options);
+  ): string {
+    this.mergeOptions(options);
 
     if (!architectureData || architectureData.internalComponents.length === 0) {
       return this.generateEmptyDiagram("No inferred architecture data available");
@@ -83,36 +77,7 @@ export class CurrentArchitectureSvgGenerator extends BaseMermaidGenerator<Curren
     // Build mermaid definition
     const mermaidDefinition = this.buildCurrentArchitectureDiagramDefinition(architectureData);
 
-    const archConfig = visualizationConfig.currentArchitecture;
-
-    // Calculate dynamic dimensions based on content
-    const internalCount = architectureData.internalComponents.length;
-    const externalCount = architectureData.externalDependencies.length;
-    const maxVerticalNodes = Math.max(internalCount, externalCount);
-    const maxNameLength = Math.max(
-      ...architectureData.internalComponents.map((c) => c.name.length),
-      ...architectureData.externalDependencies.map((d) => d.name.length + d.type.length),
-    );
-    const nodeWidth = Math.max(
-      archConfig.MIN_NODE_WIDTH,
-      maxNameLength * archConfig.CHAR_WIDTH_MULTIPLIER,
-    );
-
-    // Width: space for 2 subgraphs side by side plus padding
-    const { width } = this.calculateDimensions(2, {
-      minWidth: opts.width,
-      minHeight: 0,
-      widthPerNode: nodeWidth + archConfig.WIDTH_PADDING,
-    });
-    // Height: based on number of vertical nodes
-    const { height } = this.calculateDimensions(maxVerticalNodes, {
-      minWidth: 0,
-      minHeight: opts.height,
-      heightPerNode: archConfig.HEIGHT_PER_NODE,
-    });
-    const dynamicHeight = height + archConfig.HEIGHT_PADDING; // Add padding for layout
-
-    return this.renderDiagram(mermaidDefinition, width, dynamicHeight);
+    return this.wrapForClientRendering(mermaidDefinition);
   }
 
   /**
@@ -135,20 +100,16 @@ export class CurrentArchitectureSvgGenerator extends BaseMermaidGenerator<Curren
     const nodeIdMap = new Map<string, string>();
 
     // Create internal component nodes (no subgraph to avoid nesting issues)
-    const internalNodeIds: string[] = [];
     architectureData.internalComponents.forEach((component, index) => {
       const nodeId = generateNodeId(`int_${component.name}`, index);
       nodeIdMap.set(component.name, nodeId);
-      internalNodeIds.push(nodeId);
       lines.push(`    ${nodeId}["${escapeMermaidLabel(component.name)}"]`);
     });
 
     // Create external dependency nodes
-    const externalNodeIds: string[] = [];
     architectureData.externalDependencies.forEach((dep, index) => {
       const nodeId = generateNodeId(`ext_${dep.name}`, index);
       nodeIdMap.set(dep.name, nodeId);
-      externalNodeIds.push(nodeId);
       const escapedName = escapeMermaidLabel(dep.name);
       const escapedType = escapeMermaidLabel(dep.type);
       lines.push(`    ${nodeId}["${escapedName}<br/><i>${escapedType}</i>"]`);

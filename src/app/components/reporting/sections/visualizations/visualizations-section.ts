@@ -26,6 +26,7 @@ import {
 
 /**
  * Report section for visualizations (flowcharts, domain diagrams, architecture diagrams).
+ * Diagrams are generated as Mermaid definitions and rendered client-side.
  */
 @injectable()
 export class VisualizationsSection implements ReportSection {
@@ -52,34 +53,34 @@ export class VisualizationsSection implements ReportSection {
     return Promise.resolve({});
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   async prepareHtmlData(
     baseData: ReportData,
     _sectionData: Partial<ReportData>,
     _htmlDir: string,
   ): Promise<Partial<PreparedHtmlReportData> | null> {
-    // Generate business processes flowcharts
-    const businessProcessesFlowchartSvgs = await this.generateBusinessProcessesFlowcharts(
+    // Generate business processes flowcharts (synchronous - client-side rendering)
+    const businessProcessesFlowchartSvgs = this.generateBusinessProcessesFlowcharts(
       baseData.categorizedData,
     );
 
-    // Generate domain model data and diagrams
+    // Generate domain model data and diagrams (synchronous - client-side rendering)
     const domainModelData = this.domainModelDataProvider.getDomainModelData(
       baseData.categorizedData,
     );
-    const contextDiagramSvgs =
-      await this.domainModelSvgGenerator.generateMultipleContextDiagramsSvg(
-        domainModelData.boundedContexts,
-      );
+    const contextDiagramSvgs = this.domainModelSvgGenerator.generateMultipleContextDiagramsSvg(
+      domainModelData.boundedContexts,
+    );
 
-    // Extract microservices data and generate architecture diagram
+    // Extract microservices data and generate architecture diagram (synchronous - client-side rendering)
     const microservicesData = this.extractMicroservicesData(baseData.categorizedData);
     const architectureDiagramSvg =
-      await this.architectureSvgGenerator.generateArchitectureDiagramSvg(microservicesData);
+      this.architectureSvgGenerator.generateArchitectureDiagramSvg(microservicesData);
 
-    // Extract inferred architecture data and generate current architecture diagram
+    // Extract inferred architecture data and generate current architecture diagram (synchronous)
     const inferredArchitectureData = this.extractInferredArchitectureData(baseData.categorizedData);
     const currentArchitectureDiagramSvg =
-      await this.currentArchitectureSvgGenerator.generateCurrentArchitectureDiagramSvg(
+      this.currentArchitectureSvgGenerator.generateCurrentArchitectureDiagramSvg(
         inferredArchitectureData,
       );
 
@@ -100,15 +101,15 @@ export class VisualizationsSection implements ReportSection {
   }
 
   /**
-   * Generate flowchart SVGs for business processes
+   * Generate flowchart HTML for business processes (Mermaid definitions for client-side rendering)
    */
-  private async generateBusinessProcessesFlowcharts(
+  private generateBusinessProcessesFlowcharts(
     categorizedData: {
       category: string;
       label: string;
       data: CategorizedDataItem;
     }[],
-  ): Promise<string[]> {
+  ): string[] {
     const businessProcessesCategory = categorizedData.find(
       (category) => category.category === "businessProcesses",
     );

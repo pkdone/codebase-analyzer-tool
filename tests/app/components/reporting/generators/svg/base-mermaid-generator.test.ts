@@ -5,7 +5,6 @@ import {
   type DimensionConfig,
   type CalculatedDimensions,
 } from "../../../../../../src/app/components/reporting/generators/svg/base-mermaid-generator";
-import type { MermaidRenderer } from "../../../../../../src/app/components/reporting/generators/mermaid/mermaid-renderer";
 import { DIAGRAM_STYLES } from "../../../../../../src/app/components/reporting/generators/mermaid/mermaid-definition-builders";
 
 interface TestDiagramOptions extends BaseDiagramOptions {
@@ -25,8 +24,8 @@ class TestMermaidGenerator extends BaseMermaidGenerator<TestDiagramOptions> {
     return this.generateEmptyDiagram(message);
   }
 
-  async testRenderDiagram(definition: string, width: number, height: number): Promise<string> {
-    return this.renderDiagram(definition, width, height);
+  testWrapForClientRendering(definition: string): string {
+    return this.wrapForClientRendering(definition);
   }
 
   testMergeOptions(options: TestDiagramOptions): Required<TestDiagramOptions> {
@@ -43,19 +42,14 @@ class TestMermaidGenerator extends BaseMermaidGenerator<TestDiagramOptions> {
 }
 
 describe("BaseMermaidGenerator", () => {
-  let mockMermaidRenderer: jest.Mocked<MermaidRenderer>;
   let generator: TestMermaidGenerator;
 
   beforeEach(() => {
-    mockMermaidRenderer = {
-      renderToSvg: jest.fn().mockResolvedValue("<svg>test</svg>"),
-    } as unknown as jest.Mocked<MermaidRenderer>;
-
-    generator = new TestMermaidGenerator(mockMermaidRenderer);
+    generator = new TestMermaidGenerator();
   });
 
   describe("constructor", () => {
-    it("should accept a MermaidRenderer instance", () => {
+    it("should create an instance", () => {
       expect(generator).toBeDefined();
     });
   });
@@ -87,35 +81,28 @@ describe("BaseMermaidGenerator", () => {
     });
   });
 
-  describe("renderDiagram", () => {
-    it("should call mermaidRenderer.renderToSvg with correct parameters", async () => {
+  describe("wrapForClientRendering", () => {
+    it("should wrap definition in pre tag with mermaid class", () => {
       const definition = "flowchart TB\n    A --> B";
-      const width = 1000;
-      const height = 500;
+      const result = generator.testWrapForClientRendering(definition);
 
-      await generator.testRenderDiagram(definition, width, height);
-
-      expect(mockMermaidRenderer.renderToSvg).toHaveBeenCalledWith(definition, {
-        width,
-        height,
-        backgroundColor: DIAGRAM_STYLES.backgroundColor,
-      });
+      expect(result).toContain('<pre class="mermaid"');
+      expect(result).toContain(definition);
+      expect(result).toContain("</pre>");
     });
 
-    it("should return the SVG from the renderer", async () => {
-      const expectedSvg = "<svg>rendered diagram</svg>";
-      mockMermaidRenderer.renderToSvg.mockResolvedValue(expectedSvg);
+    it("should include background color styling", () => {
+      const definition = "flowchart TB";
+      const result = generator.testWrapForClientRendering(definition);
 
-      const result = await generator.testRenderDiagram("flowchart TB", 800, 600);
-
-      expect(result).toBe(expectedSvg);
+      expect(result).toContain(`background-color: ${DIAGRAM_STYLES.backgroundColor}`);
     });
 
-    it("should use consistent background color", async () => {
-      await generator.testRenderDiagram("flowchart TB", 800, 600);
+    it("should include overflow-x auto for horizontal scrolling", () => {
+      const definition = "flowchart TB";
+      const result = generator.testWrapForClientRendering(definition);
 
-      const callArgs = mockMermaidRenderer.renderToSvg.mock.calls[0][1];
-      expect(callArgs?.backgroundColor).toBe(DIAGRAM_STYLES.backgroundColor);
+      expect(result).toContain("overflow-x: auto");
     });
   });
 

@@ -1,8 +1,9 @@
-import type { MermaidRenderer } from "../mermaid/mermaid-renderer";
 import { DIAGRAM_STYLES, generateEmptyDiagramSvg } from "../mermaid/mermaid-definition-builders";
 
 /**
  * Base interface for diagram options with standard width and height properties.
+ * Note: Width and height are now hints for calculating content-responsive dimensions
+ * since diagrams are rendered client-side.
  */
 export interface BaseDiagramOptions {
   width?: number;
@@ -36,28 +37,26 @@ export interface CalculatedDimensions {
 }
 
 /**
- * Abstract base class for Mermaid-based SVG generators.
+ * Abstract base class for Mermaid-based diagram generators.
  *
  * This class provides common functionality shared by all Mermaid diagram generators:
  * - Default options handling with width and height
  * - Empty diagram placeholder generation
- * - Consistent rendering with the MermaidRenderer
+ * - Dimension calculation utilities
  *
- * Subclasses should:
- * 1. Define their specific `defaultOptions` with required width/height
- * 2. Implement diagram-specific generation methods that use `renderDiagram()` and `generateEmptyDiagram()`
+ * Diagrams are now rendered client-side using Mermaid.js. Generators return
+ * Mermaid definition strings that are embedded in HTML as <pre class="mermaid"> tags.
  */
 export abstract class BaseMermaidGenerator<TOptions extends BaseDiagramOptions> {
   /**
-   * Default options for diagram rendering.
+   * Default options for diagram generation.
    * Subclasses must provide their own defaults with required width and height.
    */
   protected abstract readonly defaultOptions: Required<TOptions>;
 
-  constructor(protected readonly mermaidRenderer: MermaidRenderer) {}
-
   /**
    * Generate an empty diagram placeholder SVG with a message.
+   * This returns an actual SVG for cases where there's no data to display.
    *
    * @param message - The message to display in the placeholder
    * @returns SVG string for the empty diagram placeholder
@@ -67,24 +66,14 @@ export abstract class BaseMermaidGenerator<TOptions extends BaseDiagramOptions> 
   }
 
   /**
-   * Render a Mermaid diagram definition to SVG.
-   * Uses the standard background color from DIAGRAM_STYLES for consistency.
+   * Wrap a Mermaid definition for client-side rendering.
+   * Adds container div with appropriate styling.
    *
    * @param definition - The Mermaid diagram definition string
-   * @param width - The width of the rendered diagram
-   * @param height - The height of the rendered diagram
-   * @returns Promise resolving to the rendered SVG string
+   * @returns HTML string with the mermaid definition ready for client-side rendering
    */
-  protected async renderDiagram(
-    definition: string,
-    width: number,
-    height: number,
-  ): Promise<string> {
-    return this.mermaidRenderer.renderToSvg(definition, {
-      width,
-      height,
-      backgroundColor: DIAGRAM_STYLES.backgroundColor,
-    });
+  protected wrapForClientRendering(definition: string): string {
+    return `<pre class="mermaid" style="background-color: ${DIAGRAM_STYLES.backgroundColor}; border-radius: 8px; padding: 20px; overflow-x: auto;">\n${definition}\n</pre>`;
   }
 
   /**

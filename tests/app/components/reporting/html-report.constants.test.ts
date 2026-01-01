@@ -6,8 +6,8 @@ describe("htmlReportConstants", () => {
       expect(htmlReportConstants.paths).toBeDefined();
     });
 
-    it("should have CHARTS_DIR", () => {
-      expect(htmlReportConstants.paths.CHARTS_DIR).toBe("charts/");
+    it("should have ASSETS_DIR", () => {
+      expect(htmlReportConstants.paths.ASSETS_DIR).toBe("assets/");
     });
   });
 
@@ -16,8 +16,8 @@ describe("htmlReportConstants", () => {
       expect(htmlReportConstants.directories).toBeDefined();
     });
 
-    it("should have CHARTS", () => {
-      expect(htmlReportConstants.directories.CHARTS).toBe("charts");
+    it("should have ASSETS", () => {
+      expect(htmlReportConstants.directories.ASSETS).toBe("assets");
     });
   });
 

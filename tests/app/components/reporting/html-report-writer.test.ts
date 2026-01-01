@@ -33,7 +33,6 @@ describe("HtmlReportWriter", () => {
       { fileType: "javascript", lines: 1000, files: 50 },
       { fileType: "typescript", lines: 2000, files: 30 },
     ],
-    fileTypesPieChartPath: "/path/to/chart.png",
     categorizedData: [
       {
         category: "technologies",
@@ -82,6 +81,14 @@ describe("HtmlReportWriter", () => {
         integrationPoints: "integration-points.tson",
       },
       getCategoryJSONFilename: (category: string) => `${category}.tson`,
+    },
+    htmlReportConstants: {
+      paths: {
+        ASSETS_DIR: "assets/",
+      },
+      directories: {
+        ASSETS: "assets",
+      },
     },
     convertToDisplayName: (text: string) => text.replace(/_/g, " "),
     fileTypesTableViewModel: new (jest.requireActual(

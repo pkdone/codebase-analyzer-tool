@@ -1,6 +1,4 @@
-import { inject, injectable } from "tsyringe";
-import { reportingTokens } from "../../../../di/tokens";
-import type { MermaidRenderer } from "../mermaid/mermaid-renderer";
+import { injectable } from "tsyringe";
 import {
   escapeMermaidLabel,
   generateNodeId,
@@ -33,9 +31,11 @@ export interface Microservice {
 export type ArchitectureDiagramSvgOptions = BaseDiagramOptions;
 
 /**
- * Generates SVG diagrams for microservices architecture using Mermaid.
+ * Generates Mermaid diagrams for microservices architecture.
  * Creates component-style diagrams showing microservices and their relationships.
- * Extends BaseMermaidGenerator to share common rendering functionality.
+ * Extends BaseMermaidGenerator to share common functionality.
+ *
+ * Diagrams are rendered client-side using Mermaid.js.
  */
 @injectable()
 export class ArchitectureSvgGenerator extends BaseMermaidGenerator<ArchitectureDiagramSvgOptions> {
@@ -44,21 +44,15 @@ export class ArchitectureSvgGenerator extends BaseMermaidGenerator<ArchitectureD
     height: visualizationConfig.architecture.DEFAULT_HEIGHT,
   };
 
-  constructor(
-    @inject(reportingTokens.MermaidRenderer)
-    mermaidRenderer: MermaidRenderer,
-  ) {
-    super(mermaidRenderer);
-  }
-
   /**
-   * Generate SVG diagram for microservices architecture
+   * Generate diagram for microservices architecture.
+   * Returns HTML with embedded Mermaid definition for client-side rendering.
    */
-  async generateArchitectureDiagramSvg(
+  generateArchitectureDiagramSvg(
     microservices: Microservice[],
     options: ArchitectureDiagramSvgOptions = {},
-  ): Promise<string> {
-    const opts = this.mergeOptions(options);
+  ): string {
+    this.mergeOptions(options);
 
     if (microservices.length === 0) {
       return this.generateEmptyDiagram("No microservices architecture defined");
@@ -67,26 +61,7 @@ export class ArchitectureSvgGenerator extends BaseMermaidGenerator<ArchitectureD
     // Build mermaid definition
     const mermaidDefinition = this.buildArchitectureDiagramDefinition(microservices);
 
-    const archConfig = visualizationConfig.architecture;
-
-    // Calculate dynamic dimensions based on content - ensure enough width for text
-    const maxNameLength = Math.max(...microservices.map((s) => s.name.length));
-    const widthPerService = Math.max(
-      archConfig.MIN_WIDTH_PER_SERVICE,
-      maxNameLength * archConfig.CHAR_WIDTH_MULTIPLIER,
-    );
-    const servicesPerRow = Math.min(microservices.length, archConfig.SERVICES_PER_ROW + 1);
-    const rows = Math.ceil(microservices.length / servicesPerRow);
-    const dynamicWidth = Math.max(
-      opts.width,
-      servicesPerRow * widthPerService + archConfig.WIDTH_PADDING,
-    );
-    const dynamicHeight = Math.max(
-      opts.height,
-      rows * archConfig.HEIGHT_PER_ROW + archConfig.HEIGHT_PADDING,
-    );
-
-    return this.renderDiagram(mermaidDefinition, dynamicWidth, dynamicHeight);
+    return this.wrapForClientRendering(mermaidDefinition);
   }
 
   /**

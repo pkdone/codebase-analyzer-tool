@@ -4,6 +4,9 @@
     <style>
       <%= inlineCss %>
     </style>
+    <!-- Mermaid.js for client-side diagram rendering (local file for offline support) -->
+    <!-- Note: avoid ESM imports here, as many browsers block module loading from file:// -->
+    <script src="<%= htmlReportConstants.paths.ASSETS_DIR %>mermaid.min.js"></script>
   </head>
   <body>
     <h1>Codebase Analysis Tools (CAT) Report <a href="<%= jsonFilesConfig.jsonDataFiles.completeReport %>.json" target="_blank" style="text-decoration: none;"><%- jsonIconSvg %></a></h1>
@@ -34,7 +37,7 @@
       
       <%- include('partials/app-description', { appStats: appStats, jsonFilesConfig: jsonFilesConfig }) %>
       
-      <%- include('partials/file-types-summary', { fileTypesData: fileTypesData, fileTypesPieChartPath: fileTypesPieChartPath, fileTypesTableViewModel: fileTypesTableViewModel, jsonFilesConfig: jsonFilesConfig }) %>
+      <%- include('partials/file-types-summary', { fileTypesData: fileTypesData, fileTypesTableViewModel: fileTypesTableViewModel, jsonFilesConfig: jsonFilesConfig }) %>
       
       <%- include('partials/section-header', { title: 'Bill of Materials (Dependencies)', jsonFile: 'bill-of-materials.json', jsonIconSvg: jsonIconSvg }) %>
       <%- include('partials/bom', { bomData: billOfMaterials, bomStats: bomStatistics }) %>
@@ -123,12 +126,41 @@
     </div>
 
     <script>
+      async function renderMermaidDiagrams(root) {
+        if (!window.mermaid) return;
+
+        // Initialize once
+        if (!window.__mermaidInitialized) {
+          window.mermaid.initialize({
+            startOnLoad: false,
+            theme: "default",
+            securityLevel: "loose",
+            flowchart: {
+              useMaxWidth: true,
+              htmlLabels: true,
+            },
+          });
+          window.__mermaidInitialized = true;
+        }
+
+        const diagrams = root.querySelectorAll('pre.mermaid:not([data-processed="true"])');
+        if (diagrams.length > 0) {
+          await window.mermaid.run({ nodes: diagrams });
+        }
+      }
+
       document.addEventListener("DOMContentLoaded", () => {
         const tabs = document.querySelectorAll(".tab-button");
         const contents = document.querySelectorAll(".tab-content");
+
+        // Render diagrams in the initially active tab
+        const activeTab = document.querySelector(".tab-content.active");
+        if (activeTab) {
+          renderMermaidDiagrams(activeTab);
+        }
         
         tabs.forEach(tab => {
-          tab.addEventListener("click", () => {
+          tab.addEventListener("click", async () => {
             const targetId = tab.getAttribute("data-target");
             const targetContent = document.getElementById(targetId);
             
@@ -136,7 +168,12 @@
             contents.forEach(c => c.classList.remove("active"));
             
             tab.classList.add("active");
-            if (targetContent) targetContent.classList.add("active");
+            if (targetContent) {
+              targetContent.classList.add("active");
+
+              // Render any unprocessed Mermaid diagrams in the newly visible tab
+              await renderMermaidDiagrams(targetContent);
+            }
           });
         });
       });

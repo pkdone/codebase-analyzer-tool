@@ -20,7 +20,6 @@ import type { CategorizedDataItem } from "./sections/file-types/categories-data-
 export interface PreparedHtmlReportData {
   appStats: AppStatistics;
   fileTypesData: ProjectedFileTypesCountAndLines[];
-  fileTypesPieChartPath: string;
   categorizedData: {
     category: string;
     label: string;
@@ -62,6 +61,14 @@ export interface PreparedHtmlReportData {
     readonly allRequiredAppSummaryFields: readonly string[];
     readonly jsonDataFiles: Record<string, string>;
     readonly getCategoryJSONFilename: (category: string) => string;
+  };
+  htmlReportConstants: {
+    readonly paths: {
+      readonly ASSETS_DIR: string;
+    };
+    readonly directories: {
+      readonly ASSETS: string;
+    };
   };
   convertToDisplayName: (text: string) => string;
   fileTypesTableViewModel: TableViewModel;

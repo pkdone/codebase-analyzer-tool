@@ -8,7 +8,6 @@ import {
   findFilesRecursively,
   sortFilesBySize,
 } from "../../../src/common/fs/directory-operations";
-import { readAndFilterLines } from "../../../src/common/fs/file-content-utils";
 
 // Mock the logging module to avoid actual logging during tests
 jest.mock("../../../src/common/utils/logging", () => ({
@@ -159,66 +158,6 @@ describe("File System Utilities", () => {
       // Verify .gitignore content is preserved
       const gitignoreContent = await readFile("/test/complex/.gitignore");
       expect(gitignoreContent).toBe("*.log");
-    });
-  });
-
-  describe("readAndFilterLines", () => {
-    test("should filter out blank lines and comments", async () => {
-      const fileContent = `# This is a comment
-line1
-line2
-
-# Another comment
-line3
-   
-line4
-   # Indented comment  
-line5`;
-
-      mockFs({
-        "/test/filter.txt": fileContent,
-      });
-
-      const lines = await readAndFilterLines("/test/filter.txt");
-      expect(lines).toEqual(["line1", "line2", "line3", "line4", "line5"]);
-    });
-
-    test("should handle empty file", async () => {
-      mockFs({
-        "/test/empty.txt": "",
-      });
-
-      const lines = await readAndFilterLines("/test/empty.txt");
-      expect(lines).toEqual([]);
-    });
-
-    test("should handle file with only comments and blank lines", async () => {
-      const fileContent = `# Comment 1
-# Comment 2
-
-   # Indented comment
-`;
-
-      mockFs({
-        "/test/comments.txt": fileContent,
-      });
-
-      const lines = await readAndFilterLines("/test/comments.txt");
-      expect(lines).toEqual([]);
-    });
-
-    test("should trim whitespace from lines", async () => {
-      const fileContent = `  line1  
-   line2   
-line3
-   line4   `;
-
-      mockFs({
-        "/test/whitespace.txt": fileContent,
-      });
-
-      const lines = await readAndFilterLines("/test/whitespace.txt");
-      expect(lines).toEqual(["line1", "line2", "line3", "line4"]);
     });
   });
 

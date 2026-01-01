@@ -16,6 +16,7 @@ import type { ReportSection } from "./sections/report-section.interface";
 import path from "path";
 import { promises as fs } from "fs";
 import { outputConfig } from "./config/output.config";
+import { htmlReportConstants } from "./html-report.constants";
 
 /**
  * Class responsible for orchestrating report generation using a modular section-based architecture.
@@ -134,9 +135,72 @@ export default class AppReportGenerator {
       jsonIconSvg: jsonIconContent,
     };
 
+    // Copy Mermaid.js to assets directory for offline support
+    await this.copyMermaidJsToAssets(outputDir);
+
     // Generate reports using prepared data
     await this.jsonWriter.writeAllJSONFiles(preparedJsonData);
     await this.htmlWriter.writeHTMLReportFile(preparedHtmlDataWithAssets, htmlFilePath);
+  }
+
+  /**
+   * Download and copy Mermaid.js to the assets directory for offline report viewing.
+   */
+  private async copyMermaidJsToAssets(outputDir: string): Promise<void> {
+    const assetsDir = path.join(outputDir, htmlReportConstants.directories.ASSETS);
+    const mermaidPath = path.join(
+      assetsDir,
+      htmlReportConstants.externalAssets.MERMAID_UMD_FILENAME,
+    );
+
+    try {
+      await fs.mkdir(assetsDir, { recursive: true });
+
+      // Check if file already exists
+      try {
+        await fs.access(mermaidPath);
+        console.log("Mermaid.js already exists in assets directory, skipping download");
+        return;
+      } catch {
+        // File doesn't exist, proceed with download
+      }
+
+      // Prefer copying from local node_modules for true offline report generation.
+      const localMermaidPath = path.join(
+        process.cwd(),
+        "node_modules",
+        "mermaid",
+        "dist",
+        "mermaid.min.js",
+      );
+
+      try {
+        const buffer = await fs.readFile(localMermaidPath);
+        await fs.writeFile(mermaidPath, buffer);
+        console.log(`Mermaid.js copied from node_modules to ${mermaidPath}`);
+        return;
+      } catch {
+        // Fall back to downloading from CDN (requires internet during report generation)
+      }
+
+      console.log("Downloading Mermaid.js for offline report support...");
+      const response = await fetch(htmlReportConstants.externalAssets.MERMAID_CDN_UMD_URL);
+      if (!response.ok) {
+        throw new Error(`Failed to download Mermaid.js: ${response.status} ${response.statusText}`);
+      }
+
+      const arrayBuffer = await response.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+
+      await fs.writeFile(mermaidPath, buffer);
+      console.log(`Mermaid.js downloaded and copied to ${mermaidPath}`);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.warn(
+        `Warning: Failed to download Mermaid.js. Report will require internet connection: ${errorMessage}`,
+      );
+      // Don't throw - allow report generation to continue even if Mermaid download fails
+    }
   }
 
   /**
@@ -185,6 +249,7 @@ export default class AppReportGenerator {
       appStats: reportData.appStats,
       categorizedData: categorizedDataWithViewModels,
       jsonFilesConfig: reportSectionsConfig,
+      htmlReportConstants,
       convertToDisplayName,
     } as PreparedHtmlReportData;
   }

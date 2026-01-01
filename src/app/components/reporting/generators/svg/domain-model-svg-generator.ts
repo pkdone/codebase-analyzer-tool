@@ -1,6 +1,4 @@
-import { inject, injectable } from "tsyringe";
-import { reportingTokens } from "../../../../di/tokens";
-import type { MermaidRenderer } from "../mermaid/mermaid-renderer";
+import { injectable } from "tsyringe";
 import {
   escapeMermaidLabel,
   generateNodeId,
@@ -18,9 +16,11 @@ import { visualizationConfig } from "../visualization.config";
 export type DomainDiagramSvgOptions = BaseDiagramOptions;
 
 /**
- * Generates SVG diagrams for domain models using Mermaid.
+ * Generates Mermaid diagrams for domain models.
  * Creates hierarchical diagrams showing bounded contexts with their aggregates, entities, and repositories.
- * Extends BaseMermaidGenerator to share common rendering functionality.
+ * Extends BaseMermaidGenerator to share common functionality.
+ *
+ * Diagrams are rendered client-side using Mermaid.js.
  */
 @injectable()
 export class DomainModelSvgGenerator extends BaseMermaidGenerator<DomainDiagramSvgOptions> {
@@ -29,56 +29,35 @@ export class DomainModelSvgGenerator extends BaseMermaidGenerator<DomainDiagramS
     height: visualizationConfig.domainModel.DEFAULT_HEIGHT,
   };
 
-  constructor(
-    @inject(reportingTokens.MermaidRenderer)
-    mermaidRenderer: MermaidRenderer,
-  ) {
-    super(mermaidRenderer);
-  }
-
   /**
-   * Generate SVG diagram for a single bounded context
+   * Generate diagram for a single bounded context.
+   * Returns HTML with embedded Mermaid definition for client-side rendering.
    */
-  async generateContextDiagramSvg(
+  generateContextDiagramSvg(
     context: DomainBoundedContext,
     options: DomainDiagramSvgOptions = {},
-  ): Promise<string> {
-    const opts = this.mergeOptions(options);
+  ): string {
+    this.mergeOptions(options);
 
     if (context.aggregates.length === 0 && context.entities.length === 0) {
       return this.generateEmptyDiagram("No domain model elements defined");
     }
 
-    const domainConfig = visualizationConfig.domainModel;
-
     // Build mermaid definition
     const mermaidDefinition = this.buildContextDiagramDefinition(context);
 
-    // Calculate dynamic dimensions based on content
-    const nodeCount =
-      context.aggregates.length + context.entities.length + context.repositories.length + 1;
-    const { width, height } = this.calculateDimensions(nodeCount, {
-      minWidth: opts.width,
-      minHeight: domainConfig.MIN_HEIGHT,
-      widthPerNode: domainConfig.WIDTH_PER_NODE,
-    });
-
-    return this.renderDiagram(mermaidDefinition, width, height);
+    return this.wrapForClientRendering(mermaidDefinition);
   }
 
   /**
-   * Generate SVG diagrams for multiple bounded contexts
+   * Generate diagrams for multiple bounded contexts.
+   * Returns array of HTML strings with embedded Mermaid definitions.
    */
-  async generateMultipleContextDiagramsSvg(
+  generateMultipleContextDiagramsSvg(
     contexts: DomainBoundedContext[],
     options: DomainDiagramSvgOptions = {},
-  ): Promise<string[]> {
-    const results: string[] = [];
-    for (const context of contexts) {
-      const svg = await this.generateContextDiagramSvg(context, options);
-      results.push(svg);
-    }
-    return results;
+  ): string[] {
+    return contexts.map((context) => this.generateContextDiagramSvg(context, options));
   }
 
   /**

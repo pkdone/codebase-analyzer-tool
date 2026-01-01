@@ -13,7 +13,6 @@ describe("Reporting Registration Module", () => {
     it("should register all reporting components as singletons", () => {
       registerReportingComponents();
 
-      expect(container.isRegistered(reportingTokens.MermaidRenderer)).toBe(true);
       expect(container.isRegistered(reportingTokens.HtmlReportWriter)).toBe(true);
       expect(container.isRegistered(reportingTokens.JsonReportWriter)).toBe(true);
       expect(container.isRegistered(reportingTokens.FlowchartSvgGenerator)).toBe(true);

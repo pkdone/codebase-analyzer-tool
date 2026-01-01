@@ -3,63 +3,48 @@ import {
   CurrentArchitectureSvgGenerator,
   type InferredArchitectureData,
 } from "../../../../../src/app/components/reporting/generators/svg/current-architecture-svg-generator";
-import { MermaidRenderer } from "../../../../../src/app/components/reporting/generators/mermaid/mermaid-renderer";
 
 describe("CurrentArchitectureSvgGenerator", () => {
   let generator: CurrentArchitectureSvgGenerator;
-  let mockMermaidRenderer: jest.Mocked<MermaidRenderer>;
 
   beforeEach(() => {
-    mockMermaidRenderer = {
-      renderToSvg: jest.fn().mockResolvedValue("<svg>mocked svg</svg>"),
-    } as unknown as jest.Mocked<MermaidRenderer>;
-
-    generator = new CurrentArchitectureSvgGenerator(mockMermaidRenderer);
+    generator = new CurrentArchitectureSvgGenerator();
   });
 
   describe("generateCurrentArchitectureDiagramSvg", () => {
-    it("should generate empty diagram when data is null", async () => {
-      const result = await generator.generateCurrentArchitectureDiagramSvg(null);
+    it("should generate empty diagram when data is null", () => {
+      const result = generator.generateCurrentArchitectureDiagramSvg(null);
 
       expect(result).toContain("No inferred architecture data available");
       expect(result).toContain("<svg");
-      expect(mockMermaidRenderer.renderToSvg).not.toHaveBeenCalled();
     });
 
-    it("should generate empty diagram when internalComponents is empty", async () => {
+    it("should generate empty diagram when internalComponents is empty", () => {
       const data: InferredArchitectureData = {
         internalComponents: [],
         externalDependencies: [],
         dependencies: [],
       };
 
-      const result = await generator.generateCurrentArchitectureDiagramSvg(data);
+      const result = generator.generateCurrentArchitectureDiagramSvg(data);
 
       expect(result).toContain("No inferred architecture data available");
-      expect(mockMermaidRenderer.renderToSvg).not.toHaveBeenCalled();
     });
 
-    it("should call mermaidRenderer with correct options when data is valid", async () => {
+    it("should wrap mermaid definition for client-side rendering", () => {
       const data: InferredArchitectureData = {
         internalComponents: [{ name: "Order Manager", description: "Handles orders" }],
         externalDependencies: [],
         dependencies: [],
       };
 
-      await generator.generateCurrentArchitectureDiagramSvg(data);
+      const result = generator.generateCurrentArchitectureDiagramSvg(data);
 
-      expect(mockMermaidRenderer.renderToSvg).toHaveBeenCalledTimes(1);
-      expect(mockMermaidRenderer.renderToSvg).toHaveBeenCalledWith(
-        expect.any(String),
-        expect.objectContaining({
-          width: expect.any(Number),
-          height: expect.any(Number),
-          backgroundColor: expect.any(String),
-        }),
-      );
+      expect(result).toContain('<pre class="mermaid"');
+      expect(result).toContain("</pre>");
     });
 
-    it("should generate Mermaid definition with internal components", async () => {
+    it("should generate Mermaid definition with internal components", () => {
       const data: InferredArchitectureData = {
         internalComponents: [
           { name: "Order Manager", description: "Handles order operations" },
@@ -69,18 +54,16 @@ describe("CurrentArchitectureSvgGenerator", () => {
         dependencies: [],
       };
 
-      await generator.generateCurrentArchitectureDiagramSvg(data);
+      const result = generator.generateCurrentArchitectureDiagramSvg(data);
 
-      const mermaidDefinition = mockMermaidRenderer.renderToSvg.mock.calls[0][0];
-
-      expect(mermaidDefinition).toContain("flowchart TB");
-      expect(mermaidDefinition).toContain("Order Manager");
-      expect(mermaidDefinition).toContain("Customer Manager");
-      expect(mermaidDefinition).toContain("class");
-      expect(mermaidDefinition).toContain("internalComponent");
+      expect(result).toContain("flowchart TB");
+      expect(result).toContain("Order Manager");
+      expect(result).toContain("Customer Manager");
+      expect(result).toContain("class");
+      expect(result).toContain("internalComponent");
     });
 
-    it("should generate Mermaid definition with external dependencies", async () => {
+    it("should generate Mermaid definition with external dependencies", () => {
       const data: InferredArchitectureData = {
         internalComponents: [{ name: "Order Manager", description: "Handles orders" }],
         externalDependencies: [
@@ -90,18 +73,16 @@ describe("CurrentArchitectureSvgGenerator", () => {
         dependencies: [],
       };
 
-      await generator.generateCurrentArchitectureDiagramSvg(data);
+      const result = generator.generateCurrentArchitectureDiagramSvg(data);
 
-      const mermaidDefinition = mockMermaidRenderer.renderToSvg.mock.calls[0][0];
-
-      expect(mermaidDefinition).toContain("PostgreSQL");
-      expect(mermaidDefinition).toContain("Database");
-      expect(mermaidDefinition).toContain("RabbitMQ");
-      expect(mermaidDefinition).toContain("Queue");
-      expect(mermaidDefinition).toContain("externalComponent");
+      expect(result).toContain("PostgreSQL");
+      expect(result).toContain("Database");
+      expect(result).toContain("RabbitMQ");
+      expect(result).toContain("Queue");
+      expect(result).toContain("externalComponent");
     });
 
-    it("should generate dependency arrows between components", async () => {
+    it("should generate dependency arrows between components", () => {
       const data: InferredArchitectureData = {
         internalComponents: [
           { name: "Order Manager", description: "Handles orders" },
@@ -114,58 +95,37 @@ describe("CurrentArchitectureSvgGenerator", () => {
         ],
       };
 
-      await generator.generateCurrentArchitectureDiagramSvg(data);
-
-      const mermaidDefinition = mockMermaidRenderer.renderToSvg.mock.calls[0][0];
+      const result = generator.generateCurrentArchitectureDiagramSvg(data);
 
       // Check for arrow syntax
-      expect(mermaidDefinition).toContain("-->");
+      expect(result).toContain("-->");
     });
 
-    it("should apply internalComponent style class to internal components", async () => {
+    it("should apply internalComponent style class to internal components", () => {
       const data: InferredArchitectureData = {
         internalComponents: [{ name: "Order Manager", description: "Handles orders" }],
         externalDependencies: [],
         dependencies: [],
       };
 
-      await generator.generateCurrentArchitectureDiagramSvg(data);
+      const result = generator.generateCurrentArchitectureDiagramSvg(data);
 
-      const mermaidDefinition = mockMermaidRenderer.renderToSvg.mock.calls[0][0];
-
-      expect(mermaidDefinition).toMatch(/class\s+\w+\s+internalComponent/);
+      expect(result).toMatch(/class\s+\w+\s+internalComponent/);
     });
 
-    it("should apply externalComponent style class to external dependencies", async () => {
+    it("should apply externalComponent style class to external dependencies", () => {
       const data: InferredArchitectureData = {
         internalComponents: [{ name: "Order Manager", description: "Handles orders" }],
         externalDependencies: [{ name: "PostgreSQL", type: "Database", description: "Database" }],
         dependencies: [],
       };
 
-      await generator.generateCurrentArchitectureDiagramSvg(data);
+      const result = generator.generateCurrentArchitectureDiagramSvg(data);
 
-      const mermaidDefinition = mockMermaidRenderer.renderToSvg.mock.calls[0][0];
-
-      expect(mermaidDefinition).toMatch(/class\s+\w+\s+externalComponent/);
+      expect(result).toMatch(/class\s+\w+\s+externalComponent/);
     });
 
-    it("should return SVG from mermaid renderer", async () => {
-      const expectedSvg = "<svg>test architecture diagram</svg>";
-      mockMermaidRenderer.renderToSvg.mockResolvedValue(expectedSvg);
-
-      const data: InferredArchitectureData = {
-        internalComponents: [{ name: "Order Manager", description: "Handles orders" }],
-        externalDependencies: [],
-        dependencies: [],
-      };
-
-      const result = await generator.generateCurrentArchitectureDiagramSvg(data);
-
-      expect(result).toBe(expectedSvg);
-    });
-
-    it("should handle components with special characters in names", async () => {
+    it("should handle components with special characters in names", () => {
       const data: InferredArchitectureData = {
         internalComponents: [
           { name: "Order & Invoice Manager", description: "Handles orders" },
@@ -177,35 +137,9 @@ describe("CurrentArchitectureSvgGenerator", () => {
         dependencies: [],
       };
 
-      await generator.generateCurrentArchitectureDiagramSvg(data);
-
-      // Should not throw and should call the renderer
-      expect(mockMermaidRenderer.renderToSvg).toHaveBeenCalledTimes(1);
-    });
-
-    it("should adjust dimensions based on number of components", async () => {
-      const data: InferredArchitectureData = {
-        internalComponents: [
-          { name: "Component 1", description: "Desc 1" },
-          { name: "Component 2", description: "Desc 2" },
-          { name: "Component 3", description: "Desc 3" },
-          { name: "Component 4", description: "Desc 4" },
-          { name: "Component 5", description: "Desc 5" },
-        ],
-        externalDependencies: [
-          { name: "Ext 1", type: "Database", description: "Desc" },
-          { name: "Ext 2", type: "Queue", description: "Desc" },
-          { name: "Ext 3", type: "API", description: "Desc" },
-        ],
-        dependencies: [],
-      };
-
-      await generator.generateCurrentArchitectureDiagramSvg(data);
-
-      const options = mockMermaidRenderer.renderToSvg.mock.calls[0][1];
-      // With 8 total components, dimensions should be adjusted
-      expect(options?.width).toBeGreaterThanOrEqual(1600);
-      expect(options?.height).toBeGreaterThanOrEqual(800);
+      // Should not throw
+      const result = generator.generateCurrentArchitectureDiagramSvg(data);
+      expect(result).toContain('<pre class="mermaid"');
     });
   });
 });

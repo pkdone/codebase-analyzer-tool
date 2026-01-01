@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import { injectable, inject } from "tsyringe";
-import { readAndFilterLines } from "../../../common/fs/file-content-utils";
+import { readFile } from "../../../common/fs/file-operations";
 import { formatError } from "../../../common/utils/error-formatters";
 import { queryCodebaseWithQuestion } from "../../components/querying/codebase-query-processor";
 import { coreTokens, repositoryTokens, llmTokens } from "../../di/tokens";
@@ -45,7 +45,13 @@ export class CodebaseQueryTask extends BaseAnalysisTask {
   }
 
   protected async runAnalysis(): Promise<void> {
-    const questions = await readAndFilterLines(inputConfig.QUESTIONS_PROMPTS_FILEPATH);
+    // Read questions file and filter out blank lines and comments
+    const fileContents = await readFile(inputConfig.QUESTIONS_PROMPTS_FILEPATH);
+    const questions = fileContents
+      .split("\n")
+      .map((line) => line.trim())
+      .filter((line) => line !== "" && !line.startsWith("#"));
+
     const queryPromises = questions.map(async (question) =>
       queryCodebaseWithQuestion(this.sourcesRepository, this.llmRouter, question, this.projectName),
     );

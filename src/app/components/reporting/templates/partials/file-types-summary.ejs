@@ -1,5 +1,119 @@
 <%- include('section-header', { title: 'File Types', jsonFile: jsonFilesConfig.jsonDataFiles.fileTypes, jsonIconSvg: jsonIconSvg }) %>
 <div style="text-align: center; margin: 20px 0;">
-  <img src="<%= fileTypesPieChartPath %>" alt="File Types Distribution Pie Chart" style="max-width: 100%; height: auto; border: 1px solid #ddd; border-radius: 8px;">
+  <%
+    // Pie chart configuration
+    const PIE_CONFIG = {
+      centerX: 300,
+      centerY: 300,
+      radius: 250,
+      legendX: 620,
+      legendY: 30,
+      legendItemHeight: 28,
+      legendBoxSize: 14,
+      colors: [
+        '#2196F3', '#4CAF50', '#FF9800', '#9C27B0', '#F44336',
+        '#00BCD4', '#8BC34A', '#E91E63', '#607D8B', '#795548',
+        '#FFC107', '#3F51B5', '#009688', '#CDDC39', '#FF5722'
+      ]
+    };
+
+    // Calculate total files
+    const totalFiles = fileTypesData.reduce((sum, item) => sum + item.files, 0);
+    
+    // Calculate SVG dimensions based on content
+    const legendHeight = fileTypesData.length * PIE_CONFIG.legendItemHeight + PIE_CONFIG.legendY + 20;
+    const pieHeight = PIE_CONFIG.centerY + PIE_CONFIG.radius + 20;
+    const svgHeight = Math.max(legendHeight, pieHeight);
+    const svgWidth = 950;
+    
+    // Generate color for a slice
+    function getColor(index) {
+      if (index < PIE_CONFIG.colors.length) {
+        return PIE_CONFIG.colors[index];
+      }
+      // Generate dynamic color using golden angle
+      const hue = ((index - PIE_CONFIG.colors.length) * 137.5) % 360;
+      return `hsl(${hue}, 65%, 50%)`;
+    }
+    
+    // Calculate pie slices with angles
+    let currentAngle = -Math.PI / 2; // Start at 12 o'clock
+    const slices = fileTypesData.map((item, index) => {
+      const percentage = totalFiles > 0 ? (item.files / totalFiles) * 100 : 0;
+      const sliceAngle = totalFiles > 0 ? (item.files / totalFiles) * 2 * Math.PI : 0;
+      const slice = {
+        label: item.fileType || 'unknown',
+        value: item.files,
+        percentage: percentage,
+        startAngle: currentAngle,
+        endAngle: currentAngle + sliceAngle,
+        color: getColor(index)
+      };
+      currentAngle += sliceAngle;
+      return slice;
+    });
+    
+    // Helper to calculate SVG arc path
+    function describeArc(cx, cy, r, startAngle, endAngle) {
+      const start = {
+        x: cx + r * Math.cos(startAngle),
+        y: cy + r * Math.sin(startAngle)
+      };
+      const end = {
+        x: cx + r * Math.cos(endAngle),
+        y: cy + r * Math.sin(endAngle)
+      };
+      const largeArcFlag = endAngle - startAngle > Math.PI ? 1 : 0;
+      return `M ${cx} ${cy} L ${start.x} ${start.y} A ${r} ${r} 0 ${largeArcFlag} 1 ${end.x} ${end.y} Z`;
+    }
+  %>
+  <% if (totalFiles > 0) { %>
+  <svg width="<%= svgWidth %>" height="<%= svgHeight %>" xmlns="http://www.w3.org/2000/svg" style="max-width: 100%; height: auto; border: 1px solid #ddd; border-radius: 8px; background: #fafafa;">
+    <!-- Pie slices -->
+    <% slices.forEach((slice, index) => { %>
+      <% if (slice.percentage > 0) { %>
+        <path d="<%= describeArc(PIE_CONFIG.centerX, PIE_CONFIG.centerY, PIE_CONFIG.radius, slice.startAngle, slice.endAngle) %>" 
+              fill="<%= slice.color %>" 
+              stroke="#ffffff" 
+              stroke-width="2"/>
+        <% if (slice.percentage >= 3) { 
+          const midAngle = (slice.startAngle + slice.endAngle) / 2;
+          const labelRadius = PIE_CONFIG.radius * 0.7;
+          const labelX = PIE_CONFIG.centerX + Math.cos(midAngle) * labelRadius;
+          const labelY = PIE_CONFIG.centerY + Math.sin(midAngle) * labelRadius;
+        %>
+          <text x="<%= labelX %>" y="<%= labelY %>" 
+                text-anchor="middle" 
+                dominant-baseline="middle"
+                font-family="system-ui, sans-serif" 
+                font-size="14" 
+                font-weight="bold"
+                fill="#ffffff"
+                stroke="#000000"
+                stroke-width="0.5"><%= slice.percentage.toFixed(1) %>%</text>
+        <% } %>
+      <% } %>
+    <% }); %>
+    
+    <!-- Legend -->
+    <% slices.forEach((slice, index) => { 
+      const y = PIE_CONFIG.legendY + index * PIE_CONFIG.legendItemHeight;
+    %>
+      <rect x="<%= PIE_CONFIG.legendX %>" y="<%= y %>" 
+            width="<%= PIE_CONFIG.legendBoxSize %>" height="<%= PIE_CONFIG.legendBoxSize %>" 
+            fill="<%= slice.color %>" 
+            stroke="#cccccc" 
+            stroke-width="1"/>
+      <text x="<%= PIE_CONFIG.legendX + PIE_CONFIG.legendBoxSize + 8 %>" y="<%= y + PIE_CONFIG.legendBoxSize - 2 %>" 
+            font-family="system-ui, sans-serif" 
+            font-size="13" 
+            fill="#333333"><%= slice.label %> (<%= slice.value %> files)</text>
+    <% }); %>
+  </svg>
+  <% } else { %>
+  <svg width="400" height="100" xmlns="http://www.w3.org/2000/svg" style="border: 1px solid #ddd; border-radius: 8px; background: #fafafa;">
+    <text x="200" y="50" text-anchor="middle" font-family="system-ui, sans-serif" font-size="14" fill="#666666">No file types data available</text>
+  </svg>
+  <% } %>
 </div>    
-<%- include('table', { viewModel: fileTypesTableViewModel }) %> 
+<%- include('table', { viewModel: fileTypesTableViewModel }) %>

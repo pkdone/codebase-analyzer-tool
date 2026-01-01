@@ -54,13 +54,6 @@ describe("fs module barrel exports", () => {
     });
   });
 
-  describe("file-content-utils exports", () => {
-    it("should export readAndFilterLines", () => {
-      expect(fs.readAndFilterLines).toBeDefined();
-      expect(typeof fs.readAndFilterLines).toBe("function");
-    });
-  });
-
   describe("path-utils exports", () => {
     it("should export getFileExtension", () => {
       expect(fs.getFileExtension).toBeDefined();
@@ -80,9 +73,9 @@ describe("fs module barrel exports", () => {
     expect(exports.length).toBe(uniqueExports.size);
   });
 
-  it("should have at least 12 exported functions", () => {
+  it("should have at least 11 exported functions", () => {
     // Ensure we're exporting a reasonable number of utilities
     const exports = Object.keys(fs);
-    expect(exports.length).toBeGreaterThanOrEqual(12);
+    expect(exports.length).toBeGreaterThanOrEqual(11);
   });
 });

@@ -1,15 +1,12 @@
-import { inject, injectable } from "tsyringe";
-import { reportingTokens } from "../../../../di/tokens";
-import { MermaidRenderer } from "../mermaid/mermaid-renderer";
+import { injectable } from "tsyringe";
 import {
   escapeMermaidLabel,
   generateNodeId,
-  DIAGRAM_STYLES,
   generateEmptyDiagramSvg,
   buildMermaidInitDirective,
+  DIAGRAM_STYLES,
 } from "../mermaid/mermaid-definition-builders";
 import { buildStyleDefinitions, applyStyle } from "../mermaid/mermaid-styles.config";
-import { visualizationConfig } from "../visualization.config";
 
 export interface BusinessProcessActivity {
   activity: string;
@@ -28,29 +25,18 @@ export interface FlowchartSvgOptions {
 }
 
 /**
- * Generates SVG flowcharts for business processes using Mermaid.
+ * Generates Mermaid flowcharts for business processes.
  * Creates sequential flow diagrams showing key business activities as connected nodes.
+ *
+ * Diagrams are rendered client-side using Mermaid.js.
  */
 @injectable()
 export class FlowchartSvgGenerator {
-  private readonly defaultOptions: Required<FlowchartSvgOptions> = {
-    width: visualizationConfig.flowchart.DEFAULT_WIDTH,
-    height: visualizationConfig.flowchart.DEFAULT_HEIGHT,
-  };
-
-  constructor(
-    @inject(reportingTokens.MermaidRenderer)
-    private readonly mermaidRenderer: MermaidRenderer,
-  ) {}
-
   /**
-   * Generate SVG flowchart for a single business process
+   * Generate flowchart for a single business process.
+   * Returns HTML with embedded Mermaid definition for client-side rendering.
    */
-  async generateFlowchartSvg(
-    process: BusinessProcess,
-    options: FlowchartSvgOptions = {},
-  ): Promise<string> {
-    const opts = { ...this.defaultOptions, ...options };
+  generateFlowchartSvg(process: BusinessProcess, _options: FlowchartSvgOptions = {}): string {
     const activities = process.keyBusinessActivities;
 
     if (activities.length === 0) {
@@ -60,32 +46,18 @@ export class FlowchartSvgGenerator {
     // Build mermaid definition
     const mermaidDefinition = this.buildFlowchartDefinition(activities);
 
-    // Render to SVG using mermaid-cli
-    const svg = await this.mermaidRenderer.renderToSvg(mermaidDefinition, {
-      width: Math.max(
-        opts.width,
-        activities.length * visualizationConfig.flowchart.WIDTH_PER_ACTIVITY,
-      ),
-      height: opts.height,
-      backgroundColor: DIAGRAM_STYLES.backgroundColor,
-    });
-
-    return svg;
+    return this.wrapForClientRendering(mermaidDefinition);
   }
 
   /**
-   * Generate SVG flowcharts for multiple business processes
+   * Generate flowcharts for multiple business processes.
+   * Returns array of HTML strings with embedded Mermaid definitions.
    */
-  async generateMultipleFlowchartsSvg(
+  generateMultipleFlowchartsSvg(
     processes: BusinessProcess[],
     options: FlowchartSvgOptions = {},
-  ): Promise<string[]> {
-    const results: string[] = [];
-    for (const process of processes) {
-      const svg = await this.generateFlowchartSvg(process, options);
-      results.push(svg);
-    }
-    return results;
+  ): string[] {
+    return processes.map((process) => this.generateFlowchartSvg(process, options));
   }
 
   /**
@@ -124,5 +96,12 @@ export class FlowchartSvgGenerator {
    */
   private generateEmptyDiagram(message: string): string {
     return generateEmptyDiagramSvg(message);
+  }
+
+  /**
+   * Wrap a Mermaid definition for client-side rendering.
+   */
+  private wrapForClientRendering(definition: string): string {
+    return `<pre class="mermaid" style="background-color: ${DIAGRAM_STYLES.backgroundColor}; border-radius: 8px; padding: 20px; overflow-x: auto;">\n${definition}\n</pre>`;
   }
 }
