@@ -380,7 +380,7 @@ export default class SourcesRepositoryImpl
           dependency_count: -1,
         },
       },
-      { $limit: databaseConfig.DEPENDENCY_GRAPH_RESULT_LIMIT },
+      //{ $limit: databaseConfig.DEPENDENCY_GRAPH_RESULT_LIMIT },
     ];
 
     return this.collection.aggregate<ProjectedTopLevelJavaClassDependencies>(pipeline).toArray();

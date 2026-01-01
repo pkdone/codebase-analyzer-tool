@@ -106,9 +106,7 @@ export class DatabaseInitializer {
           [SOURCE_FIELDS.SUMMARY_DB_INTEGRATION_MECHANISM]: 1,
         },
       },
-
-      // Add index to optimize graphLookup performance (albeit doesn't query on projectid too)
-      {
+      { // Add index to optimize graphLookup performance (albeit doesn't query on projectid too)
         collection: this.sourcesCollection,
         spec: { [SOURCE_FIELDS.SUMMARY_NAMESPACE]: 1 },
       },
