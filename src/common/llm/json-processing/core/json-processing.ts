@@ -205,12 +205,13 @@ export function processJson<S extends z.ZodType = z.ZodType<Record<string, unkno
   const { jsonSchema } = completionOptions;
 
   // If no schema provided, return parsed data without validation.
-  // Type is safe: when no schema is provided, the return type defaults to Record<string, unknown>
-  // and parseResult.data is the parsed JSON object.
+  // The default return type is Record<string, unknown>, which is a pragmatic default
+  // for the common case where parsed JSON is an object.
   if (!jsonSchema) {
-    // Add a type guard to ensure the data is an object or array before casting.
-    // This prevents unsafe casts when the parsed data is a primitive type or null.
-    // Arrays are valid JSON and should be allowed.
+    // Type guard ensures the data is an object or array (not a primitive or null).
+    // Note: typeof returns "object" for both objects AND arrays, so arrays pass this check.
+    // However, the return type Record<string, unknown> does not accurately represent arrays.
+    // Callers expecting array responses should provide an explicit schema for proper typing.
     if (typeof parseResult.data !== "object" || parseResult.data === null) {
       return {
         success: false,
@@ -223,7 +224,8 @@ export function processJson<S extends z.ZodType = z.ZodType<Record<string, unkno
     logProcessingSteps(parseResult.steps, parseResult.diagnostics, [], context, loggingEnabled);
     return {
       success: true,
-      // The cast is now safer as we've confirmed the type is an object or array.
+      // Cast is safe for objects. Arrays pass at runtime but callers expecting arrays
+      // should provide an explicit schema for compile-time type safety.
       data: parseResult.data as z.infer<S>,
       mutationSteps: parseResult.steps,
     };

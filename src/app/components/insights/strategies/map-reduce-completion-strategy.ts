@@ -171,6 +171,20 @@ export class MapReduceCompletionStrategy implements ICompletionStrategy {
         );
         return null;
       }
+      /**
+       * TYPE ASSERTION RATIONALE:
+       * This follows the same pattern as FileSummarizerService.summarize() and
+       * executeInsightCompletion(). TypeScript cannot narrow the schema type through
+       * the dynamic lookup `appSummaryCategorySchemas[category]` when `category` is
+       * a generic parameter. The compiler sees the union of all possible schemas
+       * rather than the specific schema for C.
+       *
+       * This is TYPE-SAFE because:
+       * 1. The generic parameter C is constrained to valid AppSummaryCategoryEnum keys.
+       * 2. The runtime lookup returns the exact schema corresponding to C.
+       * 3. The LLM router validates the response against this schema before returning.
+       * 4. CategoryInsightResult<C> accurately represents z.infer<AppSummaryCategorySchemas[C]>.
+       */
       return result.value as CategoryInsightResult<C>;
     } catch (error: unknown) {
       logOneLineWarning(

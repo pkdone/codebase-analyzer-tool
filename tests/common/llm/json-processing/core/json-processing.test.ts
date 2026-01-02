@@ -443,5 +443,90 @@ describe("json-processing", () => {
         }
       });
     });
+
+    describe("array handling without schema", () => {
+      it("should successfully parse array JSON even without schema", () => {
+        const json = '[{"id": 1}, {"id": 2}]';
+        const completionOptions = { outputFormat: LLMOutputFormat.JSON };
+        const result = processJson(json, context, completionOptions);
+
+        expect(result.success).toBe(true);
+        if (result.success) {
+          // Runtime behavior: arrays are accepted and parsed correctly
+          // Note: result.data is typed as Record<string, unknown> but at runtime is an array
+          // This demonstrates the type limitation documented in processJson comments
+          expect(Array.isArray(result.data)).toBe(true);
+          expect((result.data as unknown as unknown[]).length).toBe(2);
+        }
+      });
+
+      it("should parse array correctly when explicit array schema is provided", () => {
+        const arraySchema = z.array(z.object({ id: z.number() }));
+        const json = '[{"id": 1}, {"id": 2}]';
+        const completionOptions = {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: arraySchema,
+        };
+        const result = processJson(json, context, completionOptions);
+
+        expect(result.success).toBe(true);
+        if (result.success) {
+          // With schema, type inference is correct
+          const data: z.infer<typeof arraySchema> = result.data;
+          expect(Array.isArray(data)).toBe(true);
+          expect(data[0].id).toBe(1);
+          expect(data[1].id).toBe(2);
+        }
+      });
+
+      it("should reject primitive string JSON values without schema", () => {
+        // Primitive JSON values are rejected early by hasJsonLikeStructure check
+        // since they don't contain { or [
+        const json = '"just a string"';
+        const completionOptions = { outputFormat: LLMOutputFormat.JSON };
+        const result = processJson(json, context, completionOptions);
+
+        expect(result.success).toBe(false);
+        if (!result.success) {
+          expect(result.error.message).toContain("contains no JSON structure");
+        }
+      });
+
+      it("should reject numeric JSON values without schema", () => {
+        // Primitive JSON values are rejected early by hasJsonLikeStructure check
+        const json = "42";
+        const completionOptions = { outputFormat: LLMOutputFormat.JSON };
+        const result = processJson(json, context, completionOptions);
+
+        expect(result.success).toBe(false);
+        if (!result.success) {
+          expect(result.error.message).toContain("contains no JSON structure");
+        }
+      });
+
+      it("should reject boolean JSON values without schema", () => {
+        // Primitive JSON values are rejected early by hasJsonLikeStructure check
+        const json = "true";
+        const completionOptions = { outputFormat: LLMOutputFormat.JSON };
+        const result = processJson(json, context, completionOptions);
+
+        expect(result.success).toBe(false);
+        if (!result.success) {
+          expect(result.error.message).toContain("contains no JSON structure");
+        }
+      });
+
+      it("should reject null JSON value without schema", () => {
+        // Primitive JSON values are rejected early by hasJsonLikeStructure check
+        const json = "null";
+        const completionOptions = { outputFormat: LLMOutputFormat.JSON };
+        const result = processJson(json, context, completionOptions);
+
+        expect(result.success).toBe(false);
+        if (!result.success) {
+          expect(result.error.message).toContain("contains no JSON structure");
+        }
+      });
+    });
   });
 });
