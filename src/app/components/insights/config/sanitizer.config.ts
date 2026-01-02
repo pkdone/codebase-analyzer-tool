@@ -2,22 +2,34 @@ import { LLMSanitizerConfig } from "../../../../common/llm/config/llm-module-con
 
 /**
  * Schema-specific constants for sanitizers.
- * These constants are tied to the sourceSummarySchema structure used in code analysis.
- * They are domain-specific and should not be part of the generic LLM module.
  *
- * These property names are specific to the sourceSummarySchema:
- * - purpose, name, description, implementation (top-level source summary fields)
- * - parameters, returnType, type (publicFunctions fields)
- * - codeSmells, references (other schema fields)
+ * **DEPRECATION NOTICE:**
+ * These hardcoded property lists are now considered legacy fallback configuration.
+ * The JSON processing system now supports dynamic schema metadata extraction via
+ * `extractSchemaMetadata()` in `src/common/llm/json-processing/utils/zod-schema-metadata.ts`.
+ *
+ * When a Zod schema is provided to `processJson()`, property lists are automatically
+ * extracted from the schema, making these hardcoded lists unnecessary for most cases.
+ *
+ * These lists are retained for:
+ * 1. Backward compatibility with code that explicitly passes this config
+ * 2. Edge cases where dynamic extraction doesn't capture all needed properties
+ * 3. Legacy mappings and typo corrections that handle specific LLM artifacts
+ *
+ * **Recommended approach:**
+ * - Pass the Zod schema to `processJson()` via `completionOptions.jsonSchema`
+ * - Only use this config for legacy fallback mappings (typo corrections, etc.)
+ * - Do not manually maintain `KNOWN_PROPERTIES`, `NUMERIC_PROPERTIES`, or
+ *   `ARRAY_PROPERTY_NAMES` - let dynamic extraction handle these
  */
 
 /**
  * Known property names from the sourceSummarySchema.
- * This is the primary configuration for dynamic property name matching.
- * The sanitizers will use prefix matching, suffix matching, and fuzzy matching
- * to fix corrupted property names against this list.
  *
- * IMPORTANT: Keep this list comprehensive and up-to-date with schema changes.
+ * **LEGACY NOTICE:** Consider using dynamic schema extraction via `extractSchemaMetadata()`
+ * instead. Properties are now automatically extracted from the Zod schema at runtime when
+ * the schema is provided to `processJson()`. This list is maintained for backward
+ * compatibility but is no longer the primary source of property names.
  */
 export const KNOWN_PROPERTIES: readonly string[] = [
   // Top-level source summary fields
@@ -73,6 +85,10 @@ export const KNOWN_PROPERTIES: readonly string[] = [
 /**
  * Property names that typically have numeric values.
  * Used to identify properties that should have numeric values rather than strings.
+ *
+ * **LEGACY NOTICE:** Consider using dynamic schema extraction via `extractSchemaMetadata()`
+ * instead. Numeric properties are now automatically detected from z.number() fields in the
+ * schema when provided to `processJson()`.
  */
 export const NUMERIC_PROPERTIES: readonly string[] = [
   "cyclomaticcomplexity",
@@ -92,6 +108,10 @@ export const NUMERIC_PROPERTIES: readonly string[] = [
 /**
  * Property names that are expected to be arrays.
  * If any of these properties have a string value, they will be converted to an empty array.
+ *
+ * **LEGACY NOTICE:** Consider using dynamic schema extraction via `extractSchemaMetadata()`
+ * instead. Array properties are now automatically detected from z.array() fields in the
+ * schema when provided to `processJson()`.
  */
 export const ARRAY_PROPERTY_NAMES: readonly string[] = [
   "parameters",
@@ -217,11 +237,20 @@ export const PACKAGE_NAME_TYPO_PATTERNS: readonly PackageNameTypoPattern[] = [
 
 /**
  * Returns the schema-specific sanitizer configuration for code analysis.
- * This provides the domain-specific constants used by the LLM sanitizers
- * when processing code analysis results.
  *
- * The configuration prioritizes dynamic matching via knownProperties while
- * retaining legacy mappings as fallback for edge cases.
+ * **DEPRECATION NOTICE:**
+ * This function is now considered a legacy fallback. The preferred approach is to
+ * pass the Zod schema to `processJson()` via `completionOptions.jsonSchema`, which
+ * will automatically extract property metadata using `extractSchemaMetadata()`.
+ *
+ * This function is retained for:
+ * 1. Backward compatibility with existing code
+ * 2. Providing legacy mappings (typo corrections, package name fixes) that cannot
+ *    be automatically derived from the schema
+ *
+ * When used together with dynamic schema extraction, the explicit config from this
+ * function will be merged with the dynamically extracted metadata, with explicit
+ * values taking precedence.
  */
 export function getSchemaSpecificSanitizerConfig(): LLMSanitizerConfig {
   return {

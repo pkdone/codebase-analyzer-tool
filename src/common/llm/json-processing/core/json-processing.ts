@@ -6,6 +6,11 @@ import { logOneLineWarning } from "../../../utils/logging";
 import { hasSignificantSanitizationSteps } from "../sanitizers";
 import { parseJsonWithSanitizers } from "./json-parsing";
 import { validateJsonWithTransforms } from "./json-validating";
+import {
+  extractSchemaMetadata,
+  schemaMetadataToSanitizerConfig,
+} from "../utils/zod-schema-metadata";
+import type { LLMSanitizerConfig } from "../../config/llm-module-config.types";
 
 /**
  * Checks if the content has any JSON-like structure (contains opening braces or brackets).
@@ -81,6 +86,39 @@ function logProcessingSteps(
 }
 
 /**
+ * Builds the effective sanitizer configuration by combining:
+ * 1. Dynamic metadata extracted from the provided Zod schema (if available)
+ * 2. Explicit configuration passed by the caller (takes precedence)
+ *
+ * This enables schema-agnostic sanitization where property lists are derived
+ * from the actual schema being validated, reducing the need for hardcoded lists.
+ *
+ * @param jsonSchema - Optional Zod schema to extract metadata from
+ * @param explicitConfig - Optional explicit configuration to merge with schema metadata
+ * @returns The effective sanitizer configuration, or undefined if neither source provides data
+ */
+function buildEffectiveSanitizerConfig(
+  jsonSchema: z.ZodType | undefined,
+  explicitConfig: LLMSanitizerConfig | undefined,
+): LLMSanitizerConfig | undefined {
+  // If no schema, just return the explicit config (may be undefined)
+  if (!jsonSchema) {
+    return explicitConfig;
+  }
+
+  // Extract metadata from the schema
+  const schemaMetadata = extractSchemaMetadata(jsonSchema);
+
+  // If schema extraction yielded no properties and no explicit config, return undefined
+  if (schemaMetadata.allProperties.length === 0 && !explicitConfig) {
+    return undefined;
+  }
+
+  // Merge schema metadata with explicit config (explicit config takes precedence)
+  return schemaMetadataToSanitizerConfig(schemaMetadata, explicitConfig);
+}
+
+/**
  * Processes LLM-generated content through a multi-stage sanitization and repair pipeline,
  * then parses and validates it against a Zod schema. Returns a result object indicating success or failure.
  *
@@ -104,7 +142,7 @@ export function processJson<S extends z.ZodType = z.ZodType<Record<string, unkno
   context: LLMContext,
   completionOptions: LLMCompletionOptions<S>,
   loggingEnabled = true,
-  config?: import("../../config/llm-module-config.types").LLMSanitizerConfig,
+  config?: LLMSanitizerConfig,
 ): JsonProcessorResult<z.infer<S>> {
   // Pre-check - ensure content is a string
   if (typeof content !== "string") {
@@ -192,8 +230,16 @@ export function processJson<S extends z.ZodType = z.ZodType<Record<string, unkno
   }
 
   // TypeScript now knows jsonSchema exists and is a z.ZodType.
+  // Build effective config by combining schema metadata with any explicit config.
+  // This enables dynamic property detection based on the actual schema being validated.
+  const effectiveConfig = buildEffectiveSanitizerConfig(jsonSchema, config);
+
   // Validate the parsed data (with transforms applied internally if needed).
-  const validationResult = validateJsonWithTransforms(parseResult.data, jsonSchema, config);
+  const validationResult = validateJsonWithTransforms(
+    parseResult.data,
+    jsonSchema,
+    effectiveConfig,
+  );
 
   // Validation succeeded.
   if (validationResult.success) {

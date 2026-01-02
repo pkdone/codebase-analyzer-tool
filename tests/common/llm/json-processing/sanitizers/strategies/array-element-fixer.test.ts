@@ -142,6 +142,74 @@ describe("arrayElementFixer", () => {
     });
   });
 
+  describe("Extended generic prefix word removal (regex-based)", () => {
+    it("should remove prefix word 'at' in arrays", () => {
+      const input = '["item1", at "item2"]';
+      const result = arrayElementFixer.apply(input);
+      expect(result.content).toBe('["item1", "item2"]');
+      expect(result.changed).toBe(true);
+    });
+
+    it("should remove prefix word 'on' in arrays", () => {
+      const input = '["item1", on "item2"]';
+      const result = arrayElementFixer.apply(input);
+      expect(result.content).toBe('["item1", "item2"]');
+      expect(result.changed).toBe(true);
+    });
+
+    it("should remove prefix word 'as' in arrays", () => {
+      const input = '["item1", as "item2"]';
+      const result = arrayElementFixer.apply(input);
+      expect(result.content).toBe('["item1", "item2"]');
+      expect(result.changed).toBe(true);
+    });
+
+    it("should remove prefix word 'is' in arrays", () => {
+      const input = '["item1", is "item2"]';
+      const result = arrayElementFixer.apply(input);
+      expect(result.content).toBe('["item1", "item2"]');
+      expect(result.changed).toBe(true);
+    });
+
+    it("should remove prefix word 'via' in arrays (longer pattern match)", () => {
+      const input = '["item1", via "item2"]';
+      const result = arrayElementFixer.apply(input);
+      expect(result.content).toBe('["item1", "item2"]');
+      expect(result.changed).toBe(true);
+    });
+
+    it("should remove prefix word 'but' in arrays", () => {
+      const input = '["item1", but "item2"]';
+      const result = arrayElementFixer.apply(input);
+      expect(result.content).toBe('["item1", "item2"]');
+      expect(result.changed).toBe(true);
+    });
+
+    it("should remove any short lowercase word (1-4 chars) in arrays", () => {
+      // These should be removed because they're short lowercase words
+      const testCases = [
+        '["item1", xy "item2"]',
+        '["item1", abc "item2"]',
+        '["item1", test "item2"]',
+      ];
+
+      for (const input of testCases) {
+        const result = arrayElementFixer.apply(input);
+        expect(result.content).toBe('["item1", "item2"]');
+        expect(result.changed).toBe(true);
+      }
+    });
+
+    it("should NOT remove longer words that are not in the pattern", () => {
+      // Words longer than 4 chars that don't match the pattern should be preserved
+      // (though they would be treated as part of the array element, which might fail JSON parsing)
+      const input = '["item1", certainly "item2"]';
+      const result = arrayElementFixer.apply(input);
+      // This should NOT be modified because "certainly" is too long and not in the pattern
+      expect(result.changed).toBe(false);
+    });
+  });
+
   it("should use package name prefix replacements from config", () => {
     const input = '[orgapache.example.Class"]';
     const config = {
