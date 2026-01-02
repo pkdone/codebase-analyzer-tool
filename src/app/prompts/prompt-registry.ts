@@ -3,7 +3,11 @@ import { appSummaryConfigMap } from "./definitions/app-summaries/app-summaries.c
 import { buildReduceInsightsContentDesc } from "./definitions/app-summaries/app-summaries.fragments";
 import { sourceConfigMap } from "./definitions/sources/sources.config";
 import { BASE_PROMPT_TEMPLATE, CODEBASE_QUERY_TEMPLATE } from "./templates";
-import { createPromptMetadata, createTextPromptDefinition } from "./definitions/prompt-factory";
+import {
+  createPromptMetadata,
+  createTextPromptDefinition,
+  createJsonPromptDefinition,
+} from "./definitions/prompt-factory";
 import { type PromptDefinition } from "./prompt.types";
 import { type AppSummaryCategoryEnum } from "../components/insights/insights.types";
 
@@ -52,6 +56,7 @@ const codebaseQueryPrompt = createTextPromptDefinition({
 
 /**
  * Factory function to create a fully-typed prompt definition for reducing insights.
+ * Uses createJsonPromptDefinition to ensure consistent defaults.
  *
  * @param category - The app summary category being reduced (e.g., "entities", "technologies")
  * @param categoryKey - The key name for the category data (e.g., "entities", "technologies")
@@ -70,15 +75,14 @@ export function createReduceInsightsPrompt(
   categoryKey: string,
   schema: z.ZodType,
 ): PromptDefinition {
-  return {
+  return createJsonPromptDefinition({
     label: "Reduce Insights",
     contentDesc: buildReduceInsightsContentDesc(categoryKey),
     instructions: [`a consolidated list of '${categoryKey}'`],
     responseSchema: schema,
     template: BASE_PROMPT_TEMPLATE,
     dataBlockHeader: "FRAGMENTED_DATA",
-    wrapInCodeBlock: false,
-  };
+  });
 }
 
 /**

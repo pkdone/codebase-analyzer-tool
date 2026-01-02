@@ -9,19 +9,25 @@ import {
 import { APP_SUMMARY_PROMPT_FRAGMENTS } from "./app-summaries.fragments";
 import { buildInstructionBlock } from "../instruction-utils";
 import { z } from "zod";
+import type { BasePromptConfigEntry } from "../../prompt.types";
 
 /**
  * Configuration entry for an app summary prompt definition.
+ * Extends BasePromptConfigEntry with required label, responseSchema, and instructions fields.
  *
  * This interface is generic over the schema type S to preserve specific Zod schema types
  * through the type system, enabling better type inference for downstream consumers.
  *
  * @template S - The Zod schema type for validating the LLM response. Defaults to z.ZodType for backward compatibility.
  */
-export interface AppSummaryConfigEntry<S extends z.ZodType = z.ZodType> {
+export interface AppSummaryConfigEntry<S extends z.ZodType = z.ZodType>
+  extends BasePromptConfigEntry<S> {
+  /** Label for UI display and logging (required for app summary configs) */
   label: string;
-  instructions: readonly string[];
+  /** Zod schema for validating the LLM response (required for app summary configs) */
   responseSchema: S;
+  /** Array of instruction strings for the LLM (required for app summary configs) */
+  instructions: readonly string[];
 }
 
 /**

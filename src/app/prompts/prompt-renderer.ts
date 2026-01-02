@@ -13,10 +13,8 @@ interface BasePromptTemplateVariables {
   readonly contentDesc: string;
   /** The joined instruction strings */
   readonly instructionsText: string;
-  /** JSON format enforcement text */
-  readonly forceJSON: string;
-  /** JSON schema string for response validation */
-  readonly jsonSchema: string;
+  /** Conditional schema section (includes schema header, code block, and format enforcement for JSON mode; empty for TEXT mode) */
+  readonly schemaSection: string;
   /** Header for the data block section */
   readonly dataBlockHeader: DataBlockHeader;
   /** Code block markers (empty string or "```\n") */
@@ -25,6 +23,24 @@ interface BasePromptTemplateVariables {
   readonly partialAnalysisNote: string;
   /** The actual content to analyze */
   readonly content: unknown;
+}
+
+/**
+ * Builds the schema section for JSON-mode prompts.
+ * Returns an empty string for TEXT-mode prompts to avoid rendering an empty JSON code block.
+ *
+ * @param responseSchema - The Zod schema for the response
+ * @returns The formatted schema section string
+ */
+function buildSchemaSection(responseSchema: PromptDefinition["responseSchema"]): string {
+  const jsonSchemaString = JSON.stringify(zodToJsonSchema(responseSchema), null, 2);
+  return `The JSON response must follow this JSON schema:
+\`\`\`json
+${jsonSchemaString}
+\`\`\`
+
+${FORCE_JSON_FORMAT}
+`;
 }
 
 /**
@@ -40,10 +56,8 @@ export function renderPrompt(definition: PromptDefinition, data: Record<string, 
   // Determine if this is a JSON-mode prompt (default) or TEXT-mode
   const isJsonMode = definition.outputFormat !== LLMOutputFormat.TEXT;
 
-  // Only compute JSON schema string if needed (optimization for TEXT-mode prompts)
-  const jsonSchemaString = isJsonMode
-    ? JSON.stringify(zodToJsonSchema(definition.responseSchema), null, 2)
-    : "";
+  // Build the schema section conditionally - empty for TEXT-mode to avoid rendering empty JSON code block
+  const schemaSection = isJsonMode ? buildSchemaSection(definition.responseSchema) : "";
 
   const wrapInCodeBlock = definition.wrapInCodeBlock ?? false;
   const contentWrapper = wrapInCodeBlock ? "```\n" : "";
@@ -61,8 +75,7 @@ export function renderPrompt(definition: PromptDefinition, data: Record<string, 
     content: data.content,
     contentDesc: definition.contentDesc,
     instructionsText,
-    forceJSON: isJsonMode ? FORCE_JSON_FORMAT : "",
-    jsonSchema: jsonSchemaString,
+    schemaSection,
     dataBlockHeader: definition.dataBlockHeader,
     contentWrapper,
     partialAnalysisNote,

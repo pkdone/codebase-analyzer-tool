@@ -13,11 +13,12 @@ describe("Template Consolidation", () => {
 
     it("should contain expected placeholders for unified template", () => {
       // Unified template now uses contentDesc and instructionsText directly
+      // jsonSchema and forceJSON are now consolidated into schemaSection
+      // which is built by the renderer for JSON-mode prompts (empty for TEXT-mode)
       expect(BASE_PROMPT_TEMPLATE).toContain("{{contentDesc}}");
       expect(BASE_PROMPT_TEMPLATE).toContain("{{instructionsText}}");
       expect(BASE_PROMPT_TEMPLATE).toContain("{{dataBlockHeader}}");
-      expect(BASE_PROMPT_TEMPLATE).toContain("{{jsonSchema}}");
-      expect(BASE_PROMPT_TEMPLATE).toContain("{{forceJSON}}");
+      expect(BASE_PROMPT_TEMPLATE).toContain("{{schemaSection}}");
       expect(BASE_PROMPT_TEMPLATE).toContain("{{content}}");
       expect(BASE_PROMPT_TEMPLATE).toContain("{{contentWrapper}}");
       expect(BASE_PROMPT_TEMPLATE).toContain("{{partialAnalysisNote}}");
@@ -65,12 +66,12 @@ describe("Template Consolidation", () => {
       const placeholderRegex = /\{\{[^}]+\}\}/g;
       const placeholders = BASE_PROMPT_TEMPLATE.match(placeholderRegex) ?? [];
 
+      // schemaSection consolidates jsonSchema and forceJSON
       const expectedPlaceholders = [
         "{{contentDesc}}",
         "{{instructionsText}}",
         "{{dataBlockHeader}}",
-        "{{jsonSchema}}",
-        "{{forceJSON}}",
+        "{{schemaSection}}",
         "{{content}}",
         "{{contentWrapper}}",
         "{{partialAnalysisNote}}",
@@ -82,9 +83,8 @@ describe("Template Consolidation", () => {
     });
 
     it("should support partial analysis note", () => {
-      expect(BASE_PROMPT_TEMPLATE).toContain(
-        "{{partialAnalysisNote}}The JSON response must follow this JSON schema:",
-      );
+      // The partialAnalysisNote is followed by schemaSection which contains the JSON schema
+      expect(BASE_PROMPT_TEMPLATE).toContain("{{partialAnalysisNote}}{{schemaSection}}");
     });
 
     it("should render correctly with reduce configuration using factory", () => {
@@ -102,14 +102,27 @@ describe("Template Consolidation", () => {
   });
 
   describe("Template Consistency", () => {
-    it("should have consistent JSON schema formatting", () => {
-      expect(BASE_PROMPT_TEMPLATE).toContain("```json");
-      expect(BASE_PROMPT_TEMPLATE).toContain("{{jsonSchema}}");
-      expect(BASE_PROMPT_TEMPLATE).toContain("```");
+    it("should have schemaSection placeholder for JSON schema and format enforcement", () => {
+      // JSON schema code block and forceJSON are now built by the renderer into schemaSection
+      // This allows TEXT-mode prompts to have an empty schemaSection
+      expect(BASE_PROMPT_TEMPLATE).toContain("{{schemaSection}}");
     });
 
-    it("should have consistent force JSON formatting", () => {
-      expect(BASE_PROMPT_TEMPLATE).toContain("{{forceJSON}}");
+    it("should render JSON schema in schemaSection for JSON-mode prompts", () => {
+      const definition = {
+        contentDesc: "test content",
+        instructions: ["test instruction"],
+        responseSchema: z.object({ name: z.string() }),
+        template: BASE_PROMPT_TEMPLATE,
+        dataBlockHeader: "CODE" as const,
+        wrapInCodeBlock: false,
+      };
+      const rendered = renderPrompt(definition, { content: "test" });
+
+      // schemaSection should contain the JSON schema code block
+      expect(rendered).toContain("```json");
+      expect(rendered).toContain('"name"');
+      expect(rendered).toContain("The response MUST be valid JSON");
     });
   });
 

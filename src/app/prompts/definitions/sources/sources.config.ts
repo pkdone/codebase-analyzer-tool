@@ -1,11 +1,17 @@
 import { z } from "zod";
 import type { CanonicalFileType } from "../../../components/capture/config/file-types.config";
-import { SOURCES_PROMPT_FRAGMENTS, COMPOSITES } from "./sources.fragments";
+import {
+  SOURCES_PROMPT_FRAGMENTS,
+  COMPOSITES,
+  type LanguageSpecificFragments,
+} from "./sources.fragments";
 import { INSTRUCTION_SECTION_TITLES, buildInstructionBlock } from "../instruction-utils";
 import { sourceSummarySchema, commonSourceAnalysisSchema } from "../../../schemas/sources.schema";
+import type { BasePromptConfigEntry } from "../../prompt.types";
 
 /**
  * Configuration entry for a source prompt definition.
+ * Extends BasePromptConfigEntry with required contentDesc, responseSchema, and instructions fields.
  * Each entry directly includes the responseSchema using sourceSummarySchema.pick(),
  * making the schemas explicit and type-safe.
  *
@@ -14,191 +20,116 @@ import { sourceSummarySchema, commonSourceAnalysisSchema } from "../../../schema
  *
  * @template S - The Zod schema type for validating the LLM response. Defaults to z.ZodType for backward compatibility.
  */
-export interface SourceConfigEntry<S extends z.ZodType = z.ZodType> {
+export interface SourceConfigEntry<S extends z.ZodType = z.ZodType>
+  extends BasePromptConfigEntry<S> {
+  /** Description of the content being analyzed (required for source configs) */
   contentDesc: string;
-  hasComplexSchema?: boolean; // Defaults to true when undefined
+  /** Zod schema for validating the LLM response (required for source configs) */
   responseSchema: S;
+  /** Array of instruction strings for the LLM (required for source configs) */
   instructions: readonly string[];
+}
+
+/**
+ * Options for creating a standard code source configuration.
+ */
+interface StandardCodeConfigOptions {
+  /** Whether to use module-based entity (for C) instead of class-based */
+  useModuleBase?: boolean;
+  /** Additional complexity metrics to include (e.g., Python's complexity metrics) */
+  extraComplexityMetrics?: string;
+}
+
+/**
+ * Factory function to create a standard code source configuration.
+ * This function eliminates duplication for standard programming languages by generating
+ * the standard 5-block instruction pattern:
+ * 1. Basic Info (with language-specific entity base and optional kind override)
+ * 2. References and Dependencies
+ * 3. Integration Points
+ * 4. Database Integration Analysis
+ * 5. Code Quality Metrics
+ *
+ * @param contentDesc - Description of the content being analyzed (e.g., "JVM code")
+ * @param fragments - Language-specific instruction fragments
+ * @param options - Additional options for customization
+ * @returns A SourceConfigEntry with all standard instruction blocks
+ */
+function createStandardCodeConfig(
+  contentDesc: string,
+  fragments: LanguageSpecificFragments,
+  options: StandardCodeConfigOptions = {},
+): SourceConfigEntry<typeof commonSourceAnalysisSchema> {
+  const { useModuleBase = false, extraComplexityMetrics } = options;
+
+  // Build basic info block with appropriate base (class or module) and optional kind override
+  const basicInfoParts: (string | readonly string[])[] = [
+    useModuleBase ? SOURCES_PROMPT_FRAGMENTS.BASE.MODULE : SOURCES_PROMPT_FRAGMENTS.BASE.CLASS,
+    SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
+    SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
+  ];
+  if (fragments.KIND_OVERRIDE) {
+    basicInfoParts.push(fragments.KIND_OVERRIDE);
+  }
+
+  // Determine public API fragment (functions vs methods)
+  const publicApiFragment = fragments.PUBLIC_FUNCTIONS ?? fragments.PUBLIC_METHODS ?? "";
+
+  // Build code quality block with optional extra metrics
+  const codeQualityParts: (string | readonly string[])[] = [COMPOSITES.CODE_QUALITY];
+  if (extraComplexityMetrics) {
+    codeQualityParts.push(extraComplexityMetrics);
+  }
+
+  return {
+    contentDesc,
+    responseSchema: commonSourceAnalysisSchema,
+    instructions: [
+      buildInstructionBlock(INSTRUCTION_SECTION_TITLES.BASIC_INFO, ...basicInfoParts),
+      buildInstructionBlock(
+        INSTRUCTION_SECTION_TITLES.REFERENCES_AND_DEPS,
+        fragments.INTERNAL_REFS,
+        fragments.EXTERNAL_REFS,
+        fragments.PUBLIC_CONSTANTS,
+        publicApiFragment,
+      ),
+      buildInstructionBlock(
+        INSTRUCTION_SECTION_TITLES.INTEGRATION_POINTS,
+        SOURCES_PROMPT_FRAGMENTS.INTEGRATION_POINTS.INTRO,
+        fragments.INTEGRATION_INSTRUCTIONS,
+      ),
+      buildInstructionBlock(
+        INSTRUCTION_SECTION_TITLES.DATABASE_INTEGRATION_ANALYSIS,
+        COMPOSITES.DB_INTEGRATION,
+        fragments.DB_MECHANISM_MAPPING,
+      ),
+      buildInstructionBlock(INSTRUCTION_SECTION_TITLES.CODE_QUALITY_METRICS, ...codeQualityParts),
+    ],
+  };
 }
 
 /**
  * Centralized configuration for all source prompt definitions.
  * Each entry directly defines its responseSchema using sourceSummarySchema.pick().
  *
+ * Standard programming languages (Java, JavaScript, C#, Python, Ruby, C, C++) use the
+ * createStandardCodeConfig factory to ensure consistent instruction patterns.
+ *
  * The `satisfies` pattern validates that the object conforms to the Record structure
  * while preserving the literal types of each entry (including specific Zod schema types).
  * This enables TypeScript to infer the exact schema type for each file type key.
  */
 export const sourceConfigMap = {
-  java: {
-    contentDesc: "JVM code",
-    responseSchema: commonSourceAnalysisSchema,
-    instructions: [
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.BASIC_INFO,
-        SOURCES_PROMPT_FRAGMENTS.BASE.CLASS,
-        SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
-        SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
-      ),
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.REFERENCES_AND_DEPS,
-        SOURCES_PROMPT_FRAGMENTS.JAVA_SPECIFIC.INTERNAL_REFS,
-        SOURCES_PROMPT_FRAGMENTS.JAVA_SPECIFIC.EXTERNAL_REFS,
-        SOURCES_PROMPT_FRAGMENTS.JAVA_SPECIFIC.PUBLIC_CONSTANTS,
-        SOURCES_PROMPT_FRAGMENTS.JAVA_SPECIFIC.PUBLIC_METHODS,
-      ),
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.INTEGRATION_POINTS,
-        SOURCES_PROMPT_FRAGMENTS.INTEGRATION_POINTS.INTRO,
-        SOURCES_PROMPT_FRAGMENTS.JAVA_SPECIFIC.INTEGRATION_INSTRUCTIONS,
-      ),
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.DATABASE_INTEGRATION_ANALYSIS,
-        COMPOSITES.DB_INTEGRATION,
-        SOURCES_PROMPT_FRAGMENTS.JAVA_SPECIFIC.DB_MECHANISM_MAPPING,
-      ),
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.CODE_QUALITY_METRICS,
-        COMPOSITES.CODE_QUALITY,
-      ),
-    ] as const,
-  },
-  javascript: {
-    contentDesc: "JavaScript/TypeScript code",
-    responseSchema: commonSourceAnalysisSchema,
-    instructions: [
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.BASIC_INFO,
-        SOURCES_PROMPT_FRAGMENTS.BASE.CLASS,
-        SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
-        SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
-      ),
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.REFERENCES_AND_DEPS,
-        SOURCES_PROMPT_FRAGMENTS.JAVASCRIPT_SPECIFIC.INTERNAL_REFS,
-        SOURCES_PROMPT_FRAGMENTS.JAVASCRIPT_SPECIFIC.EXTERNAL_REFS,
-        SOURCES_PROMPT_FRAGMENTS.JAVASCRIPT_SPECIFIC.PUBLIC_CONSTANTS,
-        SOURCES_PROMPT_FRAGMENTS.JAVASCRIPT_SPECIFIC.PUBLIC_FUNCTIONS,
-      ),
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.INTEGRATION_POINTS,
-        SOURCES_PROMPT_FRAGMENTS.INTEGRATION_POINTS.INTRO,
-        SOURCES_PROMPT_FRAGMENTS.JAVASCRIPT_SPECIFIC.INTEGRATION_INSTRUCTIONS,
-      ),
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.DATABASE_INTEGRATION_ANALYSIS,
-        COMPOSITES.DB_INTEGRATION,
-        SOURCES_PROMPT_FRAGMENTS.JAVASCRIPT_SPECIFIC.DB_MECHANISM_MAPPING,
-      ),
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.CODE_QUALITY_METRICS,
-        COMPOSITES.CODE_QUALITY,
-      ),
-    ] as const,
-  },
-  csharp: {
-    contentDesc: "C# code",
-    responseSchema: commonSourceAnalysisSchema,
-    instructions: [
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.BASIC_INFO,
-        SOURCES_PROMPT_FRAGMENTS.BASE.CLASS,
-        SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
-        SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
-        SOURCES_PROMPT_FRAGMENTS.CSHARP_SPECIFIC.KIND_OVERRIDE,
-      ),
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.REFERENCES_AND_DEPS,
-        SOURCES_PROMPT_FRAGMENTS.CSHARP_SPECIFIC.INTERNAL_REFS,
-        SOURCES_PROMPT_FRAGMENTS.CSHARP_SPECIFIC.EXTERNAL_REFS,
-        SOURCES_PROMPT_FRAGMENTS.CSHARP_SPECIFIC.PUBLIC_CONSTANTS,
-        SOURCES_PROMPT_FRAGMENTS.CSHARP_SPECIFIC.PUBLIC_METHODS,
-      ),
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.INTEGRATION_POINTS,
-        SOURCES_PROMPT_FRAGMENTS.INTEGRATION_POINTS.INTRO,
-        SOURCES_PROMPT_FRAGMENTS.CSHARP_SPECIFIC.INTEGRATION_INSTRUCTIONS,
-      ),
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.DATABASE_INTEGRATION_ANALYSIS,
-        COMPOSITES.DB_INTEGRATION,
-        SOURCES_PROMPT_FRAGMENTS.CSHARP_SPECIFIC.DB_MECHANISM_MAPPING,
-      ),
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.CODE_QUALITY_METRICS,
-        COMPOSITES.CODE_QUALITY,
-      ),
-    ] as const,
-  },
-  python: {
-    contentDesc: "Python code",
-    responseSchema: commonSourceAnalysisSchema,
-    instructions: [
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.BASIC_INFO,
-        SOURCES_PROMPT_FRAGMENTS.BASE.CLASS,
-        SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
-        SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
-        SOURCES_PROMPT_FRAGMENTS.PYTHON_SPECIFIC.KIND_OVERRIDE,
-      ),
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.REFERENCES_AND_DEPS,
-        SOURCES_PROMPT_FRAGMENTS.PYTHON_SPECIFIC.INTERNAL_REFS,
-        SOURCES_PROMPT_FRAGMENTS.PYTHON_SPECIFIC.EXTERNAL_REFS,
-        SOURCES_PROMPT_FRAGMENTS.PYTHON_SPECIFIC.PUBLIC_CONSTANTS,
-        SOURCES_PROMPT_FRAGMENTS.PYTHON_SPECIFIC.PUBLIC_FUNCTIONS,
-      ),
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.INTEGRATION_POINTS,
-        SOURCES_PROMPT_FRAGMENTS.INTEGRATION_POINTS.INTRO,
-        SOURCES_PROMPT_FRAGMENTS.PYTHON_SPECIFIC.INTEGRATION_INSTRUCTIONS,
-      ),
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.DATABASE_INTEGRATION_ANALYSIS,
-        COMPOSITES.DB_INTEGRATION,
-        SOURCES_PROMPT_FRAGMENTS.PYTHON_SPECIFIC.DB_MECHANISM_MAPPING,
-      ),
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.CODE_QUALITY_METRICS,
-        COMPOSITES.CODE_QUALITY,
-        SOURCES_PROMPT_FRAGMENTS.PYTHON_SPECIFIC.PYTHON_COMPLEXITY_METRICS,
-      ),
-    ] as const,
-  },
-  ruby: {
-    contentDesc: "Ruby code",
-    responseSchema: commonSourceAnalysisSchema,
-    instructions: [
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.BASIC_INFO,
-        SOURCES_PROMPT_FRAGMENTS.BASE.CLASS,
-        SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
-        SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
-        SOURCES_PROMPT_FRAGMENTS.RUBY_SPECIFIC.KIND_OVERRIDE,
-      ),
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.REFERENCES_AND_DEPS,
-        SOURCES_PROMPT_FRAGMENTS.RUBY_SPECIFIC.INTERNAL_REFS,
-        SOURCES_PROMPT_FRAGMENTS.RUBY_SPECIFIC.EXTERNAL_REFS,
-        SOURCES_PROMPT_FRAGMENTS.RUBY_SPECIFIC.PUBLIC_CONSTANTS,
-        SOURCES_PROMPT_FRAGMENTS.RUBY_SPECIFIC.PUBLIC_FUNCTIONS,
-      ),
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.INTEGRATION_POINTS,
-        SOURCES_PROMPT_FRAGMENTS.INTEGRATION_POINTS.INTRO,
-        SOURCES_PROMPT_FRAGMENTS.RUBY_SPECIFIC.INTEGRATION_INSTRUCTIONS,
-      ),
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.DATABASE_INTEGRATION_ANALYSIS,
-        COMPOSITES.DB_INTEGRATION,
-        SOURCES_PROMPT_FRAGMENTS.RUBY_SPECIFIC.DB_MECHANISM_MAPPING,
-      ),
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.CODE_QUALITY_METRICS,
-        COMPOSITES.CODE_QUALITY,
-      ),
-    ] as const,
-  },
+  java: createStandardCodeConfig("JVM code", SOURCES_PROMPT_FRAGMENTS.JAVA_SPECIFIC),
+  javascript: createStandardCodeConfig(
+    "JavaScript/TypeScript code",
+    SOURCES_PROMPT_FRAGMENTS.JAVASCRIPT_SPECIFIC,
+  ),
+  csharp: createStandardCodeConfig("C# code", SOURCES_PROMPT_FRAGMENTS.CSHARP_SPECIFIC),
+  python: createStandardCodeConfig("Python code", SOURCES_PROMPT_FRAGMENTS.PYTHON_SPECIFIC, {
+    extraComplexityMetrics: SOURCES_PROMPT_FRAGMENTS.PYTHON_SPECIFIC.PYTHON_COMPLEXITY_METRICS,
+  }),
+  ruby: createStandardCodeConfig("Ruby code", SOURCES_PROMPT_FRAGMENTS.RUBY_SPECIFIC),
   sql: {
     contentDesc: "database DDL/DML/SQL code",
     responseSchema: sourceSummarySchema.pick({
@@ -558,73 +489,10 @@ export const sourceConfigMap = {
       ),
     ] as const,
   },
-  c: {
-    contentDesc: "C source code",
-    responseSchema: commonSourceAnalysisSchema,
-    instructions: [
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.BASIC_INFO,
-        SOURCES_PROMPT_FRAGMENTS.BASE.MODULE,
-        SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
-        SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
-      ),
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.REFERENCES_AND_DEPS,
-        SOURCES_PROMPT_FRAGMENTS.C_SPECIFIC.INTERNAL_REFS,
-        SOURCES_PROMPT_FRAGMENTS.C_SPECIFIC.EXTERNAL_REFS,
-        SOURCES_PROMPT_FRAGMENTS.C_SPECIFIC.PUBLIC_CONSTANTS,
-        SOURCES_PROMPT_FRAGMENTS.C_SPECIFIC.PUBLIC_FUNCTIONS,
-      ),
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.INTEGRATION_POINTS,
-        SOURCES_PROMPT_FRAGMENTS.INTEGRATION_POINTS.INTRO,
-        SOURCES_PROMPT_FRAGMENTS.C_SPECIFIC.INTEGRATION_INSTRUCTIONS,
-      ),
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.DATABASE_INTEGRATION_ANALYSIS,
-        COMPOSITES.DB_INTEGRATION,
-        SOURCES_PROMPT_FRAGMENTS.C_SPECIFIC.DB_MECHANISM_MAPPING,
-      ),
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.CODE_QUALITY_METRICS,
-        COMPOSITES.CODE_QUALITY,
-      ),
-    ] as const,
-  },
-  cpp: {
-    contentDesc: "C++ source code",
-    responseSchema: commonSourceAnalysisSchema,
-    instructions: [
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.BASIC_INFO,
-        SOURCES_PROMPT_FRAGMENTS.BASE.CLASS,
-        SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
-        SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
-        SOURCES_PROMPT_FRAGMENTS.CPP_SPECIFIC.KIND_OVERRIDE,
-      ),
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.REFERENCES_AND_DEPS,
-        SOURCES_PROMPT_FRAGMENTS.CPP_SPECIFIC.INTERNAL_REFS,
-        SOURCES_PROMPT_FRAGMENTS.CPP_SPECIFIC.EXTERNAL_REFS,
-        SOURCES_PROMPT_FRAGMENTS.CPP_SPECIFIC.PUBLIC_CONSTANTS,
-        SOURCES_PROMPT_FRAGMENTS.CPP_SPECIFIC.PUBLIC_METHODS,
-      ),
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.INTEGRATION_POINTS,
-        SOURCES_PROMPT_FRAGMENTS.INTEGRATION_POINTS.INTRO,
-        SOURCES_PROMPT_FRAGMENTS.CPP_SPECIFIC.INTEGRATION_INSTRUCTIONS,
-      ),
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.DATABASE_INTEGRATION_ANALYSIS,
-        COMPOSITES.DB_INTEGRATION,
-        SOURCES_PROMPT_FRAGMENTS.CPP_SPECIFIC.DB_MECHANISM_MAPPING,
-      ),
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.CODE_QUALITY_METRICS,
-        COMPOSITES.CODE_QUALITY,
-      ),
-    ] as const,
-  },
+  c: createStandardCodeConfig("C source code", SOURCES_PROMPT_FRAGMENTS.C_SPECIFIC, {
+    useModuleBase: true,
+  }),
+  cpp: createStandardCodeConfig("C++ source code", SOURCES_PROMPT_FRAGMENTS.CPP_SPECIFIC),
   makefile: {
     contentDesc: "C/C++ build configuration (CMake or Makefile)",
     responseSchema: sourceSummarySchema.pick({

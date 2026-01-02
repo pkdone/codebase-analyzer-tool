@@ -1,254 +1,325 @@
+import { z } from "zod";
 import {
-  SOURCES_PROMPT_FRAGMENTS,
-  COMPOSITES,
-} from "../../../src/app/prompts/definitions/sources/sources.fragments";
-import { FORCE_JSON_FORMAT, BASE_PROMPT_TEMPLATE } from "../../../src/app/prompts/templates";
+  createTextPromptDefinition,
+  createJsonPromptDefinition,
+} from "../../../src/app/prompts/definitions/prompt-factory";
 import { renderPrompt } from "../../../src/app/prompts/prompt-renderer";
-import { promptRegistry } from "../../../src/app/prompts/prompt-registry";
-const fileTypePromptMetadata = promptRegistry.sources;
-const codebaseQueryPromptDefinition = promptRegistry.codebaseQuery;
+import { BASE_PROMPT_TEMPLATE, CODEBASE_QUERY_TEMPLATE } from "../../../src/app/prompts/templates";
+import { sourceConfigMap } from "../../../src/app/prompts/definitions/sources/sources.config";
+import { PREBUILT_BLOCKS } from "../../../src/app/prompts/definitions/sources/sources.fragments";
+import { INSTRUCTION_SECTION_TITLES } from "../../../src/app/prompts/definitions/instruction-utils";
+import { LLMOutputFormat } from "../../../src/common/llm/types/llm.types";
+import { createReduceInsightsPrompt } from "../../../src/app/prompts/prompt-registry";
+import type { PromptDefinition, BasePromptConfigEntry } from "../../../src/app/prompts/prompt.types";
 
 describe("Prompt Refactoring Improvements", () => {
-  describe("FORCE_JSON_FORMAT location", () => {
-    test("FORCE_JSON_FORMAT should be exported from templates.ts", () => {
-      expect(FORCE_JSON_FORMAT).toBeDefined();
-      expect(typeof FORCE_JSON_FORMAT).toBe("string");
-      expect(FORCE_JSON_FORMAT).toContain("The response MUST be valid JSON");
-      expect(FORCE_JSON_FORMAT).toContain("Only include JSON");
-      expect(FORCE_JSON_FORMAT).toContain("All property names must be quoted");
+  describe("createJsonPromptDefinition", () => {
+    const testSchema = z.object({
+      name: z.string(),
+      value: z.number(),
     });
 
-    test("FORCE_JSON_FORMAT should contain comprehensive JSON formatting rules", () => {
-      // Verify key formatting rules are present
-      expect(FORCE_JSON_FORMAT).toContain("start directly with { or [");
-      expect(FORCE_JSON_FORMAT).toContain("No markdown formatting");
-      expect(FORCE_JSON_FORMAT).toContain("proper JSON syntax");
-      expect(FORCE_JSON_FORMAT).toContain("ASCII only");
-      expect(FORCE_JSON_FORMAT).toContain("Escape control characters");
-    });
-  });
-
-  describe("COMPOSITES object structure", () => {
-    test("COMPOSITES should export all instruction sets", () => {
-      expect(COMPOSITES).toBeDefined();
-      expect(COMPOSITES.CODE_QUALITY).toBeDefined();
-      expect(COMPOSITES.DB_INTEGRATION).toBeDefined();
-      expect(COMPOSITES.INTEGRATION_POINTS).toBeDefined();
-      expect(COMPOSITES.SCHEDULED_JOBS).toBeDefined();
-    });
-
-    test("COMPOSITES.CODE_QUALITY should contain correct fragments", () => {
-      expect(COMPOSITES.CODE_QUALITY).toHaveLength(4);
-      expect(COMPOSITES.CODE_QUALITY[0]).toBe(SOURCES_PROMPT_FRAGMENTS.CODE_QUALITY.INTRO);
-      expect(COMPOSITES.CODE_QUALITY[1]).toBe(
-        SOURCES_PROMPT_FRAGMENTS.CODE_QUALITY.FUNCTION_METRICS,
-      );
-      expect(COMPOSITES.CODE_QUALITY[2]).toBe(
-        SOURCES_PROMPT_FRAGMENTS.CODE_QUALITY.FUNCTION_SMELLS,
-      );
-      expect(COMPOSITES.CODE_QUALITY[3]).toBe(SOURCES_PROMPT_FRAGMENTS.CODE_QUALITY.FILE_METRICS);
-    });
-
-    test("COMPOSITES.DB_INTEGRATION should contain correct fragments", () => {
-      expect(COMPOSITES.DB_INTEGRATION).toHaveLength(2);
-      expect(COMPOSITES.DB_INTEGRATION[0]).toBe(SOURCES_PROMPT_FRAGMENTS.DB_INTEGRATION.INTRO);
-      expect(COMPOSITES.DB_INTEGRATION[1]).toBe(
-        SOURCES_PROMPT_FRAGMENTS.DB_INTEGRATION.REQUIRED_FIELDS,
-      );
-    });
-
-    test("COMPOSITES.INTEGRATION_POINTS should contain correct fragments", () => {
-      expect(COMPOSITES.INTEGRATION_POINTS).toHaveLength(1);
-      expect(COMPOSITES.INTEGRATION_POINTS[0]).toBe(
-        SOURCES_PROMPT_FRAGMENTS.INTEGRATION_POINTS.INTRO,
-      );
-    });
-
-    test("COMPOSITES.SCHEDULED_JOBS should contain correct fragments", () => {
-      expect(COMPOSITES.SCHEDULED_JOBS).toHaveLength(2);
-      expect(COMPOSITES.SCHEDULED_JOBS[0]).toBe(SOURCES_PROMPT_FRAGMENTS.SCHEDULED_JOBS.INTRO);
-      expect(COMPOSITES.SCHEDULED_JOBS[1]).toBe(SOURCES_PROMPT_FRAGMENTS.SCHEDULED_JOBS.FIELDS);
-    });
-  });
-
-  describe("sources.config.ts uses COMPOSITES correctly", () => {
-    test("Java prompt metadata should use COMPOSITES fragments", () => {
-      const javaMetadata = fileTypePromptMetadata.java;
-      expect(javaMetadata).toBeDefined();
-      expect(javaMetadata.instructions).toBeDefined();
-      expect(javaMetadata.instructions.length).toBeGreaterThan(0);
-
-      // Check that the instructions contain the expected content from COMPOSITES
-      const allInstructions = javaMetadata.instructions.join("\n");
-      expect(allInstructions).toContain("Code Quality Analysis");
-      expect(allInstructions).toContain("Database Integration Analysis");
-    });
-
-    test("JavaScript prompt metadata should use COMPOSITES fragments", () => {
-      const jsMetadata = fileTypePromptMetadata.javascript;
-      expect(jsMetadata).toBeDefined();
-      expect(jsMetadata.instructions).toBeDefined();
-      expect(jsMetadata.instructions.length).toBeGreaterThan(0);
-
-      const allInstructions = jsMetadata.instructions.join("\n");
-      expect(allInstructions).toContain("Code Quality Analysis");
-      expect(allInstructions).toContain("Database Integration Analysis");
-    });
-
-    test("All major source file types should have consistent instruction structure", () => {
-      const fileTypes = ["java", "javascript", "csharp", "python", "ruby"] as const;
-
-      fileTypes.forEach((fileType) => {
-        const metadata = fileTypePromptMetadata[fileType];
-        const allInstructions = metadata.instructions.join("\n");
-
-        // All should have these key sections
-        expect(allInstructions).toContain("__Basic Information__");
-        expect(allInstructions).toContain("__Code Quality Metrics__");
-        expect(allInstructions).toContain("__Database Integration Analysis__");
+    it("should create a JSON-mode prompt definition with correct defaults", () => {
+      const result = createJsonPromptDefinition({
+        label: "Test Prompt",
+        contentDesc: "test content",
+        instructions: ["instruction 1"],
+        responseSchema: testSchema,
+        template: BASE_PROMPT_TEMPLATE,
+        dataBlockHeader: "CODE",
       });
+
+      expect(result.outputFormat).toBe(LLMOutputFormat.JSON);
+      expect(result.wrapInCodeBlock).toBe(false);
+      expect(result.hasComplexSchema).toBe(false);
+      expect(result.label).toBe("Test Prompt");
+      expect(result.contentDesc).toBe("test content");
+      expect(result.responseSchema).toBe(testSchema);
+    });
+
+    it("should allow overriding default values", () => {
+      const result = createJsonPromptDefinition({
+        label: "Test Prompt",
+        contentDesc: "test content",
+        instructions: [],
+        responseSchema: testSchema,
+        template: BASE_PROMPT_TEMPLATE,
+        dataBlockHeader: "CODE",
+        wrapInCodeBlock: true,
+        hasComplexSchema: true,
+      });
+
+      expect(result.wrapInCodeBlock).toBe(true);
+      expect(result.hasComplexSchema).toBe(true);
+    });
+
+    it("should preserve responseSchema type", () => {
+      const result = createJsonPromptDefinition({
+        label: "Test",
+        contentDesc: "test",
+        instructions: [],
+        responseSchema: testSchema,
+        template: BASE_PROMPT_TEMPLATE,
+        dataBlockHeader: "CODE",
+      });
+
+      // Verify schema works for parsing
+      const parseResult = result.responseSchema.safeParse({ name: "test", value: 42 });
+      expect(parseResult.success).toBe(true);
     });
   });
 
-  describe("nullish coalescing in prompt-renderer", () => {
-    test("renderPrompt should handle undefined partialAnalysisNote", () => {
-      const definition = fileTypePromptMetadata.java;
-      const data = { content: "test code", partialAnalysisNote: undefined };
+  describe("createReduceInsightsPrompt uses createJsonPromptDefinition", () => {
+    it("should have outputFormat set to JSON", () => {
+      const schema = z.object({ technologies: z.array(z.string()) });
+      const result = createReduceInsightsPrompt("technologies", "technologies", schema);
 
-      expect(() => {
-        const rendered = renderPrompt(definition, data);
-        expect(rendered).toBeTruthy();
-      }).not.toThrow();
+      expect(result.outputFormat).toBe(LLMOutputFormat.JSON);
     });
 
-    test("renderPrompt should handle null partialAnalysisNote", () => {
-      const definition = fileTypePromptMetadata.java;
-      const data = { content: "test code", partialAnalysisNote: null };
+    it("should have default values from createJsonPromptDefinition", () => {
+      const schema = z.object({ technologies: z.array(z.string()) });
+      const result = createReduceInsightsPrompt("technologies", "technologies", schema);
 
-      expect(() => {
-        const rendered = renderPrompt(definition, data);
-        expect(rendered).toBeTruthy();
-      }).not.toThrow();
-    });
-
-    test("renderPrompt should handle missing partialAnalysisNote", () => {
-      const definition = fileTypePromptMetadata.java;
-      const data = { content: "test code" };
-
-      expect(() => {
-        const rendered = renderPrompt(definition, data);
-        expect(rendered).toBeTruthy();
-      }).not.toThrow();
-    });
-
-    test("renderPrompt should use string partialAnalysisNote when provided", () => {
-      const definition = fileTypePromptMetadata.java;
-      const note = "This is a test note.";
-      const data = { content: "test code", partialAnalysisNote: note };
-
-      const rendered = renderPrompt(definition, data);
-      expect(rendered).toBeTruthy();
-      // Note: The BASE_PROMPT_TEMPLATE uses {{partialAnalysisNote}} placeholder
-      // which will be replaced with the note value
-    });
-
-    test("renderPrompt should handle non-string partialAnalysisNote gracefully", () => {
-      const definition = fileTypePromptMetadata.java;
-      const data = { content: "test code", partialAnalysisNote: 123 as any };
-
-      expect(() => {
-        const rendered = renderPrompt(definition, data);
-        expect(rendered).toBeTruthy();
-      }).not.toThrow();
+      expect(result.wrapInCodeBlock).toBe(false);
+      expect(result.hasComplexSchema).toBe(false);
     });
   });
 
-  describe("codebaseQueryPromptDefinition has explicit template", () => {
-    test("codebaseQueryPromptDefinition should have template property", () => {
-      expect(codebaseQueryPromptDefinition.template).toBeDefined();
-      expect(typeof codebaseQueryPromptDefinition.template).toBe("string");
+  describe("TEXT-mode Rendering", () => {
+    it("should not include JSON schema section for TEXT-mode prompts", () => {
+      const textPrompt = createTextPromptDefinition({
+        label: "Text Query",
+        contentDesc: "source code files",
+        instructions: [],
+        template: CODEBASE_QUERY_TEMPLATE,
+        dataBlockHeader: "CODE",
+      });
+
+      const result = renderPrompt(textPrompt, {
+        content: "sample code",
+        question: "What does this code do?",
+      });
+
+      // Should not contain JSON schema section
+      expect(result).not.toContain("JSON response must follow");
+      expect(result).not.toContain("```json");
+      expect(result).not.toContain('"type": "string"');
+
+      // Should contain the expected content
+      expect(result).toContain("What does this code do?");
+      expect(result).toContain("sample code");
     });
 
-    test("codebaseQueryPromptDefinition template should contain expected structure", () => {
-      const template = codebaseQueryPromptDefinition.template;
-      expect(template).toContain("Act as a senior developer");
-      expect(template).toContain("QUESTION:");
-      expect(template).toContain("CODE:");
-      expect(template).toContain("{{question}}");
-      expect(template).toContain("{{content}}");
-    });
+    it("should include JSON schema section for JSON-mode prompts", () => {
+      const jsonPrompt = createJsonPromptDefinition({
+        label: "JSON Test",
+        contentDesc: "test content",
+        instructions: ["test instruction"],
+        responseSchema: z.object({ name: z.string() }),
+        template: BASE_PROMPT_TEMPLATE,
+        dataBlockHeader: "CODE",
+      });
 
-    test("codebaseQueryPromptDefinition should be self-contained", () => {
-      // All required properties should be present
-      expect(codebaseQueryPromptDefinition.label).toBeDefined();
-      expect(codebaseQueryPromptDefinition.contentDesc).toBeDefined();
-      expect(codebaseQueryPromptDefinition.instructions).toBeDefined();
-      expect(codebaseQueryPromptDefinition.responseSchema).toBeDefined();
-      expect(codebaseQueryPromptDefinition.template).toBeDefined();
-      expect(codebaseQueryPromptDefinition.dataBlockHeader).toBeDefined();
-      expect(codebaseQueryPromptDefinition.wrapInCodeBlock).toBeDefined();
-    });
-  });
+      const result = renderPrompt(jsonPrompt, { content: "sample code" });
 
-  describe("Integration: rendered prompts remain unchanged", () => {
-    test("Java prompt rendering should produce expected output structure", () => {
-      const definition = fileTypePromptMetadata.java;
-      const data = { content: "public class Test {}" };
-
-      const rendered = renderPrompt(definition, data);
-
-      // Should contain all key sections
-      expect(rendered).toContain("Act as a senior developer");
-      expect(rendered).toContain("JVM code");
-      expect(rendered).toContain("__Basic Information__");
-      expect(rendered).toContain("__Code Quality Metrics__");
-      expect(rendered).toContain("CODE:");
-      expect(rendered).toContain("public class Test {}");
-    });
-
-    test("JavaScript prompt rendering should produce expected output structure", () => {
-      const definition = fileTypePromptMetadata.javascript;
-      const data = { content: "export const test = () => {}" };
-
-      const rendered = renderPrompt(definition, data);
-
-      // Should contain all key sections
-      expect(rendered).toContain("Act as a senior developer");
-      expect(rendered).toContain("JavaScript/TypeScript code");
-      expect(rendered).toContain("__Basic Information__");
-      expect(rendered).toContain("__Code Quality Metrics__");
-      expect(rendered).toContain("CODE:");
-      expect(rendered).toContain("export const test = () => {}");
-    });
-
-    test("SQL prompt rendering should produce expected output structure", () => {
-      const definition = fileTypePromptMetadata.sql;
-      const data = { content: "CREATE TABLE test (id INT);" };
-
-      const rendered = renderPrompt(definition, data);
-
-      // Should contain all key sections
-      expect(rendered).toContain("Act as a senior developer");
-      expect(rendered).toContain("database DDL/DML/SQL code");
-      expect(rendered).toContain("CODE:");
-      expect(rendered).toContain("CREATE TABLE test (id INT);");
+      // Should contain JSON schema section
+      expect(result).toContain("JSON response must follow");
+      expect(result).toContain("```json");
+      expect(result).toContain('"name"');
     });
   });
 
-  describe("BASE_PROMPT_TEMPLATE uses FORCE_JSON_FORMAT", () => {
-    test("BASE_PROMPT_TEMPLATE should have placeholder for forceJSON", () => {
-      expect(BASE_PROMPT_TEMPLATE).toContain("{{forceJSON}}");
+  describe("PREBUILT_BLOCKS", () => {
+    it("should have BASIC_INFO_CLASS block with correct structure", () => {
+      expect(PREBUILT_BLOCKS.BASIC_INFO_CLASS).toBeDefined();
+      expect(PREBUILT_BLOCKS.BASIC_INFO_CLASS).toContain("__Basic Information__");
+      expect(PREBUILT_BLOCKS.BASIC_INFO_CLASS).toContain("class/interface");
+      expect(PREBUILT_BLOCKS.BASIC_INFO_CLASS).toContain("purpose");
+      expect(PREBUILT_BLOCKS.BASIC_INFO_CLASS).toContain("implementation");
     });
 
-    test("rendered prompts should include FORCE_JSON_FORMAT content", () => {
-      const definition = fileTypePromptMetadata.java;
-      const data = { content: "test code" };
+    it("should have BASIC_INFO_MODULE block with correct structure", () => {
+      expect(PREBUILT_BLOCKS.BASIC_INFO_MODULE).toBeDefined();
+      expect(PREBUILT_BLOCKS.BASIC_INFO_MODULE).toContain("__Basic Information__");
+      expect(PREBUILT_BLOCKS.BASIC_INFO_MODULE).toContain("module");
+      expect(PREBUILT_BLOCKS.BASIC_INFO_MODULE).toContain("purpose");
+    });
 
-      const rendered = renderPrompt(definition, data);
+    it("should have CODE_QUALITY_METRICS block with correct structure", () => {
+      expect(PREBUILT_BLOCKS.CODE_QUALITY_METRICS).toBeDefined();
+      expect(PREBUILT_BLOCKS.CODE_QUALITY_METRICS).toContain("__Code Quality Metrics__");
+      expect(PREBUILT_BLOCKS.CODE_QUALITY_METRICS).toContain("cyclomaticComplexity");
+      expect(PREBUILT_BLOCKS.CODE_QUALITY_METRICS).toContain("linesOfCode");
+    });
 
-      // Should contain content from FORCE_JSON_FORMAT
-      expect(rendered).toContain("The response MUST be valid JSON");
-      expect(rendered).toContain("All property names must be quoted");
+    it("should have consistent title-fragment pairing", () => {
+      // Verify BASIC_INFO blocks use correct title
+      expect(PREBUILT_BLOCKS.BASIC_INFO_CLASS).toContain(
+        `__${INSTRUCTION_SECTION_TITLES.BASIC_INFO}__`,
+      );
+      expect(PREBUILT_BLOCKS.BASIC_INFO_MODULE).toContain(
+        `__${INSTRUCTION_SECTION_TITLES.BASIC_INFO}__`,
+      );
+      expect(PREBUILT_BLOCKS.CODE_QUALITY_METRICS).toContain(
+        `__${INSTRUCTION_SECTION_TITLES.CODE_QUALITY_METRICS}__`,
+      );
+    });
+  });
+
+  describe("createStandardCodeConfig (via sourceConfigMap)", () => {
+    const standardLanguages = ["java", "javascript", "csharp", "python", "ruby", "c", "cpp"] as const;
+
+    it.each(standardLanguages)("should create valid config for %s", (language) => {
+      const config = sourceConfigMap[language];
+
+      expect(config).toBeDefined();
+      expect(config.contentDesc).toBeDefined();
+      expect(config.responseSchema).toBeDefined();
+      expect(config.instructions).toBeDefined();
+      expect(Array.isArray(config.instructions)).toBe(true);
+    });
+
+    it.each(standardLanguages)("should have 5 instruction blocks for %s", (language) => {
+      const config = sourceConfigMap[language];
+      expect(config.instructions).toHaveLength(5);
+    });
+
+    it.each(standardLanguages)("should have correct section titles for %s", (language) => {
+      const config = sourceConfigMap[language];
+      const [basicInfo, refs, integration, db, quality] = config.instructions;
+
+      expect(basicInfo).toContain("__Basic Information__");
+      expect(refs).toContain("__References and Dependencies__");
+      expect(integration).toContain("__Integration Points__");
+      expect(db).toContain("__Database Integration Analysis__");
+      expect(quality).toContain("__Code Quality Metrics__");
+    });
+
+    it("should use MODULE base for C", () => {
+      const config = sourceConfigMap.c;
+      expect(config.instructions[0]).toContain("module");
+    });
+
+    it("should use CLASS base for other languages", () => {
+      const classBasedLanguages = ["java", "javascript", "csharp", "python", "ruby", "cpp"];
+      for (const lang of classBasedLanguages) {
+        const config = sourceConfigMap[lang as keyof typeof sourceConfigMap];
+        expect(config.instructions[0]).toContain("class/interface");
+      }
+    });
+
+    it("should include Python complexity metrics", () => {
+      const config = sourceConfigMap.python;
+      const qualityBlock = config.instructions[4];
+      expect(qualityBlock).toContain("Cyclomatic complexity (Python)");
+    });
+
+    it("should include kind override for C#", () => {
+      const config = sourceConfigMap.csharp;
+      expect(config.instructions[0]).toContain("record");
+      expect(config.instructions[0]).toContain("struct");
+    });
+
+    it("should include kind override for C++", () => {
+      const config = sourceConfigMap.cpp;
+      expect(config.instructions[0]).toContain("namespace");
+      expect(config.instructions[0]).toContain("union");
+    });
+  });
+
+  describe("Prompt text preservation", () => {
+    it("should preserve Java prompt text structure", () => {
+      const config = sourceConfigMap.java;
+      const fullInstructions = config.instructions.join("\n\n");
+
+      // Key Java-specific content should be preserved
+      expect(fullInstructions).toContain("JPA");
+      expect(fullInstructions).toContain("JDBC");
+      expect(fullInstructions).toContain("Spring");
+      expect(fullInstructions).toContain("JAX-RS");
+    });
+
+    it("should preserve JavaScript prompt text structure", () => {
+      const config = sourceConfigMap.javascript;
+      const fullInstructions = config.instructions.join("\n\n");
+
+      // Key JS-specific content should be preserved
+      expect(fullInstructions).toContain("Mongoose");
+      expect(fullInstructions).toContain("Prisma");
+      expect(fullInstructions).toContain("Express");
+    });
+
+    it("should preserve database integration instructions", () => {
+      const config = sourceConfigMap.java;
+      const dbBlock = config.instructions[3];
+
+      expect(dbBlock).toContain("mechanism");
+      expect(dbBlock).toContain("description");
+      expect(dbBlock).toContain("codeExample");
+      expect(dbBlock).toContain("tablesAccessed");
+    });
+
+    it("should preserve code quality instructions", () => {
+      const config = sourceConfigMap.java;
+      const qualityBlock = config.instructions[4];
+
+      expect(qualityBlock).toContain("cyclomaticComplexity");
+      expect(qualityBlock).toContain("linesOfCode");
+      expect(qualityBlock).toContain("codeSmells");
+      expect(qualityBlock).toContain("LONG METHOD");
+      expect(qualityBlock).toContain("GOD CLASS");
+    });
+  });
+
+  describe("BasePromptConfigEntry interface compatibility", () => {
+    it("should be compatible with SourceConfigEntry", () => {
+      // TypeScript compilation test - if this compiles, the interfaces are compatible
+      const sourceConfig = sourceConfigMap.java;
+      const baseCompatible: BasePromptConfigEntry = {
+        instructions: sourceConfig.instructions,
+        responseSchema: sourceConfig.responseSchema,
+        contentDesc: sourceConfig.contentDesc,
+      };
+
+      expect(baseCompatible.instructions).toBe(sourceConfig.instructions);
+    });
+
+    it("should allow optional fields", () => {
+      const minimalConfig: BasePromptConfigEntry = {
+        instructions: ["test instruction"],
+      };
+
+      expect(minimalConfig.label).toBeUndefined();
+      expect(minimalConfig.contentDesc).toBeUndefined();
+      expect(minimalConfig.responseSchema).toBeUndefined();
+      expect(minimalConfig.hasComplexSchema).toBeUndefined();
+    });
+  });
+
+  describe("Rendered prompt comparison", () => {
+    it("should render Java prompt with correct structure", () => {
+      const testPromptDef: PromptDefinition = {
+        label: "Java",
+        contentDesc: `the ${sourceConfigMap.java.contentDesc}`,
+        instructions: sourceConfigMap.java.instructions,
+        responseSchema: sourceConfigMap.java.responseSchema,
+        template: BASE_PROMPT_TEMPLATE,
+        dataBlockHeader: "CODE",
+        wrapInCodeBlock: true,
+      };
+
+      const result = renderPrompt(testPromptDef, {
+        content: "public class Test {}",
+      });
+
+      expect(result).toContain("JVM code");
+      expect(result).toContain("__Basic Information__");
+      expect(result).toContain("__References and Dependencies__");
+      expect(result).toContain("__Integration Points__");
+      expect(result).toContain("__Database Integration Analysis__");
+      expect(result).toContain("__Code Quality Metrics__");
+      expect(result).toContain("public class Test {}");
     });
   });
 });

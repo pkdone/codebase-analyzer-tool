@@ -1,4 +1,4 @@
-import { createDbMechanismInstructions } from "../instruction-utils";
+import { createDbMechanismInstructions, buildInstructionBlock, INSTRUCTION_SECTION_TITLES } from "../instruction-utils";
 
 /**
  * Interface defining the expected structure for language-specific fragments.
@@ -696,4 +696,57 @@ export const COMPOSITES = {
     SOURCES_PROMPT_FRAGMENTS.SCHEDULED_JOBS.INTRO,
     SOURCES_PROMPT_FRAGMENTS.SCHEDULED_JOBS.FIELDS,
   ] as const,
+} as const;
+
+/**
+ * Pre-built instruction blocks that combine section titles with their fragments.
+ * These ensure consistent title-fragment pairing and reduce duplication in config files.
+ *
+ * Use these directly in the instructions array of SourceConfigEntry to avoid
+ * manual buildInstructionBlock calls with potentially mismatched titles.
+ *
+ * @example
+ * ```typescript
+ * // Instead of:
+ * buildInstructionBlock(INSTRUCTION_SECTION_TITLES.CODE_QUALITY_METRICS, COMPOSITES.CODE_QUALITY)
+ *
+ * // Use:
+ * PREBUILT_BLOCKS.CODE_QUALITY_METRICS
+ * ```
+ */
+export const PREBUILT_BLOCKS = {
+  /** Basic info block for class-based entities (class or interface) */
+  BASIC_INFO_CLASS: buildInstructionBlock(
+    INSTRUCTION_SECTION_TITLES.BASIC_INFO,
+    SOURCES_PROMPT_FRAGMENTS.BASE.CLASS,
+    SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
+    SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
+  ),
+
+  /** Basic info block for module-based entities (C files) */
+  BASIC_INFO_MODULE: buildInstructionBlock(
+    INSTRUCTION_SECTION_TITLES.BASIC_INFO,
+    SOURCES_PROMPT_FRAGMENTS.BASE.MODULE,
+    SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
+    SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
+  ),
+
+  /** Basic info block with just purpose and implementation (no entity type) */
+  BASIC_INFO_SIMPLE: buildInstructionBlock(
+    INSTRUCTION_SECTION_TITLES.BASIC_INFO,
+    SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
+    SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
+  ),
+
+  /** Code quality metrics block with all standard metrics */
+  CODE_QUALITY_METRICS: buildInstructionBlock(
+    INSTRUCTION_SECTION_TITLES.CODE_QUALITY_METRICS,
+    COMPOSITES.CODE_QUALITY,
+  ),
+
+  /** Integration points intro block */
+  INTEGRATION_POINTS_INTRO: buildInstructionBlock(
+    INSTRUCTION_SECTION_TITLES.INTEGRATION_POINTS,
+    SOURCES_PROMPT_FRAGMENTS.INTEGRATION_POINTS.INTRO,
+  ),
 } as const;

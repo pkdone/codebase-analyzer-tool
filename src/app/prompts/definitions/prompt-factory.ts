@@ -1,21 +1,6 @@
-import { DataBlockHeader, PromptDefinition } from "../prompt.types";
+import { DataBlockHeader, PromptDefinition, BasePromptConfigEntry } from "../prompt.types";
 import { z } from "zod";
 import { LLMOutputFormat } from "../../../common/llm/types/llm.types";
-
-/**
- * Generic configuration entry that must have at least a label.
- * responseSchema is optional because some configs (like sources) build it dynamically.
- * Specific config types can extend this interface.
- *
- * This interface is generic over the schema type S to preserve specific Zod schema types
- * through the type system, enabling better type inference for downstream consumers.
- *
- * @template S - The Zod schema type. Defaults to z.ZodType for backward compatibility.
- */
-interface BaseConfigEntry<S extends z.ZodType = z.ZodType> {
-  label?: string;
-  responseSchema?: S;
-}
 
 /**
  * Helper type to extract the schema type from a config entry.
@@ -27,14 +12,14 @@ type ExtractSchemaType<T> = T extends { responseSchema: infer S extends z.ZodTyp
  * Mapped type that transforms a config map into a record of PromptDefinitions
  * while preserving the specific schema type for each key.
  */
-type PromptMetadataResult<TConfigMap extends Record<string, BaseConfigEntry>> = {
+type PromptMetadataResult<TConfigMap extends Record<string, BasePromptConfigEntry>> = {
   [K in keyof TConfigMap]: PromptDefinition<ExtractSchemaType<TConfigMap[K]>>;
 };
 
 /**
  * Options for creating prompt metadata from a configuration map.
  */
-interface CreatePromptMetadataOptions<TConfig extends BaseConfigEntry> {
+interface CreatePromptMetadataOptions<TConfig extends BasePromptConfigEntry> {
   /**
    * Optional function to build the response schema from the config.
    * If not provided, uses config.responseSchema directly.
@@ -75,7 +60,7 @@ interface CreatePromptMetadataOptions<TConfig extends BaseConfigEntry> {
  * @param options - Optional builders for schema, contentDesc, and instructions
  * @returns A record mapping keys to PromptDefinition objects with preserved schema types
  */
-export function createPromptMetadata<TConfigMap extends Record<string, BaseConfigEntry>>(
+export function createPromptMetadata<TConfigMap extends Record<string, BasePromptConfigEntry>>(
   configMap: TConfigMap,
   template: string,
   options: CreatePromptMetadataOptions<TConfigMap[keyof TConfigMap]> = {},
@@ -152,5 +137,48 @@ export function createTextPromptDefinition(
     ...options,
     responseSchema: z.string(),
     outputFormat: LLMOutputFormat.TEXT,
+  };
+}
+
+/**
+ * Options for creating a JSON-mode prompt definition.
+ * Excludes outputFormat as it is set automatically to JSON.
+ */
+export type JsonPromptDefinitionOptions<S extends z.ZodType> = Omit<
+  PromptDefinition<S>,
+  "outputFormat"
+>;
+
+/**
+ * Creates a JSON-mode prompt definition with standard configuration.
+ * JSON-mode prompts require a Zod schema for response validation.
+ *
+ * This helper ensures consistent configuration for JSON-mode prompts:
+ * - Sets `outputFormat` to `LLMOutputFormat.JSON` (default behavior)
+ * - Provides default values for optional fields like `wrapInCodeBlock` and `hasComplexSchema`
+ *
+ * @param options - The prompt definition options (excluding outputFormat)
+ * @returns A fully-typed PromptDefinition configured for JSON output
+ *
+ * @example
+ * ```typescript
+ * const reducePrompt = createJsonPromptDefinition({
+ *   label: "Reduce Insights",
+ *   contentDesc: "fragmented data",
+ *   instructions: ["consolidate the list"],
+ *   responseSchema: mySchema,
+ *   template: BASE_PROMPT_TEMPLATE,
+ *   dataBlockHeader: "FRAGMENTED_DATA",
+ * });
+ * ```
+ */
+export function createJsonPromptDefinition<S extends z.ZodType>(
+  options: JsonPromptDefinitionOptions<S>,
+): PromptDefinition<S> {
+  return {
+    wrapInCodeBlock: false,
+    hasComplexSchema: false,
+    ...options,
+    outputFormat: LLMOutputFormat.JSON,
   };
 }

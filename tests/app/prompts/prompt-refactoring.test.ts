@@ -110,10 +110,11 @@ describe("Prompt Refactoring", () => {
     });
 
     it("should have consistent template structure", () => {
+      // jsonSchema and forceJSON are now consolidated into schemaSection
       expect(BASE_PROMPT_TEMPLATE).toContain("{{contentDesc}}");
       expect(BASE_PROMPT_TEMPLATE).toContain("{{instructionsText}}");
       expect(BASE_PROMPT_TEMPLATE).toContain("{{dataBlockHeader}}");
-      expect(BASE_PROMPT_TEMPLATE).toContain("{{jsonSchema}}");
+      expect(BASE_PROMPT_TEMPLATE).toContain("{{schemaSection}}");
       expect(BASE_PROMPT_TEMPLATE).toContain("{{content}}");
       expect(BASE_PROMPT_TEMPLATE).toContain("{{partialAnalysisNote}}");
     });

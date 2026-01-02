@@ -34,16 +34,11 @@ export const FORCE_JSON_FORMAT = `The response MUST be valid JSON and meet the f
  * - {{dataBlockHeader}}: The section header (e.g., "CODE", "FILE_SUMMARIES", "FRAGMENTED_DATA")
  * - {{instructionsText}}: The joined instruction strings from the PromptDefinition
  * - {{contentWrapper}}: Optional code block markers (```) if wrapInCodeBlock is true
+ * - {{schemaSection}}: Conditional JSON schema section (empty for TEXT-mode prompts)
  */
 export const BASE_PROMPT_TEMPLATE = `Act as a senior developer analyzing the code in a legacy application. Based on the {{contentDesc}} shown below in the section marked '{{dataBlockHeader}}', return a JSON response that contains {{instructionsText}}.
 
-{{partialAnalysisNote}}The JSON response must follow this JSON schema:
-\`\`\`json
-{{jsonSchema}}
-\`\`\`
-
-{{forceJSON}}
-
+{{partialAnalysisNote}}{{schemaSection}}
 {{dataBlockHeader}}:
 {{contentWrapper}}{{content}}{{contentWrapper}}`;
 
