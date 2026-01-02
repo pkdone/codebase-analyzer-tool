@@ -2,6 +2,7 @@ import { Sanitizer, SanitizerResult } from "./sanitizers-types";
 import { CODE_FENCE_MARKERS, COMMON_INTRO_WORDS } from "../constants/json-processing.config";
 import { CODE_FENCE_REGEXES } from "../constants/regex.constants";
 import { logOneLineWarning } from "../../../utils/logging";
+import { isInStringAt } from "../utils/parser-context-utils";
 
 /**
  * Consolidated structural sanitizer that handles high-level structural issues and noise.
@@ -116,24 +117,6 @@ export const fixJsonStructureAndNoise: Sanitizer = (input: string): SanitizerRes
  */
 function removeInvalidPrefixesInternal(jsonString: string, diagnostics: string[]): string {
   let sanitized = jsonString;
-
-  function isInStringAt(position: number, content: string): boolean {
-    let inString = false;
-    let escaped = false;
-    for (let i = 0; i < position; i++) {
-      const char = content[i];
-      if (escaped) {
-        escaped = false;
-        continue;
-      }
-      if (char === "\\") {
-        escaped = true;
-      } else if (char === '"') {
-        inString = !inString;
-      }
-    }
-    return inString;
-  }
 
   // Pattern 1: Remove thought markers
   const ctrlThoughtPattern = /<ctrl\d+>\s*thought\s*\n/i;
@@ -452,24 +435,6 @@ function collapseDuplicateJsonObjectInternal(input: string): string {
  */
 function removeTruncationMarkersInternal(jsonString: string, diagnostics: string[]): string {
   let sanitized = jsonString;
-
-  function isInStringAt(position: number, content: string): boolean {
-    let inString = false;
-    let escaped = false;
-    for (let i = 0; i < position; i++) {
-      const char = content[i];
-      if (escaped) {
-        escaped = false;
-        continue;
-      }
-      if (char === "\\") {
-        escaped = true;
-      } else if (char === '"') {
-        inString = !inString;
-      }
-    }
-    return inString;
-  }
 
   // Pattern 1: Remove standalone truncation marker lines
   const truncationMarkerPattern =

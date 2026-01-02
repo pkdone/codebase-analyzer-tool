@@ -6,6 +6,7 @@
 import type { LLMSanitizerConfig } from "../../../config/llm-module-config.types";
 import type { SanitizerStrategy, StrategyResult } from "../pipeline/sanitizer-pipeline.types";
 import { isInStringAt } from "../../utils/parser-context-utils";
+import { DiagnosticCollector } from "../../utils/diagnostic-collector";
 import { processingConfig } from "../../constants/json-processing.config";
 
 /**
@@ -20,7 +21,7 @@ export const assignmentSyntaxFixer: SanitizerStrategy = {
     }
 
     let sanitized = input;
-    const diagnostics: string[] = [];
+    const diagnostics = new DiagnosticCollector(processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY);
     let hasChanges = false;
 
     // Fix stray text directly after colon (must run early)
@@ -38,11 +39,9 @@ export const assignmentSyntaxFixer: SanitizerStrategy = {
           const valueStr = typeof value === "string" ? value : "";
 
           hasChanges = true;
-          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
-            diagnostics.push(
-              `Removed stray text "${strayTextStr}" directly after colon: "${propertyNameStr}":${strayTextStr}":`,
-            );
-          }
+          diagnostics.add(
+            `Removed stray text "${strayTextStr}" directly after colon: "${propertyNameStr}":${strayTextStr}":`,
+          );
           return `"${propertyNameStr}": "${valueStr}"`;
         },
       );
@@ -89,9 +88,7 @@ export const assignmentSyntaxFixer: SanitizerStrategy = {
         }
 
         hasChanges = true;
-        if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
-          diagnostics.push(`Fixed assignment syntax: "${propNameStr}":= -> "${propNameStr}":`);
-        }
+        diagnostics.add(`Fixed assignment syntax: "${propNameStr}":= -> "${propNameStr}":`);
         return `${quotedPropStr}:${wsAfter}`;
       },
     );
@@ -125,9 +122,7 @@ export const assignmentSyntaxFixer: SanitizerStrategy = {
 
         hasChanges = true;
         const propNameStr = typeof propertyName === "string" ? propertyName : "";
-        if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
-          diagnostics.push(`Removed stray minus sign before colon: "${propNameStr}":-`);
-        }
+        diagnostics.add(`Removed stray minus sign before colon: "${propNameStr}":-`);
         return `${quotedPropStr}: `;
       },
     );
@@ -165,9 +160,7 @@ export const assignmentSyntaxFixer: SanitizerStrategy = {
           }
 
           hasChanges = true;
-          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
-            diagnostics.push(`Removed stray text "${strayTextStr}" between colon and value`);
-          }
+          diagnostics.add(`Removed stray text "${strayTextStr}" between colon and value`);
           return `"${propertyNameStr}": "${valueStr}"`;
         },
       );
@@ -214,11 +207,9 @@ export const assignmentSyntaxFixer: SanitizerStrategy = {
           }
 
           hasChanges = true;
-          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
-            diagnostics.push(
-              `Fixed missing quotes around property value: "${propertyNameStr}":${valueStr}"`,
-            );
-          }
+          diagnostics.add(
+            `Fixed missing quotes around property value: "${propertyNameStr}":${valueStr}"`,
+          );
           return `"${propertyNameStr}": "${valueStr}"${delimiterStr}`;
         }
 
@@ -264,11 +255,7 @@ export const assignmentSyntaxFixer: SanitizerStrategy = {
         }
 
         hasChanges = true;
-        if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
-          diagnostics.push(
-            `Fixed unquoted string value: "${propertyNameStr}": ${unquotedValueStr}`,
-          );
-        }
+        diagnostics.add(`Fixed unquoted string value: "${propertyNameStr}": ${unquotedValueStr}`);
 
         const colonIndex = match.indexOf(":");
         const afterColon = match.substring(colonIndex + 1);
@@ -283,7 +270,7 @@ export const assignmentSyntaxFixer: SanitizerStrategy = {
     return {
       content: sanitized,
       changed: hasChanges,
-      diagnostics,
+      diagnostics: diagnostics.getAll(),
     };
   },
 };

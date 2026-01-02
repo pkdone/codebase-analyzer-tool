@@ -9,6 +9,7 @@ import type { SanitizerStrategy, StrategyResult } from "../pipeline/sanitizer-pi
 import { isInStringAt } from "../../utils/parser-context-utils";
 import { processingConfig, JSON_KEYWORDS_SET } from "../../constants/json-processing.config";
 import { looksLikeDotSeparatedIdentifier } from "../../utils/property-name-matcher";
+import { DiagnosticCollector } from "../../utils/diagnostic-collector";
 
 /**
  * Checks if a word looks like stray text that shouldn't appear before array elements.
@@ -132,7 +133,7 @@ export const arrayElementFixer: SanitizerStrategy = {
     const PACKAGE_NAME_PREFIX_REPLACEMENTS = config?.packageNamePrefixReplacements ?? {};
 
     let sanitized = input;
-    const diagnostics: string[] = [];
+    const diagnostics = new DiagnosticCollector(processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY);
     let hasChanges = false;
 
     // Pattern 1: Fix missing opening quotes in array elements
@@ -165,27 +166,19 @@ export const arrayElementFixer: SanitizerStrategy = {
           if (result.wasFixed) {
             fixedValue = result.fixed;
             hasChanges = true;
-            if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
-              diagnostics.push(
-                `Fixed truncated identifier in array: ${unquotedValueStr} -> ${fixedValue}`,
-              );
-            }
+            diagnostics.add(
+              `Fixed truncated identifier in array: ${unquotedValueStr} -> ${fixedValue}`,
+            );
           } else if (looksLikeDotSeparatedIdentifier(unquotedValueStr)) {
             // Strategy 2: Generic dot-separated identifier detection
             hasChanges = true;
-            if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
-              diagnostics.push(
-                `Fixed missing opening quote for identifier in array: ${unquotedValueStr}"`,
-              );
-            }
+            diagnostics.add(
+              `Fixed missing opening quote for identifier in array: ${unquotedValueStr}"`,
+            );
           } else {
             // Strategy 3: Generic fix for any unquoted array element
             hasChanges = true;
-            if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
-              diagnostics.push(
-                `Fixed missing opening quote in array element: ${unquotedValueStr}"`,
-              );
-            }
+            diagnostics.add(`Fixed missing opening quote in array element: ${unquotedValueStr}"`);
           }
           return `${prefixStr}${whitespaceStr}"${fixedValue}"${terminatorStr}`;
         }
@@ -227,11 +220,9 @@ export const arrayElementFixer: SanitizerStrategy = {
           }
 
           hasChanges = true;
-          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
-            diagnostics.push(
-              `Fixed missing opening quote in array element (newline): ${unquotedValueStr}"`,
-            );
-          }
+          diagnostics.add(
+            `Fixed missing opening quote in array element (newline): ${unquotedValueStr}"`,
+          );
           return `${newlinePrefixStr}"${fixedValue}"${terminatorStr}`;
         }
 
@@ -264,11 +255,7 @@ export const arrayElementFixer: SanitizerStrategy = {
         // Use generic stray word detection
         if (isInArray && looksLikeStrayPrefixWord(prefixWordStr)) {
           hasChanges = true;
-          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
-            diagnostics.push(
-              `Removed prefix word '${prefixWordStr}' before quoted string in array`,
-            );
-          }
+          diagnostics.add(`Removed prefix word '${prefixWordStr}' before quoted string in array`);
           return `${prefixStr}${whitespaceStr}"${quotedValueStr}"${terminatorStr}`;
         }
 
@@ -299,9 +286,7 @@ export const arrayElementFixer: SanitizerStrategy = {
 
           if (foundArray && /^[A-Z][A-Z0-9_]+$/.test(elementStr) && elementStr.length > 3) {
             hasChanges = true;
-            if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
-              diagnostics.push(`Fixed unquoted array element: ${elementStr} -> "${elementStr}"`);
-            }
+            diagnostics.add(`Fixed unquoted array element: ${elementStr} -> "${elementStr}"`);
 
             const beforeMatch = sanitized.substring(Math.max(0, offset - 500), offset);
             const beforeTrimmed = beforeMatch.trim();
@@ -344,11 +329,9 @@ export const arrayElementFixer: SanitizerStrategy = {
           const value2Str = typeof value2 === "string" ? value2 : "";
 
           hasChanges = true;
-          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
-            diagnostics.push(
-              `Added missing comma between array elements: "${value1Str}" "${value2Str}"`,
-            );
-          }
+          diagnostics.add(
+            `Added missing comma between array elements: "${value1Str}" "${value2Str}"`,
+          );
           return `"${value1Str}", "${value2Str}"${terminatorStr}`;
         }
 
@@ -380,9 +363,7 @@ export const arrayElementFixer: SanitizerStrategy = {
 
           if (!terminatorStr.startsWith(",") && !terminatorStr.startsWith("]")) {
             hasChanges = true;
-            if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
-              diagnostics.push(`Added missing comma after array element: "${value1Str}"`);
-            }
+            diagnostics.add(`Added missing comma after array element: "${value1Str}"`);
             return `"${value1Str}",${newlineWhitespaceStr}"${value2Str}"${terminatorStr}`;
           }
         }
@@ -410,9 +391,7 @@ export const arrayElementFixer: SanitizerStrategy = {
         // Verify it's a valid dot-separated identifier
         if (looksLikeDotSeparatedIdentifier(identifierStr)) {
           hasChanges = true;
-          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
-            diagnostics.push(`Quoted unquoted identifier in array: ${identifierStr}`);
-          }
+          diagnostics.add(`Quoted unquoted identifier in array: ${identifierStr}`);
           return `${prefixStr}${whitespaceStr}"${identifierStr}"${terminatorStr}`;
         }
 
@@ -423,7 +402,7 @@ export const arrayElementFixer: SanitizerStrategy = {
     return {
       content: sanitized,
       changed: hasChanges,
-      diagnostics,
+      diagnostics: diagnostics.getAll(),
     };
   },
 };

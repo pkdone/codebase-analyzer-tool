@@ -7,6 +7,7 @@
 import type { LLMSanitizerConfig } from "../../../config/llm-module-config.types";
 import type { SanitizerStrategy, StrategyResult } from "../pipeline/sanitizer-pipeline.types";
 import { isInStringAt } from "../../utils/parser-context-utils";
+import { DiagnosticCollector } from "../../utils/diagnostic-collector";
 import { processingConfig } from "../../constants/json-processing.config";
 
 /**
@@ -66,7 +67,7 @@ export const strayContentRemover: SanitizerStrategy = {
     const NUMERIC_PROPERTIES = config?.numericProperties ?? [];
 
     let sanitized = input;
-    const diagnostics: string[] = [];
+    const diagnostics = new DiagnosticCollector(processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY);
     let hasChanges = false;
 
     // Pattern 1: Fix stray single characters before property names
@@ -92,11 +93,9 @@ export const strayContentRemover: SanitizerStrategy = {
           const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
           const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
           hasChanges = true;
-          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
-            diagnostics.push(
-              `Removed stray character "${strayChar}" before property "${propertyNameStr}"`,
-            );
-          }
+          diagnostics.add(
+            `Removed stray character "${strayChar}" before property "${propertyNameStr}"`,
+          );
           return `${delimiterStr}${whitespaceStr}"${propertyNameStr}":`;
         }
 
@@ -118,11 +117,7 @@ export const strayContentRemover: SanitizerStrategy = {
         const valueStr = typeof value === "string" ? value : "";
         const terminatorStr = typeof terminator === "string" ? terminator : "";
         hasChanges = true;
-        if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
-          diagnostics.push(
-            `Removed stray character "${strayChar}" before value: "${propertyNameStr}"`,
-          );
-        }
+        diagnostics.add(`Removed stray character "${strayChar}" before value: "${propertyNameStr}"`);
         return `"${propertyNameStr}": "${valueStr}"${terminatorStr}`;
       },
     );
@@ -143,11 +138,9 @@ export const strayContentRemover: SanitizerStrategy = {
         if (NUMERIC_PROPERTIES.includes(lowerPropertyName)) {
           const terminatorStr = typeof terminator === "string" ? terminator : "";
           hasChanges = true;
-          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
-            diagnostics.push(
-              `Removed stray character "${strayChar}" for numeric property: "${propertyNameStr}"`,
-            );
-          }
+          diagnostics.add(
+            `Removed stray character "${strayChar}" for numeric property: "${propertyNameStr}"`,
+          );
           return `"${propertyNameStr}": null${terminatorStr}`;
         }
 
@@ -162,9 +155,7 @@ export const strayContentRemover: SanitizerStrategy = {
         sanitized = sanitized.replace(pattern, replacement);
         if (sanitized !== beforeFix) {
           hasChanges = true;
-          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
-            diagnostics.push(description);
-          }
+          diagnostics.add(description);
         }
       }
     }
@@ -177,9 +168,7 @@ export const strayContentRemover: SanitizerStrategy = {
         return match;
       }
       hasChanges = true;
-      if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
-        diagnostics.push("Removed AI-generated content warning");
-      }
+      diagnostics.add("Removed AI-generated content warning");
       return "";
     });
 
@@ -194,10 +183,8 @@ export const strayContentRemover: SanitizerStrategy = {
         const delimiterStr = typeof delimiter === "string" ? delimiter : "";
         const newlineStr = typeof newline === "string" ? newline : "";
         hasChanges = true;
-        if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
-          const preview = typeof strayText === "string" ? strayText.substring(0, 30) : "";
-          diagnostics.push(`Removed stray text (${preview}...)`);
-        }
+        const preview = typeof strayText === "string" ? strayText.substring(0, 30) : "";
+        diagnostics.add(`Removed stray text (${preview}...)`);
         return `${delimiterStr}${newlineStr}`;
       },
     );
@@ -219,9 +206,7 @@ export const strayContentRemover: SanitizerStrategy = {
           const delimiterStr = typeof delimiter === "string" ? delimiter : "";
           const continuationStr = typeof continuation === "string" ? continuation : "";
           hasChanges = true;
-          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
-            diagnostics.push(`Removed stray text '${strayTextStr}'`);
-          }
+          diagnostics.add(`Removed stray text '${strayTextStr}'`);
           return `${delimiterStr}\n${continuationStr}`;
         }
 
@@ -243,10 +228,8 @@ export const strayContentRemover: SanitizerStrategy = {
         const delimiterStr = typeof delimiter === "string" ? delimiter : "";
         const continuationStr = typeof continuation === "string" ? continuation : "";
         hasChanges = true;
-        if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
-          const keyPreview = typeof yamlKey === "string" ? yamlKey.substring(0, 30) : "";
-          diagnostics.push(`Removed YAML block: ${keyPreview}...`);
-        }
+        const keyPreview = typeof yamlKey === "string" ? yamlKey.substring(0, 30) : "";
+        diagnostics.add(`Removed YAML block: ${keyPreview}...`);
         return `${delimiterStr}\n${continuationStr}`;
       },
     );
@@ -285,9 +268,7 @@ export const strayContentRemover: SanitizerStrategy = {
           const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
           const terminatorStr = typeof terminator === "string" ? terminator : "";
           hasChanges = true;
-          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
-            diagnostics.push(`Removed comment marker before property: * "${propertyNameStr}"`);
-          }
+          diagnostics.add(`Removed comment marker before property: * "${propertyNameStr}"`);
 
           let finalWhitespace = whitespaceAfterStr || whitespaceBeforeStr;
           const isInArrayContext = /\[\s*$/.test(beforeMatch) || /\[\s*\n\s*$/.test(beforeMatch);
@@ -323,10 +304,8 @@ export const strayContentRemover: SanitizerStrategy = {
           const delimiterStr = typeof delimiter === "string" ? delimiter : "";
           const continuationStr = typeof continuation === "string" ? continuation : "";
           hasChanges = true;
-          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
-            const preview = sentenceStr.substring(0, 30);
-            diagnostics.push(`Removed LLM commentary: "${preview}..."`);
-          }
+          const preview = sentenceStr.substring(0, 30);
+          diagnostics.add(`Removed LLM commentary: "${preview}..."`);
           return `${delimiterStr}\n${continuationStr}`;
         }
 
@@ -337,7 +316,7 @@ export const strayContentRemover: SanitizerStrategy = {
     return {
       content: sanitized,
       changed: hasChanges,
-      diagnostics,
+      diagnostics: diagnostics.getAll(),
     };
   },
 };
