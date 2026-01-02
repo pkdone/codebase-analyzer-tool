@@ -70,18 +70,4 @@ export class TableViewModel<T extends DisplayableTableRow = DisplayableTableRow>
   hasData(): boolean {
     return this.data.length > 0;
   }
-
-  /**
-   * Get the raw headers (column keys)
-   */
-  getRawHeaders(): readonly string[] {
-    return this.headers;
-  }
-
-  /**
-   * Get the raw data
-   */
-  getRawData(): readonly T[] {
-    return this.data;
-  }
 }

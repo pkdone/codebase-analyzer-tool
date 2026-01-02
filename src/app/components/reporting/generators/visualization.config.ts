@@ -58,10 +58,6 @@ export const visualizationConfig = {
     DEFAULT_WIDTH: 1400,
     /** Default diagram height. */
     DEFAULT_HEIGHT: 500,
-    /** Minimum width per service in pixels. */
-    MIN_WIDTH_PER_SERVICE: 180,
-    /** Character width multiplier for service names. */
-    CHAR_WIDTH_MULTIPLIER: 12,
     /** Maximum services per row in grid layout. */
     SERVICES_PER_ROW: 3,
     /** Extra padding for total diagram width. */

@@ -39,30 +39,6 @@ describe("htmlReportConstants", () => {
     });
   });
 
-  describe("html", () => {
-    it("should be defined", () => {
-      expect(htmlReportConstants.html).toBeDefined();
-    });
-
-    it("should have LINK_TEMPLATE function", () => {
-      expect(typeof htmlReportConstants.html.LINK_TEMPLATE).toBe("function");
-    });
-
-    it("should generate correct link HTML", () => {
-      const link = htmlReportConstants.html.LINK_TEMPLATE("https://example.com", "Example");
-      expect(link).toBe('<a href="https://example.com" target="_blank">Example</a>');
-    });
-
-    it("should use custom target when provided", () => {
-      const link = htmlReportConstants.html.LINK_TEMPLATE(
-        "https://example.com",
-        "Example",
-        "_self",
-      );
-      expect(link).toBe('<a href="https://example.com" target="_self">Example</a>');
-    });
-  });
-
   describe("protocols (removed)", () => {
     it("should not have protocols property", () => {
       expect(htmlReportConstants).not.toHaveProperty("protocols");

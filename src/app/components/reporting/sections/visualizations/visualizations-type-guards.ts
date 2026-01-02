@@ -26,16 +26,6 @@ const businessProcessDataSchema = z.object({
 export type BusinessProcessData = z.infer<typeof businessProcessDataSchema>;
 
 /**
- * Type guard to check if an item is a valid BusinessProcessData.
- * Uses Zod schema validation for robust type checking.
- */
-export function isBusinessProcessData(
-  item: AppSummaryNameDescArray[0],
-): item is BusinessProcessData {
-  return businessProcessDataSchema.safeParse(item).success;
-}
-
-/**
  * Safely extracts keyBusinessActivities from an item.
  * Returns the activities if valid, otherwise returns an empty array.
  */
@@ -89,14 +79,6 @@ const microserviceDataSchema = z.object({
  * Type for microservice data extracted from Zod schema.
  */
 export type MicroserviceData = z.infer<typeof microserviceDataSchema>;
-
-/**
- * Type guard to check if an item is a valid MicroserviceData.
- * Uses Zod schema validation for robust type checking.
- */
-export function isMicroserviceData(item: AppSummaryNameDescArray[0]): item is MicroserviceData {
-  return microserviceDataSchema.safeParse(item).success;
-}
 
 /**
  * Normalized microservice entity with required attributes field.
@@ -201,15 +183,4 @@ export function isInferredArchitectureCategoryData(
   data: unknown,
 ): data is InferredArchitectureCategoryData {
   return inferredArchitectureCategoryDataSchema.safeParse(data).success;
-}
-
-/**
- * Safely parses and extracts inferred architecture data.
- * Returns validated data or null if validation fails.
- */
-export function parseInferredArchitectureData(
-  data: unknown,
-): InferredArchitectureCategoryData | null {
-  const result = inferredArchitectureCategoryDataSchema.safeParse(data);
-  return result.success ? result.data : null;
 }

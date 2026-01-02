@@ -2,8 +2,6 @@ import "reflect-metadata";
 import {
   BaseDiagramGenerator,
   type BaseDiagramOptions,
-  type DimensionConfig,
-  type CalculatedDimensions,
   DIAGRAM_STYLES,
 } from "../../../../../../src/app/components/reporting/diagrams";
 
@@ -30,10 +28,6 @@ class TestDiagramGeneratorImpl extends BaseDiagramGenerator<TestDiagramOptions> 
 
   testMergeOptions(options: TestDiagramOptions): Required<TestDiagramOptions> {
     return this.mergeOptions(options);
-  }
-
-  testCalculateDimensions(nodeCount: number, config: DimensionConfig): CalculatedDimensions {
-    return this.calculateDimensions(nodeCount, config);
   }
 
   getDefaultOptions(): Required<TestDiagramOptions> {
@@ -143,116 +137,6 @@ describe("BaseDiagramGenerator", () => {
 
       expect(result.customOption).toBe("custom value");
       expect(result.width).toBe(800); // Default
-    });
-  });
-
-  describe("calculateDimensions", () => {
-    it("should use minimum dimensions when node count is low", () => {
-      const result = generator.testCalculateDimensions(1, {
-        minWidth: 800,
-        minHeight: 600,
-        widthPerNode: 50,
-        heightPerNode: 40,
-      });
-
-      expect(result.width).toBe(800);
-      expect(result.height).toBe(600);
-    });
-
-    it("should scale dimensions based on node count", () => {
-      const result = generator.testCalculateDimensions(20, {
-        minWidth: 800,
-        minHeight: 600,
-        widthPerNode: 50,
-        heightPerNode: 40,
-      });
-
-      expect(result.width).toBe(1000); // 20 * 50
-      expect(result.height).toBe(800); // 20 * 40
-    });
-
-    it("should respect maximum width constraint", () => {
-      const result = generator.testCalculateDimensions(100, {
-        minWidth: 800,
-        minHeight: 600,
-        widthPerNode: 50,
-        heightPerNode: 40,
-        maxWidth: 2000,
-      });
-
-      expect(result.width).toBe(2000); // Capped at maxWidth
-      expect(result.height).toBe(4000); // 100 * 40
-    });
-
-    it("should respect maximum height constraint", () => {
-      const result = generator.testCalculateDimensions(100, {
-        minWidth: 800,
-        minHeight: 600,
-        widthPerNode: 50,
-        heightPerNode: 40,
-        maxHeight: 1500,
-      });
-
-      expect(result.width).toBe(5000); // 100 * 50
-      expect(result.height).toBe(1500); // Capped at maxHeight
-    });
-
-    it("should respect both max width and height constraints", () => {
-      const result = generator.testCalculateDimensions(100, {
-        minWidth: 800,
-        minHeight: 600,
-        widthPerNode: 50,
-        heightPerNode: 40,
-        maxWidth: 2000,
-        maxHeight: 1500,
-      });
-
-      expect(result.width).toBe(2000);
-      expect(result.height).toBe(1500);
-    });
-
-    it("should handle zero node count", () => {
-      const result = generator.testCalculateDimensions(0, {
-        minWidth: 800,
-        minHeight: 600,
-        widthPerNode: 50,
-        heightPerNode: 40,
-      });
-
-      expect(result.width).toBe(800);
-      expect(result.height).toBe(600);
-    });
-
-    it("should work without widthPerNode", () => {
-      const result = generator.testCalculateDimensions(10, {
-        minWidth: 800,
-        minHeight: 600,
-        heightPerNode: 40,
-      });
-
-      expect(result.width).toBe(800); // Only minWidth applies
-      expect(result.height).toBe(600); // 10 * 40 = 400, but min is 600
-    });
-
-    it("should work without heightPerNode", () => {
-      const result = generator.testCalculateDimensions(10, {
-        minWidth: 800,
-        minHeight: 600,
-        widthPerNode: 100,
-      });
-
-      expect(result.width).toBe(1000); // 10 * 100
-      expect(result.height).toBe(600); // Only minHeight applies
-    });
-
-    it("should handle only minimum dimensions specified", () => {
-      const result = generator.testCalculateDimensions(50, {
-        minWidth: 800,
-        minHeight: 600,
-      });
-
-      expect(result.width).toBe(800);
-      expect(result.height).toBe(600);
     });
   });
 });

@@ -30,12 +30,4 @@ export const htmlReportConstants = {
     FILES_COUNT: "Files Count",
     LINES_COUNT: "Lines Count",
   },
-
-  /**
-   * HTML template strings
-   */
-  html: {
-    LINK_TEMPLATE: (href: string, text: string, target = "_blank"): string =>
-      `<a href="${href}" target="${target}">${text}</a>`,
-  },
 } as const;

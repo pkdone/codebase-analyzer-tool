@@ -1,52 +1,10 @@
 import {
-  isBusinessProcessData,
   extractKeyBusinessActivities,
-  isMicroserviceData,
   extractMicroserviceFields,
   isInferredArchitectureCategoryData,
-  parseInferredArchitectureData,
 } from "../../../../../src/app/components/reporting/sections/visualizations/visualizations-type-guards";
 
 describe("visualizations-type-guards", () => {
-  describe("isBusinessProcessData", () => {
-    it("should return true for valid business process data with keyBusinessActivities", () => {
-      const data = {
-        name: "Order Processing",
-        description: "Handles order workflow",
-        keyBusinessActivities: [
-          { activity: "Validate Order", description: "Check order validity" },
-          { activity: "Process Payment", description: "Handle payment" },
-        ],
-      };
-      expect(isBusinessProcessData(data)).toBe(true);
-    });
-
-    it("should return true for valid business process data without keyBusinessActivities", () => {
-      const data = {
-        name: "Simple Process",
-        description: "A simple business process",
-      };
-      expect(isBusinessProcessData(data)).toBe(true);
-    });
-
-    it("should return false for invalid data missing name", () => {
-      const data = {
-        description: "Missing name field",
-        keyBusinessActivities: [],
-      } as unknown;
-      expect(isBusinessProcessData(data as any)).toBe(false);
-    });
-
-    it("should return false for invalid data with wrong activity structure", () => {
-      const data = {
-        name: "Bad Process",
-        description: "Has invalid activities",
-        keyBusinessActivities: [{ step: "Wrong key", info: "Wrong structure" }],
-      };
-      expect(isBusinessProcessData(data)).toBe(false);
-    });
-  });
-
   describe("extractKeyBusinessActivities", () => {
     it("should extract activities from valid business process data", () => {
       const data = {
@@ -75,44 +33,6 @@ describe("visualizations-type-guards", () => {
       };
       const result = extractKeyBusinessActivities(data as any);
       expect(result).toEqual([]);
-    });
-  });
-
-  describe("isMicroserviceData", () => {
-    it("should return true for valid microservice data with all fields", () => {
-      const data = {
-        name: "User Service",
-        description: "Manages users",
-        entities: [{ name: "User", description: "User entity", attributes: ["id", "name"] }],
-        endpoints: [{ path: "/users", method: "GET", description: "Get users" }],
-        operations: [{ operation: "Create User", method: "POST", description: "Create a user" }],
-      };
-      expect(isMicroserviceData(data)).toBe(true);
-    });
-
-    it("should return true for microservice data with only name and description", () => {
-      const data = {
-        name: "Simple Service",
-        description: "A simple microservice",
-      };
-      expect(isMicroserviceData(data)).toBe(true);
-    });
-
-    it("should return false for invalid data missing name", () => {
-      const data = {
-        description: "Missing name",
-        entities: [],
-      } as unknown;
-      expect(isMicroserviceData(data as any)).toBe(false);
-    });
-
-    it("should return false for data with invalid entity structure", () => {
-      const data = {
-        name: "Bad Service",
-        description: "Has bad entities",
-        entities: [{ invalidKey: "wrong" }],
-      };
-      expect(isMicroserviceData(data)).toBe(false);
     });
   });
 
@@ -208,36 +128,6 @@ describe("visualizations-type-guards", () => {
       expect(isInferredArchitectureCategoryData(undefined)).toBe(false);
       expect(isInferredArchitectureCategoryData("string")).toBe(false);
       expect(isInferredArchitectureCategoryData(123)).toBe(false);
-    });
-  });
-
-  describe("parseInferredArchitectureData", () => {
-    it("should return parsed data for valid input", () => {
-      const data = {
-        internalComponents: [{ name: "Component", description: "Desc" }],
-        externalDependencies: [{ name: "DB", type: "Database", description: "Storage" }],
-        dependencies: [{ from: "Component", to: "DB", description: "Uses" }],
-      };
-      const result = parseInferredArchitectureData(data);
-      expect(result).toEqual(data);
-    });
-
-    it("should return null for invalid input", () => {
-      const data = {
-        internalComponents: [{ invalidStructure: true }],
-      };
-      const result = parseInferredArchitectureData(data);
-      expect(result).toBeNull();
-    });
-
-    it("should return null for null input", () => {
-      expect(parseInferredArchitectureData(null)).toBeNull();
-    });
-
-    it("should return parsed data with defaults for missing optional fields", () => {
-      const data = {};
-      const result = parseInferredArchitectureData(data);
-      expect(result).toEqual({});
     });
   });
 });

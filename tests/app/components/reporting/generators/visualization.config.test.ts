@@ -23,8 +23,6 @@ describe("Visualization Configuration", () => {
     });
 
     it("should have valid layout constants", () => {
-      expect(archConfig.MIN_WIDTH_PER_SERVICE).toBeGreaterThan(0);
-      expect(archConfig.CHAR_WIDTH_MULTIPLIER).toBeGreaterThan(0);
       expect(archConfig.WIDTH_PADDING).toBeGreaterThanOrEqual(0);
       expect(archConfig.HEIGHT_PER_ROW).toBeGreaterThan(0);
       expect(archConfig.HEIGHT_PADDING).toBeGreaterThanOrEqual(0);

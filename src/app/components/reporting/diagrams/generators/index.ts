@@ -2,11 +2,7 @@
  * Diagram generators - public API
  */
 export { BaseDiagramGenerator } from "./base-diagram-generator";
-export type {
-  BaseDiagramOptions,
-  DimensionConfig,
-  CalculatedDimensions,
-} from "./base-diagram-generator";
+export type { BaseDiagramOptions } from "./base-diagram-generator";
 
 export { ArchitectureDiagramGenerator } from "./architecture-diagram-generator";
 export type { Microservice, ArchitectureDiagramOptions } from "./architecture-diagram-generator";

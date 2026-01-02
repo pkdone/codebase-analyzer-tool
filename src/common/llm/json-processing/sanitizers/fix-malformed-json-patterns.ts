@@ -1,7 +1,7 @@
 import { Sanitizer, SanitizerResult } from "./sanitizers-types";
 import { logOneLineWarning } from "../../../utils/logging";
 import { isInStringAt } from "../utils/parser-context-utils";
-import { JSON_KEYWORDS_SET } from "../constants/json-processing.config";
+import { JSON_KEYWORDS_SET, processingConfig } from "../constants/json-processing.config";
 
 /**
  * Sanitizer that fixes various malformed JSON patterns found in LLM responses.
@@ -89,7 +89,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
                 hasChanges = true;
                 const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
                 const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
-                if (diagnostics.length < 10) {
+                if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
                   diagnostics.push(
                     `Fixed unclosed array before property "${propertyNameStr}": inserted missing ]`,
                   );
@@ -115,7 +115,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
           return match;
         }
         hasChanges = true;
-        if (diagnostics.length < 10) {
+        if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
           diagnostics.push("Removed corrupted uppercase identifier reference from array");
         }
         const delimiterStr = typeof delimiter === "string" ? delimiter : "";
@@ -153,7 +153,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
           const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
           const propertyWithQuoteStr =
             typeof propertyWithQuote === "string" ? propertyWithQuote : "";
-          if (diagnostics.length < 10) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(`Removed extra character '${extraChar}' before property`);
           }
           return `${delimiterStr}${whitespaceStr}${propertyWithQuoteStr}`;
@@ -187,7 +187,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
           hasChanges = true;
           const prefixStr = typeof prefix === "string" ? prefix : "";
           const quotedStringStr = typeof quotedString === "string" ? quotedString : "";
-          if (diagnostics.length < 10) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(
               `Removed stray character '${strayChar}' before quoted string in array`,
             );
@@ -215,7 +215,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
         hasChanges = true;
         const prefixStr = typeof prefix === "string" ? prefix : "";
         const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
-        if (diagnostics.length < 10) {
+        if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
           diagnostics.push(
             `Removed extra character '${extraChar}' before property name "${propertyNameStr}"`,
           );
@@ -249,7 +249,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
           const stringValueStr = typeof stringValue === "string" ? stringValue : "";
           const terminatorStr = typeof terminator === "string" ? terminator : "";
           const prefixStr = typeof prefix === "string" ? prefix : "";
-          if (diagnostics.length < 10) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(
               `Removed '${prefixStr}' prefix before quoted string: "${stringValueStr.substring(0, 30)}..."`,
             );
@@ -276,7 +276,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
         const fixedValue = fragmentStr.substring(1); // Remove leading underscore
 
         hasChanges = true;
-        if (diagnostics.length < 10) {
+        if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
           diagnostics.push(
             `Fixed missing property name with fragment: {${fragmentStr}" -> {"name": "${fixedValue}"`,
           );
@@ -302,7 +302,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
           hasChanges = true;
           const delimiterStr = typeof delimiter === "string" ? delimiter : "";
           const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
-          if (diagnostics.length < 10) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(`Removed extra character '${extraChar}' before opening brace`);
           }
           return `${delimiterStr}${whitespaceStr}{`;
@@ -333,7 +333,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
           const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
           const propertyWithQuoteStr =
             typeof propertyWithQuote === "string" ? propertyWithQuote : "";
-          if (diagnostics.length < 10) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push("Removed bullet point before property name");
           }
           return `${delimiterStr}${whitespaceStr}${propertyWithQuoteStr}`;
@@ -367,7 +367,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
 
           hasChanges = true;
           const prefixStr = typeof prefix === "string" ? prefix : "";
-          if (diagnostics.length < 10) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(
               `Fixed missing property name before colon: ": -> "${inferredProperty}":`,
             );
@@ -398,7 +398,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
 
           hasChanges = true;
           const prefixStr = typeof prefix === "string" ? prefix : "";
-          if (diagnostics.length < 10) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(
               `Fixed missing property name before colon: ": -> "${inferredProperty}":`,
             );
@@ -440,7 +440,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
           const propertyWithQuoteStr =
             typeof propertyWithQuote === "string" ? propertyWithQuote : "";
           const strayTextStr = typeof strayText === "string" ? strayText : "";
-          if (diagnostics.length < 10) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(`Removed stray text '${strayTextStr.trim()}' before property`);
           }
           return `${delimiterStr}${whitespaceStr}${propertyWithQuoteStr}`;
@@ -464,7 +464,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
         hasChanges = true;
         const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
         const terminatorStr = typeof terminator === "string" ? terminator : "";
-        if (diagnostics.length < 10) {
+        if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
           diagnostics.push(
             `Fixed corrupted property name: "${propertyNameStr}":${extraText}": -> "${propertyNameStr}":`,
           );
@@ -487,7 +487,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
         const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
         const digitsStr = typeof digits === "string" ? digits : "";
         const terminatorStr = typeof terminator === "string" ? terminator : "";
-        if (diagnostics.length < 10) {
+        if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
           diagnostics.push(
             `Fixed corrupted property value: "${propertyNameStr}":_CODE\`${digitsStr} -> "${propertyNameStr}": ${digitsStr}`,
           );
@@ -556,7 +556,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
             delimiterStr +
             whitespaceStr +
             sanitized.substring(endIndex + commaLength);
-          if (diagnostics.length < 10) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(`Removed invalid property block: ${invalidProp}`);
           }
           return "";
@@ -571,7 +571,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     const duplicateBracesPattern = /(})\s*\n\s*(}\s*\n\s*){2,}\s*$/;
     sanitized = sanitized.replace(duplicateBracesPattern, () => {
       hasChanges = true;
-      if (diagnostics.length < 10) {
+      if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
         diagnostics.push("Removed duplicate closing braces at end");
       }
       // Keep only one closing brace
@@ -598,7 +598,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
           const delimiterStr = typeof delimiter === "string" ? delimiter : "";
           const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
           const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
-          if (diagnostics.length < 10) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(
               `Fixed missing opening quote: ${propertyNameStr}" -> "${propertyNameStr}"`,
             );
@@ -653,7 +653,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
                 const delimiterStr = typeof delimiter === "string" ? delimiter : "";
                 const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
                 const stringValueStr = typeof stringValue === "string" ? stringValue : "";
-                if (diagnostics.length < 10) {
+                if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
                   diagnostics.push(
                     `Removed non-ASCII characters before array element: "${stringValueStr.substring(0, 30)}..."`,
                   );
@@ -691,7 +691,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
           hasChanges = true;
           const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
           const valueStr = typeof value === "string" ? value : "";
-          if (diagnostics.length < 10) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(
               `Fixed space before quote: "${propertyNameStr} " -> "${propertyNameStr}": "${valueStr}"`,
             );
@@ -722,7 +722,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
 
         if (isInArray && propertyNameStr.length > 0) {
           hasChanges = true;
-          if (diagnostics.length < 10) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(`Added missing comma after array element: "${value1Str}"`);
           }
           return `"${value1Str}",\n    "${propertyNameStr}":`;
@@ -756,7 +756,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
         // This handles cases like "name":toBe": "value" -> "name": "value"
         if (isPropertyContext) {
           hasChanges = true;
-          if (diagnostics.length < 10) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(
               `Fixed malformed property: "${propertyNameStr}":${insertedWordStr}": "${actualValueStr}" -> "${propertyNameStr}": "${actualValueStr}"`,
             );
@@ -841,7 +841,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
           const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
           const propertyWithQuoteStr =
             typeof propertyWithQuote === "string" ? propertyWithQuote : "";
-          if (diagnostics.length < 10) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(`Removed stray character '${strayChar}' before property`);
           }
           return `${delimiterStr}${whitespaceStr}${propertyWithQuoteStr}`;
@@ -871,7 +871,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
           const delimiterStr = typeof delimiter === "string" ? delimiter : "";
           const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
           const stringValueStr = typeof stringValue === "string" ? stringValue : "";
-          if (diagnostics.length < 10) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(
               `Removed stray text '${strayText}' before array element: "${stringValueStr.substring(0, 30)}..."`,
             );
@@ -944,7 +944,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
           const stringValueStr = typeof stringValue === "string" ? stringValue : "";
           const terminatorStr = typeof terminator === "string" ? terminator : "";
           const strayCharStr = typeof strayChar === "string" ? strayChar : "";
-          if (diagnostics.length < 10) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(
               `Removed single stray character '${strayCharStr}' before array element: "${stringValueStr.substring(0, 30)}..."`,
             );
@@ -976,7 +976,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
           const delimiterStr = typeof delimiter === "string" ? delimiter : "";
           const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
           const terminatorStr = typeof terminator === "string" ? terminator : "";
-          if (diagnostics.length < 10) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(`Removed malformed object: {${invalidProp}}`);
           }
           return `${delimiterStr}${whitespaceStr}{}${terminatorStr}`;
@@ -1003,7 +1003,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
           hasChanges = true;
           const delimiterStr = typeof delimiter === "string" ? delimiter : "";
           const nextTokenStr = typeof nextToken === "string" ? nextToken : "";
-          if (diagnostics.length < 10) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(`Removed stray text '${strayTextStr}' after ${delimiterStr}`);
           }
           return `${delimiterStr},${nextTokenStr}`;
@@ -1035,7 +1035,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
           const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
           const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
           const strayTextStr = typeof strayText === "string" ? strayText : "";
-          if (diagnostics.length < 10) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(
               `Removed stray text '${strayTextStr.trim()}' before property: "${propertyNameStr}"`,
             );
@@ -1066,7 +1066,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
         const closingBracketStr = typeof closingBracket === "string" ? closingBracket : "";
         const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
         const extraTextStr = typeof extraText === "string" ? extraText : "";
-        if (diagnostics.length < 10) {
+        if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
           diagnostics.push(`Added missing comma after array before ${extraTextStr}:`);
         }
         return `${closingBracketStr},\n${whitespaceStr}${extraTextStr}:`;
@@ -1086,7 +1086,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
         hasChanges = true;
         const delimiterStr = typeof delimiter === "string" ? delimiter : "";
         const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
-        if (diagnostics.length < 10) {
+        if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
           diagnostics.push(`Removed invalid property-like structure: ${invalidProp}=...`);
         }
         return `${delimiterStr}${whitespaceStr}`;
@@ -1110,7 +1110,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
         hasChanges = true;
         const newlinePrefixStr = typeof newlinePrefix === "string" ? newlinePrefix : "";
         const blockNameStr = typeof blockName === "string" ? blockName : "";
-        if (diagnostics.length < 10) {
+        if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
           diagnostics.push(`Removed YAML-like block: ${blockNameStr}:`);
         }
         return newlinePrefixStr;
@@ -1132,7 +1132,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
         hasChanges = true;
         const newlinePrefixStr = typeof newlinePrefix === "string" ? newlinePrefix : "";
         const jsonStartStr = typeof jsonStart === "string" ? jsonStart : "";
-        if (diagnostics.length < 10) {
+        if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
           diagnostics.push(`Removed extra_text= wrapper around JSON`);
         }
         return newlinePrefixStr + jsonStartStr;
@@ -1168,7 +1168,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
 
         if (isTruncatedText) {
           hasChanges = true;
-          if (diagnostics.length < 10) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(
               `Removed truncated/explanatory text: "${strayTextStr.substring(0, 50)}..."`,
             );
@@ -1202,7 +1202,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
 
         if (isTruncatedText) {
           hasChanges = true;
-          if (diagnostics.length < 10) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(
               `Removed truncated text and preserved string value: "${stringValueStr}"`,
             );
@@ -1237,7 +1237,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
           hasChanges = true;
           const delimiterStr = typeof delimiter === "string" ? delimiter : "";
           const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
-          if (diagnostics.length < 10) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(
               `Removed hostname/stray text "${hostnameStr.substring(0, 30)}..." before property: "${propertyNameStr}"`,
             );
@@ -1272,7 +1272,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
 
         if (isPropertyContext) {
           hasChanges = true;
-          if (diagnostics.length < 10) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(
               `Fixed malformed property with backtick: "${propertyNameStr}":\`${insertedWordStr}": "${actualValueStr}" -> "${propertyNameStr}": "${insertedWordStr}",`,
             );
@@ -1367,7 +1367,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
           const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
           const stringValueStr = typeof stringValue === "string" ? stringValue : "";
 
-          if (diagnostics.length < 10) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(
               `Fixed missing opening quote in array element: ${stringValueStr}" -> "${stringValueStr}"`,
             );
@@ -1422,7 +1422,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
                 const prefixStr = typeof prefix === "string" ? prefix : "";
                 const stringValueStr = typeof stringValue === "string" ? stringValue : "";
                 const strayTextStr = typeof strayText === "string" ? strayText : "";
-                if (diagnostics.length < 10) {
+                if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
                   diagnostics.push(
                     `Removed stray text '${strayTextStr}' and fixed missing opening quote: ${strayTextStr}"${stringValueStr}" -> "${stringValueStr}"`,
                   );
@@ -1488,7 +1488,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
                 const prefixWithComma = prefixStr.trim().endsWith(",")
                   ? prefixStr
                   : prefixStr.replace(/"\s*$/, '",');
-                if (diagnostics.length < 10) {
+                if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
                   diagnostics.push(
                     `Fixed missing comma and quote: ${stringValueStr}" -> "${stringValueStr}",`,
                   );
@@ -1529,7 +1529,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
           const delimiterStr = typeof delimiter === "string" ? delimiter : "";
           const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
           const quotedStringStr = typeof quotedString === "string" ? quotedString : "";
-          if (diagnostics.length < 10) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(
               `Removed stray character '${strayChar as string}' before array element: ${strayChar as string} ${quotedStringStr}`,
             );
@@ -1546,7 +1546,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     const truncatedEndPattern = /\.\.\.\s*\]\s*$/;
     sanitized = sanitized.replace(truncatedEndPattern, () => {
       hasChanges = true;
-      if (diagnostics.length < 10) {
+      if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
         diagnostics.push("Removed truncated ending ...]");
       }
       // Find the last proper closing bracket/brace before the truncation
@@ -1587,7 +1587,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
           hasChanges = true;
           const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
           const actualValueStr = typeof actualValue === "string" ? actualValue : "";
-          if (diagnostics.length < 10) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(
               `Fixed malformed property value: "${propertyNameStr}":...": "${actualValueStr}" -> "${propertyNameStr}": "${actualValueStr}"`,
             );
@@ -1613,7 +1613,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
         const beforeStr = typeof before === "string" ? before : "";
         const afterStr = typeof after === "string" ? after : "";
         const placeholderStr = typeof placeholder === "string" ? placeholder : "";
-        if (diagnostics.length < 10) {
+        if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
           diagnostics.push(`Removed placeholder text: ${placeholderStr}`);
         }
 
@@ -1639,7 +1639,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
         hasChanges = true;
         const delimiterStr = typeof delimiter === "string" ? delimiter : "";
         const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
-        if (diagnostics.length < 10) {
+        if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
           diagnostics.push("Removed Python-style triple quotes");
         }
         return `${delimiterStr}${whitespaceStr}`;
@@ -1649,7 +1649,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     // Also handle triple quotes at the end of the JSON
     sanitized = sanitized.replace(/"(""|""")\s*$/g, () => {
       hasChanges = true;
-      if (diagnostics.length < 10) {
+      if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
         diagnostics.push("Removed Python-style triple quotes at end");
       }
       return "";
@@ -1672,7 +1672,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
           hasChanges = true;
           const braceStr = typeof brace === "string" ? brace : "";
           const strayTextStr = typeof strayText === "string" ? strayText : "";
-          if (diagnostics.length < 10) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(`Removed stray text after closing brace: ${strayTextStr}`);
           }
           return braceStr;
@@ -1701,7 +1701,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
           hasChanges = true;
           const delimiterStr = typeof delimiter === "string" ? delimiter : "";
           const fullPath = `${prefix}.${middle}.${suffix}`;
-          if (diagnostics.length < 10) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(`Fixed missing comma and quote before array item: ${fullPath}`);
           }
           return `${delimiterStr},\n    "${fullPath}",\n`;
@@ -1736,7 +1736,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
           const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
           const valueStartStr = typeof valueStart === "string" ? valueStart : "";
           const truncatedStr = typeof truncated === "string" ? truncated : "";
-          if (diagnostics.length < 10) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(
               `Fixed truncated property name: ${truncatedStr}" -> "${fullProperty}"`,
             );
@@ -1768,7 +1768,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
           hasChanges = true;
           const beforeStr = typeof before === "string" ? before : "";
           const afterStr = typeof after === "string" ? after : "";
-          if (diagnostics.length < 10) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push("Removed extra closing brackets");
           }
           return `${beforeStr}\n${afterStr}`;
@@ -1798,7 +1798,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
           hasChanges = true;
           const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
           const actualValueStr = typeof actualValue === "string" ? actualValue : "";
-          if (diagnostics.length < 10) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(
               `Fixed malformed property: "${propertyNameStr}":${insertedWord}": "${actualValueStr}" -> "${propertyNameStr}": "${actualValueStr}"`,
             );
@@ -1833,7 +1833,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
           const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
           const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
           const valueStr = typeof value === "string" ? value : "";
-          if (diagnostics.length < 10) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(
               `Fixed missing opening quote: ${propertyNameStr}" -> "${propertyNameStr}"`,
             );
@@ -1876,7 +1876,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
           const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
           const propertyWithQuoteStr =
             typeof propertyWithQuote === "string" ? propertyWithQuote : "";
-          if (diagnostics.length < 10) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(`Removed stray character '${strayChar}' before property`);
           }
           return `${delimiterStr}${whitespaceStr}${propertyWithQuoteStr}`;
@@ -1907,7 +1907,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
           const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
           const propertyWithQuoteStr =
             typeof propertyWithQuote === "string" ? propertyWithQuote : "";
-          if (diagnostics.length < 10) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push("Removed markdown list marker (*) before property");
           }
           return `${delimiterStr}${whitespaceStr}${propertyWithQuoteStr}`;
@@ -1939,7 +1939,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
           const delimiterStr = typeof delimiter === "string" ? delimiter : "";
           const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
           const quotedElementStr = typeof quotedElement === "string" ? quotedElement : "";
-          if (diagnostics.length < 10) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push("Removed minus sign before array element");
           }
           return `${delimiterStr}${whitespaceStr}${quotedElementStr}`;
@@ -1971,7 +1971,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
           const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
           const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
           const valueStartStr = typeof valueStart === "string" ? valueStart : "";
-          if (diagnostics.length < 10) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(
               `Fixed missing quotes on property: ${propertyNameStr}: -> "${propertyNameStr}":`,
             );
@@ -2003,7 +2003,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
           hasChanges = true;
           const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
           const actualValueStr = typeof actualValue === "string" ? actualValue : "";
-          if (diagnostics.length < 10) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(
               `Fixed malformed property: "${propertyNameStr}":${insertedWord}": "${actualValueStr}" -> "${propertyNameStr}": "${actualValueStr}"`,
             );
@@ -2042,7 +2042,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
 
           if (isTruncatedText) {
             hasChanges = true;
-            if (diagnostics.length < 10) {
+            if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
               diagnostics.push(
                 `Removed truncated/explanatory text after final closing brace: "${strayTextStr.substring(0, 50)}..."`,
               );
@@ -2081,7 +2081,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
           const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
           const propertyWithQuoteStr =
             typeof propertyWithQuote === "string" ? propertyWithQuote : "";
-          if (diagnostics.length < 10) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push("Removed asterisk before property name");
           }
           return `${delimiterStr}${whitespaceStr}${propertyWithQuoteStr}`;
@@ -2107,7 +2107,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
         hasChanges = true;
         const delimiterStr = typeof delimiter === "string" ? delimiter : "";
         const afterStr = typeof after === "string" ? after : "";
-        if (diagnostics.length < 10) {
+        if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
           diagnostics.push("Removed stray dash after delimiter");
         }
         return `${delimiterStr}${afterStr}`;
@@ -2179,7 +2179,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
           hasChanges = true;
           const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
           const valueStr = typeof value === "string" ? value : "";
-          if (diagnostics.length < 10) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(
               `Fixed missing colon: "${propertyNameStr}" "${valueStr}" -> "${propertyNameStr}": "${valueStr}"`,
             );
@@ -2211,7 +2211,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
           const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
           const valueStr = typeof value === "string" ? value : "";
           const terminatorStr = typeof terminator === "string" ? terminator : "";
-          if (diagnostics.length < 10) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(
               `Fixed missing colon: "${propertyNameStr} "value" -> "${propertyNameStr}": "value"`,
             );
@@ -2244,7 +2244,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
           hasChanges = true;
           const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
           const valueStr = typeof value === "string" ? value : "";
-          if (diagnostics.length < 10) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(
               `Fixed typo in property name: "${propertyNameStr}":${typoChar}": "${valueStr}" -> "${propertyNameStr}": "${valueStr}"`,
             );
@@ -2278,7 +2278,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
           const delimiterStr = typeof delimiter === "string" ? delimiter : "";
           const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
           const stringValueStr = typeof stringValue === "string" ? stringValue : "";
-          if (diagnostics.length < 10) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(
               `Removed 'stop' before array element: "${stringValueStr.substring(0, 30)}..."`,
             );
@@ -2310,7 +2310,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
           hasChanges = true;
           const stringValueStr = typeof stringValue === "string" ? stringValue : "";
           const terminatorStr = typeof terminator === "string" ? terminator : "";
-          if (diagnostics.length < 10) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(
               `Removed stray character '${strayChar}' at end of string value: "${stringValueStr}"`,
             );
@@ -2345,7 +2345,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
           const delimiterStr = typeof delimiter === "string" ? delimiter : "";
           const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
           const nextTokenStr = typeof nextToken === "string" ? nextToken : "";
-          if (diagnostics.length < 10) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(`Removed stray character '${strayChar}' on its own line`);
           }
           return `${delimiterStr}${whitespaceStr}${nextTokenStr}`;
@@ -2379,7 +2379,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
           const delimiterStr = typeof delimiter === "string" ? delimiter : "";
           const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
           const stringValueStr = typeof stringValue === "string" ? stringValue : "";
-          if (diagnostics.length < 10) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(
               `Fixed missing opening quote before array element: ${stringValueStr}" -> "${stringValueStr}"`,
             );
@@ -2412,7 +2412,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
           hasChanges = true;
           const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
           const valueStr = typeof value === "string" ? value : "";
-          if (diagnostics.length < 10) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(
               `Fixed malformed property name with space: "${propertyNameStr} A": -> "${propertyNameStr}":`,
             );
@@ -2443,7 +2443,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
 
         if (looksLikeIdentifier) {
           hasChanges = true;
-          if (diagnostics.length < 10) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(
               `Removed non-ASCII characters from identifier: "${beforeStr}...${afterStr}"`,
             );
@@ -2475,7 +2475,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
           hasChanges = true;
           const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
           const valueStr = typeof value === "string" ? value : "";
-          if (diagnostics.length < 10) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(
               `Fixed malformed property structure: "${propertyNameStr}": ${strayChar}": "${valueStr}" -> "${propertyNameStr}": "${valueStr}"`,
             );
@@ -2512,7 +2512,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
         if (isInArray && looksLikeExplanatoryText) {
           hasChanges = true;
           const valueStr = typeof value === "string" ? value : "";
-          if (diagnostics.length < 10) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(
               `Removed stray explanatory text after array element: "${valueStr}" + "${strayTextStr}"`,
             );
@@ -2539,7 +2539,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
         hasChanges = true;
         const delimiterStr = typeof delimiter === "string" ? delimiter : "";
         const nextTokenStr = typeof nextToken === "string" ? nextToken : "";
-        if (diagnostics.length < 10) {
+        if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
           diagnostics.push("Removed explanatory text breaking JSON structure");
         }
         return `${delimiterStr},\n    ${nextTokenStr}`;
@@ -2571,7 +2571,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
           const delimiterStr = typeof delimiter === "string" ? delimiter : "";
           const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
           const closingBraceStr = typeof closingBrace === "string" ? closingBrace : "";
-          if (diagnostics.length < 10) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(`Removed stray character '${strayChar}' before closing brace`);
           }
           return `${delimiterStr}${whitespaceStr}${closingBraceStr}`;
@@ -2607,7 +2607,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
           const stringValueStr = typeof stringValue === "string" ? stringValue : "";
           const strayPrefixStr = typeof strayPrefix === "string" ? strayPrefix : "";
 
-          if (diagnostics.length < 10) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(
               `Removed stray text '${strayPrefixStr.trim()}' and fixed missing opening quote: ${strayPrefixStr}${stringValueStr}" -> "${stringValueStr}"`,
             );
@@ -2643,7 +2643,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
           const delimiterStr = typeof delimiter === "string" ? delimiter : "";
           const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
           const stringValueStr = typeof stringValue === "string" ? stringValue : "";
-          if (diagnostics.length < 10) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(
               `Removed stray text '${strayPrefix}' before quoted string: "${stringValueStr.substring(0, 30)}..."`,
             );
@@ -2687,7 +2687,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
             hasChanges = true;
             const delimiterStr = typeof delimiter === "string" ? delimiter : "";
             const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
-            if (diagnostics.length < 10) {
+            if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
               diagnostics.push(
                 `Fixed missing property name with fragment: ${fragmentStr}" -> "${inferredProperty}": "${fixedValue}"`,
               );
@@ -2698,7 +2698,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
           hasChanges = true;
           const delimiterStr = typeof delimiter === "string" ? delimiter : "";
           const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
-          if (diagnostics.length < 10) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(
               `Fixed missing property name: ${fragmentStr}" -> "${inferredProperty}"`,
             );
@@ -2733,7 +2733,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
           hasChanges = true;
           const valueStr = typeof value === "string" ? value : "";
           const nextPropertyStr = typeof nextProperty === "string" ? nextProperty : "";
-          if (diagnostics.length < 10) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(`Removed stray underscore after property value: "${valueStr}",_`);
           }
           return `"${valueStr}",${nextPropertyStr}`;
@@ -2807,7 +2807,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
           const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
           const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
           const valueStr = typeof value === "string" ? value : "";
-          if (diagnostics.length < 10) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(
               `Fixed missing quotes on property name: ${propertyNameStr}: -> "${propertyNameStr}":`,
             );
@@ -2855,7 +2855,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
           const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
           const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
           const terminatorStr = typeof terminator === "string" ? terminator : "";
-          if (diagnostics.length < 10) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(
               `Fixed missing quotes on property value: "${propertyNameStr}":${valueStr}" -> "${propertyNameStr}": "${valueStr}"`,
             );
@@ -2891,7 +2891,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
           const delimiterStr = typeof delimiter === "string" ? delimiter : "";
           const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
           const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
-          if (diagnostics.length < 10) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(
               `Removed stray character '${strayChar}' before property name: ${strayChar}"${propertyNameStr}" -> "${propertyNameStr}"`,
             );
@@ -2925,7 +2925,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
           hasChanges = true;
           const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
           const strayTextStr = typeof strayText === "string" ? strayText : "";
-          if (diagnostics.length < 10) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(
               `Removed stray text '${strayTextStr}' in property name: "${propertyNameStr}":${strayTextStr}": -> "${propertyNameStr}":`,
             );
@@ -2950,7 +2950,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
 
         hasChanges = true;
         const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
-        if (diagnostics.length < 10) {
+        if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
           diagnostics.push(
             `Fixed malformed property start: {- "${propertyNameStr}" -> { "${propertyNameStr}"`,
           );
@@ -2990,7 +2990,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
           const jsonKeywords = ["true", "false", "null", "undefined"];
           if (!jsonKeywords.includes(propertyNameStr.toLowerCase())) {
             hasChanges = true;
-            if (diagnostics.length < 10) {
+            if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
               diagnostics.push(
                 `Fixed missing quotes on property: ${propertyNameStr}: "${valueStr}" -> "${propertyNameStr}": "${valueStr}"`,
               );
@@ -3027,7 +3027,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
           const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
           const valueStr = typeof value === "string" ? value : "";
           const truncationMarkerStr = typeof truncationMarker === "string" ? truncationMarker : "";
-          if (diagnostics.length < 10) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(
               `Removed truncation marker: ${propertyNameStr}: ${valueStr},${truncationMarkerStr} -> ${propertyNameStr}: ${valueStr},`,
             );
@@ -3060,7 +3060,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
         if (isPropertyContext) {
           hasChanges = true;
           const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
-          if (diagnostics.length < 10) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(
               `Fixed string array to actual array: "${propertyNameStr}": "[]" -> "${propertyNameStr}": []`,
             );
@@ -3096,7 +3096,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
           const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
           const extraTextStr = typeof extraText === "string" ? extraText : "";
           const valueStr = typeof value === "string" ? value : "";
-          if (diagnostics.length < 10) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(
               `Fixed malformed property name: "${propertyNameStr}":${extraTextStr}": -> "${propertyNameStr}":`,
             );
@@ -3116,7 +3116,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
         return match;
       }
       hasChanges = true;
-      if (diagnostics.length < 10) {
+      if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
         diagnostics.push("Fixed {.json -> {");
       }
       // Preserve the whitespace/newline after {.json
@@ -3145,7 +3145,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
         hasChanges = true;
         const beforeStr = typeof before === "string" ? before : "";
         const afterStr = typeof after === "string" ? after : "";
-        if (diagnostics.length < 10) {
+        if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
           diagnostics.push(`Removed stray text '${strayTextStr}'`);
         }
         return `${beforeStr}${afterStr}`;
@@ -3164,7 +3164,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
         const beforeStr = typeof before === "string" ? before : "";
         const afterStr = typeof after === "string" ? after : "";
         const strayTextStr = typeof strayText === "string" ? strayText : "";
-        if (diagnostics.length < 10) {
+        if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
           diagnostics.push(`Removed stray text '${strayTextStr}'`);
         }
         return `${beforeStr}${afterStr}`;
@@ -3182,7 +3182,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
         hasChanges = true;
         const propertyValueStr = typeof propertyValue === "string" ? propertyValue : "";
         const afterStr = typeof after === "string" ? after : "";
-        if (diagnostics.length < 10) {
+        if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
           diagnostics.push("Removed trailing underscore after property value");
         }
         return `${propertyValueStr}${afterStr}`;
@@ -3202,7 +3202,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
         }
         hasChanges = true;
         const closingDelimiterStr = typeof closingDelimiter === "string" ? closingDelimiter : "";
-        if (diagnostics.length < 10) {
+        if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
           diagnostics.push(`Removed trailing comma before ${closingDelimiterStr}`);
         }
         return closingDelimiterStr;
@@ -3290,7 +3290,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
 
           // If we're in an array, convert to just the value (arrays can't have key-value pairs)
           if (isInArray) {
-            if (diagnostics.length < 10) {
+            if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
               diagnostics.push(
                 `Fixed property in array context: "${propertyNameStr}": "${valueStr}" -> "${valueStr}"`,
               );
@@ -3300,7 +3300,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
 
           // In object context, ensure the property name has a quote
           if (!hasQuote) {
-            if (diagnostics.length < 10) {
+            if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
               diagnostics.push(
                 `Fixed missing opening quote before property: ${propertyNameStr}": -> "${propertyNameStr}":`,
               );
@@ -3336,7 +3336,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       }
 
       hasChanges = true;
-      if (diagnostics.length < 10) {
+      if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
         diagnostics.push("Removed duplicate import statements embedded in JSON");
       }
       return "";
@@ -3364,7 +3364,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
         hasChanges = true;
         const delimiterStr = typeof delimiter === "string" ? delimiter : "";
         const afterStr = typeof after === "string" ? after : "";
-        if (diagnostics.length < 10) {
+        if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
           diagnostics.push(`Removed stray text '${strayTextStr}' after ${delimiterStr}`);
         }
         return `${delimiterStr}\n${afterStr}`;
@@ -3403,7 +3403,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
           const delimiterStr = typeof delimiter === "string" ? delimiter : "";
           const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
           const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
-          if (diagnostics.length < 10) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(
               `Fixed dash and quote before property: - "${propertyNameStr}": -> "${propertyNameStr}":`,
             );
@@ -3444,7 +3444,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
 
           // If quote is missing, add it
           if (!hasQuote) {
-            if (diagnostics.length < 10) {
+            if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
               diagnostics.push(
                 `Fixed missing opening quote before property: ${propertyNameStr}": -> "${propertyNameStr}":`,
               );
@@ -3477,7 +3477,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
         const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
         const unquotedValueStr = typeof unquotedValue === "string" ? unquotedValue : "";
         const quotedValueStr = typeof quotedValue === "string" ? quotedValue : "";
-        if (diagnostics.length < 10) {
+        if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
           diagnostics.push(
             `Fixed malformed parameter object: "${propertyNameStr}":${unquotedValueStr}": "${quotedValueStr}" -> "${propertyNameStr}": "${unquotedValueStr}"`,
           );
@@ -3514,7 +3514,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
           const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
           const valueStr = typeof value === "string" ? value : "";
           const terminatorStr = typeof terminator === "string" ? terminator : "";
-          if (diagnostics.length < 10) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(
               `Fixed missing quotes on property: ${propertyNameStr}: ${valueStr} -> "${propertyNameStr}": ${valueStr}`,
             );
@@ -3549,7 +3549,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
           const duplicatedPrefixStr = typeof duplicatedPrefix === "string" ? duplicatedPrefix : "";
           const restStr = typeof rest === "string" ? rest : "";
           const fixedName = `${duplicatedPrefixStr}${restStr}`;
-          if (diagnostics.length < 10) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(
               `Fixed duplicated property name: "${duplicatedPrefixStr}${duplicatedPrefixStr}${restStr}" -> "${fixedName}"`,
             );
@@ -3587,7 +3587,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
           const prefixStr = typeof prefix === "string" ? prefix : "";
           const propertyWithQuoteStr =
             typeof propertyWithQuote === "string" ? propertyWithQuote : "";
-          if (diagnostics.length < 10) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(`Removed asterisk before property: * ${propertyWithQuoteStr}`);
           }
           return `${prefixStr}${propertyWithQuoteStr}`;
@@ -3612,7 +3612,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
         const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
         const valueStr = typeof value === "string" ? value : "";
         const terminatorStr = typeof terminator === "string" ? terminator : "";
-        if (diagnostics.length < 10) {
+        if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
           diagnostics.push(
             `Fixed missing opening quote on value: "${propertyNameStr}":${valueStr}" -> "${propertyNameStr}": "${valueStr}"`,
           );
@@ -3642,7 +3642,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
         // We should fix it to "name": "value" (assuming the corrupted part is just noise)
         if (corruptedPartStr.length <= 5 && /^[a-z]+$/.test(corruptedPartStr)) {
           hasChanges = true;
-          if (diagnostics.length < 10) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(
               `Fixed corrupted property assignment: "${propertyNameStr}":${corruptedPartStr}": "${valueStr}" -> "${propertyNameStr}": "${valueStr}"`,
             );
@@ -3679,7 +3679,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
           !propertyPartStr.includes(" ")
         ) {
           hasChanges = true;
-          if (diagnostics.length < 10) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(
               `Fixed typo in property name: "${propertyPartStr} ${extraWordStr}" -> "${propertyPartStr}"`,
             );
@@ -3708,7 +3708,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
 
       if (isPackageName) {
         hasChanges = true;
-        if (diagnostics.length < 10) {
+        if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
           diagnostics.push(
             `Fixed underscore to dot in package name: "${fullMatch}" -> "${prefixStr}.${restStr}"`,
           );
@@ -3740,7 +3740,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
           const delimiterStr = typeof delimiter === "string" ? delimiter : "";
           const nextCharStr = typeof nextChar === "string" ? nextChar : "";
           const strayTextStr = typeof strayText === "string" ? strayText : "";
-          if (diagnostics.length < 10) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(`Removed stray text: "${strayTextStr.trim()}"`);
           }
           return `${delimiterStr}\n${nextCharStr}`;
@@ -3774,7 +3774,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
 
         if (isPropertyContext) {
           hasChanges = true;
-          if (diagnostics.length < 10) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(
               `Fixed missing colon after property name: "${propertyNameStr}" ${bracketStr} -> "${propertyNameStr}": ${bracketStr}`,
             );
@@ -3833,7 +3833,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       if (lastRootClosingBrace >= 0 && closingBraceIndex >= lastRootClosingBrace) {
         sanitized = sanitized.substring(0, lastRootClosingBrace + 1);
         hasChanges = true;
-        if (diagnostics.length < 10) {
+        if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
           diagnostics.push("Removed Java code after JSON closing brace");
         }
       }
@@ -3851,7 +3851,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
         }
         hasChanges = true;
         const propertyPartStr = typeof propertyPart === "string" ? propertyPart : "";
-        if (diagnostics.length < 10) {
+        if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
           diagnostics.push(`Removed binary corruption marker and fixed property name`);
         }
         // Add missing quote before property name
@@ -3866,7 +3866,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
         return match;
       }
       hasChanges = true;
-      if (diagnostics.length < 10) {
+      if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
         diagnostics.push(`Removed binary corruption marker: ${match}`);
       }
       return "";
@@ -3884,7 +3884,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
         }
         hasChanges = true;
         const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
-        if (diagnostics.length < 10) {
+        if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
           diagnostics.push(
             `Fixed wrong quote character in property name: ${wrongQuote}${propertyNameStr}" -> "${propertyNameStr}"`,
           );
@@ -3970,7 +3970,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
 
         if (isInArrayContext || foundArray || prefixStr === "[") {
           hasChanges = true;
-          if (diagnostics.length < 10) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(
               `Fixed missing opening quote in array element: ${prefixTextStr}"${packageNameStr}" -> "${fullPackageName}"`,
             );
@@ -4043,7 +4043,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
 
         if (isInArrayContext || foundArray || prefixStr === "[") {
           hasChanges = true;
-          if (diagnostics.length < 10) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(`Removed invalid property from array: ${invalidProp}`);
           }
           // Remove the invalid property
@@ -4097,7 +4097,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
 
           // Remove the duplicate property name and keep the value
           hasChanges = true;
-          if (diagnostics.length < 10) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(
               `Removed duplicate property name "${propertyNameStr}" in ${propertyNameStr} field`,
             );
@@ -4149,7 +4149,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
           // Otherwise, escape the quotes in the concatenated content to make it a valid string
           const escapedValue = firstValueStr.replace(/"/g, '\\"');
           hasChanges = true;
-          if (diagnostics.length < 10) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(
               `Fixed malformed JSON in ${propertyNameStr} field - escaped concatenated properties`,
             );
@@ -4234,7 +4234,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
           replacement: `"description": "${content}"${terminator}`,
         });
         hasChanges = true;
-        if (diagnostics.length < 10) {
+        if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
           diagnostics.push("Fixed unescaped quotes in description string value");
         }
       } else if (fixed && !foundClosing) {
@@ -4256,7 +4256,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
                 replacement: `"description": "${content}"${terminator}`,
               });
               hasChanges = true;
-              if (diagnostics.length < 10) {
+              if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
                 diagnostics.push("Fixed unescaped quotes in description string value");
               }
               break;
@@ -4322,7 +4322,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
           const quotedStringStr = typeof quotedString === "string" ? quotedString : "";
           const terminatorStr = typeof terminator === "string" ? terminator : "";
           const extraCharsStr = typeof extraChars === "string" ? extraChars : "";
-          if (diagnostics.length < 10) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(
               `Removed extra characters '${extraCharsStr}' before array element: "${quotedStringStr.substring(0, 30)}..."`,
             );
@@ -4354,7 +4354,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
         // Check if it's a single letter that's not part of a valid JSON value
         if (/^[a-z]$/i.test(extraTextStr) && !/^(true|false|null)$/i.test(extraTextStr)) {
           hasChanges = true;
-          if (diagnostics.length < 10) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(
               `Removed extra text '${extraTextStr}' after property value: "${propertyNameStr}": ${valueStr}, ${extraTextStr}`,
             );
@@ -4389,7 +4389,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
           const delimiterStr = typeof delimiter === "string" ? delimiter : "";
           const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
           const quotedElementStr = typeof quotedElement === "string" ? quotedElement : "";
-          if (diagnostics.length < 10) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push("Removed markdown list marker (*) in array");
           }
           return `${delimiterStr}${whitespaceStr}${quotedElementStr}`;
@@ -4422,7 +4422,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
           hasChanges = true;
           const stringValueStr = typeof stringValue === "string" ? stringValue : "";
           const terminatorStr = typeof terminator === "string" ? terminator : "";
-          if (diagnostics.length < 10) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(
               `Removed stray library/JAR name '${strayTextStr}' after string: "${stringValueStr.substring(0, 30)}..."`,
             );
@@ -4473,7 +4473,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
           const propertyWithQuoteStr =
             typeof propertyWithQuote === "string" ? propertyWithQuote : "";
           const configTextStr = typeof configText === "string" ? configText : "";
-          if (diagnostics.length < 10) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(
               `Removed config text '${configTextStr}' before property: ${propertyWithQuoteStr}`,
             );
@@ -4519,7 +4519,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
 
           if (looksLikePropertyName) {
             hasChanges = true;
-            if (diagnostics.length < 10) {
+            if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
               diagnostics.push(
                 `Fixed truncated property name: ${fragmentStr}": "${propertyValueStr}" -> "${propertyValueStr}": "${propertyValueStr}"`,
               );
