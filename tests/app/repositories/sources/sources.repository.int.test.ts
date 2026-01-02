@@ -114,7 +114,7 @@ describe("SourcesRepository Integration Tests", () => {
         // All results should be from the test project and TypeScript files
         results.forEach((result) => {
           expect(result.projectName).toBe(projectName);
-          expect(result.type).toBe("ts");
+          expect(result.fileType).toBe("ts");
           expect(result.content).toBeDefined();
           expect(result.summary).toBeDefined();
         });
@@ -162,7 +162,7 @@ describe("SourcesRepository Integration Tests", () => {
       if (results.length > 0) {
         results.forEach((r) => {
           expect(r.projectName).toBe(projectName);
-          expect(["ts", "java"]).toContain(r.type);
+          expect(["ts", "java"]).toContain(r.fileType);
         });
       }
     }, 30000);

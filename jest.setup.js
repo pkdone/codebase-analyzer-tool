@@ -26,7 +26,3 @@ if (!process.env.SHOW_TEST_LOGS || process.env.SHOW_TEST_LOGS === 'false') {
 		console.error = noop;
 	}
 }
-// OpenAI API variables - sourced from .env
-// Azure OpenAI API variables - sourced from .env
-// GCP VertexAI API variables - sourced from .env
-// AWS Bedrock API variables - sourced from .env
