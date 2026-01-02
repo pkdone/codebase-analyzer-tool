@@ -95,9 +95,7 @@ describe("pie-chart-calculator", () => {
     });
 
     it("should generate path data for each slice", () => {
-      const data: FileTypeData[] = [
-        { fileType: "js", files: 10, lines: 100 },
-      ];
+      const data: FileTypeData[] = [{ fileType: "js", files: 10, lines: 100 }];
       const result = calculatePieChartData(data);
       expect(result.slices[0].pathData).toContain("M");
       expect(result.slices[0].pathData).toContain("A");
@@ -125,17 +123,13 @@ describe("pie-chart-calculator", () => {
     });
 
     it("should use 'unknown' for empty file type labels", () => {
-      const data: FileTypeData[] = [
-        { fileType: "", files: 10, lines: 100 },
-      ];
+      const data: FileTypeData[] = [{ fileType: "", files: 10, lines: 100 }];
       const result = calculatePieChartData(data);
       expect(result.slices[0].label).toBe("unknown");
     });
 
     it("should include config values for template rendering", () => {
-      const data: FileTypeData[] = [
-        { fileType: "js", files: 10, lines: 100 },
-      ];
+      const data: FileTypeData[] = [{ fileType: "js", files: 10, lines: 100 }];
       const result = calculatePieChartData(data);
       expect(result.config.centerX).toBe(visualizationConfig.pieChart.CENTER_X);
       expect(result.config.centerY).toBe(visualizationConfig.pieChart.CENTER_Y);
@@ -157,9 +151,7 @@ describe("pie-chart-calculator", () => {
     });
 
     it("should calculate SVG height based on content", () => {
-      const smallData: FileTypeData[] = [
-        { fileType: "js", files: 10, lines: 100 },
-      ];
+      const smallData: FileTypeData[] = [{ fileType: "js", files: 10, lines: 100 }];
       const largeData: FileTypeData[] = Array(30)
         .fill(null)
         .map((_, i) => ({ fileType: `type${i}`, files: 10, lines: 100 }));
@@ -172,9 +164,7 @@ describe("pie-chart-calculator", () => {
     });
 
     it("should set SVG width from config", () => {
-      const data: FileTypeData[] = [
-        { fileType: "js", files: 10, lines: 100 },
-      ];
+      const data: FileTypeData[] = [{ fileType: "js", files: 10, lines: 100 }];
       const result = calculatePieChartData(data);
       expect(result.svgWidth).toBe(visualizationConfig.pieChart.SVG_WIDTH);
     });
@@ -191,4 +181,3 @@ describe("pie-chart-calculator", () => {
     });
   });
 });
-

@@ -1,6 +1,6 @@
 import { injectable } from "tsyringe";
 import { z } from "zod";
-import { promptRegistry } from "../../../../prompts/prompt-registry";
+import { getCategoryLabel } from "../../../../config/category-labels.config";
 import {
   AppSummaryCategories,
   nameDescSchema,
@@ -109,8 +109,7 @@ export class AppSummaryCategoriesProvider {
       (key): key is AppSummaryCategoryType => key !== "appDescription",
     );
     return standardCategoryKeys.map((category: AppSummaryCategoryType) => {
-      const config = promptRegistry.appSummaries[category];
-      const label = config.label ?? category;
+      const label = getCategoryLabel(category);
       const fieldData = appSummaryData[category];
 
       // Handle inferredArchitecture specially - it's an object, not an array

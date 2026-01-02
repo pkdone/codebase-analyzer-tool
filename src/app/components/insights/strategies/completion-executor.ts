@@ -10,7 +10,7 @@ import {
   appSummaryCategorySchemas,
   type AppSummaryCategorySchemas,
 } from "../insights.types";
-import { getSchemaSpecificSanitizerConfig } from "../config/sanitizer.config";
+import { getSchemaSpecificSanitizerConfig } from "../../../config/sanitizer.config";
 import { isOk } from "../../../../common/types/result.types";
 
 // Individual category schemas are simple and compatible with all LLM providers including VertexAI

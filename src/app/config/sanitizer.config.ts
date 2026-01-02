@@ -1,4 +1,4 @@
-import { LLMSanitizerConfig } from "../../../../common/llm/config/llm-module-config.types";
+import { LLMSanitizerConfig } from "../../common/llm/config/llm-module-config.types";
 
 /**
  * Schema-specific constants for sanitizers.

@@ -7,11 +7,9 @@ import {
   escapeMermaidLabel,
   generateNodeId,
   buildArrow,
-} from "../../../../../../src/app/components/reporting/generators/mermaid/mermaid-definition-builders";
-import {
   buildStyleDefinitions,
   applyStyle,
-} from "../../../../../../src/app/components/reporting/generators/mermaid/mermaid-styles.config";
+} from "../../../../../../src/app/components/reporting/diagrams";
 import { visualizationConfig } from "../../../../../../src/app/components/reporting/generators/visualization.config";
 
 describe("mermaid-definition-builders", () => {

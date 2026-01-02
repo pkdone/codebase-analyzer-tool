@@ -1,7 +1,7 @@
 import {
   buildStyleDefinitions,
   applyStyle,
-} from "../../../../../../src/app/components/reporting/generators/mermaid/mermaid-styles.config";
+} from "../../../../../../src/app/components/reporting/diagrams/utils/mermaid-styles";
 
 describe("mermaid-styles.config", () => {
   describe("buildStyleDefinitions", () => {

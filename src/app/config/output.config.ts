@@ -1,5 +1,6 @@
 /**
- * Output configuration
+ * Output configuration for the application.
+ * This is a global configuration used by multiple components (reporting, tasks, insights).
  */
 export const outputConfig = {
   OUTPUT_DIR: "output",

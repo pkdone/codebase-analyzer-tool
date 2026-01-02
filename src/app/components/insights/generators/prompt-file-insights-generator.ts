@@ -2,7 +2,7 @@ import path from "path";
 import os from "os";
 import { injectable } from "tsyringe";
 import { fileProcessingConfig } from "../../../config/file-processing.config";
-import { outputConfig } from "../../../components/reporting/config/output.config";
+import { outputConfig } from "../../../config/output.config";
 import { readFile, writeFile } from "../../../../common/fs/file-operations";
 import {
   listDirectoryEntries,
@@ -15,7 +15,7 @@ import { inject } from "tsyringe";
 import { llmTokens } from "../../../di/tokens";
 import LLMRouter from "../../../../common/llm/llm-router";
 import { LLMOutputFormat } from "../../../../common/llm/types/llm.types";
-import { formatDirectoryAsMarkdown } from "../../../../common/utils/directory-to-markdown";
+import { formatDirectoryAsMarkdown } from "../../../utils/codebase-formatting";
 import { formatDateForFilename } from "../../../../common/utils/date-utils";
 import { inputConfig } from "../../../prompts/config/input.config";
 import { isOk } from "../../../../common/types/result.types";

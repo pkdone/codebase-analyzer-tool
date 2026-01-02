@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import type LLMStats from "../../common/llm/tracking/llm-stats";
 import type { Task } from "./task.types";
-import { outputConfig } from "../components/reporting/config/output.config";
+import { outputConfig } from "../config/output.config";
 import { clearDirectory } from "../../common/fs/directory-operations";
 
 /**

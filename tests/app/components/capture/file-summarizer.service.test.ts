@@ -25,7 +25,7 @@ jest.mock("../../../../src/app/prompts/prompt-renderer", () => ({
   renderPrompt: jest.fn().mockReturnValue("rendered prompt"),
 }));
 
-jest.mock("../../../../src/app/components/insights/config/sanitizer.config", () => ({
+jest.mock("../../../../src/app/config/sanitizer.config", () => ({
   getSchemaSpecificSanitizerConfig: jest.fn().mockReturnValue({}),
 }));
 

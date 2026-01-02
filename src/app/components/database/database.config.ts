@@ -1,5 +1,5 @@
 import type { IndexSpecification } from "mongodb";
-import { SOURCE_FIELDS } from "../../repositories/sources/sources.model";
+import { SOURCE_FIELDS } from "../../schemas/sources.constants";
 
 /**
  * Database configuration

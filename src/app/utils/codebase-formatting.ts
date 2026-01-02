@@ -1,7 +1,18 @@
-import { findFilesRecursively } from "../fs/directory-operations";
-import { getFileExtension } from "../fs/path-utils";
-import { readFile } from "../fs/file-operations";
-import { formatFilesAsMarkdownCodeBlocksWithPath, type FileLike } from "./markdown-formatter";
+/**
+ * Codebase formatting utilities for LLM prompts.
+ *
+ * This module contains application-specific logic for formatting source code
+ * directories into markdown for LLM consumption. Unlike generic utilities in
+ * src/common/utils/, this module is specifically designed for the codebase
+ * analysis domain.
+ */
+import { findFilesRecursively } from "../../common/fs/directory-operations";
+import { getFileExtension } from "../../common/fs/path-utils";
+import { readFile } from "../../common/fs/file-operations";
+import {
+  formatFilesAsMarkdownCodeBlocksWithPath,
+  type FileLike,
+} from "../../common/utils/markdown-formatter";
 
 /**
  * Regex pattern to match trailing slash at end of string

@@ -134,4 +134,3 @@ export function calculatePieChartData(fileTypesData: FileTypeData[]): PieChartDa
     },
   };
 }
-

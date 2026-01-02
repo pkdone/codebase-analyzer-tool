@@ -6,7 +6,7 @@ import { repositoryTokens } from "../../../di/tokens";
 import { llmTokens } from "../../../di/tokens";
 import { coreTokens } from "../../../di/tokens";
 import type { IInsightsProcessor } from "./insights-processor.interface";
-import { formatDirectoryAsMarkdown } from "../../../../common/utils/directory-to-markdown";
+import { formatDirectoryAsMarkdown } from "../../../utils/codebase-formatting";
 import { fileProcessingConfig } from "../../../config/file-processing.config";
 import type { EnvVars } from "../../../env/env.types";
 import { logOneLineError, logOneLineWarning } from "../../../../common/utils/logging";

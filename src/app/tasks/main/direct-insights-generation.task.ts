@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import { injectable, inject } from "tsyringe";
-import { outputConfig } from "../../components/reporting/config/output.config";
+import { outputConfig } from "../../config/output.config";
 import { PromptFileInsightsGenerator } from "../../components/insights/generators/prompt-file-insights-generator";
 import type LLMStats from "../../../common/llm/tracking/llm-stats";
 import type { EnvVars } from "../../env/env.types";

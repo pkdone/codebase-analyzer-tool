@@ -1,19 +1,19 @@
 import "reflect-metadata";
 import {
-  CurrentArchitectureSvgGenerator,
+  CurrentArchitectureDiagramGenerator,
   type InferredArchitectureData,
-} from "../../../../../src/app/components/reporting/generators/svg/current-architecture-svg-generator";
+} from "../../../../../src/app/components/reporting/diagrams";
 
-describe("CurrentArchitectureSvgGenerator", () => {
-  let generator: CurrentArchitectureSvgGenerator;
+describe("CurrentArchitectureDiagramGenerator", () => {
+  let generator: CurrentArchitectureDiagramGenerator;
 
   beforeEach(() => {
-    generator = new CurrentArchitectureSvgGenerator();
+    generator = new CurrentArchitectureDiagramGenerator();
   });
 
-  describe("generateCurrentArchitectureDiagramSvg", () => {
+  describe("generateCurrentArchitectureDiagram", () => {
     it("should generate empty diagram when data is null", () => {
-      const result = generator.generateCurrentArchitectureDiagramSvg(null);
+      const result = generator.generateCurrentArchitectureDiagram(null);
 
       expect(result).toContain("No inferred architecture data available");
       expect(result).toContain("<svg");
@@ -26,7 +26,7 @@ describe("CurrentArchitectureSvgGenerator", () => {
         dependencies: [],
       };
 
-      const result = generator.generateCurrentArchitectureDiagramSvg(data);
+      const result = generator.generateCurrentArchitectureDiagram(data);
 
       expect(result).toContain("No inferred architecture data available");
     });
@@ -38,7 +38,7 @@ describe("CurrentArchitectureSvgGenerator", () => {
         dependencies: [],
       };
 
-      const result = generator.generateCurrentArchitectureDiagramSvg(data);
+      const result = generator.generateCurrentArchitectureDiagram(data);
 
       expect(result).toContain('<pre class="mermaid"');
       expect(result).toContain("</pre>");
@@ -54,7 +54,7 @@ describe("CurrentArchitectureSvgGenerator", () => {
         dependencies: [],
       };
 
-      const result = generator.generateCurrentArchitectureDiagramSvg(data);
+      const result = generator.generateCurrentArchitectureDiagram(data);
 
       expect(result).toContain("flowchart TB");
       expect(result).toContain("Order Manager");
@@ -73,7 +73,7 @@ describe("CurrentArchitectureSvgGenerator", () => {
         dependencies: [],
       };
 
-      const result = generator.generateCurrentArchitectureDiagramSvg(data);
+      const result = generator.generateCurrentArchitectureDiagram(data);
 
       expect(result).toContain("PostgreSQL");
       expect(result).toContain("Database");
@@ -95,7 +95,7 @@ describe("CurrentArchitectureSvgGenerator", () => {
         ],
       };
 
-      const result = generator.generateCurrentArchitectureDiagramSvg(data);
+      const result = generator.generateCurrentArchitectureDiagram(data);
 
       // Check for arrow syntax
       expect(result).toContain("-->");
@@ -108,7 +108,7 @@ describe("CurrentArchitectureSvgGenerator", () => {
         dependencies: [],
       };
 
-      const result = generator.generateCurrentArchitectureDiagramSvg(data);
+      const result = generator.generateCurrentArchitectureDiagram(data);
 
       expect(result).toMatch(/class\s+\w+\s+internalComponent/);
     });
@@ -120,7 +120,7 @@ describe("CurrentArchitectureSvgGenerator", () => {
         dependencies: [],
       };
 
-      const result = generator.generateCurrentArchitectureDiagramSvg(data);
+      const result = generator.generateCurrentArchitectureDiagram(data);
 
       expect(result).toMatch(/class\s+\w+\s+externalComponent/);
     });
@@ -138,7 +138,7 @@ describe("CurrentArchitectureSvgGenerator", () => {
       };
 
       // Should not throw
-      const result = generator.generateCurrentArchitectureDiagramSvg(data);
+      const result = generator.generateCurrentArchitectureDiagram(data);
       expect(result).toContain('<pre class="mermaid"');
     });
   });

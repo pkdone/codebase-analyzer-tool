@@ -4,10 +4,12 @@ import { reportingTokens } from "../tokens";
 // Reporting component imports
 import { HtmlReportWriter } from "../../components/reporting/html-report-writer";
 import { JsonReportWriter } from "../../components/reporting/json-report-writer";
-import { FlowchartSvgGenerator } from "../../components/reporting/generators/svg/flowchart-svg-generator";
-import { DomainModelSvgGenerator } from "../../components/reporting/generators/svg/domain-model-svg-generator";
-import { ArchitectureSvgGenerator } from "../../components/reporting/generators/svg/architecture-svg-generator";
-import { CurrentArchitectureSvgGenerator } from "../../components/reporting/generators/svg/current-architecture-svg-generator";
+import {
+  FlowchartDiagramGenerator,
+  DomainModelDiagramGenerator,
+  ArchitectureDiagramGenerator,
+  CurrentArchitectureDiagramGenerator,
+} from "../../components/reporting/diagrams";
 import { DatabaseReportDataProvider } from "../../components/reporting/sections/database/database-report-data-provider";
 import { IntegrationPointsDataProvider } from "../../components/reporting/sections/integration-points/integration-points-data-provider";
 import { AppStatisticsDataProvider } from "../../components/reporting/sections/quality-metrics/app-statistics-data-provider";
@@ -37,12 +39,18 @@ export function registerReportingComponents(): void {
   // Register report writers and generators
   container.registerSingleton(reportingTokens.HtmlReportWriter, HtmlReportWriter);
   container.registerSingleton(reportingTokens.JsonReportWriter, JsonReportWriter);
-  container.registerSingleton(reportingTokens.FlowchartSvgGenerator, FlowchartSvgGenerator);
-  container.registerSingleton(reportingTokens.DomainModelSvgGenerator, DomainModelSvgGenerator);
-  container.registerSingleton(reportingTokens.ArchitectureSvgGenerator, ArchitectureSvgGenerator);
+  container.registerSingleton(reportingTokens.FlowchartDiagramGenerator, FlowchartDiagramGenerator);
   container.registerSingleton(
-    reportingTokens.CurrentArchitectureSvgGenerator,
-    CurrentArchitectureSvgGenerator,
+    reportingTokens.DomainModelDiagramGenerator,
+    DomainModelDiagramGenerator,
+  );
+  container.registerSingleton(
+    reportingTokens.ArchitectureDiagramGenerator,
+    ArchitectureDiagramGenerator,
+  );
+  container.registerSingleton(
+    reportingTokens.CurrentArchitectureDiagramGenerator,
+    CurrentArchitectureDiagramGenerator,
   );
   container.registerSingleton(
     reportingTokens.DatabaseReportDataProvider,

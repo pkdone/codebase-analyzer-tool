@@ -1,18 +1,18 @@
 import "reflect-metadata";
 import {
-  BaseMermaidGenerator,
+  BaseDiagramGenerator,
   type BaseDiagramOptions,
   type DimensionConfig,
   type CalculatedDimensions,
-} from "../../../../../../src/app/components/reporting/generators/svg/base-mermaid-generator";
-import { DIAGRAM_STYLES } from "../../../../../../src/app/components/reporting/generators/mermaid/mermaid-definition-builders";
+  DIAGRAM_STYLES,
+} from "../../../../../../src/app/components/reporting/diagrams";
 
 interface TestDiagramOptions extends BaseDiagramOptions {
   customOption?: string;
 }
 
 // Concrete implementation for testing the abstract class
-class TestMermaidGenerator extends BaseMermaidGenerator<TestDiagramOptions> {
+class TestDiagramGeneratorImpl extends BaseDiagramGenerator<TestDiagramOptions> {
   protected readonly defaultOptions: Required<TestDiagramOptions> = {
     width: 800,
     height: 600,
@@ -41,11 +41,11 @@ class TestMermaidGenerator extends BaseMermaidGenerator<TestDiagramOptions> {
   }
 }
 
-describe("BaseMermaidGenerator", () => {
-  let generator: TestMermaidGenerator;
+describe("BaseDiagramGenerator", () => {
+  let generator: TestDiagramGeneratorImpl;
 
   beforeEach(() => {
-    generator = new TestMermaidGenerator();
+    generator = new TestDiagramGeneratorImpl();
   });
 
   describe("constructor", () => {

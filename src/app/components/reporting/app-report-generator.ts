@@ -15,7 +15,7 @@ import { reportSectionsConfig } from "./report-sections.config";
 import type { ReportSection } from "./sections/report-section.interface";
 import path from "path";
 import { promises as fs } from "fs";
-import { outputConfig } from "./config/output.config";
+import { outputConfig } from "../../config/output.config";
 import { htmlReportConstants } from "./html-report.constants";
 
 /**

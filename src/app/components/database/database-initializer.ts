@@ -5,10 +5,8 @@ import type { JsonSchema7Type } from "zod-to-json-schema";
 import { coreTokens } from "../../di/tokens";
 import { databaseConfig, STANDARD_INDEX_CONFIGS, type CollectionType } from "./database.config";
 import { logOneLineError } from "../../../common/utils/logging";
-import {
-  getJSONSchema as getSourcesJSONSchema,
-  SOURCE_FIELDS,
-} from "../../repositories/sources/sources.model";
+import { getJSONSchema as getSourcesJSONSchema } from "../../repositories/sources/sources.model";
+import { SOURCE_FIELDS } from "../../schemas/sources.constants";
 import { getJSONSchema as getAppSummariesJSONSchema } from "../../repositories/app-summaries/app-summaries.model";
 import {
   VectorSearchFilter,

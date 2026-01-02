@@ -1,8 +1,8 @@
 import { injectable, inject } from "tsyringe";
 import type { SourcesRepository } from "../../../../repositories/sources/sources.repository.interface";
 import { repositoryTokens } from "../../../../di/tokens";
-import type { ProcsAndTriggers, DatabaseIntegrationInfo } from "../../report-gen.types";
-import { Complexity, isComplexityLevel } from "../../report-gen.types";
+import type { ProcsAndTriggers, DatabaseIntegrationInfo, Complexity } from "./database.types";
+import { isComplexityLevel } from "./database.types";
 import { procedureTriggerSchema } from "../../../../schemas/sources.schema";
 import type { z } from "zod";
 import { logOneLineWarning } from "../../../../../common/utils/logging";

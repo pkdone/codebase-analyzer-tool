@@ -64,4 +64,3 @@ export const CONCATENATION_REGEXES = Object.freeze({
  * Matches binary corruption markers like <y_bin_XXX> that appear in LLM responses.
  */
 export const BINARY_CORRUPTION_REGEX = /<y_bin_\d+>/g;
-

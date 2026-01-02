@@ -10,7 +10,10 @@ import { PREBUILT_BLOCKS } from "../../../src/app/prompts/definitions/sources/so
 import { INSTRUCTION_SECTION_TITLES } from "../../../src/app/prompts/definitions/instruction-utils";
 import { LLMOutputFormat } from "../../../src/common/llm/types/llm.types";
 import { createReduceInsightsPrompt } from "../../../src/app/prompts/prompt-registry";
-import type { PromptDefinition, BasePromptConfigEntry } from "../../../src/app/prompts/prompt.types";
+import type {
+  PromptDefinition,
+  BasePromptConfigEntry,
+} from "../../../src/app/prompts/prompt.types";
 
 describe("Prompt Refactoring Improvements", () => {
   describe("createJsonPromptDefinition", () => {
@@ -168,7 +171,15 @@ describe("Prompt Refactoring Improvements", () => {
   });
 
   describe("createStandardCodeConfig (via sourceConfigMap)", () => {
-    const standardLanguages = ["java", "javascript", "csharp", "python", "ruby", "c", "cpp"] as const;
+    const standardLanguages = [
+      "java",
+      "javascript",
+      "csharp",
+      "python",
+      "ruby",
+      "c",
+      "cpp",
+    ] as const;
 
     it.each(standardLanguages)("should create valid config for %s", (language) => {
       const config = sourceConfigMap[language];

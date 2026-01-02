@@ -4,10 +4,11 @@ import {
   generateNodeId,
   buildArrow,
   buildArchitectureInitDirective,
-} from "../mermaid/mermaid-definition-builders";
-import { buildStyleDefinitions, applyStyle } from "../mermaid/mermaid-styles.config";
-import { BaseMermaidGenerator, type BaseDiagramOptions } from "./base-mermaid-generator";
-import { visualizationConfig } from "../visualization.config";
+  buildStyleDefinitions,
+  applyStyle,
+} from "../utils";
+import { BaseDiagramGenerator, type BaseDiagramOptions } from "./base-diagram-generator";
+import { visualizationConfig } from "../../generators/visualization.config";
 
 /**
  * Represents an internal business component inferred from the codebase.
@@ -44,19 +45,19 @@ export interface InferredArchitectureData {
   dependencies: InferredComponentDependency[];
 }
 
-export type CurrentArchitectureDiagramSvgOptions = BaseDiagramOptions;
+export type CurrentArchitectureDiagramOptions = BaseDiagramOptions;
 
 /**
  * Generates Mermaid diagrams for the current/inferred architecture.
  * Creates component-style diagrams showing internal business components and
  * their relationships to external dependencies.
- * Extends BaseMermaidGenerator to share common functionality.
+ * Extends BaseDiagramGenerator to share common functionality.
  *
  * Diagrams are rendered client-side using Mermaid.js.
  */
 @injectable()
-export class CurrentArchitectureSvgGenerator extends BaseMermaidGenerator<CurrentArchitectureDiagramSvgOptions> {
-  protected readonly defaultOptions: Required<CurrentArchitectureDiagramSvgOptions> = {
+export class CurrentArchitectureDiagramGenerator extends BaseDiagramGenerator<CurrentArchitectureDiagramOptions> {
+  protected readonly defaultOptions: Required<CurrentArchitectureDiagramOptions> = {
     width: visualizationConfig.currentArchitecture.DEFAULT_WIDTH,
     height: visualizationConfig.currentArchitecture.DEFAULT_HEIGHT,
   };
@@ -65,9 +66,9 @@ export class CurrentArchitectureSvgGenerator extends BaseMermaidGenerator<Curren
    * Generate diagram for the inferred/current architecture.
    * Returns HTML with embedded Mermaid definition for client-side rendering.
    */
-  generateCurrentArchitectureDiagramSvg(
+  generateCurrentArchitectureDiagram(
     architectureData: InferredArchitectureData | null,
-    options: CurrentArchitectureDiagramSvgOptions = {},
+    options: CurrentArchitectureDiagramOptions = {},
   ): string {
     this.mergeOptions(options);
 

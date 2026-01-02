@@ -2,13 +2,13 @@ import { injectable, inject } from "tsyringe";
 import type { ReportSection } from "../report-section.interface";
 import { reportingTokens } from "../../../../di/tokens";
 import { DomainModelDataProvider } from "./domain-model-data-provider";
-import { FlowchartSvgGenerator } from "../../generators/svg/flowchart-svg-generator";
-import { DomainModelSvgGenerator } from "../../generators/svg/domain-model-svg-generator";
-import { ArchitectureSvgGenerator } from "../../generators/svg/architecture-svg-generator";
 import {
-  CurrentArchitectureSvgGenerator,
+  FlowchartDiagramGenerator,
+  DomainModelDiagramGenerator,
+  ArchitectureDiagramGenerator,
+  CurrentArchitectureDiagramGenerator,
   type InferredArchitectureData,
-} from "../../generators/svg/current-architecture-svg-generator";
+} from "../../diagrams";
 import type { PreparedHtmlReportData } from "../../html-report-writer";
 import type { PreparedJsonData } from "../../json-report-writer";
 import type { ReportData } from "../../report-gen.types";
@@ -33,14 +33,14 @@ export class VisualizationsSection implements ReportSection {
   constructor(
     @inject(reportingTokens.DomainModelDataProvider)
     private readonly domainModelDataProvider: DomainModelDataProvider,
-    @inject(reportingTokens.FlowchartSvgGenerator)
-    private readonly flowchartSvgGenerator: FlowchartSvgGenerator,
-    @inject(reportingTokens.DomainModelSvgGenerator)
-    private readonly domainModelSvgGenerator: DomainModelSvgGenerator,
-    @inject(reportingTokens.ArchitectureSvgGenerator)
-    private readonly architectureSvgGenerator: ArchitectureSvgGenerator,
-    @inject(reportingTokens.CurrentArchitectureSvgGenerator)
-    private readonly currentArchitectureSvgGenerator: CurrentArchitectureSvgGenerator,
+    @inject(reportingTokens.FlowchartDiagramGenerator)
+    private readonly flowchartDiagramGenerator: FlowchartDiagramGenerator,
+    @inject(reportingTokens.DomainModelDiagramGenerator)
+    private readonly domainModelDiagramGenerator: DomainModelDiagramGenerator,
+    @inject(reportingTokens.ArchitectureDiagramGenerator)
+    private readonly architectureDiagramGenerator: ArchitectureDiagramGenerator,
+    @inject(reportingTokens.CurrentArchitectureDiagramGenerator)
+    private readonly currentArchitectureDiagramGenerator: CurrentArchitectureDiagramGenerator,
   ) {}
 
   getName(): string {
@@ -68,19 +68,19 @@ export class VisualizationsSection implements ReportSection {
     const domainModelData = this.domainModelDataProvider.getDomainModelData(
       baseData.categorizedData,
     );
-    const contextDiagramSvgs = this.domainModelSvgGenerator.generateMultipleContextDiagramsSvg(
+    const contextDiagramSvgs = this.domainModelDiagramGenerator.generateMultipleContextDiagrams(
       domainModelData.boundedContexts,
     );
 
     // Extract microservices data and generate architecture diagram (synchronous - client-side rendering)
     const microservicesData = this.extractMicroservicesData(baseData.categorizedData);
     const architectureDiagramSvg =
-      this.architectureSvgGenerator.generateArchitectureDiagramSvg(microservicesData);
+      this.architectureDiagramGenerator.generateArchitectureDiagram(microservicesData);
 
     // Extract inferred architecture data and generate current architecture diagram (synchronous)
     const inferredArchitectureData = this.extractInferredArchitectureData(baseData.categorizedData);
     const currentArchitectureDiagramSvg =
-      this.currentArchitectureSvgGenerator.generateCurrentArchitectureDiagramSvg(
+      this.currentArchitectureDiagramGenerator.generateCurrentArchitectureDiagram(
         inferredArchitectureData,
       );
 
@@ -129,7 +129,7 @@ export class VisualizationsSection implements ReportSection {
       keyBusinessActivities: extractKeyBusinessActivities(item) ?? [],
     }));
 
-    return this.flowchartSvgGenerator.generateMultipleFlowchartsSvg(businessProcesses);
+    return this.flowchartDiagramGenerator.generateMultipleFlowchartDiagrams(businessProcesses);
   }
 
   /**

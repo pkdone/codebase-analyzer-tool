@@ -13,7 +13,7 @@ import {
   CategoryInsightResult,
   appSummaryCategorySchemas,
 } from "../insights.types";
-import { getSchemaSpecificSanitizerConfig } from "../config/sanitizer.config";
+import { getSchemaSpecificSanitizerConfig } from "../../../config/sanitizer.config";
 import { executeInsightCompletion } from "./completion-executor";
 import { chunkTextByTokenLimit } from "../../../../common/llm/utils/text-chunking";
 import { isOk } from "../../../../common/types/result.types";

@@ -1,6 +1,6 @@
 import { injectable } from "tsyringe";
 import path from "path";
-import { outputConfig } from "./config/output.config";
+import { outputConfig } from "../../config/output.config";
 import { writeFile } from "../../../common/fs/file-operations";
 
 export interface PreparedJsonData {

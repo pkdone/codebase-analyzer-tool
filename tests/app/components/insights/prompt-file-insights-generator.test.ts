@@ -13,7 +13,7 @@ jest.mock("../../../../src/common/fs/file-operations", () => ({
   readFile: jest.fn(async () => "Question?"),
   writeFile: jest.fn(async () => undefined),
 }));
-jest.mock("../../../../src/common/utils/directory-to-markdown", () => ({
+jest.mock("../../../../src/app/utils/codebase-formatting", () => ({
   formatDirectoryAsMarkdown: jest.fn(async () => "CODEBLOCK"),
 }));
 jest.mock("../../../../src/common/llm/llm-router");

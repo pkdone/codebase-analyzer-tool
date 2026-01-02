@@ -1,6 +1,6 @@
 /**
  * Domain-specific style definitions for Mermaid diagrams.
- * These styles are used by various SVG generators to apply consistent
+ * These styles are used by various diagram generators to apply consistent
  * visual styling to domain model elements like bounded contexts, entities, etc.
  */
 

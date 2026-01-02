@@ -1,7 +1,7 @@
 import { injectable, inject } from "tsyringe";
 import type { SourcesRepository } from "../../../../repositories/sources/sources.repository.interface";
 import { repositoryTokens } from "../../../../di/tokens";
-import type { UiTechnologyAnalysis } from "../../report-gen.types";
+import type { UiTechnologyAnalysis } from "./quality-metrics.types";
 import { uiAnalysisConfig } from "../../config/ui-analysis.config";
 import { UNKNOWN_VALUE_PLACEHOLDER } from "../../../../../common/constants/application.constants";
 

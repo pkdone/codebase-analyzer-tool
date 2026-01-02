@@ -4,14 +4,14 @@ import LLMRouter from "../../../../src/common/llm/llm-router";
 import { EnvVars } from "../../../../src/app/env/env.types";
 import InsightsFromDBGenerator from "../../../../src/app/components/insights/generators/db-insights-generator";
 import InsightsFromRawCodeGenerator from "../../../../src/app/components/insights/generators/raw-code-insights-generator";
-import { formatDirectoryAsMarkdown } from "../../../../src/common/utils/directory-to-markdown";
+import { formatDirectoryAsMarkdown } from "../../../../src/app/utils/codebase-formatting";
 import { fileProcessingConfig } from "../../../../src/app/config/file-processing.config";
 import { llmProviderConfig } from "../../../../src/common/llm/config/llm.config";
 import { z } from "zod";
 import { LLMProviderManifest } from "../../../../src/common/llm/providers/llm-provider.types";
 
 // Mock dependencies
-jest.mock("../../../../src/common/utils/directory-to-markdown");
+jest.mock("../../../../src/app/utils/codebase-formatting");
 jest.mock("../../../../src/common/llm/config/llm.config", () => ({
   llmConfig: {
     LLM_ROLE_USER: "user",

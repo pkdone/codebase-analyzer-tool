@@ -1,4 +1,4 @@
-import { outputConfig } from "../../../../../src/app/components/reporting/config/output.config";
+import { outputConfig } from "../../../../../src/app/config/output.config";
 
 describe("outputConfig", () => {
   describe("basic configuration", () => {
@@ -50,4 +50,3 @@ describe("outputConfig", () => {
     });
   });
 });
-

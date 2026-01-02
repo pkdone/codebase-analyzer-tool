@@ -6,6 +6,7 @@ import {
   potentialMicroservicesSchema,
   technologiesSchema,
 } from "../../../schemas/app-summaries.schema";
+import { CATEGORY_LABELS } from "../../../config/category-labels.config";
 import { APP_SUMMARY_PROMPT_FRAGMENTS } from "./app-summaries.fragments";
 import { buildInstructionBlock } from "../instruction-utils";
 import { z } from "zod";
@@ -20,8 +21,9 @@ import type { BasePromptConfigEntry } from "../../prompt.types";
  *
  * @template S - The Zod schema type for validating the LLM response. Defaults to z.ZodType for backward compatibility.
  */
-export interface AppSummaryConfigEntry<S extends z.ZodType = z.ZodType>
-  extends BasePromptConfigEntry<S> {
+export interface AppSummaryConfigEntry<
+  S extends z.ZodType = z.ZodType,
+> extends BasePromptConfigEntry<S> {
   /** Label for UI display and logging (required for app summary configs) */
   label: string;
   /** Zod schema for validating the LLM response (required for app summary configs) */
@@ -46,7 +48,7 @@ export interface AppSummaryConfigEntry<S extends z.ZodType = z.ZodType>
  */
 export const appSummaryConfigMap = {
   appDescription: {
-    label: "Application Description",
+    label: CATEGORY_LABELS.appDescription,
     instructions: [
       buildInstructionBlock(
         "Instructions",
@@ -56,7 +58,7 @@ export const appSummaryConfigMap = {
     responseSchema: appDescriptionSchema,
   },
   technologies: {
-    label: "Technologies",
+    label: CATEGORY_LABELS.technologies,
     instructions: [
       buildInstructionBlock(
         "Instructions",
@@ -66,7 +68,7 @@ export const appSummaryConfigMap = {
     responseSchema: technologiesSchema,
   },
   businessProcesses: {
-    label: "Business Processes",
+    label: CATEGORY_LABELS.businessProcesses,
     instructions: [
       buildInstructionBlock(
         "Instructions",
@@ -76,7 +78,7 @@ export const appSummaryConfigMap = {
     responseSchema: businessProcessesSchema,
   },
   boundedContexts: {
-    label: "Domain Model",
+    label: CATEGORY_LABELS.boundedContexts,
     instructions: [
       buildInstructionBlock(
         "Instructions",
@@ -92,7 +94,7 @@ This hierarchical structure ensures consistent naming across all domain elements
     responseSchema: boundedContextsSchema,
   },
   potentialMicroservices: {
-    label: "Potential Microservices",
+    label: CATEGORY_LABELS.potentialMicroservices,
     instructions: [
       buildInstructionBlock(
         "Instructions",
@@ -102,7 +104,7 @@ This hierarchical structure ensures consistent naming across all domain elements
     responseSchema: potentialMicroservicesSchema,
   },
   inferredArchitecture: {
-    label: "Inferred Architecture",
+    label: CATEGORY_LABELS.inferredArchitecture,
     instructions: [
       buildInstructionBlock(
         "Instructions",

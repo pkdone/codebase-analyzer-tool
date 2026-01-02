@@ -15,9 +15,9 @@ describe("Reporting Registration Module", () => {
 
       expect(container.isRegistered(reportingTokens.HtmlReportWriter)).toBe(true);
       expect(container.isRegistered(reportingTokens.JsonReportWriter)).toBe(true);
-      expect(container.isRegistered(reportingTokens.FlowchartSvgGenerator)).toBe(true);
-      expect(container.isRegistered(reportingTokens.DomainModelSvgGenerator)).toBe(true);
-      expect(container.isRegistered(reportingTokens.ArchitectureSvgGenerator)).toBe(true);
+      expect(container.isRegistered(reportingTokens.FlowchartDiagramGenerator)).toBe(true);
+      expect(container.isRegistered(reportingTokens.DomainModelDiagramGenerator)).toBe(true);
+      expect(container.isRegistered(reportingTokens.ArchitectureDiagramGenerator)).toBe(true);
       expect(container.isRegistered(reportingTokens.AppReportGenerator)).toBe(true);
     });
 

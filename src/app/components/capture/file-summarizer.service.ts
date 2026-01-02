@@ -6,7 +6,7 @@ import { LLMOutputFormat } from "../../../common/llm/types/llm.types";
 import { renderPrompt } from "../../prompts/prompt-renderer";
 import { sourceSummarySchema } from "../../schemas/sources.schema";
 import { getCanonicalFileType } from "./config/file-types.config";
-import { getSchemaSpecificSanitizerConfig } from "../insights/config/sanitizer.config";
+import { getSchemaSpecificSanitizerConfig } from "../../config/sanitizer.config";
 import { llmTokens, captureTokens } from "../../di/tokens";
 import type { PromptRegistry } from "../../prompts/prompt-registry";
 import type { SourceConfigMap } from "../../prompts/definitions/sources/sources.definitions";

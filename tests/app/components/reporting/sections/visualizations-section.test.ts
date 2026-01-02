@@ -1,20 +1,22 @@
 import "reflect-metadata";
 import { VisualizationsSection } from "../../../../../src/app/components/reporting/sections/visualizations/visualizations-section";
 import { DomainModelDataProvider } from "../../../../../src/app/components/reporting/sections/visualizations/domain-model-data-provider";
-import { FlowchartSvgGenerator } from "../../../../../src/app/components/reporting/generators/svg/flowchart-svg-generator";
-import { DomainModelSvgGenerator } from "../../../../../src/app/components/reporting/generators/svg/domain-model-svg-generator";
-import { ArchitectureSvgGenerator } from "../../../../../src/app/components/reporting/generators/svg/architecture-svg-generator";
-import { CurrentArchitectureSvgGenerator } from "../../../../../src/app/components/reporting/generators/svg/current-architecture-svg-generator";
+import {
+  FlowchartDiagramGenerator,
+  DomainModelDiagramGenerator,
+  ArchitectureDiagramGenerator,
+  CurrentArchitectureDiagramGenerator,
+} from "../../../../../src/app/components/reporting/diagrams";
 import type { ReportData } from "../../../../../src/app/components/reporting/report-gen.types";
 import type { AppSummaryNameDescArray } from "../../../../../src/app/repositories/app-summaries/app-summaries.model";
 
 describe("VisualizationsSection", () => {
   let section: VisualizationsSection;
   let mockDomainModelDataProvider: jest.Mocked<DomainModelDataProvider>;
-  let mockFlowchartSvgGenerator: jest.Mocked<FlowchartSvgGenerator>;
-  let mockDomainModelSvgGenerator: jest.Mocked<DomainModelSvgGenerator>;
-  let mockArchitectureSvgGenerator: jest.Mocked<ArchitectureSvgGenerator>;
-  let mockCurrentArchitectureSvgGenerator: jest.Mocked<CurrentArchitectureSvgGenerator>;
+  let mockFlowchartDiagramGenerator: jest.Mocked<FlowchartDiagramGenerator>;
+  let mockDomainModelDiagramGenerator: jest.Mocked<DomainModelDiagramGenerator>;
+  let mockArchitectureDiagramGenerator: jest.Mocked<ArchitectureDiagramGenerator>;
+  let mockCurrentArchitectureDiagramGenerator: jest.Mocked<CurrentArchitectureDiagramGenerator>;
 
   beforeEach(() => {
     mockDomainModelDataProvider = {
@@ -26,30 +28,30 @@ describe("VisualizationsSection", () => {
       }),
     } as unknown as jest.Mocked<DomainModelDataProvider>;
 
-    mockFlowchartSvgGenerator = {
-      generateMultipleFlowchartsSvg: jest.fn().mockResolvedValue([]),
-    } as unknown as jest.Mocked<FlowchartSvgGenerator>;
+    mockFlowchartDiagramGenerator = {
+      generateMultipleFlowchartDiagrams: jest.fn().mockResolvedValue([]),
+    } as unknown as jest.Mocked<FlowchartDiagramGenerator>;
 
-    mockDomainModelSvgGenerator = {
-      generateMultipleContextDiagramsSvg: jest.fn().mockResolvedValue([]),
-    } as unknown as jest.Mocked<DomainModelSvgGenerator>;
+    mockDomainModelDiagramGenerator = {
+      generateMultipleContextDiagrams: jest.fn().mockResolvedValue([]),
+    } as unknown as jest.Mocked<DomainModelDiagramGenerator>;
 
-    mockArchitectureSvgGenerator = {
-      generateArchitectureDiagramSvg: jest.fn().mockResolvedValue("<svg>architecture</svg>"),
-    } as unknown as jest.Mocked<ArchitectureSvgGenerator>;
+    mockArchitectureDiagramGenerator = {
+      generateArchitectureDiagram: jest.fn().mockResolvedValue("<svg>architecture</svg>"),
+    } as unknown as jest.Mocked<ArchitectureDiagramGenerator>;
 
-    mockCurrentArchitectureSvgGenerator = {
-      generateCurrentArchitectureDiagramSvg: jest
+    mockCurrentArchitectureDiagramGenerator = {
+      generateCurrentArchitectureDiagram: jest
         .fn()
         .mockResolvedValue("<svg>current architecture</svg>"),
-    } as unknown as jest.Mocked<CurrentArchitectureSvgGenerator>;
+    } as unknown as jest.Mocked<CurrentArchitectureDiagramGenerator>;
 
     section = new VisualizationsSection(
       mockDomainModelDataProvider,
-      mockFlowchartSvgGenerator,
-      mockDomainModelSvgGenerator,
-      mockArchitectureSvgGenerator,
-      mockCurrentArchitectureSvgGenerator,
+      mockFlowchartDiagramGenerator,
+      mockDomainModelDiagramGenerator,
+      mockArchitectureDiagramGenerator,
+      mockCurrentArchitectureDiagramGenerator,
     );
   });
 
@@ -143,7 +145,7 @@ describe("VisualizationsSection", () => {
       const result = await section.prepareHtmlData(baseData, {}, "/output");
 
       expect(
-        mockCurrentArchitectureSvgGenerator.generateCurrentArchitectureDiagramSvg,
+        mockCurrentArchitectureDiagramGenerator.generateCurrentArchitectureDiagram,
       ).toHaveBeenCalledWith(
         expect.objectContaining({
           internalComponents: expect.arrayContaining([
@@ -202,7 +204,7 @@ describe("VisualizationsSection", () => {
 
       expect(result?.inferredArchitectureData).toBeNull();
       expect(
-        mockCurrentArchitectureSvgGenerator.generateCurrentArchitectureDiagramSvg,
+        mockCurrentArchitectureDiagramGenerator.generateCurrentArchitectureDiagram,
       ).toHaveBeenCalledWith(null);
     });
 

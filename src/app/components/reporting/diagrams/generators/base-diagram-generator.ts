@@ -1,4 +1,4 @@
-import { DIAGRAM_STYLES, generateEmptyDiagramSvg } from "../mermaid/mermaid-definition-builders";
+import { DIAGRAM_STYLES, generateEmptyDiagramSvg } from "../utils";
 
 /**
  * Base interface for diagram options with standard width and height properties.
@@ -44,10 +44,10 @@ export interface CalculatedDimensions {
  * - Empty diagram placeholder generation
  * - Dimension calculation utilities
  *
- * Diagrams are now rendered client-side using Mermaid.js. Generators return
+ * Diagrams are rendered client-side using Mermaid.js. Generators return
  * Mermaid definition strings that are embedded in HTML as <pre class="mermaid"> tags.
  */
-export abstract class BaseMermaidGenerator<TOptions extends BaseDiagramOptions> {
+export abstract class BaseDiagramGenerator<TOptions extends BaseDiagramOptions> {
   /**
    * Default options for diagram generation.
    * Subclasses must provide their own defaults with required width and height.

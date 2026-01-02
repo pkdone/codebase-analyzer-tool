@@ -3,7 +3,7 @@
  * Each builder converts a specific data structure into Mermaid syntax.
  */
 
-import { visualizationConfig } from "../visualization.config";
+import { visualizationConfig } from "../../generators/visualization.config";
 
 /**
  * Shared styling constants for SVG diagrams.

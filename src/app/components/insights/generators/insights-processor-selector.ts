@@ -6,7 +6,7 @@ import LLMRouter from "../../../../common/llm/llm-router";
 import type { EnvVars } from "../../../env/env.types";
 import type InsightsFromDBGenerator from "./db-insights-generator";
 import type InsightsFromRawCodeGenerator from "./raw-code-insights-generator";
-import { formatDirectoryAsMarkdown } from "../../../../common/utils/directory-to-markdown";
+import { formatDirectoryAsMarkdown } from "../../../utils/codebase-formatting";
 import { fileProcessingConfig } from "../../../config/file-processing.config";
 import { llmProviderConfig } from "../../../../common/llm/config/llm.config";
 

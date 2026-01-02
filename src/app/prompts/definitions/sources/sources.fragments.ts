@@ -1,4 +1,8 @@
-import { createDbMechanismInstructions, buildInstructionBlock, INSTRUCTION_SECTION_TITLES } from "../instruction-utils";
+import {
+  createDbMechanismInstructions,
+  buildInstructionBlock,
+  INSTRUCTION_SECTION_TITLES,
+} from "../instruction-utils";
 
 /**
  * Interface defining the expected structure for language-specific fragments.

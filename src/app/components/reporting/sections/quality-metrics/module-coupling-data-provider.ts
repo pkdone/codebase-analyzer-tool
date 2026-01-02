@@ -1,7 +1,7 @@
 import { injectable, inject } from "tsyringe";
 import type { SourcesRepository } from "../../../../repositories/sources/sources.repository.interface";
 import { repositoryTokens } from "../../../../di/tokens";
-import type { ModuleCoupling } from "../../report-gen.types";
+import type { ModuleCoupling } from "./quality-metrics.types";
 import { moduleCouplingConfig } from "../../config/module-coupling.config";
 
 type ModuleCouplingMap = Record<string, Record<string, number>>;

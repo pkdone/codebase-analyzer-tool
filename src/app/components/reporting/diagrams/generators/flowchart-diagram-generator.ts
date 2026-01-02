@@ -5,8 +5,9 @@ import {
   generateEmptyDiagramSvg,
   buildMermaidInitDirective,
   DIAGRAM_STYLES,
-} from "../mermaid/mermaid-definition-builders";
-import { buildStyleDefinitions, applyStyle } from "../mermaid/mermaid-styles.config";
+  buildStyleDefinitions,
+  applyStyle,
+} from "../utils";
 
 export interface BusinessProcessActivity {
   activity: string;
@@ -19,7 +20,7 @@ export interface BusinessProcess {
   keyBusinessActivities: BusinessProcessActivity[];
 }
 
-export interface FlowchartSvgOptions {
+export interface FlowchartDiagramOptions {
   width?: number;
   height?: number;
 }
@@ -31,12 +32,15 @@ export interface FlowchartSvgOptions {
  * Diagrams are rendered client-side using Mermaid.js.
  */
 @injectable()
-export class FlowchartSvgGenerator {
+export class FlowchartDiagramGenerator {
   /**
    * Generate flowchart for a single business process.
    * Returns HTML with embedded Mermaid definition for client-side rendering.
    */
-  generateFlowchartSvg(process: BusinessProcess, _options: FlowchartSvgOptions = {}): string {
+  generateFlowchartDiagram(
+    process: BusinessProcess,
+    _options: FlowchartDiagramOptions = {},
+  ): string {
     const activities = process.keyBusinessActivities;
 
     if (activities.length === 0) {
@@ -53,11 +57,11 @@ export class FlowchartSvgGenerator {
    * Generate flowcharts for multiple business processes.
    * Returns array of HTML strings with embedded Mermaid definitions.
    */
-  generateMultipleFlowchartsSvg(
+  generateMultipleFlowchartDiagrams(
     processes: BusinessProcess[],
-    options: FlowchartSvgOptions = {},
+    options: FlowchartDiagramOptions = {},
   ): string[] {
-    return processes.map((process) => this.generateFlowchartSvg(process, options));
+    return processes.map((process) => this.generateFlowchartDiagram(process, options));
   }
 
   /**

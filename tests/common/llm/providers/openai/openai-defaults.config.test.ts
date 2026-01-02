@@ -67,4 +67,3 @@ describe("openai-defaults.config", () => {
     });
   });
 });
-

@@ -1,7 +1,7 @@
 import { injectable, inject } from "tsyringe";
 import type { SourcesRepository } from "../../../../repositories/sources/sources.repository.interface";
 import { repositoryTokens } from "../../../../di/tokens";
-import type { ScheduledJobsSummary } from "../../report-gen.types";
+import type { ScheduledJobsSummary } from "./quality-metrics.types";
 import { extractTriggerType } from "./job-trigger-parser";
 
 /**

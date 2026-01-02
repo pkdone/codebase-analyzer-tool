@@ -3,10 +3,11 @@ import {
   escapeMermaidLabel,
   generateNodeId,
   buildMermaidInitDirective,
-} from "../mermaid/mermaid-definition-builders";
-import { buildStyleDefinitions, applyStyle } from "../mermaid/mermaid-styles.config";
-import { BaseMermaidGenerator, type BaseDiagramOptions } from "./base-mermaid-generator";
-import { visualizationConfig } from "../visualization.config";
+  buildStyleDefinitions,
+  applyStyle,
+} from "../utils";
+import { BaseDiagramGenerator, type BaseDiagramOptions } from "./base-diagram-generator";
+import { visualizationConfig } from "../../generators/visualization.config";
 
 export interface Microservice {
   name: string;
@@ -28,18 +29,18 @@ export interface Microservice {
   }[];
 }
 
-export type ArchitectureDiagramSvgOptions = BaseDiagramOptions;
+export type ArchitectureDiagramOptions = BaseDiagramOptions;
 
 /**
  * Generates Mermaid diagrams for microservices architecture.
  * Creates component-style diagrams showing microservices and their relationships.
- * Extends BaseMermaidGenerator to share common functionality.
+ * Extends BaseDiagramGenerator to share common functionality.
  *
  * Diagrams are rendered client-side using Mermaid.js.
  */
 @injectable()
-export class ArchitectureSvgGenerator extends BaseMermaidGenerator<ArchitectureDiagramSvgOptions> {
-  protected readonly defaultOptions: Required<ArchitectureDiagramSvgOptions> = {
+export class ArchitectureDiagramGenerator extends BaseDiagramGenerator<ArchitectureDiagramOptions> {
+  protected readonly defaultOptions: Required<ArchitectureDiagramOptions> = {
     width: visualizationConfig.architecture.DEFAULT_WIDTH,
     height: visualizationConfig.architecture.DEFAULT_HEIGHT,
   };
@@ -48,9 +49,9 @@ export class ArchitectureSvgGenerator extends BaseMermaidGenerator<ArchitectureD
    * Generate diagram for microservices architecture.
    * Returns HTML with embedded Mermaid definition for client-side rendering.
    */
-  generateArchitectureDiagramSvg(
+  generateArchitectureDiagram(
     microservices: Microservice[],
-    options: ArchitectureDiagramSvgOptions = {},
+    options: ArchitectureDiagramOptions = {},
   ): string {
     this.mergeOptions(options);
 

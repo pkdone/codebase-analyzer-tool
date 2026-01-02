@@ -3,28 +3,29 @@ import {
   escapeMermaidLabel,
   generateNodeId,
   buildMermaidInitDirective,
-} from "../mermaid/mermaid-definition-builders";
-import { buildStyleDefinitions, applyStyle } from "../mermaid/mermaid-styles.config";
+  buildStyleDefinitions,
+  applyStyle,
+} from "../utils";
 import type {
   DomainBoundedContext,
   DomainAggregate,
   DomainEntity,
 } from "../../sections/visualizations/domain-model-data-provider";
-import { BaseMermaidGenerator, type BaseDiagramOptions } from "./base-mermaid-generator";
-import { visualizationConfig } from "../visualization.config";
+import { BaseDiagramGenerator, type BaseDiagramOptions } from "./base-diagram-generator";
+import { visualizationConfig } from "../../generators/visualization.config";
 
-export type DomainDiagramSvgOptions = BaseDiagramOptions;
+export type DomainDiagramOptions = BaseDiagramOptions;
 
 /**
  * Generates Mermaid diagrams for domain models.
  * Creates hierarchical diagrams showing bounded contexts with their aggregates, entities, and repositories.
- * Extends BaseMermaidGenerator to share common functionality.
+ * Extends BaseDiagramGenerator to share common functionality.
  *
  * Diagrams are rendered client-side using Mermaid.js.
  */
 @injectable()
-export class DomainModelSvgGenerator extends BaseMermaidGenerator<DomainDiagramSvgOptions> {
-  protected readonly defaultOptions: Required<DomainDiagramSvgOptions> = {
+export class DomainModelDiagramGenerator extends BaseDiagramGenerator<DomainDiagramOptions> {
+  protected readonly defaultOptions: Required<DomainDiagramOptions> = {
     width: visualizationConfig.domainModel.DEFAULT_WIDTH,
     height: visualizationConfig.domainModel.DEFAULT_HEIGHT,
   };
@@ -33,9 +34,9 @@ export class DomainModelSvgGenerator extends BaseMermaidGenerator<DomainDiagramS
    * Generate diagram for a single bounded context.
    * Returns HTML with embedded Mermaid definition for client-side rendering.
    */
-  generateContextDiagramSvg(
+  generateContextDiagram(
     context: DomainBoundedContext,
-    options: DomainDiagramSvgOptions = {},
+    options: DomainDiagramOptions = {},
   ): string {
     this.mergeOptions(options);
 
@@ -53,11 +54,11 @@ export class DomainModelSvgGenerator extends BaseMermaidGenerator<DomainDiagramS
    * Generate diagrams for multiple bounded contexts.
    * Returns array of HTML strings with embedded Mermaid definitions.
    */
-  generateMultipleContextDiagramsSvg(
+  generateMultipleContextDiagrams(
     contexts: DomainBoundedContext[],
-    options: DomainDiagramSvgOptions = {},
+    options: DomainDiagramOptions = {},
   ): string[] {
-    return contexts.map((context) => this.generateContextDiagramSvg(context, options));
+    return contexts.map((context) => this.generateContextDiagram(context, options));
   }
 
   /**

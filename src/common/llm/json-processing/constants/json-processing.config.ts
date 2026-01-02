@@ -34,9 +34,7 @@ export const JSON_KEYWORDS = Object.freeze(["true", "false", "null"] as const);
  * JSON keywords as a Set for O(1) lookup performance.
  * Includes 'undefined' for compatibility with some LLM outputs.
  */
-export const JSON_KEYWORDS_SET = Object.freeze(
-  new Set(["true", "false", "null", "undefined"]),
-);
+export const JSON_KEYWORDS_SET = Object.freeze(new Set(["true", "false", "null", "undefined"]));
 
 /**
  * Code fence markers used by LLMs to wrap JSON responses.
