@@ -1,61 +1,44 @@
 /**
  * Strategy for fixing array element issues in JSON.
  * Handles missing quotes, missing commas, and stray text in arrays.
- * Uses generic dot-notation detection for schema-agnostic processing.
+ * Uses generic structural detection for schema-agnostic processing.
  */
 
 import type { LLMSanitizerConfig } from "../../../config/llm-module-config.types";
 import type { SanitizerStrategy, StrategyResult } from "../pipeline/sanitizer-pipeline.types";
 import { isInStringAt } from "../../utils/parser-context-utils";
-import { processingConfig } from "../../constants/json-processing.config";
+import { processingConfig, JSON_KEYWORDS_SET } from "../../constants/json-processing.config";
 import { looksLikeDotSeparatedIdentifier } from "../../utils/property-name-matcher";
 
 /**
- * JSON keywords that should never be removed as stray text.
- */
-const JSON_KEYWORDS = new Set(["true", "false", "null"]);
-
-/**
- * Regex pattern for common stray prefix words (prepositions, articles, conjunctions, keywords).
- * This pattern is used as a fallback for words that don't match the generic short-word detection.
- */
-const COMMON_STRAY_WORD_PATTERN =
-  /^(from|stop|package|import|and|or|the|a|an|to|of|in|for|with|by|at|on|as|is|are|was|were|be|been|has|have|had|do|does|did|but|so|yet|nor|via)$/i;
-
-/**
- * Checks if a word looks like a stray prefix word that shouldn't appear before array elements.
- * Uses generic pattern detection to identify stray words in a schema-agnostic manner.
+ * Checks if a word looks like stray text that shouldn't appear before array elements.
+ * Uses generic structural detection rather than hardcoded word lists.
  *
- * Detection strategy (in order):
- * 1. Never remove JSON keywords (true, false, null)
- * 2. Remove very short words (1-4 chars) that are all lowercase (e.g., "e", "ar", "from")
- * 3. Remove words matching common stray prefix patterns (prepositions, articles, etc.)
+ * Detection strategy:
+ * 1. Never remove JSON keywords (true, false, null, undefined)
+ * 2. Remove short words (1-6 chars) that are all lowercase
+ *    - In array context before a quoted string, these are almost always stray text
+ *    - This catches single chars like "e", "t", short prepositions like "from", "with", etc.
  *
- * This approach is more robust than a hardcoded word list because:
- * - Short lowercase words before quoted strings in arrays are almost always stray text
- * - The pattern-based fallback catches common cases without needing an exhaustive list
+ * This structural approach is more robust because:
+ * - Short lowercase words before quoted strings in arrays are definitionally invalid JSON
+ * - The context (array boundary + quoted string following) already provides the validation
  *
  * @param word - The word to check
- * @returns True if the word looks like a stray prefix that should be removed
+ * @returns True if the word looks like stray text that should be removed
  */
 function looksLikeStrayPrefixWord(word: string): boolean {
   const lowerWord = word.toLowerCase();
 
   // JSON keywords should never be removed
-  if (JSON_KEYWORDS.has(lowerWord)) {
+  if (JSON_KEYWORDS_SET.has(lowerWord)) {
     return false;
   }
 
-  // Generic detection: short words (1-4 chars) that are all lowercase
-  // This catches stray single chars like "e", "t", "ar" and short prepositions
+  // Generic structural detection: short lowercase words (1-7 chars)
   // In array context before a quoted string, these are almost always stray text
-  if (word.length <= 4 && /^[a-z]+$/.test(word)) {
-    return true;
-  }
-
-  // Pattern-based detection for longer common stray words
-  // This catches prepositions, articles, and conjunctions that might be longer than 4 chars
-  if (COMMON_STRAY_WORD_PATTERN.test(word)) {
+  // Extended to 7 chars to catch common stray words like "import", "package"
+  if (word.length <= 7 && /^[a-z]+$/.test(word)) {
     return true;
   }
 

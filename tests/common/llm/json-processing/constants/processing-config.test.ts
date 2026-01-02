@@ -1,6 +1,8 @@
 import {
   processingConfig,
   sanitizationConfig,
+  JSON_KEYWORDS,
+  JSON_KEYWORDS_SET,
 } from "../../../../../src/common/llm/json-processing/constants/json-processing.config";
 
 describe("JSON Processing Configuration", () => {
@@ -44,6 +46,52 @@ describe("JSON Processing Configuration", () => {
 
     it("should have sanitizationConfig as a frozen object", () => {
       expect(Object.isFrozen(sanitizationConfig)).toBe(true);
+    });
+  });
+
+  describe("JSON_KEYWORDS", () => {
+    it("should contain true, false, and null", () => {
+      expect(JSON_KEYWORDS).toContain("true");
+      expect(JSON_KEYWORDS).toContain("false");
+      expect(JSON_KEYWORDS).toContain("null");
+    });
+
+    it("should be a frozen array", () => {
+      expect(Object.isFrozen(JSON_KEYWORDS)).toBe(true);
+    });
+  });
+
+  describe("JSON_KEYWORDS_SET", () => {
+    it("should contain all JSON keywords plus undefined", () => {
+      expect(JSON_KEYWORDS_SET.has("true")).toBe(true);
+      expect(JSON_KEYWORDS_SET.has("false")).toBe(true);
+      expect(JSON_KEYWORDS_SET.has("null")).toBe(true);
+      expect(JSON_KEYWORDS_SET.has("undefined")).toBe(true);
+    });
+
+    it("should NOT contain common English words", () => {
+      // These were in the old EXCLUDED_STRAY_WORDS but should not be in JSON_KEYWORDS_SET
+      expect(JSON_KEYWORDS_SET.has("the")).toBe(false);
+      expect(JSON_KEYWORDS_SET.has("and")).toBe(false);
+      expect(JSON_KEYWORDS_SET.has("or")).toBe(false);
+      expect(JSON_KEYWORDS_SET.has("but")).toBe(false);
+    });
+
+    it("should be a frozen Set", () => {
+      expect(Object.isFrozen(JSON_KEYWORDS_SET)).toBe(true);
+    });
+
+    it("should provide O(1) lookup performance for keyword checking", () => {
+      // This test verifies the Set can be used efficiently in hot paths
+      const iterations = 10000;
+      const start = performance.now();
+      for (let i = 0; i < iterations; i++) {
+        JSON_KEYWORDS_SET.has("true");
+        JSON_KEYWORDS_SET.has("notakeyword");
+      }
+      const elapsed = performance.now() - start;
+      // Should complete in well under 100ms
+      expect(elapsed).toBeLessThan(100);
     });
   });
 });

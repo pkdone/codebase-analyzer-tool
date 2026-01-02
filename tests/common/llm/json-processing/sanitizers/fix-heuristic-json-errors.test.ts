@@ -619,7 +619,7 @@ provided that the conditions are met
     });
 
     describe("Pattern 4e: Generalized short word detection", () => {
-      it("should NOT remove common word 'the' before property (in exclusion list)", () => {
+      it("should remove short stray word 'the' before property (structural detection)", () => {
         const input = `{
   "databaseIntegration": {
     "tablesAccessed": []
@@ -629,9 +629,27 @@ the    "connectionInfo": "n/a"
 
         const result = fixHeuristicJsonErrors(input);
 
-        // 'the' is in the exclusion list, so it should not be removed
-        // This test verifies the exclusion list works correctly
-        expect(result.changed).toBe(false);
+        // 'the' is a short lowercase word (3 chars) outside of string context
+        // It should be removed as stray text since structural context ensures we're not in a string
+        // Only JSON keywords (true, false, null, undefined) are preserved
+        expect(result.changed).toBe(true);
+        expect(result.content).not.toContain("the    ");
+        expect(result.content).toContain('"connectionInfo"');
+        expect(() => JSON.parse(result.content)).not.toThrow();
+      });
+
+      it("should NOT remove JSON keywords before properties", () => {
+        const input = `{
+  "databaseIntegration": {
+    "tablesAccessed": []
+  },
+true    "connectionInfo": "n/a"
+}`;
+
+        const result = fixHeuristicJsonErrors(input);
+
+        // JSON keywords should never be removed even though they're short
+        expect(result.content).toContain("true");
       });
     });
 

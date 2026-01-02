@@ -1,7 +1,7 @@
 import { Sanitizer, SanitizerResult } from "./sanitizers-types";
 import { logOneLineWarning } from "../../../utils/logging";
 import { isInStringAt } from "../utils/parser-context-utils";
-import { EXCLUDED_STRAY_WORDS } from "../constants/json-processing.config";
+import { JSON_KEYWORDS_SET } from "../constants/json-processing.config";
 
 /**
  * Sanitizer that fixes various malformed JSON patterns found in LLM responses.
@@ -3078,8 +3078,8 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
         }
         const strayTextStr = typeof strayText === "string" ? strayText : "";
         const lowerStray = strayTextStr.toLowerCase();
-        // Skip JSON keywords and common English words that might appear contextually
-        if (EXCLUDED_STRAY_WORDS.has(lowerStray)) {
+        // Skip JSON keywords - structural context already ensures we're not in a string
+        if (JSON_KEYWORDS_SET.has(lowerStray)) {
           return match;
         }
         hasChanges = true;
@@ -3296,8 +3296,8 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
 
         const strayTextStr = typeof strayText === "string" ? strayText : "";
         const lowerStray = strayTextStr.toLowerCase();
-        // Skip JSON keywords and common English words that might appear contextually
-        if (EXCLUDED_STRAY_WORDS.has(lowerStray)) {
+        // Skip JSON keywords - structural context already ensures we're not in a string
+        if (JSON_KEYWORDS_SET.has(lowerStray)) {
           return match;
         }
 

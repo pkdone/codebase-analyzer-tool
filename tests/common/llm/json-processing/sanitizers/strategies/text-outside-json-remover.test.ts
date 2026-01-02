@@ -204,6 +204,37 @@ THEN "otherProperty"`;
       // Uppercase words may not match the pattern since regex uses [a-z]
       expect(result).toBeDefined();
     });
+
+    it("should remove generic short lowercase words (structural detection)", () => {
+      // These words were NOT in the original STRAY_FILLER_WORDS list
+      // but are now removed by generic short-word detection
+      const newlyRemovedWords = ["xyz", "abc", "test", "foo", "bar", "word"];
+
+      for (const word of newlyRemovedWords) {
+        const input = `{
+  "name": "test"
+},
+${word} "property"`;
+        const result = textOutsideJsonRemover.apply(input);
+        expect(result.changed).toBe(true);
+        expect(result.content).not.toContain(`${word} `);
+      }
+    });
+
+    it("should NOT remove JSON keywords before properties", () => {
+      // JSON keywords should never be removed
+      const jsonKeywords = ["true", "false", "null"];
+
+      for (const keyword of jsonKeywords) {
+        const input = `{
+  "name": "test"
+},
+${keyword} "property"`;
+        const result = textOutsideJsonRemover.apply(input);
+        // JSON keywords should be preserved
+        expect(result.content).toContain(keyword);
+      }
+    });
   });
 
   describe("Text after JSON structure", () => {

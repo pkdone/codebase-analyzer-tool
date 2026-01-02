@@ -200,13 +200,32 @@ describe("arrayElementFixer", () => {
       }
     });
 
-    it("should NOT remove longer words that are not in the pattern", () => {
-      // Words longer than 4 chars that don't match the pattern should be preserved
+    it("should remove medium-length words up to 7 chars in arrays", () => {
+      // Words up to 7 chars should be removed (catches "import", "package", etc.)
+      const input = '["item1", package "item2"]';
+      const result = arrayElementFixer.apply(input);
+      expect(result.content).toBe('["item1", "item2"]');
+      expect(result.changed).toBe(true);
+    });
+
+    it("should NOT remove longer words (8+ chars) in arrays", () => {
+      // Words longer than 7 chars should be preserved
       // (though they would be treated as part of the array element, which might fail JSON parsing)
       const input = '["item1", certainly "item2"]';
       const result = arrayElementFixer.apply(input);
-      // This should NOT be modified because "certainly" is too long and not in the pattern
+      // This should NOT be modified because "certainly" (9 chars) is too long
       expect(result.changed).toBe(false);
+    });
+
+    it("should NOT remove JSON keywords in arrays", () => {
+      // JSON keywords should never be removed regardless of length
+      const jsonKeywords = ["true", "false", "null"];
+      for (const keyword of jsonKeywords) {
+        const input = `["item1", ${keyword} "item2"]`;
+        const result = arrayElementFixer.apply(input);
+        // JSON keywords like "true" are 4 chars but should NOT be removed
+        expect(result.content).toContain(keyword);
+      }
     });
   });
 

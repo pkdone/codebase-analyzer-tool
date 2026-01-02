@@ -1,25 +1,41 @@
 /**
  * Strategy for removing text that appears outside JSON string values.
  * Handles LLM commentary, descriptive text, and stray text in JSON structures.
+ * Uses generic structural pattern detection for schema-agnostic processing.
  */
 
 import type { LLMSanitizerConfig } from "../../../config/llm-module-config.types";
 import type { SanitizerStrategy, StrategyResult } from "../pipeline/sanitizer-pipeline.types";
 import { isInStringAt } from "../../utils/parser-context-utils";
-import { STRAY_FILLER_WORDS } from "../../constants/json-processing.config";
+import { JSON_KEYWORDS_SET } from "../../constants/json-processing.config";
 
 /** Maximum diagnostics to collect */
 const MAX_DIAGNOSTICS = 20;
 
 /**
- * Checks if a word looks like a stray filler word that shouldn't appear before JSON properties.
- * Uses a curated Set of known stray filler words for O(1) lookup performance.
+ * Checks if a word looks like stray text that shouldn't appear before JSON properties.
+ * Uses generic structural detection rather than hardcoded word lists:
+ * 1. JSON keywords (true, false, null) are never stray
+ * 2. Short lowercase words (2-10 chars) in structural context are likely stray
  *
  * @param word - The word to check
- * @returns True if the word looks like a stray filler word
+ * @returns True if the word looks like stray text that should be removed
  */
-function looksLikeStrayFillerWord(word: string): boolean {
-  return STRAY_FILLER_WORDS.has(word.toLowerCase());
+function looksLikeStrayText(word: string): boolean {
+  const lowerWord = word.toLowerCase();
+
+  // JSON keywords should never be removed
+  if (JSON_KEYWORDS_SET.has(lowerWord)) {
+    return false;
+  }
+
+  // Short lowercase words (2-10 chars) appearing between structural delimiters
+  // and property names are almost always stray LLM filler text
+  if (/^[a-z]{2,10}$/.test(word)) {
+    return true;
+  }
+
+  return false;
 }
 
 /**
@@ -226,8 +242,8 @@ export const textOutsideJsonRemover: SanitizerStrategy = {
         const delimiterStr = typeof delimiter === "string" ? delimiter : "";
         const quoteStr = typeof quote === "string" ? quote : "";
 
-        // Use generic detection for stray filler words
-        if (looksLikeStrayFillerWord(strayWordStr)) {
+        // Use generic structural detection for stray text
+        if (looksLikeStrayText(strayWordStr)) {
           hasChanges = true;
           if (diagnostics.length < MAX_DIAGNOSTICS) {
             diagnostics.push(`Removed stray word '${strayWordStr}' before property`);
