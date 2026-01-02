@@ -58,7 +58,7 @@ export class DatabaseReportDataProvider {
   /**
    * Returns an aggregated summary of stored procedures and triggers from pre-generated summaries.
    */
-  async buildProceduresAndTriggersSummary(projectName: string): Promise<ProcsAndTriggers> {
+  async getStoredProceduresAndTriggers(projectName: string): Promise<ProcsAndTriggers> {
     const records = await this.sourcesRepository.getProjectStoredProceduresAndTriggers(projectName);
     const allProcs: ProcOrTrigItem[] = [];
     const allTrigs: ProcOrTrigItem[] = [];

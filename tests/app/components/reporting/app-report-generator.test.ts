@@ -7,7 +7,7 @@ import { AppStatisticsDataProvider } from "../../../../src/app/components/report
 import { AppSummaryCategoriesProvider } from "../../../../src/app/components/reporting/sections/file-types/categories-data-provider";
 import type { ReportSection } from "../../../../src/app/components/reporting/sections/report-section.interface";
 // Import types for type checking only
-import type { ReportData } from "../../../../src/app/components/reporting/report-gen.types";
+import type { ReportData } from "../../../../src/app/components/reporting/report-data.types";
 
 describe("AppReportGenerator", () => {
   let generator: AppReportGenerator;

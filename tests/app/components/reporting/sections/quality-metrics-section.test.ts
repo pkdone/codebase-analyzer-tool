@@ -5,7 +5,7 @@ import { CodeQualityDataProvider } from "../../../../../src/app/components/repor
 import { JobDataProvider } from "../../../../../src/app/components/reporting/sections/quality-metrics/job-data-provider";
 import { ModuleCouplingDataProvider } from "../../../../../src/app/components/reporting/sections/quality-metrics/module-coupling-data-provider";
 import { UiDataProvider } from "../../../../../src/app/components/reporting/sections/quality-metrics/ui-data-provider";
-import type { ReportData } from "../../../../../src/app/components/reporting/report-gen.types";
+import type { ReportData } from "../../../../../src/app/components/reporting/report-data.types";
 
 describe("QualityMetricsSection", () => {
   let section: QualityMetricsSection;

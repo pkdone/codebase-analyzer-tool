@@ -19,7 +19,7 @@ describe("DatabaseReportDataProvider", () => {
     test("should correctly aggregate empty array", async () => {
       mockSourcesRepository.getProjectStoredProceduresAndTriggers.mockResolvedValue([]);
 
-      const result = await provider.buildProceduresAndTriggersSummary("test-project");
+      const result = await provider.getStoredProceduresAndTriggers("test-project");
 
       expect(result.procs.total).toBe(0);
       expect(result.procs.low).toBe(0);
@@ -64,7 +64,7 @@ describe("DatabaseReportDataProvider", () => {
         },
       ]);
 
-      const result = await provider.buildProceduresAndTriggersSummary("test-project");
+      const result = await provider.getStoredProceduresAndTriggers("test-project");
 
       // Verify procedures aggregation
       expect(result.procs.total).toBe(2);
@@ -116,7 +116,7 @@ describe("DatabaseReportDataProvider", () => {
         },
       ]);
 
-      const result = await provider.buildProceduresAndTriggersSummary("test-project");
+      const result = await provider.getStoredProceduresAndTriggers("test-project");
 
       // INVALID complexity is now a valid value but gets skipped (not counted in any category)
       expect(result.procs.total).toBe(1);
@@ -160,7 +160,7 @@ describe("DatabaseReportDataProvider", () => {
         },
       ]);
 
-      const result = await provider.buildProceduresAndTriggersSummary("test-project");
+      const result = await provider.getStoredProceduresAndTriggers("test-project");
 
       // All complexity keys should be properly counted using type guard
       expect(result.procs.total).toBe(3);
@@ -221,7 +221,7 @@ describe("DatabaseReportDataProvider", () => {
         },
       ]);
 
-      const result = await provider.buildProceduresAndTriggersSummary("test-project");
+      const result = await provider.getStoredProceduresAndTriggers("test-project");
 
       expect(result.procs.total).toBe(3);
       expect(result.procs.low).toBe(1);
@@ -253,7 +253,7 @@ describe("DatabaseReportDataProvider", () => {
         },
       ]);
 
-      const result = await provider.buildProceduresAndTriggersSummary("test-project");
+      const result = await provider.getStoredProceduresAndTriggers("test-project");
 
       expect(result.procs.low).toBe(1);
       expect(result.procs.medium).toBe(0);
@@ -280,7 +280,7 @@ describe("DatabaseReportDataProvider", () => {
         },
       ]);
 
-      const result = await provider.buildProceduresAndTriggersSummary("test-project");
+      const result = await provider.getStoredProceduresAndTriggers("test-project");
 
       expect(result.procs.low).toBe(0);
       expect(result.procs.medium).toBe(1);
@@ -307,7 +307,7 @@ describe("DatabaseReportDataProvider", () => {
         },
       ]);
 
-      const result = await provider.buildProceduresAndTriggersSummary("test-project");
+      const result = await provider.getStoredProceduresAndTriggers("test-project");
 
       expect(result.procs.low).toBe(0);
       expect(result.procs.medium).toBe(0);
@@ -369,7 +369,7 @@ describe("DatabaseReportDataProvider", () => {
         },
       ]);
 
-      const result = await provider.buildProceduresAndTriggersSummary("test-project");
+      const result = await provider.getStoredProceduresAndTriggers("test-project");
 
       // Verify switch statement correctly counts all branches
       expect(result.procs.total).toBe(6);
@@ -415,7 +415,7 @@ describe("DatabaseReportDataProvider", () => {
         },
       ]);
 
-      const result = await provider.buildProceduresAndTriggersSummary("test-project");
+      const result = await provider.getStoredProceduresAndTriggers("test-project");
 
       // All three complexity levels should be handled
       expect(result.procs.low + result.procs.medium + result.procs.high).toBe(result.procs.total);

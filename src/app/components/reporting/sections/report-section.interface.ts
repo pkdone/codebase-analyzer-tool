@@ -1,6 +1,6 @@
 import type { PreparedHtmlReportData } from "../html-report-writer";
 import type { PreparedJsonData } from "../json-report-writer";
-import type { ReportData } from "../report-gen.types";
+import type { ReportData } from "../report-data.types";
 
 /**
  * Interface for report sections that encapsulate data fetching and processing for a specific part of the report.

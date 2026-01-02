@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import { DatabaseSection } from "../../../../../src/app/components/reporting/sections/database/database-section";
 import { DatabaseReportDataProvider } from "../../../../../src/app/components/reporting/sections/database/database-report-data-provider";
-import type { ReportData } from "../../../../../src/app/components/reporting/report-gen.types";
+import type { ReportData } from "../../../../../src/app/components/reporting/report-data.types";
 
 describe("DatabaseSection", () => {
   let section: DatabaseSection;
@@ -10,7 +10,7 @@ describe("DatabaseSection", () => {
   beforeEach(() => {
     mockDatabaseDataProvider = {
       getDatabaseInteractions: jest.fn(),
-      buildProceduresAndTriggersSummary: jest.fn(),
+      getStoredProceduresAndTriggers: jest.fn(),
     } as unknown as jest.Mocked<DatabaseReportDataProvider>;
 
     section = new DatabaseSection(mockDatabaseDataProvider);
@@ -38,7 +38,7 @@ describe("DatabaseSection", () => {
       };
 
       mockDatabaseDataProvider.getDatabaseInteractions.mockResolvedValue(mockDbInteractions);
-      mockDatabaseDataProvider.buildProceduresAndTriggersSummary.mockResolvedValue(
+      mockDatabaseDataProvider.getStoredProceduresAndTriggers.mockResolvedValue(
         mockProcsAndTriggers,
       );
 

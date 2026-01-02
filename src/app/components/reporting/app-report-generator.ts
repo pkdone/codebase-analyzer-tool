@@ -8,7 +8,7 @@ import {
   isCategorizedDataNameDescArray,
 } from "./sections/file-types/categories-data-provider";
 import type { AppSummariesRepository } from "../../repositories/app-summaries/app-summaries.repository.interface";
-import type { ReportData } from "./report-gen.types";
+import type { ReportData } from "./report-data.types";
 import { TableViewModel, type DisplayableTableRow } from "./view-models/table-view-model";
 import { convertToDisplayName } from "../../../common/utils/text-utils";
 import { reportSectionsConfig } from "./report-sections.config";

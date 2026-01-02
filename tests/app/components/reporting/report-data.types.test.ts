@@ -1,13 +1,13 @@
 import {
   isComplexityLevel,
   Complexity,
-} from "../../../../src/app/components/reporting/report-gen.types";
+} from "../../../../src/app/components/reporting/report-data.types";
 
 /**
- * Tests for report-gen.types, specifically testing the Set-based membership
+ * Tests for report-data.types, specifically testing the Set-based membership
  * testing optimization for isComplexityLevel type guard.
  */
-describe("report-gen.types - Set-based membership testing", () => {
+describe("report-data.types - Set-based membership testing", () => {
   describe("isComplexityLevel type guard", () => {
     describe("valid complexity values", () => {
       it("should return true for LOW complexity", () => {

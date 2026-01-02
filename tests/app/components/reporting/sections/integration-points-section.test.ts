@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import { IntegrationPointsSection } from "../../../../../src/app/components/reporting/sections/integration-points/integration-points-section";
 import { IntegrationPointsDataProvider } from "../../../../../src/app/components/reporting/sections/integration-points/integration-points-data-provider";
-import type { ReportData } from "../../../../../src/app/components/reporting/report-gen.types";
+import type { ReportData } from "../../../../../src/app/components/reporting/report-data.types";
 
 describe("IntegrationPointsSection", () => {
   let section: IntegrationPointsSection;

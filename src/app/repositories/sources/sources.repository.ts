@@ -1,5 +1,5 @@
 import { MongoClient, Sort, Document } from "mongodb";
-import { Double } from "bson";
+import { numbersToBsonDoubles } from "../../../common/mongodb/bson-utils";
 import { SourcesRepository } from "./sources.repository.interface";
 import {
   SourceRecordWithId,
@@ -203,7 +203,7 @@ export default class SourcesRepositoryImpl
   ): Promise<ProjectedSourceMetataContentAndSummary[]> {
     // Convert number[] to Double[] to work around MongoDB driver issue
     // See: https://jira.mongodb.org/browse/NODE-5714
-    const queryVectorDoubles = this.numbersToBsonDoubles(queryVector);
+    const queryVectorDoubles = numbersToBsonDoubles(queryVector);
 
     const pipeline = [
       {
@@ -541,15 +541,4 @@ export default class SourcesRepositoryImpl
     return this.collection.find<ProjectedSourceSummaryFields>(query, options).toArray();
   }
 
-  /**
-   * Iterates through the numbers in the array and converts each one explicitly to a BSON Double.
-   * This works around a MongoDB driver issue.
-   * @see https://jira.mongodb.org/browse/NODE-5714
-   *
-   * @param numbers The array of numbers to convert.
-   * @returns The array of BSON Doubles.
-   */
-  private numbersToBsonDoubles(numbers: number[]): Double[] {
-    return numbers.map((number) => new Double(number));
-  }
 }

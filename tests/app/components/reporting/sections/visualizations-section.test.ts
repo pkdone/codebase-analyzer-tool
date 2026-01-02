@@ -7,7 +7,7 @@ import {
   ArchitectureDiagramGenerator,
   CurrentArchitectureDiagramGenerator,
 } from "../../../../../src/app/components/reporting/diagrams";
-import type { ReportData } from "../../../../../src/app/components/reporting/report-gen.types";
+import type { ReportData } from "../../../../../src/app/components/reporting/report-data.types";
 import type { AppSummaryNameDescArray } from "../../../../../src/app/repositories/app-summaries/app-summaries.model";
 
 describe("VisualizationsSection", () => {

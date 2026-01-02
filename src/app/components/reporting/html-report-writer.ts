@@ -12,7 +12,7 @@ import type {
   ScheduledJobsSummary,
   ModuleCoupling,
   UiTechnologyAnalysis,
-} from "./report-gen.types";
+} from "./report-data.types";
 import type { ProjectedFileTypesCountAndLines } from "../../repositories/sources/sources.model";
 import type { TableViewModel } from "./view-models/table-view-model";
 import type { CategorizedDataItem } from "./sections/file-types/categories-data-provider";

@@ -2,7 +2,7 @@ import "reflect-metadata";
 import { FileTypesSection } from "../../../../../src/app/components/reporting/sections/file-types/file-types-section";
 import { SourcesRepository } from "../../../../../src/app/repositories/sources/sources.repository.interface";
 import type { ProjectedFileTypesCountAndLines } from "../../../../../src/app/repositories/sources/sources.model";
-import type { ReportData } from "../../../../../src/app/components/reporting/report-gen.types";
+import type { ReportData } from "../../../../../src/app/components/reporting/report-data.types";
 
 describe("FileTypesSection", () => {
   let section: FileTypesSection;
