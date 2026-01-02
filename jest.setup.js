@@ -7,7 +7,9 @@ dotenv.config();
 
 // Mock environment variables that might be needed during testing
 process.env.NODE_ENV = 'test';
-process.env.LLM = 'AzureOpenAI';
+// Note: LLM should come from .env to ensure test consistency with production configuration
+// Do not override LLM here - let it be loaded from .env by dotenv.config() above
+process.env.LLM ||= 'AzureOpenAI'; // Only set default if not already defined in .env
 process.env.CODEBASE_DIR_PATH = "/test/path/petstore1.3.2";
 // Use MONGODB_URL from .env if it exists, otherwise use a default
 process.env.MONGODB_URL ||= "mongodb://localhost:27017/test";

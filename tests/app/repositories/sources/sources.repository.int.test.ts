@@ -6,31 +6,12 @@ import { SourceRecord } from "../../../../src/app/repositories/sources/sources.m
 import {
   setupTestDatabase,
   teardownTestDatabase,
+  getVectorDimensions,
 } from "../../../common/helpers/database/db-test-helper";
-import { loadManifestForModelFamily } from "../../../../src/common/llm/utils/manifest-loader";
-
-// Helper function to get the vector dimensions from the configured LLM provider
-async function getEmbeddingDimensions(): Promise<number> {
-  const modelFamily = process.env.LLM;
-  if (!modelFamily) {
-    throw new Error("LLM environment variable is not set. Cannot determine embedding dimensions.");
-  }
-
-  try {
-    const manifest = loadManifestForModelFamily(modelFamily);
-    return manifest.models.embeddings.dimensions ?? 1536; // Handle potential undefined
-  } catch (error) {
-    console.warn(
-      `Failed to load manifest for ${modelFamily}, falling back to default 1536 dimensions:`,
-      error,
-    );
-    return 1536; // Default fallback
-  }
-}
 
 // Helper function to create test vectors of the correct size based on configured LLM
 async function createTestVector(seed = 0.1): Promise<number[]> {
-  const dimensions = await getEmbeddingDimensions();
+  const dimensions = await getVectorDimensions();
   const vector = [];
   for (let i = 0; i < dimensions; i++) {
     // Create a deterministic but varied vector based on seed and position

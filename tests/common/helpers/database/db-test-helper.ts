@@ -12,9 +12,10 @@ let testMongoClient: MongoClient | null = null;
 let testDbName: string | null = null;
 
 /**
- * Get the vector dimensions from the configured LLM provider for database initialization
+ * Get the vector dimensions from the configured LLM provider for database initialization.
+ * Exported for reuse in integration tests that need to create test vectors.
  */
-async function getVectorDimensions(): Promise<number> {
+export async function getVectorDimensions(): Promise<number> {
   const modelFamily = process.env.LLM;
   if (!modelFamily) {
     console.warn("LLM environment variable is not set. Using default 1536 dimensions.");
