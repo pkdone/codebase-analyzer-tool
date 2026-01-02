@@ -44,6 +44,66 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     let hasChanges = false;
     const diagnostics: string[] = [];
 
+    // Fix unclosed arrays before property names (run EARLY to prevent other patterns from misinterpreting)
+    // Pattern: `},"propertyName":` in array context -> `}],"propertyName":`
+    // This handles cases where the LLM forgets to close an array before moving to the next property
+    // Example: `"parameters": [{ "name": "...", "type": "..." },"returnType": "..."` should be
+    // `"parameters": [{ "name": "...", "type": "..." }],"returnType": "..."`
+    const unclosedArrayBeforePropertyPattern =
+      /(\})\s*,\s*(\n?\s*)"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:/g;
+    sanitized = sanitized.replace(
+      unclosedArrayBeforePropertyPattern,
+      (match, _closingBrace, whitespace, propertyName, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in an unclosed array context by scanning backwards
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 1000), offset);
+        let bracketDepth = 0;
+        let inString = false;
+        let escape = false;
+
+        for (let i = beforeMatch.length - 1; i >= 0; i--) {
+          const char = beforeMatch[i];
+          if (escape) {
+            escape = false;
+            continue;
+          }
+          if (char === "\\") {
+            escape = true;
+            continue;
+          }
+          if (char === '"') {
+            inString = !inString;
+            continue;
+          }
+          if (!inString) {
+            if (char === "]") {
+              bracketDepth++;
+            } else if (char === "[") {
+              bracketDepth--;
+              // If we found an unclosed bracket (bracketDepth < 0), we're in an array
+              if (bracketDepth < 0) {
+                // We're inside an unclosed array - need to close it
+                hasChanges = true;
+                const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
+                const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
+                if (diagnostics.length < 10) {
+                  diagnostics.push(
+                    `Fixed unclosed array before property "${propertyNameStr}": inserted missing ]`,
+                  );
+                }
+                return `}],${whitespaceStr}"${propertyNameStr}":`;
+              }
+            }
+          }
+        }
+
+        return match;
+      },
+    );
+
     // Fix corrupted entries like _MODULE", _CODE", _ANY_UPPERCASE_CONSTANT"
     // Generic pattern matches any uppercase identifier starting with underscore in array context
 

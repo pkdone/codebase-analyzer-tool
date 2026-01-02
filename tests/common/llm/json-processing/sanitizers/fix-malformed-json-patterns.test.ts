@@ -1485,4 +1485,110 @@ e"org.apache.fineract.interoperation.data.InteropTransactionsData",
       expect(result.content).toContain('"cv"');
     });
   });
+
+  describe("Pattern 52: Unclosed array before property name", () => {
+    it("should fix missing closing bracket when array contains single object", () => {
+      const input = `{
+  "name": "TestClass",
+  "parameters": [
+    {
+      "name": "searchParameters",
+      "type": "SearchParameters"
+    },
+  "returnType": "Page<Data>",
+  "description": "Test description"
+}`;
+
+      const result = fixMalformedJsonPatterns(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain("}],");
+      expect(result.content).toContain('"returnType": "Page<Data>"');
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+
+    it("should fix missing closing bracket with multiple objects in array", () => {
+      const input = `{
+  "publicFunctions": [
+    {
+      "name": "method1",
+      "returnType": "void"
+    },
+    {
+      "name": "method2",
+      "returnType": "string"
+    },
+  "description": "Class description"
+}`;
+
+      const result = fixMalformedJsonPatterns(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain("}],");
+      expect(result.content).toContain('"description": "Class description"');
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+
+    it("should handle nested structure with unclosed parameters array", () => {
+      const input = `{
+  "name": "ServiceImpl",
+  "publicFunctions": [
+    {
+      "name": "retrieveOne",
+      "parameters": [
+        {
+          "name": "id",
+          "type": "Long"
+        },
+      "returnType": "AdHocData",
+      "description": "Retrieves a single item"
+    }
+  ]
+}`;
+
+      const result = fixMalformedJsonPatterns(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain("}],");
+      expect(result.content).toContain('"returnType": "AdHocData"');
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+
+    it("should not modify properly closed arrays", () => {
+      const input = `{
+  "name": "TestClass",
+  "parameters": [
+    {
+      "name": "param1",
+      "type": "String"
+    }
+  ],
+  "returnType": "void"
+}`;
+
+      const result = fixMalformedJsonPatterns(input);
+
+      // Should not change already valid JSON
+      expect(() => JSON.parse(result.content)).not.toThrow();
+      // If the input is valid JSON, it should not be changed
+      const parsed = JSON.parse(result.content);
+      expect(parsed.parameters).toHaveLength(1);
+      expect(parsed.returnType).toBe("void");
+    });
+
+    it("should handle whitespace variations in unclosed array pattern", () => {
+      const input = `{
+  "parameters": [
+    { "name": "e", "type": "BeansException" },
+      "returnType": "void",
+      "description": "Constructor"
+}`;
+
+      const result = fixMalformedJsonPatterns(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain("}],");
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+  });
 });
