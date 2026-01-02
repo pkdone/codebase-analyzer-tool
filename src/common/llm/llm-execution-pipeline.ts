@@ -12,7 +12,7 @@ import { RetryStrategy } from "./strategies/retry-strategy";
 import { determineNextAction } from "./strategies/fallback-strategy";
 import { adaptPromptFromResponse } from "./strategies/prompt-adaptation-strategy";
 import LLMStats from "./tracking/llm-stats";
-import { hasSignificantSanitizationSteps } from "../json-processing";
+import { hasSignificantSanitizationSteps } from "./json-processing/sanitizers";
 import type { LLMExecutionResult } from "./types/llm-execution-result.types";
 import { LLMExecutionError } from "./types/llm-execution-result.types";
 import { logOneLineWarning } from "../utils/logging";
