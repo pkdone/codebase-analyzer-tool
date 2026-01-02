@@ -9,7 +9,7 @@ import { getCanonicalFileType } from "./config/file-types.config";
 import { getSchemaSpecificSanitizerConfig } from "../insights/config/sanitizer.config";
 import { llmTokens, captureTokens } from "../../di/tokens";
 import type { PromptRegistry } from "../../prompts/prompt-registry";
-import type { SourceConfigMap } from "../../prompts/definitions/sources/sources.config";
+import type { SourceConfigMap } from "../../prompts/definitions/sources/sources.definitions";
 import { type Result, ok, err, isOk } from "../../../common/types/result.types";
 
 /**

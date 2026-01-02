@@ -148,10 +148,7 @@ export default class AppReportGenerator {
    */
   private async copyMermaidJsToAssets(outputDir: string): Promise<void> {
     const assetsDir = path.join(outputDir, htmlReportConstants.directories.ASSETS);
-    const mermaidPath = path.join(
-      assetsDir,
-      htmlReportConstants.externalAssets.MERMAID_UMD_FILENAME,
-    );
+    const mermaidPath = path.join(assetsDir, outputConfig.externalAssets.MERMAID_UMD_FILENAME);
 
     try {
       await fs.mkdir(assetsDir, { recursive: true });
@@ -184,7 +181,7 @@ export default class AppReportGenerator {
       }
 
       console.log("Downloading Mermaid.js for offline report support...");
-      const response = await fetch(htmlReportConstants.externalAssets.MERMAID_CDN_UMD_URL);
+      const response = await fetch(outputConfig.externalAssets.MERMAID_CDN_UMD_URL);
       if (!response.ok) {
         throw new Error(`Failed to download Mermaid.js: ${response.status} ${response.statusText}`);
       }

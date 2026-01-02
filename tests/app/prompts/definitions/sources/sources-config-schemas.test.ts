@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { sourceConfigMap } from "../../../../../src/app/prompts/definitions/sources/sources.config";
+import { sourceConfigMap } from "../../../../../src/app/prompts/definitions/sources/sources.definitions";
 import { sourceSummarySchema } from "../../../../../src/app/schemas/sources.schema";
 import {
   CANONICAL_FILE_TYPES,

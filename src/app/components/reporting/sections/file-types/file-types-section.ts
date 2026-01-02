@@ -10,6 +10,7 @@ import type { PreparedJsonData } from "../../json-report-writer";
 import type { ReportData } from "../../report-gen.types";
 import { SECTION_NAMES } from "../../reporting.constants";
 import { UNKNOWN_VALUE_PLACEHOLDER } from "../../../../../common/constants/application.constants";
+import { calculatePieChartData } from "./pie-chart-calculator";
 
 /**
  * Report section for file types data.
@@ -60,8 +61,12 @@ export class FileTypesSection implements ReportSection {
       [htmlReportConstants.columnHeaders.LINES_COUNT]: item.lines,
     }));
 
+    // Calculate pie chart data (moved from EJS template)
+    const pieChartData = calculatePieChartData(processedFileTypesData);
+
     return {
       fileTypesData: processedFileTypesData,
+      pieChartData,
       fileTypesTableViewModel: new TableViewModel(fileTypesDisplayData),
     };
   }

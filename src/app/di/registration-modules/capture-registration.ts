@@ -5,7 +5,7 @@
 import { container } from "tsyringe";
 import { captureTokens } from "../tokens";
 import { promptRegistry } from "../../prompts/prompt-registry";
-import { sourceConfigMap } from "../../prompts/definitions/sources/sources.config";
+import { sourceConfigMap } from "../../prompts/definitions/sources/sources.definitions";
 import { FileSummarizerService } from "../../components/capture/file-summarizer.service";
 
 /**

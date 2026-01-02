@@ -1,5 +1,7 @@
 /**
- * Constants used in HTML report generation
+ * Constants used in HTML report generation.
+ * Contains structural constants like directory names, column headers, and HTML templates.
+ * Note: External asset URLs/paths are in output.config.ts since they may need versioning updates.
  */
 
 // Define base directory names once
@@ -35,13 +37,5 @@ export const htmlReportConstants = {
   html: {
     LINK_TEMPLATE: (href: string, text: string, target = "_blank"): string =>
       `<a href="${href}" target="${target}">${text}</a>`,
-  },
-
-  /**
-   * External asset URLs for downloading dependencies
-   */
-  externalAssets: {
-    MERMAID_CDN_UMD_URL: "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js",
-    MERMAID_UMD_FILENAME: "mermaid.min.js",
   },
 } as const;

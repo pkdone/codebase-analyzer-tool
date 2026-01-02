@@ -3,7 +3,7 @@ import {
   appSummaryConfigMap,
   AppSummaryConfigEntry,
   type AppSummaryConfigMap,
-} from "../../../../../src/app/prompts/definitions/app-summaries/app-summaries.config";
+} from "../../../../../src/app/prompts/definitions/app-summaries/app-summaries.definitions";
 import { AppSummaryCategories } from "../../../../../src/app/schemas/app-summaries.schema";
 
 /**

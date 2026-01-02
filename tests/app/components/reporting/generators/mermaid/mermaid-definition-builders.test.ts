@@ -2,6 +2,7 @@ import "reflect-metadata";
 import {
   DIAGRAM_STYLES,
   buildMermaidInitDirective,
+  buildArchitectureInitDirective,
   generateEmptyDiagramSvg,
   escapeMermaidLabel,
   generateNodeId,
@@ -11,6 +12,7 @@ import {
   buildStyleDefinitions,
   applyStyle,
 } from "../../../../../../src/app/components/reporting/generators/mermaid/mermaid-styles.config";
+import { visualizationConfig } from "../../../../../../src/app/components/reporting/generators/visualization.config";
 
 describe("mermaid-definition-builders", () => {
   describe("DIAGRAM_STYLES", () => {
@@ -61,6 +63,43 @@ describe("mermaid-definition-builders", () => {
       const result = buildMermaidInitDirective();
 
       expect(result).toMatch(/^%%{init:.*}%%$/);
+    });
+  });
+
+  describe("buildArchitectureInitDirective", () => {
+    it("should generate init directive with architecture-specific settings", () => {
+      const result = buildArchitectureInitDirective();
+
+      expect(result).toContain("%%{init:");
+      expect(result).toContain("flowchart");
+      expect(result).toContain("diagramPadding");
+      expect(result).toContain("nodeSpacing");
+      expect(result).toContain("rankSpacing");
+    });
+
+    it("should use values from visualization config", () => {
+      const { mermaidInit } = visualizationConfig.currentArchitecture;
+      const result = buildArchitectureInitDirective();
+
+      expect(result).toContain(`'diagramPadding': ${mermaidInit.DIAGRAM_PADDING}`);
+      expect(result).toContain(`'nodeSpacing': ${mermaidInit.NODE_SPACING}`);
+      expect(result).toContain(`'rankSpacing': ${mermaidInit.RANK_SPACING}`);
+    });
+
+    it("should generate valid Mermaid init directive syntax", () => {
+      const result = buildArchitectureInitDirective();
+
+      expect(result).toMatch(/^%%{init:.*}%%$/);
+    });
+
+    it("should differ from the basic init directive", () => {
+      const basicDirective = buildMermaidInitDirective();
+      const archDirective = buildArchitectureInitDirective();
+
+      // Architecture directive has more settings
+      expect(archDirective.length).toBeGreaterThan(basicDirective.length);
+      expect(archDirective).toContain("nodeSpacing");
+      expect(basicDirective).not.toContain("nodeSpacing");
     });
   });
 

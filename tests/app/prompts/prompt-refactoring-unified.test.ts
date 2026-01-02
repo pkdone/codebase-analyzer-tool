@@ -3,8 +3,8 @@ import { promptRegistry } from "../../../src/app/prompts/prompt-registry";
 import { SOURCES_PROMPT_FRAGMENTS } from "../../../src/app/prompts/definitions/sources/sources.fragments";
 import { APP_SUMMARY_PROMPT_FRAGMENTS } from "../../../src/app/prompts/definitions/app-summaries/app-summaries.fragments";
 import { INSTRUCTION_SECTION_TITLES } from "../../../src/app/prompts/definitions/instruction-utils";
-import { sourceConfigMap } from "../../../src/app/prompts/definitions/sources/sources.config";
-import { appSummaryConfigMap } from "../../../src/app/prompts/definitions/app-summaries/app-summaries.config";
+import { sourceConfigMap } from "../../../src/app/prompts/definitions/sources/sources.definitions";
+import { appSummaryConfigMap } from "../../../src/app/prompts/definitions/app-summaries/app-summaries.definitions";
 import { z } from "zod";
 
 const fileTypePromptMetadata = promptRegistry.sources;

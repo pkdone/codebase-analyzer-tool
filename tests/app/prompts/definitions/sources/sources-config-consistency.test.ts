@@ -2,7 +2,7 @@ import { z } from "zod";
 import {
   sourceConfigMap,
   type SourceConfigMap,
-} from "../../../../../src/app/prompts/definitions/sources/sources.config";
+} from "../../../../../src/app/prompts/definitions/sources/sources.definitions";
 import { INSTRUCTION_SECTION_TITLES } from "../../../../../src/app/prompts/definitions/instruction-utils";
 import { commonSourceAnalysisSchema } from "../../../../../src/app/schemas/sources.schema";
 

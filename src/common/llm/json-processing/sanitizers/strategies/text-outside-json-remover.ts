@@ -7,10 +7,7 @@
 import type { LLMSanitizerConfig } from "../../../config/llm-module-config.types";
 import type { SanitizerStrategy, StrategyResult } from "../pipeline/sanitizer-pipeline.types";
 import { isInStringAt } from "../../utils/parser-context-utils";
-import { JSON_KEYWORDS_SET } from "../../constants/json-processing.config";
-
-/** Maximum diagnostics to collect */
-const MAX_DIAGNOSTICS = 20;
+import { JSON_KEYWORDS_SET, processingConfig } from "../../constants/json-processing.config";
 
 /**
  * Checks if a word looks like stray text that shouldn't appear before JSON properties.
@@ -94,7 +91,7 @@ export const textOutsideJsonRemover: SanitizerStrategy = {
         if (looksLikeDescriptiveText) {
           hasChanges = true;
           const valueStr = typeof value === "string" ? value : "";
-          if (diagnostics.length < MAX_DIAGNOSTICS) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             const truncated =
               strayTextStr.length > 50 ? `${strayTextStr.substring(0, 47)}...` : strayTextStr;
             diagnostics.push(`Removed descriptive text: "${valueStr}" + "${truncated}"`);
@@ -129,7 +126,7 @@ export const textOutsideJsonRemover: SanitizerStrategy = {
 
         if (isStrayText) {
           hasChanges = true;
-          if (diagnostics.length < MAX_DIAGNOSTICS) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(`Removed stray text: "${strayTextStr.trim()}"`);
           }
           return `${delimiterStr},\n    ${nextTokenStr}`;
@@ -163,7 +160,7 @@ export const textOutsideJsonRemover: SanitizerStrategy = {
 
         if (looksLikeDescriptiveText) {
           hasChanges = true;
-          if (diagnostics.length < MAX_DIAGNOSTICS) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             const displayText =
               strayTextStr.length > 50 ? `${strayTextStr.substring(0, 47)}...` : strayTextStr;
             diagnostics.push(`Removed text after JSON structure: "${displayText}"`);
@@ -186,7 +183,7 @@ export const textOutsideJsonRemover: SanitizerStrategy = {
 
       const closingBraceStr = typeof closingBrace === "string" ? closingBrace : "";
       hasChanges = true;
-      if (diagnostics.length < MAX_DIAGNOSTICS) {
+      if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
         diagnostics.push("Removed LLM thought/metadata text after JSON structure");
       }
       return closingBraceStr;
@@ -206,7 +203,7 @@ export const textOutsideJsonRemover: SanitizerStrategy = {
         const nextQuoteStr = typeof nextQuote === "string" ? nextQuote : "";
 
         hasChanges = true;
-        if (diagnostics.length < MAX_DIAGNOSTICS) {
+        if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
           diagnostics.push("Removed LLM mid-JSON commentary");
         }
         return `${delimiterStr}\n${nextQuoteStr}`;
@@ -221,7 +218,7 @@ export const textOutsideJsonRemover: SanitizerStrategy = {
       }
 
       hasChanges = true;
-      if (diagnostics.length < MAX_DIAGNOSTICS) {
+      if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
         diagnostics.push("Removed 'to be continued...' text");
       }
       return "";
@@ -245,7 +242,7 @@ export const textOutsideJsonRemover: SanitizerStrategy = {
         // Use generic structural detection for stray text
         if (looksLikeStrayText(strayWordStr)) {
           hasChanges = true;
-          if (diagnostics.length < MAX_DIAGNOSTICS) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(`Removed stray word '${strayWordStr}' before property`);
           }
           return `${delimiterStr}\n    ${quoteStr}`;
@@ -270,7 +267,7 @@ export const textOutsideJsonRemover: SanitizerStrategy = {
         // Check if it looks like corrupted text (short alphabetic strings or numbers with dashes)
         if (/^[a-z]{1,4}$/i.test(corruptedTextStr) || /^\d{1,3}(-\d+)?$/.test(corruptedTextStr)) {
           hasChanges = true;
-          if (diagnostics.length < MAX_DIAGNOSTICS) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(`Removed corrupted text: '${corruptedTextStr}'`);
           }
           return `${delimiterStr},\n`;
@@ -301,7 +298,7 @@ export const textOutsideJsonRemover: SanitizerStrategy = {
         const delimiterStr = typeof delimiter === "string" ? delimiter : "";
 
         hasChanges = true;
-        if (diagnostics.length < MAX_DIAGNOSTICS) {
+        if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
           diagnostics.push(
             `Removed orphaned property '${propertyNameStr}' after corrupted structure`,
           );

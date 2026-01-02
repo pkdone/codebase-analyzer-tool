@@ -1,7 +1,7 @@
 import { z } from "zod";
-import { appSummaryConfigMap } from "./definitions/app-summaries/app-summaries.config";
+import { appSummaryConfigMap } from "./definitions/app-summaries/app-summaries.definitions";
 import { buildReduceInsightsContentDesc } from "./definitions/app-summaries/app-summaries.fragments";
-import { sourceConfigMap } from "./definitions/sources/sources.config";
+import { sourceConfigMap } from "./definitions/sources/sources.definitions";
 import { BASE_PROMPT_TEMPLATE, CODEBASE_QUERY_TEMPLATE } from "./templates";
 import {
   createPromptMetadata,

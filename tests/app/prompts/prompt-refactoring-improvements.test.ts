@@ -5,7 +5,7 @@ import {
 } from "../../../src/app/prompts/definitions/prompt-factory";
 import { renderPrompt } from "../../../src/app/prompts/prompt-renderer";
 import { BASE_PROMPT_TEMPLATE, CODEBASE_QUERY_TEMPLATE } from "../../../src/app/prompts/templates";
-import { sourceConfigMap } from "../../../src/app/prompts/definitions/sources/sources.config";
+import { sourceConfigMap } from "../../../src/app/prompts/definitions/sources/sources.definitions";
 import { PREBUILT_BLOCKS } from "../../../src/app/prompts/definitions/sources/sources.fragments";
 import { INSTRUCTION_SECTION_TITLES } from "../../../src/app/prompts/definitions/instruction-utils";
 import { LLMOutputFormat } from "../../../src/common/llm/types/llm.types";

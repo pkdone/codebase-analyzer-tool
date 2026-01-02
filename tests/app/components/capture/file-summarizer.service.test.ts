@@ -6,7 +6,7 @@ import "reflect-metadata";
 import { FileSummarizerService } from "../../../../src/app/components/capture/file-summarizer.service";
 import type LLMRouter from "../../../../src/common/llm/llm-router";
 import type { PromptRegistry } from "../../../../src/app/prompts/prompt-registry";
-import type { SourceConfigMap } from "../../../../src/app/prompts/definitions/sources/sources.config";
+import type { SourceConfigMap } from "../../../../src/app/prompts/definitions/sources/sources.definitions";
 import { z } from "zod";
 import { LLMError, LLMErrorCode } from "../../../../src/common/llm/types/llm-errors.types";
 import { ok, err, isOk, isErr } from "../../../../src/common/types/result.types";

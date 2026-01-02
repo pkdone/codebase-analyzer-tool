@@ -3,6 +3,7 @@ import {
   escapeMermaidLabel,
   generateNodeId,
   buildArrow,
+  buildArchitectureInitDirective,
 } from "../mermaid/mermaid-definition-builders";
 import { buildStyleDefinitions, applyStyle } from "../mermaid/mermaid-styles.config";
 import { BaseMermaidGenerator, type BaseDiagramOptions } from "./base-mermaid-generator";
@@ -88,10 +89,7 @@ export class CurrentArchitectureSvgGenerator extends BaseMermaidGenerator<Curren
     architectureData: InferredArchitectureData,
   ): string {
     // Use TB layout with increased padding for better spacing
-    const lines: string[] = [
-      "%%{init: {'flowchart': {'diagramPadding': 50, 'nodeSpacing': 30, 'rankSpacing': 60}}}%%",
-      "flowchart TB",
-    ];
+    const lines: string[] = [buildArchitectureInitDirective(), "flowchart TB"];
 
     // Add style definitions
     lines.push(buildStyleDefinitions());

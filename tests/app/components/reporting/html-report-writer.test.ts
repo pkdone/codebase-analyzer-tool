@@ -33,6 +33,41 @@ describe("HtmlReportWriter", () => {
       { fileType: "javascript", lines: 1000, files: 50 },
       { fileType: "typescript", lines: 2000, files: 30 },
     ],
+    pieChartData: {
+      totalFiles: 80,
+      svgHeight: 600,
+      svgWidth: 950,
+      slices: [
+        {
+          label: "javascript",
+          value: 50,
+          percentage: 62.5,
+          color: "#2196F3",
+          pathData: "M 300 300 L 550 300 A 250 250 0 1 1 300 50 Z",
+          labelX: 300,
+          labelY: 100,
+          showLabel: true,
+        },
+        {
+          label: "typescript",
+          value: 30,
+          percentage: 37.5,
+          color: "#4CAF50",
+          pathData: "M 300 300 L 300 50 A 250 250 0 0 1 550 300 Z",
+          labelX: 450,
+          labelY: 300,
+          showLabel: true,
+        },
+      ],
+      config: {
+        centerX: 300,
+        centerY: 300,
+        legendX: 620,
+        legendY: 30,
+        legendItemHeight: 28,
+        legendBoxSize: 14,
+      },
+    },
     categorizedData: [
       {
         category: "technologies",
