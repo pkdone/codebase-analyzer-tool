@@ -89,7 +89,7 @@ export const databaseIntegrationSchema = z
 /**
  * Schema for tables used in DDL files
  */
-export const tablesSchema = z
+const tablesSchema = z
   .object({
     name: z.string().describe("The name of the table."),
     fields: z.string().describe("The names of the fields in the table, comma seperated, if known."),

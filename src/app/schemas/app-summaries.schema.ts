@@ -35,7 +35,7 @@ export const nameDescSchema = baseNameDescSchema
 /**
  * Schema for business activities/steps within a business process
  */
-export const businessActivitySchema = z
+const businessActivitySchema = z
   .object({
     activity: z.string().describe("The name of the business activity step."),
     description: z
@@ -197,7 +197,7 @@ export const boundedContextsSchema = z
 /**
  * Schema for CRUD operations for microservices
  */
-export const crudOperationSchema = z
+const crudOperationSchema = z
   .object({
     operation: z
       .string()
@@ -214,7 +214,7 @@ export const crudOperationSchema = z
 /**
  * Schema for REST API endpoints for microservices
  */
-export const restEndpointSchema = z
+const restEndpointSchema = z
   .object({
     path: z
       .string()
@@ -229,7 +229,7 @@ export const restEndpointSchema = z
 /**
  * Schema for domain-driven design entities for microservices
  */
-export const microserviceEntitySchema = z
+const microserviceEntitySchema = z
   .object({
     name: z
       .string()
