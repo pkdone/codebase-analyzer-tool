@@ -4,9 +4,9 @@ import { HtmlReportWriter, type PreparedHtmlReportData } from "./html-report-wri
 import { JsonReportWriter, type PreparedJsonData } from "./json-report-writer";
 import { AppStatisticsDataProvider } from "./sections/quality-metrics/app-statistics-data-provider";
 import {
-  AppSummaryCategoriesProvider,
+  CategorizedSectionDataBuilder,
   isCategorizedDataNameDescArray,
-} from "./sections/file-types/categories-data-provider";
+} from "./sections/shared/categorized-section-data-builder";
 import type { AppSummariesRepository } from "../../repositories/app-summaries/app-summaries.repository.interface";
 import type { ReportData } from "./report-data.types";
 import { TableViewModel, type DisplayableTableRow } from "./view-models/table-view-model";
@@ -36,8 +36,8 @@ export default class AppReportGenerator {
     @inject(reportingTokens.JsonReportWriter) private readonly jsonWriter: JsonReportWriter,
     @inject(reportingTokens.AppStatisticsDataProvider)
     private readonly appStatsDataProvider: AppStatisticsDataProvider,
-    @inject(reportingTokens.AppSummaryCategoriesProvider)
-    private readonly categoriesDataProvider: AppSummaryCategoriesProvider,
+    @inject(reportingTokens.CategorizedSectionDataBuilder)
+    private readonly categoriesDataBuilder: CategorizedSectionDataBuilder,
     @injectAll("ReportSection")
     private readonly sections: ReportSection[],
   ) {}
@@ -65,7 +65,7 @@ export default class AppReportGenerator {
 
     // Generate core app statistics and categorized data
     const appStats = await this.appStatsDataProvider.getAppStatistics(projectName, appSummaryData);
-    const categorizedData = this.categoriesDataProvider.getStandardSectionData(appSummaryData);
+    const categorizedData = this.categoriesDataBuilder.getStandardSectionData(appSummaryData);
 
     // Fetch data from all sections in parallel and merge into ReportData
     const sectionDataResults = await Promise.allSettled(

@@ -20,14 +20,16 @@ import {
 const TRAILING_SLASH_PATTERN = /\/$/;
 
 /**
- * Format the directory contents as markdown code blocks
- * @param dirPath - The path to the directory
+ * Format source files in a directory as markdown code blocks.
+ * Recursively finds all files, reads their contents, and formats them as markdown code blocks
+ * with file path headers.
+ * @param dirPath - The path to the directory containing source files
  * @param folderIgnoreList - List of folder names to ignore during traversal
  * @param filenameIgnorePrefix - Prefix for filenames to ignore
  * @param binaryFileExtensionIgnoreList - List of binary file extensions to skip
  * @returns Promise resolving to formatted content containing all source files as markdown code blocks
  */
-export async function formatDirectoryAsMarkdown(
+export async function formatSourceFilesAsMarkdown(
   dirPath: string,
   folderIgnoreList: readonly string[],
   filenameIgnorePrefix: string,

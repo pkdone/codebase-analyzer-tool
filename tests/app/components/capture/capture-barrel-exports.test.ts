@@ -50,4 +50,3 @@ describe("capture module barrel exports", () => {
     });
   });
 });
-

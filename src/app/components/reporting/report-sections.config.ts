@@ -7,7 +7,7 @@ import { outputConfig } from "../../config/output.config";
 export const reportSectionsConfig = {
   /**
    * All required app summary fields for report generation.
-   * This includes fields needed by both AppStatisticsDataProvider and AppSummaryCategoriesProvider.
+   * This includes fields needed by both AppStatisticsDataProvider and CategorizedSectionDataBuilder.
    * Note: aggregates, entities, and repositories are now nested within boundedContexts.
    */
   allRequiredAppSummaryFields: [

@@ -1,4 +1,4 @@
-import { formatDirectoryAsMarkdown } from "../../../src/app/utils/codebase-formatting";
+import { formatSourceFilesAsMarkdown } from "../../../src/app/utils/codebase-formatting";
 import { findFilesRecursively } from "../../../src/common/fs/directory-operations";
 import { getFileExtension } from "../../../src/common/fs/path-utils";
 import { readFile } from "../../../src/common/fs/file-operations";
@@ -25,7 +25,7 @@ describe("directory-to-markdown", () => {
     jest.clearAllMocks();
   });
 
-  describe("formatDirectoryAsMarkdown", () => {
+  describe("formatSourceFilesAsMarkdown", () => {
     it("should process a directory and generate markdown code blocks", async () => {
       const dirPath = "/test/project";
       const mockFiles = ["/test/project/file1.ts", "/test/project/file2.ts"];
@@ -34,7 +34,7 @@ describe("directory-to-markdown", () => {
       mockGetFileExtension.mockReturnValueOnce("ts").mockReturnValueOnce("ts");
       mockReadFile.mockResolvedValueOnce("const x = 1;").mockResolvedValueOnce("var y = 2;");
 
-      const result = await formatDirectoryAsMarkdown(
+      const result = await formatSourceFilesAsMarkdown(
         dirPath,
         folderIgnoreList,
         filenameIgnorePrefix,
@@ -57,7 +57,7 @@ describe("directory-to-markdown", () => {
       const dirPath = "/test/project/";
       mockFindFilesRecursively.mockResolvedValue([]);
 
-      await formatDirectoryAsMarkdown(
+      await formatSourceFilesAsMarkdown(
         dirPath,
         folderIgnoreList,
         filenameIgnorePrefix,
@@ -79,7 +79,7 @@ describe("directory-to-markdown", () => {
       mockGetFileExtension.mockReturnValueOnce("png").mockReturnValueOnce("ts");
       mockReadFile.mockResolvedValueOnce("const x = 1;"); // Only called for .ts file
 
-      const result = await formatDirectoryAsMarkdown(
+      const result = await formatSourceFilesAsMarkdown(
         dirPath,
         folderIgnoreList,
         filenameIgnorePrefix,
@@ -98,7 +98,7 @@ describe("directory-to-markdown", () => {
       mockFindFilesRecursively.mockResolvedValue(mockFiles);
       mockGetFileExtension.mockReturnValueOnce("PNG");
 
-      const result = await formatDirectoryAsMarkdown(
+      const result = await formatSourceFilesAsMarkdown(
         dirPath,
         folderIgnoreList,
         filenameIgnorePrefix,
@@ -117,7 +117,7 @@ describe("directory-to-markdown", () => {
       mockGetFileExtension.mockReturnValueOnce("ts");
       mockReadFile.mockResolvedValueOnce("  \n\nconst x = 1;\n\n  ");
 
-      const result = await formatDirectoryAsMarkdown(
+      const result = await formatSourceFilesAsMarkdown(
         dirPath,
         folderIgnoreList,
         filenameIgnorePrefix,
@@ -137,7 +137,7 @@ describe("directory-to-markdown", () => {
       mockGetFileExtension.mockReturnValueOnce("ts");
       mockReadFile.mockResolvedValueOnce("export function helper() {}");
 
-      const result = await formatDirectoryAsMarkdown(
+      const result = await formatSourceFilesAsMarkdown(
         dirPath,
         folderIgnoreList,
         filenameIgnorePrefix,
@@ -152,7 +152,7 @@ describe("directory-to-markdown", () => {
       const dirPath = "/test/empty-project";
       mockFindFilesRecursively.mockResolvedValue([]);
 
-      const result = await formatDirectoryAsMarkdown(
+      const result = await formatSourceFilesAsMarkdown(
         dirPath,
         folderIgnoreList,
         filenameIgnorePrefix,
@@ -178,7 +178,7 @@ describe("directory-to-markdown", () => {
         .mockResolvedValueOnce("content2")
         .mockResolvedValueOnce("content3");
 
-      await formatDirectoryAsMarkdown(
+      await formatSourceFilesAsMarkdown(
         dirPath,
         folderIgnoreList,
         filenameIgnorePrefix,
@@ -204,7 +204,7 @@ describe("directory-to-markdown", () => {
         .mockReturnValueOnce("pdf");
       mockReadFile.mockResolvedValueOnce("const x = 1;");
 
-      const result = await formatDirectoryAsMarkdown(
+      const result = await formatSourceFilesAsMarkdown(
         dirPath,
         folderIgnoreList,
         filenameIgnorePrefix,
@@ -224,7 +224,7 @@ describe("directory-to-markdown", () => {
       mockGetFileExtension.mockReturnValueOnce("");
       mockReadFile.mockResolvedValueOnce("all: build");
 
-      const result = await formatDirectoryAsMarkdown(
+      const result = await formatSourceFilesAsMarkdown(
         dirPath,
         folderIgnoreList,
         filenameIgnorePrefix,
@@ -243,7 +243,7 @@ describe("directory-to-markdown", () => {
       mockGetFileExtension.mockReturnValueOnce("ts");
       mockReadFile.mockResolvedValueOnce("line1\n\n\nline2");
 
-      const result = await formatDirectoryAsMarkdown(
+      const result = await formatSourceFilesAsMarkdown(
         dirPath,
         folderIgnoreList,
         filenameIgnorePrefix,
@@ -260,7 +260,7 @@ describe("directory-to-markdown", () => {
       const customBinaryIgnoreList = ["custom-ext"] as readonly string[];
       mockFindFilesRecursively.mockResolvedValue([]);
 
-      await formatDirectoryAsMarkdown(
+      await formatSourceFilesAsMarkdown(
         dirPath,
         customFolderIgnoreList,
         customFilenameIgnorePrefix,

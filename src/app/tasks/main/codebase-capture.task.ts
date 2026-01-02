@@ -8,14 +8,14 @@ import { DatabaseInitializer } from "../../components/database/database-initiali
 import { databaseConfig } from "../../components/database/database.config";
 import { llmTokens, coreTokens } from "../../di/tokens";
 import { captureTokens } from "../../di/tokens";
-import { BaseAnalysisTask } from "../base-analysis-task";
+import { BaseLLMTrackedTask } from "../base-llm-tracked-task";
 
 /**
  * Task to capture the codebase.
- * Extends BaseAnalysisTask to share the common lifecycle pattern.
+ * Extends BaseLLMTrackedTask to share the common lifecycle pattern with LLM stats tracking.
  */
 @injectable()
-export class CodebaseCaptureTask extends BaseAnalysisTask {
+export class CodebaseCaptureTask extends BaseLLMTrackedTask {
   /**
    * Constructor with dependency injection.
    */
@@ -40,7 +40,7 @@ export class CodebaseCaptureTask extends BaseAnalysisTask {
     return "Finished processing source files for the project";
   }
 
-  protected async runAnalysis(): Promise<void> {
+  protected async runTask(): Promise<void> {
     const vectorDimensions =
       this.llmRouter.getEmbeddingModelDimensions() ?? databaseConfig.DEFAULT_VECTOR_DIMENSIONS;
     await this.databaseInitializer.initializeDatabaseSchema(vectorDimensions);

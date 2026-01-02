@@ -15,7 +15,7 @@ import type {
 } from "./report-data.types";
 import type { ProjectedFileTypesCountAndLines } from "../../repositories/sources/sources.model";
 import type { TableViewModel } from "./view-models/table-view-model";
-import type { CategorizedDataItem } from "./sections/file-types/categories-data-provider";
+import type { CategorizedDataItem } from "./sections/shared/categorized-section-data-builder";
 
 /**
  * Represents a single slice in the pie chart visualization.

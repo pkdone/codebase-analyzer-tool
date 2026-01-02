@@ -8,7 +8,7 @@
  */
 
 import type { ProjectedFileTypesCountAndLines } from "../../repositories/sources/sources.model";
-import type { CategorizedDataItem } from "./sections/file-types/categories-data-provider";
+import type { CategorizedDataItem } from "./sections/shared/categorized-section-data-builder";
 
 // Re-export domain-specific types for backward compatibility
 export {

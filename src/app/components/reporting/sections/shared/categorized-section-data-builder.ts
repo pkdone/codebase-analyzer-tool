@@ -92,10 +92,11 @@ function wrapInferredArchitectureAsArray(
 }
 
 /**
- * Data provider responsible for aggregating app summary categorized data for reports.
+ * Builds categorized section data from app summary records for report generation.
+ * Transforms and validates app summary data into a format suitable for report sections.
  */
 @injectable()
-export class AppSummaryCategoriesProvider {
+export class CategorizedSectionDataBuilder {
   /**
    * Build categorized data for standard (tabular) categories using pre-fetched app summary data.
    * Excludes categories that have custom dedicated sections in the report.

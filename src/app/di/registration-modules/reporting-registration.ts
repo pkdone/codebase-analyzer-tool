@@ -13,7 +13,7 @@ import {
 import { DatabaseReportDataProvider } from "../../components/reporting/sections/database/database-report-data-provider";
 import { IntegrationPointsDataProvider } from "../../components/reporting/sections/integration-points/integration-points-data-provider";
 import { AppStatisticsDataProvider } from "../../components/reporting/sections/quality-metrics/app-statistics-data-provider";
-import { AppSummaryCategoriesProvider } from "../../components/reporting/sections/file-types/categories-data-provider";
+import { CategorizedSectionDataBuilder } from "../../components/reporting/sections/shared/categorized-section-data-builder";
 import { DomainModelDataProvider } from "../../components/reporting/sections/visualizations/domain-model-data-provider";
 import { BomDataProvider } from "../../components/reporting/sections/quality-metrics/bom-data-provider";
 import { CodeQualityDataProvider } from "../../components/reporting/sections/quality-metrics/code-quality-data-provider";
@@ -62,8 +62,8 @@ export function registerReportingComponents(): void {
   );
   container.registerSingleton(reportingTokens.AppStatisticsDataProvider, AppStatisticsDataProvider);
   container.registerSingleton(
-    reportingTokens.AppSummaryCategoriesProvider,
-    AppSummaryCategoriesProvider,
+    reportingTokens.CategorizedSectionDataBuilder,
+    CategorizedSectionDataBuilder,
   );
   container.registerSingleton(reportingTokens.DomainModelDataProvider, DomainModelDataProvider);
   container.registerSingleton(reportingTokens.AppReportGenerator, AppReportGenerator);

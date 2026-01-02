@@ -19,4 +19,3 @@ export {
   CANONICAL_FILE_TYPES,
   type CanonicalFileType,
 } from "./config/file-types.config";
-

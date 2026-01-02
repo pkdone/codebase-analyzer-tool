@@ -5,26 +5,26 @@ import { outputConfig } from "../config/output.config";
 import { clearDirectory } from "../../common/fs/directory-operations";
 
 /**
- * Abstract base class for analysis tasks that follow the standard lifecycle pattern.
+ * Abstract base class for tasks that use LLM services and track their statistics.
  *
  * This class implements the template method pattern for tasks that:
  * 1. Log a start message
  * 2. Display LLM status summary
  * 3. Clear the output directory (optional, controlled by shouldClearOutputDirectory())
- * 4. Run the analysis-specific logic
+ * 4. Run the task-specific logic
  * 5. Log a finish message
  * 6. Display LLM status details
  *
  * Subclasses must implement:
  * - `getStartMessage()`: Returns the start message (e.g., "Processing source files for project")
  * - `getFinishMessage()`: Returns the finish message (e.g., "Finished processing source files")
- * - `runAnalysis()`: Contains the task-specific analysis logic
+ * - `runTask()`: Contains the task-specific logic
  *
  * Optionally, subclasses can override:
- * - `getPostAnalysisMessage()`: Returns an additional message to log after stats (default: null)
- * - `shouldClearOutputDirectory()`: Whether to clear output directory before analysis (default: true)
+ * - `getPostTaskMessage()`: Returns an additional message to log after stats (default: null)
+ * - `shouldClearOutputDirectory()`: Whether to clear output directory before task (default: true)
  */
-export abstract class BaseAnalysisTask implements Task {
+export abstract class BaseLLMTrackedTask implements Task {
   constructor(
     protected readonly llmStats: LLMStats,
     protected readonly projectName: string,
@@ -40,16 +40,16 @@ export abstract class BaseAnalysisTask implements Task {
     if (this.shouldClearOutputDirectory()) {
       await clearDirectory(outputConfig.OUTPUT_DIR);
     }
-    await this.runAnalysis();
+    await this.runTask();
     console.log(this.getFinishMessage());
     console.log("Summary of LLM invocations outcomes:");
     this.llmStats.displayLLMStatusDetails();
-    const postMessage = this.getPostAnalysisMessage();
+    const postMessage = this.getPostTaskMessage();
     if (postMessage) console.log(postMessage);
   }
 
   /**
-   * Returns whether the output directory should be cleared before running analysis.
+   * Returns whether the output directory should be cleared before running the task.
    * Override this in subclasses that don't generate output files (e.g., query tasks).
    * @returns true to clear the output directory, false to skip clearing
    */
@@ -62,7 +62,7 @@ export abstract class BaseAnalysisTask implements Task {
    * Override this in subclasses that need additional post-execution output.
    * @returns The message to log, or null for no additional output
    */
-  protected getPostAnalysisMessage(): string | null {
+  protected getPostTaskMessage(): string | null {
     return null;
   }
 
@@ -79,8 +79,8 @@ export abstract class BaseAnalysisTask implements Task {
   protected abstract getFinishMessage(): string;
 
   /**
-   * Contains the task-specific analysis logic.
+   * Contains the task-specific logic.
    * Called between the start logging and finish logging.
    */
-  protected abstract runAnalysis(): Promise<void>;
+  protected abstract runTask(): Promise<void>;
 }

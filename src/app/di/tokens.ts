@@ -80,7 +80,7 @@ export const reportingTokens = {
   CurrentArchitectureDiagramGenerator: Symbol("CurrentArchitectureDiagramGenerator"),
   DatabaseReportDataProvider: Symbol("DatabaseReportDataProvider"),
   AppStatisticsDataProvider: Symbol("AppStatisticsDataProvider"),
-  AppSummaryCategoriesProvider: Symbol("AppSummaryCategoriesProvider"),
+  CategorizedSectionDataBuilder: Symbol("CategorizedSectionDataBuilder"),
   DomainModelDataProvider: Symbol("DomainModelDataProvider"),
   AppReportGenerator: Symbol("AppReportGenerator"),
   BomDataProvider: Symbol("BomDataProvider"),

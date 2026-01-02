@@ -14,7 +14,7 @@ jest.mock("../../../../src/common/fs/file-operations", () => ({
   writeFile: jest.fn(async () => undefined),
 }));
 jest.mock("../../../../src/app/utils/codebase-formatting", () => ({
-  formatDirectoryAsMarkdown: jest.fn(async () => "CODEBLOCK"),
+  formatSourceFilesAsMarkdown: jest.fn(async () => "CODEBLOCK"),
 }));
 jest.mock("../../../../src/common/llm/llm-router");
 

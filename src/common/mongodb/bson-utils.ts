@@ -11,4 +11,3 @@ import { Double } from "bson";
 export function numbersToBsonDoubles(numbers: number[]): Double[] {
   return numbers.map((number) => new Double(number));
 }
-

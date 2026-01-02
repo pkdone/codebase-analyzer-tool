@@ -82,4 +82,3 @@ export class DiagnosticCollector {
     this.diagnostics.length = 0;
   }
 }
-

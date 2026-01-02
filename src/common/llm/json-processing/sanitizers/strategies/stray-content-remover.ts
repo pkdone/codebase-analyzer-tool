@@ -117,7 +117,9 @@ export const strayContentRemover: SanitizerStrategy = {
         const valueStr = typeof value === "string" ? value : "";
         const terminatorStr = typeof terminator === "string" ? terminator : "";
         hasChanges = true;
-        diagnostics.add(`Removed stray character "${strayChar}" before value: "${propertyNameStr}"`);
+        diagnostics.add(
+          `Removed stray character "${strayChar}" before value: "${propertyNameStr}"`,
+        );
         return `"${propertyNameStr}": "${valueStr}"${terminatorStr}`;
       },
     );

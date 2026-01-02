@@ -1,12 +1,12 @@
 import "reflect-metadata";
-import { BaseAnalysisTask } from "../../../src/app/tasks/base-analysis-task";
+import { BaseLLMTrackedTask } from "../../../src/app/tasks/base-llm-tracked-task";
 import type LLMStats from "../../../src/common/llm/tracking/llm-stats";
 import * as directoryOps from "../../../src/common/fs/directory-operations";
 
 // Concrete implementation for testing the abstract class
-class TestAnalysisTask extends BaseAnalysisTask {
-  runAnalysisCalled = false;
-  runAnalysisError: Error | null = null;
+class TestLLMTrackedTask extends BaseLLMTrackedTask {
+  runTaskCalled = false;
+  runTaskError: Error | null = null;
 
   constructor(
     llmStats: LLMStats,
@@ -25,14 +25,14 @@ class TestAnalysisTask extends BaseAnalysisTask {
     return "Test task finished";
   }
 
-  protected async runAnalysis(): Promise<void> {
-    this.runAnalysisCalled = true;
-    if (this.runAnalysisError) {
-      throw this.runAnalysisError;
+  protected async runTask(): Promise<void> {
+    this.runTaskCalled = true;
+    if (this.runTaskError) {
+      throw this.runTaskError;
     }
   }
 
-  protected override getPostAnalysisMessage(): string | null {
+  protected override getPostTaskMessage(): string | null {
     return this.customPostMessage;
   }
 
@@ -41,7 +41,7 @@ class TestAnalysisTask extends BaseAnalysisTask {
   }
 }
 
-describe("BaseAnalysisTask", () => {
+describe("BaseLLMTrackedTask", () => {
   let mockLlmStats: jest.Mocked<LLMStats>;
   let consoleSpy: jest.SpyInstance;
   let clearDirectorySpy: jest.SpyInstance;
@@ -63,7 +63,7 @@ describe("BaseAnalysisTask", () => {
 
   describe("execute", () => {
     it("should log start message with project name", async () => {
-      const task = new TestAnalysisTask(mockLlmStats, "my-project");
+      const task = new TestLLMTrackedTask(mockLlmStats, "my-project");
 
       await task.execute();
 
@@ -71,7 +71,7 @@ describe("BaseAnalysisTask", () => {
     });
 
     it("should call displayLLMStatusSummary at the start", async () => {
-      const task = new TestAnalysisTask(mockLlmStats, "test-project");
+      const task = new TestLLMTrackedTask(mockLlmStats, "test-project");
 
       await task.execute();
 
@@ -79,23 +79,23 @@ describe("BaseAnalysisTask", () => {
     });
 
     it("should clear the output directory", async () => {
-      const task = new TestAnalysisTask(mockLlmStats, "test-project");
+      const task = new TestLLMTrackedTask(mockLlmStats, "test-project");
 
       await task.execute();
 
       expect(clearDirectorySpy).toHaveBeenCalledTimes(1);
     });
 
-    it("should call runAnalysis", async () => {
-      const task = new TestAnalysisTask(mockLlmStats, "test-project");
+    it("should call runTask", async () => {
+      const task = new TestLLMTrackedTask(mockLlmStats, "test-project");
 
       await task.execute();
 
-      expect(task.runAnalysisCalled).toBe(true);
+      expect(task.runTaskCalled).toBe(true);
     });
 
-    it("should log finish message after analysis", async () => {
-      const task = new TestAnalysisTask(mockLlmStats, "test-project");
+    it("should log finish message after task completes", async () => {
+      const task = new TestLLMTrackedTask(mockLlmStats, "test-project");
 
       await task.execute();
 
@@ -103,7 +103,7 @@ describe("BaseAnalysisTask", () => {
     });
 
     it("should log summary header before displaying details", async () => {
-      const task = new TestAnalysisTask(mockLlmStats, "test-project");
+      const task = new TestLLMTrackedTask(mockLlmStats, "test-project");
 
       await task.execute();
 
@@ -111,7 +111,7 @@ describe("BaseAnalysisTask", () => {
     });
 
     it("should call displayLLMStatusDetails at the end", async () => {
-      const task = new TestAnalysisTask(mockLlmStats, "test-project");
+      const task = new TestLLMTrackedTask(mockLlmStats, "test-project");
 
       await task.execute();
 
@@ -131,11 +131,11 @@ describe("BaseAnalysisTask", () => {
         callOrder.push("clearDirectory");
       });
 
-      // Create a task that tracks when runAnalysis is called
-      class OrderTrackingTask extends TestAnalysisTask {
-        protected override async runAnalysis(): Promise<void> {
-          callOrder.push("runAnalysis");
-          await super.runAnalysis();
+      // Create a task that tracks when runTask is called
+      class OrderTrackingTask extends TestLLMTrackedTask {
+        protected override async runTask(): Promise<void> {
+          callOrder.push("runTask");
+          await super.runTask();
         }
       }
 
@@ -145,21 +145,21 @@ describe("BaseAnalysisTask", () => {
       expect(callOrder).toEqual([
         "displayLLMStatusSummary",
         "clearDirectory",
-        "runAnalysis",
+        "runTask",
         "displayLLMStatusDetails",
       ]);
     });
 
-    it("should log post-analysis message when provided", async () => {
-      const task = new TestAnalysisTask(mockLlmStats, "test-project", "View results here");
+    it("should log post-task message when provided", async () => {
+      const task = new TestLLMTrackedTask(mockLlmStats, "test-project", "View results here");
 
       await task.execute();
 
       expect(consoleSpy).toHaveBeenCalledWith("View results here");
     });
 
-    it("should not log post-analysis message when null", async () => {
-      const task = new TestAnalysisTask(mockLlmStats, "test-project", null);
+    it("should not log post-task message when null", async () => {
+      const task = new TestLLMTrackedTask(mockLlmStats, "test-project", null);
 
       await task.execute();
 
@@ -168,27 +168,27 @@ describe("BaseAnalysisTask", () => {
       expect(logCalls).not.toContain(null);
     });
 
-    it("should propagate errors from runAnalysis", async () => {
-      const task = new TestAnalysisTask(mockLlmStats, "test-project");
-      task.runAnalysisError = new Error("Analysis failed");
+    it("should propagate errors from runTask", async () => {
+      const task = new TestLLMTrackedTask(mockLlmStats, "test-project");
+      task.runTaskError = new Error("Task failed");
 
-      await expect(task.execute()).rejects.toThrow("Analysis failed");
+      await expect(task.execute()).rejects.toThrow("Task failed");
     });
 
     it("should not clear output directory when shouldClearOutputDirectory returns false", async () => {
-      const task = new TestAnalysisTask(mockLlmStats, "test-project", null, false);
+      const task = new TestLLMTrackedTask(mockLlmStats, "test-project", null, false);
 
       await task.execute();
 
       expect(clearDirectorySpy).not.toHaveBeenCalled();
     });
 
-    it("should still run analysis when output directory clearing is disabled", async () => {
-      const task = new TestAnalysisTask(mockLlmStats, "test-project", null, false);
+    it("should still run task when output directory clearing is disabled", async () => {
+      const task = new TestLLMTrackedTask(mockLlmStats, "test-project", null, false);
 
       await task.execute();
 
-      expect(task.runAnalysisCalled).toBe(true);
+      expect(task.runTaskCalled).toBe(true);
     });
   });
 });

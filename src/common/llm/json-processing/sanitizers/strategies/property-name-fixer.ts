@@ -101,7 +101,9 @@ export const propertyNameFixer: SanitizerStrategy = {
         }
         const mergedName = allParts.join("");
         hasChanges = true;
-        diagnostics.add(`Merged concatenated property name: ${allParts.join('" + "')} -> ${mergedName}`);
+        diagnostics.add(
+          `Merged concatenated property name: ${allParts.join('" + "')} -> ${mergedName}`,
+        );
         return `"${mergedName}":`;
       },
     );
@@ -406,7 +408,9 @@ export const propertyNameFixer: SanitizerStrategy = {
       let fixedName = nameWithoutQuotes.replace(/__+/g, "_");
       fixedName = fixedName.replace(/_+$/, "");
       hasChanges = true;
-      diagnostics.add(`Fixed double underscores in property name: ${quotedNameStr} -> "${fixedName}"`);
+      diagnostics.add(
+        `Fixed double underscores in property name: ${quotedNameStr} -> "${fixedName}"`,
+      );
       return `"${fixedName}"`;
     });
 

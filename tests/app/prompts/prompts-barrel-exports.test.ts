@@ -67,4 +67,3 @@ describe("prompts module barrel exports", () => {
     });
   });
 });
-

@@ -3,14 +3,14 @@ import { injectable, inject } from "tsyringe";
 import type { InsightsProcessorSelector } from "../../components/insights/generators/insights-processor-selector";
 import type LLMStats from "../../../common/llm/tracking/llm-stats";
 import { llmTokens, coreTokens, insightsTokens } from "../../di/tokens";
-import { BaseAnalysisTask } from "../base-analysis-task";
+import { BaseLLMTrackedTask } from "../base-llm-tracked-task";
 
 /**
  * Task to generate insights.
- * Extends BaseAnalysisTask to share the common lifecycle pattern.
+ * Extends BaseLLMTrackedTask to share the common lifecycle pattern with LLM stats tracking.
  */
 @injectable()
-export class InsightsGenerationTask extends BaseAnalysisTask {
+export class InsightsGenerationTask extends BaseLLMTrackedTask {
   /**
    * Constructor with dependency injection.
    */
@@ -31,7 +31,7 @@ export class InsightsGenerationTask extends BaseAnalysisTask {
     return "Finished generating insights for the project";
   }
 
-  protected async runAnalysis(): Promise<void> {
+  protected async runTask(): Promise<void> {
     const selectedProcessor = await this.insightsProcessorSelector.selectInsightsProcessor();
     await selectedProcessor.generateAndStoreInsights();
   }

@@ -540,5 +540,4 @@ export default class SourcesRepositoryImpl
     };
     return this.collection.find<ProjectedSourceSummaryFields>(query, options).toArray();
   }
-
 }

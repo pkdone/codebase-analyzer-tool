@@ -57,13 +57,7 @@ describe("bson-utils", () => {
 
     it("should preserve embedding vector precision", () => {
       // Simulate a typical embedding vector with high precision floats
-      const embeddingVector = [
-        0.123456789,
-        -0.987654321,
-        0.5555555555,
-        0.111111111,
-        0.999999999,
-      ];
+      const embeddingVector = [0.123456789, -0.987654321, 0.5555555555, 0.111111111, 0.999999999];
 
       const result = numbersToBsonDoubles(embeddingVector);
 
@@ -90,4 +84,3 @@ describe("bson-utils", () => {
     });
   });
 });
-

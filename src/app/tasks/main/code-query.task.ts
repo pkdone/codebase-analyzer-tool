@@ -8,14 +8,14 @@ import { inputConfig } from "../../prompts/config/input.config";
 import type { SourcesRepository } from "../../repositories/sources/sources.repository.interface";
 import type LLMRouter from "../../../common/llm/llm-router";
 import type LLMStats from "../../../common/llm/tracking/llm-stats";
-import { BaseAnalysisTask } from "../base-analysis-task";
+import { BaseLLMTrackedTask } from "../base-llm-tracked-task";
 
 /**
  * Task to query the codebase using vector search and LLM.
- * Extends BaseAnalysisTask to share the common lifecycle pattern.
+ * Extends BaseLLMTrackedTask to share the common lifecycle pattern with LLM stats tracking.
  */
 @injectable()
-export class CodebaseQueryTask extends BaseAnalysisTask {
+export class CodebaseQueryTask extends BaseLLMTrackedTask {
   /**
    * Constructor with dependency injection.
    */
@@ -44,7 +44,7 @@ export class CodebaseQueryTask extends BaseAnalysisTask {
     return false;
   }
 
-  protected async runAnalysis(): Promise<void> {
+  protected async runTask(): Promise<void> {
     // Read questions file and filter out blank lines and comments
     const fileContents = await readFile(inputConfig.QUESTIONS_PROMPTS_FILEPATH);
     const questions = fileContents

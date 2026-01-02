@@ -7,7 +7,7 @@ import type {
 import {
   isCategorizedDataNameDescArray,
   type CategorizedDataItem,
-} from "../file-types/categories-data-provider";
+} from "../shared/categorized-section-data-builder";
 import type {
   DomainEntity,
   DomainRepository,

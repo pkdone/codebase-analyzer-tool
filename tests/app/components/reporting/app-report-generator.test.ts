@@ -4,7 +4,7 @@ import { AppSummariesRepository } from "../../../../src/app/repositories/app-sum
 import { HtmlReportWriter } from "../../../../src/app/components/reporting/html-report-writer";
 import { JsonReportWriter } from "../../../../src/app/components/reporting/json-report-writer";
 import { AppStatisticsDataProvider } from "../../../../src/app/components/reporting/sections/quality-metrics/app-statistics-data-provider";
-import { AppSummaryCategoriesProvider } from "../../../../src/app/components/reporting/sections/file-types/categories-data-provider";
+import { CategorizedSectionDataBuilder } from "../../../../src/app/components/reporting/sections/shared/categorized-section-data-builder";
 import type { ReportSection } from "../../../../src/app/components/reporting/sections/report-section.interface";
 // Import types for type checking only
 import type { ReportData } from "../../../../src/app/components/reporting/report-data.types";
@@ -15,7 +15,7 @@ describe("AppReportGenerator", () => {
   let mockHtmlWriter: jest.Mocked<HtmlReportWriter>;
   let mockJsonWriter: jest.Mocked<JsonReportWriter>;
   let mockAppStatsDataProvider: jest.Mocked<AppStatisticsDataProvider>;
-  let mockCategoriesDataProvider: jest.Mocked<AppSummaryCategoriesProvider>;
+  let mockCategorizedDataBuilder: jest.Mocked<CategorizedSectionDataBuilder>;
   let mockSections: jest.Mocked<ReportSection>[];
 
   beforeEach(() => {
@@ -35,9 +35,9 @@ describe("AppReportGenerator", () => {
       getAppStatistics: jest.fn(),
     } as unknown as jest.Mocked<AppStatisticsDataProvider>;
 
-    mockCategoriesDataProvider = {
+    mockCategorizedDataBuilder = {
       getStandardSectionData: jest.fn(),
-    } as unknown as jest.Mocked<AppSummaryCategoriesProvider>;
+    } as unknown as jest.Mocked<CategorizedSectionDataBuilder>;
 
     // Create mock sections
     mockSections = [
@@ -60,7 +60,7 @@ describe("AppReportGenerator", () => {
       mockHtmlWriter,
       mockJsonWriter,
       mockAppStatsDataProvider,
-      mockCategoriesDataProvider,
+      mockCategorizedDataBuilder,
       mockSections,
     );
   });
@@ -96,7 +96,7 @@ describe("AppReportGenerator", () => {
       ];
 
       mockAppStatsDataProvider.getAppStatistics.mockResolvedValue(mockAppStats);
-      mockCategoriesDataProvider.getStandardSectionData.mockReturnValue(mockCategorizedData);
+      mockCategorizedDataBuilder.getStandardSectionData.mockReturnValue(mockCategorizedData);
 
       await generator.generateReport("test-project", "/output", "report.html");
 
@@ -129,7 +129,7 @@ describe("AppReportGenerator", () => {
       const mockCategorizedData: ReportData["categorizedData"] = [];
 
       mockAppStatsDataProvider.getAppStatistics.mockResolvedValue(mockAppStats);
-      mockCategoriesDataProvider.getStandardSectionData.mockReturnValue(mockCategorizedData);
+      mockCategorizedDataBuilder.getStandardSectionData.mockReturnValue(mockCategorizedData);
 
       await generator.generateReport("test-project", "/output", "report.html");
 
@@ -154,7 +154,7 @@ describe("AppReportGenerator", () => {
       const mockCategorizedData: ReportData["categorizedData"] = [];
 
       mockAppStatsDataProvider.getAppStatistics.mockResolvedValue(mockAppStats);
-      mockCategoriesDataProvider.getStandardSectionData.mockReturnValue(mockCategorizedData);
+      mockCategorizedDataBuilder.getStandardSectionData.mockReturnValue(mockCategorizedData);
 
       // Make one section fail
       mockSections[0].getData.mockRejectedValue(new Error("Section 1 failed"));

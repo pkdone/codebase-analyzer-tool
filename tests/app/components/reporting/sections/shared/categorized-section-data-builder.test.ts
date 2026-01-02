@@ -1,14 +1,14 @@
 import "reflect-metadata";
-import { AppSummaryCategoriesProvider } from "../../../../../src/app/components/reporting/sections/file-types/categories-data-provider";
-import { AppSummaryCategories } from "../../../../../src/app/schemas/app-summaries.schema";
-import type { AppSummaryRecordWithId } from "../../../../../src/app/repositories/app-summaries/app-summaries.model";
+import { CategorizedSectionDataBuilder } from "../../../../../../src/app/components/reporting/sections/shared/categorized-section-data-builder";
+import { AppSummaryCategories } from "../../../../../../src/app/schemas/app-summaries.schema";
+import type { AppSummaryRecordWithId } from "../../../../../../src/app/repositories/app-summaries/app-summaries.model";
 
-describe("AppSummaryCategoriesProvider", () => {
-  let categoriesDataProvider: AppSummaryCategoriesProvider;
+describe("CategorizedSectionDataBuilder", () => {
+  let categorizedDataBuilder: CategorizedSectionDataBuilder;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    categoriesDataProvider = new AppSummaryCategoriesProvider();
+    categorizedDataBuilder = new CategorizedSectionDataBuilder();
   });
 
   describe("getStandardSectionData", () => {
@@ -52,7 +52,7 @@ describe("AppSummaryCategoriesProvider", () => {
       };
 
       // Act
-      const result = categoriesDataProvider.getStandardSectionData(
+      const result = categorizedDataBuilder.getStandardSectionData(
         mockAppSummaryData as AppSummaryRecordWithId,
       );
 
@@ -88,7 +88,7 @@ describe("AppSummaryCategoriesProvider", () => {
       };
 
       // Act
-      const result = categoriesDataProvider.getStandardSectionData(
+      const result = categorizedDataBuilder.getStandardSectionData(
         mockAppSummaryData as AppSummaryRecordWithId,
       );
 
@@ -109,7 +109,7 @@ describe("AppSummaryCategoriesProvider", () => {
       };
 
       // Act
-      const result = categoriesDataProvider.getStandardSectionData(
+      const result = categorizedDataBuilder.getStandardSectionData(
         mockAppSummaryData as AppSummaryRecordWithId,
       );
 
@@ -129,7 +129,7 @@ describe("AppSummaryCategoriesProvider", () => {
       } as unknown as AppSummaryRecordWithId;
 
       // Act
-      const result = categoriesDataProvider.getStandardSectionData(mockAppSummaryData);
+      const result = categorizedDataBuilder.getStandardSectionData(mockAppSummaryData);
 
       // Assert - All invalid data should be converted to empty arrays
       result.forEach((category) => {
@@ -147,7 +147,7 @@ describe("AppSummaryCategoriesProvider", () => {
       };
 
       // Act
-      const result = categoriesDataProvider.getStandardSectionData(
+      const result = categorizedDataBuilder.getStandardSectionData(
         mockAppSummaryData as AppSummaryRecordWithId,
       );
 
@@ -176,7 +176,7 @@ describe("AppSummaryCategoriesProvider", () => {
       };
 
       // Act
-      const result = categoriesDataProvider.getStandardSectionData(
+      const result = categorizedDataBuilder.getStandardSectionData(
         mockAppSummaryData as AppSummaryRecordWithId,
       );
 

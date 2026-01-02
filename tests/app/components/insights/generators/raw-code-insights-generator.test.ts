@@ -18,7 +18,7 @@ jest.mock("../../../../../src/common/utils/logging", () => ({
 }));
 
 jest.mock("../../../../../src/app/utils/codebase-formatting", () => ({
-  formatDirectoryAsMarkdown: jest
+  formatSourceFilesAsMarkdown: jest
     .fn<() => Promise<string>>()
     .mockResolvedValue("mock codebase content"),
 }));

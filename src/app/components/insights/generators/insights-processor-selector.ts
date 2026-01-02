@@ -6,7 +6,7 @@ import LLMRouter from "../../../../common/llm/llm-router";
 import type { EnvVars } from "../../../env/env.types";
 import type InsightsFromDBGenerator from "./db-insights-generator";
 import type InsightsFromRawCodeGenerator from "./raw-code-insights-generator";
-import { formatDirectoryAsMarkdown } from "../../../utils/codebase-formatting";
+import { formatSourceFilesAsMarkdown } from "../../../utils/codebase-formatting";
 import { fileProcessingConfig } from "../../../config/file-processing.config";
 import { llmProviderConfig } from "../../../../common/llm/config/llm.config";
 
@@ -32,7 +32,7 @@ export class InsightsProcessorSelector {
   async selectInsightsProcessor(): Promise<InsightsFromDBGenerator | InsightsFromRawCodeGenerator> {
     const manifest = this.llmRouter.getLLMManifest();
     const primaryCompletionTokens = manifest.models.primaryCompletion.maxTotalTokens;
-    const codeBlocksContent = await formatDirectoryAsMarkdown(
+    const codeBlocksContent = await formatSourceFilesAsMarkdown(
       this.envVars.CODEBASE_DIR_PATH,
       fileProcessingConfig.FOLDER_IGNORE_LIST,
       fileProcessingConfig.FILENAME_PREFIX_IGNORE,

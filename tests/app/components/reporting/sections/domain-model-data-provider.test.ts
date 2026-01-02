@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import { DomainModelDataProvider } from "../../../../../src/app/components/reporting/sections/visualizations/domain-model-data-provider";
 import type { HierarchicalBoundedContextData } from "../../../../../src/app/components/reporting/sections/visualizations/domain-model.types";
-import type { CategorizedDataItem } from "../../../../../src/app/components/reporting/sections/file-types/categories-data-provider";
+import type { CategorizedDataItem } from "../../../../../src/app/components/reporting/sections/shared/categorized-section-data-builder";
 
 describe("DomainModelDataProvider", () => {
   let provider: DomainModelDataProvider;

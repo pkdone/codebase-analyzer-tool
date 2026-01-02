@@ -34,4 +34,3 @@ export type { ReportSection } from "./sections/report-section.interface";
 
 // Constants
 export { SECTION_NAMES } from "./reporting.constants";
-
