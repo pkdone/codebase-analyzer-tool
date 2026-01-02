@@ -8,6 +8,8 @@ export const fileProcessingConfig = {
     ".git",
     "bin",
     "build",
+    "docs",
+    "input",
     "node_modules",
     ".vscode",
     "dist",
