@@ -204,8 +204,13 @@ describe("Source Config Consistency", () => {
     });
   });
 
-  describe("Build Tool File Types", () => {
-    const BUILD_TOOL_TYPES = [
+  describe("Build Tool File Types (Dependency Config Factory)", () => {
+    /**
+     * All dependency file types that use the createDependencyConfig factory.
+     * These should all have identical structure: purpose, implementation, dependencies schema
+     * and exactly 2 instruction blocks (Basic Info + References and Dependencies).
+     */
+    const DEPENDENCY_FILE_TYPES = [
       "maven",
       "gradle",
       "ant",
@@ -219,18 +224,63 @@ describe("Source Config Consistency", () => {
       "makefile",
     ] as const;
 
-    it.each(BUILD_TOOL_TYPES)("%s should have dependencies in schema", (fileType) => {
+    it.each(DEPENDENCY_FILE_TYPES)("%s should have dependencies in schema", (fileType) => {
       const config = sourceConfigMap[fileType];
       const schemaShape = Object.keys((config.responseSchema as z.ZodObject<z.ZodRawShape>).shape);
 
       expect(schemaShape).toContain("dependencies");
     });
 
-    it.each(BUILD_TOOL_TYPES)("%s should have References and Dependencies section", (fileType) => {
-      const config = sourceConfigMap[fileType];
-      const sectionTitles = config.instructions.map(extractSectionTitle);
+    it.each(DEPENDENCY_FILE_TYPES)(
+      "%s should have References and Dependencies section",
+      (fileType) => {
+        const config = sourceConfigMap[fileType];
+        const sectionTitles = config.instructions.map(extractSectionTitle);
 
-      expect(sectionTitles).toContain(INSTRUCTION_SECTION_TITLES.REFERENCES_AND_DEPS);
+        expect(sectionTitles).toContain(INSTRUCTION_SECTION_TITLES.REFERENCES_AND_DEPS);
+      },
+    );
+
+    it.each(DEPENDENCY_FILE_TYPES)(
+      "%s should have exactly 2 instruction blocks (from factory)",
+      (fileType) => {
+        const config = sourceConfigMap[fileType];
+        expect(config.instructions).toHaveLength(2);
+      },
+    );
+
+    it.each(DEPENDENCY_FILE_TYPES)(
+      "%s should have Basic Info as first section (from factory)",
+      (fileType) => {
+        const config = sourceConfigMap[fileType];
+        const firstTitle = extractSectionTitle(config.instructions[0]);
+        expect(firstTitle).toBe(INSTRUCTION_SECTION_TITLES.BASIC_INFO);
+      },
+    );
+
+    it.each(DEPENDENCY_FILE_TYPES)(
+      "%s should have exactly 3 schema fields: purpose, implementation, dependencies",
+      (fileType) => {
+        const config = sourceConfigMap[fileType];
+        const schemaShape = Object.keys(
+          (config.responseSchema as z.ZodObject<z.ZodRawShape>).shape,
+        ).sort();
+
+        expect(schemaShape).toEqual(["dependencies", "implementation", "purpose"]);
+      },
+    );
+
+    it("all dependency configs should have identical schema structure", () => {
+      const schemas = DEPENDENCY_FILE_TYPES.map((fileType) => {
+        const config = sourceConfigMap[fileType];
+        return Object.keys((config.responseSchema as z.ZodObject<z.ZodRawShape>).shape).sort();
+      });
+
+      // All schemas should match the first one
+      const firstSchema = schemas[0];
+      for (let i = 1; i < schemas.length; i++) {
+        expect(schemas[i]).toEqual(firstSchema);
+      }
     });
   });
 

@@ -4,6 +4,7 @@ import {
   isAfterJsonDelimiter,
   isInPropertyContext,
   isInArrayContext,
+  isDeepArrayContext,
 } from "../../../../../../src/common/llm/json-processing/sanitizers/rules/rule-executor";
 import type {
   ReplacementRule,
@@ -338,6 +339,72 @@ describe("rule-executor", () => {
           fullContent: '"value",\n    "next"',
         });
         expect(isInArrayContext(context)).toBe(true);
+      });
+    });
+
+    describe("isDeepArrayContext", () => {
+      it("should return true when simple isInArrayContext matches", () => {
+        const context = createTestContext({
+          beforeMatch: "[ ",
+          offset: 2,
+          fullContent: '[ "item"]',
+        });
+        expect(isDeepArrayContext(context)).toBe(true);
+      });
+
+      it("should return true via deep scan when simple check misses array context", () => {
+        // Position after opening bracket, but beforeMatch doesn't end with [
+        const fullContent = '["item1", "item2"]';
+        const context = createTestContext({
+          beforeMatch: '["item1", ',
+          offset: 10,
+          fullContent,
+        });
+        expect(isDeepArrayContext(context)).toBe(true);
+      });
+
+      it("should return false when not in array context", () => {
+        const fullContent = '{"key": "value"}';
+        const context = createTestContext({
+          beforeMatch: '{"key": ',
+          offset: 8,
+          fullContent,
+        });
+        expect(isDeepArrayContext(context)).toBe(false);
+      });
+
+      it("should return true for nested array elements", () => {
+        const fullContent = '{"data": ["item1", "item2"]}';
+        const context = createTestContext({
+          beforeMatch: '{"data": ["item1", ',
+          offset: 19,
+          fullContent,
+        });
+        expect(isDeepArrayContext(context)).toBe(true);
+      });
+
+      it("should return false for object inside array", () => {
+        // When we're inside an object that is within an array,
+        // isDirectlyInArrayContext should return false
+        const fullContent = '[{"key": "value"}]';
+        const context = createTestContext({
+          beforeMatch: '[{"key": ',
+          offset: 9,
+          fullContent,
+        });
+        // This is inside an object within an array, not directly in array
+        expect(isDeepArrayContext(context)).toBe(false);
+      });
+
+      it("should handle complex nested structures", () => {
+        const fullContent = '{"arr": [["nested"], "flat"]}';
+        // Position at "flat" - should be in array
+        const context = createTestContext({
+          beforeMatch: '{"arr": [["nested"], ',
+          offset: 21,
+          fullContent,
+        });
+        expect(isDeepArrayContext(context)).toBe(true);
       });
     });
   });

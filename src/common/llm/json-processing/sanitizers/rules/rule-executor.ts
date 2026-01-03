@@ -7,7 +7,7 @@
  * - Multi-pass execution support
  */
 
-import { isInStringAt } from "../../utils/parser-context-utils";
+import { isInStringAt, isDirectlyInArrayContext } from "../../utils/parser-context-utils";
 import { DiagnosticCollector } from "../../utils/diagnostic-collector";
 import { processingConfig, parsingHeuristics } from "../../constants/json-processing.config";
 import type {
@@ -213,4 +213,20 @@ export function isInArrayContext(context: ContextInfo): boolean {
     /,\s*\n\s*$/.test(beforeMatch) ||
     /"\s*,\s*\n\s*$/.test(beforeMatch)
   );
+}
+
+/**
+ * Deep array context check using backward scanning.
+ * This combines the simple `isInArrayContext` check with a more thorough
+ * `isDirectlyInArrayContext` scan for cases where the simple check misses
+ * the array context.
+ *
+ * @param context - The context info from the rule execution
+ * @returns true if the match is in an array context (either by simple or deep scan)
+ */
+export function isDeepArrayContext(context: ContextInfo): boolean {
+  if (isInArrayContext(context)) {
+    return true;
+  }
+  return isDirectlyInArrayContext(context.offset, context.fullContent);
 }

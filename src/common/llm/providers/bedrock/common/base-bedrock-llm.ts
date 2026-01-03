@@ -12,6 +12,7 @@ import { logOneLineError } from "../../../../utils/logging";
 import BaseLLMProvider from "../../base-llm-provider";
 import { z } from "zod";
 import { LLMError, LLMErrorCode } from "../../../types/llm-errors.types";
+import { createTokenUsage } from "../../../types/llm.types";
 import {
   extractGenericCompletionResponse,
   type ResponsePathConfig,
@@ -157,10 +158,10 @@ export default abstract class BaseBedrockLLM extends BaseLLMProvider {
     const response = validation.data;
     const responseContent = response.embedding ?? [];
     const isIncompleteResponse = !responseContent; // If no content assume prompt maxed out total tokens available
-    const promptTokens = response.inputTextTokenCount ?? -1;
-    const completionTokens = response.results?.[0]?.tokenCount ?? -1;
-    const maxTotalTokens = -1;
-    const tokenUsage = { promptTokens, completionTokens, maxTotalTokens };
+    const tokenUsage = createTokenUsage(
+      response.inputTextTokenCount,
+      response.results?.[0]?.tokenCount,
+    );
     return { isIncompleteResponse, responseContent, tokenUsage };
   }
 

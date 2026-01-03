@@ -6,38 +6,19 @@
  * - Stray text before and after JSON structures
  */
 
-import type { ReplacementRule, ContextInfo } from "./replacement-rule.types";
-import { isAfterJsonDelimiter, isInArrayContext } from "./rule-executor";
-import { isDirectlyInArrayContext } from "../../utils/parser-context-utils";
+import type { ReplacementRule } from "./replacement-rule.types";
+import { isAfterJsonDelimiter, isInArrayContext, isDeepArrayContext } from "./rule-executor";
+import { isJsonKeyword, looksLikeStrayText } from "../../utils/stray-text-detection";
 
-/**
- * Checks if content is in an array context using deep scanning.
- */
-function isDeepArrayContext(context: ContextInfo): boolean {
-  const { fullContent, offset } = context;
-  // First try the simple check
-  if (isInArrayContext(context)) {
-    return true;
-  }
-  // Then try the deep scan
-  return isDirectlyInArrayContext(offset, fullContent);
-}
-
-/**
- * JSON keywords that should not be treated as stray text.
- */
-const JSON_KEYWORDS = new Set(["true", "false", "null", "undefined"]);
-
-/**
- * Checks if a string is a JSON keyword.
- */
-function isJsonKeyword(text: string): boolean {
-  return JSON_KEYWORDS.has(text.toLowerCase());
-}
+/** Options for property context - longer text with sentences */
+const PROPERTY_CONTEXT_OPTIONS = {
+  maxLength: 40,
+  detectSentences: true,
+};
 
 /**
  * Checks if text looks like stray non-JSON content before a property.
- * Uses structural detection rather than specific word lists.
+ * This is a specialized check that also validates against JSON structural characters.
  *
  * @param text - The text to check
  * @returns True if the text looks like stray content that should be removed
@@ -45,28 +26,17 @@ function isJsonKeyword(text: string): boolean {
 function looksLikeStrayTextBeforeProperty(text: string): boolean {
   const trimmed = text.trim();
 
-  // JSON keywords should never be removed
-  if (isJsonKeyword(trimmed)) {
-    return false;
-  }
-
   // Empty or whitespace-only is not stray
   if (trimmed.length === 0) {
     return false;
   }
 
-  // Single lowercase character (common LLM artifact)
-  if (/^[a-z]$/.test(trimmed)) {
-    return true;
+  // If it contains JSON structural characters, don't remove it
+  if (/["{}[\]:,]/.test(trimmed)) {
+    return false;
   }
 
-  // Short lowercase text (1-40 chars) without JSON structural chars
-  // Extended to catch longer LLM commentary like "running on a different machine"
-  if (/^[a-z][a-z\s]{0,39}$/i.test(trimmed) && !/["{}[\]:,]/.test(trimmed)) {
-    return true;
-  }
-
-  return false;
+  return looksLikeStrayText(trimmed, PROPERTY_CONTEXT_OPTIONS);
 }
 
 /**

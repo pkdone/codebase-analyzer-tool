@@ -2,15 +2,16 @@ import { z } from "zod";
 import { getNestedValue, getNestedValueWithFallbacks } from "../../../../utils/object-utils";
 import { isDefined } from "../../../../utils/type-guards";
 import { LLMError, LLMErrorCode } from "../../../types/llm-errors.types";
-import { LLMGeneratedContent } from "../../../types/llm.types";
+import { LLMGeneratedContent, createTokenUsage } from "../../../types/llm.types";
 import { LLMImplSpecificResponseSummary } from "../../llm-provider.types";
 
 /**
- * Parses a value as a number, returning a default if the value is not a number.
+ * Parses a value as a number, returning undefined if the value is not a number.
  * Simplifies verbose inline type guards for token count parsing.
+ * Returns undefined instead of a default value so createTokenUsage can apply its own default.
  */
-const parseNumericOrDefault = (value: unknown, defaultVal = -1): number =>
-  typeof value === "number" ? value : defaultVal;
+const parseNumericOrDefault = (value: unknown): number | undefined =>
+  typeof value === "number" ? value : undefined;
 
 /**
  * Configuration for extracting response data from different Bedrock provider response structures
@@ -74,11 +75,11 @@ export function extractGenericCompletionResponse(
     finishReasonLowercase === pathConfig.stopReasonValueForLength.toLowerCase() ||
     responseContent == null;
   const promptTokensRaw = getNestedValue(response, pathConfig.promptTokensPath);
-  const promptTokens = parseNumericOrDefault(promptTokensRaw);
   const completionTokensRaw = getNestedValue(response, pathConfig.completionTokensPath);
-  const completionTokens = parseNumericOrDefault(completionTokensRaw);
-  const maxTotalTokens = -1; // Not using total tokens as that's prompt + completion, not the max limit
-  const tokenUsage = { promptTokens, completionTokens, maxTotalTokens };
+  const tokenUsage = createTokenUsage(
+    parseNumericOrDefault(promptTokensRaw),
+    parseNumericOrDefault(completionTokensRaw),
+  );
   return { isIncompleteResponse, responseContent, tokenUsage };
 }
 

@@ -7,50 +7,17 @@
 import type { LLMSanitizerConfig } from "../../../config/llm-module-config.types";
 import type { SanitizerStrategy, StrategyResult } from "../pipeline/sanitizer-pipeline.types";
 import { isInStringAt } from "../../utils/parser-context-utils";
+import { looksLikeStrayText } from "../../utils/stray-text-detection";
 import { DiagnosticCollector } from "../../utils/diagnostic-collector";
 import { processingConfig, parsingHeuristics } from "../../constants/json-processing.config";
 
-/**
- * Checks if a string looks like stray non-JSON text.
- * Generic detection that doesn't rely on specific hardcoded words.
- *
- * @param text - The text to check
- * @returns True if the text looks like stray content
- */
-function looksLikeStrayText(text: string): boolean {
-  const trimmed = text.trim();
-  if (trimmed.length === 0) return false;
-
-  // Single characters (not followed by colon for property context)
-  if (trimmed.length === 1 && /^[a-zA-Z]$/.test(trimmed)) {
-    return true;
-  }
-
-  // Short lowercase words (2-15 chars) that aren't JSON keywords
-  if (/^[a-z][a-z0-9_-]{1,14}$/i.test(trimmed)) {
-    const jsonKeywords = ["true", "false", "null"];
-    if (!jsonKeywords.includes(trimmed.toLowerCase())) {
-      return true;
-    }
-  }
-
-  // Text that looks like a sentence fragment or comment
-  if (/^[a-z][a-z\s]{5,}$/i.test(trimmed) && trimmed.includes(" ")) {
-    return true;
-  }
-
-  // Variable assignment patterns (config-like text)
-  if (/^[a-zA-Z_][a-zA-Z0-9_]*\s*=\s*[^\s]+$/.test(trimmed)) {
-    return true;
-  }
-
-  // YAML-like key: value patterns outside of JSON (using character class to avoid escaping)
-  if (/^[a-z][a-z0-9_-]*:\s+[^"{[]/i.test(trimmed)) {
-    return true;
-  }
-
-  return false;
-}
+/** Options for stray content remover - more permissive detection */
+const STRAY_CONTENT_DETECTION_OPTIONS = {
+  maxLength: 15,
+  detectSentences: true,
+  detectYamlPatterns: true,
+  detectAssignmentPatterns: true,
+};
 
 /**
  * Strategy that removes stray content from JSON.
@@ -207,7 +174,7 @@ export const strayContentRemover: SanitizerStrategy = {
         const strayTextStr = typeof strayText === "string" ? strayText : "";
 
         // Check if it looks like stray text (not a valid JSON element)
-        if (looksLikeStrayText(strayTextStr)) {
+        if (looksLikeStrayText(strayTextStr, STRAY_CONTENT_DETECTION_OPTIONS)) {
           const delimiterStr = typeof delimiter === "string" ? delimiter : "";
           const continuationStr = typeof continuation === "string" ? continuation : "";
           hasChanges = true;

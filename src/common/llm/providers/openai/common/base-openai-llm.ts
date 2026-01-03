@@ -1,6 +1,11 @@
 import { OpenAI, RateLimitError, InternalServerError } from "openai";
 import { APIError } from "openai/error";
-import { LLMCompletionOptions, LLMOutputFormat, LLMModelFeature } from "../../../types/llm.types";
+import {
+  LLMCompletionOptions,
+  LLMOutputFormat,
+  LLMModelFeature,
+  createTokenUsage,
+} from "../../../types/llm.types";
 import BaseLLMProvider from "../../base-llm-provider";
 import { llmConfig } from "../../../config/llm.config";
 import { LLMError, LLMErrorCode } from "../../../types/llm-errors.types";
@@ -132,10 +137,7 @@ export default abstract class BaseOpenAILLM extends BaseLLMProvider {
     const isIncompleteResponse = !responseContent;
 
     // Capture token usage
-    const promptTokens = llmResponses.usage.prompt_tokens;
-    const completionTokens = -1;
-    const maxTotalTokens = -1; // Not using "total_tokens" as that is total of prompt + completion tokens tokens and not the max limit
-    const tokenUsage = { promptTokens, completionTokens, maxTotalTokens };
+    const tokenUsage = createTokenUsage(llmResponses.usage.prompt_tokens);
     return { isIncompleteResponse, responseContent, tokenUsage };
   }
 
@@ -171,10 +173,10 @@ export default abstract class BaseOpenAILLM extends BaseLLMProvider {
     const isIncompleteResponse = finishReason === "length" || responseContent == null;
 
     // Capture token usage
-    const promptTokens = llmResponses.usage?.prompt_tokens ?? -1;
-    const completionTokens = llmResponses.usage?.completion_tokens ?? -1;
-    const maxTotalTokens = -1; // Not using "total_tokens" as that is total of prompt + completion tokens tokens and not the max limit
-    const tokenUsage = { promptTokens, completionTokens, maxTotalTokens };
+    const tokenUsage = createTokenUsage(
+      llmResponses.usage?.prompt_tokens,
+      llmResponses.usage?.completion_tokens,
+    );
     return { isIncompleteResponse, responseContent, tokenUsage };
   }
 

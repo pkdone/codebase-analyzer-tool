@@ -7,19 +7,8 @@
  * - Minus signs and markdown markers
  */
 
-import type { ReplacementRule, ContextInfo } from "./replacement-rule.types";
-import { isInArrayContext } from "./rule-executor";
-import { isDirectlyInArrayContext } from "../../utils/parser-context-utils";
-
-/**
- * Deep array context check using backward scanning.
- */
-function isDeepArrayContext(context: ContextInfo): boolean {
-  if (isInArrayContext(context)) {
-    return true;
-  }
-  return isDirectlyInArrayContext(context.offset, context.fullContent);
-}
+import type { ReplacementRule } from "./replacement-rule.types";
+import { isInArrayContext, isDeepArrayContext } from "./rule-executor";
 
 /**
  * Rules for fixing array element issues in JSON content.

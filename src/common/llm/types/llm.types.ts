@@ -198,6 +198,30 @@ export interface LLMResponseTokensUsage {
   readonly maxTotalTokens: number;
 }
 
+/** Default value for unknown token counts */
+const UNKNOWN_TOKEN_COUNT = -1;
+
+/**
+ * Creates a standardized token usage object with consistent defaults.
+ * This helper ensures all providers use the same default value (-1) for unknown token counts.
+ *
+ * @param promptTokens - Number of tokens in the prompt (default: -1)
+ * @param completionTokens - Number of tokens in the completion (default: -1)
+ * @param maxTotalTokens - Maximum total tokens allowed (default: -1)
+ * @returns A standardized LLMResponseTokensUsage object
+ */
+export function createTokenUsage(
+  promptTokens?: number,
+  completionTokens?: number,
+  maxTotalTokens?: number,
+): LLMResponseTokensUsage {
+  return {
+    promptTokens: promptTokens ?? UNKNOWN_TOKEN_COUNT,
+    completionTokens: completionTokens ?? UNKNOWN_TOKEN_COUNT,
+    maxTotalTokens: maxTotalTokens ?? UNKNOWN_TOKEN_COUNT,
+  };
+}
+
 /**
  * Type representing all possible generated content types from LLM responses.
  *

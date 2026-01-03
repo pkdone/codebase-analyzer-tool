@@ -7,79 +7,12 @@
 import type { LLMSanitizerConfig } from "../../../config/llm-module-config.types";
 import type { SanitizerStrategy, StrategyResult } from "../pipeline/sanitizer-pipeline.types";
 import { isInStringAt } from "../../utils/parser-context-utils";
+import {
+  looksLikeStrayPropertyPrefix,
+  looksLikeDescriptiveText,
+} from "../../utils/stray-text-detection";
 import { DiagnosticCollector } from "../../utils/diagnostic-collector";
-import { JSON_KEYWORDS_SET, processingConfig } from "../../constants/json-processing.config";
-
-/**
- * Checks if a word looks like stray text that shouldn't appear before JSON properties.
- * Uses generic structural detection rather than hardcoded word lists:
- * 1. JSON keywords (true, false, null) are never stray
- * 2. Short lowercase words (2-10 chars) in structural context are likely stray
- *
- * @param word - The word to check
- * @returns True if the word looks like stray text that should be removed
- */
-function looksLikeStrayText(word: string): boolean {
-  const lowerWord = word.toLowerCase();
-
-  // JSON keywords should never be removed
-  if (JSON_KEYWORDS_SET.has(lowerWord)) {
-    return false;
-  }
-
-  // Short lowercase words (2-10 chars) appearing between structural delimiters
-  // and property names are almost always stray LLM filler text
-  if (/^[a-z]{2,10}$/.test(word)) {
-    return true;
-  }
-
-  return false;
-}
-
-/**
- * Checks if text looks like descriptive/commentary text using structural patterns.
- * Instead of checking for specific words, we detect sentence-like structures:
- * - Contains multiple space-separated words (3+)
- * - Ends with sentence punctuation
- * - Does not contain JSON structural characters
- *
- * @param text - The text to check
- * @returns True if the text looks like descriptive/commentary content
- */
-function looksLikeDescriptiveTextStructural(text: string): boolean {
-  const trimmed = text.trim();
-
-  // Must not contain JSON structural characters
-  if (/["{}[\]]/.test(trimmed)) {
-    return false;
-  }
-
-  // Count space-separated words
-  const wordCount = trimmed.split(/\s+/).filter((w) => w.length > 0).length;
-
-  // Text with 3+ words is likely a sentence/commentary
-  if (wordCount >= 3) {
-    return true;
-  }
-
-  // Text ending with sentence punctuation (even single words like "tribulations.")
-  // Single words with punctuation in JSON context are clearly stray text
-  if (/[.!?]$/.test(trimmed) && /^[a-z]+[.!?]$/i.test(trimmed)) {
-    return true;
-  }
-
-  // Text ending with sentence punctuation and has 2+ words
-  if (/[.!?]$/.test(trimmed) && wordCount >= 2) {
-    return true;
-  }
-
-  // Text that is primarily lowercase letters and spaces (prose-like)
-  if (/^[a-z][a-z\s]{10,}$/i.test(trimmed)) {
-    return true;
-  }
-
-  return false;
-}
+import { processingConfig } from "../../constants/json-processing.config";
 
 /**
  * Checks if a property name looks like an LLM artifact or internal property.
@@ -126,7 +59,7 @@ export const textOutsideJsonRemover: SanitizerStrategy = {
         const strayTextStr = typeof strayText === "string" ? strayText : "";
 
         // Use structural detection instead of hardcoded word lists
-        if (looksLikeDescriptiveTextStructural(strayTextStr)) {
+        if (looksLikeDescriptiveText(strayTextStr)) {
           hasChanges = true;
           const valueStr = typeof value === "string" ? value : "";
           const truncated =
@@ -184,7 +117,7 @@ export const textOutsideJsonRemover: SanitizerStrategy = {
         const closingBraceStr = typeof closingBrace === "string" ? closingBrace : "";
 
         // Use structural detection instead of hardcoded word lists
-        if (looksLikeDescriptiveTextStructural(strayTextStr)) {
+        if (looksLikeDescriptiveText(strayTextStr)) {
           hasChanges = true;
           const displayText =
             strayTextStr.length > 50 ? `${strayTextStr.substring(0, 47)}...` : strayTextStr;
@@ -258,7 +191,7 @@ export const textOutsideJsonRemover: SanitizerStrategy = {
         const quoteStr = typeof quote === "string" ? quote : "";
 
         // Use generic structural detection for stray text
-        if (looksLikeStrayText(strayWordStr)) {
+        if (looksLikeStrayPropertyPrefix(strayWordStr)) {
           hasChanges = true;
           diagnostics.add(`Removed stray word '${strayWordStr}' before property`);
           return `${delimiterStr}\n    ${quoteStr}`;

@@ -7,48 +7,10 @@
 import type { LLMSanitizerConfig } from "../../../config/llm-module-config.types";
 import type { SanitizerStrategy, StrategyResult } from "../pipeline/sanitizer-pipeline.types";
 import { isInStringAt, isDirectlyInArrayContext } from "../../utils/parser-context-utils";
-import {
-  processingConfig,
-  JSON_KEYWORDS_SET,
-  parsingHeuristics,
-} from "../../constants/json-processing.config";
+import { looksLikeStrayArrayPrefix } from "../../utils/stray-text-detection";
+import { processingConfig, parsingHeuristics } from "../../constants/json-processing.config";
 import { looksLikeDotSeparatedIdentifier } from "../../utils/property-name-matcher";
 import { DiagnosticCollector } from "../../utils/diagnostic-collector";
-
-/**
- * Checks if a word looks like stray text that shouldn't appear before array elements.
- * Uses generic structural detection rather than hardcoded word lists.
- *
- * Detection strategy:
- * 1. Never remove JSON keywords (true, false, null, undefined)
- * 2. Remove short words (1-6 chars) that are all lowercase
- *    - In array context before a quoted string, these are almost always stray text
- *    - This catches single chars like "e", "t", short prepositions like "from", "with", etc.
- *
- * This structural approach is more robust because:
- * - Short lowercase words before quoted strings in arrays are definitionally invalid JSON
- * - The context (array boundary + quoted string following) already provides the validation
- *
- * @param word - The word to check
- * @returns True if the word looks like stray text that should be removed
- */
-function looksLikeStrayPrefixWord(word: string): boolean {
-  const lowerWord = word.toLowerCase();
-
-  // JSON keywords should never be removed
-  if (JSON_KEYWORDS_SET.has(lowerWord)) {
-    return false;
-  }
-
-  // Generic structural detection: short lowercase words (1-7 chars)
-  // In array context before a quoted string, these are almost always stray text
-  // Extended to 7 chars to catch common stray words like "import", "package"
-  if (word.length <= 7 && /^[a-z]+$/.test(word)) {
-    return true;
-  }
-
-  return false;
-}
 
 /**
  * Attempts to fix a truncated or corrupted identifier by applying
@@ -211,7 +173,7 @@ export const arrayElementFixer: SanitizerStrategy = {
           isDirectlyInArrayContext(offset, sanitized);
 
         // Use generic stray word detection
-        if (isInArray && looksLikeStrayPrefixWord(prefixWordStr)) {
+        if (isInArray && looksLikeStrayArrayPrefix(prefixWordStr)) {
           hasChanges = true;
           diagnostics.add(`Removed prefix word '${prefixWordStr}' before quoted string in array`);
           return `${prefixStr}${whitespaceStr}"${quotedValueStr}"${terminatorStr}`;

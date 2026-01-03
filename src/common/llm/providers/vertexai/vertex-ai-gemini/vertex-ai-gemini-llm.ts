@@ -11,7 +11,12 @@ import {
 import * as aiplatform from "@google-cloud/aiplatform";
 const { helpers } = aiplatform;
 import { llmConfig } from "../../../config/llm.config";
-import { LLMCompletionOptions, LLMOutputFormat, ShutdownBehavior } from "../../../types/llm.types";
+import {
+  LLMCompletionOptions,
+  LLMOutputFormat,
+  ShutdownBehavior,
+  createTokenUsage,
+} from "../../../types/llm.types";
 import { logOneLineWarning, logOneLineError } from "../../../../utils/logging";
 import { formatError } from "../../../../utils/error-formatters";
 import BaseLLMProvider from "../../base-llm-provider";
@@ -176,8 +181,8 @@ export default class VertexAIGeminiLLM extends BaseLLMProvider {
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     const isIncompleteResponse = responseContent == null;
 
-    // Capture token usage
-    const tokenUsage = { promptTokens: -1, completionTokens: -1, maxTotalTokens: -1 }; // API doesn't provide token counts
+    // Capture token usage (Embeddings API doesn't provide token counts)
+    const tokenUsage = createTokenUsage();
     return { isIncompleteResponse, responseContent, tokenUsage };
   }
 
@@ -220,10 +225,10 @@ export default class VertexAIGeminiLLM extends BaseLLMProvider {
     const isIncompleteResponse = finishReason !== FinishReason.STOP || responseContent == null;
 
     // Capture token usage
-    const promptTokens = usageMetadata?.promptTokenCount ?? -1;
-    const completionTokens = usageMetadata?.candidatesTokenCount ?? -1;
-    const maxTotalTokens = -1; // Not "totalTokenCount" as that is total of prompt + cpompletion tokens tokens and not the max limit
-    const tokenUsage = { promptTokens, completionTokens, maxTotalTokens };
+    const tokenUsage = createTokenUsage(
+      usageMetadata?.promptTokenCount,
+      usageMetadata?.candidatesTokenCount,
+    );
     return { isIncompleteResponse, responseContent, tokenUsage };
   }
 

@@ -41,6 +41,42 @@ interface StandardCodeConfigOptions {
   extraComplexityMetrics?: string;
 }
 
+/** Schema type for dependency file configurations */
+const dependencyFileSchema = sourceSummarySchema.pick({
+  purpose: true,
+  implementation: true,
+  dependencies: true,
+});
+
+/**
+ * Factory function to create a dependency file source configuration.
+ * This function eliminates duplication for dependency management files by generating
+ * a consistent 2-block instruction pattern:
+ * 1. Basic Info (purpose and implementation)
+ * 2. References and Dependencies (with file-type-specific dependency extraction)
+ *
+ * @param contentDesc - Description of the content being analyzed (e.g., "Maven POM")
+ * @param dependencyFragment - The file-type-specific dependency extraction instructions
+ * @returns A SourceConfigEntry with the standard dependency file instruction blocks
+ */
+function createDependencyConfig(
+  contentDesc: string,
+  dependencyFragment: string,
+): SourceConfigEntry<typeof dependencyFileSchema> {
+  return {
+    contentDesc,
+    responseSchema: dependencyFileSchema,
+    instructions: [
+      buildInstructionBlock(
+        INSTRUCTION_SECTION_TITLES.BASIC_INFO,
+        SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
+        SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
+      ),
+      buildInstructionBlock(INSTRUCTION_SECTION_TITLES.REFERENCES_AND_DEPS, dependencyFragment),
+    ],
+  };
+}
+
 /**
  * Factory function to create a standard code source configuration.
  * This function eliminates duplication for standard programming languages by generating
@@ -229,196 +265,46 @@ export const sourceConfigMap = {
       ),
     ] as const,
   },
-  maven: {
-    contentDesc: "the Maven POM (Project Object Model) build file",
-    responseSchema: sourceSummarySchema.pick({
-      purpose: true,
-      implementation: true,
-      dependencies: true,
-    }),
-    instructions: [
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.BASIC_INFO,
-        SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
-        SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
-      ),
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.REFERENCES_AND_DEPS,
-        SOURCES_PROMPT_FRAGMENTS.DEPENDENCY_EXTRACTION.MAVEN,
-      ),
-    ] as const,
-  },
-  gradle: {
-    contentDesc: "the Gradle build configuration file",
-    responseSchema: sourceSummarySchema.pick({
-      purpose: true,
-      implementation: true,
-      dependencies: true,
-    }),
-    instructions: [
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.BASIC_INFO,
-        SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
-        SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
-      ),
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.REFERENCES_AND_DEPS,
-        SOURCES_PROMPT_FRAGMENTS.DEPENDENCY_EXTRACTION.GRADLE,
-      ),
-    ] as const,
-  },
-  ant: {
-    contentDesc: "the Apache Ant build.xml file",
-    responseSchema: sourceSummarySchema.pick({
-      purpose: true,
-      implementation: true,
-      dependencies: true,
-    }),
-    instructions: [
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.BASIC_INFO,
-        SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
-        SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
-      ),
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.REFERENCES_AND_DEPS,
-        SOURCES_PROMPT_FRAGMENTS.DEPENDENCY_EXTRACTION.ANT,
-      ),
-    ] as const,
-  },
-  npm: {
-    contentDesc: "the npm package.json or lock file",
-    responseSchema: sourceSummarySchema.pick({
-      purpose: true,
-      implementation: true,
-      dependencies: true,
-    }),
-    instructions: [
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.BASIC_INFO,
-        SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
-        SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
-      ),
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.REFERENCES_AND_DEPS,
-        SOURCES_PROMPT_FRAGMENTS.DEPENDENCY_EXTRACTION.NPM,
-      ),
-    ] as const,
-  },
-  "dotnet-proj": {
-    contentDesc: "the .NET project file (.csproj, .vbproj, .fsproj)",
-    responseSchema: sourceSummarySchema.pick({
-      purpose: true,
-      implementation: true,
-      dependencies: true,
-    }),
-    instructions: [
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.BASIC_INFO,
-        SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
-        SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
-      ),
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.REFERENCES_AND_DEPS,
-        SOURCES_PROMPT_FRAGMENTS.DEPENDENCY_EXTRACTION.DOTNET,
-      ),
-    ] as const,
-  },
-  nuget: {
-    contentDesc: "the NuGet packages.config file (legacy .NET)",
-    responseSchema: sourceSummarySchema.pick({
-      purpose: true,
-      implementation: true,
-      dependencies: true,
-    }),
-    instructions: [
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.BASIC_INFO,
-        SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
-        SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
-      ),
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.REFERENCES_AND_DEPS,
-        SOURCES_PROMPT_FRAGMENTS.DEPENDENCY_EXTRACTION.NUGET,
-      ),
-    ] as const,
-  },
-  "ruby-bundler": {
-    contentDesc: "the Ruby Gemfile or Gemfile.lock",
-    responseSchema: sourceSummarySchema.pick({
-      purpose: true,
-      implementation: true,
-      dependencies: true,
-    }),
-    instructions: [
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.BASIC_INFO,
-        SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
-        SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
-      ),
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.REFERENCES_AND_DEPS,
-        SOURCES_PROMPT_FRAGMENTS.DEPENDENCY_EXTRACTION.RUBY_BUNDLER,
-      ),
-    ] as const,
-  },
-  "python-pip": {
-    contentDesc: "the Python requirements.txt or Pipfile",
-    responseSchema: sourceSummarySchema.pick({
-      purpose: true,
-      implementation: true,
-      dependencies: true,
-    }),
-    instructions: [
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.BASIC_INFO,
-        SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
-        SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
-      ),
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.REFERENCES_AND_DEPS,
-        SOURCES_PROMPT_FRAGMENTS.DEPENDENCY_EXTRACTION.PYTHON_PIP,
-      ),
-    ] as const,
-  },
-  "python-setup": {
-    contentDesc: "the Python setup.py file",
-    responseSchema: sourceSummarySchema.pick({
-      purpose: true,
-      implementation: true,
-      dependencies: true,
-    }),
-    instructions: [
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.BASIC_INFO,
-        SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
-        SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
-      ),
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.REFERENCES_AND_DEPS,
-        SOURCES_PROMPT_FRAGMENTS.DEPENDENCY_EXTRACTION.PYTHON_SETUP,
-      ),
-    ] as const,
-  },
-  "python-poetry": {
-    contentDesc: "the Python pyproject.toml (Poetry)",
-    responseSchema: sourceSummarySchema.pick({
-      purpose: true,
-      implementation: true,
-      dependencies: true,
-    }),
-    instructions: [
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.BASIC_INFO,
-        SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
-        SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
-      ),
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.REFERENCES_AND_DEPS,
-        SOURCES_PROMPT_FRAGMENTS.DEPENDENCY_EXTRACTION.PYTHON_POETRY,
-      ),
-    ] as const,
-  },
+  maven: createDependencyConfig(
+    "the Maven POM (Project Object Model) build file",
+    SOURCES_PROMPT_FRAGMENTS.DEPENDENCY_EXTRACTION.MAVEN,
+  ),
+  gradle: createDependencyConfig(
+    "the Gradle build configuration file",
+    SOURCES_PROMPT_FRAGMENTS.DEPENDENCY_EXTRACTION.GRADLE,
+  ),
+  ant: createDependencyConfig(
+    "the Apache Ant build.xml file",
+    SOURCES_PROMPT_FRAGMENTS.DEPENDENCY_EXTRACTION.ANT,
+  ),
+  npm: createDependencyConfig(
+    "the npm package.json or lock file",
+    SOURCES_PROMPT_FRAGMENTS.DEPENDENCY_EXTRACTION.NPM,
+  ),
+  "dotnet-proj": createDependencyConfig(
+    "the .NET project file (.csproj, .vbproj, .fsproj)",
+    SOURCES_PROMPT_FRAGMENTS.DEPENDENCY_EXTRACTION.DOTNET,
+  ),
+  nuget: createDependencyConfig(
+    "the NuGet packages.config file (legacy .NET)",
+    SOURCES_PROMPT_FRAGMENTS.DEPENDENCY_EXTRACTION.NUGET,
+  ),
+  "ruby-bundler": createDependencyConfig(
+    "the Ruby Gemfile or Gemfile.lock",
+    SOURCES_PROMPT_FRAGMENTS.DEPENDENCY_EXTRACTION.RUBY_BUNDLER,
+  ),
+  "python-pip": createDependencyConfig(
+    "the Python requirements.txt or Pipfile",
+    SOURCES_PROMPT_FRAGMENTS.DEPENDENCY_EXTRACTION.PYTHON_PIP,
+  ),
+  "python-setup": createDependencyConfig(
+    "the Python setup.py file",
+    SOURCES_PROMPT_FRAGMENTS.DEPENDENCY_EXTRACTION.PYTHON_SETUP,
+  ),
+  "python-poetry": createDependencyConfig(
+    "the Python pyproject.toml (Poetry)",
+    SOURCES_PROMPT_FRAGMENTS.DEPENDENCY_EXTRACTION.PYTHON_POETRY,
+  ),
   "shell-script": {
     contentDesc: "the Shell script (bash/sh)",
     responseSchema: sourceSummarySchema.pick({
@@ -494,25 +380,10 @@ export const sourceConfigMap = {
     useModuleBase: true,
   }),
   cpp: createStandardCodeConfig("the C++ source code", SOURCES_PROMPT_FRAGMENTS.CPP_SPECIFIC),
-  makefile: {
-    contentDesc: "the C/C++ build configuration (CMake or Makefile)",
-    responseSchema: sourceSummarySchema.pick({
-      purpose: true,
-      implementation: true,
-      dependencies: true,
-    }),
-    instructions: [
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.BASIC_INFO,
-        SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
-        SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
-      ),
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.REFERENCES_AND_DEPS,
-        SOURCES_PROMPT_FRAGMENTS.DEPENDENCY_EXTRACTION.MAKEFILE,
-      ),
-    ] as const,
-  },
+  makefile: createDependencyConfig(
+    "the C/C++ build configuration (CMake or Makefile)",
+    SOURCES_PROMPT_FRAGMENTS.DEPENDENCY_EXTRACTION.MAKEFILE,
+  ),
   default: {
     contentDesc: "the source files",
     responseSchema: sourceSummarySchema.pick({
