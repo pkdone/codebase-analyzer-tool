@@ -1,6 +1,9 @@
 import { LLMOutputFormat } from "../../../../../src/common/llm/types/llm.types";
 import { z } from "zod";
-import { validateJsonWithTransforms } from "../../../../../src/common/llm/json-processing/core/json-validating";
+import {
+  validateJsonWithTransforms,
+  type ValidationWithTransformsResult,
+} from "../../../../../src/common/llm/json-processing/core/json-validating";
 
 describe("json-validating", () => {
   describe("validateJsonWithTransforms", () => {
@@ -204,6 +207,127 @@ describe("json-validating", () => {
           expect(Array.isArray(result.transformSteps)).toBe(true);
         }
       });
+    });
+  });
+
+  describe("type inference", () => {
+    it("should preserve inferred type from schema in successful validation result", () => {
+      // Define a schema with specific typed properties
+      const userSchema = z.object({
+        id: z.number(),
+        name: z.string(),
+        email: z.string().email(),
+        isActive: z.boolean(),
+      });
+
+      // Type alias for the schema's inferred type
+      type User = z.infer<typeof userSchema>;
+
+      const validData = {
+        id: 42,
+        name: "John Doe",
+        email: "john@example.com",
+        isActive: true,
+      };
+
+      const result: ValidationWithTransformsResult<User> = validateJsonWithTransforms(
+        validData,
+        userSchema,
+      );
+
+      expect(result.success).toBe(true);
+
+      // Type narrowing after success check should provide typed access
+      if (result.success) {
+        // These property accesses compile without casts because of proper type inference
+        const id: number = result.data.id;
+        const name: string = result.data.name;
+        const email: string = result.data.email;
+        const isActive: boolean = result.data.isActive;
+
+        expect(id).toBe(42);
+        expect(name).toBe("John Doe");
+        expect(email).toBe("john@example.com");
+        expect(isActive).toBe(true);
+      }
+    });
+
+    it("should preserve nested object type inference", () => {
+      const addressSchema = z.object({
+        street: z.string(),
+        city: z.string(),
+        zipCode: z.string(),
+      });
+
+      const personSchema = z.object({
+        name: z.string(),
+        address: addressSchema,
+      });
+
+      type Person = z.infer<typeof personSchema>;
+
+      const validData = {
+        name: "Jane Smith",
+        address: {
+          street: "123 Main St",
+          city: "Anytown",
+          zipCode: "12345",
+        },
+      };
+
+      const result: ValidationWithTransformsResult<Person> = validateJsonWithTransforms(
+        validData,
+        personSchema,
+      );
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        // Nested type inference should work without casts
+        const street: string = result.data.address.street;
+        const city: string = result.data.address.city;
+
+        expect(street).toBe("123 Main St");
+        expect(city).toBe("Anytown");
+      }
+    });
+
+    it("should preserve array type inference", () => {
+      const itemSchema = z.object({
+        id: z.number(),
+        value: z.string(),
+      });
+
+      const collectionSchema = z.object({
+        items: z.array(itemSchema),
+        count: z.number(),
+      });
+
+      type Collection = z.infer<typeof collectionSchema>;
+
+      const validData = {
+        items: [
+          { id: 1, value: "first" },
+          { id: 2, value: "second" },
+        ],
+        count: 2,
+      };
+
+      const result: ValidationWithTransformsResult<Collection> = validateJsonWithTransforms(
+        validData,
+        collectionSchema,
+      );
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        // Array access should be typed without casts
+        const firstItem = result.data.items[0];
+        const firstId: number = firstItem.id;
+        const firstValue: string = firstItem.value;
+
+        expect(firstId).toBe(1);
+        expect(firstValue).toBe("first");
+        expect(result.data.count).toBe(2);
+      }
     });
   });
 

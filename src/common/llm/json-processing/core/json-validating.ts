@@ -71,8 +71,10 @@ function attemptValidate<S extends z.ZodType>(
   const validation = jsonSchema.safeParse(data);
 
   if (validation.success) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    return { success: true, data: validation.data };
+    // Explicit cast is required because Zod's safeParse returns 'any' for data when the
+    // schema is generic (S extends ZodType). The cast is safe: validation.success === true
+    // guarantees the data conforms to S.
+    return { success: true, data: validation.data as z.infer<S> };
   } else {
     const issues = validation.error.issues;
     return { success: false, issues };
