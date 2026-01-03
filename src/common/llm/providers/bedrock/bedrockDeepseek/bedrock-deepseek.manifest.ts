@@ -1,13 +1,8 @@
-import { LLMProviderManifest } from "../../llm-provider.types";
 import BedrockDeepseekLLM from "./bedrock-deepseek-llm";
 import { LLMPurpose } from "../../../types/llm.types";
-import { BEDROCK_COMMON_ERROR_PATTERNS } from "../common/bedrock-error-patterns";
 import { z } from "zod";
-import {
-  createTitanEmbeddingsConfig,
-  createBedrockEnvSchema,
-} from "../common/bedrock-models.constants";
-import { defaultBedrockProviderConfig } from "../common/bedrock-defaults.config";
+import { createTitanEmbeddingsConfig } from "../common/bedrock-models.constants";
+import { createBedrockManifest } from "../common/bedrock-manifest-factory";
 
 // Model family constant - exported for use in provider registry
 export const BEDROCK_DEEPSEEK_FAMILY = "BedrockDeepseek";
@@ -18,13 +13,10 @@ const BEDROCK_DEEPSEEK_COMPLETIONS_MODEL_PRIMARY_KEY = "BEDROCK_DEEPSEEK_COMPLET
 // Model constants
 const AWS_COMPLETIONS_DEEPSEEK_R1 = "AWS_COMPLETIONS_DEEPSEEK_R1";
 
-export const bedrockDeepseekProviderManifest: LLMProviderManifest = {
-  providerName: "Bedrock Deepseek",
-  modelFamily: BEDROCK_DEEPSEEK_FAMILY,
-  envSchema: createBedrockEnvSchema({
-    [BEDROCK_DEEPSEEK_COMPLETIONS_MODEL_PRIMARY_KEY]: z.string().min(1),
-  }),
-  models: {
+export const bedrockDeepseekProviderManifest = createBedrockManifest(
+  "Bedrock Deepseek",
+  BEDROCK_DEEPSEEK_FAMILY,
+  {
     embeddings: createTitanEmbeddingsConfig(),
     primaryCompletion: {
       modelKey: AWS_COMPLETIONS_DEEPSEEK_R1,
@@ -35,9 +27,9 @@ export const bedrockDeepseekProviderManifest: LLMProviderManifest = {
       maxTotalTokens: 128000,
     },
   },
-  errorPatterns: BEDROCK_COMMON_ERROR_PATTERNS,
-  providerSpecificConfig: {
-    ...defaultBedrockProviderConfig,
+  {
+    [BEDROCK_DEEPSEEK_COMPLETIONS_MODEL_PRIMARY_KEY]: z.string().min(1),
   },
-  implementation: BedrockDeepseekLLM,
-};
+  {},
+  BedrockDeepseekLLM,
+);

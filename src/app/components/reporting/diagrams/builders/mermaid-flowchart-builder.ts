@@ -23,6 +23,16 @@ import {
   buildArchitectureInitDirective,
 } from "../utils/mermaid-builders";
 import { buildStyleDefinitions, applyStyle as applyStyleClass } from "../utils/mermaid-styles";
+import {
+  AbstractGraphBuilder,
+  type NodeShape,
+  type EdgeType,
+  type NodeConfig,
+  type EdgeConfig,
+  type MermaidNode,
+  type MermaidEdge,
+  type StyleApplication,
+} from "./abstract-graph-builder";
 
 /**
  * Supported flowchart directions.
@@ -30,67 +40,12 @@ import { buildStyleDefinitions, applyStyle as applyStyleClass } from "../utils/m
 export type FlowchartDirection = "TB" | "BT" | "LR" | "RL";
 
 /**
- * Supported node shapes in Mermaid flowcharts.
- * - rectangle: [label]
- * - rounded: (label)
- * - stadium: ([label])
- * - hexagon: {{label}}
- * - circle: ((label))
- * - rhombus: {label}
- */
-export type NodeShape = "rectangle" | "rounded" | "stadium" | "hexagon" | "circle" | "rhombus";
-
-/**
- * Supported edge types in Mermaid flowcharts.
- * - solid: -->
- * - dotted: -.->
- * - dashed: -.-
- * - invisible: ~~~
- */
-export type EdgeType = "solid" | "dotted" | "dashed" | "invisible";
-
-/**
  * Type of initialization directive to use for the diagram.
  */
 export type InitDirectiveType = "standard" | "architecture";
 
-/**
- * Configuration for creating a node.
- */
-export interface NodeConfig {
-  readonly id: string;
-  readonly label: string;
-  readonly shape?: NodeShape;
-}
-
-/**
- * Configuration for creating an edge.
- */
-export interface EdgeConfig {
-  readonly from: string;
-  readonly to: string;
-  readonly label?: string;
-  readonly type?: EdgeType;
-}
-
-/**
- * Internal representation of a node.
- */
-interface MermaidNode {
-  readonly id: string;
-  readonly label: string;
-  readonly shape: NodeShape;
-}
-
-/**
- * Internal representation of an edge.
- */
-interface MermaidEdge {
-  readonly from: string;
-  readonly to: string;
-  readonly label?: string;
-  readonly type: EdgeType;
-}
+// Re-export types for backwards compatibility
+export type { NodeShape, EdgeType, NodeConfig, EdgeConfig };
 
 /**
  * Internal representation of a subgraph.
@@ -101,15 +56,7 @@ interface MermaidSubgraph {
   readonly direction?: FlowchartDirection;
   readonly nodes: MermaidNode[];
   readonly edges: MermaidEdge[];
-  readonly styles: { nodeId: string; className: string }[];
-}
-
-/**
- * Internal representation of a style application.
- */
-interface StyleApplication {
-  readonly nodeId: string;
-  readonly className: string;
+  readonly styles: StyleApplication[];
 }
 
 /**
@@ -140,13 +87,10 @@ const EDGE_SYNTAX: Readonly<Record<EdgeType, string>> = {
  * Provides a fluent API for constructing Mermaid flowchart diagrams with
  * compile-time safety for node shapes, edge types, and subgraph nesting.
  */
-export class MermaidFlowchartBuilder {
+export class MermaidFlowchartBuilder extends AbstractGraphBuilder {
   private readonly direction: FlowchartDirection;
   private readonly initDirectiveType: InitDirectiveType;
-  private readonly nodes: MermaidNode[] = [];
-  private readonly edges: MermaidEdge[] = [];
   private readonly subgraphs: MermaidSubgraph[] = [];
-  private readonly styles: StyleApplication[] = [];
   private readonly subgraphStyles: { subgraphId: string; styleString: string }[] = [];
 
   /**
@@ -159,61 +103,9 @@ export class MermaidFlowchartBuilder {
     direction: FlowchartDirection = "TB",
     initDirectiveType: InitDirectiveType = "standard",
   ) {
+    super();
     this.direction = direction;
     this.initDirectiveType = initDirectiveType;
-  }
-
-  /**
-   * Adds a node to the flowchart.
-   *
-   * @param id - Unique identifier for the node
-   * @param label - Display label for the node
-   * @param shape - Node shape (defaults to "rectangle")
-   * @returns this for chaining
-   */
-  addNode(id: string, label: string, shape: NodeShape = "rectangle"): this {
-    this.nodes.push({ id, label, shape });
-    return this;
-  }
-
-  /**
-   * Adds multiple nodes to the flowchart.
-   *
-   * @param nodes - Array of node configurations
-   * @returns this for chaining
-   */
-  addNodes(nodes: readonly NodeConfig[]): this {
-    for (const node of nodes) {
-      this.addNode(node.id, node.label, node.shape ?? "rectangle");
-    }
-    return this;
-  }
-
-  /**
-   * Adds an edge between two nodes.
-   *
-   * @param from - Source node ID
-   * @param to - Target node ID
-   * @param label - Optional edge label
-   * @param type - Edge type (defaults to "solid")
-   * @returns this for chaining
-   */
-  addEdge(from: string, to: string, label?: string, type: EdgeType = "solid"): this {
-    this.edges.push({ from, to, label, type });
-    return this;
-  }
-
-  /**
-   * Adds multiple edges to the flowchart.
-   *
-   * @param edges - Array of edge configurations
-   * @returns this for chaining
-   */
-  addEdges(edges: readonly EdgeConfig[]): this {
-    for (const edge of edges) {
-      this.addEdge(edge.from, edge.to, edge.label, edge.type ?? "solid");
-    }
-    return this;
   }
 
   /**
@@ -252,8 +144,8 @@ export class MermaidFlowchartBuilder {
    * @param className - The style class name to apply
    * @returns this for chaining
    */
-  applyStyle(nodeId: string, className: string): this {
-    this.styles.push({ nodeId, className });
+  override applyStyle(nodeId: string, className: string): this {
+    super.applyStyle(nodeId, className);
     return this;
   }
 
@@ -305,12 +197,12 @@ export class MermaidFlowchartBuilder {
     lines.push(buildStyleDefinitions());
 
     // Add top-level nodes
-    for (const node of this.nodes) {
+    for (const node of this.getNodes()) {
       lines.push(this.renderNode(node, "    "));
     }
 
     // Add top-level edges
-    for (const edge of this.edges) {
+    for (const edge of this.getEdges()) {
       lines.push(this.renderEdge(edge, "    "));
     }
 
@@ -320,7 +212,7 @@ export class MermaidFlowchartBuilder {
     }
 
     // Add top-level styles
-    for (const style of this.styles) {
+    for (const style of this.getStyles()) {
       lines.push(applyStyleClass(style.nodeId, style.className));
     }
 
@@ -393,67 +285,22 @@ export class MermaidFlowchartBuilder {
  * Builder for subgraph content.
  * Provides a subset of the main builder's methods for use within subgraphs.
  */
-export class SubgraphBuilder {
-  private readonly nodes: MermaidNode[] = [];
-  private readonly edges: MermaidEdge[] = [];
-  private readonly styles: StyleApplication[] = [];
-
-  /**
-   * Adds a node to the subgraph.
-   */
-  addNode(id: string, label: string, shape: NodeShape = "rectangle"): this {
-    this.nodes.push({ id, label, shape });
-    return this;
-  }
-
-  /**
-   * Adds multiple nodes to the subgraph.
-   */
-  addNodes(nodes: readonly NodeConfig[]): this {
-    for (const node of nodes) {
-      this.addNode(node.id, node.label, node.shape ?? "rectangle");
-    }
-    return this;
-  }
-
-  /**
-   * Adds an edge within the subgraph.
-   */
-  addEdge(from: string, to: string, label?: string, type: EdgeType = "solid"): this {
-    this.edges.push({ from, to, label, type });
-    return this;
-  }
-
-  /**
-   * Adds multiple edges to the subgraph.
-   */
-  addEdges(edges: readonly EdgeConfig[]): this {
-    for (const edge of edges) {
-      this.addEdge(edge.from, edge.to, edge.label, edge.type ?? "solid");
-    }
-    return this;
-  }
-
-  /**
-   * Applies a style class to a node within the subgraph.
-   */
-  applyStyle(nodeId: string, className: string): this {
-    this.styles.push({ nodeId, className });
-    return this;
+export class SubgraphBuilder extends AbstractGraphBuilder {
+  /** @internal */
+  override getNodes(): MermaidNode[] {
+    // Access protected nodes array from base class
+    return [...super.getNodes()];
   }
 
   /** @internal */
-  getNodes(): MermaidNode[] {
-    return [...this.nodes];
+  override getEdges(): MermaidEdge[] {
+    // Access protected edges array from base class
+    return [...super.getEdges()];
   }
 
   /** @internal */
-  getEdges(): MermaidEdge[] {
-    return [...this.edges];
-  }
-
-  /** @internal */
-  getStyles(): StyleApplication[] {
-    return [...this.styles];
+  override getStyles(): StyleApplication[] {
+    // Access protected styles array from base class
+    return [...super.getStyles()];
   }
 }

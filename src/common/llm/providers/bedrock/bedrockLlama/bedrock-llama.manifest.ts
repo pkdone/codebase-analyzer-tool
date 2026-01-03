@@ -1,13 +1,8 @@
-import { LLMProviderManifest } from "../../llm-provider.types";
 import BedrockLlamaLLM from "./bedrock-llama-llm";
 import { LLMPurpose } from "../../../types/llm.types";
-import { BEDROCK_COMMON_ERROR_PATTERNS } from "../common/bedrock-error-patterns";
 import { z } from "zod";
-import {
-  createTitanEmbeddingsConfig,
-  createBedrockEnvSchema,
-} from "../common/bedrock-models.constants";
-import { defaultBedrockProviderConfig } from "../common/bedrock-defaults.config";
+import { createTitanEmbeddingsConfig } from "../common/bedrock-models.constants";
+import { createBedrockManifest } from "../common/bedrock-manifest-factory";
 
 // Model family constant - exported for use in provider registry
 export const BEDROCK_LLAMA_FAMILY = "BedrockLlama";
@@ -23,14 +18,10 @@ const BEDROCK_LLAMA_COMPLETIONS_MODEL_SECONDARY_KEY = "BEDROCK_LLAMA_COMPLETIONS
 const AWS_COMPLETIONS_LLAMA_V32_90B_INSTRUCT = "AWS_COMPLETIONS_LLAMA_V32_90B_INSTRUCT";
 const AWS_COMPLETIONS_LLAMA_V33_70B_INSTRUCT = "AWS_COMPLETIONS_LLAMA_V33_70B_INSTRUCT";
 
-export const bedrockLlamaProviderManifest: LLMProviderManifest = {
-  providerName: "Bedrock Llama",
-  modelFamily: BEDROCK_LLAMA_FAMILY,
-  envSchema: createBedrockEnvSchema({
-    [BEDROCK_LLAMA_COMPLETIONS_MODEL_PRIMARY_KEY]: z.string().min(1),
-    [BEDROCK_LLAMA_COMPLETIONS_MODEL_SECONDARY_KEY]: z.string().min(1),
-  }),
-  models: {
+export const bedrockLlamaProviderManifest = createBedrockManifest(
+  "Bedrock Llama",
+  BEDROCK_LLAMA_FAMILY,
+  {
     embeddings: createTitanEmbeddingsConfig(1536),
     primaryCompletion: {
       modelKey: AWS_COMPLETIONS_LLAMA_V33_70B_INSTRUCT,
@@ -49,10 +40,12 @@ export const bedrockLlamaProviderManifest: LLMProviderManifest = {
       maxTotalTokens: 128000,
     },
   },
-  errorPatterns: BEDROCK_COMMON_ERROR_PATTERNS,
-  providerSpecificConfig: {
-    ...defaultBedrockProviderConfig,
+  {
+    [BEDROCK_LLAMA_COMPLETIONS_MODEL_PRIMARY_KEY]: z.string().min(1),
+    [BEDROCK_LLAMA_COMPLETIONS_MODEL_SECONDARY_KEY]: z.string().min(1),
+  },
+  {
     maxGenLenCap: 2048,
   },
-  implementation: BedrockLlamaLLM,
-};
+  BedrockLlamaLLM,
+);

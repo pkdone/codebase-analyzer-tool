@@ -1,4 +1,4 @@
 // Top-level CLI file required to make it easy to instantly launch from the IDE's Run/Debug facility
-import { runApplication } from "./lifecycle/application-runner";
+import { runCliTask } from "./lifecycle/cli-entry-utils";
 import { taskTokens } from "./di/tokens";
-void runApplication(taskTokens.CodebaseCaptureTask);
+runCliTask(taskTokens.CodebaseCaptureTask);

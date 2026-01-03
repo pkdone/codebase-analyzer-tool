@@ -78,6 +78,40 @@ function createDependencyConfig(
 }
 
 /**
+ * Factory function to create a simple source configuration.
+ * This function eliminates duplication for simple file types that follow a pattern of
+ * BASIC_INFO followed by one or more additional instruction blocks.
+ *
+ * @param contentDesc - Description of the content being analyzed (e.g., "the Markdown documentation")
+ * @param schemaFields - Array of field names to pick from sourceSummarySchema
+ * @param instructionBlocks - Array of instruction block configurations, each containing a title and content fragments
+ * @returns A SourceConfigEntry with the specified instruction blocks
+ */
+function createSimpleConfig(
+  contentDesc: string,
+  schemaFields: readonly string[],
+  instructionBlocks: readonly {
+    title: string;
+    fragments: readonly (string | readonly string[])[];
+  }[],
+): SourceConfigEntry {
+  const pickObject = schemaFields.reduce<Record<string, true>>((acc, field) => {
+    acc[field] = true;
+    return acc;
+  }, {});
+  // Type assertion needed because Zod's pick requires exact key matching at compile time
+  // but we're building the keys dynamically at runtime
+  return {
+    contentDesc,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    responseSchema: sourceSummarySchema.pick(pickObject as any),
+    instructions: instructionBlocks.map((block) =>
+      buildInstructionBlock(block.title, ...block.fragments),
+    ) as readonly string[],
+  };
+}
+
+/**
  * Factory function to create a standard code source configuration.
  * This function eliminates duplication for standard programming languages by generating
  * the standard 5-block instruction pattern:
@@ -167,73 +201,65 @@ export const sourceConfigMap = {
     extraComplexityMetrics: SOURCES_PROMPT_FRAGMENTS.PYTHON_SPECIFIC.PYTHON_COMPLEXITY_METRICS,
   }),
   ruby: createStandardCodeConfig("the Ruby code", SOURCES_PROMPT_FRAGMENTS.RUBY_SPECIFIC),
-  sql: {
-    contentDesc: "the database DDL/DML/SQL code",
-    responseSchema: sourceSummarySchema.pick({
-      purpose: true,
-      implementation: true,
-      tables: true,
-      storedProcedures: true,
-      triggers: true,
-      databaseIntegration: true,
-    }),
-    instructions: [
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.BASIC_INFO,
-        SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
-        SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
-      ),
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.DATABASE_OBJECTS,
-        SOURCES_PROMPT_FRAGMENTS.SQL_SPECIFIC.TABLE_LIST,
-        SOURCES_PROMPT_FRAGMENTS.SQL_SPECIFIC.STORED_PROCEDURE_LIST,
-        SOURCES_PROMPT_FRAGMENTS.SQL_SPECIFIC.TRIGGER_LIST,
-      ),
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.DATABASE_INTEGRATION_ANALYSIS,
-        SOURCES_PROMPT_FRAGMENTS.SQL_SPECIFIC.DB_INTEGRATION_ANALYSIS,
-      ),
-    ] as const,
-  },
-  markdown: {
-    contentDesc: "the Markdown documentation",
-    responseSchema: sourceSummarySchema.pick({
-      purpose: true,
-      implementation: true,
-      databaseIntegration: true,
-    }),
-    instructions: [
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.BASIC_INFO,
-        SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
-        SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
-      ),
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.DATABASE_INTEGRATION_ANALYSIS,
-        COMPOSITES.DB_INTEGRATION,
-        SOURCES_PROMPT_FRAGMENTS.COMMON.DB_IN_DOCUMENTATION,
-      ),
-    ] as const,
-  },
-  xml: {
-    contentDesc: "the XML configuration",
-    responseSchema: sourceSummarySchema.pick({
-      purpose: true,
-      implementation: true,
-      uiFramework: true,
-    }),
-    instructions: [
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.BASIC_INFO,
-        SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
-        SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
-      ),
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.UI_FRAMEWORK_DETECTION,
-        SOURCES_PROMPT_FRAGMENTS.XML_SPECIFIC.UI_FRAMEWORK_DETECTION,
-      ),
-    ] as const,
-  },
+  sql: createSimpleConfig(
+    "the database DDL/DML/SQL code",
+    ["purpose", "implementation", "tables", "storedProcedures", "triggers", "databaseIntegration"],
+    [
+      {
+        title: INSTRUCTION_SECTION_TITLES.BASIC_INFO,
+        fragments: [
+          SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
+          SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
+        ],
+      },
+      {
+        title: INSTRUCTION_SECTION_TITLES.DATABASE_OBJECTS,
+        fragments: [
+          SOURCES_PROMPT_FRAGMENTS.SQL_SPECIFIC.TABLE_LIST,
+          SOURCES_PROMPT_FRAGMENTS.SQL_SPECIFIC.STORED_PROCEDURE_LIST,
+          SOURCES_PROMPT_FRAGMENTS.SQL_SPECIFIC.TRIGGER_LIST,
+        ],
+      },
+      {
+        title: INSTRUCTION_SECTION_TITLES.DATABASE_INTEGRATION_ANALYSIS,
+        fragments: [SOURCES_PROMPT_FRAGMENTS.SQL_SPECIFIC.DB_INTEGRATION_ANALYSIS],
+      },
+    ],
+  ),
+  markdown: createSimpleConfig(
+    "the Markdown documentation",
+    ["purpose", "implementation", "databaseIntegration"],
+    [
+      {
+        title: INSTRUCTION_SECTION_TITLES.BASIC_INFO,
+        fragments: [
+          SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
+          SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
+        ],
+      },
+      {
+        title: INSTRUCTION_SECTION_TITLES.DATABASE_INTEGRATION_ANALYSIS,
+        fragments: [COMPOSITES.DB_INTEGRATION, SOURCES_PROMPT_FRAGMENTS.COMMON.DB_IN_DOCUMENTATION],
+      },
+    ],
+  ),
+  xml: createSimpleConfig(
+    "the XML configuration",
+    ["purpose", "implementation", "uiFramework"],
+    [
+      {
+        title: INSTRUCTION_SECTION_TITLES.BASIC_INFO,
+        fragments: [
+          SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
+          SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
+        ],
+      },
+      {
+        title: INSTRUCTION_SECTION_TITLES.UI_FRAMEWORK_DETECTION,
+        fragments: [SOURCES_PROMPT_FRAGMENTS.XML_SPECIFIC.UI_FRAMEWORK_DETECTION],
+      },
+    ],
+  ),
   jsp: {
     contentDesc: "the JSP code",
     responseSchema: sourceSummarySchema.pick({
@@ -384,26 +410,23 @@ export const sourceConfigMap = {
     "the C/C++ build configuration (CMake or Makefile)",
     SOURCES_PROMPT_FRAGMENTS.DEPENDENCY_EXTRACTION.MAKEFILE,
   ),
-  default: {
-    contentDesc: "the source files",
-    responseSchema: sourceSummarySchema.pick({
-      purpose: true,
-      implementation: true,
-      databaseIntegration: true,
-    }),
-    instructions: [
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.BASIC_INFO,
-        SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
-        SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
-      ),
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.DATABASE_INTEGRATION_ANALYSIS,
-        COMPOSITES.DB_INTEGRATION,
-        SOURCES_PROMPT_FRAGMENTS.COMMON.DB_IN_FILE,
-      ),
-    ] as const,
-  },
+  default: createSimpleConfig(
+    "the source files",
+    ["purpose", "implementation", "databaseIntegration"],
+    [
+      {
+        title: INSTRUCTION_SECTION_TITLES.BASIC_INFO,
+        fragments: [
+          SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
+          SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
+        ],
+      },
+      {
+        title: INSTRUCTION_SECTION_TITLES.DATABASE_INTEGRATION_ANALYSIS,
+        fragments: [COMPOSITES.DB_INTEGRATION, SOURCES_PROMPT_FRAGMENTS.COMMON.DB_IN_FILE],
+      },
+    ],
+  ),
 } as const satisfies Record<CanonicalFileType, SourceConfigEntry>;
 
 /**

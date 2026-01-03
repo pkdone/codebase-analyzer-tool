@@ -38,17 +38,13 @@ export class FlowchartDiagramGenerator extends BaseDiagramGenerator<FlowchartDia
     process: BusinessProcess,
     options: FlowchartDiagramOptions = {},
   ): string {
-    this.mergeOptions(options);
-    const activities = process.keyBusinessActivities;
-
-    if (activities.length === 0) {
-      return this.generateEmptyDiagram("No business activities defined");
-    }
-
-    // Build mermaid definition
-    const mermaidDefinition = this.buildFlowchartDefinition(activities);
-
-    return this.wrapForClientRendering(mermaidDefinition);
+    return this.generateDiagram(
+      process,
+      options,
+      (data) => data.keyBusinessActivities.length === 0,
+      "No business activities defined",
+      (data) => this.buildFlowchartDefinition(data.keyBusinessActivities),
+    );
   }
 
   /**

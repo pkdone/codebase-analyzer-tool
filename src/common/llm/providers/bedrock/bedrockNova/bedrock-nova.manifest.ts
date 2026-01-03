@@ -1,13 +1,8 @@
-import { LLMProviderManifest } from "../../llm-provider.types";
 import BedrockNovaLLM from "./bedrock-nova-llm";
 import { LLMPurpose } from "../../../types/llm.types";
-import { BEDROCK_COMMON_ERROR_PATTERNS } from "../common/bedrock-error-patterns";
 import { z } from "zod";
-import {
-  createTitanEmbeddingsConfig,
-  createBedrockEnvSchema,
-} from "../common/bedrock-models.constants";
-import { defaultBedrockProviderConfig } from "../common/bedrock-defaults.config";
+import { createTitanEmbeddingsConfig } from "../common/bedrock-models.constants";
+import { createBedrockManifest } from "../common/bedrock-manifest-factory";
 
 // Model family constant - exported for use in provider registry
 export const BEDROCK_NOVA_FAMILY = "BedrockNova";
@@ -20,14 +15,10 @@ const BEDROCK_NOVA_COMPLETIONS_MODEL_SECONDARY_KEY = "BEDROCK_NOVA_COMPLETIONS_M
 const AWS_COMPLETIONS_NOVA_LITE_V1 = "AWS_COMPLETIONS_NOVA_LITE_V1";
 const AWS_COMPLETIONS_NOVA_PRO_V1 = "AWS_COMPLETIONS_NOVA_PRO_V1";
 
-export const bedrockNovaProviderManifest: LLMProviderManifest = {
-  providerName: "Bedrock Nova",
-  modelFamily: BEDROCK_NOVA_FAMILY,
-  envSchema: createBedrockEnvSchema({
-    [BEDROCK_NOVA_COMPLETIONS_MODEL_PRIMARY_KEY]: z.string().min(1),
-    [BEDROCK_NOVA_COMPLETIONS_MODEL_SECONDARY_KEY]: z.string().min(1),
-  }),
-  models: {
+export const bedrockNovaProviderManifest = createBedrockManifest(
+  "Bedrock Nova",
+  BEDROCK_NOVA_FAMILY,
+  {
     embeddings: createTitanEmbeddingsConfig(),
     primaryCompletion: {
       modelKey: AWS_COMPLETIONS_NOVA_PRO_V1,
@@ -46,9 +37,10 @@ export const bedrockNovaProviderManifest: LLMProviderManifest = {
       maxTotalTokens: 300000,
     },
   },
-  errorPatterns: BEDROCK_COMMON_ERROR_PATTERNS,
-  providerSpecificConfig: {
-    ...defaultBedrockProviderConfig,
+  {
+    [BEDROCK_NOVA_COMPLETIONS_MODEL_PRIMARY_KEY]: z.string().min(1),
+    [BEDROCK_NOVA_COMPLETIONS_MODEL_SECONDARY_KEY]: z.string().min(1),
   },
-  implementation: BedrockNovaLLM,
-};
+  {},
+  BedrockNovaLLM,
+);

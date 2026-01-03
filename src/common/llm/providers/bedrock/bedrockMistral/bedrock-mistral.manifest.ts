@@ -1,13 +1,8 @@
-import { LLMProviderManifest } from "../../llm-provider.types";
 import BedrockMistralLLM from "./bedrock-mistral-llm";
 import { LLMPurpose } from "../../../types/llm.types";
-import { BEDROCK_COMMON_ERROR_PATTERNS } from "../common/bedrock-error-patterns";
 import { z } from "zod";
-import {
-  createTitanEmbeddingsConfig,
-  createBedrockEnvSchema,
-} from "../common/bedrock-models.constants";
-import { defaultBedrockProviderConfig } from "../common/bedrock-defaults.config";
+import { createTitanEmbeddingsConfig } from "../common/bedrock-models.constants";
+import { createBedrockManifest } from "../common/bedrock-manifest-factory";
 
 // Model family constant - exported for use in provider registry
 export const BEDROCK_MISTRAL_FAMILY = "BedrockMistral";
@@ -21,14 +16,10 @@ const BEDROCK_MISTRAL_COMPLETIONS_MODEL_SECONDARY_KEY =
 const AWS_COMPLETIONS_MISTRAL_LARGE = "AWS_COMPLETIONS_MISTRAL_LARGE";
 const AWS_COMPLETIONS_MISTRAL_LARGE2 = "AWS_COMPLETIONS_MISTRAL_LARGE2";
 
-export const bedrockMistralProviderManifest: LLMProviderManifest = {
-  providerName: "Bedrock Mistral",
-  modelFamily: BEDROCK_MISTRAL_FAMILY,
-  envSchema: createBedrockEnvSchema({
-    [BEDROCK_MISTRAL_COMPLETIONS_MODEL_PRIMARY_KEY]: z.string().min(1),
-    [BEDROCK_MISTRAL_COMPLETIONS_MODEL_SECONDARY_KEY]: z.string().min(1),
-  }),
-  models: {
+export const bedrockMistralProviderManifest = createBedrockManifest(
+  "Bedrock Mistral",
+  BEDROCK_MISTRAL_FAMILY,
+  {
     embeddings: createTitanEmbeddingsConfig(),
     primaryCompletion: {
       modelKey: AWS_COMPLETIONS_MISTRAL_LARGE2,
@@ -47,9 +38,10 @@ export const bedrockMistralProviderManifest: LLMProviderManifest = {
       maxTotalTokens: 32768,
     },
   },
-  errorPatterns: BEDROCK_COMMON_ERROR_PATTERNS,
-  providerSpecificConfig: {
-    ...defaultBedrockProviderConfig,
+  {
+    [BEDROCK_MISTRAL_COMPLETIONS_MODEL_PRIMARY_KEY]: z.string().min(1),
+    [BEDROCK_MISTRAL_COMPLETIONS_MODEL_SECONDARY_KEY]: z.string().min(1),
   },
-  implementation: BedrockMistralLLM,
-};
+  {},
+  BedrockMistralLLM,
+);

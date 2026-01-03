@@ -63,16 +63,18 @@ export class CurrentArchitectureDiagramGenerator extends BaseDiagramGenerator<Cu
     architectureData: InferredArchitectureData | null,
     options: CurrentArchitectureDiagramOptions = {},
   ): string {
-    this.mergeOptions(options);
-
-    if (!architectureData || architectureData.internalComponents.length === 0) {
-      return this.generateEmptyDiagram("No inferred architecture data available");
-    }
-
-    // Build mermaid definition
-    const mermaidDefinition = this.buildCurrentArchitectureDiagramDefinition(architectureData);
-
-    return this.wrapForClientRendering(mermaidDefinition);
+    return this.generateDiagram(
+      architectureData,
+      options,
+      (data) => !data || data.internalComponents.length === 0,
+      "No inferred architecture data available",
+      (data) => {
+        if (!data) {
+          throw new Error("Architecture data is null");
+        }
+        return this.buildCurrentArchitectureDiagramDefinition(data);
+      },
+    );
   }
 
   /**

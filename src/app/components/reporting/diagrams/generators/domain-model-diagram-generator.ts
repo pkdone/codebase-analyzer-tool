@@ -33,16 +33,13 @@ export class DomainModelDiagramGenerator extends BaseDiagramGenerator<DomainDiag
     context: DomainBoundedContext,
     options: DomainDiagramOptions = {},
   ): string {
-    this.mergeOptions(options);
-
-    if (context.aggregates.length === 0 && context.entities.length === 0) {
-      return this.generateEmptyDiagram("No domain model elements defined");
-    }
-
-    // Build mermaid definition using the fluent builder
-    const mermaidDefinition = this.buildContextDiagramDefinition(context);
-
-    return this.wrapForClientRendering(mermaidDefinition);
+    return this.generateDiagram(
+      context,
+      options,
+      (data) => data.aggregates.length === 0 && data.entities.length === 0,
+      "No domain model elements defined",
+      (data) => this.buildContextDiagramDefinition(data),
+    );
   }
 
   /**

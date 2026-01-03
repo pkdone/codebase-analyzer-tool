@@ -1,14 +1,9 @@
 import { z } from "zod";
-import { LLMProviderManifest } from "../../llm-provider.types";
 import BedrockClaudeLLM from "./bedrock-claude-llm";
 import { LLMPurpose } from "../../../types/llm.types";
-import { BEDROCK_COMMON_ERROR_PATTERNS } from "../common/bedrock-error-patterns";
-import {
-  createTitanEmbeddingsConfig,
-  createBedrockEnvSchema,
-} from "../common/bedrock-models.constants";
+import { createTitanEmbeddingsConfig } from "../common/bedrock-models.constants";
 import { llmConfig } from "../../../config/llm.config";
-import { defaultBedrockProviderConfig } from "../common/bedrock-defaults.config";
+import { createBedrockManifest } from "../common/bedrock-manifest-factory";
 
 // Model family constant - exported for use in provider registry
 export const BEDROCK_CLAUDE_FAMILY = "BedrockClaude";
@@ -21,14 +16,10 @@ const BEDROCK_CLAUDE_COMPLETIONS_MODEL_SECONDARY_KEY = "BEDROCK_CLAUDE_COMPLETIO
 export const AWS_COMPLETIONS_CLAUDE_OPUS_V45 = "AWS_COMPLETIONS_CLAUDE_OPUS_V45";
 export const AWS_COMPLETIONS_CLAUDE_SONNET_V45 = "AWS_COMPLETIONS_CLAUDE_SONNET_V45";
 
-export const bedrockClaudeProviderManifest: LLMProviderManifest = {
-  providerName: "Bedrock Claude",
-  modelFamily: BEDROCK_CLAUDE_FAMILY,
-  envSchema: createBedrockEnvSchema({
-    [BEDROCK_CLAUDE_COMPLETIONS_MODEL_PRIMARY_KEY]: z.string().min(1),
-    [BEDROCK_CLAUDE_COMPLETIONS_MODEL_SECONDARY_KEY]: z.string().min(1),
-  }),
-  models: {
+export const bedrockClaudeProviderManifest = createBedrockManifest(
+  "Bedrock Claude",
+  BEDROCK_CLAUDE_FAMILY,
+  {
     embeddings: createTitanEmbeddingsConfig(),
     primaryCompletion: {
       modelKey: AWS_COMPLETIONS_CLAUDE_OPUS_V45,
@@ -47,9 +38,11 @@ export const bedrockClaudeProviderManifest: LLMProviderManifest = {
       maxTotalTokens: 1_000_000,
     },
   },
-  errorPatterns: BEDROCK_COMMON_ERROR_PATTERNS,
-  providerSpecificConfig: {
-    ...defaultBedrockProviderConfig,
+  {
+    [BEDROCK_CLAUDE_COMPLETIONS_MODEL_PRIMARY_KEY]: z.string().min(1),
+    [BEDROCK_CLAUDE_COMPLETIONS_MODEL_SECONDARY_KEY]: z.string().min(1),
+  },
+  {
     apiVersion: "bedrock-2023-05-31",
     temperature: llmConfig.DEFAULT_ZERO_TEMP,
     topP: llmConfig.DEFAULT_TOP_P_LOWEST,
@@ -60,5 +53,5 @@ export const bedrockClaudeProviderManifest: LLMProviderManifest = {
     // Anthropic beta flags for specific features (e.g., extended context window)
     anthropicBetaFlags: ["context-1m-2025-08-07"] as const,
   },
-  implementation: BedrockClaudeLLM,
-};
+  BedrockClaudeLLM,
+);

@@ -48,16 +48,13 @@ export class ArchitectureDiagramGenerator extends BaseDiagramGenerator<Architect
     microservices: Microservice[],
     options: ArchitectureDiagramOptions = {},
   ): string {
-    this.mergeOptions(options);
-
-    if (microservices.length === 0) {
-      return this.generateEmptyDiagram("No microservices architecture defined");
-    }
-
-    // Build mermaid definition using the fluent builder
-    const mermaidDefinition = this.buildArchitectureDiagramDefinition(microservices);
-
-    return this.wrapForClientRendering(mermaidDefinition);
+    return this.generateDiagram(
+      microservices,
+      options,
+      (data) => data.length === 0,
+      "No microservices architecture defined",
+      (data) => this.buildArchitectureDiagramDefinition(data),
+    );
   }
 
   /**

@@ -93,4 +93,35 @@ export abstract class BaseDiagramGenerator<TOptions extends BaseDiagramOptions> 
   protected mergeOptions(options: TOptions): Required<TOptions> {
     return { ...this.defaultOptions, ...options };
   }
+
+  /**
+   * Generic diagram generation method that consolidates the common pattern:
+   * 1. Merge options
+   * 2. Check if data is empty
+   * 3. Build diagram definition
+   * 4. Wrap for client rendering
+   *
+   * @param data - The data to generate the diagram from
+   * @param options - Diagram generation options
+   * @param isEmpty - Function to check if data is empty
+   * @param emptyMessage - Message to display when data is empty
+   * @param builderFn - Function that builds the Mermaid definition from data
+   * @returns HTML string with embedded Mermaid definition
+   */
+  protected generateDiagram<TData>(
+    data: TData,
+    options: TOptions,
+    isEmpty: (data: TData) => boolean,
+    emptyMessage: string,
+    builderFn: (data: TData) => string,
+  ): string {
+    this.mergeOptions(options);
+
+    if (isEmpty(data)) {
+      return this.generateEmptyDiagram(emptyMessage);
+    }
+
+    const mermaidDefinition = builderFn(data);
+    return this.wrapForClientRendering(mermaidDefinition);
+  }
 }

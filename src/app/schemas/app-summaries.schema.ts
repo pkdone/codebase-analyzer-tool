@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { createNameDescSchema } from "./schema-factories";
 
 /**
  * Zod schema for application summary categories
@@ -14,23 +15,13 @@ export const AppSummaryCategories = z.enum([
   "inferredArchitecture",
 ]);
 
-// Base schema for common name-description pattern
-const baseNameDescSchema = z.object({
-  name: z.string(),
-  description: z.string(),
-});
-
 /**
  * Schema for name-description pairs used for insights
  */
-export const nameDescSchema = baseNameDescSchema
-  .extend({
-    name: baseNameDescSchema.shape.name.describe("The name of the item."),
-    description: baseNameDescSchema.shape.description.describe(
-      "A detailed description of the item in at least 5 sentences.",
-    ),
-  })
-  .passthrough();
+export const nameDescSchema = createNameDescSchema(
+  "The name of the item.",
+  "A detailed description of the item in at least 5 sentences.",
+).passthrough();
 
 /**
  * Schema for business activities/steps within a business process
@@ -47,14 +38,11 @@ const businessActivitySchema = z
 /**
  * Schema for business processes with key activities
  */
-export const businessProcessSchema = baseNameDescSchema
+export const businessProcessSchema = createNameDescSchema(
+  "The name of the 'logical'business process that reflects how part of the applicaiton operates.",
+  "A detailed description of the business process in at least 5 sentences.",
+)
   .extend({
-    name: baseNameDescSchema.shape.name.describe(
-      "The name of the 'logical'business process that reflects how part of the applicaiton operates.",
-    ),
-    description: baseNameDescSchema.shape.description.describe(
-      "A detailed description of the business process in at least 5 sentences.",
-    ),
     keyBusinessActivities: z
       .array(businessActivitySchema)
       .describe(
@@ -112,45 +100,30 @@ export const businessProcessesSchema = z
  * Schema for nested entity within an aggregate (full object, not just name)
  * Entities represent core business concepts within an aggregate boundary.
  */
-export const nestedEntitySchema = z
-  .object({
-    name: z.string().describe("The name of the domain-driven design entity."),
-    description: z
-      .string()
-      .describe(
-        "A detailed description of the entity and its business purpose in at least 3 sentences.",
-      ),
-  })
-  .passthrough();
+export const nestedEntitySchema = createNameDescSchema(
+  "The name of the domain-driven design entity.",
+  "A detailed description of the entity and its business purpose in at least 3 sentences.",
+).passthrough();
 
 /**
  * Schema for nested repository within an aggregate
  * Repositories provide persistence access for the aggregate.
  */
-export const nestedRepositorySchema = z
-  .object({
-    name: z.string().describe("The name of the repository."),
-    description: z
-      .string()
-      .describe(
-        "A detailed description of the repository and its persistence responsibilities in at least 3 sentences.",
-      ),
-  })
-  .passthrough();
+export const nestedRepositorySchema = createNameDescSchema(
+  "The name of the repository.",
+  "A detailed description of the repository and its persistence responsibilities in at least 3 sentences.",
+).passthrough();
 
 /**
  * Schema for nested aggregate within a bounded context (contains full entity and repository objects)
  * Aggregates enforce business rules and maintain consistency boundaries.
  * Each aggregate has exactly one repository for persistence.
  */
-export const nestedAggregateSchema = z
-  .object({
-    name: z.string().describe("The name of the domain-driven design aggregate."),
-    description: z
-      .string()
-      .describe(
-        "A detailed description of the aggregate and its business rules in at least 5 sentences.",
-      ),
+export const nestedAggregateSchema = createNameDescSchema(
+  "The name of the domain-driven design aggregate.",
+  "A detailed description of the aggregate and its business rules in at least 5 sentences.",
+)
+  .extend({
     repository: nestedRepositorySchema.describe(
       "The repository that provides persistence for this aggregate.",
     ),
@@ -164,14 +137,11 @@ export const nestedAggregateSchema = z
  * Schema for hierarchical bounded context with embedded aggregates and entities
  * This ensures all domain elements within a context are captured consistently in one pass.
  */
-export const hierarchicalBoundedContextSchema = z
-  .object({
-    name: z.string().describe("The name of the domain-driven design Bounded Context."),
-    description: z
-      .string()
-      .describe(
-        "A detailed description of the bounded context and its business capabilities in at least 5 sentences.",
-      ),
+export const hierarchicalBoundedContextSchema = createNameDescSchema(
+  "The name of the domain-driven design Bounded Context.",
+  "A detailed description of the bounded context and its business capabilities in at least 5 sentences.",
+)
+  .extend({
     aggregates: z
       .array(nestedAggregateSchema)
       .describe(
@@ -251,12 +221,11 @@ const microserviceEntitySchema = z
 /**
  * Schema for enhanced potential microservice with detailed fields
  */
-export const potentialMicroserviceSchema = baseNameDescSchema
+export const potentialMicroserviceSchema = createNameDescSchema(
+  "The name of the potential microservice.",
+  "A detailed description of the potential microservice's purpose and responsibilities in at least 5 sentences.",
+)
   .extend({
-    name: baseNameDescSchema.shape.name.describe("The name of the potential microservice."),
-    description: baseNameDescSchema.shape.description.describe(
-      "A detailed description of the potential microservice's purpose and responsibilities in at least 5 sentences.",
-    ),
     entities: z
       .array(microserviceEntitySchema)
       .describe(
