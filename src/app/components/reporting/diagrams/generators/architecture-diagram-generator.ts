@@ -1,7 +1,8 @@
 import { injectable } from "tsyringe";
-import { escapeMermaidLabel, generateNodeId, applyStyle } from "../utils";
+import { generateNodeId } from "../utils";
 import { BaseDiagramGenerator, type BaseDiagramOptions } from "./base-diagram-generator";
 import { visualizationConfig } from "../../generators/visualization.config";
+import { MermaidFlowchartBuilder } from "../builders";
 
 export interface Microservice {
   name: string;
@@ -53,7 +54,7 @@ export class ArchitectureDiagramGenerator extends BaseDiagramGenerator<Architect
       return this.generateEmptyDiagram("No microservices architecture defined");
     }
 
-    // Build mermaid definition
+    // Build mermaid definition using the fluent builder
     const mermaidDefinition = this.buildArchitectureDiagramDefinition(microservices);
 
     return this.wrapForClientRendering(mermaidDefinition);
@@ -61,19 +62,14 @@ export class ArchitectureDiagramGenerator extends BaseDiagramGenerator<Architect
 
   /**
    * Build the Mermaid diagram definition for microservices architecture
+   * using the type-safe MermaidFlowchartBuilder.
    */
   private buildArchitectureDiagramDefinition(microservices: Microservice[]): string {
     const archConfig = visualizationConfig.architecture;
-
-    // Use flowchart TB (top-bottom) with horizontal subgraph for better text display
-    const lines = this.initializeDiagram("flowchart TB");
-
-    // Create a subgraph for services (no label)
-    lines.push('    subgraph services[" "]');
+    const builder = new MermaidFlowchartBuilder("TB");
 
     // Group services into rows for grid layout
     const rows: string[][] = [];
-
     for (let i = 0; i < microservices.length; i += archConfig.SERVICES_PER_ROW) {
       rows.push(
         microservices.slice(i, i + archConfig.SERVICES_PER_ROW).map((s, idx) => {
@@ -82,39 +78,39 @@ export class ArchitectureDiagramGenerator extends BaseDiagramGenerator<Architect
       );
     }
 
-    // Declare all service nodes
-    microservices.forEach((service, index) => {
-      const serviceId = generateNodeId(service.name, index);
-      lines.push(`        ${serviceId}["${escapeMermaidLabel(service.name)}"]`);
-    });
+    // Create a subgraph for services (invisible label)
+    builder.addSubgraph("services", " ", (sub) => {
+      // Add all service nodes
+      for (let i = 0; i < microservices.length; i++) {
+        const service = microservices[i];
+        const serviceId = generateNodeId(service.name, i);
+        sub.addNode(serviceId, service.name, "rectangle");
+      }
 
-    // Create invisible horizontal links within each row to keep them on the same level
-    rows.forEach((row) => {
-      if (row.length > 1) {
-        // Link all items in the row horizontally with invisible links
-        for (let i = 0; i < row.length - 1; i++) {
-          lines.push(`        ${row[i]} ~~~ ${row[i + 1]}`);
+      // Create invisible horizontal links within each row
+      for (const row of rows) {
+        if (row.length > 1) {
+          for (let i = 0; i < row.length - 1; i++) {
+            sub.addEdge(row[i], row[i + 1], undefined, "invisible");
+          }
         }
+      }
+
+      // Create invisible vertical links between rows
+      for (let i = 0; i < rows.length - 1; i++) {
+        sub.addEdge(rows[i][0], rows[i + 1][0], undefined, "invisible");
       }
     });
 
-    // Create invisible vertical links between rows
-    for (let i = 0; i < rows.length - 1; i++) {
-      // Connect first item of current row to first item of next row
-      lines.push(`        ${rows[i][0]} ~~~ ${rows[i + 1][0]}`);
+    // Style the subgraph to be invisible
+    builder.styleSubgraph("services", "fill:transparent,stroke:transparent,stroke-width:0");
+
+    // Apply styles to all service nodes
+    for (let i = 0; i < microservices.length; i++) {
+      const serviceId = generateNodeId(microservices[i].name, i);
+      builder.applyStyle(serviceId, "service");
     }
 
-    lines.push("    end");
-
-    // Style the subgraph to be invisible (matches background)
-    lines.push("    style services fill:transparent,stroke:transparent,stroke-width:0");
-
-    // Apply styles to service nodes
-    microservices.forEach((service, index) => {
-      const serviceId = generateNodeId(service.name, index);
-      lines.push(applyStyle(serviceId, "service"));
-    });
-
-    return lines.join("\n");
+    return builder.render();
   }
 }

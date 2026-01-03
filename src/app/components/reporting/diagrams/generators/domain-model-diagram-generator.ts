@@ -1,5 +1,5 @@
 import { injectable } from "tsyringe";
-import { escapeMermaidLabel, generateNodeId, applyStyle } from "../utils";
+import { generateNodeId } from "../utils";
 import type {
   DomainBoundedContext,
   DomainAggregate,
@@ -7,6 +7,7 @@ import type {
 } from "../../sections/visualizations/domain-model-data-provider";
 import { BaseDiagramGenerator, type BaseDiagramOptions } from "./base-diagram-generator";
 import { visualizationConfig } from "../../generators/visualization.config";
+import { MermaidFlowchartBuilder } from "../builders";
 
 export type DomainDiagramOptions = BaseDiagramOptions;
 
@@ -38,7 +39,7 @@ export class DomainModelDiagramGenerator extends BaseDiagramGenerator<DomainDiag
       return this.generateEmptyDiagram("No domain model elements defined");
     }
 
-    // Build mermaid definition
+    // Build mermaid definition using the fluent builder
     const mermaidDefinition = this.buildContextDiagramDefinition(context);
 
     return this.wrapForClientRendering(mermaidDefinition);
@@ -57,15 +58,15 @@ export class DomainModelDiagramGenerator extends BaseDiagramGenerator<DomainDiag
 
   /**
    * Build the Mermaid diagram definition for a bounded context
-   * Uses flowchart with subgraphs to position repository horizontally next to aggregate
+   * using the type-safe MermaidFlowchartBuilder.
    */
   private buildContextDiagramDefinition(context: DomainBoundedContext): string {
-    const lines = this.initializeDiagram("flowchart TB");
+    const builder = new MermaidFlowchartBuilder("TB");
 
     // Create context node at the top (hexagon shape with name only)
     const contextId = generateNodeId(context.name, 0);
-    lines.push(`    ${contextId}{{"${escapeMermaidLabel(context.name)}"}}`);
-    lines.push(applyStyle(contextId, "boundedContext"));
+    builder.addNode(contextId, context.name, "hexagon");
+    builder.applyStyle(contextId, "boundedContext");
 
     // Track aggregate IDs for entity connections
     const aggregateIds = new Map<string, string>();
@@ -79,57 +80,62 @@ export class DomainModelDiagramGenerator extends BaseDiagramGenerator<DomainDiag
       aggregateIds.set(aggregate.name, aggId);
 
       // Create a subgraph with LR direction to place repo to the right of aggregate
-      lines.push(`    subgraph ${subgraphId}[" "]`);
-      lines.push(`        direction LR`);
-      lines.push(`        ${aggId}(["${escapeMermaidLabel(aggregate.name)}"])`);
-      lines.push(`        ${repoId}(("${escapeMermaidLabel(aggregate.repository.name)}"))`);
-      lines.push(`        ${aggId} -.- ${repoId}`);
-      lines.push(`    end`);
+      builder.addSubgraph(
+        subgraphId,
+        " ",
+        (sub) => {
+          sub.addNode(aggId, aggregate.name, "stadium");
+          sub.addNode(repoId, aggregate.repository.name, "circle");
+          sub.addEdge(aggId, repoId, undefined, "dashed");
+          sub.applyStyle(aggId, "aggregate");
+          sub.applyStyle(repoId, "repository");
+        },
+        "LR",
+      );
 
-      // Style the subgraph to be invisible (no border, transparent background)
-      lines.push(`    style ${subgraphId} fill:transparent,stroke:transparent,stroke-width:0`);
-
-      // Apply node styles
-      lines.push(applyStyle(aggId, "aggregate"));
-      lines.push(applyStyle(repoId, "repository"));
+      // Style the subgraph to be invisible
+      builder.styleSubgraph(subgraphId, "fill:transparent,stroke:transparent,stroke-width:0");
 
       // Connect context to the aggregate
-      lines.push(`    ${contextId} --> ${aggId}`);
+      builder.addEdge(contextId, aggId);
     });
 
     // Create entity nodes in a separate subgraph below
     if (context.entities.length > 0) {
-      lines.push(`    subgraph entitiesGroup[" "]`);
-      lines.push(`        direction LR`);
+      builder.addSubgraph(
+        "entitiesGroup",
+        " ",
+        (sub) => {
+          context.entities.forEach((entity, index) => {
+            const entityId = generateNodeId(`entity_${entity.name}`, index);
+            sub.addNode(entityId, entity.name, "rounded");
+            sub.applyStyle(entityId, "entity");
+          });
+        },
+        "LR",
+      );
 
+      builder.styleSubgraph("entitiesGroup", "fill:transparent,stroke:transparent,stroke-width:0");
+
+      // Create connections from aggregates to entities
       context.entities.forEach((entity, index) => {
         const entityId = generateNodeId(`entity_${entity.name}`, index);
-        lines.push(`        ${entityId}("${escapeMermaidLabel(entity.name)}")`);
-      });
-
-      lines.push(`    end`);
-      lines.push(`    style entitiesGroup fill:transparent,stroke:transparent,stroke-width:0`);
-
-      // Apply styles and create connections to entities
-      context.entities.forEach((entity, index) => {
-        const entityId = generateNodeId(`entity_${entity.name}`, index);
-        lines.push(applyStyle(entityId, "entity"));
 
         // Find which aggregate this entity belongs to and connect to it
         const connectedAggId = this.findEntityAggregate(entity, context.aggregates, aggregateIds);
         if (connectedAggId) {
-          lines.push(`    ${connectedAggId} -.-> ${entityId}`);
+          builder.addEdge(connectedAggId, entityId, undefined, "dotted");
         } else if (aggregateIds.size > 0) {
           // Connect to first aggregate as fallback
           const firstAggId = aggregateIds.values().next().value;
           if (firstAggId) {
-            lines.push(`    ${firstAggId} -.-> ${entityId}`);
+            builder.addEdge(firstAggId, entityId, undefined, "dotted");
           }
         }
       });
     }
 
-    return lines.join("\n");
+    return builder.render();
   }
 
   /**

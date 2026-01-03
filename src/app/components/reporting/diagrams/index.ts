@@ -14,5 +14,8 @@
 // Re-export generators
 export * from "./generators";
 
+// Re-export builders (type-safe fluent API)
+export * from "./builders";
+
 // Re-export utilities (for advanced use cases)
 export * from "./utils";

@@ -6,7 +6,7 @@ import { LLMOutputFormat } from "../../../common/llm/types/llm.types";
 import { renderPrompt } from "../../prompts/prompt-renderer";
 import { sourceSummarySchema } from "../../schemas/sources.schema";
 import { getCanonicalFileType } from "./config/file-types.config";
-import { getLegacySanitizerMappings } from "../../config/legacy-sanitizer-constants";
+import { getLlmArtifactCorrections } from "../../config/llm-artifact-corrections";
 import { llmTokens, captureTokens } from "../../di/tokens";
 import type { PromptManager } from "../../prompts/prompt-registry";
 import type { SourceConfigMap } from "../../prompts/definitions/sources/sources.definitions";
@@ -74,7 +74,7 @@ export class FileSummarizerService {
         outputFormat: LLMOutputFormat.JSON,
         jsonSchema: schema,
         hasComplexSchema: promptMetadata.hasComplexSchema,
-        sanitizerConfig: getLegacySanitizerMappings(),
+        sanitizerConfig: getLlmArtifactCorrections(),
       } as const;
 
       /**

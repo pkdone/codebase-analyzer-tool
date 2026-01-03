@@ -10,7 +10,7 @@ import {
   appSummaryCategorySchemas,
   type AppSummaryCategorySchemas,
 } from "../insights.types";
-import { getLegacySanitizerMappings } from "../../../config/legacy-sanitizer-constants";
+import { getLlmArtifactCorrections } from "../../../config/llm-artifact-corrections";
 import { isOk } from "../../../../common/types/result.types";
 
 // Individual category schemas are simple and compatible with all LLM providers including VertexAI
@@ -84,7 +84,7 @@ export async function executeInsightCompletion<C extends AppSummaryCategoryEnum>
       outputFormat: LLMOutputFormat.JSON,
       jsonSchema: schema,
       hasComplexSchema: !CATEGORY_SCHEMA_IS_VERTEXAI_COMPATIBLE,
-      sanitizerConfig: getLegacySanitizerMappings(),
+      sanitizerConfig: getLlmArtifactCorrections(),
     });
     if (!isOk(result)) {
       logOneLineWarning(`LLM completion failed for ${categoryLabel}: ${result.error.message}`);

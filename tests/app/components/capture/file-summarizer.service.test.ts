@@ -25,8 +25,8 @@ jest.mock("../../../../src/app/prompts/prompt-renderer", () => ({
   renderPrompt: jest.fn().mockReturnValue("rendered prompt"),
 }));
 
-jest.mock("../../../../src/app/config/legacy-sanitizer-constants", () => ({
-  getLegacySanitizerMappings: jest.fn().mockReturnValue({}),
+jest.mock("../../../../src/app/config/llm-artifact-corrections", () => ({
+  getLlmArtifactCorrections: jest.fn().mockReturnValue({}),
 }));
 
 describe("FileSummarizerService", () => {
