@@ -43,6 +43,7 @@ export default class CodebaseToDBLoader {
       srcDirPath,
       fileProcessingConfig.FOLDER_IGNORE_LIST,
       fileProcessingConfig.FILENAME_PREFIX_IGNORE,
+      fileProcessingConfig.FILENAME_IGNORE_LIST,
     );
     // Sort files by size (largest first) to distribute work more evenly during concurrent processing
     const sortedFilepaths = await sortFilesBySize(srcFilepaths);

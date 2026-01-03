@@ -17,6 +17,16 @@ export const fileProcessingConfig = {
     "tests",
   ] as const satisfies readonly string[],
   FILENAME_PREFIX_IGNORE: "test-",
+  /**
+   * List of specific filenames to ignore during codebase processing.
+   * These files are typically auto-generated or contain no meaningful source code.
+   */
+  FILENAME_IGNORE_LIST: [
+    "package-lock.json",
+    ".gitignore",
+    ".npmrc",
+    ".nvmrc",
+  ] as const satisfies readonly string[],
   BINARY_FILE_EXTENSION_IGNORE_LIST: [
     "aac",
     "abw",

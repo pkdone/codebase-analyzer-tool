@@ -26,6 +26,7 @@ jest.mock("../../../../src/app/config/file-processing.config", () => ({
   fileProcessingConfig: {
     FOLDER_IGNORE_LIST: [".git", "node_modules"],
     FILENAME_PREFIX_IGNORE: [".", "_"],
+    FILENAME_IGNORE_LIST: ["package-lock.json"],
     BINARY_FILE_EXTENSION_IGNORE_LIST: ["jpg", "png", "pdf", "exe"],
     MAX_CONCURRENCY: 3,
   },
@@ -115,6 +116,7 @@ describe("CodebaseToDBLoader", () => {
         "/src",
         [".git", "node_modules"],
         [".", "_"],
+        ["package-lock.json"],
       );
       expect(mockSourcesRepository.insertSource).toHaveBeenCalledTimes(2);
     });

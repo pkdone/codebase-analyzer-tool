@@ -121,6 +121,7 @@ describe("InsightsProcessorSelector", () => {
         fileProcessingConfig.FOLDER_IGNORE_LIST,
         fileProcessingConfig.FILENAME_PREFIX_IGNORE,
         fileProcessingConfig.BINARY_FILE_EXTENSION_IGNORE_LIST,
+        fileProcessingConfig.FILENAME_IGNORE_LIST,
       );
       expect(mockConsoleLog).toHaveBeenCalledWith(
         expect.stringContaining("Codebase chars length: 500"),
@@ -142,6 +143,7 @@ describe("InsightsProcessorSelector", () => {
         fileProcessingConfig.FOLDER_IGNORE_LIST,
         fileProcessingConfig.FILENAME_PREFIX_IGNORE,
         fileProcessingConfig.BINARY_FILE_EXTENSION_IGNORE_LIST,
+        fileProcessingConfig.FILENAME_IGNORE_LIST,
       );
       expect(mockConsoleLog).toHaveBeenCalledWith(
         expect.stringContaining("Codebase chars length: 5000"),
@@ -205,6 +207,7 @@ describe("InsightsProcessorSelector", () => {
         fileProcessingConfig.FOLDER_IGNORE_LIST,
         fileProcessingConfig.FILENAME_PREFIX_IGNORE,
         fileProcessingConfig.BINARY_FILE_EXTENSION_IGNORE_LIST,
+        fileProcessingConfig.FILENAME_IGNORE_LIST,
       );
     });
 
@@ -257,6 +260,7 @@ describe("InsightsProcessorSelector", () => {
         fileProcessingConfig.FOLDER_IGNORE_LIST,
         fileProcessingConfig.FILENAME_PREFIX_IGNORE,
         fileProcessingConfig.BINARY_FILE_EXTENSION_IGNORE_LIST,
+        fileProcessingConfig.FILENAME_IGNORE_LIST,
       );
     });
   });

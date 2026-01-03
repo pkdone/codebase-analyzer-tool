@@ -20,6 +20,7 @@ describe("directory-to-markdown", () => {
   const folderIgnoreList = fileProcessingConfig.FOLDER_IGNORE_LIST;
   const filenameIgnorePrefix = fileProcessingConfig.FILENAME_PREFIX_IGNORE;
   const binaryIgnoreList = fileProcessingConfig.BINARY_FILE_EXTENSION_IGNORE_LIST;
+  const filenameIgnoreList = fileProcessingConfig.FILENAME_IGNORE_LIST;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -39,12 +40,14 @@ describe("directory-to-markdown", () => {
         folderIgnoreList,
         filenameIgnorePrefix,
         binaryIgnoreList,
+        filenameIgnoreList,
       );
 
       expect(mockFindFilesRecursively).toHaveBeenCalledWith(
         dirPath,
         folderIgnoreList,
         filenameIgnorePrefix,
+        filenameIgnoreList,
       );
 
       expect(result).toContain("``` file1.ts");
@@ -62,12 +65,14 @@ describe("directory-to-markdown", () => {
         folderIgnoreList,
         filenameIgnorePrefix,
         binaryIgnoreList,
+        filenameIgnoreList,
       );
 
       expect(mockFindFilesRecursively).toHaveBeenCalledWith(
         "/test/project",
         folderIgnoreList,
         filenameIgnorePrefix,
+        filenameIgnoreList,
       );
     });
 
@@ -84,6 +89,7 @@ describe("directory-to-markdown", () => {
         folderIgnoreList,
         filenameIgnorePrefix,
         binaryIgnoreList,
+        filenameIgnoreList,
       );
 
       expect(mockReadFile).toHaveBeenCalledTimes(1);
@@ -103,6 +109,7 @@ describe("directory-to-markdown", () => {
         folderIgnoreList,
         filenameIgnorePrefix,
         binaryIgnoreList,
+        filenameIgnoreList,
       );
 
       expect(result).not.toContain("image.PNG");
@@ -122,6 +129,7 @@ describe("directory-to-markdown", () => {
         folderIgnoreList,
         filenameIgnorePrefix,
         binaryIgnoreList,
+        filenameIgnoreList,
       );
 
       expect(result).toContain("const x = 1;");
@@ -142,6 +150,7 @@ describe("directory-to-markdown", () => {
         folderIgnoreList,
         filenameIgnorePrefix,
         binaryIgnoreList,
+        filenameIgnoreList,
       );
 
       expect(result).toContain("``` src/utils/helper.ts");
@@ -157,6 +166,7 @@ describe("directory-to-markdown", () => {
         folderIgnoreList,
         filenameIgnorePrefix,
         binaryIgnoreList,
+        filenameIgnoreList,
       );
 
       expect(result).toBe("");
@@ -183,6 +193,7 @@ describe("directory-to-markdown", () => {
         folderIgnoreList,
         filenameIgnorePrefix,
         binaryIgnoreList,
+        filenameIgnoreList,
       );
 
       // All files should be read in parallel
@@ -209,6 +220,7 @@ describe("directory-to-markdown", () => {
         folderIgnoreList,
         filenameIgnorePrefix,
         binaryIgnoreList,
+        filenameIgnoreList,
       );
 
       // Should only contain one code block
@@ -229,6 +241,7 @@ describe("directory-to-markdown", () => {
         folderIgnoreList,
         filenameIgnorePrefix,
         binaryIgnoreList,
+        filenameIgnoreList,
       );
 
       expect(result).toContain("``` Makefile");
@@ -248,6 +261,7 @@ describe("directory-to-markdown", () => {
         folderIgnoreList,
         filenameIgnorePrefix,
         binaryIgnoreList,
+        filenameIgnoreList,
       );
 
       expect(result).toContain("line1\n\n\nline2");
@@ -258,6 +272,7 @@ describe("directory-to-markdown", () => {
       const customFolderIgnoreList = ["custom-ignore"] as readonly string[];
       const customFilenameIgnorePrefix = "custom-";
       const customBinaryIgnoreList = ["custom-ext"] as readonly string[];
+      const customFilenameIgnoreList = ["custom-file.lock"] as readonly string[];
       mockFindFilesRecursively.mockResolvedValue([]);
 
       await formatSourceFilesAsMarkdown(
@@ -265,12 +280,14 @@ describe("directory-to-markdown", () => {
         customFolderIgnoreList,
         customFilenameIgnorePrefix,
         customBinaryIgnoreList,
+        customFilenameIgnoreList,
       );
 
       expect(mockFindFilesRecursively).toHaveBeenCalledWith(
         dirPath,
         customFolderIgnoreList,
         customFilenameIgnorePrefix,
+        customFilenameIgnoreList,
       );
     });
   });

@@ -55,15 +55,21 @@ export async function clearDirectory(
 /**
  * Build the list of files descending from a directory.
  * Files are returned in the natural (arbitrary) order they are discovered by glob.
+ * @param srcDirPath - The root directory to search
+ * @param folderIgnoreList - List of folder names to ignore
+ * @param filenameIgnorePrefix - Prefix for filenames to ignore
+ * @param filenameIgnoreList - List of specific filenames to ignore
  */
 export async function findFilesRecursively(
   srcDirPath: string,
   folderIgnoreList: readonly string[],
   filenameIgnorePrefix: string,
+  filenameIgnoreList: readonly string[] = [],
 ): Promise<string[]> {
   const ignorePatterns = [
     ...folderIgnoreList.map((folder) => `**/${folder}/**`),
     `**/${filenameIgnorePrefix}*`,
+    ...filenameIgnoreList.map((filename) => `**/${filename}`),
   ];
 
   const globOptions = {

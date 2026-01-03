@@ -54,6 +54,7 @@ export default class InsightsFromRawCodeGenerator implements IInsightsProcessor 
       fileProcessingConfig.FOLDER_IGNORE_LIST,
       fileProcessingConfig.FILENAME_PREFIX_IGNORE,
       fileProcessingConfig.BINARY_FILE_EXTENSION_IGNORE_LIST,
+      fileProcessingConfig.FILENAME_IGNORE_LIST,
     );
     await this.generateDataForAllCategories(codeBlocksContent);
   }

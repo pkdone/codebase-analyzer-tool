@@ -27,6 +27,7 @@ const TRAILING_SLASH_PATTERN = /\/$/;
  * @param folderIgnoreList - List of folder names to ignore during traversal
  * @param filenameIgnorePrefix - Prefix for filenames to ignore
  * @param binaryFileExtensionIgnoreList - List of binary file extensions to skip
+ * @param filenameIgnoreList - List of specific filenames to ignore
  * @returns Promise resolving to formatted content containing all source files as markdown code blocks
  */
 export async function formatSourceFilesAsMarkdown(
@@ -34,6 +35,7 @@ export async function formatSourceFilesAsMarkdown(
   folderIgnoreList: readonly string[],
   filenameIgnorePrefix: string,
   binaryFileExtensionIgnoreList: readonly string[],
+  filenameIgnoreList: readonly string[] = [],
 ): Promise<string> {
   // Remove trailing slashes from the directory path
   const srcDirPath = dirPath.replace(TRAILING_SLASH_PATTERN, "");
@@ -43,6 +45,7 @@ export async function formatSourceFilesAsMarkdown(
     srcDirPath,
     folderIgnoreList,
     filenameIgnorePrefix,
+    filenameIgnoreList,
   );
 
   // Merge all source files into markdown code blocks

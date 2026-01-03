@@ -37,6 +37,7 @@ export class InsightsProcessorSelector {
       fileProcessingConfig.FOLDER_IGNORE_LIST,
       fileProcessingConfig.FILENAME_PREFIX_IGNORE,
       fileProcessingConfig.BINARY_FILE_EXTENSION_IGNORE_LIST,
+      fileProcessingConfig.FILENAME_IGNORE_LIST,
     );
     const codeBlockContentTokensEstimate =
       codeBlocksContent.length / llmProviderConfig.AVERAGE_CHARS_PER_TOKEN;
