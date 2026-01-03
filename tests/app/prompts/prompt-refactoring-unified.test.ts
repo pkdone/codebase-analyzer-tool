@@ -78,13 +78,14 @@ describe("Prompt Refactoring - Unified Configuration", () => {
       });
     });
 
-    it("should use instructions instead of contentDesc", () => {
+    it("should have both instructions and contentDesc", () => {
       const appDescriptionConfig = appSummaryConfigMap.appDescription;
 
       // Should have instructions property
       expect(appDescriptionConfig.instructions).toBeDefined();
-      // Should not have contentDesc property (old structure)
-      expect((appDescriptionConfig as { contentDesc?: string }).contentDesc).toBeUndefined();
+      // Should have contentDesc property (now required for self-contained configs)
+      expect(appDescriptionConfig.contentDesc).toBeDefined();
+      expect(appDescriptionConfig.contentDesc).toBe("a set of source file summaries");
     });
 
     it("should render app summary prompts correctly", () => {

@@ -1,3 +1,6 @@
+import { zodToJsonSchema } from "zod-to-json-schema";
+import type { z } from "zod";
+
 /**
  * Centralized prompt templates for the application.
  * Consolidates all prompt templates in one location for better organization.
@@ -54,3 +57,24 @@ QUESTION:
 
 CODE:
 {{content}}`;
+
+/**
+ * Builds the schema section for JSON-mode prompts.
+ * This function generates the JSON schema block with format enforcement instructions.
+ *
+ * The schema section is only included in JSON-mode prompts. TEXT-mode prompts
+ * return an empty string to avoid rendering an empty JSON code block.
+ *
+ * @param responseSchema - The Zod schema for the response
+ * @returns The formatted schema section string including schema and FORCE_JSON_FORMAT instructions
+ */
+export function buildSchemaSection(responseSchema: z.ZodType): string {
+  const jsonSchemaString = JSON.stringify(zodToJsonSchema(responseSchema), null, 2);
+  return `The JSON response must follow this JSON schema:
+\`\`\`json
+${jsonSchemaString}
+\`\`\`
+
+${FORCE_JSON_FORMAT}
+`;
+}

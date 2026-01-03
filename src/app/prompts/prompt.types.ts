@@ -4,8 +4,26 @@ import { LLMOutputFormat } from "../../common/llm/types/llm.types";
 /**
  * Valid values for the data section header in prompt templates.
  * These correspond to the different prompt families we support.
+ *
+ * Using a const object pattern instead of an enum for:
+ * - Consistency with existing codebase patterns (e.g., INSTRUCTION_SECTION_TITLES)
+ * - Better tree-shaking and runtime performance
+ * - Type safety through derived union type
  */
-export type DataBlockHeader = "CODE" | "FILE_SUMMARIES" | "FRAGMENTED_DATA";
+export const DATA_BLOCK_HEADERS = {
+  /** Header for source code analysis prompts */
+  CODE: "CODE",
+  /** Header for file summary analysis prompts (app summaries) */
+  FILE_SUMMARIES: "FILE_SUMMARIES",
+  /** Header for reduce insights prompts (consolidating fragmented data) */
+  FRAGMENTED_DATA: "FRAGMENTED_DATA",
+} as const;
+
+/**
+ * Union type derived from DATA_BLOCK_HEADERS values.
+ * Provides type safety while allowing the const object to be used for runtime values.
+ */
+export type DataBlockHeader = (typeof DATA_BLOCK_HEADERS)[keyof typeof DATA_BLOCK_HEADERS];
 
 /**
  * Base configuration entry interface for prompt configurations.

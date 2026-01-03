@@ -1,6 +1,5 @@
 import { fillPrompt } from "type-safe-prompt";
-import { zodToJsonSchema } from "zod-to-json-schema";
-import { FORCE_JSON_FORMAT } from "./templates";
+import { buildSchemaSection } from "./templates";
 import { type PromptDefinition, type DataBlockHeader } from "./prompt.types";
 import { LLMOutputFormat } from "../../common/llm/types/llm.types";
 
@@ -23,24 +22,6 @@ interface BasePromptTemplateVariables {
   readonly partialAnalysisNote: string;
   /** The actual content to analyze */
   readonly content: unknown;
-}
-
-/**
- * Builds the schema section for JSON-mode prompts.
- * Returns an empty string for TEXT-mode prompts to avoid rendering an empty JSON code block.
- *
- * @param responseSchema - The Zod schema for the response
- * @returns The formatted schema section string
- */
-function buildSchemaSection(responseSchema: PromptDefinition["responseSchema"]): string {
-  const jsonSchemaString = JSON.stringify(zodToJsonSchema(responseSchema), null, 2);
-  return `The JSON response must follow this JSON schema:
-\`\`\`json
-${jsonSchemaString}
-\`\`\`
-
-${FORCE_JSON_FORMAT}
-`;
 }
 
 /**

@@ -96,6 +96,7 @@ describe("appSummaryConfigMap Type Safety", () => {
       // This should compile without error, showing the generic works
       const testEntry: AppSummaryConfigEntry<typeof testSchema> = {
         label: "Test Category",
+        contentDesc: "test content",
         responseSchema: testSchema,
         instructions: ["Generate a test list"],
       };
@@ -108,6 +109,7 @@ describe("appSummaryConfigMap Type Safety", () => {
       // This should accept any ZodType without specific parameter
       const genericEntry: AppSummaryConfigEntry = {
         label: "Generic Label",
+        contentDesc: "test content",
         responseSchema: z.string(),
         instructions: [],
       };

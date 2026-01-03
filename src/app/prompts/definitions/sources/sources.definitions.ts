@@ -121,18 +121,18 @@ function createStandardCodeConfig(
  * This enables TypeScript to infer the exact schema type for each file type key.
  */
 export const sourceConfigMap = {
-  java: createStandardCodeConfig("JVM code", SOURCES_PROMPT_FRAGMENTS.JAVA_SPECIFIC),
+  java: createStandardCodeConfig("the JVM code", SOURCES_PROMPT_FRAGMENTS.JAVA_SPECIFIC),
   javascript: createStandardCodeConfig(
-    "JavaScript/TypeScript code",
+    "the JavaScript/TypeScript code",
     SOURCES_PROMPT_FRAGMENTS.JAVASCRIPT_SPECIFIC,
   ),
-  csharp: createStandardCodeConfig("C# code", SOURCES_PROMPT_FRAGMENTS.CSHARP_SPECIFIC),
-  python: createStandardCodeConfig("Python code", SOURCES_PROMPT_FRAGMENTS.PYTHON_SPECIFIC, {
+  csharp: createStandardCodeConfig("the C# code", SOURCES_PROMPT_FRAGMENTS.CSHARP_SPECIFIC),
+  python: createStandardCodeConfig("the Python code", SOURCES_PROMPT_FRAGMENTS.PYTHON_SPECIFIC, {
     extraComplexityMetrics: SOURCES_PROMPT_FRAGMENTS.PYTHON_SPECIFIC.PYTHON_COMPLEXITY_METRICS,
   }),
-  ruby: createStandardCodeConfig("Ruby code", SOURCES_PROMPT_FRAGMENTS.RUBY_SPECIFIC),
+  ruby: createStandardCodeConfig("the Ruby code", SOURCES_PROMPT_FRAGMENTS.RUBY_SPECIFIC),
   sql: {
-    contentDesc: "database DDL/DML/SQL code",
+    contentDesc: "the database DDL/DML/SQL code",
     responseSchema: sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
@@ -160,7 +160,7 @@ export const sourceConfigMap = {
     ] as const,
   },
   markdown: {
-    contentDesc: "Markdown documentation",
+    contentDesc: "the Markdown documentation",
     responseSchema: sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
@@ -180,7 +180,7 @@ export const sourceConfigMap = {
     ] as const,
   },
   xml: {
-    contentDesc: "XML configuration",
+    contentDesc: "the XML configuration",
     responseSchema: sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
@@ -199,7 +199,7 @@ export const sourceConfigMap = {
     ] as const,
   },
   jsp: {
-    contentDesc: "JSP code",
+    contentDesc: "the JSP code",
     responseSchema: sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
@@ -230,7 +230,7 @@ export const sourceConfigMap = {
     ] as const,
   },
   maven: {
-    contentDesc: "Maven POM (Project Object Model) build file",
+    contentDesc: "the Maven POM (Project Object Model) build file",
     responseSchema: sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
@@ -249,7 +249,7 @@ export const sourceConfigMap = {
     ] as const,
   },
   gradle: {
-    contentDesc: "Gradle build configuration file",
+    contentDesc: "the Gradle build configuration file",
     responseSchema: sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
@@ -268,7 +268,7 @@ export const sourceConfigMap = {
     ] as const,
   },
   ant: {
-    contentDesc: "Apache Ant build.xml file",
+    contentDesc: "the Apache Ant build.xml file",
     responseSchema: sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
@@ -287,7 +287,7 @@ export const sourceConfigMap = {
     ] as const,
   },
   npm: {
-    contentDesc: "npm package.json or lock file",
+    contentDesc: "the npm package.json or lock file",
     responseSchema: sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
@@ -306,7 +306,7 @@ export const sourceConfigMap = {
     ] as const,
   },
   "dotnet-proj": {
-    contentDesc: ".NET project file (.csproj, .vbproj, .fsproj)",
+    contentDesc: "the .NET project file (.csproj, .vbproj, .fsproj)",
     responseSchema: sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
@@ -325,7 +325,7 @@ export const sourceConfigMap = {
     ] as const,
   },
   nuget: {
-    contentDesc: "NuGet packages.config file (legacy .NET)",
+    contentDesc: "the NuGet packages.config file (legacy .NET)",
     responseSchema: sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
@@ -344,7 +344,7 @@ export const sourceConfigMap = {
     ] as const,
   },
   "ruby-bundler": {
-    contentDesc: "Ruby Gemfile or Gemfile.lock",
+    contentDesc: "the Ruby Gemfile or Gemfile.lock",
     responseSchema: sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
@@ -363,7 +363,7 @@ export const sourceConfigMap = {
     ] as const,
   },
   "python-pip": {
-    contentDesc: "Python requirements.txt or Pipfile",
+    contentDesc: "the Python requirements.txt or Pipfile",
     responseSchema: sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
@@ -382,7 +382,7 @@ export const sourceConfigMap = {
     ] as const,
   },
   "python-setup": {
-    contentDesc: "Python setup.py file",
+    contentDesc: "the Python setup.py file",
     responseSchema: sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
@@ -401,7 +401,7 @@ export const sourceConfigMap = {
     ] as const,
   },
   "python-poetry": {
-    contentDesc: "Python pyproject.toml (Poetry)",
+    contentDesc: "the Python pyproject.toml (Poetry)",
     responseSchema: sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
@@ -420,7 +420,7 @@ export const sourceConfigMap = {
     ] as const,
   },
   "shell-script": {
-    contentDesc: "Shell script (bash/sh)",
+    contentDesc: "the Shell script (bash/sh)",
     responseSchema: sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
@@ -443,7 +443,7 @@ export const sourceConfigMap = {
     ] as const,
   },
   "batch-script": {
-    contentDesc: "Windows batch script (.bat/.cmd)",
+    contentDesc: "the Windows batch script (.bat/.cmd)",
     responseSchema: sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
@@ -467,7 +467,7 @@ export const sourceConfigMap = {
     ] as const,
   },
   jcl: {
-    contentDesc: "Mainframe JCL (Job Control Language)",
+    contentDesc: "the Mainframe JCL (Job Control Language)",
     responseSchema: sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
@@ -490,12 +490,12 @@ export const sourceConfigMap = {
       ),
     ] as const,
   },
-  c: createStandardCodeConfig("C source code", SOURCES_PROMPT_FRAGMENTS.C_SPECIFIC, {
+  c: createStandardCodeConfig("the C source code", SOURCES_PROMPT_FRAGMENTS.C_SPECIFIC, {
     useModuleBase: true,
   }),
-  cpp: createStandardCodeConfig("C++ source code", SOURCES_PROMPT_FRAGMENTS.CPP_SPECIFIC),
+  cpp: createStandardCodeConfig("the C++ source code", SOURCES_PROMPT_FRAGMENTS.CPP_SPECIFIC),
   makefile: {
-    contentDesc: "C/C++ build configuration (CMake or Makefile)",
+    contentDesc: "the C/C++ build configuration (CMake or Makefile)",
     responseSchema: sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
@@ -514,7 +514,7 @@ export const sourceConfigMap = {
     ] as const,
   },
   default: {
-    contentDesc: "source files",
+    contentDesc: "the source files",
     responseSchema: sourceSummarySchema.pick({
       purpose: true,
       implementation: true,

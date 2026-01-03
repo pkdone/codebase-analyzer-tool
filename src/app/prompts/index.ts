@@ -11,11 +11,21 @@ export { promptManager, createReduceInsightsPrompt, type PromptManager } from ".
 // Renderer
 export { renderPrompt } from "./prompt-renderer";
 
-// Types
-export type { PromptDefinition, DataBlockHeader, BasePromptConfigEntry } from "./prompt.types";
+// Types and constants
+export {
+  DATA_BLOCK_HEADERS,
+  type PromptDefinition,
+  type DataBlockHeader,
+  type BasePromptConfigEntry,
+} from "./prompt.types";
 
 // Templates
-export { BASE_PROMPT_TEMPLATE, CODEBASE_QUERY_TEMPLATE, FORCE_JSON_FORMAT } from "./templates";
+export {
+  BASE_PROMPT_TEMPLATE,
+  CODEBASE_QUERY_TEMPLATE,
+  FORCE_JSON_FORMAT,
+  buildSchemaSection,
+} from "./templates";
 
 // Definitions - only export high-level config maps, not internal fragments
 export {

@@ -8,29 +8,29 @@ import {
   createTextPromptDefinition,
   createJsonPromptDefinition,
 } from "./definitions/prompt-factory";
-import { type PromptDefinition } from "./prompt.types";
+import { type PromptDefinition, DATA_BLOCK_HEADERS } from "./prompt.types";
 import { type AppSummaryCategoryEnum } from "../components/insights/insights.types";
 
 /**
  * App summary prompt definitions generated from centralized configuration.
  * These prompts are used to extract high-level insights from file summaries.
+ *
+ * Note: contentDesc and instructions are read directly from the config entries.
  */
 const appSummaryPrompts = createPromptMetadata(appSummaryConfigMap, BASE_PROMPT_TEMPLATE, {
-  contentDescBuilder: () => "a set of source file summaries",
-  instructionsBuilder: (config) => config.instructions,
-  dataBlockHeaderBuilder: () => "FILE_SUMMARIES",
-  wrapInCodeBlockBuilder: () => false,
+  dataBlockHeader: DATA_BLOCK_HEADERS.FILE_SUMMARIES,
+  wrapInCodeBlock: false,
 });
 
 /**
  * Source file type prompt definitions generated from centralized configuration.
  * These prompts are used to summarize individual source files based on their type.
+ *
+ * Note: contentDesc (with "the " prefix) and instructions are read directly from config entries.
  */
 const sourcePrompts = createPromptMetadata(sourceConfigMap, BASE_PROMPT_TEMPLATE, {
-  contentDescBuilder: (config) => `the ${config.contentDesc}`,
-  instructionsBuilder: (config) => config.instructions,
-  dataBlockHeaderBuilder: () => "CODE",
-  wrapInCodeBlockBuilder: () => true,
+  dataBlockHeader: DATA_BLOCK_HEADERS.CODE,
+  wrapInCodeBlock: true,
 });
 
 // Set hasComplexSchema for all source file types (defaults to true when undefined)
@@ -50,7 +50,7 @@ const codebaseQueryPrompt = createTextPromptDefinition({
   contentDesc: "source code files",
   instructions: [],
   template: CODEBASE_QUERY_TEMPLATE,
-  dataBlockHeader: "CODE",
+  dataBlockHeader: DATA_BLOCK_HEADERS.CODE,
   wrapInCodeBlock: false,
 });
 
@@ -81,7 +81,7 @@ export function createReduceInsightsPrompt(
     instructions: [`a consolidated list of '${categoryKey}'`],
     responseSchema: schema,
     template: BASE_PROMPT_TEMPLATE,
-    dataBlockHeader: "FRAGMENTED_DATA",
+    dataBlockHeader: DATA_BLOCK_HEADERS.FRAGMENTED_DATA,
   });
 }
 

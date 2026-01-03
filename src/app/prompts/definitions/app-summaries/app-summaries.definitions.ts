@@ -14,7 +14,7 @@ import type { BasePromptConfigEntry } from "../../prompt.types";
 
 /**
  * Configuration entry for an app summary prompt definition.
- * Extends BasePromptConfigEntry with required label, responseSchema, and instructions fields.
+ * Extends BasePromptConfigEntry with required label, contentDesc, responseSchema, and instructions fields.
  *
  * This interface is generic over the schema type S to preserve specific Zod schema types
  * through the type system, enabling better type inference for downstream consumers.
@@ -26,6 +26,8 @@ export interface AppSummaryConfigEntry<
 > extends BasePromptConfigEntry<S> {
   /** Label for UI display and logging (required for app summary configs) */
   label: string;
+  /** Description of the content being analyzed (required for app summary configs) */
+  contentDesc: string;
   /** Zod schema for validating the LLM response (required for app summary configs) */
   responseSchema: S;
   /** Array of instruction strings for the LLM (required for app summary configs) */
@@ -49,6 +51,7 @@ export interface AppSummaryConfigEntry<
 export const appSummaryConfigMap = {
   appDescription: {
     label: CATEGORY_LABELS.appDescription,
+    contentDesc: "a set of source file summaries",
     instructions: [
       buildInstructionBlock(
         "Instructions",
@@ -59,6 +62,7 @@ export const appSummaryConfigMap = {
   },
   technologies: {
     label: CATEGORY_LABELS.technologies,
+    contentDesc: "a set of source file summaries",
     instructions: [
       buildInstructionBlock(
         "Instructions",
@@ -69,6 +73,7 @@ export const appSummaryConfigMap = {
   },
   businessProcesses: {
     label: CATEGORY_LABELS.businessProcesses,
+    contentDesc: "a set of source file summaries",
     instructions: [
       buildInstructionBlock(
         "Instructions",
@@ -79,6 +84,7 @@ export const appSummaryConfigMap = {
   },
   boundedContexts: {
     label: CATEGORY_LABELS.boundedContexts,
+    contentDesc: "a set of source file summaries",
     instructions: [
       buildInstructionBlock(
         "Instructions",
@@ -95,6 +101,7 @@ This hierarchical structure ensures consistent naming across all domain elements
   },
   potentialMicroservices: {
     label: CATEGORY_LABELS.potentialMicroservices,
+    contentDesc: "a set of source file summaries",
     instructions: [
       buildInstructionBlock(
         "Instructions",
@@ -105,6 +112,7 @@ This hierarchical structure ensures consistent naming across all domain elements
   },
   inferredArchitecture: {
     label: CATEGORY_LABELS.inferredArchitecture,
+    contentDesc: "a set of source file summaries",
     instructions: [
       buildInstructionBlock(
         "Instructions",

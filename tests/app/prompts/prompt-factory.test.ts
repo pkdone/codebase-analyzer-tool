@@ -1,11 +1,13 @@
 import { createPromptMetadata } from "../../../src/app/prompts/definitions/prompt-factory";
+import { DATA_BLOCK_HEADERS } from "../../../src/app/prompts/prompt.types";
 import { z } from "zod";
 
 describe("Prompt Factory", () => {
   interface TestConfig {
     label?: string;
-    responseSchema: z.ZodType;
     contentDesc?: string;
+    responseSchema?: z.ZodType;
+    instructions?: readonly string[];
     hasComplexSchema?: boolean;
   }
 
@@ -28,41 +30,17 @@ describe("Prompt Factory", () => {
 
       expect(result.test1).toBeDefined();
       expect(result.test1.label).toBe("Test 1");
-      expect(result.test1.contentDesc).toBe("content"); // Default value when no builder provided
+      expect(result.test1.contentDesc).toBe("content"); // Default value when no contentDesc provided
       expect(result.test1.responseSchema).toBe(testConfigMap.test1.responseSchema);
       expect(result.test1.template).toBe(testTemplate);
       expect(result.test1.instructions).toEqual([]);
+      expect(result.test1.dataBlockHeader).toBe(DATA_BLOCK_HEADERS.FILE_SUMMARIES); // Default
 
       expect(result.test2).toBeDefined();
       expect(result.test2.label).toBe("Test 2");
     });
 
-    it("should use schemaBuilder when provided", () => {
-      const baseSchema = z.object({
-        field1: z.string(),
-        field2: z.number(),
-      });
-
-      const testConfigMap: Record<string, TestConfig> = {
-        test1: {
-          label: "Test 1",
-          responseSchema: baseSchema,
-        },
-      };
-
-      const result = createPromptMetadata(testConfigMap, testTemplate, {
-        schemaBuilder: (config) => {
-          return (config.responseSchema as z.ZodObject<z.ZodRawShape>).pick({ field1: true });
-        },
-      });
-
-      expect(result.test1.responseSchema).toBeDefined();
-      const pickedSchema = result.test1.responseSchema as z.ZodObject<z.ZodRawShape>;
-      expect(pickedSchema.shape.field1).toBeDefined();
-      expect(pickedSchema.shape.field2).toBeUndefined();
-    });
-
-    it("should use contentDescBuilder when provided", () => {
+    it("should read contentDesc directly from config entries", () => {
       const testConfigMap: Record<string, TestConfig> = {
         test1: {
           label: "Test 1",
@@ -71,24 +49,21 @@ describe("Prompt Factory", () => {
         },
       };
 
-      const result = createPromptMetadata(testConfigMap, testTemplate, {
-        contentDescBuilder: (config) => `Custom intro with ${config.contentDesc ?? "default"}`,
-      });
+      const result = createPromptMetadata(testConfigMap, testTemplate);
 
-      expect(result.test1.contentDesc).toBe("Custom intro with custom content description");
+      expect(result.test1.contentDesc).toBe("custom content description");
     });
 
-    it("should use instructionsBuilder when provided", () => {
+    it("should read instructions directly from config entries", () => {
       const testConfigMap: Record<string, TestConfig> = {
         test1: {
           label: "Test 1",
           responseSchema: z.string(),
+          instructions: ["instruction 1", "instruction 2"],
         },
       };
 
-      const result = createPromptMetadata(testConfigMap, testTemplate, {
-        instructionsBuilder: () => ["instruction 1", "instruction 2"],
-      });
+      const result = createPromptMetadata(testConfigMap, testTemplate);
 
       expect(result.test1.instructions).toHaveLength(2);
       expect(result.test1.instructions[0]).toBe("instruction 1");
@@ -120,7 +95,51 @@ describe("Prompt Factory", () => {
       expect(result.test3.hasComplexSchema).toBeUndefined();
     });
 
-    it("should handle all builders together", () => {
+    it("should apply dataBlockHeader option to all entries", () => {
+      const testConfigMap: Record<string, TestConfig> = {
+        test1: {
+          label: "Test 1",
+          responseSchema: z.string(),
+          contentDesc: "first content",
+        },
+        test2: {
+          label: "Test 2",
+          responseSchema: z.number(),
+          contentDesc: "second content",
+        },
+      };
+
+      const result = createPromptMetadata(testConfigMap, testTemplate, {
+        dataBlockHeader: DATA_BLOCK_HEADERS.CODE,
+      });
+
+      expect(result.test1.dataBlockHeader).toBe(DATA_BLOCK_HEADERS.CODE);
+      expect(result.test2.dataBlockHeader).toBe(DATA_BLOCK_HEADERS.CODE);
+    });
+
+    it("should apply wrapInCodeBlock option to all entries", () => {
+      const testConfigMap: Record<string, TestConfig> = {
+        test1: {
+          label: "Test 1",
+          responseSchema: z.string(),
+          contentDesc: "first content",
+        },
+        test2: {
+          label: "Test 2",
+          responseSchema: z.number(),
+          contentDesc: "second content",
+        },
+      };
+
+      const result = createPromptMetadata(testConfigMap, testTemplate, {
+        wrapInCodeBlock: true,
+      });
+
+      expect(result.test1.wrapInCodeBlock).toBe(true);
+      expect(result.test2.wrapInCodeBlock).toBe(true);
+    });
+
+    it("should handle config with all fields", () => {
       const baseSchema = z.object({
         field1: z.string(),
         field2: z.number(),
@@ -130,24 +149,22 @@ describe("Prompt Factory", () => {
         test1: {
           label: "Test 1",
           responseSchema: baseSchema,
-          contentDesc: "custom desc",
+          contentDesc: "custom content description",
+          instructions: ["Instruction for test"],
         },
       };
 
       const result = createPromptMetadata(testConfigMap, testTemplate, {
-        schemaBuilder: (config) => {
-          return (config.responseSchema as z.ZodObject<z.ZodRawShape>).pick({ field1: true });
-        },
-        contentDescBuilder: (config) => `Intro template with ${config.contentDesc ?? "default"}`,
-        instructionsBuilder: (config) => [`Instruction for ${config.label ?? "unknown"}`],
+        dataBlockHeader: DATA_BLOCK_HEADERS.CODE,
+        wrapInCodeBlock: true,
       });
 
       expect(result.test1.label).toBe("Test 1");
-      expect(result.test1.contentDesc).toBe("Intro template with custom desc");
-      expect(result.test1.instructions[0]).toBe("Instruction for Test 1");
-      const pickedSchema = result.test1.responseSchema as z.ZodObject<z.ZodRawShape>;
-      expect(pickedSchema.shape.field1).toBeDefined();
-      expect(pickedSchema.shape.field2).toBeUndefined();
+      expect(result.test1.contentDesc).toBe("custom content description");
+      expect(result.test1.instructions[0]).toBe("Instruction for test");
+      expect(result.test1.dataBlockHeader).toBe(DATA_BLOCK_HEADERS.CODE);
+      expect(result.test1.wrapInCodeBlock).toBe(true);
+      expect(result.test1.responseSchema).toBe(baseSchema);
     });
 
     it("should work with empty config map", () => {
@@ -166,14 +183,17 @@ describe("Prompt Factory", () => {
       const testConfigMap = {
         stringType: {
           label: "String Type",
+          contentDesc: "string content",
           responseSchema: stringSchema,
         },
         numberType: {
           label: "Number Type",
+          contentDesc: "number content",
           responseSchema: numberSchema,
         },
         objectType: {
           label: "Object Type",
+          contentDesc: "object content",
           responseSchema: objectSchema,
         },
       };
@@ -193,6 +213,36 @@ describe("Prompt Factory", () => {
       expect(stringPromptDef.responseSchema).toBeDefined();
       expect(numberPromptDef.responseSchema).toBeDefined();
       expect(objectPromptDef.responseSchema).toBeDefined();
+    });
+
+    it("should default to z.unknown() when no responseSchema is provided", () => {
+      const testConfigMap: Record<string, TestConfig> = {
+        noSchema: {
+          label: "No Schema",
+          contentDesc: "content without schema",
+        },
+      };
+
+      const result = createPromptMetadata(testConfigMap, testTemplate);
+
+      expect(result.noSchema.responseSchema).toBeInstanceOf(z.ZodType);
+    });
+
+    it("should use FRAGMENTED_DATA header for reduce insights prompts", () => {
+      const testConfigMap: Record<string, TestConfig> = {
+        reduce: {
+          label: "Reduce",
+          contentDesc: "fragmented data to consolidate",
+          responseSchema: z.object({ items: z.array(z.string()) }),
+          instructions: ["consolidate the list"],
+        },
+      };
+
+      const result = createPromptMetadata(testConfigMap, testTemplate, {
+        dataBlockHeader: DATA_BLOCK_HEADERS.FRAGMENTED_DATA,
+      });
+
+      expect(result.reduce.dataBlockHeader).toBe(DATA_BLOCK_HEADERS.FRAGMENTED_DATA);
     });
   });
 });

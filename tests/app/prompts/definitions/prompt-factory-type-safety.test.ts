@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { createPromptMetadata } from "../../../../src/app/prompts/definitions/prompt-factory";
 import type { PromptDefinition } from "../../../../src/app/prompts/prompt.types";
+import { DATA_BLOCK_HEADERS } from "../../../../src/app/prompts/prompt.types";
 
 /**
  * Type safety tests for createPromptMetadata factory function.
@@ -20,15 +21,21 @@ describe("createPromptMetadata Type Safety", () => {
       const configMap = {
         stringType: {
           label: "String Type",
+          contentDesc: "string content",
           responseSchema: stringSchema,
+          instructions: ["test"] as const,
         },
         numberType: {
           label: "Number Type",
+          contentDesc: "number content",
           responseSchema: numberSchema,
+          instructions: ["test"] as const,
         },
         arrayType: {
           label: "Array Type",
+          contentDesc: "array content",
           responseSchema: arraySchema,
+          instructions: ["test"] as const,
         },
       } as const;
 
@@ -54,11 +61,15 @@ describe("createPromptMetadata Type Safety", () => {
       const configMap = {
         user: {
           label: "User",
+          contentDesc: "user data",
           responseSchema: userSchema,
+          instructions: [] as const,
         },
         product: {
           label: "Product",
+          contentDesc: "product data",
           responseSchema: productSchema,
+          instructions: [] as const,
         },
       } as const;
 
@@ -87,7 +98,9 @@ describe("createPromptMetadata Type Safety", () => {
       const configMap = {
         test: {
           label: "Test",
+          contentDesc: "test content",
           responseSchema: schema,
+          instructions: [] as const,
         },
       } as const;
 
@@ -100,10 +113,11 @@ describe("createPromptMetadata Type Safety", () => {
       expect(testDef.responseSchema).toBe(schema);
     });
 
-    it("should default to z.ZodType when schema is not provided", () => {
+    it("should default to z.unknown() when schema is not provided", () => {
       const configMap = {
         noSchema: {
           label: "No Schema",
+          contentDesc: "no schema content",
           // No responseSchema provided
         },
       } as const;
@@ -115,59 +129,66 @@ describe("createPromptMetadata Type Safety", () => {
     });
   });
 
-  describe("Builder Functions with Type Preservation", () => {
-    it("should preserve schema types when using schemaBuilder", () => {
-      const baseSchema = z.object({
-        field1: z.string(),
-        field2: z.number(),
-        field3: z.boolean(),
-      });
-
-      const configMap = {
-        withBuilder: {
-          label: "With Builder",
-          responseSchema: baseSchema,
-        },
-      } as const;
-
-      // Use schemaBuilder to pick specific fields
-      const result = createPromptMetadata(configMap, testTemplate, {
-        schemaBuilder: (config) => {
-          return (config.responseSchema as z.ZodObject<z.ZodRawShape>).pick({
-            field1: true,
-            field2: true,
-          });
-        },
-      });
-
-      // The built schema should only have the picked fields
-      const builtSchema = result.withBuilder.responseSchema as z.ZodObject<z.ZodRawShape>;
-      expect(Object.keys(builtSchema.shape).sort()).toEqual(["field1", "field2"]);
-    });
-
-    it("should work with all builder options together", () => {
+  describe("Simplified Options", () => {
+    it("should use dataBlockHeader option for all entries", () => {
       const schema = z.object({ data: z.string() });
 
       const configMap = {
-        complete: {
-          label: "Complete Entry",
+        first: {
+          label: "First Entry",
+          contentDesc: "first content",
           responseSchema: schema,
-          contentDesc: "custom description",
+          instructions: ["Instruction 1"] as const,
+        },
+        second: {
+          label: "Second Entry",
+          contentDesc: "second content",
+          responseSchema: schema,
+          instructions: ["Instruction 2"] as const,
         },
       } as const;
 
       const result = createPromptMetadata(configMap, testTemplate, {
-        contentDescBuilder: (c) => `Modified: ${(c as { contentDesc?: string }).contentDesc ?? ""}`,
-        instructionsBuilder: () => ["Instruction 1", "Instruction 2"],
-        dataBlockHeaderBuilder: () => "CODE",
-        wrapInCodeBlockBuilder: () => true,
+        dataBlockHeader: DATA_BLOCK_HEADERS.CODE,
+        wrapInCodeBlock: true,
       });
 
-      expect(result.complete.contentDesc).toBe("Modified: custom description");
-      expect(result.complete.instructions).toHaveLength(2);
-      expect(result.complete.dataBlockHeader).toBe("CODE");
-      expect(result.complete.wrapInCodeBlock).toBe(true);
-      expect(result.complete.responseSchema).toBe(schema);
+      expect(result.first.dataBlockHeader).toBe(DATA_BLOCK_HEADERS.CODE);
+      expect(result.second.dataBlockHeader).toBe(DATA_BLOCK_HEADERS.CODE);
+      expect(result.first.wrapInCodeBlock).toBe(true);
+      expect(result.second.wrapInCodeBlock).toBe(true);
+    });
+
+    it("should use default FILE_SUMMARIES when dataBlockHeader not specified", () => {
+      const configMap = {
+        test: {
+          label: "Test",
+          contentDesc: "test content",
+          responseSchema: z.string(),
+          instructions: [] as const,
+        },
+      } as const;
+
+      const result = createPromptMetadata(configMap, testTemplate);
+
+      expect(result.test.dataBlockHeader).toBe(DATA_BLOCK_HEADERS.FILE_SUMMARIES);
+      expect(result.test.wrapInCodeBlock).toBe(false);
+    });
+
+    it("should read contentDesc and instructions directly from config entries", () => {
+      const configMap = {
+        test: {
+          label: "Test Entry",
+          contentDesc: "custom description from config",
+          responseSchema: z.string(),
+          instructions: ["Step 1", "Step 2"] as const,
+        },
+      } as const;
+
+      const result = createPromptMetadata(configMap, testTemplate);
+
+      expect(result.test.contentDesc).toBe("custom description from config");
+      expect(result.test.instructions).toEqual(["Step 1", "Step 2"]);
     });
   });
 
@@ -185,17 +206,23 @@ describe("createPromptMetadata Type Safety", () => {
       const configMap = {
         complex: {
           label: "Complex",
+          contentDesc: "complex content",
           responseSchema: schema,
           hasComplexSchema: true,
+          instructions: [] as const,
         },
         simple: {
           label: "Simple",
+          contentDesc: "simple content",
           responseSchema: schema,
           hasComplexSchema: false,
+          instructions: [] as const,
         },
         default: {
           label: "Default",
+          contentDesc: "default content",
           responseSchema: schema,
+          instructions: [] as const,
           // No hasComplexSchema - should be undefined
         },
       } as const;
@@ -212,17 +239,23 @@ describe("createPromptMetadata Type Safety", () => {
     it("should work with satisfies pattern similar to sourceConfigMap", () => {
       interface TestConfigEntry<S extends z.ZodType = z.ZodType> {
         label: string;
+        contentDesc: string;
         responseSchema: S;
+        instructions: readonly string[];
       }
 
       const testConfigMap = {
         typeA: {
           label: "Type A",
+          contentDesc: "type A content",
           responseSchema: z.object({ a: z.string() }),
+          instructions: ["A instruction"] as const,
         },
         typeB: {
           label: "Type B",
+          contentDesc: "type B content",
           responseSchema: z.object({ b: z.number() }),
+          instructions: ["B instruction"] as const,
         },
       } as const satisfies Record<string, TestConfigEntry>;
 
@@ -231,6 +264,10 @@ describe("createPromptMetadata Type Safety", () => {
       // Schemas should be preserved through the factory
       expect(result.typeA.responseSchema).toBe(testConfigMap.typeA.responseSchema);
       expect(result.typeB.responseSchema).toBe(testConfigMap.typeB.responseSchema);
+
+      // ContentDesc should be read from config
+      expect(result.typeA.contentDesc).toBe("type A content");
+      expect(result.typeB.contentDesc).toBe("type B content");
 
       // Validate that schemas are distinct
       const typeAShape = (result.typeA.responseSchema as z.ZodObject<z.ZodRawShape>).shape;

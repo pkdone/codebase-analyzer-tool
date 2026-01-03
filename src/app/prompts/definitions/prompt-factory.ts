@@ -1,4 +1,9 @@
-import { DataBlockHeader, PromptDefinition, BasePromptConfigEntry } from "../prompt.types";
+import {
+  DataBlockHeader,
+  DATA_BLOCK_HEADERS,
+  PromptDefinition,
+  BasePromptConfigEntry,
+} from "../prompt.types";
 import { z } from "zod";
 import { LLMOutputFormat } from "../../../common/llm/types/llm.types";
 
@@ -18,33 +23,20 @@ type PromptMetadataResult<TConfigMap extends Record<string, BasePromptConfigEntr
 
 /**
  * Options for creating prompt metadata from a configuration map.
+ * Simplified to use direct values instead of builder callbacks since
+ * configs now contain all necessary data (contentDesc, instructions).
  */
-interface CreatePromptMetadataOptions<TConfig extends BasePromptConfigEntry> {
+interface CreatePromptMetadataOptions {
   /**
-   * Optional function to build the response schema from the config.
-   * If not provided, uses config.responseSchema directly.
+   * The header text for the data block section.
+   * Defaults to FILE_SUMMARIES if not provided.
    */
-  schemaBuilder?: (config: TConfig) => z.ZodType;
+  dataBlockHeader?: DataBlockHeader;
   /**
-   * Optional function to build the contentDesc for the PromptDefinition.
-   * If not provided, uses a default generic description.
+   * Whether to wrap content in code blocks.
+   * Defaults to false if not provided.
    */
-  contentDescBuilder?: (config: TConfig) => string;
-  /**
-   * Optional function to build the instructions array from the config.
-   * If not provided, must be handled by the config type itself.
-   */
-  instructionsBuilder?: (config: TConfig) => readonly string[];
-  /**
-   * Optional function to build the dataBlockHeader for the PromptDefinition.
-   * If not provided, uses a default value based on the template type.
-   */
-  dataBlockHeaderBuilder?: (config: TConfig) => DataBlockHeader;
-  /**
-   * Optional function to determine if content should be wrapped in code blocks.
-   * If not provided, defaults to false.
-   */
-  wrapInCodeBlockBuilder?: (config: TConfig) => boolean;
+  wrapInCodeBlock?: boolean;
 }
 
 /**
@@ -55,23 +47,21 @@ interface CreatePromptMetadataOptions<TConfig extends BasePromptConfigEntry> {
  * schema type for each key in the config map. This enables better type inference
  * for downstream consumers when accessing prompt definitions by key.
  *
+ * This simplified version reads contentDesc and instructions directly from the config
+ * entries, since all configs now contain these fields explicitly. This removes the need
+ * for builder callbacks and makes the factory a pure data mapper.
+ *
  * @param configMap - The configuration map (e.g., sourceConfigMap, appSummaryConfigMap)
  * @param template - The template string to use for all prompts
- * @param options - Optional builders for schema, contentDesc, and instructions
+ * @param options - Optional settings for dataBlockHeader and wrapInCodeBlock
  * @returns A record mapping keys to PromptDefinition objects with preserved schema types
  */
 export function createPromptMetadata<TConfigMap extends Record<string, BasePromptConfigEntry>>(
   configMap: TConfigMap,
   template: string,
-  options: CreatePromptMetadataOptions<TConfigMap[keyof TConfigMap]> = {},
+  options: CreatePromptMetadataOptions = {},
 ): PromptMetadataResult<TConfigMap> {
-  const {
-    schemaBuilder,
-    contentDescBuilder,
-    instructionsBuilder,
-    dataBlockHeaderBuilder,
-    wrapInCodeBlockBuilder,
-  } = options;
+  const { dataBlockHeader = DATA_BLOCK_HEADERS.FILE_SUMMARIES, wrapInCodeBlock = false } = options;
 
   return Object.fromEntries(
     Object.entries(configMap).map(([key, config]) => {
@@ -79,16 +69,12 @@ export function createPromptMetadata<TConfigMap extends Record<string, BasePromp
       const configWithHasComplexSchema = typedConfig as { hasComplexSchema?: boolean };
       const definition: PromptDefinition = {
         label: typedConfig.label,
-        contentDesc: contentDescBuilder ? contentDescBuilder(typedConfig) : "content",
-        responseSchema: schemaBuilder
-          ? schemaBuilder(typedConfig)
-          : (typedConfig.responseSchema ?? z.unknown()),
+        contentDesc: typedConfig.contentDesc ?? "content",
+        responseSchema: typedConfig.responseSchema ?? z.unknown(),
         template,
-        instructions: instructionsBuilder ? instructionsBuilder(typedConfig) : [],
-        dataBlockHeader: dataBlockHeaderBuilder
-          ? dataBlockHeaderBuilder(typedConfig)
-          : ("FILE_SUMMARIES" as const),
-        wrapInCodeBlock: wrapInCodeBlockBuilder ? wrapInCodeBlockBuilder(typedConfig) : false,
+        instructions: typedConfig.instructions ?? [],
+        dataBlockHeader,
+        wrapInCodeBlock,
       };
 
       // Preserve hasComplexSchema if it exists in the config

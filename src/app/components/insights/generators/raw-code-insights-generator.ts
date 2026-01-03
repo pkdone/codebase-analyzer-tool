@@ -14,6 +14,7 @@ import { renderPrompt } from "../../../prompts/prompt-renderer";
 import { LLMOutputFormat } from "../../../../common/llm/types/llm.types";
 import { promptManager } from "../../../prompts/prompt-registry";
 import { BASE_PROMPT_TEMPLATE } from "../../../prompts/templates";
+import { DATA_BLOCK_HEADERS } from "../../../prompts/prompt.types";
 import { appSummaryRecordCategoriesSchema } from "../insights.types";
 import { isOk } from "../../../../common/types/result.types";
 
@@ -126,7 +127,7 @@ export default class InsightsFromRawCodeGenerator implements IInsightsProcessor 
       instructions,
       responseSchema: appSummaryRecordCategoriesSchema,
       template: BASE_PROMPT_TEMPLATE,
-      dataBlockHeader: "FILE_SUMMARIES" as const,
+      dataBlockHeader: DATA_BLOCK_HEADERS.FILE_SUMMARIES,
       wrapInCodeBlock: false,
     };
     return renderPrompt(allCategoriesConfig, { content: codeBlocksContent });
