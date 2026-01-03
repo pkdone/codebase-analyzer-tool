@@ -1,11 +1,5 @@
 import { injectable } from "tsyringe";
-import {
-  escapeMermaidLabel,
-  generateNodeId,
-  buildMermaidInitDirective,
-  buildStyleDefinitions,
-  applyStyle,
-} from "../utils";
+import { escapeMermaidLabel, generateNodeId, applyStyle } from "../utils";
 import type {
   DomainBoundedContext,
   DomainAggregate,
@@ -66,10 +60,7 @@ export class DomainModelDiagramGenerator extends BaseDiagramGenerator<DomainDiag
    * Uses flowchart with subgraphs to position repository horizontally next to aggregate
    */
   private buildContextDiagramDefinition(context: DomainBoundedContext): string {
-    const lines: string[] = [buildMermaidInitDirective(), "flowchart TB"];
-
-    // Add style definitions
-    lines.push(buildStyleDefinitions());
+    const lines = this.initializeDiagram("flowchart TB");
 
     // Create context node at the top (hexagon shape with name only)
     const contextId = generateNodeId(context.name, 0);

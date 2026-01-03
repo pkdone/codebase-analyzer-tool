@@ -6,7 +6,7 @@
 
 import type { LLMSanitizerConfig } from "../../../config/llm-module-config.types";
 import type { SanitizerStrategy, StrategyResult } from "../pipeline/sanitizer-pipeline.types";
-import { isInStringAt } from "../../utils/parser-context-utils";
+import { isInStringAt, isDirectlyInArrayContext } from "../../utils/parser-context-utils";
 import { processingConfig, JSON_KEYWORDS_SET } from "../../constants/json-processing.config";
 import { looksLikeDotSeparatedIdentifier } from "../../utils/property-name-matcher";
 import { DiagnosticCollector } from "../../utils/diagnostic-collector";
@@ -43,55 +43,6 @@ function looksLikeStrayPrefixWord(word: string): boolean {
     return true;
   }
 
-  return false;
-}
-
-/**
- * Checks if position is in an array context by scanning backwards.
- * This is a specialized implementation for array element fixing that checks
- * if the position is DIRECTLY inside an array (not inside a nested object).
- *
- * Note: This differs from the general `isInArrayContextLocal` utility which checks
- * if there's ANY containing array. This stricter check is needed to avoid
- * incorrectly treating object properties as array elements.
- */
-function isInArrayContextLocal(offset: number, content: string): boolean {
-  const beforeMatch = content.substring(Math.max(0, offset - 500), offset);
-  let bracketDepth = 0;
-  let braceDepth = 0;
-  let inString = false;
-  let escape = false;
-
-  for (let i = beforeMatch.length - 1; i >= 0; i--) {
-    const char = beforeMatch[i];
-    if (escape) {
-      escape = false;
-      continue;
-    }
-    if (char === "\\") {
-      escape = true;
-      continue;
-    }
-    if (char === '"') {
-      inString = !inString;
-      continue;
-    }
-    if (!inString) {
-      if (char === "]") {
-        bracketDepth++;
-      } else if (char === "[") {
-        // When scanning backwards, hitting '[' with bracketDepth 0 means we found our containing array
-        if (bracketDepth === 0 && braceDepth === 0) {
-          return true;
-        }
-        bracketDepth--;
-      } else if (char === "}") {
-        braceDepth++;
-      } else if (char === "{") {
-        braceDepth--;
-      }
-    }
-  }
   return false;
 }
 
@@ -151,7 +102,7 @@ export const arrayElementFixer: SanitizerStrategy = {
           return match;
         }
 
-        const foundArray = prefixStr === "[" || isInArrayContextLocal(offset, sanitized);
+        const foundArray = prefixStr === "[" || isDirectlyInArrayContext(offset, sanitized);
 
         if (foundArray) {
           let fixedValue = unquotedValueStr;
@@ -204,7 +155,7 @@ export const arrayElementFixer: SanitizerStrategy = {
         const prevLineEnd = beforeMatch.trimEnd();
         const isAfterCommaOrBracket = prevLineEnd.endsWith(",") || prevLineEnd.endsWith("[");
 
-        const foundArray = isInArrayContextLocal(offset, sanitized) || isAfterCommaOrBracket;
+        const foundArray = isDirectlyInArrayContext(offset, sanitized) || isAfterCommaOrBracket;
 
         if (foundArray) {
           // Use generic dot-notation detection
@@ -250,7 +201,7 @@ export const arrayElementFixer: SanitizerStrategy = {
         const isInArray =
           prefixStr === "[" ||
           prefixStr.startsWith(",") ||
-          isInArrayContextLocal(offset, sanitized);
+          isDirectlyInArrayContext(offset, sanitized);
 
         // Use generic stray word detection
         if (isInArray && looksLikeStrayPrefixWord(prefixWordStr)) {
@@ -282,7 +233,7 @@ export const arrayElementFixer: SanitizerStrategy = {
           const terminatorStr = typeof terminator === "string" ? terminator : "";
 
           const foundArray =
-            terminatorStr.includes("]") || isInArrayContextLocal(offset, sanitized);
+            terminatorStr.includes("]") || isDirectlyInArrayContext(offset, sanitized);
 
           if (foundArray && /^[A-Z][A-Z0-9_]+$/.test(elementStr) && elementStr.length > 3) {
             hasChanges = true;
@@ -322,7 +273,7 @@ export const arrayElementFixer: SanitizerStrategy = {
         }
 
         const terminatorStr = typeof terminator === "string" ? terminator : "";
-        const isInArray = terminatorStr.includes("]") || isInArrayContextLocal(offset, sanitized);
+        const isInArray = terminatorStr.includes("]") || isDirectlyInArrayContext(offset, sanitized);
 
         if (isInArray) {
           const value1Str = typeof value1 === "string" ? value1 : "";
@@ -353,7 +304,7 @@ export const arrayElementFixer: SanitizerStrategy = {
         const isInArray =
           terminatorStr.includes("]") ||
           terminatorStr.includes(",") ||
-          isInArrayContextLocal(offset, sanitized);
+          isDirectlyInArrayContext(offset, sanitized);
 
         if (isInArray) {
           const value1Str = typeof value1 === "string" ? value1 : "";

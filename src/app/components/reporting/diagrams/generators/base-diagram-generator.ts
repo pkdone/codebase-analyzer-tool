@@ -1,4 +1,15 @@
-import { DIAGRAM_STYLES, generateEmptyDiagramSvg } from "../utils";
+import {
+  DIAGRAM_STYLES,
+  generateEmptyDiagramSvg,
+  buildMermaidInitDirective,
+  buildArchitectureInitDirective,
+} from "../utils";
+import { buildStyleDefinitions } from "../utils";
+
+/**
+ * Type of initialization directive to use for the diagram.
+ */
+export type DiagramInitDirectiveType = "standard" | "architecture";
 
 /**
  * Base interface for diagram options with standard width and height properties.
@@ -16,6 +27,7 @@ export interface BaseDiagramOptions {
  * This class provides common functionality shared by all Mermaid diagram generators:
  * - Default options handling with width and height
  * - Empty diagram placeholder generation
+ * - Diagram initialization with directives and styles
  * - Dimension calculation utilities
  *
  * Diagrams are rendered client-side using Mermaid.js. Generators return
@@ -37,6 +49,27 @@ export abstract class BaseDiagramGenerator<TOptions extends BaseDiagramOptions> 
    */
   protected generateEmptyDiagram(message: string): string {
     return generateEmptyDiagramSvg(message);
+  }
+
+  /**
+   * Initialize a Mermaid diagram with the standard preamble.
+   * Creates the initial lines array with the init directive, graph type, and style definitions.
+   * This consolidates the common initialization pattern used across all diagram generators.
+   *
+   * @param graphDeclaration - The graph type declaration (e.g., "flowchart TB", "graph LR")
+   * @param directiveType - The type of init directive to use ("standard" or "architecture")
+   * @returns Array of lines with the diagram preamble already added
+   */
+  protected initializeDiagram(
+    graphDeclaration: string,
+    directiveType: DiagramInitDirectiveType = "standard",
+  ): string[] {
+    const initDirective =
+      directiveType === "architecture"
+        ? buildArchitectureInitDirective()
+        : buildMermaidInitDirective();
+
+    return [initDirective, graphDeclaration, buildStyleDefinitions()];
   }
 
   /**

@@ -90,16 +90,7 @@ export default class SourcesRepositoryImpl
     projectName: string,
     fileTypes: string[],
   ): Promise<ProjectedSourceSummaryFields[]> {
-    const query: { projectName: string; fileType?: { $in: string[] } } = {
-      projectName,
-    };
-
-    // Only add fileType filter if fileTypes array is not empty
-    if (fileTypes.length > 0) {
-      query.fileType = { $in: fileTypes };
-    }
-
-    return this.findProjectSourcesSummaries(query);
+    return this.getProjectSourcesSummariesByField(projectName, "fileType", fileTypes);
   }
 
   /**
@@ -109,16 +100,7 @@ export default class SourcesRepositoryImpl
     projectName: string,
     canonicalTypes: string[],
   ): Promise<ProjectedSourceSummaryFields[]> {
-    const query: { projectName: string; canonicalType?: { $in: string[] } } = {
-      projectName,
-    };
-
-    // Only add canonicalType filter if canonicalTypes array is not empty
-    if (canonicalTypes.length > 0) {
-      query.canonicalType = { $in: canonicalTypes };
-    }
-
-    return this.findProjectSourcesSummaries(query);
+    return this.getProjectSourcesSummariesByField(projectName, "canonicalType", canonicalTypes);
   }
 
   /**
@@ -515,6 +497,25 @@ export default class SourcesRepositoryImpl
         longFunctionCount: 0,
       }
     );
+  }
+
+  /**
+   * Private helper to get source file summaries filtered by a specific field.
+   * Consolidates shared logic between getProjectSourcesSummariesByFileType and getProjectSourcesSummariesByCanonicalType.
+   */
+  private async getProjectSourcesSummariesByField(
+    projectName: string,
+    filterField: "fileType" | "canonicalType",
+    filterValues: string[],
+  ): Promise<ProjectedSourceSummaryFields[]> {
+    const query: Document = { projectName };
+
+    // Only add filter if values array is not empty
+    if (filterValues.length > 0) {
+      query[filterField] = { $in: filterValues };
+    }
+
+    return this.findProjectSourcesSummaries(query);
   }
 
   /**

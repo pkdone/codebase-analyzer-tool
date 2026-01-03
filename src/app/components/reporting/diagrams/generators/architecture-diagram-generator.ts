@@ -1,11 +1,5 @@
 import { injectable } from "tsyringe";
-import {
-  escapeMermaidLabel,
-  generateNodeId,
-  buildMermaidInitDirective,
-  buildStyleDefinitions,
-  applyStyle,
-} from "../utils";
+import { escapeMermaidLabel, generateNodeId, applyStyle } from "../utils";
 import { BaseDiagramGenerator, type BaseDiagramOptions } from "./base-diagram-generator";
 import { visualizationConfig } from "../../generators/visualization.config";
 
@@ -72,10 +66,7 @@ export class ArchitectureDiagramGenerator extends BaseDiagramGenerator<Architect
     const archConfig = visualizationConfig.architecture;
 
     // Use flowchart TB (top-bottom) with horizontal subgraph for better text display
-    const lines: string[] = [buildMermaidInitDirective(), "flowchart TB"];
-
-    // Add style definitions
-    lines.push(buildStyleDefinitions());
+    const lines = this.initializeDiagram("flowchart TB");
 
     // Create a subgraph for services (no label)
     lines.push('    subgraph services[" "]');

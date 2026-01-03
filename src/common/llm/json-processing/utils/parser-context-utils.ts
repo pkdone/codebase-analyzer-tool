@@ -51,6 +51,7 @@ export function isInStringAt(position: number, content: string): boolean {
 /**
  * Checks if a given position in a string is inside an array context.
  * Scans backwards from the position to determine if we're inside an array.
+ * This is a general check that returns true if there is ANY containing array.
  *
  * @param matchIndex - The character position to check
  * @param content - The full content string
@@ -98,6 +99,59 @@ export function isInArrayContext(matchIndex: number, content: string): boolean {
   }
 
   return foundOpeningBracket && openBrackets > 0;
+}
+
+/**
+ * Checks if position is DIRECTLY inside an array context by scanning backwards.
+ * This is a stricter check than `isInArrayContext` - it returns true only if
+ * the position is directly inside an array (not inside a nested object within the array).
+ *
+ * Use this when you need to distinguish between:
+ * - `["value"]` (directly in array) -> returns true
+ * - `[{"key": "value"}]` (inside object within array) -> returns false
+ *
+ * @param offset - The character position to check
+ * @param content - The full content string
+ * @returns True if the position is directly inside an array (not nested in an object)
+ */
+export function isDirectlyInArrayContext(offset: number, content: string): boolean {
+  const beforeMatch = content.substring(Math.max(0, offset - 500), offset);
+  let bracketDepth = 0;
+  let braceDepth = 0;
+  let inString = false;
+  let escape = false;
+
+  for (let i = beforeMatch.length - 1; i >= 0; i--) {
+    const char = beforeMatch[i];
+    if (escape) {
+      escape = false;
+      continue;
+    }
+    if (char === "\\") {
+      escape = true;
+      continue;
+    }
+    if (char === '"') {
+      inString = !inString;
+      continue;
+    }
+    if (!inString) {
+      if (char === "]") {
+        bracketDepth++;
+      } else if (char === "[") {
+        // When scanning backwards, hitting '[' with bracketDepth 0 means we found our containing array
+        if (bracketDepth === 0 && braceDepth === 0) {
+          return true;
+        }
+        bracketDepth--;
+      } else if (char === "}") {
+        braceDepth++;
+      } else if (char === "{") {
+        braceDepth--;
+      }
+    }
+  }
+  return false;
 }
 
 /**

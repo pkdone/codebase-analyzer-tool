@@ -1,12 +1,5 @@
 import { injectable } from "tsyringe";
-import {
-  escapeMermaidLabel,
-  generateNodeId,
-  buildArrow,
-  buildArchitectureInitDirective,
-  buildStyleDefinitions,
-  applyStyle,
-} from "../utils";
+import { escapeMermaidLabel, generateNodeId, buildArrow, applyStyle } from "../utils";
 import { BaseDiagramGenerator, type BaseDiagramOptions } from "./base-diagram-generator";
 import { visualizationConfig } from "../../generators/visualization.config";
 
@@ -90,10 +83,7 @@ export class CurrentArchitectureDiagramGenerator extends BaseDiagramGenerator<Cu
     architectureData: InferredArchitectureData,
   ): string {
     // Use TB layout with increased padding for better spacing
-    const lines: string[] = [buildArchitectureInitDirective(), "flowchart TB"];
-
-    // Add style definitions
-    lines.push(buildStyleDefinitions());
+    const lines = this.initializeDiagram("flowchart TB", "architecture");
 
     // Build a map of component names to node IDs for dependency resolution
     const nodeIdMap = new Map<string, string>();

@@ -1,13 +1,7 @@
 import { injectable } from "tsyringe";
-import {
-  escapeMermaidLabel,
-  generateNodeId,
-  generateEmptyDiagramSvg,
-  buildMermaidInitDirective,
-  DIAGRAM_STYLES,
-  buildStyleDefinitions,
-  applyStyle,
-} from "../utils";
+import { escapeMermaidLabel, generateNodeId, applyStyle } from "../utils";
+import { BaseDiagramGenerator, type BaseDiagramOptions } from "./base-diagram-generator";
+import { visualizationConfig } from "../../generators/visualization.config";
 
 export interface BusinessProcessActivity {
   activity: string;
@@ -20,27 +14,31 @@ export interface BusinessProcess {
   keyBusinessActivities: BusinessProcessActivity[];
 }
 
-export interface FlowchartDiagramOptions {
-  width?: number;
-  height?: number;
-}
+export type FlowchartDiagramOptions = BaseDiagramOptions;
 
 /**
  * Generates Mermaid flowcharts for business processes.
  * Creates sequential flow diagrams showing key business activities as connected nodes.
+ * Extends BaseDiagramGenerator to share common functionality.
  *
  * Diagrams are rendered client-side using Mermaid.js.
  */
 @injectable()
-export class FlowchartDiagramGenerator {
+export class FlowchartDiagramGenerator extends BaseDiagramGenerator<FlowchartDiagramOptions> {
+  protected readonly defaultOptions: Required<FlowchartDiagramOptions> = {
+    width: visualizationConfig.flowchart.DEFAULT_WIDTH,
+    height: visualizationConfig.flowchart.DEFAULT_HEIGHT,
+  };
+
   /**
    * Generate flowchart for a single business process.
    * Returns HTML with embedded Mermaid definition for client-side rendering.
    */
   generateFlowchartDiagram(
     process: BusinessProcess,
-    _options: FlowchartDiagramOptions = {},
+    options: FlowchartDiagramOptions = {},
   ): string {
+    this.mergeOptions(options);
     const activities = process.keyBusinessActivities;
 
     if (activities.length === 0) {
@@ -68,10 +66,7 @@ export class FlowchartDiagramGenerator {
    * Build the Mermaid flowchart definition for activities
    */
   private buildFlowchartDefinition(activities: BusinessProcessActivity[]): string {
-    const lines: string[] = [buildMermaidInitDirective(), "graph LR"];
-
-    // Add style definitions
-    lines.push(buildStyleDefinitions());
+    const lines = this.initializeDiagram("graph LR");
 
     // Create nodes and connections
     const nodeIds: string[] = [];
@@ -93,19 +88,5 @@ export class FlowchartDiagramGenerator {
     }
 
     return lines.join("\n");
-  }
-
-  /**
-   * Generate an empty diagram placeholder
-   */
-  private generateEmptyDiagram(message: string): string {
-    return generateEmptyDiagramSvg(message);
-  }
-
-  /**
-   * Wrap a Mermaid definition for client-side rendering.
-   */
-  private wrapForClientRendering(definition: string): string {
-    return `<pre class="mermaid" style="background-color: ${DIAGRAM_STYLES.backgroundColor}; border-radius: 8px; padding: 20px; overflow-x: auto;">\n${definition}\n</pre>`;
   }
 }

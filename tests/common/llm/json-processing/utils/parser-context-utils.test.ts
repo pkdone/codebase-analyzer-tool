@@ -1,6 +1,7 @@
 import {
   isInStringAt,
   isInArrayContext,
+  isDirectlyInArrayContext,
   replaceInContext,
 } from "../../../../../src/common/llm/json-processing/utils/parser-context-utils";
 
@@ -72,6 +73,67 @@ describe("parser-context-utils", () => {
 
     it("should return false for empty content", () => {
       expect(isInArrayContext(0, "")).toBe(false);
+    });
+  });
+
+  describe("isDirectlyInArrayContext", () => {
+    it("should return true when directly inside an array", () => {
+      const content = '["value1", "value2"]';
+      // Position 1 is directly inside the array (after opening bracket)
+      expect(isDirectlyInArrayContext(1, content)).toBe(true);
+    });
+
+    it("should return false when inside an object within an array", () => {
+      const content = '[{"key": "value"}]';
+      // Position 3 is inside the object, not directly in the array
+      expect(isDirectlyInArrayContext(3, content)).toBe(false);
+    });
+
+    it("should return false when not inside any array", () => {
+      const content = '{"key": "value"}';
+      expect(isDirectlyInArrayContext(5, content)).toBe(false);
+    });
+
+    it("should return true for position between array elements", () => {
+      const content = '["item1", "item2", "item3"]';
+      // Position 8 is at the comma between "item1" and "item2", directly inside array
+      expect(isDirectlyInArrayContext(8, content)).toBe(true);
+      // Position 9 is at the space after comma, still directly inside array
+      expect(isDirectlyInArrayContext(9, content)).toBe(true);
+    });
+
+    it("should return false for nested object in array", () => {
+      const content = '[{"name": "test", "value": 123}]';
+      // Position 12 is inside the object at the "t" of "test"
+      expect(isDirectlyInArrayContext(12, content)).toBe(false);
+    });
+
+    it("should handle nested arrays correctly", () => {
+      const content = '[["nested"]]';
+      // Position 2 is inside the inner array directly
+      expect(isDirectlyInArrayContext(2, content)).toBe(true);
+    });
+
+    it("should return false when inside a nested object within nested arrays", () => {
+      const content = '[[{"key": "value"}]]';
+      // Position 5 is inside the object
+      expect(isDirectlyInArrayContext(5, content)).toBe(false);
+    });
+
+    it("should handle mixed array content", () => {
+      const content = '["string", {"obj": true}, [1, 2]]';
+      // Position after "string", still directly in array
+      expect(isDirectlyInArrayContext(10, content)).toBe(true);
+    });
+
+    it("should return false for empty content", () => {
+      expect(isDirectlyInArrayContext(0, "")).toBe(false);
+    });
+
+    it("should handle empty array", () => {
+      const content = "[]";
+      // Position 1 is directly inside the empty array
+      expect(isDirectlyInArrayContext(1, content)).toBe(true);
     });
   });
 

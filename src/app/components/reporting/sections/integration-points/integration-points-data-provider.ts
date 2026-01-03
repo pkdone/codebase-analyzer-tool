@@ -16,6 +16,7 @@ export class IntegrationPointsDataProvider {
 
   /**
    * Returns a list of integration points (APIs, queues, topics, SOAP services) found in the project.
+   * Uses spread syntax to map integration point fields, adding namespace and filepath from the record.
    */
   async getIntegrationPoints(projectName: string): Promise<IntegrationPointInfo[]> {
     const records = await this.sourcesRepository.getProjectIntegrationPoints(projectName);
@@ -25,19 +26,7 @@ export class IntegrationPointsDataProvider {
         return summary.integrationPoints.map((point) => ({
           namespace: summary.namespace ?? record.filepath,
           filepath: record.filepath,
-          mechanism: point.mechanism,
-          name: point.name,
-          description: point.description,
-          path: point.path,
-          method: point.method,
-          queueOrTopicName: point.queueOrTopicName,
-          messageType: point.messageType,
-          direction: point.direction,
-          requestBody: point.requestBody,
-          responseBody: point.responseBody,
-          authentication: point.authentication,
-          protocol: point.protocol,
-          connectionInfo: point.connectionInfo,
+          ...point,
         }));
       }
       return [];

@@ -2,6 +2,7 @@ import "reflect-metadata";
 import {
   BaseDiagramGenerator,
   type BaseDiagramOptions,
+  type DiagramInitDirectiveType,
   DIAGRAM_STYLES,
 } from "../../../../../../src/app/components/reporting/diagrams";
 
@@ -28,6 +29,13 @@ class TestDiagramGeneratorImpl extends BaseDiagramGenerator<TestDiagramOptions> 
 
   testMergeOptions(options: TestDiagramOptions): Required<TestDiagramOptions> {
     return this.mergeOptions(options);
+  }
+
+  testInitializeDiagram(
+    graphDeclaration: string,
+    directiveType?: DiagramInitDirectiveType,
+  ): string[] {
+    return this.initializeDiagram(graphDeclaration, directiveType);
   }
 
   getDefaultOptions(): Required<TestDiagramOptions> {
@@ -137,6 +145,55 @@ describe("BaseDiagramGenerator", () => {
 
       expect(result.customOption).toBe("custom value");
       expect(result.width).toBe(800); // Default
+    });
+  });
+
+  describe("initializeDiagram", () => {
+    it("should return array with init directive, graph declaration, and styles", () => {
+      const result = generator.testInitializeDiagram("flowchart TB");
+
+      expect(result).toBeInstanceOf(Array);
+      expect(result.length).toBe(3);
+      expect(result[0]).toContain("%%{init:"); // Mermaid init directive
+      expect(result[1]).toBe("flowchart TB"); // Graph declaration
+      expect(result[2]).toContain("classDef"); // Style definitions
+    });
+
+    it("should use standard init directive by default", () => {
+      const result = generator.testInitializeDiagram("flowchart LR");
+
+      expect(result[0]).toContain("%%{init:");
+    });
+
+    it("should use architecture init directive when specified", () => {
+      const result = generator.testInitializeDiagram("flowchart TB", "architecture");
+
+      expect(result[0]).toContain("%%{init:");
+      // Architecture directive should have specific padding settings
+    });
+
+    it("should preserve graph declaration exactly as provided", () => {
+      const graphDeclaration = "graph LR";
+      const result = generator.testInitializeDiagram(graphDeclaration);
+
+      expect(result[1]).toBe(graphDeclaration);
+    });
+
+    it("should work with different graph types", () => {
+      const tbResult = generator.testInitializeDiagram("flowchart TB");
+      const lrResult = generator.testInitializeDiagram("flowchart LR");
+      const graphResult = generator.testInitializeDiagram("graph TD");
+
+      expect(tbResult[1]).toBe("flowchart TB");
+      expect(lrResult[1]).toBe("flowchart LR");
+      expect(graphResult[1]).toBe("graph TD");
+    });
+
+    it("should include style definitions for styling nodes", () => {
+      const result = generator.testInitializeDiagram("flowchart TB");
+
+      // Style definitions should include common styles
+      expect(result[2]).toContain("classDef");
     });
   });
 });
