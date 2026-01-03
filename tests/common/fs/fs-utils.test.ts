@@ -1,7 +1,7 @@
 import { jest, describe, test, expect, beforeEach, afterEach } from "@jest/globals";
 import mockFs from "mock-fs";
 import path from "path";
-import { readFile, writeFile, appendFile } from "../../../src/common/fs/file-operations";
+import { readFile, writeFile } from "../../../src/common/fs/file-operations";
 import {
   listDirectoryEntries,
   clearDirectory,
@@ -42,16 +42,6 @@ describe("File System Utilities", () => {
       await writeFile("/test/output.txt", "Test content");
       const content = await readFile("/test/output.txt");
       expect(content).toBe("Test content");
-    });
-
-    test("should append file content correctly", async () => {
-      mockFs({
-        "/test/file.txt": "Initial content",
-      });
-
-      await appendFile("/test/file.txt", "\nAppended content");
-      const content = await readFile("/test/file.txt");
-      expect(content).toBe("Initial content\nAppended content");
     });
 
     test("should read directory contents correctly", async () => {

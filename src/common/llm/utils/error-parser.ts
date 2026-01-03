@@ -7,8 +7,9 @@ import { llmProviderConfig } from "../config/llm.config";
 
 /**
  * Extract token usage information from LLM error message.
+ * Internal function used by calculateTokenUsageFromError.
  */
-export function parseTokenUsageFromLLMError(
+function parseTokenUsageFromLLMError(
   modelKey: string,
   errorMsg: string,
   llmModelsMetadata: Record<string, ResolvedLLMModelMetadata>,

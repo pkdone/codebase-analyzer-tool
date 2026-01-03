@@ -13,12 +13,3 @@ export class DatabaseConnectionError extends DatabaseError {
     super(message, cause);
   }
 }
-
-/**
- * Error thrown when a database query fails.
- */
-export class DatabaseQueryError extends DatabaseError {
-  constructor(message = "Database query failed", cause?: Error) {
-    super(message, cause);
-  }
-}

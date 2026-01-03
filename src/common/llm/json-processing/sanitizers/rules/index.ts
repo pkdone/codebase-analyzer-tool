@@ -19,7 +19,6 @@ export type {
   ContextCheckFunction,
   ExecutorOptions,
   RuleExecutionResult,
-  RuleGroup,
 } from "./replacement-rule.types";
 
 // Executor exports
@@ -75,26 +74,3 @@ export const ALL_RULES: readonly ReplacementRule[] = [
   // Fifth pass: Fix array element issues
   ...ARRAY_ELEMENT_RULES,
 ];
-
-/**
- * Rule groups for selective application.
- * Use these when you need to apply only specific categories of rules.
- */
-export const RULE_GROUPS = {
-  /** Rules for removing embedded non-JSON content */
-  embedded: EMBEDDED_CONTENT_RULES,
-  /** Rules for fixing structural JSON issues */
-  structural: STRUCTURAL_RULES,
-  /** Rules for removing stray characters */
-  strayCharacters: STRAY_CHARACTER_RULES,
-  /** Rules for fixing property name issues */
-  propertyNames: PROPERTY_NAME_RULES,
-  /** Rules for fixing array element issues */
-  arrayElements: ARRAY_ELEMENT_RULES,
-} as const;
-
-/**
- * Total number of rules available.
- * Useful for diagnostics and logging.
- */
-export const TOTAL_RULE_COUNT = ALL_RULES.length;

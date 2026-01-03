@@ -42,16 +42,6 @@ describe("fs module barrel exports", () => {
       expect(fs.writeFile).toBeDefined();
       expect(typeof fs.writeFile).toBe("function");
     });
-
-    it("should export appendFile", () => {
-      expect(fs.appendFile).toBeDefined();
-      expect(typeof fs.appendFile).toBe("function");
-    });
-
-    it("should export writeBinaryFile", () => {
-      expect(fs.writeBinaryFile).toBeDefined();
-      expect(typeof fs.writeBinaryFile).toBe("function");
-    });
   });
 
   describe("path-utils exports", () => {
@@ -73,9 +63,9 @@ describe("fs module barrel exports", () => {
     expect(exports.length).toBe(uniqueExports.size);
   });
 
-  it("should have at least 11 exported functions", () => {
+  it("should have at least 9 exported functions", () => {
     // Ensure we're exporting a reasonable number of utilities
     const exports = Object.keys(fs);
-    expect(exports.length).toBeGreaterThanOrEqual(11);
+    expect(exports.length).toBeGreaterThanOrEqual(9);
   });
 });

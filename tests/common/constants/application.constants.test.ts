@@ -1,7 +1,4 @@
-import {
-  UNKNOWN_VALUE_PLACEHOLDER,
-  NOT_APPLICABLE_PLACEHOLDER,
-} from "../../../src/common/constants/application.constants";
+import { UNKNOWN_VALUE_PLACEHOLDER } from "../../../src/common/constants/application.constants";
 
 describe("Application Constants", () => {
   describe("UNKNOWN_VALUE_PLACEHOLDER", () => {
@@ -27,26 +24,6 @@ describe("Application Constants", () => {
       const getEmptyString = (): string => "";
       const result = getEmptyString() || UNKNOWN_VALUE_PLACEHOLDER;
       expect(result).toBe("unknown");
-    });
-  });
-
-  describe("NOT_APPLICABLE_PLACEHOLDER", () => {
-    it("should be defined", () => {
-      expect(NOT_APPLICABLE_PLACEHOLDER).toBeDefined();
-    });
-
-    it("should be the string 'N/A'", () => {
-      expect(NOT_APPLICABLE_PLACEHOLDER).toBe("N/A");
-    });
-
-    it("should be a string type", () => {
-      expect(typeof NOT_APPLICABLE_PLACEHOLDER).toBe("string");
-    });
-  });
-
-  describe("constants consistency", () => {
-    it("should have distinct values for different purposes", () => {
-      expect(UNKNOWN_VALUE_PLACEHOLDER).not.toBe(NOT_APPLICABLE_PLACEHOLDER);
     });
   });
 });

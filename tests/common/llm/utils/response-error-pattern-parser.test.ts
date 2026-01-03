@@ -1,7 +1,12 @@
 import { LLMPurpose } from "../../../../src/common/llm/types/llm.types";
-import { parseTokenUsageFromLLMError } from "../../../../src/common/llm/utils/error-parser";
+import { calculateTokenUsageFromError } from "../../../../src/common/llm/utils/error-parser";
 import { BEDROCK_COMMON_ERROR_PATTERNS } from "../../../../src/common/llm/providers/bedrock/common/bedrock-error-patterns";
 import { OPENAI_COMMON_ERROR_PATTERNS } from "../../../../src/common/llm/providers/openai/common/openai-error-patterns";
+
+/**
+ * Tests for calculateTokenUsageFromError which internally uses parseTokenUsageFromLLMError.
+ * These tests validate the error pattern parsing behavior through the public API.
+ */
 
 // Test-only constants
 const GPT_COMPLETIONS_GPT4 = "GPT_COMPLETIONS_GPT4";
@@ -26,14 +31,18 @@ const testMetadata = {
   },
 };
 
-describe("parseTokenUsageFromLLMError", () => {
+// Dummy prompt for tests - length affects fallback calculations
+const TEST_PROMPT = "Test prompt content for error parsing tests.";
+
+describe("calculateTokenUsageFromError - error pattern parsing", () => {
   // Bedrock error patterns
   describe("Bedrock error patterns", () => {
     test("should extract tokens from 'too many input tokens' error message", () => {
       const errorMsg =
         "ValidationException: 400 Bad Request: Too many input tokens. Max input tokens: 8192, request input token count: 9279";
-      const result = parseTokenUsageFromLLMError(
+      const result = calculateTokenUsageFromError(
         GPT_COMPLETIONS_GPT4,
+        TEST_PROMPT,
         errorMsg,
         testMetadata,
         BEDROCK_COMMON_ERROR_PATTERNS,
@@ -47,8 +56,9 @@ describe("parseTokenUsageFromLLMError", () => {
     test("should extract chars from 'malformed input request' error message", () => {
       const errorMsg =
         "ValidationException: Malformed input request: expected maxLength: 50000, actual: 52611, please reformat your input and try again.";
-      const result = parseTokenUsageFromLLMError(
+      const result = calculateTokenUsageFromError(
         "GPT_COMPLETIONS_GPT4",
+        TEST_PROMPT,
         errorMsg,
         testMetadata,
         BEDROCK_COMMON_ERROR_PATTERNS,
@@ -63,23 +73,26 @@ describe("parseTokenUsageFromLLMError", () => {
     test("should extract tokens from 'maximum context length' error message", () => {
       const errorMsg =
         "ValidationException: This model's maximum context length is 8192 tokens. Please reduce the length of the prompt";
-      const result = parseTokenUsageFromLLMError(
+      const result = calculateTokenUsageFromError(
         "GPT_COMPLETIONS_GPT4",
+        TEST_PROMPT,
         errorMsg,
         testMetadata,
         BEDROCK_COMMON_ERROR_PATTERNS,
       );
 
       expect(result.maxTotalTokens).toBe(8192);
-      expect(result.promptTokens).toBe(-1); // Not provided in this error pattern
+      // promptTokens will be derived when not provided in error, should be >= maxTotalTokens + 1
+      expect(result.promptTokens).toBeGreaterThanOrEqual(8192);
       expect(result.completionTokens).toBe(0);
     });
 
     test("should extract tokens from 'prompt contains tokens' error message with reversed order", () => {
       const errorMsg =
         "ValidationException. Prompt contains 235396 tokens and 0 draft tokens, too large for model with 131072 maximum context length";
-      const result = parseTokenUsageFromLLMError(
+      const result = calculateTokenUsageFromError(
         "GPT_COMPLETIONS_GPT4",
+        TEST_PROMPT,
         errorMsg,
         testMetadata,
         BEDROCK_COMMON_ERROR_PATTERNS,
@@ -102,8 +115,9 @@ describe("parseTokenUsageFromLLMError", () => {
           isMaxFirst: false,
         },
       ];
-      const result = parseTokenUsageFromLLMError(
+      const result = calculateTokenUsageFromError(
         "GPT_COMPLETIONS_GPT4",
+        TEST_PROMPT,
         errorMsg,
         testMetadata,
         reversedPattern,
@@ -121,8 +135,9 @@ describe("parseTokenUsageFromLLMError", () => {
       const reversedPattern = [
         { pattern: /actual: (\d+).*?maxLength: (\d+)/, units: "chars", isMaxFirst: false },
       ];
-      const result = parseTokenUsageFromLLMError(
+      const result = calculateTokenUsageFromError(
         "GPT_COMPLETIONS_GPT4",
+        TEST_PROMPT,
         errorMsg,
         testMetadata,
         reversedPattern,
@@ -146,8 +161,9 @@ describe("parseTokenUsageFromLLMError", () => {
           isMaxFirst: false,
         },
       ];
-      const result = parseTokenUsageFromLLMError(
+      const result = calculateTokenUsageFromError(
         "GPT_COMPLETIONS_GPT4",
+        TEST_PROMPT,
         errorMsg,
         testMetadata,
         reversedPattern,
@@ -170,8 +186,9 @@ describe("parseTokenUsageFromLLMError", () => {
           isMaxFirst: true,
         },
       ];
-      const result = parseTokenUsageFromLLMError(
+      const result = calculateTokenUsageFromError(
         "GPT_COMPLETIONS_GPT4",
+        TEST_PROMPT,
         errorMsg,
         testMetadata,
         normalOrderPattern,
@@ -188,8 +205,9 @@ describe("parseTokenUsageFromLLMError", () => {
     test("should extract tokens from 'maximum context length with prompt and completion breakdown' error message", () => {
       const errorMsg =
         "This model's maximum context length is 8191 tokens, however you requested 10346 tokens (10346 in your prompt; 5 for the completion). Please reduce your prompt; or completion length.";
-      const result = parseTokenUsageFromLLMError(
+      const result = calculateTokenUsageFromError(
         "GPT_COMPLETIONS_GPT4",
+        TEST_PROMPT,
         errorMsg,
         testMetadata,
         OPENAI_COMMON_ERROR_PATTERNS,
@@ -203,8 +221,9 @@ describe("parseTokenUsageFromLLMError", () => {
     test("should extract tokens from 'maximum context length with messages resulted' error message", () => {
       const errorMsg =
         "This model's maximum context length is 8192 tokens. However, your messages resulted in 8545 tokens. Please reduce the length of the messages.";
-      const result = parseTokenUsageFromLLMError(
+      const result = calculateTokenUsageFromError(
         "GPT_COMPLETIONS_GPT4",
+        TEST_PROMPT,
         errorMsg,
         testMetadata,
         OPENAI_COMMON_ERROR_PATTERNS,
@@ -227,8 +246,9 @@ describe("parseTokenUsageFromLLMError", () => {
           isMaxFirst: false,
         },
       ];
-      const result = parseTokenUsageFromLLMError(
+      const result = calculateTokenUsageFromError(
         "GPT_COMPLETIONS_GPT4",
+        TEST_PROMPT,
         errorMsg,
         testMetadata,
         reversedPattern,
@@ -250,8 +270,9 @@ describe("parseTokenUsageFromLLMError", () => {
           isMaxFirst: false,
         },
       ];
-      const result = parseTokenUsageFromLLMError(
+      const result = calculateTokenUsageFromError(
         "GPT_COMPLETIONS_GPT4",
+        TEST_PROMPT,
         errorMsg,
         testMetadata,
         reversedPattern,
@@ -265,26 +286,33 @@ describe("parseTokenUsageFromLLMError", () => {
 
   // Edge cases and fallbacks
   describe("Edge cases and fallbacks", () => {
-    test("should return default values when no error patterns match", () => {
+    test("should derive values when no error patterns match", () => {
       const errorMsg = "Unknown error with no recognizable token pattern";
-      const result = parseTokenUsageFromLLMError(
+      const result = calculateTokenUsageFromError(
         "GPT_COMPLETIONS_GPT4",
+        TEST_PROMPT,
         errorMsg,
         testMetadata,
         BEDROCK_COMMON_ERROR_PATTERNS,
       );
 
-      expect(result.maxTotalTokens).toBe(-1);
-      expect(result.promptTokens).toBe(-1);
+      // When no pattern matches, calculateTokenUsageFromError derives values from model metadata
+      expect(result.maxTotalTokens).toBe(8192); // From model metadata
+      expect(result.promptTokens).toBeGreaterThanOrEqual(8192); // Derived from prompt length
       expect(result.completionTokens).toBe(0);
     });
 
-    test("should return default values when no error patterns are provided", () => {
+    test("should derive values when no error patterns are provided", () => {
       const errorMsg = "ValidationException: This model's maximum context length is 8192 tokens.";
-      const result = parseTokenUsageFromLLMError("GPT_COMPLETIONS_GPT4", errorMsg, testMetadata);
+      const result = calculateTokenUsageFromError(
+        "GPT_COMPLETIONS_GPT4",
+        TEST_PROMPT,
+        errorMsg,
+        testMetadata,
+      );
 
-      expect(result.maxTotalTokens).toBe(-1);
-      expect(result.promptTokens).toBe(-1);
+      expect(result.maxTotalTokens).toBe(8192); // Falls back to model metadata
+      expect(result.promptTokens).toBeGreaterThanOrEqual(8192); // Derived
       expect(result.completionTokens).toBe(0);
     });
 
@@ -299,15 +327,17 @@ describe("parseTokenUsageFromLLMError", () => {
         },
       ];
 
-      const result = parseTokenUsageFromLLMError(
+      const result = calculateTokenUsageFromError(
         "GPT_COMPLETIONS_GPT4",
+        TEST_PROMPT,
         errorMsg,
         testMetadata,
         customPattern,
       );
 
       expect(result.maxTotalTokens).toBe(8192);
-      expect(result.promptTokens).toBe(-1); // Not provided in this pattern
+      // promptTokens will be derived since not in pattern
+      expect(result.promptTokens).toBeGreaterThanOrEqual(8192);
       expect(result.completionTokens).toBe(0);
     });
 
@@ -321,15 +351,17 @@ describe("parseTokenUsageFromLLMError", () => {
         },
       ];
 
-      const result = parseTokenUsageFromLLMError(
+      const result = calculateTokenUsageFromError(
         "GPT_COMPLETIONS_GPT4",
+        TEST_PROMPT,
         errorMsg,
         testMetadata,
         customPattern,
       );
 
-      expect(result.maxTotalTokens).toBe(-1);
-      expect(result.promptTokens).toBe(-1);
+      // Falls back to model metadata values
+      expect(result.maxTotalTokens).toBe(8192);
+      expect(result.promptTokens).toBeGreaterThanOrEqual(8192);
       expect(result.completionTokens).toBe(0);
     });
 
@@ -343,15 +375,17 @@ describe("parseTokenUsageFromLLMError", () => {
         },
       ];
 
-      const result = parseTokenUsageFromLLMError(
+      const result = calculateTokenUsageFromError(
         "GPT_COMPLETIONS_GPT4",
+        TEST_PROMPT,
         errorMsg,
         testMetadata,
         customPattern,
       );
 
-      expect(result.maxTotalTokens).toBe(-1);
-      expect(result.promptTokens).toBe(-1);
+      // Falls back to model metadata values
+      expect(result.maxTotalTokens).toBe(8192);
+      expect(result.promptTokens).toBeGreaterThanOrEqual(8192);
       expect(result.completionTokens).toBe(0);
     });
 
@@ -365,8 +399,9 @@ describe("parseTokenUsageFromLLMError", () => {
         },
       ];
 
-      const result = parseTokenUsageFromLLMError(
+      const result = calculateTokenUsageFromError(
         "GPT_COMPLETIONS_GPT4",
+        TEST_PROMPT,
         errorMsg,
         testMetadata,
         customPattern,

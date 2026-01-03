@@ -1,7 +1,7 @@
 import * as fs from "../../../src/common/fs";
 
 /**
- * Unit tests to verify that unused FileSystemError has been removed.
+ * Unit tests to verify that unused exports have been removed.
  * These tests ensure that cleanup recommendations have been properly implemented.
  */
 describe("FS Module Cleanup", () => {
@@ -14,7 +14,11 @@ describe("FS Module Cleanup", () => {
     // Verify that essential file operations are still present
     expect(fs).toHaveProperty("readFile");
     expect(fs).toHaveProperty("writeFile");
-    expect(fs).toHaveProperty("appendFile");
-    expect(fs).toHaveProperty("writeBinaryFile");
+  });
+
+  it("should not export removed utility functions", () => {
+    // Verify that removed functions are not exported
+    expect(fs).not.toHaveProperty("appendFile");
+    expect(fs).not.toHaveProperty("writeBinaryFile");
   });
 });

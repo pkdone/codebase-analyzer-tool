@@ -32,20 +32,6 @@ export type TableCellValue =
 export type DisplayableTableRow = Record<string, unknown>;
 
 /**
- * Type guard to check if a value is a valid DisplayableTableRow
- */
-export function isDisplayableTableRow(value: unknown): value is DisplayableTableRow {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-/**
- * Type guard to check if an array contains valid DisplayableTableRow items
- */
-export function isDisplayableTableRowArray(value: unknown): value is DisplayableTableRow[] {
-  return Array.isArray(value) && value.every(isDisplayableTableRow);
-}
-
-/**
  * View model for table data that serves as a pure data structure.
  *
  * This class holds table data and delegates formatting to the TableDataFormatter.

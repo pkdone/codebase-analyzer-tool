@@ -1,13 +1,4 @@
-import {
-  ok,
-  err,
-  isOk,
-  isErr,
-  unwrapOr,
-  mapResult,
-  mapError,
-  type Result,
-} from "../../../src/common/types/result.types";
+import { ok, err, isOk, isErr, type Result } from "../../../src/common/types/result.types";
 
 describe("Result type and helper functions", () => {
   describe("ok()", () => {
@@ -108,74 +99,6 @@ describe("Result type and helper functions", () => {
     });
   });
 
-  describe("unwrapOr()", () => {
-    it("should return the value for OkResult", () => {
-      const result = ok(42);
-      expect(unwrapOr(result, 0)).toBe(42);
-    });
-
-    it("should return the default for ErrResult", () => {
-      const result = err(new Error("error"));
-      expect(unwrapOr(result, 0)).toBe(0);
-    });
-
-    it("should work with complex default values", () => {
-      const result: Result<string[]> = err(new Error("error"));
-      const defaultValue = ["default"];
-      expect(unwrapOr(result, defaultValue)).toEqual(["default"]);
-    });
-  });
-
-  describe("mapResult()", () => {
-    it("should transform the value for OkResult", () => {
-      const result = ok(5);
-      const mapped = mapResult(result, (x) => x * 2);
-      expect(isOk(mapped)).toBe(true);
-      if (isOk(mapped)) {
-        expect(mapped.value).toBe(10);
-      }
-    });
-
-    it("should pass through ErrResult unchanged", () => {
-      const error = new Error("original error");
-      const result: Result<number> = err(error);
-      const mapped = mapResult(result, (x: number) => x * 2);
-      expect(isErr(mapped)).toBe(true);
-      if (isErr(mapped)) {
-        expect(mapped.error).toBe(error);
-      }
-    });
-
-    it("should work with type-changing transformations", () => {
-      const result = ok(42);
-      const mapped = mapResult(result, (x) => `value: ${x}`);
-      expect(isOk(mapped)).toBe(true);
-      if (isOk(mapped)) {
-        expect(mapped.value).toBe("value: 42");
-      }
-    });
-  });
-
-  describe("mapError()", () => {
-    it("should pass through OkResult unchanged", () => {
-      const result = ok(42);
-      const mapped = mapError(result, (e: Error) => new Error(`wrapped: ${e.message}`));
-      expect(isOk(mapped)).toBe(true);
-      if (isOk(mapped)) {
-        expect(mapped.value).toBe(42);
-      }
-    });
-
-    it("should transform the error for ErrResult", () => {
-      const result: Result<number, string> = err("original");
-      const mapped = mapError(result, (e) => new Error(`wrapped: ${e}`));
-      expect(isErr(mapped)).toBe(true);
-      if (isErr(mapped)) {
-        expect(mapped.error.message).toBe("wrapped: original");
-      }
-    });
-  });
-
   describe("Type safety scenarios", () => {
     it("should enforce error handling", () => {
       function divide(a: number, b: number): Result<number> {
@@ -211,18 +134,6 @@ describe("Result type and helper functions", () => {
 
       const failResult = await fetchData(true);
       expect(isErr(failResult)).toBe(true);
-    });
-
-    it("should chain operations with map functions", () => {
-      const result = ok(5);
-      const chained = mapResult(
-        mapResult(result, (x: number) => x * 2),
-        (x: number) => x + 1,
-      );
-      expect(isOk(chained)).toBe(true);
-      if (isOk(chained)) {
-        expect(chained.value).toBe(11);
-      }
     });
   });
 });

@@ -1,12 +1,1 @@
-export {
-  type Result,
-  type OkResult,
-  type ErrResult,
-  ok,
-  err,
-  isOk,
-  isErr,
-  unwrapOr,
-  mapResult,
-  mapError,
-} from "./result.types";
+export { type Result, type OkResult, type ErrResult, ok, err, isOk, isErr } from "./result.types";

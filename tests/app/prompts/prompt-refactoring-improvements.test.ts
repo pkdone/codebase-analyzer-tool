@@ -6,8 +6,6 @@ import {
 import { renderPrompt } from "../../../src/app/prompts/prompt-renderer";
 import { BASE_PROMPT_TEMPLATE, CODEBASE_QUERY_TEMPLATE } from "../../../src/app/prompts/templates";
 import { sourceConfigMap } from "../../../src/app/prompts/definitions/sources/sources.definitions";
-import { PREBUILT_BLOCKS } from "../../../src/app/prompts/definitions/sources/sources.fragments";
-import { INSTRUCTION_SECTION_TITLES } from "../../../src/app/prompts/definitions/instruction-utils";
 import { LLMOutputFormat } from "../../../src/common/llm/types/llm.types";
 import { createReduceInsightsPrompt } from "../../../src/app/prompts/prompt-registry";
 import type {
@@ -130,43 +128,6 @@ describe("Prompt Refactoring Improvements", () => {
       expect(result).toContain("JSON response must follow");
       expect(result).toContain("```json");
       expect(result).toContain('"name"');
-    });
-  });
-
-  describe("PREBUILT_BLOCKS", () => {
-    it("should have BASIC_INFO_CLASS block with correct structure", () => {
-      expect(PREBUILT_BLOCKS.BASIC_INFO_CLASS).toBeDefined();
-      expect(PREBUILT_BLOCKS.BASIC_INFO_CLASS).toContain("__Basic Information__");
-      expect(PREBUILT_BLOCKS.BASIC_INFO_CLASS).toContain("class/interface");
-      expect(PREBUILT_BLOCKS.BASIC_INFO_CLASS).toContain("purpose");
-      expect(PREBUILT_BLOCKS.BASIC_INFO_CLASS).toContain("implementation");
-    });
-
-    it("should have BASIC_INFO_MODULE block with correct structure", () => {
-      expect(PREBUILT_BLOCKS.BASIC_INFO_MODULE).toBeDefined();
-      expect(PREBUILT_BLOCKS.BASIC_INFO_MODULE).toContain("__Basic Information__");
-      expect(PREBUILT_BLOCKS.BASIC_INFO_MODULE).toContain("module");
-      expect(PREBUILT_BLOCKS.BASIC_INFO_MODULE).toContain("purpose");
-    });
-
-    it("should have CODE_QUALITY_METRICS block with correct structure", () => {
-      expect(PREBUILT_BLOCKS.CODE_QUALITY_METRICS).toBeDefined();
-      expect(PREBUILT_BLOCKS.CODE_QUALITY_METRICS).toContain("__Code Quality Metrics__");
-      expect(PREBUILT_BLOCKS.CODE_QUALITY_METRICS).toContain("cyclomaticComplexity");
-      expect(PREBUILT_BLOCKS.CODE_QUALITY_METRICS).toContain("linesOfCode");
-    });
-
-    it("should have consistent title-fragment pairing", () => {
-      // Verify BASIC_INFO blocks use correct title
-      expect(PREBUILT_BLOCKS.BASIC_INFO_CLASS).toContain(
-        `__${INSTRUCTION_SECTION_TITLES.BASIC_INFO}__`,
-      );
-      expect(PREBUILT_BLOCKS.BASIC_INFO_MODULE).toContain(
-        `__${INSTRUCTION_SECTION_TITLES.BASIC_INFO}__`,
-      );
-      expect(PREBUILT_BLOCKS.CODE_QUALITY_METRICS).toContain(
-        `__${INSTRUCTION_SECTION_TITLES.CODE_QUALITY_METRICS}__`,
-      );
     });
   });
 

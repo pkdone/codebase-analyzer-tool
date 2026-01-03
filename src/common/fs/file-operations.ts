@@ -23,20 +23,3 @@ export async function writeFile(filepath: string, content: string): Promise<void
   await ensureDirectoryExists(dirPath);
   await fs.writeFile(filepath, content, UTF8_ENCODING);
 }
-
-/**
- * Append content to a file.
- */
-export async function appendFile(filepath: string, content: string): Promise<void> {
-  await fs.appendFile(filepath, content, UTF8_ENCODING);
-}
-
-/**
- * Write binary data to a file.
- * Ensures the directory exists before writing.
- */
-export async function writeBinaryFile(filepath: string, buffer: Buffer): Promise<void> {
-  const dirPath = path.dirname(filepath);
-  await ensureDirectoryExists(dirPath);
-  await fs.writeFile(filepath, buffer);
-}

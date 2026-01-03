@@ -1,8 +1,4 @@
-import {
-  DatabaseError,
-  DatabaseConnectionError,
-  DatabaseQueryError,
-} from "../../../src/common/mongodb/mdb-errors";
+import { DatabaseError, DatabaseConnectionError } from "../../../src/common/mongodb/mdb-errors";
 import { AppError } from "../../../src/common/errors/app-error";
 
 describe("mdb-errors", () => {
@@ -41,31 +37,6 @@ describe("mdb-errors", () => {
     it("should preserve cause error when provided", () => {
       const cause = new Error("Original error");
       const error = new DatabaseConnectionError("Connection failed", cause);
-      expect(error.cause).toBe(cause);
-    });
-  });
-
-  describe("DatabaseQueryError", () => {
-    it("should extend DatabaseError", () => {
-      const error = new DatabaseQueryError();
-      expect(error).toBeInstanceOf(DatabaseError);
-      expect(error).toBeInstanceOf(AppError);
-    });
-
-    it("should use default message when none provided", () => {
-      const error = new DatabaseQueryError();
-      expect(error.message).toBe("Database query failed");
-    });
-
-    it("should use custom message when provided", () => {
-      const customMessage = "Custom query error";
-      const error = new DatabaseQueryError(customMessage);
-      expect(error.message).toBe(customMessage);
-    });
-
-    it("should preserve cause error when provided", () => {
-      const cause = new Error("Original error");
-      const error = new DatabaseQueryError("Query failed", cause);
       expect(error.cause).toBe(cause);
     });
   });

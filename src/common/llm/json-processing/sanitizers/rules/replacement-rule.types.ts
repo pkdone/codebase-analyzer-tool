@@ -139,15 +139,3 @@ export interface RuleExecutionResult {
   /** Diagnostic messages about specific changes made */
   readonly diagnostics?: readonly string[];
 }
-
-/**
- * A group of related replacement rules with metadata.
- */
-export interface RuleGroup {
-  /** Name of this rule group */
-  readonly name: string;
-  /** Description of what this group handles */
-  readonly description: string;
-  /** The rules in this group */
-  readonly rules: readonly ReplacementRule[];
-}

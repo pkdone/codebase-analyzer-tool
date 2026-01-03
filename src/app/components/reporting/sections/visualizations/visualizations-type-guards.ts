@@ -22,8 +22,9 @@ const businessProcessDataSchema = z.object({
 
 /**
  * Type for business process data extracted from Zod schema.
+ * Used internally for return type annotation.
  */
-export type BusinessProcessData = z.infer<typeof businessProcessDataSchema>;
+type BusinessProcessData = z.infer<typeof businessProcessDataSchema>;
 
 /**
  * Safely extracts keyBusinessActivities from an item.
@@ -74,11 +75,6 @@ const microserviceDataSchema = z.object({
   endpoints: z.array(microserviceEndpointSchema).optional(),
   operations: z.array(microserviceOperationSchema).optional(),
 });
-
-/**
- * Type for microservice data extracted from Zod schema.
- */
-export type MicroserviceData = z.infer<typeof microserviceDataSchema>;
 
 /**
  * Normalized microservice entity with required attributes field.
@@ -170,10 +166,9 @@ const inferredArchitectureCategoryDataSchema = z.object({
 
 /**
  * Type for inferred architecture category data extracted from Zod schema.
+ * Used internally by isInferredArchitectureCategoryData type guard.
  */
-export type InferredArchitectureCategoryData = z.infer<
-  typeof inferredArchitectureCategoryDataSchema
->;
+type InferredArchitectureCategoryData = z.infer<typeof inferredArchitectureCategoryDataSchema>;
 
 /**
  * Type guard to check if data is valid InferredArchitectureCategoryData.
