@@ -3,7 +3,7 @@ import { z } from "zod";
 import LLMRouter from "../../../../common/llm/llm-router";
 import { LLMOutputFormat } from "../../../../common/llm/types/llm.types";
 import { insightsTuningConfig } from "../insights.config";
-import { promptRegistry, createReduceInsightsPrompt } from "../../../prompts/prompt-registry";
+import { promptManager, createReduceInsightsPrompt } from "../../../prompts/prompt-registry";
 import { logOneLineWarning } from "../../../../common/utils/logging";
 import { renderPrompt } from "../../../prompts/prompt-renderer";
 import { llmTokens } from "../../../di/tokens";
@@ -13,7 +13,7 @@ import {
   CategoryInsightResult,
   appSummaryCategorySchemas,
 } from "../insights.types";
-import { getSchemaSpecificSanitizerConfig } from "../../../config/sanitizer.config";
+import { getLegacySanitizerMappings } from "../../../config/legacy-sanitizer-constants";
 import { executeInsightCompletion } from "./completion-executor";
 import { chunkTextByTokenLimit } from "../../../../common/llm/utils/text-chunking";
 import { isOk } from "../../../../common/types/result.types";
@@ -47,7 +47,7 @@ export class MapReduceCompletionStrategy implements ICompletionStrategy {
     category: C,
     sourceFileSummaries: readonly string[],
   ): Promise<CategoryInsightResult<C> | null> {
-    const categoryLabel = promptRegistry.appSummaries[category].label ?? category;
+    const categoryLabel = promptManager.appSummaries[category].label ?? category;
 
     try {
       console.log(`  - Using map-reduce strategy for ${categoryLabel}`);
@@ -133,7 +133,7 @@ export class MapReduceCompletionStrategy implements ICompletionStrategy {
     category: C,
     partialResults: CategoryInsightResult<C>[],
   ): Promise<CategoryInsightResult<C> | null> {
-    const config = promptRegistry.appSummaries[category];
+    const config = promptManager.appSummaries[category];
 
     // Use strongly-typed schema for type inference
     const schema = appSummaryCategorySchemas[category];
@@ -163,7 +163,7 @@ export class MapReduceCompletionStrategy implements ICompletionStrategy {
         outputFormat: LLMOutputFormat.JSON,
         jsonSchema: schema,
         hasComplexSchema: !CATEGORY_SCHEMA_IS_VERTEXAI_COMPATIBLE,
-        sanitizerConfig: getSchemaSpecificSanitizerConfig(),
+        sanitizerConfig: getLegacySanitizerMappings(),
       });
       if (!isOk(result)) {
         logOneLineWarning(

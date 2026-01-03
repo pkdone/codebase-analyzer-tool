@@ -15,7 +15,7 @@ jest.mock("../../../src/common/utils/logging", () => ({
   logErrorMsg: jest.fn(),
 }));
 
-jest.mock("../../../src/common/llm/tracking/llm-stats");
+jest.mock("../../../src/common/llm/tracking/llm-telemetry-tracker");
 jest.mock("../../../src/common/llm/utils/manifest-loader");
 
 /**

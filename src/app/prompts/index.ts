@@ -6,7 +6,7 @@
  */
 
 // Registry and factories
-export { promptRegistry, createReduceInsightsPrompt, type PromptRegistry } from "./prompt-registry";
+export { promptManager, createReduceInsightsPrompt, type PromptManager } from "./prompt-registry";
 
 // Renderer
 export { renderPrompt } from "./prompt-renderer";

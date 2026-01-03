@@ -1,16 +1,16 @@
 import "reflect-metadata";
 import { jest, describe, test, expect, beforeEach } from "@jest/globals";
-import LLMStats from "../../../../../src/common/llm/tracking/llm-stats";
+import LLMTelemetryTracker from "../../../../../src/common/llm/tracking/llm-telemetry-tracker";
 
-describe("LLMStats", () => {
-  let llmStats: LLMStats;
+describe("LLMTelemetryTracker", () => {
+  let llmStats: LLMTelemetryTracker;
 
   beforeEach(() => {
     // Mock console.log to avoid cluttering test output
     jest.spyOn(console, "log").mockImplementation(() => {
       // Mock implementation
     });
-    llmStats = new LLMStats();
+    llmStats = new LLMTelemetryTracker();
   });
 
   afterEach(() => {

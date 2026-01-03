@@ -9,7 +9,7 @@ import {
 import { llmConfig } from "../../../config/llm.config";
 import { formatError } from "../../../../utils/error-formatters";
 import { logOneLineError } from "../../../../utils/logging";
-import AbstractLLM from "../../abstract-llm";
+import BaseLLMProvider from "../../base-llm-provider";
 import { z } from "zod";
 import { LLMError, LLMErrorCode } from "../../../types/llm-errors.types";
 import {
@@ -63,7 +63,7 @@ const BedrockEmbeddingsResponseSchema = z.object({
  * ThrottlingException, ModelNotReadyException, ModelTimeoutException, ValidationException,
  * CredentialsProviderError
  */
-export default abstract class BaseBedrockLLM extends AbstractLLM {
+export default abstract class BaseBedrockLLM extends BaseLLMProvider {
   // Private fields
   private readonly client: BedrockRuntimeClient;
 

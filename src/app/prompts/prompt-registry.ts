@@ -86,24 +86,25 @@ export function createReduceInsightsPrompt(
 }
 
 /**
- * Centralized registry of all prompt definitions used throughout the application.
+ * Centralized manager for all prompt definitions used throughout the application.
  * This serves as the single source of truth for all prompts, making them easier to
- * find, manage, and reuse.
+ * find, manage, and reuse. Provides both static prompt definitions and factory
+ * functions for dynamic prompt generation.
  *
  * Usage:
- * - `promptRegistry.appSummaries[category]` - App summary prompts for insights
- * - `promptRegistry.sources[fileType]` - Source file type prompts for summarization
- * - `promptRegistry.codebaseQuery` - Query prompt for RAG workflows
+ * - `promptManager.appSummaries[category]` - App summary prompts for insights
+ * - `promptManager.sources[fileType]` - Source file type prompts for summarization
+ * - `promptManager.codebaseQuery` - Query prompt for RAG workflows
  * - `createReduceInsightsPrompt(category, categoryKey, schema)` - Factory for reduce prompts
  */
-export const promptRegistry = Object.freeze({
+export const promptManager = Object.freeze({
   appSummaries: appSummaryPrompts,
   sources: sourcePrompts,
   codebaseQuery: codebaseQueryPrompt,
 } as const);
 
 /**
- * Type for the prompt registry object.
+ * Type for the prompt manager object.
  * Used for dependency injection and type-safe access to prompts.
  */
-export type PromptRegistry = typeof promptRegistry;
+export type PromptManager = typeof promptManager;

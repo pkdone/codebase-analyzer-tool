@@ -4,7 +4,7 @@ import type { SourcesRepository } from "../../repositories/sources/sources.repos
 import type { ProjectedSourceMetataContentAndSummary } from "../../repositories/sources/sources.model";
 import { queryingInputConfig } from "./querying-input.config";
 import { renderPrompt } from "../../prompts/prompt-renderer";
-import { promptRegistry } from "../../prompts/prompt-registry";
+import { promptManager } from "../../prompts/prompt-registry";
 import { formatFilesAsMarkdownCodeBlocks } from "../../../common/utils/markdown-formatter";
 import { isOk } from "../../../common/types/result.types";
 
@@ -17,7 +17,7 @@ import { isOk } from "../../../common/types/result.types";
  * @returns The filled prompt string
  */
 function createCodebaseQueryPrompt(question: string, codeContent: string): string {
-  return renderPrompt(promptRegistry.codebaseQuery, { question, content: codeContent });
+  return renderPrompt(promptManager.codebaseQuery, { question, content: codeContent });
 }
 
 /**

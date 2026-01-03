@@ -11,10 +11,10 @@ import {
   AppSummaryCategoryEnum,
   appSummaryCategorySchemas,
 } from "../../../../../src/app/components/insights/insights.types";
-import { promptRegistry } from "../../../../../src/app/prompts/prompt-registry";
+import { promptManager } from "../../../../../src/app/prompts/prompt-registry";
 import { ok, err } from "../../../../../src/common/types/result.types";
 import { LLMError, LLMErrorCode } from "../../../../../src/common/llm/types/llm-errors.types";
-const appSummaryPromptMetadata = promptRegistry.appSummaries;
+const appSummaryPromptMetadata = promptManager.appSummaries;
 
 // Mock dependencies
 jest.mock("../../../../../src/common/utils/logging", () => ({

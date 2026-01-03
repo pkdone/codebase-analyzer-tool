@@ -7,7 +7,7 @@ import type {
 } from "../types/llm.types";
 import { LLMResponseStatus } from "../types/llm.types";
 import type { LLMRetryConfig } from "../providers/llm-provider.types";
-import LLMStats from "../tracking/llm-stats";
+import LLMTelemetryTracker from "../tracking/llm-telemetry-tracker";
 
 /**
  * Custom error class for retryable LLM operations
@@ -31,7 +31,7 @@ function isRetryableError(error: unknown): error is RetryableError {
  * Strategy class responsible for handling LLM function retries.
  */
 export class RetryStrategy {
-  constructor(private readonly llmStats: LLMStats) {}
+  constructor(private readonly llmStats: LLMTelemetryTracker) {}
 
   /**
    * Execute an LLM function with retry logic for overloaded or invalid responses.

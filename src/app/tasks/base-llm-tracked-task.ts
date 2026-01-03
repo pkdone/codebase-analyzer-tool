@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import type LLMStats from "../../common/llm/tracking/llm-stats";
+import type LLMTelemetryTracker from "../../common/llm/tracking/llm-telemetry-tracker";
 import type { Task } from "./task.types";
 import { outputConfig } from "../config/output.config";
 import { clearDirectory } from "../../common/fs/directory-operations";
@@ -26,7 +26,7 @@ import { clearDirectory } from "../../common/fs/directory-operations";
  */
 export abstract class BaseLLMTrackedTask implements Task {
   constructor(
-    protected readonly llmStats: LLMStats,
+    protected readonly llmStats: LLMTelemetryTracker,
     protected readonly projectName: string,
   ) {}
 

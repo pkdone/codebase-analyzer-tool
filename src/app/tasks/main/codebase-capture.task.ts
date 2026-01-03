@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import { injectable, inject } from "tsyringe";
 import CodebaseToDBLoader from "../../components/capture/codebase-to-db-loader";
-import type LLMStats from "../../../common/llm/tracking/llm-stats";
+import type LLMTelemetryTracker from "../../../common/llm/tracking/llm-telemetry-tracker";
 import type LLMRouter from "../../../common/llm/llm-router";
 import type { EnvVars } from "../../env/env.types";
 import { DatabaseInitializer } from "../../components/database/database-initializer";
@@ -20,7 +20,7 @@ export class CodebaseCaptureTask extends BaseLLMTrackedTask {
    * Constructor with dependency injection.
    */
   constructor(
-    @inject(llmTokens.LLMStats) llmStats: LLMStats,
+    @inject(llmTokens.LLMTelemetryTracker) llmStats: LLMTelemetryTracker,
     @inject(coreTokens.ProjectName) projectName: string,
     @inject(llmTokens.LLMRouter) private readonly llmRouter: LLMRouter,
     @inject(coreTokens.DatabaseInitializer)

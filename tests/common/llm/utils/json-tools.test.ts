@@ -6,7 +6,7 @@ import { z } from "zod";
 
 describe("json-tools", () => {
   // Note: extractTokensAmountFromMetadataDefaultingMissingValues and
-  // postProcessAsJSONIfNeededGeneratingNewResult have been moved to AbstractLLM
+  // postProcessAsJSONIfNeededGeneratingNewResult have been moved to BaseLLMProvider
   // as protected methods and are now tested in tests/llm/core/abstract-llm.test.ts
 
   describe("processJson", () => {

@@ -1,5 +1,5 @@
 import {
-  promptRegistry,
+  promptManager,
   createReduceInsightsPrompt,
 } from "../../../src/app/prompts/prompt-registry";
 import { AppSummaryCategories } from "../../../src/app/schemas/app-summaries.schema";
@@ -8,9 +8,9 @@ import { z } from "zod";
 describe("Prompt Registry", () => {
   describe("Structure", () => {
     it("should have all expected top-level properties", () => {
-      expect(promptRegistry).toHaveProperty("appSummaries");
-      expect(promptRegistry).toHaveProperty("sources");
-      expect(promptRegistry).toHaveProperty("codebaseQuery");
+      expect(promptManager).toHaveProperty("appSummaries");
+      expect(promptManager).toHaveProperty("sources");
+      expect(promptManager).toHaveProperty("codebaseQuery");
       // reduceInsights is now a factory function exported separately
       expect(typeof createReduceInsightsPrompt).toBe("function");
     });
@@ -18,8 +18,8 @@ describe("Prompt Registry", () => {
     it("should have app summary prompts for all categories", () => {
       const categories = AppSummaryCategories.options;
       categories.forEach((category) => {
-        expect(promptRegistry.appSummaries).toHaveProperty(category);
-        expect(promptRegistry.appSummaries[category]).toBeDefined();
+        expect(promptManager.appSummaries).toHaveProperty(category);
+        expect(promptManager.appSummaries[category]).toBeDefined();
       });
     });
 
@@ -51,8 +51,8 @@ describe("Prompt Registry", () => {
       ] as const;
 
       expectedFileTypes.forEach((fileType) => {
-        expect(promptRegistry.sources).toHaveProperty(fileType);
-        expect(promptRegistry.sources[fileType]).toBeDefined();
+        expect(promptManager.sources).toHaveProperty(fileType);
+        expect(promptManager.sources[fileType]).toBeDefined();
       });
     });
   });
@@ -61,7 +61,7 @@ describe("Prompt Registry", () => {
     it("should have valid PromptDefinition structure for each category", () => {
       const categories = AppSummaryCategories.options;
       categories.forEach((category) => {
-        const prompt = promptRegistry.appSummaries[category];
+        const prompt = promptManager.appSummaries[category];
         expect(prompt).toHaveProperty("label");
         expect(prompt).toHaveProperty("contentDesc");
         expect(prompt).toHaveProperty("instructions");
@@ -84,21 +84,21 @@ describe("Prompt Registry", () => {
     it("should use FILE_SUMMARIES as dataBlockHeader for app summaries", () => {
       const categories = AppSummaryCategories.options;
       categories.forEach((category) => {
-        expect(promptRegistry.appSummaries[category].dataBlockHeader).toBe("FILE_SUMMARIES");
+        expect(promptManager.appSummaries[category].dataBlockHeader).toBe("FILE_SUMMARIES");
       });
     });
 
     it("should not wrap content in code blocks for app summaries", () => {
       const categories = AppSummaryCategories.options;
       categories.forEach((category) => {
-        expect(promptRegistry.appSummaries[category].wrapInCodeBlock).toBe(false);
+        expect(promptManager.appSummaries[category].wrapInCodeBlock).toBe(false);
       });
     });
 
     it("should have non-empty instructions for each category", () => {
       const categories = AppSummaryCategories.options;
       categories.forEach((category) => {
-        const instructions = promptRegistry.appSummaries[category].instructions;
+        const instructions = promptManager.appSummaries[category].instructions;
         expect(instructions.length).toBeGreaterThan(0);
       });
     });
@@ -107,7 +107,7 @@ describe("Prompt Registry", () => {
   describe("Source Prompts", () => {
     it("should have valid PromptDefinition structure for each file type", () => {
       const fileType = "java"; // Test one as representative
-      const prompt = promptRegistry.sources[fileType];
+      const prompt = promptManager.sources[fileType];
 
       expect(prompt).toHaveProperty("label");
       expect(prompt).toHaveProperty("contentDesc");
@@ -120,27 +120,27 @@ describe("Prompt Registry", () => {
     });
 
     it("should use CODE as dataBlockHeader for source prompts", () => {
-      expect(promptRegistry.sources.java.dataBlockHeader).toBe("CODE");
-      expect(promptRegistry.sources.javascript.dataBlockHeader).toBe("CODE");
-      expect(promptRegistry.sources.python.dataBlockHeader).toBe("CODE");
+      expect(promptManager.sources.java.dataBlockHeader).toBe("CODE");
+      expect(promptManager.sources.javascript.dataBlockHeader).toBe("CODE");
+      expect(promptManager.sources.python.dataBlockHeader).toBe("CODE");
     });
 
     it("should wrap content in code blocks for source prompts", () => {
-      expect(promptRegistry.sources.java.wrapInCodeBlock).toBe(true);
-      expect(promptRegistry.sources.javascript.wrapInCodeBlock).toBe(true);
-      expect(promptRegistry.sources.python.wrapInCodeBlock).toBe(true);
+      expect(promptManager.sources.java.wrapInCodeBlock).toBe(true);
+      expect(promptManager.sources.javascript.wrapInCodeBlock).toBe(true);
+      expect(promptManager.sources.python.wrapInCodeBlock).toBe(true);
     });
 
     it("should have hasComplexSchema set to true for source prompts", () => {
-      expect(promptRegistry.sources.java.hasComplexSchema).toBe(true);
-      expect(promptRegistry.sources.javascript.hasComplexSchema).toBe(true);
-      expect(promptRegistry.sources.python.hasComplexSchema).toBe(true);
+      expect(promptManager.sources.java.hasComplexSchema).toBe(true);
+      expect(promptManager.sources.javascript.hasComplexSchema).toBe(true);
+      expect(promptManager.sources.python.hasComplexSchema).toBe(true);
     });
 
     it("should have non-empty instructions for code file types", () => {
       const codeFileTypes = ["java", "javascript", "python", "csharp", "ruby"] as const;
       codeFileTypes.forEach((fileType) => {
-        const instructions = promptRegistry.sources[fileType].instructions;
+        const instructions = promptManager.sources[fileType].instructions;
         expect(instructions.length).toBeGreaterThan(0);
       });
     });
@@ -148,7 +148,7 @@ describe("Prompt Registry", () => {
 
   describe("Codebase Query Prompt", () => {
     it("should have valid structure", () => {
-      const prompt = promptRegistry.codebaseQuery;
+      const prompt = promptManager.codebaseQuery;
 
       expect(prompt.label).toBe("Codebase Query");
       expect(prompt.contentDesc).toBe("source code files");
@@ -159,7 +159,7 @@ describe("Prompt Registry", () => {
     });
 
     it("should have a custom template (not BASE_PROMPT_TEMPLATE)", () => {
-      const prompt = promptRegistry.codebaseQuery;
+      const prompt = promptManager.codebaseQuery;
       expect(prompt.template).toContain("QUESTION");
       expect(prompt.template).toContain("{{question}}");
     });
@@ -211,7 +211,7 @@ describe("Prompt Registry", () => {
     it("should have valid Zod schemas for all app summary categories", () => {
       const categories = AppSummaryCategories.options;
       categories.forEach((category) => {
-        const schema = promptRegistry.appSummaries[category].responseSchema;
+        const schema = promptManager.appSummaries[category].responseSchema;
         expect(schema).toBeInstanceOf(z.ZodType);
 
         // Verify the schema can be used for parsing
@@ -222,7 +222,7 @@ describe("Prompt Registry", () => {
     it("should have valid Zod schemas for all source file types", () => {
       const fileTypes = ["java", "javascript", "python"] as const;
       fileTypes.forEach((fileType) => {
-        const schema = promptRegistry.sources[fileType].responseSchema;
+        const schema = promptManager.sources[fileType].responseSchema;
         expect(schema).toBeInstanceOf(z.ZodType);
 
         // Verify the schema can be used for parsing
@@ -233,7 +233,7 @@ describe("Prompt Registry", () => {
 
   describe("Immutability", () => {
     it("should be frozen (immutable)", () => {
-      expect(Object.isFrozen(promptRegistry)).toBe(true);
+      expect(Object.isFrozen(promptManager)).toBe(true);
     });
   });
 });

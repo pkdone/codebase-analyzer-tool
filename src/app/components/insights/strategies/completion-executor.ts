@@ -1,7 +1,7 @@
 import { z } from "zod";
 import LLMRouter from "../../../../common/llm/llm-router";
 import { LLMOutputFormat } from "../../../../common/llm/types/llm.types";
-import { promptRegistry } from "../../../prompts/prompt-registry";
+import { promptManager } from "../../../prompts/prompt-registry";
 import { logOneLineWarning } from "../../../../common/utils/logging";
 import { joinArrayWithSeparators } from "../../../../common/utils/text-utils";
 import { renderPrompt } from "../../../prompts/prompt-renderer";
@@ -10,7 +10,7 @@ import {
   appSummaryCategorySchemas,
   type AppSummaryCategorySchemas,
 } from "../insights.types";
-import { getSchemaSpecificSanitizerConfig } from "../../../config/sanitizer.config";
+import { getLegacySanitizerMappings } from "../../../config/legacy-sanitizer-constants";
 import { isOk } from "../../../../common/types/result.types";
 
 // Individual category schemas are simple and compatible with all LLM providers including VertexAI
@@ -47,11 +47,11 @@ export async function executeInsightCompletion<C extends AppSummaryCategoryEnum>
   sourceFileSummaries: readonly string[],
   options: InsightCompletionOptions = {},
 ): Promise<z.infer<AppSummaryCategorySchemas[C]> | null> {
-  const categoryLabel = promptRegistry.appSummaries[category].label ?? category;
+  const categoryLabel = promptManager.appSummaries[category].label ?? category;
   const taskCategory: string = options.taskCategory ?? category;
 
   try {
-    const config = promptRegistry.appSummaries[category];
+    const config = promptManager.appSummaries[category];
     const codeContent = joinArrayWithSeparators(sourceFileSummaries);
     const renderParams: Record<string, unknown> = {
       content: codeContent,
@@ -84,7 +84,7 @@ export async function executeInsightCompletion<C extends AppSummaryCategoryEnum>
       outputFormat: LLMOutputFormat.JSON,
       jsonSchema: schema,
       hasComplexSchema: !CATEGORY_SCHEMA_IS_VERTEXAI_COMPATIBLE,
-      sanitizerConfig: getSchemaSpecificSanitizerConfig(),
+      sanitizerConfig: getLegacySanitizerMappings(),
     });
     if (!isOk(result)) {
       logOneLineWarning(`LLM completion failed for ${categoryLabel}: ${result.error.message}`);

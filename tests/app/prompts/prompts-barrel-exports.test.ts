@@ -6,9 +6,9 @@ import * as PromptsModule from "../../../src/app/prompts";
 
 describe("prompts module barrel exports", () => {
   describe("registry exports", () => {
-    it("should export promptRegistry", () => {
-      expect(PromptsModule.promptRegistry).toBeDefined();
-      expect(typeof PromptsModule.promptRegistry).toBe("object");
+    it("should export promptManager", () => {
+      expect(PromptsModule.promptManager).toBeDefined();
+      expect(typeof PromptsModule.promptManager).toBe("object");
     });
 
     it("should export createReduceInsightsPrompt", () => {
@@ -53,17 +53,17 @@ describe("prompts module barrel exports", () => {
     });
   });
 
-  describe("promptRegistry structure", () => {
+  describe("promptManager structure", () => {
     it("should have appSummaries property", () => {
-      expect(PromptsModule.promptRegistry.appSummaries).toBeDefined();
+      expect(PromptsModule.promptManager.appSummaries).toBeDefined();
     });
 
     it("should have sources property", () => {
-      expect(PromptsModule.promptRegistry.sources).toBeDefined();
+      expect(PromptsModule.promptManager.sources).toBeDefined();
     });
 
     it("should have codebaseQuery property", () => {
-      expect(PromptsModule.promptRegistry.codebaseQuery).toBeDefined();
+      expect(PromptsModule.promptManager.codebaseQuery).toBeDefined();
     });
   });
 });

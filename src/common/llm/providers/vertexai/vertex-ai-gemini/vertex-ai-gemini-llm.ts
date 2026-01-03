@@ -14,7 +14,7 @@ import { llmConfig } from "../../../config/llm.config";
 import { LLMCompletionOptions, LLMOutputFormat, ShutdownBehavior } from "../../../types/llm.types";
 import { logOneLineWarning, logOneLineError } from "../../../../utils/logging";
 import { formatError } from "../../../../utils/error-formatters";
-import AbstractLLM from "../../abstract-llm";
+import BaseLLMProvider from "../../base-llm-provider";
 import { LLMError, LLMErrorCode } from "../../../types/llm-errors.types";
 import {
   zodToJsonSchemaWithoutMeta,
@@ -33,7 +33,7 @@ import {
  *
  * GoogleApiError, ClientError, GoogleAuthError, GoogleGenerativeAIError, IllegalArgumentError
  */
-export default class VertexAIGeminiLLM extends AbstractLLM {
+export default class VertexAIGeminiLLM extends BaseLLMProvider {
   // Private fields
   private readonly vertexAiApiClient: VertexAI;
   private readonly embeddingsApiClient: aiplatform.PredictionServiceClient;

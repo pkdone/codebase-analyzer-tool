@@ -1,5 +1,5 @@
-import { promptRegistry } from "../../../src/app/prompts/prompt-registry";
-const appSummaryPromptMetadata = promptRegistry.appSummaries;
+import { promptManager } from "../../../src/app/prompts/prompt-registry";
+const appSummaryPromptMetadata = promptManager.appSummaries;
 import { BASE_PROMPT_TEMPLATE } from "../../../src/app/prompts/templates";
 import { renderPrompt } from "../../../src/app/prompts/prompt-renderer";
 

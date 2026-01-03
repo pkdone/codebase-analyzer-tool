@@ -6,9 +6,9 @@ import { LLMOutputFormat } from "../../../common/llm/types/llm.types";
 import { renderPrompt } from "../../prompts/prompt-renderer";
 import { sourceSummarySchema } from "../../schemas/sources.schema";
 import { getCanonicalFileType } from "./config/file-types.config";
-import { getSchemaSpecificSanitizerConfig } from "../../config/sanitizer.config";
+import { getLegacySanitizerMappings } from "../../config/legacy-sanitizer-constants";
 import { llmTokens, captureTokens } from "../../di/tokens";
-import type { PromptRegistry } from "../../prompts/prompt-registry";
+import type { PromptManager } from "../../prompts/prompt-registry";
 import type { SourceConfigMap } from "../../prompts/definitions/sources/sources.definitions";
 import { type Result, ok, err, isOk } from "../../../common/types/result.types";
 
@@ -36,7 +36,7 @@ export type PartialSourceSummaryType = Partial<SourceSummaryType>;
 export class FileSummarizerService {
   constructor(
     @inject(llmTokens.LLMRouter) private readonly llmRouter: LLMRouter,
-    @inject(captureTokens.PromptRegistry) private readonly promptRegistry: PromptRegistry,
+    @inject(captureTokens.PromptManager) private readonly promptManager: PromptManager,
     @inject(captureTokens.SourceConfigMap) private readonly sourceConfigMap: SourceConfigMap,
   ) {}
 
@@ -64,7 +64,7 @@ export class FileSummarizerService {
         return err(new Error("File is empty"));
       }
       const canonicalFileType = getCanonicalFileType(filepath, type);
-      const promptMetadata = this.promptRegistry.sources[canonicalFileType];
+      const promptMetadata = this.promptManager.sources[canonicalFileType];
       const schema = this.sourceConfigMap[canonicalFileType].responseSchema;
       const renderedPrompt = renderPrompt(promptMetadata, { content });
 
@@ -74,7 +74,7 @@ export class FileSummarizerService {
         outputFormat: LLMOutputFormat.JSON,
         jsonSchema: schema,
         hasComplexSchema: promptMetadata.hasComplexSchema,
-        sanitizerConfig: getSchemaSpecificSanitizerConfig(),
+        sanitizerConfig: getLegacySanitizerMappings(),
       } as const;
 
       /**

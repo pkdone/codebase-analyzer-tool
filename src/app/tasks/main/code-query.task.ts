@@ -7,7 +7,7 @@ import { coreTokens, repositoryTokens, llmTokens } from "../../di/tokens";
 import { inputConfig } from "../../prompts/config/input.config";
 import type { SourcesRepository } from "../../repositories/sources/sources.repository.interface";
 import type LLMRouter from "../../../common/llm/llm-router";
-import type LLMStats from "../../../common/llm/tracking/llm-stats";
+import type LLMTelemetryTracker from "../../../common/llm/tracking/llm-telemetry-tracker";
 import { BaseLLMTrackedTask } from "../base-llm-tracked-task";
 
 /**
@@ -20,7 +20,7 @@ export class CodebaseQueryTask extends BaseLLMTrackedTask {
    * Constructor with dependency injection.
    */
   constructor(
-    @inject(llmTokens.LLMStats) llmStats: LLMStats,
+    @inject(llmTokens.LLMTelemetryTracker) llmStats: LLMTelemetryTracker,
     @inject(coreTokens.ProjectName) projectName: string,
     @inject(repositoryTokens.SourcesRepository)
     private readonly sourcesRepository: SourcesRepository,

@@ -34,10 +34,10 @@ import {
 } from "../utils/provider-init-builder";
 
 /**
- * Abstract class for any LLM provider services - provides outline of abstract methods to be
- * implemented by an extended class that implements a specific LLM integration.
+ * Base class for LLM provider implementations - provides shared functionality and
+ * abstract methods to be implemented by concrete provider classes.
  */
-export default abstract class AbstractLLM implements LLMProvider {
+export default abstract class BaseLLMProvider implements LLMProvider {
   // Fields
   protected readonly llmModelsMetadata: Record<string, ResolvedLLMModelMetadata>;
   protected readonly providerSpecificConfig: LLMProviderSpecificConfig;

@@ -12,7 +12,7 @@ import {
   LLMProviderManifest,
   ProviderInit,
 } from "../../../../src/common/llm/providers/llm-provider.types";
-import AbstractLLM from "../../../../src/common/llm/providers/abstract-llm";
+import BaseLLMProvider from "../../../../src/common/llm/providers/base-llm-provider";
 import { createMockErrorLogger } from "../../helpers/llm/mock-error-logger";
 import { z } from "zod";
 
@@ -51,7 +51,7 @@ const testModelsMetadata: Record<string, ResolvedLLMModelMetadata> = {
 };
 
 // Stub class for manifest implementation field (not actually used in tests)
-class StubLLM extends AbstractLLM {
+class StubLLM extends BaseLLMProvider {
   constructor() {
     super({
       manifest: {
@@ -163,8 +163,8 @@ function createTestProviderInit(
   };
 }
 
-// Test concrete class that extends AbstractLLM to test token extraction functionality
-class TestLLM extends AbstractLLM {
+// Test concrete class that extends BaseLLMProvider to test token extraction functionality
+class TestLLM extends BaseLLMProvider {
   private mockTokenUsage: LLMResponseTokensUsage = {
     promptTokens: 10,
     completionTokens: 20,
@@ -271,7 +271,7 @@ describe("Abstract LLM Token Extraction", () => {
 
     test("extracts tokens for different model", async () => {
       // Create a TestLLM that uses the Llama model as primary
-      class TestLlamaLLM extends AbstractLLM {
+      class TestLlamaLLM extends BaseLLMProvider {
         private mockTokenUsage: LLMResponseTokensUsage = {
           promptTokens: 10,
           completionTokens: 20,
@@ -331,7 +331,7 @@ describe("Abstract LLM Token Extraction", () => {
 });
 
 // Test class for JSON response testing
-class TestJSONLLM extends AbstractLLM {
+class TestJSONLLM extends BaseLLMProvider {
   private mockResponseContent = "";
   private mockIsIncomplete = false;
   private mockEmbeddingResponseContent: number[] = [0.1, 0.2, 0.3];

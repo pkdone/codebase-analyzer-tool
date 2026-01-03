@@ -7,11 +7,11 @@ import {
   LLMResponseStatus,
 } from "../../../src/common/llm/types/llm.types";
 import { LLMImplSpecificResponseSummary } from "../../../src/common/llm/providers/llm-provider.types";
-import AbstractLLM from "../../../src/common/llm/providers/abstract-llm";
+import BaseLLMProvider from "../../../src/common/llm/providers/base-llm-provider";
 import { createMockErrorLogger } from "../helpers/llm/mock-error-logger";
 import { RetryStrategy } from "../../../src/common/llm/strategies/retry-strategy";
 import { LLMExecutionPipeline } from "../../../src/common/llm/llm-execution-pipeline";
-import LLMStats from "../../../src/common/llm/tracking/llm-stats";
+import LLMTelemetryTracker from "../../../src/common/llm/tracking/llm-telemetry-tracker";
 
 // Test-only constants
 const TEST_COMPLETIONS_MODEL = "TEST_COMPLETIONS_MODEL";
@@ -42,7 +42,7 @@ const testModelsMetadata: Record<string, ResolvedLLMModelMetadata> = {
  * Test LLM implementation that returns configurable mock responses.
  * Used to verify type safety through the entire call chain.
  */
-class TypeSafetyChainTestLLM extends AbstractLLM {
+class TypeSafetyChainTestLLM extends BaseLLMProvider {
   private mockResponseContent = "";
 
   constructor() {
@@ -129,7 +129,7 @@ describe("Type Safety Chain - End to End", () => {
   let testContext: LLMContext;
   let retryStrategy: RetryStrategy;
   let executionPipeline: LLMExecutionPipeline;
-  let llmStats: LLMStats;
+  let llmStats: LLMTelemetryTracker;
 
   beforeEach(() => {
     testLLM = new TypeSafetyChainTestLLM();
@@ -137,12 +137,12 @@ describe("Type Safety Chain - End to End", () => {
       resource: "test-resource",
       purpose: LLMPurpose.COMPLETIONS,
     };
-    llmStats = new LLMStats();
+    llmStats = new LLMTelemetryTracker();
     retryStrategy = new RetryStrategy(llmStats);
     executionPipeline = new LLMExecutionPipeline(retryStrategy, llmStats);
   });
 
-  describe("Type preservation through AbstractLLM", () => {
+  describe("Type preservation through BaseLLMProvider", () => {
     test("should preserve object schema type through executeProviderFunction", async () => {
       const userSchema = z.object({
         name: z.string(),

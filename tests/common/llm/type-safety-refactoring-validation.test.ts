@@ -14,7 +14,7 @@ import {
 } from "../../../src/common/llm/types/llm.types";
 import { RetryStrategy } from "../../../src/common/llm/strategies/retry-strategy";
 import { LLMExecutionPipeline } from "../../../src/common/llm/llm-execution-pipeline";
-import LLMStats from "../../../src/common/llm/tracking/llm-stats";
+import LLMTelemetryTracker from "../../../src/common/llm/tracking/llm-telemetry-tracker";
 
 /**
  * Test suite validating the type safety refactoring for the LLM call chain.
@@ -152,10 +152,10 @@ describe("Type Safety Refactoring Validation", () => {
 
   describe("RetryStrategy Type Propagation", () => {
     let retryStrategy: RetryStrategy;
-    let llmStats: LLMStats;
+    let llmStats: LLMTelemetryTracker;
 
     beforeEach(() => {
-      llmStats = new LLMStats();
+      llmStats = new LLMTelemetryTracker();
       retryStrategy = new RetryStrategy(llmStats);
     });
 
@@ -276,10 +276,10 @@ describe("Type Safety Refactoring Validation", () => {
   describe("LLMExecutionPipeline Type Propagation", () => {
     let executionPipeline: LLMExecutionPipeline;
     let retryStrategy: RetryStrategy;
-    let llmStats: LLMStats;
+    let llmStats: LLMTelemetryTracker;
 
     beforeEach(() => {
-      llmStats = new LLMStats();
+      llmStats = new LLMTelemetryTracker();
       retryStrategy = new RetryStrategy(llmStats);
       executionPipeline = new LLMExecutionPipeline(retryStrategy, llmStats);
     });
@@ -443,10 +443,10 @@ describe("Type Safety Refactoring Validation", () => {
   describe("End-to-End Type Safety Verification", () => {
     let executionPipeline: LLMExecutionPipeline;
     let retryStrategy: RetryStrategy;
-    let llmStats: LLMStats;
+    let llmStats: LLMTelemetryTracker;
 
     beforeEach(() => {
-      llmStats = new LLMStats();
+      llmStats = new LLMTelemetryTracker();
       retryStrategy = new RetryStrategy(llmStats);
       executionPipeline = new LLMExecutionPipeline(retryStrategy, llmStats);
     });

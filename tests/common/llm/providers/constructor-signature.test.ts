@@ -3,7 +3,7 @@ import type {
   LLMProviderSpecificConfig,
   ProviderInit,
 } from "../../../../src/common/llm/providers/llm-provider.types";
-import AbstractLLM from "../../../../src/common/llm/providers/abstract-llm";
+import BaseLLMProvider from "../../../../src/common/llm/providers/base-llm-provider";
 import type { IErrorLogger } from "../../../../src/common/llm/tracking/llm-error-logger.interface";
 import { z } from "zod";
 
@@ -17,8 +17,8 @@ describe("Provider Constructor Signatures", () => {
     recordJsonProcessingError: jest.fn().mockResolvedValue(undefined),
   };
 
-  // Test provider extending AbstractLLM
-  class TestProvider extends AbstractLLM {
+  // Test provider extending BaseLLMProvider
+  class TestProvider extends BaseLLMProvider {
     protected async invokeEmbeddingProvider() {
       return {
         isIncompleteResponse: false,

@@ -1,10 +1,10 @@
 import { z } from "zod";
-import { promptRegistry } from "../../../src/app/prompts/prompt-registry";
+import { promptManager } from "../../../src/app/prompts/prompt-registry";
 import { sourceConfigMap } from "../../../src/app/prompts/definitions/sources/sources.definitions";
 import { appSummaryConfigMap } from "../../../src/app/prompts/definitions/app-summaries/app-summaries.definitions";
 
-const fileTypePromptMetadata = promptRegistry.sources;
-const appSummaryPromptMetadata = promptRegistry.appSummaries;
+const fileTypePromptMetadata = promptManager.sources;
+const appSummaryPromptMetadata = promptManager.appSummaries;
 
 /**
  * Helper function to get schema field names from a config entry.

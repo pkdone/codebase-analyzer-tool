@@ -1,4 +1,4 @@
-import AbstractLLM from "../../../../src/common/llm/providers/abstract-llm";
+import BaseLLMProvider from "../../../../src/common/llm/providers/base-llm-provider";
 import type {
   ProviderInit,
   LLMImplSpecificResponseSummary,
@@ -16,7 +16,7 @@ describe("Split Invoke Methods", () => {
   };
 
   // Test provider that tracks which method was called
-  class TrackingTestProvider extends AbstractLLM {
+  class TrackingTestProvider extends BaseLLMProvider {
     embeddingProviderCalls = 0;
     completionProviderCalls = 0;
 
@@ -163,7 +163,7 @@ describe("Split Invoke Methods", () => {
 
   it("should require concrete implementations to provide both methods", () => {
     // This test verifies that both methods are abstract and must be implemented
-    class IncompleteProvider extends AbstractLLM {
+    class IncompleteProvider extends BaseLLMProvider {
       // Only implementing one method - this should cause a TypeScript error
       // but we can't test compilation errors directly
       protected async invokeEmbeddingProvider(): Promise<LLMImplSpecificResponseSummary> {

@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import { jest, describe, test, expect, beforeEach } from "@jest/globals";
 import { RetryStrategy } from "../../../../../src/common/llm/strategies/retry-strategy";
-import LLMStats from "../../../../../src/common/llm/tracking/llm-stats";
+import LLMTelemetryTracker from "../../../../../src/common/llm/tracking/llm-telemetry-tracker";
 import {
   LLMFunctionResponse,
   LLMContext,
@@ -21,7 +21,7 @@ const mockPRetry = pRetry as jest.MockedFunction<typeof pRetry>;
 
 describe("RetryStrategy", () => {
   let retryStrategy: RetryStrategy;
-  let mockLLMStats: jest.Mocked<LLMStats>;
+  let mockLLMTelemetryTracker: jest.Mocked<LLMTelemetryTracker>;
 
   const mockProviderRetryConfig: LLMRetryConfig = {
     requestTimeoutMillis: 60000,
@@ -46,17 +46,17 @@ describe("RetryStrategy", () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    // Mock LLMStats
-    mockLLMStats = {
+    // Mock LLMTelemetryTracker
+    mockLLMTelemetryTracker = {
       recordOverloadedStatusForProviderAndModel: jest.fn(),
       recordTokenLimitExceededStatusForProviderAndModel: jest.fn(),
       recordInvalidStatusForProviderAndModel: jest.fn(),
       recordCompletedStatusForProviderAndModel: jest.fn(),
       recordErrorStatusForProviderAndModel: jest.fn(),
       getStatusTypesStatistics: jest.fn(),
-    } as unknown as jest.Mocked<LLMStats>;
+    } as unknown as jest.Mocked<LLMTelemetryTracker>;
 
-    retryStrategy = new RetryStrategy(mockLLMStats);
+    retryStrategy = new RetryStrategy(mockLLMTelemetryTracker);
   });
 
   describe("Successful Execution", () => {

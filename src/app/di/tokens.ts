@@ -42,7 +42,7 @@ export type TaskToken = keyof typeof taskTokens;
 export const captureTokens = {
   CodebaseToDBLoader: Symbol("CodebaseToDBLoader"),
   FileSummarizerService: Symbol("FileSummarizerService"),
-  PromptRegistry: Symbol("PromptRegistry"),
+  PromptManager: Symbol("PromptManager"),
   SourceConfigMap: Symbol("SourceConfigMap"),
 } as const;
 
@@ -60,7 +60,7 @@ export type InsightsToken = keyof typeof insightsTokens;
 
 // LLM module tokens
 export const llmTokens = {
-  LLMStats: Symbol("LLMStats"),
+  LLMTelemetryTracker: Symbol("LLMTelemetryTracker"),
   RetryStrategy: Symbol("RetryStrategy"),
   LLMExecutionPipeline: Symbol("LLMExecutionPipeline"),
   LLMRouter: Symbol("LLMRouter"),

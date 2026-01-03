@@ -2,7 +2,7 @@ import "reflect-metadata";
 import { injectable, inject } from "tsyringe";
 import { outputConfig } from "../../config/output.config";
 import { PromptFileInsightsGenerator } from "../../components/insights/generators/prompt-file-insights-generator";
-import type LLMStats from "../../../common/llm/tracking/llm-stats";
+import type LLMTelemetryTracker from "../../../common/llm/tracking/llm-telemetry-tracker";
 import type { EnvVars } from "../../env/env.types";
 import { llmTokens, insightsTokens, coreTokens } from "../../di/tokens";
 import { BaseLLMTrackedTask } from "../base-llm-tracked-task";
@@ -18,7 +18,7 @@ export class FileBasedInsightsGenerationTask extends BaseLLMTrackedTask {
    * Constructor with dependency injection.
    */
   constructor(
-    @inject(llmTokens.LLMStats) llmStats: LLMStats,
+    @inject(llmTokens.LLMTelemetryTracker) llmStats: LLMTelemetryTracker,
     @inject(coreTokens.ProjectName) projectName: string,
     @inject(coreTokens.EnvVars) private readonly env: EnvVars,
     @inject(insightsTokens.PromptFileInsightsGenerator)

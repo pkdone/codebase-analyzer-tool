@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import { jest, describe, test, expect, beforeEach, afterEach } from "@jest/globals";
 import { LLMExecutionPipeline } from "../../../../src/common/llm/llm-execution-pipeline";
-import LLMStats from "../../../../src/common/llm/tracking/llm-stats";
+import LLMTelemetryTracker from "../../../../src/common/llm/tracking/llm-telemetry-tracker";
 import { RetryStrategy } from "../../../../src/common/llm/strategies/retry-strategy";
 import {
   LLMContext,
@@ -27,7 +27,7 @@ function createMockLLMFunction<T extends LLMGeneratedContent>(
 }
 
 describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
-  let llmStats: LLMStats;
+  let llmStats: LLMTelemetryTracker;
   let retryStrategy: RetryStrategy;
   let pipeline: LLMExecutionPipeline;
   let recordJsonMutatedSpy: jest.SpiedFunction<() => void>;
@@ -39,7 +39,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
     });
 
     // Create real instances
-    llmStats = new LLMStats();
+    llmStats = new LLMTelemetryTracker();
     retryStrategy = new RetryStrategy(llmStats);
 
     // Create the pipeline (strategies are now pure functions, not classes)
@@ -421,7 +421,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
       };
 
       // Create a pipeline with a mocked retryStrategy that throws
-      const testLlmStats = new LLMStats();
+      const testLlmStats = new LLMTelemetryTracker();
       const mockRetryStrategy = {
         executeWithRetries: async () => {
           throw new Error("Direct exception");
@@ -504,7 +504,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
   });
 
   describe("Type Safety with Schemas", () => {
-    let llmStats: LLMStats;
+    let llmStats: LLMTelemetryTracker;
     let retryStrategy: RetryStrategy;
     let pipeline: LLMExecutionPipeline;
 
@@ -512,7 +512,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
       jest.spyOn(console, "log").mockImplementation(() => {
         // Mock implementation
       });
-      llmStats = new LLMStats();
+      llmStats = new LLMTelemetryTracker();
       retryStrategy = new RetryStrategy(llmStats);
       pipeline = new LLMExecutionPipeline(retryStrategy, llmStats);
     });

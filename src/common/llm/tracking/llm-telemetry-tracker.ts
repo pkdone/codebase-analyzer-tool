@@ -40,12 +40,12 @@ const STATUS_DEFINITIONS: Readonly<Record<keyof LLMStatsCategoriesBase, StatusDe
 type StatusCounts = Record<keyof LLMStatsCategoriesBase, number>;
 
 /**
- * Class for accumulating and tracking statistics of LLM invocation result types.
+ * Class for tracking and logging telemetry data for LLM invocation events.
  * Uses an immutable pattern where status definitions are constant and counts are
  * tracked separately. This design encapsulates mutation and returns immutable
  * snapshots via getStatusTypesStatistics().
  */
-export default class LLMStats {
+export default class LLMTelemetryTracker {
   private readonly shouldPrintEventTicks: boolean;
   private readonly counts: StatusCounts;
 

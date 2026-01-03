@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import { BaseLLMTrackedTask } from "../../../src/app/tasks/base-llm-tracked-task";
-import type LLMStats from "../../../src/common/llm/tracking/llm-stats";
+import type LLMTelemetryTracker from "../../../src/common/llm/tracking/llm-telemetry-tracker";
 import * as directoryOps from "../../../src/common/fs/directory-operations";
 
 // Concrete implementation for testing the abstract class
@@ -9,7 +9,7 @@ class TestLLMTrackedTask extends BaseLLMTrackedTask {
   runTaskError: Error | null = null;
 
   constructor(
-    llmStats: LLMStats,
+    llmStats: LLMTelemetryTracker,
     projectName: string,
     private readonly customPostMessage: string | null = null,
     private readonly clearOutputDir = true,
@@ -42,7 +42,7 @@ class TestLLMTrackedTask extends BaseLLMTrackedTask {
 }
 
 describe("BaseLLMTrackedTask", () => {
-  let mockLlmStats: jest.Mocked<LLMStats>;
+  let mockLlmStats: jest.Mocked<LLMTelemetryTracker>;
   let consoleSpy: jest.SpyInstance;
   let clearDirectorySpy: jest.SpyInstance;
 
@@ -50,7 +50,7 @@ describe("BaseLLMTrackedTask", () => {
     mockLlmStats = {
       displayLLMStatusSummary: jest.fn(),
       displayLLMStatusDetails: jest.fn(),
-    } as unknown as jest.Mocked<LLMStats>;
+    } as unknown as jest.Mocked<LLMTelemetryTracker>;
 
     consoleSpy = jest.spyOn(console, "log").mockImplementation();
     clearDirectorySpy = jest.spyOn(directoryOps, "clearDirectory").mockResolvedValue();

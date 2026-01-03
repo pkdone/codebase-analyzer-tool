@@ -1,5 +1,5 @@
-import { promptRegistry } from "../../../src/app/prompts/prompt-registry";
-const fileTypePromptMetadata = promptRegistry.sources;
+import { promptManager } from "../../../src/app/prompts/prompt-registry";
+const fileTypePromptMetadata = promptManager.sources;
 import { sourceSummarySchema } from "../../../src/app/schemas/sources.schema";
 
 describe("Python prompt metadata schema", () => {

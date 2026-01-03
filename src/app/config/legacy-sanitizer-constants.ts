@@ -236,23 +236,24 @@ export const PACKAGE_NAME_TYPO_PATTERNS: readonly PackageNameTypoPattern[] = [
 ] as const;
 
 /**
- * Returns the schema-specific sanitizer configuration for code analysis.
+ * Returns legacy sanitizer mappings for handling LLM output artifacts.
  *
- * **DEPRECATION NOTICE:**
- * This function is now considered a legacy fallback. The preferred approach is to
- * pass the Zod schema to `processJson()` via `completionOptions.jsonSchema`, which
- * will automatically extract property metadata using `extractSchemaMetadata()`.
+ * This function provides sanitizer configuration that handles LLM-specific output
+ * issues that cannot be derived from Zod schemas, such as:
+ * - Truncated/corrupted property names (e.g., "purpos" -> "purpose")
+ * - Typo corrections (e.g., "cyclometicComplexity" -> "cyclomaticComplexity")
+ * - Package name fixes (e.g., "orgapache." -> "org.apache.")
  *
- * This function is retained for:
- * 1. Backward compatibility with existing code
- * 2. Providing legacy mappings (typo corrections, package name fixes) that cannot
- *    be automatically derived from the schema
+ * **Note:** Property lists (knownProperties, numericProperties, arrayPropertyNames)
+ * are now automatically extracted from Zod schemas via `extractSchemaMetadata()`.
+ * These are included here for backward compatibility, but the primary value of this
+ * function is the legacy mappings that handle LLM artifacts.
  *
  * When used together with dynamic schema extraction, the explicit config from this
  * function will be merged with the dynamically extracted metadata, with explicit
  * values taking precedence.
  */
-export function getSchemaSpecificSanitizerConfig(): LLMSanitizerConfig {
+export function getLegacySanitizerMappings(): LLMSanitizerConfig {
   return {
     // Primary configuration: dynamic matching
     knownProperties: KNOWN_PROPERTIES,

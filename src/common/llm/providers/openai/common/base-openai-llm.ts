@@ -1,14 +1,14 @@
 import { OpenAI, RateLimitError, InternalServerError } from "openai";
 import { APIError } from "openai/error";
 import { LLMCompletionOptions, LLMOutputFormat, LLMModelFeature } from "../../../types/llm.types";
-import AbstractLLM from "../../abstract-llm";
+import BaseLLMProvider from "../../base-llm-provider";
 import { llmConfig } from "../../../config/llm.config";
 import { LLMError, LLMErrorCode } from "../../../types/llm-errors.types";
 
 /**
  * Abstract base class for all OpenAI-based LLM providers.
  */
-export default abstract class BaseOpenAILLM extends AbstractLLM {
+export default abstract class BaseOpenAILLM extends BaseLLMProvider {
   /**
    * Execute the embedding prompt against the LLM and return the relevant summary.
    */

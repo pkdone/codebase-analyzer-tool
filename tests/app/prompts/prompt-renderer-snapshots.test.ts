@@ -1,7 +1,7 @@
 import { renderPrompt } from "../../../src/app/prompts/prompt-renderer";
-import { promptRegistry } from "../../../src/app/prompts/prompt-registry";
+import { promptManager } from "../../../src/app/prompts/prompt-registry";
 import { LLMOutputFormat } from "../../../src/common/llm/types/llm.types";
-const fileTypePromptMetadata = promptRegistry.sources;
+const fileTypePromptMetadata = promptManager.sources;
 
 describe("renderPrompt Snapshot Tests", () => {
   const testContent = "public class TestClass {\n  // Test code\n}";
@@ -233,12 +233,12 @@ describe("renderPrompt Snapshot Tests", () => {
 
   describe("TEXT mode prompts (codebaseQuery)", () => {
     test("codebaseQuery prompt should be TEXT mode", () => {
-      const definition = promptRegistry.codebaseQuery;
+      const definition = promptManager.codebaseQuery;
       expect(definition.outputFormat).toBe(LLMOutputFormat.TEXT);
     });
 
     test("codebaseQuery prompt should render without JSON schema", () => {
-      const definition = promptRegistry.codebaseQuery;
+      const definition = promptManager.codebaseQuery;
       const data = {
         question: "What does the main function do?",
         content: "function main() { return 42; }",
@@ -257,7 +257,7 @@ describe("renderPrompt Snapshot Tests", () => {
     });
 
     test("codebaseQuery prompt should match snapshot", () => {
-      const definition = promptRegistry.codebaseQuery;
+      const definition = promptManager.codebaseQuery;
       const data = {
         question: "What is the purpose of this code?",
         content: "export function calculate(x: number) { return x * 2; }",
@@ -270,19 +270,19 @@ describe("renderPrompt Snapshot Tests", () => {
 
   describe("app summary prompts (JSON mode)", () => {
     const appSummaryTypes = Object.keys(
-      promptRegistry.appSummaries,
-    ) as (keyof typeof promptRegistry.appSummaries)[];
+      promptManager.appSummaries,
+    ) as (keyof typeof promptManager.appSummaries)[];
 
     test("all app summary prompts should be JSON mode by default", () => {
       appSummaryTypes.forEach((category) => {
-        const definition = promptRegistry.appSummaries[category];
+        const definition = promptManager.appSummaries[category];
         // outputFormat is undefined or JSON for JSON mode prompts
         expect(definition.outputFormat).not.toBe(LLMOutputFormat.TEXT);
       });
     });
 
     test("app summary prompts should include JSON schema", () => {
-      const definition = promptRegistry.appSummaries[appSummaryTypes[0]];
+      const definition = promptManager.appSummaries[appSummaryTypes[0]];
       const data = { content: "[{summary: 'test'}]" };
 
       const rendered = renderPrompt(definition, data);
@@ -293,7 +293,7 @@ describe("renderPrompt Snapshot Tests", () => {
 
     appSummaryTypes.forEach((category) => {
       test(`${category} app summary prompt should render successfully`, () => {
-        const definition = promptRegistry.appSummaries[category];
+        const definition = promptManager.appSummaries[category];
         const data = { content: "[{summary: 'test file summary'}]" };
 
         expect(() => {

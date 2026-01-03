@@ -5,7 +5,7 @@
 import "reflect-metadata";
 import { FileSummarizerService } from "../../../../src/app/components/capture/file-summarizer.service";
 import type LLMRouter from "../../../../src/common/llm/llm-router";
-import type { PromptRegistry } from "../../../../src/app/prompts/prompt-registry";
+import type { PromptManager } from "../../../../src/app/prompts/prompt-registry";
 import type { SourceConfigMap } from "../../../../src/app/prompts/definitions/sources/sources.definitions";
 import { z } from "zod";
 import { LLMError, LLMErrorCode } from "../../../../src/common/llm/types/llm-errors.types";
@@ -25,14 +25,14 @@ jest.mock("../../../../src/app/prompts/prompt-renderer", () => ({
   renderPrompt: jest.fn().mockReturnValue("rendered prompt"),
 }));
 
-jest.mock("../../../../src/app/config/sanitizer.config", () => ({
-  getSchemaSpecificSanitizerConfig: jest.fn().mockReturnValue({}),
+jest.mock("../../../../src/app/config/legacy-sanitizer-constants", () => ({
+  getLegacySanitizerMappings: jest.fn().mockReturnValue({}),
 }));
 
 describe("FileSummarizerService", () => {
   let service: FileSummarizerService;
   let mockLLMRouter: jest.Mocked<LLMRouter>;
-  let mockPromptRegistry: PromptRegistry;
+  let mockPromptManager: PromptManager;
   let mockSourceConfigMap: SourceConfigMap;
 
   const mockSchema = z.object({
@@ -56,7 +56,7 @@ describe("FileSummarizerService", () => {
     } as unknown as jest.Mocked<LLMRouter>;
 
     // Create mock prompt registry
-    mockPromptRegistry = {
+    mockPromptManager = {
       sources: {
         javascript: {
           label: "JavaScript",
@@ -66,7 +66,7 @@ describe("FileSummarizerService", () => {
       },
       appSummaries: {},
       codebaseQuery: {},
-    } as unknown as PromptRegistry;
+    } as unknown as PromptManager;
 
     // Create mock source config map
     mockSourceConfigMap = {
@@ -78,7 +78,7 @@ describe("FileSummarizerService", () => {
     } as unknown as SourceConfigMap;
 
     // Create service instance
-    service = new FileSummarizerService(mockLLMRouter, mockPromptRegistry, mockSourceConfigMap);
+    service = new FileSummarizerService(mockLLMRouter, mockPromptManager, mockSourceConfigMap);
   });
 
   describe("summarize", () => {

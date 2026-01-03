@@ -1,6 +1,6 @@
 import { SOURCES_PROMPT_FRAGMENTS } from "../../../src/app/prompts/definitions/sources/sources.fragments";
-import { promptRegistry } from "../../../src/app/prompts/prompt-registry";
-const fileTypePromptMetadata = promptRegistry.sources;
+import { promptManager } from "../../../src/app/prompts/prompt-registry";
+const fileTypePromptMetadata = promptManager.sources;
 
 describe("prompt-composition", () => {
   describe("fileTypePromptMetadata", () => {

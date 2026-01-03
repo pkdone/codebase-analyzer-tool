@@ -10,7 +10,7 @@ import {
   LLMProviderManifest,
   ProviderInit,
 } from "../../../../src/common/llm/providers/llm-provider.types";
-import AbstractLLM from "../../../../src/common/llm/providers/abstract-llm";
+import BaseLLMProvider from "../../../../src/common/llm/providers/base-llm-provider";
 import { createMockErrorLogger } from "../../helpers/llm/mock-error-logger";
 import { z } from "zod";
 
@@ -40,7 +40,7 @@ const testModelsMetadata: Record<string, ResolvedLLMModelMetadata> = {
 };
 
 // Stub class for manifest implementation field (not actually used in tests)
-class StubLLM extends AbstractLLM {
+class StubLLM extends BaseLLMProvider {
   constructor() {
     super({
       manifest: {
@@ -149,8 +149,8 @@ function createTestProviderInit(): ProviderInit {
   };
 }
 
-// Test concrete class that extends AbstractLLM to test type safety
-class TypeSafetyTestLLM extends AbstractLLM {
+// Test concrete class that extends BaseLLMProvider to test type safety
+class TypeSafetyTestLLM extends BaseLLMProvider {
   private mockResponseContent = "";
 
   constructor() {

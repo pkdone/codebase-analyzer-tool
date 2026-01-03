@@ -8,7 +8,7 @@ import { repositoryTokens } from "../../../di/tokens";
 import { llmTokens } from "../../../di/tokens";
 import { coreTokens } from "../../../di/tokens";
 import { insightsTuningConfig } from "../insights.config";
-import { promptRegistry } from "../../../prompts/prompt-registry";
+import { promptManager } from "../../../prompts/prompt-registry";
 import { AppSummaryCategories } from "../../../schemas/app-summaries.schema";
 import type { IInsightsProcessor } from "./insights-processor.interface";
 import { AppSummaryCategoryEnum } from "../insights.types";
@@ -123,7 +123,7 @@ export default class InsightsFromDBGenerator implements IInsightsProcessor {
     category: AppSummaryCategoryEnum,
     sourceFileSummaries: readonly string[],
   ): Promise<void> {
-    const categoryLabel = promptRegistry.appSummaries[category].label ?? category;
+    const categoryLabel = promptManager.appSummaries[category].label ?? category;
 
     try {
       // Determine which strategy to use based on codebase size

@@ -1,9 +1,9 @@
 import {
-  promptRegistry,
+  promptManager,
   createReduceInsightsPrompt,
 } from "../../../src/app/prompts/prompt-registry";
 
-const codebaseQueryPromptDefinition = promptRegistry.codebaseQuery;
+const codebaseQueryPromptDefinition = promptManager.codebaseQuery;
 import { CODEBASE_QUERY_TEMPLATE, BASE_PROMPT_TEMPLATE } from "../../../src/app/prompts/templates";
 import { renderPrompt } from "../../../src/app/prompts/prompt-renderer";
 import { z } from "zod";

@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import { injectable, inject } from "tsyringe";
 import type { InsightsProcessorSelector } from "../../components/insights/generators/insights-processor-selector";
-import type LLMStats from "../../../common/llm/tracking/llm-stats";
+import type LLMTelemetryTracker from "../../../common/llm/tracking/llm-telemetry-tracker";
 import { llmTokens, coreTokens, insightsTokens } from "../../di/tokens";
 import { BaseLLMTrackedTask } from "../base-llm-tracked-task";
 
@@ -15,7 +15,7 @@ export class InsightsGenerationTask extends BaseLLMTrackedTask {
    * Constructor with dependency injection.
    */
   constructor(
-    @inject(llmTokens.LLMStats) llmStats: LLMStats,
+    @inject(llmTokens.LLMTelemetryTracker) llmStats: LLMTelemetryTracker,
     @inject(coreTokens.ProjectName) projectName: string,
     @inject(insightsTokens.InsightsProcessorSelector)
     private readonly insightsProcessorSelector: InsightsProcessorSelector,

@@ -12,11 +12,11 @@ import {
 import { LLMError, LLMErrorCode } from "../../../../src/common/llm/types/llm-errors.types";
 
 /**
- * Unit tests for AbstractLLM TEXT path type safety.
+ * Unit tests for BaseLLMProvider TEXT path type safety.
  * These tests verify the behavior of the TEXT output path, ensuring
  * proper runtime validation and type handling.
  */
-describe("AbstractLLM TEXT Path Type Safety", () => {
+describe("BaseLLMProvider TEXT Path Type Safety", () => {
   describe("TEXT response validation logic", () => {
     test("should accept valid string for TEXT response", () => {
       const textResponse = "This is a plain text response";
