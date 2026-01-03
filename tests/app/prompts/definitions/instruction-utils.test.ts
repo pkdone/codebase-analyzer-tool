@@ -86,82 +86,113 @@ describe("instruction-utils", () => {
       expect(title2).toBe(INSTRUCTION_SECTION_TITLES.REFERENCES_AND_DEPS);
       expect(title3).toBe(INSTRUCTION_SECTION_TITLES.CODE_QUALITY_METRICS);
     });
+
+    it("should accept InstructionSectionTitle type in buildInstructionBlock", () => {
+      const title: InstructionSectionTitle = INSTRUCTION_SECTION_TITLES.BASIC_INFO;
+      const result = buildInstructionBlock(title, "test");
+      expect(result).toContain("__Basic Information__");
+    });
+
+    it("should accept all valid title constants", () => {
+      const validTitles = Object.values(INSTRUCTION_SECTION_TITLES);
+      validTitles.forEach((title) => {
+        expect(() => buildInstructionBlock(title, "test")).not.toThrow();
+        const result = buildInstructionBlock(title, "test");
+        expect(result).toContain(`__${title}__`);
+      });
+    });
   });
 
   describe("buildInstructionBlock", () => {
     describe("basic functionality", () => {
       it("should format a title with double underscores", () => {
-        const result = buildInstructionBlock("Basic Info");
-        expect(result).toBe("__Basic Info__");
+        const result = buildInstructionBlock(INSTRUCTION_SECTION_TITLES.BASIC_INFO);
+        expect(result).toBe("__Basic Information__");
       });
 
       it("should format a title with a single string part", () => {
-        const result = buildInstructionBlock("Basic Info", "Extract the name");
-        expect(result).toBe("__Basic Info__\nExtract the name");
+        const result = buildInstructionBlock(INSTRUCTION_SECTION_TITLES.BASIC_INFO, "Extract the name");
+        expect(result).toBe("__Basic Information__\nExtract the name");
       });
 
       it("should format a title with multiple string parts", () => {
-        const result = buildInstructionBlock("References", "Internal refs", "External refs");
+        const result = buildInstructionBlock(
+          INSTRUCTION_SECTION_TITLES.REFERENCES,
+          "Internal refs",
+          "External refs",
+        );
         expect(result).toBe("__References__\nInternal refs\nExternal refs");
       });
 
       it("should format a title with array parts", () => {
         const parts = ["Part 1", "Part 2", "Part 3"] as const;
-        const result = buildInstructionBlock("Section", parts);
-        expect(result).toBe("__Section__\nPart 1\nPart 2\nPart 3");
+        const result = buildInstructionBlock(INSTRUCTION_SECTION_TITLES.INSTRUCTIONS, parts);
+        expect(result).toBe("__Instructions__\nPart 1\nPart 2\nPart 3");
       });
 
       it("should format a title with mixed string and array parts", () => {
         const arrayParts = ["Array 1", "Array 2"] as const;
         const result = buildInstructionBlock(
-          "Mixed Section",
+          INSTRUCTION_SECTION_TITLES.INSTRUCTIONS,
           "String part",
           arrayParts,
           "Another string",
         );
-        expect(result).toBe("__Mixed Section__\nString part\nArray 1\nArray 2\nAnother string");
+        expect(result).toBe("__Instructions__\nString part\nArray 1\nArray 2\nAnother string");
       });
     });
 
     describe("edge cases", () => {
       it("should handle empty arrays", () => {
         const emptyArray: readonly string[] = [];
-        const result = buildInstructionBlock("Title", emptyArray, "After empty");
-        expect(result).toBe("__Title__\nAfter empty");
+        const result = buildInstructionBlock(
+          INSTRUCTION_SECTION_TITLES.INSTRUCTIONS,
+          emptyArray,
+          "After empty",
+        );
+        expect(result).toBe("__Instructions__\nAfter empty");
       });
 
       it("should handle single element arrays", () => {
         const singleArray = ["Only one"] as const;
-        const result = buildInstructionBlock("Title", singleArray);
-        expect(result).toBe("__Title__\nOnly one");
+        const result = buildInstructionBlock(INSTRUCTION_SECTION_TITLES.INSTRUCTIONS, singleArray);
+        expect(result).toBe("__Instructions__\nOnly one");
       });
 
       it("should handle no parts (only title)", () => {
-        const result = buildInstructionBlock("Title");
-        expect(result).toBe("__Title__");
+        const result = buildInstructionBlock(INSTRUCTION_SECTION_TITLES.INSTRUCTIONS);
+        expect(result).toBe("__Instructions__");
       });
 
       it("should handle empty strings in parts", () => {
-        const result = buildInstructionBlock("Title", "", "Non-empty");
-        expect(result).toBe("__Title__\n\nNon-empty");
+        const result = buildInstructionBlock(INSTRUCTION_SECTION_TITLES.INSTRUCTIONS, "", "Non-empty");
+        expect(result).toBe("__Instructions__\n\nNon-empty");
       });
 
       it("should handle multiple empty arrays", () => {
         const empty1: readonly string[] = [];
         const empty2: readonly string[] = [];
-        const result = buildInstructionBlock("Title", empty1, empty2, "Content");
-        expect(result).toBe("__Title__\nContent");
+        const result = buildInstructionBlock(
+          INSTRUCTION_SECTION_TITLES.INSTRUCTIONS,
+          empty1,
+          empty2,
+          "Content",
+        );
+        expect(result).toBe("__Instructions__\nContent");
       });
 
       it("should handle titles with special characters", () => {
-        const result = buildInstructionBlock("Title (with) [brackets]", "Content");
-        expect(result).toBe("__Title (with) [brackets]__\nContent");
+        const result = buildInstructionBlock(
+          INSTRUCTION_SECTION_TITLES.REFERENCES_AND_DEPS,
+          "Content",
+        );
+        expect(result).toBe("__References and Dependencies__\nContent");
       });
 
       it("should handle multi-line content in parts", () => {
         const multiLine = "Line 1\nLine 2\nLine 3";
-        const result = buildInstructionBlock("Title", multiLine);
-        expect(result).toBe("__Title__\nLine 1\nLine 2\nLine 3");
+        const result = buildInstructionBlock(INSTRUCTION_SECTION_TITLES.INSTRUCTIONS, multiLine);
+        expect(result).toBe("__Instructions__\nLine 1\nLine 2\nLine 3");
       });
     });
 
@@ -213,7 +244,7 @@ describe("instruction-utils", () => {
         const array1 = ["Item 1", "Item 2"] as const;
         const array2 = ["Item 3", "Item 4", "Item 5"] as const;
         const result = buildInstructionBlock(
-          "Complex Section",
+          INSTRUCTION_SECTION_TITLES.INSTRUCTIONS,
           "Intro text",
           array1,
           "Middle text",
@@ -222,7 +253,7 @@ describe("instruction-utils", () => {
         );
 
         const lines = result.split("\n");
-        expect(lines[0]).toBe("__Complex Section__");
+        expect(lines[0]).toBe("__Instructions__");
         expect(lines[1]).toBe("Intro text");
         expect(lines[2]).toBe("Item 1");
         expect(lines[3]).toBe("Item 2");
@@ -234,15 +265,25 @@ describe("instruction-utils", () => {
       });
 
       it("should produce consistent output for the same input", () => {
-        const input1 = buildInstructionBlock("Test", "A", "B", "C");
-        const input2 = buildInstructionBlock("Test", "A", "B", "C");
+        const input1 = buildInstructionBlock(
+          INSTRUCTION_SECTION_TITLES.INSTRUCTIONS,
+          "A",
+          "B",
+          "C",
+        );
+        const input2 = buildInstructionBlock(
+          INSTRUCTION_SECTION_TITLES.INSTRUCTIONS,
+          "A",
+          "B",
+          "C",
+        );
         expect(input1).toBe(input2);
       });
 
       it("should handle readonly string arrays from as const", () => {
         const readonlyArray = ["Read", "Only", "Array"] as const;
-        const result = buildInstructionBlock("Test", readonlyArray);
-        expect(result).toBe("__Test__\nRead\nOnly\nArray");
+        const result = buildInstructionBlock(INSTRUCTION_SECTION_TITLES.INSTRUCTIONS, readonlyArray);
+        expect(result).toBe("__Instructions__\nRead\nOnly\nArray");
       });
     });
   });

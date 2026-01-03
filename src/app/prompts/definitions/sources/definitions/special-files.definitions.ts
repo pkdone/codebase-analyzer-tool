@@ -1,7 +1,11 @@
 import { SOURCES_PROMPT_FRAGMENTS, COMPOSITES } from "../sources.fragments";
 import { INSTRUCTION_SECTION_TITLES, buildInstructionBlock } from "../../instruction-utils";
 import { sourceSummarySchema } from "../../../../schemas/sources.schema";
-import { createSimpleConfig, type SourceConfigEntry } from "./shared-utilities";
+import {
+  createSimpleConfig,
+  createBasicInfoBlock,
+  type SourceConfigEntry,
+} from "./shared-utilities";
 
 /**
  * Source prompt definitions for special file types (SQL, Markdown, XML, JSP, scripts, etc.).
@@ -77,11 +81,7 @@ export const specialFileDefinitions: Record<string, SourceConfigEntry> = {
       jspMetrics: true,
     }),
     instructions: [
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.BASIC_INFO,
-        SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
-        SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
-      ),
+      createBasicInfoBlock(),
       buildInstructionBlock(
         INSTRUCTION_SECTION_TITLES.REFERENCES_AND_DEPS,
         SOURCES_PROMPT_FRAGMENTS.JAVA_SPECIFIC.INTERNAL_REFS,
@@ -105,11 +105,7 @@ export const specialFileDefinitions: Record<string, SourceConfigEntry> = {
       scheduledJobs: true,
     }),
     instructions: [
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.BASIC_INFO,
-        SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
-        SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
-      ),
+      createBasicInfoBlock(),
       buildInstructionBlock(
         INSTRUCTION_SECTION_TITLES.SCHEDULED_JOBS,
         SOURCES_PROMPT_FRAGMENTS.SCHEDULED_JOBS.INTRO,
@@ -128,11 +124,7 @@ export const specialFileDefinitions: Record<string, SourceConfigEntry> = {
       scheduledJobs: true,
     }),
     instructions: [
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.BASIC_INFO,
-        SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
-        SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
-      ),
+      createBasicInfoBlock(),
       buildInstructionBlock(
         INSTRUCTION_SECTION_TITLES.SCHEDULED_JOBS,
         SOURCES_PROMPT_FRAGMENTS.SCHEDULED_JOBS.INTRO,
@@ -152,11 +144,7 @@ export const specialFileDefinitions: Record<string, SourceConfigEntry> = {
       scheduledJobs: true,
     }),
     instructions: [
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.BASIC_INFO,
-        SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
-        SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
-      ),
+      createBasicInfoBlock(),
       buildInstructionBlock(
         INSTRUCTION_SECTION_TITLES.SCHEDULED_JOBS,
         SOURCES_PROMPT_FRAGMENTS.SCHEDULED_JOBS.INTRO,

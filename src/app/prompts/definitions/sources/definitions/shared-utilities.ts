@@ -4,7 +4,11 @@ import {
   COMPOSITES,
   type LanguageSpecificFragments,
 } from "../sources.fragments";
-import { INSTRUCTION_SECTION_TITLES, buildInstructionBlock } from "../../instruction-utils";
+import {
+  INSTRUCTION_SECTION_TITLES,
+  buildInstructionBlock,
+  type InstructionSectionTitle,
+} from "../../instruction-utils";
 import {
   sourceSummarySchema,
   commonSourceAnalysisSchema,
@@ -51,6 +55,20 @@ export const dependencyFileSchema = sourceSummarySchema.pick({
 });
 
 /**
+ * Creates the standard Basic Info instruction block used by most file types.
+ * This block includes Purpose and Implementation fragments.
+ *
+ * @returns A formatted instruction block string with Basic Information title
+ */
+export function createBasicInfoBlock(): string {
+  return buildInstructionBlock(
+    INSTRUCTION_SECTION_TITLES.BASIC_INFO,
+    SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
+    SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
+  );
+}
+
+/**
  * Factory function to create a dependency file source configuration.
  * This function eliminates duplication for dependency management files by generating
  * a consistent 2-block instruction pattern:
@@ -69,11 +87,7 @@ export function createDependencyConfig(
     contentDesc,
     responseSchema: dependencyFileSchema,
     instructions: [
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.BASIC_INFO,
-        SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
-        SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
-      ),
+      createBasicInfoBlock(),
       buildInstructionBlock(INSTRUCTION_SECTION_TITLES.REFERENCES_AND_DEPS, dependencyFragment),
     ],
   };
@@ -93,7 +107,7 @@ export function createSimpleConfig(
   contentDesc: string,
   schemaFields: readonly string[],
   instructionBlocks: readonly {
-    title: string;
+    title: InstructionSectionTitle;
     fragments: readonly (string | readonly string[])[];
   }[],
 ): SourceConfigEntry {
@@ -103,13 +117,24 @@ export function createSimpleConfig(
   }, {});
   // Type assertion needed because Zod's pick requires exact key matching at compile time
   // but we're building the keys dynamically at runtime
+  const instructions = instructionBlocks.map((block) => {
+    // If this is the first block and it's BASIC_INFO with standard fragments, use the helper
+    if (
+      block.title === INSTRUCTION_SECTION_TITLES.BASIC_INFO &&
+      block.fragments.length === 2 &&
+      block.fragments[0] === SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE &&
+      block.fragments[1] === SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION
+    ) {
+      return createBasicInfoBlock();
+    }
+    return buildInstructionBlock(block.title, ...block.fragments);
+  }) as readonly string[];
+
   return {
     contentDesc,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     responseSchema: sourceSummarySchema.pick(pickObject as any),
-    instructions: instructionBlocks.map((block) =>
-      buildInstructionBlock(block.title, ...block.fragments),
-    ) as readonly string[],
+    instructions,
   };
 }
 

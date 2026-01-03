@@ -42,22 +42,22 @@ export type InstructionSectionTitle =
  * This function is used by both sources.config.ts and app-summaries.config.ts
  * to construct consistent instruction blocks for LLM prompts.
  *
- * @param title - The title for the instruction block (will be wrapped in __title__)
+ * @param title - The title for the instruction block (must be a valid InstructionSectionTitle)
  * @param parts - Variable number of instruction parts, which can be strings or readonly string arrays
  * @returns A single formatted string with the title and joined parts
  *
  * @example
  * ```typescript
  * buildInstructionBlock(
- *   "Basic Info",
+ *   INSTRUCTION_SECTION_TITLES.BASIC_INFO,
  *   ["Extract name", "Extract kind"],
  *   "Additional instruction"
  * )
- * // Returns: "__Basic Info__\nExtract name\nExtract kind\nAdditional instruction"
+ * // Returns: "__Basic Information__\nExtract name\nExtract kind\nAdditional instruction"
  * ```
  */
 export function buildInstructionBlock(
-  title: string,
+  title: InstructionSectionTitle,
   ...parts: (string | readonly string[])[]
 ): string {
   const flattenedParts = parts.flat();
