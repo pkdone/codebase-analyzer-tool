@@ -22,10 +22,10 @@ jest.mock("../../../../src/common/utils/logging", () => ({
   logOneLineError: jest.fn(),
 }));
 
-jest.mock("../../../../src/app/config/file-processing.config", () => ({
-  fileProcessingConfig: {
+jest.mock("../../../../src/app/domain/file-types", () => ({
+  fileProcessingRules: {
     FOLDER_IGNORE_LIST: [".git", "node_modules"],
-    FILENAME_PREFIX_IGNORE: [".", "_"],
+    FILENAME_PREFIX_IGNORE: "test-",
     FILENAME_IGNORE_LIST: ["package-lock.json"],
     BINARY_FILE_EXTENSION_IGNORE_LIST: ["jpg", "png", "pdf", "exe"],
     MAX_CONCURRENCY: 3,
@@ -115,7 +115,7 @@ describe("CodebaseToDBLoader", () => {
       expect(mockDirectoryOperations.findFilesRecursively).toHaveBeenCalledWith(
         "/src",
         [".git", "node_modules"],
-        [".", "_"],
+        "test-",
         ["package-lock.json"],
       );
       expect(mockSourcesRepository.insertSource).toHaveBeenCalledTimes(2);

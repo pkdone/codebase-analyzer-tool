@@ -4,7 +4,7 @@ import { UNKNOWN_VALUE_PLACEHOLDER } from "../../../../../common/constants/appli
  * Pattern definition for trigger type matching.
  * Each pattern has a match function and the resulting type string.
  */
-export interface TriggerTypePattern {
+interface TriggerTypePattern {
   readonly match: (normalized: string) => boolean;
   readonly type: string;
 }
