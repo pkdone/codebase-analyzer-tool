@@ -1,6 +1,8 @@
 import { databaseConfig } from "../../../src/app/components/database/database.config";
-import { fileProcessingConfig } from "../../../src/app/config/file-processing.config";
-import { getCanonicalFileType } from "../../../src/app/components/capture/config/file-types.config";
+import {
+  fileProcessingRules as fileProcessingConfig,
+  getCanonicalFileType,
+} from "../../../src/app/domain/file-types";
 import { outputConfig } from "../../../src/app/config/output.config";
 
 describe("individual config modules", () => {

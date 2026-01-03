@@ -2,7 +2,7 @@ import { formatSourceFilesAsMarkdown } from "../../../src/app/utils/codebase-for
 import { findFilesRecursively } from "../../../src/common/fs/directory-operations";
 import { getFileExtension } from "../../../src/common/fs/path-utils";
 import { readFile } from "../../../src/common/fs/file-operations";
-import { fileProcessingConfig } from "../../../src/app/config/file-processing.config";
+import { fileProcessingRules as fileProcessingConfig } from "../../../src/app/domain/file-types";
 
 // Mock dependencies
 jest.mock("../../../src/common/fs/directory-operations");

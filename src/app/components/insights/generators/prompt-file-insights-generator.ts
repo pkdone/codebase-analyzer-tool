@@ -1,7 +1,7 @@
 import path from "path";
 import os from "os";
 import { injectable } from "tsyringe";
-import { fileProcessingConfig } from "../../../config/file-processing.config";
+import { fileProcessingRules as fileProcessingConfig } from "../../../domain/file-types";
 import { outputConfig } from "../../../config/output.config";
 import { readFile, writeFile } from "../../../../common/fs/file-operations";
 import {

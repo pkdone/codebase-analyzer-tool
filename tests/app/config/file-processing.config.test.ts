@@ -1,4 +1,4 @@
-import { fileProcessingConfig } from "../../../src/app/config/file-processing.config";
+import { fileProcessingRules as fileProcessingConfig } from "../../../src/app/domain/file-types";
 
 describe("file-processing.config", () => {
   describe("fileProcessingConfig", () => {

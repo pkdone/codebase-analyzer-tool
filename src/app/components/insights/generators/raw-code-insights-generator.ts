@@ -7,7 +7,7 @@ import { llmTokens } from "../../../di/tokens";
 import { coreTokens } from "../../../di/tokens";
 import type { IInsightsProcessor } from "./insights-processor.interface";
 import { formatSourceFilesAsMarkdown } from "../../../utils/codebase-formatting";
-import { fileProcessingConfig } from "../../../config/file-processing.config";
+import { fileProcessingRules as fileProcessingConfig } from "../../../domain/file-types";
 import type { EnvVars } from "../../../env/env.types";
 import { logOneLineError, logOneLineWarning } from "../../../../common/utils/logging";
 import { renderPrompt } from "../../../prompts/prompt-renderer";

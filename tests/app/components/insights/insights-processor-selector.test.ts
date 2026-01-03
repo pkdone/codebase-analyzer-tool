@@ -5,7 +5,7 @@ import { EnvVars } from "../../../../src/app/env/env.types";
 import InsightsFromDBGenerator from "../../../../src/app/components/insights/generators/db-insights-generator";
 import InsightsFromRawCodeGenerator from "../../../../src/app/components/insights/generators/raw-code-insights-generator";
 import { formatSourceFilesAsMarkdown } from "../../../../src/app/utils/codebase-formatting";
-import { fileProcessingConfig } from "../../../../src/app/config/file-processing.config";
+import { fileProcessingRules as fileProcessingConfig } from "../../../../src/app/domain/file-types";
 import { llmProviderConfig } from "../../../../src/common/llm/config/llm.config";
 import { z } from "zod";
 import { LLMProviderManifest } from "../../../../src/common/llm/providers/llm-provider.types";

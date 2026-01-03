@@ -3,7 +3,7 @@
  * This is an application-wide configuration used by multiple components
  * (capture, insights) for consistent file handling rules.
  */
-export const fileProcessingConfig = {
+export const fileProcessingRules = {
   FOLDER_IGNORE_LIST: [
     ".git",
     "bin",

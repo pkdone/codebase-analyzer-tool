@@ -2,7 +2,7 @@ import {
   CANONICAL_FILE_TYPES,
   type CanonicalFileType,
   canonicalFileTypeSchema,
-} from "../../../src/app/config/canonical-file-types";
+} from "../../../src/app/domain/file-types";
 
 describe("canonical-file-types", () => {
   describe("CANONICAL_FILE_TYPES", () => {
