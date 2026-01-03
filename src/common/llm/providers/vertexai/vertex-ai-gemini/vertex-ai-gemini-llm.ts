@@ -15,7 +15,7 @@ import {
   LLMCompletionOptions,
   LLMOutputFormat,
   ShutdownBehavior,
-  createTokenUsage,
+  createTokenUsageRecord,
 } from "../../../types/llm.types";
 import { logOneLineWarning, logOneLineError } from "../../../../utils/logging";
 import { formatError } from "../../../../utils/error-formatters";
@@ -182,7 +182,7 @@ export default class VertexAIGeminiLLM extends BaseLLMProvider {
     const isIncompleteResponse = responseContent == null;
 
     // Capture token usage (Embeddings API doesn't provide token counts)
-    const tokenUsage = createTokenUsage();
+    const tokenUsage = createTokenUsageRecord();
     return { isIncompleteResponse, responseContent, tokenUsage };
   }
 
@@ -225,7 +225,7 @@ export default class VertexAIGeminiLLM extends BaseLLMProvider {
     const isIncompleteResponse = finishReason !== FinishReason.STOP || responseContent == null;
 
     // Capture token usage
-    const tokenUsage = createTokenUsage(
+    const tokenUsage = createTokenUsageRecord(
       usageMetadata?.promptTokenCount,
       usageMetadata?.candidatesTokenCount,
     );

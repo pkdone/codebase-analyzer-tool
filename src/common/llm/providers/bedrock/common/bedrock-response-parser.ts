@@ -2,13 +2,13 @@ import { z } from "zod";
 import { getNestedValue, getNestedValueWithFallbacks } from "../../../../utils/object-utils";
 import { isDefined } from "../../../../utils/type-guards";
 import { LLMError, LLMErrorCode } from "../../../types/llm-errors.types";
-import { LLMGeneratedContent, createTokenUsage } from "../../../types/llm.types";
+import { LLMGeneratedContent, createTokenUsageRecord } from "../../../types/llm.types";
 import { LLMImplSpecificResponseSummary } from "../../llm-provider.types";
 
 /**
  * Parses a value as a number, returning undefined if the value is not a number.
  * Simplifies verbose inline type guards for token count parsing.
- * Returns undefined instead of a default value so createTokenUsage can apply its own default.
+ * Returns undefined instead of a default value so createTokenUsageRecord can apply its own default.
  */
 const parseNumericOrDefault = (value: unknown): number | undefined =>
   typeof value === "number" ? value : undefined;
@@ -76,7 +76,7 @@ export function extractGenericCompletionResponse(
     responseContent == null;
   const promptTokensRaw = getNestedValue(response, pathConfig.promptTokensPath);
   const completionTokensRaw = getNestedValue(response, pathConfig.completionTokensPath);
-  const tokenUsage = createTokenUsage(
+  const tokenUsage = createTokenUsageRecord(
     parseNumericOrDefault(promptTokensRaw),
     parseNumericOrDefault(completionTokensRaw),
   );

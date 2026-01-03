@@ -4,7 +4,7 @@ import {
   LLMCompletionOptions,
   LLMOutputFormat,
   LLMModelFeature,
-  createTokenUsage,
+  createTokenUsageRecord,
 } from "../../../types/llm.types";
 import BaseLLMProvider from "../../base-llm-provider";
 import { llmConfig } from "../../../config/llm.config";
@@ -137,7 +137,7 @@ export default abstract class BaseOpenAILLM extends BaseLLMProvider {
     const isIncompleteResponse = !responseContent;
 
     // Capture token usage
-    const tokenUsage = createTokenUsage(llmResponses.usage.prompt_tokens);
+    const tokenUsage = createTokenUsageRecord(llmResponses.usage.prompt_tokens);
     return { isIncompleteResponse, responseContent, tokenUsage };
   }
 
@@ -173,7 +173,7 @@ export default abstract class BaseOpenAILLM extends BaseLLMProvider {
     const isIncompleteResponse = finishReason === "length" || responseContent == null;
 
     // Capture token usage
-    const tokenUsage = createTokenUsage(
+    const tokenUsage = createTokenUsageRecord(
       llmResponses.usage?.prompt_tokens,
       llmResponses.usage?.completion_tokens,
     );

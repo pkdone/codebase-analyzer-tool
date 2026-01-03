@@ -202,15 +202,17 @@ export interface LLMResponseTokensUsage {
 const UNKNOWN_TOKEN_COUNT = -1;
 
 /**
- * Creates a standardized token usage object with consistent defaults.
- * This helper ensures all providers use the same default value (-1) for unknown token counts.
+ * Creates a standardized token usage record with consistent defaults.
+ * This helper normalizes raw (potentially undefined) token counts into a
+ * standardized LLMResponseTokensUsage object, ensuring all providers use
+ * the same default value (-1) for unknown token counts.
  *
  * @param promptTokens - Number of tokens in the prompt (default: -1)
  * @param completionTokens - Number of tokens in the completion (default: -1)
  * @param maxTotalTokens - Maximum total tokens allowed (default: -1)
  * @returns A standardized LLMResponseTokensUsage object
  */
-export function createTokenUsage(
+export function createTokenUsageRecord(
   promptTokens?: number,
   completionTokens?: number,
   maxTotalTokens?: number,
