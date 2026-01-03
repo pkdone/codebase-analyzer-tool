@@ -9,13 +9,18 @@
  */
 
 import type { ReplacementRule, ContextInfo } from "./replacement-rule.types";
+import { parsingHeuristics } from "../../constants/json-processing.config";
 
 /**
  * Checks if a context is valid for embedded content removal.
  */
 function isValidEmbeddedContentContext(context: ContextInfo): boolean {
   const { beforeMatch, offset } = context;
-  return /[}\],]\s*$/.test(beforeMatch) || /^\s*$/.test(beforeMatch) || offset < 100;
+  return (
+    /[}\],]\s*$/.test(beforeMatch) ||
+    /^\s*$/.test(beforeMatch) ||
+    offset < parsingHeuristics.START_OF_FILE_OFFSET_LIMIT
+  );
 }
 
 /**
@@ -298,7 +303,7 @@ export const EMBEDDED_CONTENT_RULES: readonly ReplacementRule[] = [
     replacement: (_match, groups, context) => {
       const { beforeMatch } = context;
       const isAfterDelimiter = /[}\],]\s*\n\s*$/.test(beforeMatch);
-      if (!isAfterDelimiter && context.offset > 200) {
+      if (!isAfterDelimiter && context.offset > parsingHeuristics.PROPERTY_CONTEXT_OFFSET_LIMIT) {
         return null;
       }
       const [delimiter, , nextChar] = groups;

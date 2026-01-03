@@ -34,6 +34,7 @@ describe("instruction-utils", () => {
         "DEPENDENCIES",
         "DATABASE_OBJECTS",
         "SCHEDULED_JOBS",
+        "INSTRUCTIONS",
       ];
 
       expectedKeys.forEach((key) => {
@@ -65,13 +66,14 @@ describe("instruction-utils", () => {
       expect(INSTRUCTION_SECTION_TITLES.DEPENDENCIES).toBe("Dependencies");
       expect(INSTRUCTION_SECTION_TITLES.DATABASE_OBJECTS).toBe("Database Objects");
       expect(INSTRUCTION_SECTION_TITLES.SCHEDULED_JOBS).toBe("Scheduled Jobs");
+      expect(INSTRUCTION_SECTION_TITLES.INSTRUCTIONS).toBe("Instructions");
     });
 
-    it("should have exactly 16 section title constants", () => {
+    it("should have exactly 17 section title constants", () => {
       // 'as const' provides compile-time immutability via TypeScript
       // but runtime modification is possible (no Object.freeze)
       // This test verifies the expected number of constants exists
-      expect(Object.keys(INSTRUCTION_SECTION_TITLES)).toHaveLength(16);
+      expect(Object.keys(INSTRUCTION_SECTION_TITLES)).toHaveLength(17);
     });
   });
 
@@ -201,7 +203,7 @@ describe("instruction-utils", () => {
 
       it("should match the pattern used in app-summaries.config.ts", () => {
         const result = buildInstructionBlock(
-          "Instructions",
+          INSTRUCTION_SECTION_TITLES.INSTRUCTIONS,
           "A detailed description of the entire application",
         );
         expect(result).toBe("__Instructions__\nA detailed description of the entire application");

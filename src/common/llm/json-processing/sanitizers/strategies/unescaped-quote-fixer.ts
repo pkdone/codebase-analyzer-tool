@@ -5,6 +5,7 @@
 
 import type { LLMSanitizerConfig } from "../../../config/llm-module-config.types";
 import type { SanitizerStrategy, StrategyResult } from "../pipeline/sanitizer-pipeline.types";
+import { parsingHeuristics } from "../../constants/json-processing.config";
 
 /**
  * Strategy that escapes unescaped quotes in JSON string values.
@@ -27,7 +28,10 @@ export const unescapedQuoteFixer: SanitizerStrategy = {
       const matchIndex = sanitized.lastIndexOf(match);
       if (matchIndex === -1) return match;
 
-      const contextBefore = sanitized.substring(Math.max(0, matchIndex - 500), matchIndex);
+      const contextBefore = sanitized.substring(
+        Math.max(0, matchIndex - parsingHeuristics.CONTEXT_LOOKBACK_LENGTH),
+        matchIndex,
+      );
 
       const isInStringValue =
         /:\s*"[^"]*=/.test(contextBefore) ||
@@ -54,7 +58,10 @@ export const unescapedQuoteFixer: SanitizerStrategy = {
       escapedQuoteFollowedByUnescapedPattern,
       (match, _escapedQuote, after, offset: number, string: unknown) => {
         const stringStr = typeof string === "string" ? string : sanitized;
-        const contextBefore = stringStr.substring(Math.max(0, offset - 500), offset);
+        const contextBefore = stringStr.substring(
+          Math.max(0, offset - parsingHeuristics.CONTEXT_LOOKBACK_LENGTH),
+          offset,
+        );
 
         const isInStringValue =
           /:\s*"[^"]*`/.test(contextBefore) ||

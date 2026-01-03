@@ -9,16 +9,16 @@
 
 import { isInStringAt } from "../../utils/parser-context-utils";
 import { DiagnosticCollector } from "../../utils/diagnostic-collector";
-import { processingConfig } from "../../constants/json-processing.config";
+import {
+  processingConfig,
+  parsingHeuristics,
+} from "../../constants/json-processing.config";
 import type {
   ReplacementRule,
   ExecutorOptions,
   RuleExecutionResult,
   ContextInfo,
 } from "./replacement-rule.types";
-
-/** Default number of characters to look back for context */
-const DEFAULT_CONTEXT_LOOKBACK = 500;
 
 /** Default maximum number of passes for multi-pass execution */
 const DEFAULT_MAX_PASSES = 10;
@@ -38,7 +38,8 @@ function executeRule(
 ): { content: string; changed: boolean } {
   let hasChanges = false;
   const skipInString = rule.skipInString !== false; // Default to true
-  const contextLookback = rule.contextLookback ?? DEFAULT_CONTEXT_LOOKBACK;
+  const contextLookback =
+    rule.contextLookback ?? parsingHeuristics.CONTEXT_LOOKBACK_LENGTH;
 
   const result = content.replace(rule.pattern, (match: string, ...args: unknown[]) => {
     // Extract offset and groups from args
@@ -206,7 +207,7 @@ export function isAfterJsonDelimiter(context: ContextInfo): boolean {
   return (
     /[}\],]\s*$/.test(beforeMatch) ||
     /^\s*$/.test(beforeMatch) ||
-    offset < 100 ||
+    offset < parsingHeuristics.START_OF_FILE_OFFSET_LIMIT ||
     /,\s*\n\s*$/.test(beforeMatch)
   );
 }
@@ -225,7 +226,7 @@ export function isInPropertyContext(context: ContextInfo): boolean {
     /}\s*,\s*\n\s*$/.test(beforeMatch) ||
     /]\s*,\s*\n\s*$/.test(beforeMatch) ||
     /\n\s*$/.test(beforeMatch) ||
-    offset < 200
+    offset < parsingHeuristics.PROPERTY_CONTEXT_OFFSET_LIMIT
   );
 }
 

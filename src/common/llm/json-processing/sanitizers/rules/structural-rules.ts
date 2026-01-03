@@ -10,13 +10,18 @@
 
 import type { ReplacementRule, ContextInfo } from "./replacement-rule.types";
 import { isAfterJsonDelimiter, isInArrayContext } from "./rule-executor";
+import { parsingHeuristics } from "../../constants/json-processing.config";
 
 /**
  * Checks if a context is valid for structural fixes.
  */
 function isValidStructuralContext(context: ContextInfo): boolean {
   const { beforeMatch } = context;
-  return /[}\],]\s*$/.test(beforeMatch) || /^\s*$/.test(beforeMatch) || context.offset < 100;
+  return (
+    /[}\],]\s*$/.test(beforeMatch) ||
+    /^\s*$/.test(beforeMatch) ||
+    context.offset < parsingHeuristics.START_OF_FILE_OFFSET_LIMIT
+  );
 }
 
 /**
@@ -328,7 +333,7 @@ export const STRUCTURAL_RULES: readonly ReplacementRule[] = [
         /\[\s*[^\]]*$/.test(beforeMatch) ||
         /:\s*\[\s*[^\]]*$/.test(beforeMatch) ||
         /,\s*$/.test(beforeMatch);
-      if (!isValidContext && context.offset > 100) {
+      if (!isValidContext && context.offset > parsingHeuristics.START_OF_FILE_OFFSET_LIMIT) {
         return null;
       }
       const [bracket, property] = groups;

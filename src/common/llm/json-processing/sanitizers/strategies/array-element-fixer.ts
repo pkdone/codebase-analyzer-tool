@@ -7,7 +7,11 @@
 import type { LLMSanitizerConfig } from "../../../config/llm-module-config.types";
 import type { SanitizerStrategy, StrategyResult } from "../pipeline/sanitizer-pipeline.types";
 import { isInStringAt, isDirectlyInArrayContext } from "../../utils/parser-context-utils";
-import { processingConfig, JSON_KEYWORDS_SET } from "../../constants/json-processing.config";
+import {
+  processingConfig,
+  JSON_KEYWORDS_SET,
+  parsingHeuristics,
+} from "../../constants/json-processing.config";
 import { looksLikeDotSeparatedIdentifier } from "../../utils/property-name-matcher";
 import { DiagnosticCollector } from "../../utils/diagnostic-collector";
 
@@ -151,7 +155,10 @@ export const arrayElementFixer: SanitizerStrategy = {
           return match;
         }
 
-        const beforeMatch = sanitized.substring(Math.max(0, offset - 500), offset);
+        const beforeMatch = sanitized.substring(
+          Math.max(0, offset - parsingHeuristics.CONTEXT_LOOKBACK_LENGTH),
+          offset,
+        );
         const prevLineEnd = beforeMatch.trimEnd();
         const isAfterCommaOrBracket = prevLineEnd.endsWith(",") || prevLineEnd.endsWith("[");
 
@@ -239,7 +246,10 @@ export const arrayElementFixer: SanitizerStrategy = {
             hasChanges = true;
             diagnostics.add(`Fixed unquoted array element: ${elementStr} -> "${elementStr}"`);
 
-            const beforeMatch = sanitized.substring(Math.max(0, offset - 500), offset);
+            const beforeMatch = sanitized.substring(
+          Math.max(0, offset - parsingHeuristics.CONTEXT_LOOKBACK_LENGTH),
+          offset,
+        );
             const beforeTrimmed = beforeMatch.trim();
             // Only add comma if not after [ and not already after a comma
             const needsCommaBefore = !beforeTrimmed.endsWith("[") && !beforeTrimmed.endsWith(",");

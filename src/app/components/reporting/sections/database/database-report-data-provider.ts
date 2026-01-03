@@ -6,10 +6,7 @@ import { isComplexityLevel } from "./database.types";
 import { procedureTriggerSchema } from "../../../../schemas/sources.schema";
 import type { z } from "zod";
 import { logOneLineWarning } from "../../../../../common/utils/logging";
-
-// Constants for stored procedures and triggers
-const STORED_PROCEDURE_TYPE = "STORED PROCEDURE" as const;
-const TRIGGER_TYPE = "TRIGGER" as const;
+import { DATABASE_OBJECT_TYPE_LABELS } from "../../reporting.constants";
 
 // Define a more specific type for the items
 type ProcOrTrigItem = z.infer<typeof procedureTriggerSchema> & { filepath: string };
@@ -80,8 +77,14 @@ export class DatabaseReportDataProvider {
       }
     }
 
-    const procs = this.summarizeItemsByComplexity(allProcs, STORED_PROCEDURE_TYPE);
-    const trigs = this.summarizeItemsByComplexity(allTrigs, TRIGGER_TYPE);
+    const procs = this.summarizeItemsByComplexity(
+      allProcs,
+      DATABASE_OBJECT_TYPE_LABELS.STORED_PROCEDURE,
+    );
+    const trigs = this.summarizeItemsByComplexity(
+      allTrigs,
+      DATABASE_OBJECT_TYPE_LABELS.TRIGGER,
+    );
     return { procs, trigs };
   }
 
@@ -92,7 +95,9 @@ export class DatabaseReportDataProvider {
    */
   private summarizeItemsByComplexity(
     items: ProcOrTrigItem[],
-    type: typeof STORED_PROCEDURE_TYPE | typeof TRIGGER_TYPE,
+    type:
+      | typeof DATABASE_OBJECT_TYPE_LABELS.STORED_PROCEDURE
+      | typeof DATABASE_OBJECT_TYPE_LABELS.TRIGGER,
   ): ProcsAndTriggers["procs"] {
     return items.reduce(
       (acc, item) => {
@@ -136,7 +141,9 @@ export class DatabaseReportDataProvider {
    */
   private mapItemToReportFormat(
     item: ProcOrTrigItem,
-    type: typeof STORED_PROCEDURE_TYPE | typeof TRIGGER_TYPE,
+    type:
+      | typeof DATABASE_OBJECT_TYPE_LABELS.STORED_PROCEDURE
+      | typeof DATABASE_OBJECT_TYPE_LABELS.TRIGGER,
   ) {
     const complexity = this.normalizeComplexity(item.complexity, item.name);
 

@@ -7,7 +7,10 @@ import type { LLMSanitizerConfig } from "../../../config/llm-module-config.types
 import type { SanitizerStrategy, StrategyResult } from "../pipeline/sanitizer-pipeline.types";
 import { isInStringAt } from "../../utils/parser-context-utils";
 import { DiagnosticCollector } from "../../utils/diagnostic-collector";
-import { processingConfig } from "../../constants/json-processing.config";
+import {
+  processingConfig,
+  parsingHeuristics,
+} from "../../constants/json-processing.config";
 
 /**
  * Strategy that normalizes property assignment syntax in JSON.
@@ -179,7 +182,10 @@ export const assignmentSyntaxFixer: SanitizerStrategy = {
         const stringStr = typeof string === "string" ? string : sanitized;
 
         if (offsetNum !== undefined) {
-          const beforeMatch = stringStr.substring(Math.max(0, offsetNum - 500), offsetNum);
+          const beforeMatch = stringStr.substring(
+            Math.max(0, offsetNum - parsingHeuristics.CONTEXT_LOOKBACK_LENGTH),
+            offsetNum,
+          );
           let quoteCount = 0;
           let escape = false;
           for (const char of beforeMatch) {

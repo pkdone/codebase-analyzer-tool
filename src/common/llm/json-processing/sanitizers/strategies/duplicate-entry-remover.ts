@@ -6,6 +6,7 @@
 import type { LLMSanitizerConfig } from "../../../config/llm-module-config.types";
 import type { SanitizerStrategy, StrategyResult } from "../pipeline/sanitizer-pipeline.types";
 import { isInStringAt } from "../../utils/parser-context-utils";
+import { parsingHeuristics } from "../../constants/json-processing.config";
 
 /**
  * Strategy that removes duplicate and corrupted array entries.
@@ -31,7 +32,10 @@ export const duplicateEntryRemover: SanitizerStrategy = {
           return match;
         }
 
-        const beforeMatch = sanitized.substring(Math.max(0, offset - 100), offset);
+        const beforeMatch = sanitized.substring(
+          Math.max(0, offset - parsingHeuristics.START_OF_FILE_OFFSET_LIMIT),
+          offset,
+        );
         const isInArrayContext = /[[,]\s*$/.test(beforeMatch) || /,\s*\n\s*$/.test(beforeMatch);
         const prefixStr = typeof prefix === "string" ? prefix : "";
         const terminatorStr = typeof terminator === "string" ? terminator : "";
@@ -64,7 +68,10 @@ export const duplicateEntryRemover: SanitizerStrategy = {
           return match;
         }
 
-        const beforeMatch = sanitized.substring(Math.max(0, offset - 100), offset);
+        const beforeMatch = sanitized.substring(
+          Math.max(0, offset - parsingHeuristics.START_OF_FILE_OFFSET_LIMIT),
+          offset,
+        );
         const isInArrayContext = /[[,]\s*$/.test(beforeMatch) || /,\s*\n?\s*$/.test(beforeMatch);
 
         if (isInArrayContext) {

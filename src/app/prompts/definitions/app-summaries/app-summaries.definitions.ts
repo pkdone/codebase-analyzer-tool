@@ -8,7 +8,10 @@ import {
 } from "../../../schemas/app-summaries.schema";
 import { CATEGORY_LABELS } from "../../../config/category-labels.config";
 import { APP_SUMMARY_PROMPT_FRAGMENTS } from "./app-summaries.fragments";
-import { buildInstructionBlock } from "../instruction-utils";
+import {
+  buildInstructionBlock,
+  INSTRUCTION_SECTION_TITLES,
+} from "../instruction-utils";
 import { z } from "zod";
 import type { BasePromptConfigEntry } from "../../prompt.types";
 
@@ -54,7 +57,7 @@ export const appSummaryConfigMap = {
     contentDesc: "a set of source file summaries",
     instructions: [
       buildInstructionBlock(
-        "Instructions",
+        INSTRUCTION_SECTION_TITLES.INSTRUCTIONS,
         "a detailed description of the application's purpose and implementation",
       ),
     ] as const,
@@ -65,7 +68,7 @@ export const appSummaryConfigMap = {
     contentDesc: "a set of source file summaries",
     instructions: [
       buildInstructionBlock(
-        "Instructions",
+        INSTRUCTION_SECTION_TITLES.INSTRUCTIONS,
         `${APP_SUMMARY_PROMPT_FRAGMENTS.COMPREHENSIVE_LIST} of key external and host platform technologies (including the names of programming languages used) depended on by the application`,
       ),
     ] as const,
@@ -76,7 +79,7 @@ export const appSummaryConfigMap = {
     contentDesc: "a set of source file summaries",
     instructions: [
       buildInstructionBlock(
-        "Instructions",
+        INSTRUCTION_SECTION_TITLES.INSTRUCTIONS,
         `${APP_SUMMARY_PROMPT_FRAGMENTS.CONCISE_LIST} of the application's main business processes with their key business activity steps that are linearly conducted by each process`,
       ),
     ] as const,
@@ -87,7 +90,7 @@ export const appSummaryConfigMap = {
     contentDesc: "a set of source file summaries",
     instructions: [
       buildInstructionBlock(
-        "Instructions",
+        INSTRUCTION_SECTION_TITLES.INSTRUCTIONS,
         `${APP_SUMMARY_PROMPT_FRAGMENTS.CONCISE_LIST} of Domain-Driven Design Bounded Contexts that define explicit boundaries around related business capabilities. For each bounded context, include:
 1. Its aggregates that enforce business rules and maintain consistency
 2. For each aggregate, include:
@@ -104,7 +107,7 @@ This hierarchical structure ensures consistent naming across all domain elements
     contentDesc: "a set of source file summaries",
     instructions: [
       buildInstructionBlock(
-        "Instructions",
+        INSTRUCTION_SECTION_TITLES.INSTRUCTIONS,
         `${APP_SUMMARY_PROMPT_FRAGMENTS.CONCISE_LIST} of recommended microservices to modernize the monolithic application architecture, each following the Single Responsibility Principle with detailed domain entities, defined CRUD operations, and REST API endpoints`,
       ),
     ] as const,
@@ -115,7 +118,7 @@ This hierarchical structure ensures consistent naming across all domain elements
     contentDesc: "a set of source file summaries",
     instructions: [
       buildInstructionBlock(
-        "Instructions",
+        INSTRUCTION_SECTION_TITLES.INSTRUCTIONS,
         `${APP_SUMMARY_PROMPT_FRAGMENTS.CONCISE_LIST} of BUSINESS DOMAIN components inferred from the codebase.
 
 IMPORTANT: Identify components by their BUSINESS CAPABILITY, not by their technical layer.

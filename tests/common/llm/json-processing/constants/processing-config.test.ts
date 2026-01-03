@@ -3,6 +3,7 @@ import {
   sanitizationConfig,
   JSON_KEYWORDS,
   JSON_KEYWORDS_SET,
+  parsingHeuristics,
 } from "../../../../../src/common/llm/json-processing/constants/json-processing.config";
 
 describe("JSON Processing Configuration", () => {
@@ -30,11 +31,57 @@ describe("JSON Processing Configuration", () => {
     });
   });
 
+  describe("parsingHeuristics", () => {
+    it("should have CONTEXT_LOOKBACK_LENGTH defined", () => {
+      expect(parsingHeuristics.CONTEXT_LOOKBACK_LENGTH).toBeDefined();
+      expect(typeof parsingHeuristics.CONTEXT_LOOKBACK_LENGTH).toBe("number");
+      expect(parsingHeuristics.CONTEXT_LOOKBACK_LENGTH).toBe(500);
+      expect(parsingHeuristics.CONTEXT_LOOKBACK_LENGTH).toBeGreaterThan(0);
+    });
+
+    it("should have START_OF_FILE_OFFSET_LIMIT defined", () => {
+      expect(parsingHeuristics.START_OF_FILE_OFFSET_LIMIT).toBeDefined();
+      expect(typeof parsingHeuristics.START_OF_FILE_OFFSET_LIMIT).toBe("number");
+      expect(parsingHeuristics.START_OF_FILE_OFFSET_LIMIT).toBe(100);
+      expect(parsingHeuristics.START_OF_FILE_OFFSET_LIMIT).toBeGreaterThan(0);
+    });
+
+    it("should have PROPERTY_CONTEXT_OFFSET_LIMIT defined", () => {
+      expect(parsingHeuristics.PROPERTY_CONTEXT_OFFSET_LIMIT).toBeDefined();
+      expect(typeof parsingHeuristics.PROPERTY_CONTEXT_OFFSET_LIMIT).toBe("number");
+      expect(parsingHeuristics.PROPERTY_CONTEXT_OFFSET_LIMIT).toBe(200);
+      expect(parsingHeuristics.PROPERTY_CONTEXT_OFFSET_LIMIT).toBeGreaterThan(0);
+    });
+
+    it("should have parsingHeuristics as a frozen object", () => {
+      expect(Object.isFrozen(parsingHeuristics)).toBe(true);
+    });
+
+    it("should have CONTEXT_LOOKBACK_LENGTH greater than PROPERTY_CONTEXT_OFFSET_LIMIT", () => {
+      expect(parsingHeuristics.CONTEXT_LOOKBACK_LENGTH).toBeGreaterThan(
+        parsingHeuristics.PROPERTY_CONTEXT_OFFSET_LIMIT,
+      );
+    });
+
+    it("should have PROPERTY_CONTEXT_OFFSET_LIMIT greater than START_OF_FILE_OFFSET_LIMIT", () => {
+      expect(parsingHeuristics.PROPERTY_CONTEXT_OFFSET_LIMIT).toBeGreaterThan(
+        parsingHeuristics.START_OF_FILE_OFFSET_LIMIT,
+      );
+    });
+  });
+
   describe("sanitizationConfig", () => {
     it("should include processingConfig in sanitizationConfig.processing", () => {
       expect(sanitizationConfig.processing).toBeDefined();
       expect(sanitizationConfig.processing.MAX_DIAGNOSTICS_PER_STRATEGY).toBe(
         processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY,
+      );
+    });
+
+    it("should include parsingHeuristics in sanitizationConfig.parsing", () => {
+      expect(sanitizationConfig.parsing).toBeDefined();
+      expect(sanitizationConfig.parsing.CONTEXT_LOOKBACK_LENGTH).toBe(
+        parsingHeuristics.CONTEXT_LOOKBACK_LENGTH,
       );
     });
   });

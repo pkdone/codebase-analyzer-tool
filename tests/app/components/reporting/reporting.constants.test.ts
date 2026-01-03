@@ -1,4 +1,7 @@
-import { SECTION_NAMES } from "../../../../src/app/components/reporting/reporting.constants";
+import {
+  SECTION_NAMES,
+  DATABASE_OBJECT_TYPE_LABELS,
+} from "../../../../src/app/components/reporting/reporting.constants";
 
 describe("reporting.constants", () => {
   describe("SECTION_NAMES", () => {
@@ -29,6 +32,24 @@ describe("reporting.constants", () => {
       // Note: ReportDataKeys and ReportDataByKey were removed as unused code
       expect(SECTION_NAMES).toBeDefined();
       expect(typeof SECTION_NAMES).toBe("object");
+    });
+  });
+
+  describe("DATABASE_OBJECT_TYPE_LABELS", () => {
+    it("should be defined", () => {
+      expect(DATABASE_OBJECT_TYPE_LABELS).toBeDefined();
+    });
+
+    it("should have STORED_PROCEDURE", () => {
+      expect(DATABASE_OBJECT_TYPE_LABELS.STORED_PROCEDURE).toBe("STORED PROCEDURE");
+    });
+
+    it("should have TRIGGER", () => {
+      expect(DATABASE_OBJECT_TYPE_LABELS.TRIGGER).toBe("TRIGGER");
+    });
+
+    it("should have exactly 2 database object type labels", () => {
+      expect(Object.keys(DATABASE_OBJECT_TYPE_LABELS)).toHaveLength(2);
     });
   });
 

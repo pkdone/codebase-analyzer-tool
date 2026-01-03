@@ -25,6 +25,7 @@ export const INSTRUCTION_SECTION_TITLES = {
   DEPENDENCIES: "Dependencies",
   DATABASE_OBJECTS: "Database Objects",
   SCHEDULED_JOBS: "Scheduled Jobs",
+  INSTRUCTIONS: "Instructions",
 } as const;
 
 /**

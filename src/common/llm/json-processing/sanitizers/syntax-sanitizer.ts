@@ -4,7 +4,7 @@ import {
   SANITIZATION_STEP_TEMPLATE,
   SANITIZATION_STEP,
 } from "../constants/sanitization-steps.config";
-import { DELIMITERS } from "../constants/json-processing.config";
+import { DELIMITERS, parsingHeuristics } from "../constants/json-processing.config";
 import { isInArrayContext } from "../utils/parser-context-utils";
 
 /**
@@ -92,7 +92,10 @@ function addMissingCommasInternal(input: string): SanitizerResult {
         return match;
       }
 
-      const beforeMatch = sanitized.substring(Math.max(0, offsetNum - 500), offsetNum);
+      const beforeMatch = sanitized.substring(
+        Math.max(0, offsetNum - parsingHeuristics.CONTEXT_LOOKBACK_LENGTH),
+        offsetNum,
+      );
       let inStringCheck = false;
       let escapeCheck = false;
       let foundArray = false;
@@ -158,7 +161,10 @@ function addMissingCommasInternal(input: string): SanitizerResult {
         return match;
       }
 
-      const beforeMatch = sanitized.substring(Math.max(0, offsetNum - 500), offsetNum);
+      const beforeMatch = sanitized.substring(
+        Math.max(0, offsetNum - parsingHeuristics.CONTEXT_LOOKBACK_LENGTH),
+        offsetNum,
+      );
       let bracketDepth = 0;
       let braceDepth = 0;
       let inStringCheck = false;

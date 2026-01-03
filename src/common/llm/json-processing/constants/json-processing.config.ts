@@ -102,6 +102,32 @@ export const concatenationConfig = Object.freeze({
 });
 
 /**
+ * Parsing heuristic constants for JSON sanitization.
+ * These values control context lookback distances and offset thresholds
+ * used throughout the JSON processing pipeline for determining valid parsing contexts.
+ */
+export const parsingHeuristics = Object.freeze({
+  /**
+   * Default number of characters to look back when analyzing context.
+   * Used for determining if a match is in a valid JSON structural position.
+   */
+  CONTEXT_LOOKBACK_LENGTH: 500,
+
+  /**
+   * Offset threshold for start-of-file context checks.
+   * Matches near the beginning of the file (within this offset) are considered
+   * valid even without preceding delimiters.
+   */
+  START_OF_FILE_OFFSET_LIMIT: 100,
+
+  /**
+   * Offset threshold for property context checks.
+   * Used when determining if a match is in a property name/value context.
+   */
+  PROPERTY_CONTEXT_OFFSET_LIMIT: 200,
+});
+
+/**
  * General JSON processing limits and safety thresholds.
  */
 export const processingConfig = Object.freeze({
@@ -157,4 +183,5 @@ export const COMMON_INTRO_WORDS = Object.freeze(
 export const sanitizationConfig = Object.freeze({
   concatenation: concatenationConfig,
   processing: processingConfig,
+  parsing: parsingHeuristics,
 });

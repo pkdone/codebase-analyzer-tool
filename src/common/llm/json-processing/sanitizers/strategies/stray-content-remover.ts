@@ -8,7 +8,10 @@ import type { LLMSanitizerConfig } from "../../../config/llm-module-config.types
 import type { SanitizerStrategy, StrategyResult } from "../pipeline/sanitizer-pipeline.types";
 import { isInStringAt } from "../../utils/parser-context-utils";
 import { DiagnosticCollector } from "../../utils/diagnostic-collector";
-import { processingConfig } from "../../constants/json-processing.config";
+import {
+  processingConfig,
+  parsingHeuristics,
+} from "../../constants/json-processing.config";
 
 /**
  * Checks if a string looks like stray non-JSON text.
@@ -80,13 +83,16 @@ export const strayContentRemover: SanitizerStrategy = {
           return match;
         }
 
-        const beforeMatch = sanitized.substring(Math.max(0, offset - 200), offset);
+        const beforeMatch = sanitized.substring(
+          Math.max(0, offset - parsingHeuristics.PROPERTY_CONTEXT_OFFSET_LIMIT),
+          offset,
+        );
         const isPropertyContext =
           /[{,]\s*$/.test(beforeMatch) ||
           /}\s*,\s*\n\s*$/.test(beforeMatch) ||
           /]\s*,\s*\n\s*$/.test(beforeMatch) ||
           /\n\s*$/.test(beforeMatch) ||
-          offset < 200;
+          offset < parsingHeuristics.PROPERTY_CONTEXT_OFFSET_LIMIT;
 
         if (isPropertyContext) {
           const delimiterStr = typeof delimiter === "string" ? delimiter : "";
@@ -253,7 +259,10 @@ export const strayContentRemover: SanitizerStrategy = {
           return match;
         }
 
-        const beforeMatch = sanitized.substring(Math.max(0, offset - 200), offset);
+        const beforeMatch = sanitized.substring(
+          Math.max(0, offset - parsingHeuristics.PROPERTY_CONTEXT_OFFSET_LIMIT),
+          offset,
+        );
         const isPropertyContext =
           /[{,]\s*$/.test(beforeMatch) ||
           /}\s*,\s*\n\s*$/.test(beforeMatch) ||
@@ -261,7 +270,7 @@ export const strayContentRemover: SanitizerStrategy = {
           /\[\s*$/.test(beforeMatch) ||
           /\[\s*\n\s*$/.test(beforeMatch) ||
           /\n\s*$/.test(beforeMatch) ||
-          offset < 200;
+          offset < parsingHeuristics.PROPERTY_CONTEXT_OFFSET_LIMIT;
 
         if (isPropertyContext) {
           const delimiterStr = typeof delimiter === "string" ? delimiter : "";

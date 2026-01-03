@@ -1,5 +1,9 @@
 import { Sanitizer, SanitizerResult } from "./sanitizers-types";
-import { CODE_FENCE_MARKERS, COMMON_INTRO_WORDS } from "../constants/json-processing.config";
+import {
+  CODE_FENCE_MARKERS,
+  COMMON_INTRO_WORDS,
+  parsingHeuristics,
+} from "../constants/json-processing.config";
 import { CODE_FENCE_REGEXES } from "../constants/regex.constants";
 import { logOneLineWarning } from "../../../utils/logging";
 import { isInStringAt } from "../utils/parser-context-utils";
@@ -145,7 +149,8 @@ function removeInvalidPrefixesInternal(jsonString: string, diagnostics: string[]
     }
 
     const beforeMatch = sanitized.substring(Math.max(0, offset - 50), offset);
-    const isAfterValidDelimiter = /[}\],]\s*$/.test(beforeMatch) || offset < 100;
+    const isAfterValidDelimiter =
+      /[}\],]\s*$/.test(beforeMatch) || offset < parsingHeuristics.START_OF_FILE_OFFSET_LIMIT;
 
     if (isAfterValidDelimiter && wordStr.length > 3) {
       const lowerWord = wordStr.toLowerCase();
@@ -212,7 +217,10 @@ function removeInvalidPrefixesInternal(jsonString: string, diagnostics: string[]
       // Check if this looks like a missing opening brace situation
       // The pattern is: close object }, newline, possibly a stray char, then property name with missing leading quote
       // We need to verify we're in an array context by looking at the broader context
-      const beforeMatch = sanitized.substring(Math.max(0, offset - 500), offset);
+      const beforeMatch = sanitized.substring(
+        Math.max(0, offset - parsingHeuristics.CONTEXT_LOOKBACK_LENGTH),
+        offset,
+      );
       // A simpler check: look for an opening bracket without matching closer before the match
       const hasOpenArray =
         beforeMatch.includes("[") && beforeMatch.lastIndexOf("[") > beforeMatch.lastIndexOf("]");
@@ -244,7 +252,10 @@ function removeInvalidPrefixesInternal(jsonString: string, diagnostics: string[]
       const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
 
       // Verify we're in an array context
-      const beforeMatch = sanitized.substring(Math.max(0, offset - 500), offset);
+      const beforeMatch = sanitized.substring(
+        Math.max(0, offset - parsingHeuristics.CONTEXT_LOOKBACK_LENGTH),
+        offset,
+      );
       // A simpler check: look for an opening bracket without matching closer before the match
       const hasOpenArray =
         beforeMatch.includes("[") && beforeMatch.lastIndexOf("[") > beforeMatch.lastIndexOf("]");

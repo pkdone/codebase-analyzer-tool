@@ -6,7 +6,11 @@
 
 import type { LLMSanitizerConfig } from "../../../config/llm-module-config.types";
 import type { SanitizerStrategy, StrategyResult } from "../pipeline/sanitizer-pipeline.types";
-import { DELIMITERS, processingConfig } from "../../constants/json-processing.config";
+import {
+  DELIMITERS,
+  processingConfig,
+  parsingHeuristics,
+} from "../../constants/json-processing.config";
 import { isInStringAt } from "../../utils/parser-context-utils";
 import { DiagnosticCollector } from "../../utils/diagnostic-collector";
 import {
@@ -129,7 +133,10 @@ export const propertyNameFixer: SanitizerStrategy = {
 
           let isAfterPropertyBoundary = false;
           if (offset > 0) {
-            const beforeMatch = sanitized.substring(Math.max(0, offset - 200), offset);
+            const beforeMatch = sanitized.substring(
+              Math.max(0, offset - parsingHeuristics.PROPERTY_CONTEXT_OFFSET_LIMIT),
+              offset,
+            );
             isAfterPropertyBoundary =
               /[}\],]\s*$/.test(beforeMatch) || /[}\],]\s*\n\s*$/.test(beforeMatch);
           }
@@ -165,12 +172,15 @@ export const propertyNameFixer: SanitizerStrategy = {
           return match;
         }
 
-        const beforeMatch = sanitized.substring(Math.max(0, offset - 200), offset);
+        const beforeMatch = sanitized.substring(
+          Math.max(0, offset - parsingHeuristics.PROPERTY_CONTEXT_OFFSET_LIMIT),
+          offset,
+        );
         const isAfterPropertyBoundary =
           /[}\],]\s*$/.test(beforeMatch) ||
           /[}\],]\s*\n\s*$/.test(beforeMatch) ||
           /\n\s*$/.test(beforeMatch) ||
-          offset < 200;
+          offset < parsingHeuristics.PROPERTY_CONTEXT_OFFSET_LIMIT;
 
         if (isAfterPropertyBoundary) {
           const shortNameStr = typeof shortName === "string" ? shortName : "";
@@ -209,13 +219,16 @@ export const propertyNameFixer: SanitizerStrategy = {
           return match;
         }
 
-        const beforeMatch = sanitized.substring(Math.max(0, offset - 200), offset);
+        const beforeMatch = sanitized.substring(
+          Math.max(0, offset - parsingHeuristics.PROPERTY_CONTEXT_OFFSET_LIMIT),
+          offset,
+        );
         const isPropertyContext =
           /[{,]\s*$/.test(beforeMatch) ||
           /}\s*,\s*\n\s*$/.test(beforeMatch) ||
           /]\s*,\s*\n\s*$/.test(beforeMatch) ||
           /\n\s*$/.test(beforeMatch) ||
-          offset < 200;
+          offset < parsingHeuristics.PROPERTY_CONTEXT_OFFSET_LIMIT;
 
         if (isPropertyContext) {
           const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
@@ -280,7 +293,10 @@ export const propertyNameFixer: SanitizerStrategy = {
               /[{}\],][\s\n]*$/.test(beforeMatch) || /\[\s*$/.test(beforeMatch) || offset < 10;
 
             if (!isAfterPropertyBoundary) {
-              const largerContext = sanitized.substring(Math.max(0, offset - 200), offset);
+              const largerContext = sanitized.substring(
+                Math.max(0, offset - parsingHeuristics.PROPERTY_CONTEXT_OFFSET_LIMIT),
+                offset,
+              );
               let quoteCount = 0;
               let escape = false;
               for (const char of largerContext) {
@@ -326,7 +342,10 @@ export const propertyNameFixer: SanitizerStrategy = {
               /[}\],][\s\n]*$/.test(beforeMatch) || /\[\s*$/.test(beforeMatch);
 
             if (!isAfterPropertyBoundary && offset > 20) {
-              const largerContext = sanitized.substring(Math.max(0, offset - 200), offset);
+              const largerContext = sanitized.substring(
+                Math.max(0, offset - parsingHeuristics.PROPERTY_CONTEXT_OFFSET_LIMIT),
+                offset,
+              );
               let quoteCount = 0;
               let escape = false;
               for (const char of largerContext) {

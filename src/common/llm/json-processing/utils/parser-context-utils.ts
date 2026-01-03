@@ -3,6 +3,8 @@
  * These helpers are used by multiple sanitizers to determine parsing context.
  */
 
+import { parsingHeuristics } from "../constants/json-processing.config";
+
 /**
  * Result type for the replaceInContext helper function.
  */
@@ -58,7 +60,10 @@ export function isInStringAt(position: number, content: string): boolean {
  * @returns True if the position is inside an array
  */
 export function isInArrayContext(matchIndex: number, content: string): boolean {
-  const beforeMatch = content.substring(Math.max(0, matchIndex - 500), matchIndex);
+  const beforeMatch = content.substring(
+    Math.max(0, matchIndex - parsingHeuristics.CONTEXT_LOOKBACK_LENGTH),
+    matchIndex,
+  );
 
   let openBraces = 0;
   let openBrackets = 0;
@@ -115,7 +120,10 @@ export function isInArrayContext(matchIndex: number, content: string): boolean {
  * @returns True if the position is directly inside an array (not nested in an object)
  */
 export function isDirectlyInArrayContext(offset: number, content: string): boolean {
-  const beforeMatch = content.substring(Math.max(0, offset - 500), offset);
+  const beforeMatch = content.substring(
+    Math.max(0, offset - parsingHeuristics.CONTEXT_LOOKBACK_LENGTH),
+    offset,
+  );
   let bracketDepth = 0;
   let braceDepth = 0;
   let inString = false;
@@ -192,7 +200,10 @@ export function replaceInContext(
 
     // Apply additional context check if provided
     if (contextCheck) {
-      const beforeMatch = content.substring(Math.max(0, offset - 500), offset);
+      const beforeMatch = content.substring(
+        Math.max(0, offset - parsingHeuristics.CONTEXT_LOOKBACK_LENGTH),
+        offset,
+      );
       if (!contextCheck(beforeMatch)) {
         return match;
       }
