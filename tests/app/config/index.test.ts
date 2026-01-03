@@ -1,6 +1,6 @@
 import { databaseConfig } from "../../../src/app/components/database/database.config";
 import { fileProcessingConfig } from "../../../src/app/config/file-processing.config";
-import { EXTENSION_TO_TYPE_MAP } from "../../../src/app/components/capture/config/file-types.config";
+import { getCanonicalFileType } from "../../../src/app/components/capture/config/file-types.config";
 import { outputConfig } from "../../../src/app/config/output.config";
 
 describe("individual config modules", () => {
@@ -17,9 +17,9 @@ describe("individual config modules", () => {
   });
 
   it("file type mapping should include java type in extension map", () => {
-    expect(EXTENSION_TO_TYPE_MAP.java).toBe("java");
-    expect(EXTENSION_TO_TYPE_MAP.kt).toBe("java");
-    expect(EXTENSION_TO_TYPE_MAP.kts).toBe("java");
+    expect(getCanonicalFileType("/path/to/file.java", "java")).toBe("java");
+    expect(getCanonicalFileType("/path/to/file.kt", "kt")).toBe("java");
+    expect(getCanonicalFileType("/path/to/file.kts", "kts")).toBe("java");
   });
 
   it("outputConfig should expose output directory", () => {

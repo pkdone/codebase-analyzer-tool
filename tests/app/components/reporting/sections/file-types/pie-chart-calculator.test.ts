@@ -4,59 +4,11 @@
 
 import {
   calculatePieChartData,
-  describeArc,
-  getSliceColor,
   type FileTypeData,
 } from "../../../../../../src/app/components/reporting/sections/file-types/pie-chart-calculator";
 import { visualizationConfig } from "../../../../../../src/app/components/reporting/generators/visualization.config";
 
 describe("pie-chart-calculator", () => {
-  describe("getSliceColor", () => {
-    it("should return colors from the predefined palette for initial indices", () => {
-      const colors = visualizationConfig.pieChart.COLORS;
-      for (let i = 0; i < colors.length; i++) {
-        expect(getSliceColor(i)).toBe(colors[i]);
-      }
-    });
-
-    it("should generate HSL colors for indices beyond the palette", () => {
-      const paletteSize = visualizationConfig.pieChart.COLORS.length;
-      const color = getSliceColor(paletteSize);
-      expect(color).toMatch(/^hsl\(\d+(\.\d+)?, 65%, 50%\)$/);
-    });
-
-    it("should generate different colors for consecutive indices beyond palette", () => {
-      const paletteSize = visualizationConfig.pieChart.COLORS.length;
-      const color1 = getSliceColor(paletteSize);
-      const color2 = getSliceColor(paletteSize + 1);
-      expect(color1).not.toBe(color2);
-    });
-  });
-
-  describe("describeArc", () => {
-    it("should return valid SVG path for a quarter circle", () => {
-      const path = describeArc(100, 100, 50, 0, Math.PI / 2);
-      expect(path).toContain("M 100 100"); // Start at center
-      expect(path).toContain("L 150 100"); // Line to start point
-      expect(path).toContain("A 50 50"); // Arc with radius
-      expect(path).toContain("Z"); // Close path
-    });
-
-    it("should set large arc flag for angles > π", () => {
-      // Arc greater than half circle
-      const path = describeArc(100, 100, 50, 0, Math.PI * 1.5);
-      // Large arc flag should be 1 for angles > π
-      expect(path).toMatch(/A 50 50 0 1 1/);
-    });
-
-    it("should not set large arc flag for angles < π", () => {
-      // Arc less than half circle
-      const path = describeArc(100, 100, 50, 0, Math.PI / 2);
-      // Large arc flag should be 0 for angles < π
-      expect(path).toMatch(/A 50 50 0 0 1/);
-    });
-  });
-
   describe("calculatePieChartData", () => {
     it("should return empty slices array for empty input", () => {
       const result = calculatePieChartData([]);
@@ -92,6 +44,19 @@ describe("pie-chart-calculator", () => {
       const result = calculatePieChartData(data);
       expect(result.slices[0].color).toBe(visualizationConfig.pieChart.COLORS[0]);
       expect(result.slices[1].color).toBe(visualizationConfig.pieChart.COLORS[1]);
+    });
+
+    it("should generate HSL colors for slices beyond the palette", () => {
+      const paletteSize = visualizationConfig.pieChart.COLORS.length;
+      const data: FileTypeData[] = Array(paletteSize + 2)
+        .fill(null)
+        .map((_, i) => ({ fileType: `type${i}`, files: 10, lines: 100 }));
+      const result = calculatePieChartData(data);
+      // Colors beyond palette should be HSL format
+      expect(result.slices[paletteSize].color).toMatch(/^hsl\(\d+(\.\d+)?, 65%, 50%\)$/);
+      expect(result.slices[paletteSize + 1].color).toMatch(/^hsl\(\d+(\.\d+)?, 65%, 50%\)$/);
+      // Consecutive indices should have different colors
+      expect(result.slices[paletteSize].color).not.toBe(result.slices[paletteSize + 1].color);
     });
 
     it("should generate path data for each slice", () => {

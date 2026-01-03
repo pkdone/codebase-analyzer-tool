@@ -1,60 +1,59 @@
 import {
-  formatCell,
-  formatArrayValue,
-  formatPrimitiveValue,
   formatRow,
   type ProcessedListItem,
 } from "../../../../../src/app/components/reporting/formatters/table-data-formatter";
 
 describe("TableDataFormatter", () => {
-  describe("formatCell()", () => {
+  describe("formatRow() - formatCell() integration", () => {
     describe("basic types", () => {
       it("should format string values as text", () => {
-        const result = formatCell("message", "Hello World");
-        expect(result).toEqual({
+        const result = formatRow(["message"], { message: "Hello World" });
+        expect(result[0]).toEqual({
           type: "text",
           content: "Hello World",
         });
       });
 
       it("should format number values as text", () => {
-        const result = formatCell("count", 42);
-        expect(result).toEqual({
+        const result = formatRow(["count"], { count: 42 });
+        expect(result[0]).toEqual({
           type: "text",
           content: "42",
         });
       });
 
       it("should format boolean values as text", () => {
-        expect(formatCell("isActive", true)).toEqual({
+        const result1 = formatRow(["isActive"], { isActive: true });
+        expect(result1[0]).toEqual({
           type: "text",
           content: "true",
         });
-        expect(formatCell("isComplete", false)).toEqual({
+        const result2 = formatRow(["isComplete"], { isComplete: false });
+        expect(result2[0]).toEqual({
           type: "text",
           content: "false",
         });
       });
 
       it("should format null values as empty text", () => {
-        const result = formatCell("nullField", null);
-        expect(result).toEqual({
+        const result = formatRow(["nullField"], { nullField: null });
+        expect(result[0]).toEqual({
           type: "text",
           content: "",
         });
       });
 
       it("should format undefined values as empty text", () => {
-        const result = formatCell("undefinedField", undefined);
-        expect(result).toEqual({
+        const result = formatRow(["undefinedField"], {});
+        expect(result[0]).toEqual({
           type: "text",
           content: "",
         });
       });
 
       it("should format object values as JSON string", () => {
-        const result = formatCell("config", { timeout: 5000, retries: 3 });
-        expect(result).toEqual({
+        const result = formatRow(["config"], { config: { timeout: 5000, retries: 3 } });
+        expect(result[0]).toEqual({
           type: "text",
           content: '{"timeout":5000,"retries":3}',
         });
@@ -63,32 +62,32 @@ describe("TableDataFormatter", () => {
 
     describe("special field types", () => {
       it("should format link fields as link type", () => {
-        const result = formatCell("link", "https://example.com");
-        expect(result).toEqual({
+        const result = formatRow(["link"], { link: "https://example.com" });
+        expect(result[0]).toEqual({
           type: "link",
           content: "https://example.com",
         });
       });
 
       it("should format codeExample fields as code type", () => {
-        const result = formatCell("codeExample", "const x = 5;");
-        expect(result).toEqual({
+        const result = formatRow(["codeExample"], { codeExample: "const x = 5;" });
+        expect(result[0]).toEqual({
           type: "code",
           content: "const x = 5;",
         });
       });
 
       it("should format non-string link fields as text", () => {
-        const result = formatCell("link", 12345);
-        expect(result).toEqual({
+        const result = formatRow(["link"], { link: 12345 });
+        expect(result[0]).toEqual({
           type: "text",
           content: "12345",
         });
       });
 
       it("should format non-string codeExample fields as text", () => {
-        const result = formatCell("codeExample", { code: "const x = 5;" });
-        expect(result).toEqual({
+        const result = formatRow(["codeExample"], { codeExample: { code: "const x = 5;" } });
+        expect(result[0]).toEqual({
           type: "text",
           content: '{"code":"const x = 5;"}',
         });
@@ -97,16 +96,16 @@ describe("TableDataFormatter", () => {
 
     describe("array handling", () => {
       it("should format empty arrays as empty list", () => {
-        const result = formatCell("items", []);
-        expect(result).toEqual({
+        const result = formatRow(["items"], { items: [] });
+        expect(result[0]).toEqual({
           type: "list",
           content: [],
         });
       });
 
       it("should format arrays with primitive values as list", () => {
-        const result = formatCell("tags", ["typescript", "testing", "jest"]);
-        expect(result).toEqual({
+        const result = formatRow(["tags"], { tags: ["typescript", "testing", "jest"] });
+        expect(result[0]).toEqual({
           type: "list",
           content: [
             { type: "primitive", content: "typescript" },
@@ -117,12 +116,14 @@ describe("TableDataFormatter", () => {
       });
 
       it("should format arrays with object values as list", () => {
-        const result = formatCell("users", [
-          { firstName: "John", lastName: "Doe" },
-          { firstName: "Jane", lastName: "Smith" },
-        ]);
-        expect(result.type).toBe("list");
-        const content = result.content as ProcessedListItem[];
+        const result = formatRow(["users"], {
+          users: [
+            { firstName: "John", lastName: "Doe" },
+            { firstName: "Jane", lastName: "Smith" },
+          ],
+        });
+        expect(result[0].type).toBe("list");
+        const content = result[0].content as ProcessedListItem[];
         expect(content).toHaveLength(2);
         expect(content[0].type).toBe("object");
         expect(content[0].content).toEqual({
@@ -130,118 +131,56 @@ describe("TableDataFormatter", () => {
           "Last Name": "Doe",
         });
       });
-    });
-  });
 
-  describe("formatArrayValue()", () => {
-    it("should handle string values", () => {
-      const result = formatArrayValue(["one", "two", "three"]);
-      expect(result).toEqual([
-        { type: "primitive", content: "one" },
-        { type: "primitive", content: "two" },
-        { type: "primitive", content: "three" },
-      ]);
-    });
-
-    it("should handle number values", () => {
-      const result = formatArrayValue([1, 2, 3]);
-      expect(result).toEqual([
-        { type: "primitive", content: "1" },
-        { type: "primitive", content: "2" },
-        { type: "primitive", content: "3" },
-      ]);
-    });
-
-    it("should handle mixed arrays", () => {
-      const result = formatArrayValue(["string", 42, { key: "value" }, null]);
-      expect(result).toEqual([
-        { type: "primitive", content: "string" },
-        { type: "primitive", content: "42" },
-        { type: "object", content: { Key: "value" } },
-        { type: "primitive", content: "" },
-      ]);
-    });
-
-    it("should handle nested objects in arrays with null/undefined values", () => {
-      const result = formatArrayValue([
-        { name: "Item 1", value: null, active: true },
-        { name: "Item 2", value: undefined, active: false },
-      ]);
-      expect(result).toEqual([
-        {
-          type: "object",
-          content: {
-            Name: "Item 1",
-            Value: "null",
-            Active: "true",
+      it("should handle nested objects in arrays with null/undefined values", () => {
+        const result = formatRow(["items"], {
+          items: [
+            { name: "Item 1", value: null, active: true },
+            { name: "Item 2", value: undefined, active: false },
+          ],
+        });
+        const content = result[0].content as ProcessedListItem[];
+        expect(content).toEqual([
+          {
+            type: "object",
+            content: {
+              Name: "Item 1",
+              Value: "null",
+              Active: "true",
+            },
           },
-        },
-        {
-          type: "object",
-          content: {
-            Name: "Item 2",
-            Value: "undefined",
-            Active: "false",
+          {
+            type: "object",
+            content: {
+              Name: "Item 2",
+              Value: "undefined",
+              Active: "false",
+            },
           },
-        },
-      ]);
-    });
+        ]);
+      });
 
-    it("should handle Date objects by stringifying them", () => {
-      const testDate = new Date("2024-01-15T10:30:00Z");
-      const result = formatArrayValue([testDate, "2024-01-16", null]);
-      expect(result[0].type).toBe("primitive");
-      expect(result[0].content).toBe(JSON.stringify(testDate));
-      expect(result[1].content).toBe("2024-01-16");
-      expect(result[2].content).toBe("");
-    });
+      it("should handle Date objects by stringifying them", () => {
+        const testDate = new Date("2024-01-15T10:30:00Z");
+        const result = formatRow(["dates"], { dates: [testDate, "2024-01-16", null] });
+        const content = result[0].content as ProcessedListItem[];
+        expect(content[0].type).toBe("primitive");
+        expect(content[0].content).toBe(JSON.stringify(testDate));
+        expect(content[1].content).toBe("2024-01-16");
+        expect(content[2].content).toBe("");
+      });
 
-    it("should handle non-plain objects by stringifying them", () => {
-      class CustomClass {
-        constructor(public value: string) {}
-      }
-      const customInstance = new CustomClass("test");
-      const result = formatArrayValue([customInstance, { plain: "object" }]);
-      expect(result[0].type).toBe("primitive");
-      expect(result[0].content).toBe(JSON.stringify(customInstance));
-      expect(result[1].type).toBe("object");
-    });
-  });
-
-  describe("formatPrimitiveValue()", () => {
-    it("should format strings", () => {
-      expect(formatPrimitiveValue("hello")).toBe("hello");
-    });
-
-    it("should format numbers", () => {
-      expect(formatPrimitiveValue(42)).toBe("42");
-      expect(formatPrimitiveValue(3.14)).toBe("3.14");
-    });
-
-    it("should format booleans", () => {
-      expect(formatPrimitiveValue(true)).toBe("true");
-      expect(formatPrimitiveValue(false)).toBe("false");
-    });
-
-    it("should format null as empty string", () => {
-      expect(formatPrimitiveValue(null)).toBe("");
-    });
-
-    it("should format undefined as empty string", () => {
-      expect(formatPrimitiveValue(undefined)).toBe("");
-    });
-
-    it("should stringify objects", () => {
-      expect(formatPrimitiveValue({ key: "value" })).toBe('{"key":"value"}');
-    });
-
-    it("should stringify bigint", () => {
-      expect(formatPrimitiveValue(BigInt(123))).toBe("123");
-    });
-
-    it("should stringify symbols", () => {
-      const sym = Symbol("test");
-      expect(formatPrimitiveValue(sym)).toBe("Symbol(test)");
+      it("should handle non-plain objects by stringifying them", () => {
+        class CustomClass {
+          constructor(public value: string) {}
+        }
+        const customInstance = new CustomClass("test");
+        const result = formatRow(["items"], { items: [customInstance, { plain: "object" }] });
+        const content = result[0].content as ProcessedListItem[];
+        expect(content[0].type).toBe("primitive");
+        expect(content[0].content).toBe(JSON.stringify(customInstance));
+        expect(content[1].type).toBe("object");
+      });
     });
   });
 

@@ -2,7 +2,7 @@ import "reflect-metadata";
 import { promptManager } from "../../../../src/app/prompts/prompt-registry";
 const fileTypePromptMetadata = promptManager.sources;
 import { PromptDefinition } from "../../../../src/app/prompts/prompt.types";
-import { FILE_TYPE_MAPPING_RULES } from "../../../../src/app/components/capture/config/file-types.config";
+import { getCanonicalFileType } from "../../../../src/app/components/capture/config/file-types.config";
 import { sourceSummarySchema } from "../../../../src/app/schemas/sources.schema";
 import { SourceSummaryType } from "../../../../src/app/components/capture/file-summarizer.service";
 
@@ -147,10 +147,20 @@ describe("File Handler Configuration", () => {
 
   describe("Integration between file suffix mappings and prompt templates", () => {
     test("should have corresponding prompt templates for all canonical types", () => {
-      // Get all unique canonical types from the mapping rules
-      const canonicalTypes = new Set<
-        import("../../../../src/app/components/capture/config/file-types.config").CanonicalFileType
-      >(FILE_TYPE_MAPPING_RULES.map((rule) => rule.type));
+      // Get all unique canonical types by testing various file types
+      const testFileTypes = [
+        { path: "/path/to/file.java", ext: "java" },
+        { path: "/path/to/file.ts", ext: "ts" },
+        { path: "/path/to/file.py", ext: "py" },
+        { path: "/path/to/file.rb", ext: "rb" },
+        { path: "/path/to/pom.xml", ext: "xml" },
+        { path: "/path/to/package.json", ext: "json" },
+        { path: "/path/to/readme.md", ext: "md" },
+        { path: "/path/to/unknown.xyz", ext: "xyz" },
+      ];
+      const canonicalTypes = new Set(
+        testFileTypes.map(({ path, ext }) => getCanonicalFileType(path, ext)),
+      );
 
       for (const canonicalType of canonicalTypes) {
         expect(fileTypePromptMetadata).toHaveProperty(canonicalType);
@@ -161,11 +171,7 @@ describe("File Handler Configuration", () => {
       // Test that unknown suffix maps to default
       const unknownSuffix = "unknown";
       const filename = "test.unknown";
-      // Find matching rule for unknown extension
-      const matchingRule = FILE_TYPE_MAPPING_RULES.find((rule) =>
-        rule.test(filename, unknownSuffix),
-      );
-      const canonicalType = matchingRule?.type ?? "default";
+      const canonicalType = getCanonicalFileType(filename, unknownSuffix);
 
       expect(canonicalType).toBe("default");
       expect(fileTypePromptMetadata).toHaveProperty("default");

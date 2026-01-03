@@ -15,7 +15,7 @@ export interface TriggerTypePattern {
  * More specific patterns (e.g., "task-scheduler") must come before broader patterns (e.g., "scheduled").
  * This approach makes it easy to add, remove, or reorder trigger patterns.
  */
-export const TRIGGER_TYPE_PATTERNS: readonly TriggerTypePattern[] = [
+const TRIGGER_TYPE_PATTERNS: readonly TriggerTypePattern[] = [
   { match: (s) => s.startsWith("cron"), type: "cron" },
   { match: (s) => s.includes("task scheduler") || s.includes("schtasks"), type: "task-scheduler" },
   { match: (s) => s.includes("scheduled") || s.includes("schedule"), type: "scheduled" },

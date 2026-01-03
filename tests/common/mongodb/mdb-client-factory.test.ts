@@ -181,8 +181,8 @@ describe("MongoDBConnectionManager", () => {
     });
   });
 
-  describe("closeAll", () => {
-    test("closes all connected clients", async () => {
+  describe("shutdown", () => {
+    test("shuts down all connected clients", async () => {
       const clients = [
         { id: "client1", url: "mongodb://localhost:27017/db1" },
         { id: "client2", url: "mongodb://localhost:27018/db2" },
@@ -210,7 +210,7 @@ describe("MongoDBConnectionManager", () => {
         await connectionManager.connect(id, url);
       }
 
-      await connectionManager.closeAll();
+      await connectionManager.shutdown();
 
       // Each client should have been closed
       closeSpies.forEach((spy) => {
@@ -238,7 +238,7 @@ describe("MongoDBConnectionManager", () => {
       // Mock close to throw an error by replacing the close method after connection
       client.close = jest.fn().mockRejectedValue(closeError);
 
-      await connectionManager.closeAll();
+      await connectionManager.shutdown();
 
       expect(mockLogOneLineError).toHaveBeenCalledWith(
         `Error closing MongoDB client '${id}'`,
@@ -268,7 +268,7 @@ describe("MongoDBConnectionManager", () => {
         await connectionManager.connect(id, url);
       }
 
-      await connectionManager.closeAll();
+      await connectionManager.shutdown();
 
       // All clients should still be removed from connection manager despite errors
       clients.forEach(({ id }) => {
@@ -277,7 +277,7 @@ describe("MongoDBConnectionManager", () => {
     });
 
     test("handles empty client list", async () => {
-      await connectionManager.closeAll();
+      await connectionManager.shutdown();
 
       // Should not attempt to close any clients
       expect(mockConsoleLog).not.toHaveBeenCalled();
@@ -317,7 +317,7 @@ describe("MongoDBConnectionManager", () => {
       expect(secondaryClient).toBe(clients[1]);
 
       // Close all
-      await connectionManager.closeAll();
+      await connectionManager.shutdown();
 
       // Verify all clients are removed
       connections.forEach(({ id }) => {

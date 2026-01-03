@@ -1,9 +1,7 @@
 import {
   CANONICAL_FILE_TYPES,
   canonicalFileTypeSchema,
-  FILE_TYPE_MAPPING_RULES,
-  FILENAME_TO_TYPE_MAP,
-  EXTENSION_TO_TYPE_MAP,
+  getCanonicalFileType,
   type CanonicalFileType,
 } from "../../../src/app/components/capture/config/file-types.config";
 
@@ -97,135 +95,75 @@ describe("file-types.config", () => {
     });
   });
 
-  describe("FILE_TYPE_MAPPING_RULES", () => {
-    it("should be defined as a readonly array", () => {
-      expect(FILE_TYPE_MAPPING_RULES).toBeDefined();
-      expect(Array.isArray(FILE_TYPE_MAPPING_RULES)).toBe(true);
-      expect(FILE_TYPE_MAPPING_RULES.length).toBeGreaterThan(0);
+  describe("getCanonicalFileType", () => {
+    it("should match exact filename mappings", () => {
+      expect(getCanonicalFileType("/path/to/pom.xml", "xml")).toBe("maven");
+      expect(getCanonicalFileType("/path/to/package.json", "json")).toBe("npm");
+      expect(getCanonicalFileType("/path/to/build.gradle", "gradle")).toBe("gradle");
+      expect(getCanonicalFileType("/path/to/build.gradle.kts", "kts")).toBe("gradle");
     });
 
-    it("should have rules with test function and type", () => {
-      for (const rule of FILE_TYPE_MAPPING_RULES) {
-        expect(rule).toHaveProperty("test");
-        expect(rule).toHaveProperty("type");
-        expect(typeof rule.test).toBe("function");
-        expect(CANONICAL_FILE_TYPES).toContain(rule.type);
-      }
+    it("should match extension-based mappings", () => {
+      expect(getCanonicalFileType("/path/to/file.java", "java")).toBe("java");
+      expect(getCanonicalFileType("/path/to/file.kt", "kt")).toBe("java");
+      expect(getCanonicalFileType("/path/to/file.ts", "ts")).toBe("javascript");
+      expect(getCanonicalFileType("/path/to/file.py", "py")).toBe("python");
+      expect(getCanonicalFileType("/path/to/file.rb", "rb")).toBe("ruby");
     });
 
-    it("should have default rule as the last rule", () => {
-      const lastRule = FILE_TYPE_MAPPING_RULES[FILE_TYPE_MAPPING_RULES.length - 1];
-      expect(lastRule.type).toBe("default");
-      expect(lastRule.test("any", "ext")).toBe(true);
+    it("should match C language extensions", () => {
+      expect(getCanonicalFileType("/path/to/file.c", "c")).toBe("c");
+      expect(getCanonicalFileType("/path/to/file.h", "h")).toBe("c");
     });
 
-    it("should match filename-based mappings correctly", () => {
-      // Test exact filename matches in FILENAME_TO_TYPE_MAP
-      expect(FILENAME_TO_TYPE_MAP["pom.xml"]).toBe("maven");
-      expect(FILENAME_TO_TYPE_MAP["package.json"]).toBe("npm");
-      expect(FILENAME_TO_TYPE_MAP["build.gradle"]).toBe("gradle");
-
-      // Test pattern-based rules in FILE_TYPE_MAPPING_RULES (readme*, license*, changelog*)
-      const readmeRule = FILE_TYPE_MAPPING_RULES.find(
-        (r) => r.type === "markdown" && r.test("readme", ""),
-      );
-      expect(readmeRule).toBeDefined();
-      expect(readmeRule?.test("readme", "")).toBe(true);
-      expect(readmeRule?.test("readme.md", "md")).toBe(true);
-      expect(readmeRule?.test("other.md", "md")).toBe(false);
+    it("should match C++ language extensions", () => {
+      expect(getCanonicalFileType("/path/to/file.cpp", "cpp")).toBe("cpp");
+      expect(getCanonicalFileType("/path/to/file.cxx", "cxx")).toBe("cpp");
+      expect(getCanonicalFileType("/path/to/file.cc", "cc")).toBe("cpp");
+      expect(getCanonicalFileType("/path/to/file.hpp", "hpp")).toBe("cpp");
     });
 
-    it("should match extension-based mappings correctly", () => {
-      // Test extension mappings in EXTENSION_TO_TYPE_MAP
-      expect(EXTENSION_TO_TYPE_MAP.java).toBe("java");
-      expect(EXTENSION_TO_TYPE_MAP.kt).toBe("java");
-      expect(EXTENSION_TO_TYPE_MAP.kts).toBe("java");
-      expect(EXTENSION_TO_TYPE_MAP.ts).toBe("javascript");
-      expect(EXTENSION_TO_TYPE_MAP.ts).toBe("javascript");
-      expect(EXTENSION_TO_TYPE_MAP.py).toBe("python");
+    it("should match C/C++ build file filenames", () => {
+      expect(getCanonicalFileType("/path/to/CMakeLists.txt", "txt")).toBe("makefile");
+      expect(getCanonicalFileType("/path/to/Makefile", "")).toBe("makefile");
+      expect(getCanonicalFileType("/path/to/GNUmakefile", "")).toBe("makefile");
+      expect(getCanonicalFileType("/path/to/configure.ac", "ac")).toBe("makefile");
+      expect(getCanonicalFileType("/path/to/configure.in", "in")).toBe("makefile");
     });
 
-    it("should match C language extension mappings correctly", () => {
-      expect(EXTENSION_TO_TYPE_MAP.c).toBe("c");
-      expect(EXTENSION_TO_TYPE_MAP.h).toBe("c");
+    it("should match pattern-based rules (readme*, license*, changelog*)", () => {
+      expect(getCanonicalFileType("/path/to/readme", "")).toBe("markdown");
+      expect(getCanonicalFileType("/path/to/readme.md", "md")).toBe("markdown");
+      expect(getCanonicalFileType("/path/to/license", "")).toBe("markdown");
+      expect(getCanonicalFileType("/path/to/license.txt", "txt")).toBe("markdown");
+      expect(getCanonicalFileType("/path/to/changelog", "")).toBe("markdown");
+      expect(getCanonicalFileType("/path/to/changelog.md", "md")).toBe("markdown");
     });
 
-    it("should match C++ language extension mappings correctly", () => {
-      expect(EXTENSION_TO_TYPE_MAP.cpp).toBe("cpp");
-      expect(EXTENSION_TO_TYPE_MAP.cxx).toBe("cpp");
-      expect(EXTENSION_TO_TYPE_MAP.cc).toBe("cpp");
-      expect(EXTENSION_TO_TYPE_MAP.hpp).toBe("cpp");
-      expect(EXTENSION_TO_TYPE_MAP.hh).toBe("cpp");
-      expect(EXTENSION_TO_TYPE_MAP.hxx).toBe("cpp");
-    });
-
-    it("should match C/C++ build file filename mappings correctly", () => {
-      expect(FILENAME_TO_TYPE_MAP["cmakelists.txt"]).toBe("makefile");
-      expect(FILENAME_TO_TYPE_MAP.makefile).toBe("makefile");
-      expect(FILENAME_TO_TYPE_MAP.gnumakefile).toBe("makefile");
-    });
-
-    it("should match Autotools config file filename mappings correctly", () => {
-      expect(FILENAME_TO_TYPE_MAP["configure.ac"]).toBe("makefile");
-      expect(FILENAME_TO_TYPE_MAP["configure.in"]).toBe("makefile");
-    });
-
-    it("should match Makefile.* patterns correctly via rules", () => {
-      // Test pattern-based rules for Makefile variants
-      const makefileRule = FILE_TYPE_MAPPING_RULES.find((r) => r.test("makefile.am", "am"));
-      expect(makefileRule?.type).toBe("makefile");
-
-      const makefileInRule = FILE_TYPE_MAPPING_RULES.find((r) => r.test("makefile.in", "in"));
-      expect(makefileInRule?.type).toBe("makefile");
-
-      // Ensure non-makefile files don't match the rule
-      const nonMakefileRule = FILE_TYPE_MAPPING_RULES.find(
-        (r) => r.type === "makefile" && r.test("somefile.am", "am"),
-      );
-      expect(nonMakefileRule).toBeUndefined();
+    it("should match Makefile.* patterns", () => {
+      expect(getCanonicalFileType("/path/to/Makefile.am", "am")).toBe("makefile");
+      expect(getCanonicalFileType("/path/to/Makefile.in", "in")).toBe("makefile");
     });
 
     it("should prioritize filename mappings over extension mappings", () => {
-      // pom.xml should match maven in FILENAME_TO_TYPE_MAP (not xml extension)
-      expect(FILENAME_TO_TYPE_MAP["pom.xml"]).toBe("maven");
+      // pom.xml should match maven (filename) not xml (extension)
+      expect(getCanonicalFileType("/path/to/pom.xml", "xml")).toBe("maven");
       // Other .xml files should match xml extension
-      expect(EXTENSION_TO_TYPE_MAP.xml).toBe("xml");
+      expect(getCanonicalFileType("/path/to/config.xml", "xml")).toBe("xml");
     });
 
-    it("should handle all file types from CANONICAL_FILE_TYPES", () => {
-      const typesInRules = new Set(FILE_TYPE_MAPPING_RULES.map((r) => r.type));
-
-      // All types in rules should be valid canonical types
-      for (const type of typesInRules) {
-        expect(CANONICAL_FILE_TYPES).toContain(type);
-      }
-
-      // Default should always be present
-      expect(typesInRules.has("default")).toBe(true);
+    it("should return default for unknown files", () => {
+      expect(getCanonicalFileType("/path/to/unknown.xyz", "xyz")).toBe("default");
+      expect(getCanonicalFileType("/path/to/file", "")).toBe("default");
     });
 
-    it("should match real-world file examples correctly", () => {
-      // Test exact filename matches
-      expect(FILENAME_TO_TYPE_MAP["pom.xml"]).toBe("maven");
-      expect(FILENAME_TO_TYPE_MAP["build.gradle"]).toBe("gradle");
-      expect(FILENAME_TO_TYPE_MAP["package.json"]).toBe("npm");
-
-      // Test extension matches
-      expect(EXTENSION_TO_TYPE_MAP.java).toBe("java");
-      expect(EXTENSION_TO_TYPE_MAP.ts).toBe("javascript");
-      expect(EXTENSION_TO_TYPE_MAP.ts).toBe("javascript");
-      expect(EXTENSION_TO_TYPE_MAP.md).toBe("markdown");
-
-      // Test pattern-based rules (readme*, license*, changelog*)
-      const readmeRule = FILE_TYPE_MAPPING_RULES.find((r) => r.test("readme.md", "md"));
-      expect(readmeRule?.type).toBe("markdown");
-
-      const licenseRule = FILE_TYPE_MAPPING_RULES.find((r) => r.test("license", "txt"));
-      expect(licenseRule?.type).toBe("markdown");
-
-      // Test default fallback
-      const defaultRule = FILE_TYPE_MAPPING_RULES.find((r) => r.test("unknown.xyz", "xyz"));
-      expect(defaultRule?.type).toBe("default");
+    it("should handle real-world file examples correctly", () => {
+      expect(getCanonicalFileType("/project/pom.xml", "xml")).toBe("maven");
+      expect(getCanonicalFileType("/project/build.gradle", "gradle")).toBe("gradle");
+      expect(getCanonicalFileType("/project/package.json", "json")).toBe("npm");
+      expect(getCanonicalFileType("/src/Main.java", "java")).toBe("java");
+      expect(getCanonicalFileType("/src/index.ts", "ts")).toBe("javascript");
+      expect(getCanonicalFileType("/README.md", "md")).toBe("markdown");
     });
   });
 });

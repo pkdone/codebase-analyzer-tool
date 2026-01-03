@@ -31,7 +31,7 @@ import { LLMSanitizerConfig } from "../../common/llm/config/llm-module-config.ty
  * the schema is provided to `processJson()`. This list is maintained for backward
  * compatibility but is no longer the primary source of property names.
  */
-export const KNOWN_PROPERTIES: readonly string[] = [
+const KNOWN_PROPERTIES: readonly string[] = [
   // Top-level source summary fields
   "name",
   "kind",
@@ -90,7 +90,7 @@ export const KNOWN_PROPERTIES: readonly string[] = [
  * instead. Numeric properties are now automatically detected from z.number() fields in the
  * schema when provided to `processJson()`.
  */
-export const NUMERIC_PROPERTIES: readonly string[] = [
+const NUMERIC_PROPERTIES: readonly string[] = [
   "cyclomaticcomplexity",
   "linesofcode",
   "totalfunctions",
@@ -113,7 +113,7 @@ export const NUMERIC_PROPERTIES: readonly string[] = [
  * instead. Array properties are now automatically detected from z.array() fields in the
  * schema when provided to `processJson()`.
  */
-export const ARRAY_PROPERTY_NAMES: readonly string[] = [
+const ARRAY_PROPERTY_NAMES: readonly string[] = [
   "parameters",
   "dependencies",
   "references",
@@ -139,7 +139,7 @@ export const ARRAY_PROPERTY_NAMES: readonly string[] = [
  * 1. Cannot be resolved by prefix/suffix/fuzzy matching
  * 2. Are confirmed to occur in real LLM outputs
  */
-export const PROPERTY_NAME_MAPPINGS: Readonly<Record<string, string>> = {
+const PROPERTY_NAME_MAPPINGS: Readonly<Record<string, string>> = {
   // Edge cases where the truncation doesn't match any prefix
   se: "purpose", // "se" could be truncated from "purpo-se" (corrupted)
   alues: "codeSmells", // Truncated "v-alues" suffix
@@ -181,7 +181,7 @@ export const PROPERTY_NAME_MAPPINGS: Readonly<Record<string, string>> = {
  * These handle specific typos that fuzzy matching might not catch or
  * where we want deterministic corrections.
  */
-export const PROPERTY_TYPO_CORRECTIONS: Readonly<Record<string, string>> = {
+const PROPERTY_TYPO_CORRECTIONS: Readonly<Record<string, string>> = {
   // Trailing underscores (common LLM artifact)
   type_: "type",
   name_: "name",
@@ -212,7 +212,7 @@ export const PROPERTY_TYPO_CORRECTIONS: Readonly<Record<string, string>> = {
  * This is very specific to Java-style package names and the codebase being analyzed.
  * Consider removing this in favor of generic dot-notation detection.
  */
-export const PACKAGE_NAME_PREFIX_REPLACEMENTS: Readonly<Record<string, string>> = {
+const PACKAGE_NAME_PREFIX_REPLACEMENTS: Readonly<Record<string, string>> = {
   // Only keep essential patterns that generic detection can't handle
   "orgapache.": "org.apache.",
   "orgf.": "org.",
@@ -225,13 +225,13 @@ export const PACKAGE_NAME_PREFIX_REPLACEMENTS: Readonly<Record<string, string>> 
  * Package name typo patterns for fixing common typos in package names.
  * Consider removing this in favor of generic detection.
  */
-export interface PackageNameTypoPattern {
+interface PackageNameTypoPattern {
   pattern: RegExp;
   replacement: string;
   description: string;
 }
 
-export const PACKAGE_NAME_TYPO_PATTERNS: readonly PackageNameTypoPattern[] = [
+const PACKAGE_NAME_TYPO_PATTERNS: readonly PackageNameTypoPattern[] = [
   { pattern: /"orgah\./g, replacement: '"org.', description: "Fixed typo: orgah -> org" },
 ] as const;
 

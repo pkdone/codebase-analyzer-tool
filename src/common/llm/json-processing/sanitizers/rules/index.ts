@@ -26,7 +26,6 @@ export type {
 export {
   executeRules,
   executeRulesMultiPass,
-  createSimpleRule,
   isAfterJsonDelimiter,
   isInPropertyContext,
   isInArrayContext,

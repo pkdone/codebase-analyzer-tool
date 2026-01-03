@@ -71,14 +71,14 @@ export function buildInstructionBlock(
  * Base instruction for database mechanism mapping.
  * This is the common prefix used across all language-specific DB mechanism mappings.
  */
-export const BASE_DB_MECHANISM_PREFIX =
+const BASE_DB_MECHANISM_PREFIX =
   `    - mechanism: If any of the following are true (apart from 'NONE'), you MUST assume database interaction:` as const;
 
 /**
  * Base suffix for database mechanism mapping.
  * This is the common ending used across all language-specific DB mechanism mappings.
  */
-export const BASE_DB_MECHANISM_SUFFIX =
+const BASE_DB_MECHANISM_SUFFIX =
   `      - Otherwise, if the code does not use a database => mechanism: 'NONE'` as const;
 
 /**

@@ -37,7 +37,7 @@ export interface ProcessedListItem {
  * @param value - The raw cell value to format
  * @returns A ProcessedTableCell ready for template rendering
  */
-export function formatCell(key: string, value: unknown): ProcessedTableCell {
+function formatCell(key: string, value: unknown): ProcessedTableCell {
   // Handle special column types
   if (key === "link" && typeof value === "string") {
     return {
@@ -102,7 +102,7 @@ export function formatCell(key: string, value: unknown): ProcessedTableCell {
  * @param values - The array of values to process
  * @returns An array of ProcessedListItem ready for template rendering
  */
-export function formatArrayValue(values: readonly unknown[]): ProcessedListItem[] {
+function formatArrayValue(values: readonly unknown[]): ProcessedListItem[] {
   return values.map((item) => {
     // Check for plain objects (not arrays, not null, not class instances)
     if (item && typeof item === "object" && item.constructor === Object) {
@@ -135,7 +135,7 @@ export function formatArrayValue(values: readonly unknown[]): ProcessedListItem[
  * @param value - The value to format
  * @returns A string representation suitable for display
  */
-export function formatPrimitiveValue(value: unknown): string {
+function formatPrimitiveValue(value: unknown): string {
   if (typeof value === "string") {
     return value;
   }

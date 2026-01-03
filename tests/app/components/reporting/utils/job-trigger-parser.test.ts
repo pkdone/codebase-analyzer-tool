@@ -1,12 +1,11 @@
 import "reflect-metadata";
 import {
   extractTriggerType,
-  TRIGGER_TYPE_PATTERNS,
 } from "../../../../../src/app/components/reporting/sections/quality-metrics/job-trigger-parser";
 
 describe("job-trigger-parser", () => {
-  describe("TRIGGER_TYPE_PATTERNS", () => {
-    it("should have all required trigger type patterns defined in correct order", () => {
+  describe("extractTriggerType", () => {
+    it("should extract trigger types in correct order (more specific first)", () => {
       // More specific patterns must come before broader patterns
       // e.g., "task-scheduler" before "scheduled"
       const expectedTypes = [
@@ -18,19 +17,26 @@ describe("job-trigger-parser", () => {
         "systemd-timer",
       ];
 
-      const actualTypes = TRIGGER_TYPE_PATTERNS.map((p) => p.type);
+      // Test that the function returns the expected types for various inputs
+      const actualTypes = [
+        extractTriggerType("cron: 0 2 * * *"),
+        extractTriggerType("task scheduler"),
+        extractTriggerType("scheduled job"),
+        extractTriggerType("manual trigger"),
+        extractTriggerType("event-driven"),
+        extractTriggerType("systemd timer"),
+      ];
       expect(actualTypes).toEqual(expectedTypes);
     });
 
-    it("should have match functions for all patterns", () => {
-      for (const pattern of TRIGGER_TYPE_PATTERNS) {
-        expect(typeof pattern.match).toBe("function");
-        expect(typeof pattern.type).toBe("string");
-      }
+    it("should correctly categorize trigger types", () => {
+      expect(extractTriggerType("cron: 0 2 * * *")).toBe("cron");
+      expect(extractTriggerType("task scheduler")).toBe("task-scheduler");
+      expect(extractTriggerType("scheduled")).toBe("scheduled");
+      expect(extractTriggerType("manual")).toBe("manual");
+      expect(extractTriggerType("event")).toBe("event-driven");
+      expect(extractTriggerType("systemd")).toBe("systemd-timer");
     });
-  });
-
-  describe("extractTriggerType", () => {
     it("should extract cron trigger type", () => {
       expect(extractTriggerType("cron: 0 2 * * *")).toBe("cron");
       expect(extractTriggerType("cron 0 2 * * *")).toBe("cron");

@@ -169,33 +169,6 @@ export function executeRulesMultiPass(
 }
 
 /**
- * Creates a simple replacement rule with minimal configuration.
- * Useful for straightforward pattern replacements.
- *
- * @param name - Rule name for diagnostics
- * @param pattern - Regex pattern (must have 'g' flag)
- * @param replacement - Static replacement string or function
- * @param diagnosticMessage - Message to log when replacement is made
- * @returns A ReplacementRule object
- */
-export function createSimpleRule(
-  name: string,
-  pattern: RegExp,
-  replacement: string | ((match: string, groups: readonly (string | undefined)[]) => string | null),
-  diagnosticMessage: string,
-): ReplacementRule {
-  return {
-    name,
-    pattern,
-    replacement:
-      typeof replacement === "string"
-        ? () => replacement
-        : (match, groups) => replacement(match, groups),
-    diagnosticMessage,
-  };
-}
-
-/**
  * Common context check: validates that the match is after a JSON structural delimiter.
  * Useful for property and value patterns that should only match at valid JSON positions.
  *

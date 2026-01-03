@@ -43,7 +43,7 @@ describe("DI Container Integration Tests", () => {
         const mongoConnectionManager = container.resolve<MongoDBConnectionManager>(
           coreTokens.MongoDBConnectionManager,
         );
-        await mongoConnectionManager.closeAll();
+        await mongoConnectionManager.shutdown();
       } catch (error) {
         // Ignore errors during cleanup
         console.warn("Error during MongoDB cleanup:", error);
@@ -214,7 +214,7 @@ describe("DI Container Integration Tests", () => {
         const connectionManager = container.resolve<MongoDBConnectionManager>(
           coreTokens.MongoDBConnectionManager,
         );
-        await connectionManager.closeAll();
+        await connectionManager.shutdown();
       }
     }, 30000);
   });
@@ -288,7 +288,7 @@ describe("DI Container Integration Tests", () => {
       );
 
       // Act: Clear the container completely (both instances and registrations)
-      await connectionManager.closeAll(); // Cleanup connections first
+      await connectionManager.shutdown(); // Cleanup connections first
       container.clearInstances(); // Clear cached instances
       container.reset(); // Clear all registrations
 
@@ -302,7 +302,7 @@ describe("DI Container Integration Tests", () => {
       const newConnectionManager = container.resolve<MongoDBConnectionManager>(
         coreTokens.MongoDBConnectionManager,
       );
-      await newConnectionManager.closeAll();
+      await newConnectionManager.shutdown();
     }, 30000);
   });
 

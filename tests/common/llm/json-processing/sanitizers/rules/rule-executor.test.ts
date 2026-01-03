@@ -1,7 +1,6 @@
 import {
   executeRules,
   executeRulesMultiPass,
-  createSimpleRule,
   isAfterJsonDelimiter,
   isInPropertyContext,
   isInArrayContext,
@@ -245,27 +244,6 @@ describe("rule-executor", () => {
     });
   });
 
-  describe("createSimpleRule", () => {
-    it("should create a rule with static replacement", () => {
-      const rule = createSimpleRule("testRule", /foo/g, "bar", "Replaced foo");
-
-      const result = executeRules("foo baz", [rule]);
-      expect(result.content).toBe("bar baz");
-      expect(result.diagnostics).toContain("Replaced foo");
-    });
-
-    it("should create a rule with function replacement", () => {
-      const rule = createSimpleRule(
-        "testRule",
-        /num(\d+)/g,
-        (_match, groups) => `val${groups[0] ?? ""}`,
-        "Replaced number",
-      );
-
-      const result = executeRules("num42", [rule]);
-      expect(result.content).toBe("val42");
-    });
-  });
 
   describe("context check helpers", () => {
     describe("isAfterJsonDelimiter", () => {

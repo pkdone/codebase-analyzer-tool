@@ -12,7 +12,7 @@ export { CANONICAL_FILE_TYPES, type CanonicalFileType, canonicalFileTypeSchema }
  * Map of exact filename matches to canonical file types.
  * These are checked first for fast lookups.
  */
-export const FILENAME_TO_TYPE_MAP: Readonly<Record<string, CanonicalFileType>> = {
+const FILENAME_TO_TYPE_MAP: Readonly<Record<string, CanonicalFileType>> = {
   "pom.xml": "maven",
   "build.gradle": "gradle",
   "build.gradle.kts": "gradle",
@@ -41,7 +41,7 @@ export const FILENAME_TO_TYPE_MAP: Readonly<Record<string, CanonicalFileType>> =
  * Map of file extensions to canonical file types.
  * Multiple extensions can map to the same type.
  */
-export const EXTENSION_TO_TYPE_MAP: Readonly<Record<string, CanonicalFileType>> = {
+const EXTENSION_TO_TYPE_MAP: Readonly<Record<string, CanonicalFileType>> = {
   java: "java",
   kt: "java",
   kts: "java",
@@ -86,7 +86,7 @@ export const EXTENSION_TO_TYPE_MAP: Readonly<Record<string, CanonicalFileType>> 
  * Rules are evaluated in order, and the first matching rule determines the file type.
  * Used for complex patterns that can't be expressed as simple maps.
  */
-export interface FileTypeRule {
+interface FileTypeRule {
   /**
    * Test function that returns true if the file matches this rule.
    * @param filename - The lowercase filename (e.g., "pom.xml", "readme.md")
@@ -105,7 +105,7 @@ export interface FileTypeRule {
  * Rules are evaluated in order, and the first matching rule determines the file type.
  * The default rule (always matches) must be last.
  */
-export const FILE_TYPE_MAPPING_RULES: readonly FileTypeRule[] = [
+const FILE_TYPE_MAPPING_RULES: readonly FileTypeRule[] = [
   // Filename pattern-based rules (for patterns that can't be simple exact matches)
   { test: (filename) => filename === "readme" || filename.startsWith("readme."), type: "markdown" },
   {

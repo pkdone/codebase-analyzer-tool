@@ -25,7 +25,7 @@ export interface FileTypeData {
  * @param index - The slice index
  * @returns A CSS color string
  */
-export function getSliceColor(index: number): string {
+function getSliceColor(index: number): string {
   if (index < pieConfig.COLORS.length) {
     return pieConfig.COLORS[index];
   }
@@ -45,7 +45,7 @@ export function getSliceColor(index: number): string {
  * @param endAngle - End angle in radians
  * @returns SVG path 'd' attribute string
  */
-export function describeArc(
+function describeArc(
   cx: number,
   cy: number,
   r: number,

@@ -3,8 +3,6 @@ import {
   buildInstructionBlock,
   type InstructionSectionTitle,
   createDbMechanismInstructions,
-  BASE_DB_MECHANISM_PREFIX,
-  BASE_DB_MECHANISM_SUFFIX,
 } from "../../../../src/app/prompts/definitions/instruction-utils";
 
 describe("instruction-utils", () => {
@@ -275,10 +273,10 @@ describe("instruction-utils", () => {
         ] as const;
         const result = createDbMechanismInstructions(examples);
 
-        expect(result).toContain(BASE_DB_MECHANISM_PREFIX);
+        expect(result).toContain("mechanism: If any of the following are true");
         expect(result).toContain("Example 1");
         expect(result).toContain("Example 2");
-        expect(result).toContain(BASE_DB_MECHANISM_SUFFIX);
+        expect(result).toContain("mechanism: 'NONE'");
         expect(result.split("\n").length).toBe(4); // prefix + 2 examples + suffix
       });
 
@@ -287,9 +285,9 @@ describe("instruction-utils", () => {
         const additionalNote = "    (note: this is a test note)";
         const result = createDbMechanismInstructions(examples, additionalNote);
 
-        expect(result).toContain(BASE_DB_MECHANISM_PREFIX);
+        expect(result).toContain("mechanism: If any of the following are true");
         expect(result).toContain("Example");
-        expect(result).toContain(BASE_DB_MECHANISM_SUFFIX);
+        expect(result).toContain("mechanism: 'NONE'");
         expect(result).toContain(additionalNote);
         expect(result.split("\n").length).toBe(4); // prefix + example + suffix + note
       });
@@ -298,8 +296,8 @@ describe("instruction-utils", () => {
         const examples: readonly string[] = [];
         const result = createDbMechanismInstructions(examples);
 
-        expect(result).toContain(BASE_DB_MECHANISM_PREFIX);
-        expect(result).toContain(BASE_DB_MECHANISM_SUFFIX);
+        expect(result).toContain("mechanism: If any of the following are true");
+        expect(result).toContain("mechanism: 'NONE'");
         expect(result.split("\n").length).toBe(2); // prefix + suffix only
       });
 
@@ -307,9 +305,9 @@ describe("instruction-utils", () => {
         const examples = ["      - Single example => mechanism: 'SINGLE'"] as const;
         const result = createDbMechanismInstructions(examples);
 
-        expect(result).toContain(BASE_DB_MECHANISM_PREFIX);
+        expect(result).toContain("mechanism: If any of the following are true");
         expect(result).toContain("Single example");
-        expect(result).toContain(BASE_DB_MECHANISM_SUFFIX);
+        expect(result).toContain("mechanism: 'NONE'");
         expect(result.split("\n").length).toBe(3); // prefix + example + suffix
       });
 
@@ -322,12 +320,12 @@ describe("instruction-utils", () => {
         ] as const;
         const result = createDbMechanismInstructions(examples);
 
-        expect(result).toContain(BASE_DB_MECHANISM_PREFIX);
+        expect(result).toContain("mechanism: If any of the following are true");
         expect(result).toContain("Example 1");
         expect(result).toContain("Example 2");
         expect(result).toContain("Example 3");
         expect(result).toContain("Example 4");
-        expect(result).toContain(BASE_DB_MECHANISM_SUFFIX);
+        expect(result).toContain("mechanism: 'NONE'");
         expect(result.split("\n").length).toBe(6); // prefix + 4 examples + suffix
       });
     });
@@ -360,18 +358,20 @@ describe("instruction-utils", () => {
     });
 
     describe("integration with constants", () => {
-      it("should use BASE_DB_MECHANISM_PREFIX constant", () => {
+      it("should use the base prefix in output", () => {
         const examples = ["      - Test => mechanism: 'TEST'"] as const;
         const result = createDbMechanismInstructions(examples);
 
-        expect(result.startsWith(BASE_DB_MECHANISM_PREFIX)).toBe(true);
+        expect(result).toContain("mechanism: If any of the following are true");
+        expect(result.startsWith("    - mechanism: If any of the following are true")).toBe(true);
       });
 
-      it("should use BASE_DB_MECHANISM_SUFFIX constant", () => {
+      it("should use the base suffix in output", () => {
         const examples = ["      - Test => mechanism: 'TEST'"] as const;
         const result = createDbMechanismInstructions(examples);
 
-        expect(result.endsWith(BASE_DB_MECHANISM_SUFFIX)).toBe(true);
+        expect(result).toContain("mechanism: 'NONE'");
+        expect(result.endsWith("      - Otherwise, if the code does not use a database => mechanism: 'NONE'")).toBe(true);
       });
 
       it("should place suffix after examples even with additional note", () => {
@@ -380,7 +380,7 @@ describe("instruction-utils", () => {
         const result = createDbMechanismInstructions(examples, additionalNote);
 
         const lines = result.split("\n");
-        const suffixIndex = lines.indexOf(BASE_DB_MECHANISM_SUFFIX);
+        const suffixIndex = lines.findIndex((line) => line.includes("mechanism: 'NONE'"));
         const noteIndex = lines.indexOf(additionalNote);
 
         expect(suffixIndex).toBeLessThan(noteIndex);

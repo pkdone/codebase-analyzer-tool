@@ -65,9 +65,17 @@ export class MongoDBConnectionManager {
   }
 
   /**
+   * Shutdown method for graceful shutdown.
+   * Delegates to closeAll() to close all MongoDB connections.
+   */
+  async shutdown(): Promise<void> {
+    await this.closeAll();
+  }
+
+  /**
    * Closes all MongoDB connections managed by this manager.
    */
-  async closeAll(): Promise<void> {
+  private async closeAll(): Promise<void> {
     const closePromises = Array.from(this.clients, async ([id, client]) => {
       try {
         await client.close();
@@ -81,13 +89,5 @@ export class MongoDBConnectionManager {
 
     await Promise.allSettled(closePromises);
     this.clients.clear();
-  }
-
-  /**
-   * Shutdown method for graceful shutdown.
-   * Delegates to closeAll() to close all MongoDB connections.
-   */
-  async shutdown(): Promise<void> {
-    await this.closeAll();
   }
 }
