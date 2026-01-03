@@ -1,7 +1,7 @@
 /**
  * Configuration for codebase querying features.
  * Contains tuning parameters for vector search operations.
- * Note: Input file paths are now centralized in src/config/input.config.ts
+ * Note: Input file paths are now centralized in src/app/prompts/config/input.config.ts
  */
 
 export const queryingInputConfig = {

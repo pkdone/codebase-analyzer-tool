@@ -196,8 +196,6 @@ export interface PreparedHtmlReportData {
   } | null;
   currentArchitectureDiagramSvg: string;
 
-  // Table view models for enhanced sections
-
   // Asset content to be embedded inline
   inlineCss: string;
   jsonIconSvg: string;

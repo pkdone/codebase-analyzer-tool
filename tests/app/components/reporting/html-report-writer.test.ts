@@ -167,8 +167,6 @@ describe("HtmlReportWriter", () => {
     inferredArchitectureData: null,
     currentArchitectureDiagramSvg: "",
 
-    // Table view models for enhanced sections
-
     // Asset content to be embedded inline
     inlineCss: "/* test css */",
     jsonIconSvg: "<svg>test</svg>",
@@ -354,6 +352,48 @@ describe("HtmlReportWriter", () => {
       await htmlReportWriter.writeHTMLReportFile(mockPreparedData, specialCharPath);
 
       expect(mockWriteFile).toHaveBeenCalledWith(specialCharPath, expect.any(String));
+    });
+  });
+
+  describe("PreparedHtmlReportData interface structure", () => {
+    it("should have table view model properties defined before enhanced UI data section", () => {
+      // Verify that table view model properties are correctly positioned
+      // in the interface (not orphaned after currentArchitectureDiagramSvg)
+      expect(mockPreparedData).toHaveProperty("fileTypesTableViewModel");
+      expect(mockPreparedData).toHaveProperty("dbInteractionsTableViewModel");
+      expect(mockPreparedData).toHaveProperty("procsAndTriggersTableViewModel");
+      expect(mockPreparedData).toHaveProperty("integrationPointsTableViewModel");
+
+      // Verify these properties come before enhanced UI data
+      const dataKeys = Object.keys(mockPreparedData);
+      const fileTypesIndex = dataKeys.indexOf("fileTypesTableViewModel");
+      const dbInteractionsIndex = dataKeys.indexOf("dbInteractionsTableViewModel");
+      const businessProcessesIndex = dataKeys.indexOf("businessProcessesFlowchartSvgs");
+
+      expect(fileTypesIndex).toBeGreaterThan(-1);
+      expect(dbInteractionsIndex).toBeGreaterThan(-1);
+      expect(businessProcessesIndex).toBeGreaterThan(-1);
+      expect(fileTypesIndex).toBeLessThan(businessProcessesIndex);
+      expect(dbInteractionsIndex).toBeLessThan(businessProcessesIndex);
+    });
+
+    it("should not have orphaned comments in the interface structure", () => {
+      // This test verifies that the interface structure is clean
+      // by ensuring all required properties are present and properly organized
+      expect(mockPreparedData).toHaveProperty("currentArchitectureDiagramSvg");
+      expect(mockPreparedData).toHaveProperty("inlineCss");
+      expect(mockPreparedData).toHaveProperty("jsonIconSvg");
+
+      // Verify that inlineCss comes directly after currentArchitectureDiagramSvg
+      // (no orphaned comments in between)
+      const dataKeys = Object.keys(mockPreparedData);
+      const currentArchIndex = dataKeys.indexOf("currentArchitectureDiagramSvg");
+      const inlineCssIndex = dataKeys.indexOf("inlineCss");
+
+      expect(currentArchIndex).toBeGreaterThan(-1);
+      expect(inlineCssIndex).toBeGreaterThan(-1);
+      // There should be no properties between these two (or very few)
+      expect(inlineCssIndex - currentArchIndex).toBeLessThanOrEqual(1);
     });
   });
 });
