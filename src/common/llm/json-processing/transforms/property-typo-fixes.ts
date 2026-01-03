@@ -33,7 +33,7 @@ export function fixCommonPropertyNameTypos(
         if (key.endsWith("_") && key.length > 1) {
           const correctKey = key.slice(0, -1);
           // Only rename if the correct property name doesn't already exist
-          if (!(correctKey in obj)) {
+          if (!Object.hasOwn(obj, correctKey)) {
             return correctKey;
           }
         }

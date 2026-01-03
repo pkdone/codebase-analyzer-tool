@@ -336,6 +336,35 @@ describe("fixCommonPropertyNameTypos", () => {
     });
   });
 
+  describe("prototype chain safety", () => {
+    it("should not be affected by properties on the prototype chain", () => {
+      // Create object with prototype that has 'type' property
+      const proto = { type: "prototype-value" };
+      const input = Object.create(proto) as Record<string, unknown>;
+      input.type_ = "own-value";
+
+      const result = fixCommonPropertyNameTypos(input) as Record<string, unknown>;
+
+      // Should rename type_ to type since 'type' is not an own property
+      expect(result.type).toBe("own-value");
+      expect("type_" in result).toBe(false);
+    });
+
+    it("should not rename when correct property exists on the object itself", () => {
+      // Create object that has both type and type_ as own properties
+      const input = {
+        type: "existing-value",
+        type_: "typo-value",
+      };
+
+      const result = fixCommonPropertyNameTypos(input) as Record<string, unknown>;
+
+      // Should NOT rename type_ since type already exists as own property
+      expect(result.type).toBe("existing-value");
+      expect(result.type_).toBe("typo-value");
+    });
+  });
+
   describe("edge cases", () => {
     it("should handle Date objects", () => {
       const date = new Date("2025-01-01");

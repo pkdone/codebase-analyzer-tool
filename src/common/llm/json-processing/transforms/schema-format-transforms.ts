@@ -51,7 +51,7 @@ const JSON_SCHEMA_META_PROPERTIES = new Set([
  */
 function isJsonSchemaPrimitiveFieldDefinition(obj: Record<string, unknown>): boolean {
   // Must have "type" with a valid JSON Schema type value
-  if (!("type" in obj) || typeof obj.type !== "string") {
+  if (!Object.hasOwn(obj, "type") || typeof obj.type !== "string") {
     return false;
   }
 
@@ -60,13 +60,13 @@ function isJsonSchemaPrimitiveFieldDefinition(obj: Record<string, unknown>): boo
   }
 
   // Must have "description" property (this contains the actual value)
-  if (!("description" in obj)) {
+  if (!Object.hasOwn(obj, "description")) {
     return false;
   }
 
   // If it has "properties", it's an object schema, not a primitive field
   // In this case, the actual data is in properties, not description
-  if ("properties" in obj) {
+  if (Object.hasOwn(obj, "properties")) {
     return false;
   }
 
@@ -108,7 +108,7 @@ function isJsonSchemaPrimitiveFieldDefinition(obj: Record<string, unknown>): boo
  */
 function isJsonSchemaObjectWithDataInProperties(obj: Record<string, unknown>): boolean {
   // Must be type: "object" with a properties field
-  if (obj.type !== "object" || !("properties" in obj)) {
+  if (obj.type !== "object" || !Object.hasOwn(obj, "properties")) {
     return false;
   }
 
@@ -146,7 +146,7 @@ function isJsonSchemaObjectWithDataInProperties(obj: Record<string, unknown>): b
     const valObj = val as Record<string, unknown>;
 
     // No type = regular data object
-    if (!("type" in valObj)) {
+    if (!Object.hasOwn(valObj, "type")) {
       return true;
     }
 
@@ -157,12 +157,12 @@ function isJsonSchemaObjectWithDataInProperties(obj: Record<string, unknown>): b
 
     // Has valid type - could be schema field definition if it also has description
     // Schema field definitions ARE extractable (we'll extract their description)
-    if ("description" in valObj) {
+    if (Object.hasOwn(valObj, "description")) {
       return true; // Schema field definition = extractable
     }
 
     // Type but no description - ambiguous, but if it has properties it might be nested schema
-    if ("properties" in valObj) {
+    if (Object.hasOwn(valObj, "properties")) {
       return true; // Nested object schema = recursively extractable
     }
 

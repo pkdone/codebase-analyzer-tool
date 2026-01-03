@@ -76,6 +76,25 @@ export const STANDARD_INDEX_CONFIGS: readonly StandardIndexConfig[] = [
   },
 ] as const;
 
+/**
+ * Database configuration interface for type validation.
+ * Ensures the configuration conforms to the expected structure at compile time.
+ */
+interface DatabaseConfig {
+  readonly DEFAULT_MONGO_SERVICE_ID: string;
+  readonly CODEBASE_DB_NAME: string;
+  readonly SOURCES_COLLECTION_NAME: string;
+  readonly SUMMARIES_COLLECTION_NAME: string;
+  readonly CONTENT_VECTOR_FIELD: string;
+  readonly SUMMARY_VECTOR_FIELD: string;
+  readonly CONTENT_VECTOR_INDEX_NAME: string;
+  readonly SUMMARY_VECTOR_INDEX_NAME: string;
+  readonly DEFAULT_VECTOR_DIMENSIONS: number;
+  readonly VECTOR_SIMILARITY_TYPE: string;
+  readonly VECTOR_QUANTIZATION_TYPE: string;
+  readonly VECTOR_INDEX_CONFIGS: readonly { readonly field: string; readonly name: string }[];
+}
+
 export const databaseConfig = {
   DEFAULT_MONGO_SERVICE_ID: "default",
   CODEBASE_DB_NAME: "codebase-analyzed",
@@ -92,4 +111,4 @@ export const databaseConfig = {
     { field: CONTENT_VECTOR_FIELD, name: CONTENT_VECTOR_INDEX_NAME },
     { field: SUMMARY_VECTOR_FIELD, name: SUMMARY_VECTOR_INDEX_NAME },
   ],
-} as const;
+} as const satisfies DatabaseConfig;
