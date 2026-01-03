@@ -454,4 +454,44 @@ describe("LLMRouter Type Preservation Tests", () => {
       }
     });
   });
+
+  describe("Type System Architecture", () => {
+    test("should use simple generic LLMExecutionResult<T> without complex conditional types", async () => {
+      const { router, mockProvider } = createLLMRouter();
+
+      const schema = z.object({
+        testField: z.string(),
+      });
+
+      const mockData = { testField: "value" };
+
+      (mockProvider.executeCompletionPrimary as any).mockResolvedValue({
+        status: LLMResponseStatus.COMPLETED,
+        generated: mockData,
+        request: "test",
+        modelKey: "GPT_COMPLETIONS_GPT4",
+        context: {},
+      });
+
+      const result = await router.executeCompletion("test", "test prompt", {
+        outputFormat: LLMOutputFormat.JSON,
+        jsonSchema: schema,
+      });
+
+      expect(isOk(result)).toBe(true);
+      if (isOk(result)) {
+        // Verify that the simple generic approach (LLMExecutionResult<z.infer<S>>)
+        // provides full type safety without needing complex conditional types like
+        // TypedLLMExecutionResult. The type is correctly inferred from the schema.
+        const value: z.infer<typeof schema> = result.value;
+        const field: string = value.testField;
+
+        expect(field).toBe("value");
+
+        // This test documents that the simpler generic propagation through
+        // LLMExecutionResult<T> is sufficient for type safety. The complex
+        // conditional type TypedLLMExecutionResult was removed as unnecessary.
+      }
+    });
+  });
 });

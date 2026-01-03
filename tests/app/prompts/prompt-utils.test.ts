@@ -10,7 +10,10 @@ import {
 describe("buildInstructionBlock", () => {
   describe("basic functionality", () => {
     test("should format a title with a single string part", () => {
-      const result = buildInstructionBlock(INSTRUCTION_SECTION_TITLES.BASIC_INFO, "Extract the name");
+      const result = buildInstructionBlock(
+        INSTRUCTION_SECTION_TITLES.BASIC_INFO,
+        "Extract the name",
+      );
       expect(result).toBe("__Basic Information__\nExtract the name");
     });
 

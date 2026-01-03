@@ -111,7 +111,10 @@ describe("instruction-utils", () => {
       });
 
       it("should format a title with a single string part", () => {
-        const result = buildInstructionBlock(INSTRUCTION_SECTION_TITLES.BASIC_INFO, "Extract the name");
+        const result = buildInstructionBlock(
+          INSTRUCTION_SECTION_TITLES.BASIC_INFO,
+          "Extract the name",
+        );
         expect(result).toBe("__Basic Information__\nExtract the name");
       });
 
@@ -165,7 +168,11 @@ describe("instruction-utils", () => {
       });
 
       it("should handle empty strings in parts", () => {
-        const result = buildInstructionBlock(INSTRUCTION_SECTION_TITLES.INSTRUCTIONS, "", "Non-empty");
+        const result = buildInstructionBlock(
+          INSTRUCTION_SECTION_TITLES.INSTRUCTIONS,
+          "",
+          "Non-empty",
+        );
         expect(result).toBe("__Instructions__\n\nNon-empty");
       });
 
@@ -282,7 +289,10 @@ describe("instruction-utils", () => {
 
       it("should handle readonly string arrays from as const", () => {
         const readonlyArray = ["Read", "Only", "Array"] as const;
-        const result = buildInstructionBlock(INSTRUCTION_SECTION_TITLES.INSTRUCTIONS, readonlyArray);
+        const result = buildInstructionBlock(
+          INSTRUCTION_SECTION_TITLES.INSTRUCTIONS,
+          readonlyArray,
+        );
         expect(result).toBe("__Instructions__\nRead\nOnly\nArray");
       });
     });
