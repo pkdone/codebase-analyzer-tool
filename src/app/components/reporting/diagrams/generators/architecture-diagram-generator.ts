@@ -1,7 +1,7 @@
 import { injectable } from "tsyringe";
 import { generateNodeId } from "../utils";
 import { BaseDiagramGenerator, type BaseDiagramOptions } from "./base-diagram-generator";
-import { visualizationConfig } from "../../generators/visualization.config";
+import { architectureConfig } from "./architecture.config";
 import { MermaidFlowchartBuilder } from "../builders";
 
 export interface Microservice {
@@ -36,8 +36,8 @@ export type ArchitectureDiagramOptions = BaseDiagramOptions;
 @injectable()
 export class ArchitectureDiagramGenerator extends BaseDiagramGenerator<ArchitectureDiagramOptions> {
   protected readonly defaultOptions: Required<ArchitectureDiagramOptions> = {
-    width: visualizationConfig.architecture.DEFAULT_WIDTH,
-    height: visualizationConfig.architecture.DEFAULT_HEIGHT,
+    width: architectureConfig.DEFAULT_WIDTH,
+    height: architectureConfig.DEFAULT_HEIGHT,
   };
 
   /**
@@ -65,14 +65,13 @@ export class ArchitectureDiagramGenerator extends BaseDiagramGenerator<Architect
    * using the type-safe MermaidFlowchartBuilder.
    */
   private buildArchitectureDiagramDefinition(microservices: Microservice[]): string {
-    const archConfig = visualizationConfig.architecture;
     const builder = new MermaidFlowchartBuilder("TB");
 
     // Group services into rows for grid layout
     const rows: string[][] = [];
-    for (let i = 0; i < microservices.length; i += archConfig.SERVICES_PER_ROW) {
+    for (let i = 0; i < microservices.length; i += architectureConfig.SERVICES_PER_ROW) {
       rows.push(
-        microservices.slice(i, i + archConfig.SERVICES_PER_ROW).map((s, idx) => {
+        microservices.slice(i, i + architectureConfig.SERVICES_PER_ROW).map((s, idx) => {
           return generateNodeId(s.name, i + idx);
         }),
       );

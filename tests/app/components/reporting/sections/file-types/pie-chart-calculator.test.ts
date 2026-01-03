@@ -6,7 +6,7 @@ import {
   calculatePieChartData,
   type FileTypeData,
 } from "../../../../../../src/app/components/reporting/sections/file-types/pie-chart-calculator";
-import { visualizationConfig } from "../../../../../../src/app/components/reporting/generators/visualization.config";
+import { pieChartConfig } from "../../../../../../src/app/components/reporting/sections/file-types/pie-chart.config";
 
 describe("pie-chart-calculator", () => {
   describe("calculatePieChartData", () => {
@@ -42,12 +42,12 @@ describe("pie-chart-calculator", () => {
         { fileType: "ts", files: 20, lines: 200 },
       ];
       const result = calculatePieChartData(data);
-      expect(result.slices[0].color).toBe(visualizationConfig.pieChart.COLORS[0]);
-      expect(result.slices[1].color).toBe(visualizationConfig.pieChart.COLORS[1]);
+      expect(result.slices[0].color).toBe(pieChartConfig.COLORS[0]);
+      expect(result.slices[1].color).toBe(pieChartConfig.COLORS[1]);
     });
 
     it("should generate HSL colors for slices beyond the palette", () => {
-      const paletteSize = visualizationConfig.pieChart.COLORS.length;
+      const paletteSize = pieChartConfig.COLORS.length;
       const data: FileTypeData[] = Array(paletteSize + 2)
         .fill(null)
         .map((_, i) => ({ fileType: `type${i}`, files: 10, lines: 100 }));
@@ -96,10 +96,10 @@ describe("pie-chart-calculator", () => {
     it("should include config values for template rendering", () => {
       const data: FileTypeData[] = [{ fileType: "js", files: 10, lines: 100 }];
       const result = calculatePieChartData(data);
-      expect(result.config.centerX).toBe(visualizationConfig.pieChart.CENTER_X);
-      expect(result.config.centerY).toBe(visualizationConfig.pieChart.CENTER_Y);
-      expect(result.config.legendX).toBe(visualizationConfig.pieChart.LEGEND_X);
-      expect(result.config.legendY).toBe(visualizationConfig.pieChart.LEGEND_Y);
+      expect(result.config.centerX).toBe(pieChartConfig.CENTER_X);
+      expect(result.config.centerY).toBe(pieChartConfig.CENTER_Y);
+      expect(result.config.legendX).toBe(pieChartConfig.LEGEND_X);
+      expect(result.config.legendY).toBe(pieChartConfig.LEGEND_Y);
     });
 
     it("should calculate label positions at midpoint of slice", () => {
@@ -110,9 +110,9 @@ describe("pie-chart-calculator", () => {
       ];
       const result = calculatePieChartData(data);
       // First slice mid-angle is 0 (3 o'clock position), so labelX should be right of center
-      expect(result.slices[0].labelX).toBeGreaterThan(visualizationConfig.pieChart.CENTER_X);
+      expect(result.slices[0].labelX).toBeGreaterThan(pieChartConfig.CENTER_X);
       // Second slice mid-angle is π (9 o'clock position), so labelX should be left of center
-      expect(result.slices[1].labelX).toBeLessThan(visualizationConfig.pieChart.CENTER_X);
+      expect(result.slices[1].labelX).toBeLessThan(pieChartConfig.CENTER_X);
     });
 
     it("should calculate SVG height based on content", () => {
@@ -131,7 +131,7 @@ describe("pie-chart-calculator", () => {
     it("should set SVG width from config", () => {
       const data: FileTypeData[] = [{ fileType: "js", files: 10, lines: 100 }];
       const result = calculatePieChartData(data);
-      expect(result.svgWidth).toBe(visualizationConfig.pieChart.SVG_WIDTH);
+      expect(result.svgWidth).toBe(pieChartConfig.SVG_WIDTH);
     });
 
     it("should handle zero total files gracefully", () => {

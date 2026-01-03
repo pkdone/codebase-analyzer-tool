@@ -64,6 +64,10 @@ export interface ModuleCoupling {
     fromModule: string;
     toModule: string;
     referenceCount: number;
+    /** Pre-computed coupling level label (e.g., "Very High", "High", "Medium", "Low") */
+    couplingLevel: string;
+    /** Pre-computed CSS class for the coupling level badge */
+    couplingLevelClass: string;
   }[];
   totalModules: number;
   totalCouplings: number;
@@ -95,5 +99,9 @@ export interface UiTechnologyAnalysis {
     expressionCount: number;
     declarationCount: number;
     totalScriptletBlocks: number;
+    /** Pre-computed debt level label (e.g., "Very High", "High", "Moderate", "Low") */
+    debtLevel: string;
+    /** Pre-computed CSS class for the debt level badge */
+    debtLevelClass: string;
   }[];
 }

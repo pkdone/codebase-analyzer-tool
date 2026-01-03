@@ -6,7 +6,7 @@ import type {
   DomainEntity,
 } from "../../sections/visualizations/domain-model-data-provider";
 import { BaseDiagramGenerator, type BaseDiagramOptions } from "./base-diagram-generator";
-import { visualizationConfig } from "../../generators/visualization.config";
+import { domainModelConfig } from "./domain-model.config";
 import { MermaidFlowchartBuilder } from "../builders";
 
 export type DomainDiagramOptions = BaseDiagramOptions;
@@ -21,8 +21,8 @@ export type DomainDiagramOptions = BaseDiagramOptions;
 @injectable()
 export class DomainModelDiagramGenerator extends BaseDiagramGenerator<DomainDiagramOptions> {
   protected readonly defaultOptions: Required<DomainDiagramOptions> = {
-    width: visualizationConfig.domainModel.DEFAULT_WIDTH,
-    height: visualizationConfig.domainModel.DEFAULT_HEIGHT,
+    width: domainModelConfig.DEFAULT_WIDTH,
+    height: domainModelConfig.DEFAULT_HEIGHT,
   };
 
   /**

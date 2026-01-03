@@ -3,10 +3,8 @@
  * Separates geometry and rendering logic from the EJS template.
  */
 
-import { visualizationConfig } from "../../generators/visualization.config";
+import { pieChartConfig } from "./pie-chart.config";
 import type { PieChartData, PieChartSlice } from "../../html-report-writer";
-
-const pieConfig = visualizationConfig.pieChart;
 
 /**
  * File type data structure expected as input.
@@ -26,11 +24,11 @@ export interface FileTypeData {
  * @returns A CSS color string
  */
 function getSliceColor(index: number): string {
-  if (index < pieConfig.COLORS.length) {
-    return pieConfig.COLORS[index];
+  if (index < pieChartConfig.COLORS.length) {
+    return pieChartConfig.COLORS[index];
   }
   // Generate dynamic color using golden angle for even distribution
-  const hue = ((index - pieConfig.COLORS.length) * 137.5) % 360;
+  const hue = ((index - pieChartConfig.COLORS.length) * 137.5) % 360;
   return `hsl(${hue}, 65%, 50%)`;
 }
 
@@ -76,8 +74,8 @@ export function calculatePieChartData(fileTypesData: FileTypeData[]): PieChartDa
 
   // Calculate SVG dimensions based on content
   const legendHeight =
-    fileTypesData.length * pieConfig.LEGEND_ITEM_HEIGHT + pieConfig.LEGEND_Y + 20;
-  const pieHeight = pieConfig.CENTER_Y + pieConfig.RADIUS + 20;
+    fileTypesData.length * pieChartConfig.LEGEND_ITEM_HEIGHT + pieChartConfig.LEGEND_Y + 20;
+  const pieHeight = pieChartConfig.CENTER_Y + pieChartConfig.RADIUS + 20;
   const svgHeight = Math.max(legendHeight, pieHeight);
 
   // Calculate pie slices with angles - start at 12 o'clock (-π/2)
@@ -91,15 +89,15 @@ export function calculatePieChartData(fileTypesData: FileTypeData[]): PieChartDa
 
     // Calculate label position (mid-point of slice)
     const midAngle = (startAngle + endAngle) / 2;
-    const labelRadius = pieConfig.RADIUS * pieConfig.LABEL_RADIUS_MULTIPLIER;
-    const labelX = pieConfig.CENTER_X + Math.cos(midAngle) * labelRadius;
-    const labelY = pieConfig.CENTER_Y + Math.sin(midAngle) * labelRadius;
+    const labelRadius = pieChartConfig.RADIUS * pieChartConfig.LABEL_RADIUS_MULTIPLIER;
+    const labelX = pieChartConfig.CENTER_X + Math.cos(midAngle) * labelRadius;
+    const labelY = pieChartConfig.CENTER_Y + Math.sin(midAngle) * labelRadius;
 
     // Generate path data for the slice
     const pathData = describeArc(
-      pieConfig.CENTER_X,
-      pieConfig.CENTER_Y,
-      pieConfig.RADIUS,
+      pieChartConfig.CENTER_X,
+      pieChartConfig.CENTER_Y,
+      pieChartConfig.RADIUS,
       startAngle,
       endAngle,
     );
@@ -112,7 +110,7 @@ export function calculatePieChartData(fileTypesData: FileTypeData[]): PieChartDa
       pathData,
       labelX,
       labelY,
-      showLabel: percentage >= pieConfig.LABEL_THRESHOLD_PERCENT,
+      showLabel: percentage >= pieChartConfig.LABEL_THRESHOLD_PERCENT,
     };
 
     currentAngle += sliceAngle;
@@ -122,15 +120,15 @@ export function calculatePieChartData(fileTypesData: FileTypeData[]): PieChartDa
   return {
     totalFiles,
     svgHeight,
-    svgWidth: pieConfig.SVG_WIDTH,
+    svgWidth: pieChartConfig.SVG_WIDTH,
     slices,
     config: {
-      centerX: pieConfig.CENTER_X,
-      centerY: pieConfig.CENTER_Y,
-      legendX: pieConfig.LEGEND_X,
-      legendY: pieConfig.LEGEND_Y,
-      legendItemHeight: pieConfig.LEGEND_ITEM_HEIGHT,
-      legendBoxSize: pieConfig.LEGEND_BOX_SIZE,
+      centerX: pieChartConfig.CENTER_X,
+      centerY: pieChartConfig.CENTER_Y,
+      legendX: pieChartConfig.LEGEND_X,
+      legendY: pieChartConfig.LEGEND_Y,
+      legendItemHeight: pieChartConfig.LEGEND_ITEM_HEIGHT,
+      legendBoxSize: pieChartConfig.LEGEND_BOX_SIZE,
     },
   };
 }

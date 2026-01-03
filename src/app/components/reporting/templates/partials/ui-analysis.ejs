@@ -88,15 +88,7 @@
             <td class="metric-count"><%= file.declarationCount %></td>
             <td class="total-count"><strong><%= file.totalScriptletBlocks %></strong></td>
             <td class="debt-indicator">
-              <% if (file.totalScriptletBlocks > 20) { %>
-                <span class="badge badge-danger">Very High</span>
-              <% } else if (file.totalScriptletBlocks > 10) { %>
-                <span class="badge badge-warning">High</span>
-              <% } else if (file.totalScriptletBlocks > 5) { %>
-                <span class="badge badge-info">Moderate</span>
-              <% } else { %>
-                <span class="badge badge-success">Low</span>
-              <% } %>
+              <span class="badge <%= file.debtLevelClass %>"><%= file.debtLevel %></span>
             </td>
           </tr>
         <% }); %>

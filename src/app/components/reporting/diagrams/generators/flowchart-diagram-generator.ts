@@ -1,7 +1,7 @@
 import { injectable } from "tsyringe";
 import { escapeMermaidLabel, generateNodeId, applyStyle } from "../utils";
 import { BaseDiagramGenerator, type BaseDiagramOptions } from "./base-diagram-generator";
-import { visualizationConfig } from "../../generators/visualization.config";
+import { flowchartConfig } from "./flowchart.config";
 
 export interface BusinessProcessActivity {
   activity: string;
@@ -26,8 +26,8 @@ export type FlowchartDiagramOptions = BaseDiagramOptions;
 @injectable()
 export class FlowchartDiagramGenerator extends BaseDiagramGenerator<FlowchartDiagramOptions> {
   protected readonly defaultOptions: Required<FlowchartDiagramOptions> = {
-    width: visualizationConfig.flowchart.DEFAULT_WIDTH,
-    height: visualizationConfig.flowchart.DEFAULT_HEIGHT,
+    width: flowchartConfig.DEFAULT_WIDTH,
+    height: flowchartConfig.DEFAULT_HEIGHT,
   };
 
   /**

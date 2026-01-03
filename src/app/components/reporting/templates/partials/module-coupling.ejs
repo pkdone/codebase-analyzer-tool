@@ -32,24 +32,7 @@
       </tr>
     </thead>
     <tbody>
-      <% couplingData.couplings.forEach(function(coupling) { 
-        // Calculate coupling level based on reference count
-        let couplingLevel = '';
-        let couplingClass = '';
-        if (coupling.referenceCount >= couplingStats.highestCouplingCount * 0.7) {
-          couplingLevel = 'Very High';
-          couplingClass = 'badge-danger';
-        } else if (coupling.referenceCount >= couplingStats.highestCouplingCount * 0.4) {
-          couplingLevel = 'High';
-          couplingClass = 'badge-high';
-        } else if (coupling.referenceCount >= couplingStats.highestCouplingCount * 0.2) {
-          couplingLevel = 'Medium';
-          couplingClass = 'badge-warning';
-        } else {
-          couplingLevel = 'Low';
-          couplingClass = 'badge-success';
-        }
-      %>
+      <% couplingData.couplings.forEach(function(coupling) { %>
         <tr>
           <td class="module-name from-module">
             <code><%= coupling.fromModule %></code>
@@ -61,7 +44,7 @@
             <strong><%= coupling.referenceCount %></strong>
           </td>
           <td class="coupling-level">
-            <span class="badge <%= couplingClass %>"><%= couplingLevel %></span>
+            <span class="badge <%= coupling.couplingLevelClass %>"><%= coupling.couplingLevel %></span>
           </td>
         </tr>
       <% }); %>

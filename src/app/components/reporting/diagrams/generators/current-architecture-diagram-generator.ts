@@ -1,7 +1,7 @@
 import { injectable } from "tsyringe";
 import { escapeMermaidLabel, generateNodeId, buildArrow, applyStyle } from "../utils";
 import { BaseDiagramGenerator, type BaseDiagramOptions } from "./base-diagram-generator";
-import { visualizationConfig } from "../../generators/visualization.config";
+import { currentArchitectureConfig } from "./current-architecture.config";
 
 /**
  * Represents an internal business component inferred from the codebase.
@@ -51,8 +51,8 @@ export type CurrentArchitectureDiagramOptions = BaseDiagramOptions;
 @injectable()
 export class CurrentArchitectureDiagramGenerator extends BaseDiagramGenerator<CurrentArchitectureDiagramOptions> {
   protected readonly defaultOptions: Required<CurrentArchitectureDiagramOptions> = {
-    width: visualizationConfig.currentArchitecture.DEFAULT_WIDTH,
-    height: visualizationConfig.currentArchitecture.DEFAULT_HEIGHT,
+    width: currentArchitectureConfig.DEFAULT_WIDTH,
+    height: currentArchitectureConfig.DEFAULT_HEIGHT,
   };
 
   /**

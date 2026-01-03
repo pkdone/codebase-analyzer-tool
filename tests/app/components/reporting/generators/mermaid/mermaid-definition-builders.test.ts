@@ -10,7 +10,7 @@ import {
   buildStyleDefinitions,
   applyStyle,
 } from "../../../../../../src/app/components/reporting/diagrams";
-import { visualizationConfig } from "../../../../../../src/app/components/reporting/generators/visualization.config";
+import { currentArchitectureConfig } from "../../../../../../src/app/components/reporting/diagrams/generators/current-architecture.config";
 
 describe("mermaid-definition-builders", () => {
   describe("DIAGRAM_STYLES", () => {
@@ -75,8 +75,8 @@ describe("mermaid-definition-builders", () => {
       expect(result).toContain("rankSpacing");
     });
 
-    it("should use values from visualization config", () => {
-      const { mermaidInit } = visualizationConfig.currentArchitecture;
+    it("should use values from current architecture config", () => {
+      const { mermaidInit } = currentArchitectureConfig;
       const result = buildArchitectureInitDirective();
 
       expect(result).toContain(`'diagramPadding': ${mermaidInit.DIAGRAM_PADDING}`);

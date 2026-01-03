@@ -77,6 +77,8 @@ describe("ModuleCouplingDataProvider", () => {
         fromModule: "src/components",
         toModule: "src/utils",
         referenceCount: 3,
+        couplingLevel: "Very High",
+        couplingLevelClass: "badge-danger",
       });
       expect(result.totalModules).toBe(2);
       expect(result.totalCouplings).toBe(1);

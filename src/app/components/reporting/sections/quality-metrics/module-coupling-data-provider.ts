@@ -3,6 +3,7 @@ import type { SourcesRepository } from "../../../../repositories/sources/sources
 import { repositoryTokens } from "../../../../di/tokens";
 import type { ModuleCoupling } from "./quality-metrics.types";
 import { moduleCouplingConfig } from "../../config/module-coupling.config";
+import { calculateCouplingLevel } from "../../utils/view-helpers";
 
 type ModuleCouplingMap = Record<string, Record<string, number>>;
 
@@ -103,8 +104,21 @@ export class ModuleCouplingDataProvider {
       return a.toModule.localeCompare(b.toModule);
     });
 
+    // Add pre-computed coupling levels for each coupling entry
+    const couplingsWithLevels = sortedCouplings.map((coupling) => {
+      const { level, cssClass } = calculateCouplingLevel(
+        coupling.referenceCount,
+        highestCouplingCount,
+      );
+      return {
+        ...coupling,
+        couplingLevel: level,
+        couplingLevelClass: cssClass,
+      };
+    });
+
     return {
-      couplings: sortedCouplings,
+      couplings: couplingsWithLevels,
       totalModules: uniqueModules.size,
       totalCouplings: couplings.length,
       highestCouplingCount,

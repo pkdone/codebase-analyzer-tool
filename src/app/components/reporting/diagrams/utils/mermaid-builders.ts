@@ -3,7 +3,7 @@
  * Each builder converts a specific data structure into Mermaid syntax.
  */
 
-import { visualizationConfig } from "../../generators/visualization.config";
+import { currentArchitectureConfig } from "../generators/current-architecture.config";
 
 /**
  * Shared styling constants for SVG diagrams.
@@ -34,7 +34,7 @@ export function buildMermaidInitDirective(): string {
  * Includes additional spacing configuration for better node distribution.
  */
 export function buildArchitectureInitDirective(): string {
-  const { mermaidInit } = visualizationConfig.currentArchitecture;
+  const { mermaidInit } = currentArchitectureConfig;
   return `%%{init: {'flowchart': {'diagramPadding': ${mermaidInit.DIAGRAM_PADDING}, 'nodeSpacing': ${mermaidInit.NODE_SPACING}, 'rankSpacing': ${mermaidInit.RANK_SPACING}}}}%%`;
 }
 

@@ -1,65 +1,68 @@
-import { visualizationConfig } from "../../../../../src/app/components/reporting/generators/visualization.config";
+/**
+ * Tests for visualization configuration modules.
+ * These configs have been split from a single file into co-located config files.
+ */
+
+import { architectureConfig } from "../../../../../src/app/components/reporting/diagrams/generators/architecture.config";
+import { domainModelConfig } from "../../../../../src/app/components/reporting/diagrams/generators/domain-model.config";
+import { flowchartConfig } from "../../../../../src/app/components/reporting/diagrams/generators/flowchart.config";
+import { currentArchitectureConfig } from "../../../../../src/app/components/reporting/diagrams/generators/current-architecture.config";
+import { pieChartConfig } from "../../../../../src/app/components/reporting/sections/file-types/pie-chart.config";
 
 describe("Visualization Configuration", () => {
   describe("architecture config", () => {
-    const archConfig = visualizationConfig.architecture;
-
     it("should have DEFAULT_WIDTH defined", () => {
-      expect(archConfig.DEFAULT_WIDTH).toBeDefined();
-      expect(typeof archConfig.DEFAULT_WIDTH).toBe("number");
-      expect(archConfig.DEFAULT_WIDTH).toBeGreaterThan(0);
+      expect(architectureConfig.DEFAULT_WIDTH).toBeDefined();
+      expect(typeof architectureConfig.DEFAULT_WIDTH).toBe("number");
+      expect(architectureConfig.DEFAULT_WIDTH).toBeGreaterThan(0);
     });
 
     it("should have DEFAULT_HEIGHT defined", () => {
-      expect(archConfig.DEFAULT_HEIGHT).toBeDefined();
-      expect(typeof archConfig.DEFAULT_HEIGHT).toBe("number");
-      expect(archConfig.DEFAULT_HEIGHT).toBeGreaterThan(0);
+      expect(architectureConfig.DEFAULT_HEIGHT).toBeDefined();
+      expect(typeof architectureConfig.DEFAULT_HEIGHT).toBe("number");
+      expect(architectureConfig.DEFAULT_HEIGHT).toBeGreaterThan(0);
     });
 
     it("should have SERVICES_PER_ROW defined", () => {
-      expect(archConfig.SERVICES_PER_ROW).toBeDefined();
-      expect(typeof archConfig.SERVICES_PER_ROW).toBe("number");
-      expect(archConfig.SERVICES_PER_ROW).toBeGreaterThan(0);
+      expect(architectureConfig.SERVICES_PER_ROW).toBeDefined();
+      expect(typeof architectureConfig.SERVICES_PER_ROW).toBe("number");
+      expect(architectureConfig.SERVICES_PER_ROW).toBeGreaterThan(0);
     });
 
     it("should have valid layout constants", () => {
-      expect(archConfig.WIDTH_PADDING).toBeGreaterThanOrEqual(0);
-      expect(archConfig.HEIGHT_PER_ROW).toBeGreaterThan(0);
-      expect(archConfig.HEIGHT_PADDING).toBeGreaterThanOrEqual(0);
+      expect(architectureConfig.WIDTH_PADDING).toBeGreaterThanOrEqual(0);
+      expect(architectureConfig.HEIGHT_PER_ROW).toBeGreaterThan(0);
+      expect(architectureConfig.HEIGHT_PADDING).toBeGreaterThanOrEqual(0);
     });
   });
 
   describe("domainModel config", () => {
-    const domainConfig = visualizationConfig.domainModel;
-
     it("should have DEFAULT_WIDTH defined", () => {
-      expect(domainConfig.DEFAULT_WIDTH).toBeDefined();
-      expect(typeof domainConfig.DEFAULT_WIDTH).toBe("number");
-      expect(domainConfig.DEFAULT_WIDTH).toBeGreaterThan(0);
+      expect(domainModelConfig.DEFAULT_WIDTH).toBeDefined();
+      expect(typeof domainModelConfig.DEFAULT_WIDTH).toBe("number");
+      expect(domainModelConfig.DEFAULT_WIDTH).toBeGreaterThan(0);
     });
 
     it("should have DEFAULT_HEIGHT defined", () => {
-      expect(domainConfig.DEFAULT_HEIGHT).toBeDefined();
-      expect(typeof domainConfig.DEFAULT_HEIGHT).toBe("number");
-      expect(domainConfig.DEFAULT_HEIGHT).toBeGreaterThan(0);
+      expect(domainModelConfig.DEFAULT_HEIGHT).toBeDefined();
+      expect(typeof domainModelConfig.DEFAULT_HEIGHT).toBe("number");
+      expect(domainModelConfig.DEFAULT_HEIGHT).toBeGreaterThan(0);
     });
 
     it("should have WIDTH_PER_NODE defined", () => {
-      expect(domainConfig.WIDTH_PER_NODE).toBeDefined();
-      expect(typeof domainConfig.WIDTH_PER_NODE).toBe("number");
-      expect(domainConfig.WIDTH_PER_NODE).toBeGreaterThan(0);
+      expect(domainModelConfig.WIDTH_PER_NODE).toBeDefined();
+      expect(typeof domainModelConfig.WIDTH_PER_NODE).toBe("number");
+      expect(domainModelConfig.WIDTH_PER_NODE).toBeGreaterThan(0);
     });
 
     it("should have MIN_HEIGHT defined", () => {
-      expect(domainConfig.MIN_HEIGHT).toBeDefined();
-      expect(typeof domainConfig.MIN_HEIGHT).toBe("number");
-      expect(domainConfig.MIN_HEIGHT).toBeGreaterThan(0);
+      expect(domainModelConfig.MIN_HEIGHT).toBeDefined();
+      expect(typeof domainModelConfig.MIN_HEIGHT).toBe("number");
+      expect(domainModelConfig.MIN_HEIGHT).toBeGreaterThan(0);
     });
   });
 
   describe("flowchart config", () => {
-    const flowchartConfig = visualizationConfig.flowchart;
-
     it("should have DEFAULT_WIDTH defined", () => {
       expect(flowchartConfig.DEFAULT_WIDTH).toBeDefined();
       expect(typeof flowchartConfig.DEFAULT_WIDTH).toBe("number");
@@ -79,12 +82,70 @@ describe("Visualization Configuration", () => {
     });
   });
 
+  describe("currentArchitecture config", () => {
+    it("should have DEFAULT_WIDTH defined", () => {
+      expect(currentArchitectureConfig.DEFAULT_WIDTH).toBeDefined();
+      expect(typeof currentArchitectureConfig.DEFAULT_WIDTH).toBe("number");
+      expect(currentArchitectureConfig.DEFAULT_WIDTH).toBeGreaterThan(0);
+    });
+
+    it("should have DEFAULT_HEIGHT defined", () => {
+      expect(currentArchitectureConfig.DEFAULT_HEIGHT).toBeDefined();
+      expect(typeof currentArchitectureConfig.DEFAULT_HEIGHT).toBe("number");
+      expect(currentArchitectureConfig.DEFAULT_HEIGHT).toBeGreaterThan(0);
+    });
+
+    it("should have mermaidInit configuration", () => {
+      expect(currentArchitectureConfig.mermaidInit).toBeDefined();
+      expect(currentArchitectureConfig.mermaidInit.DIAGRAM_PADDING).toBeGreaterThan(0);
+      expect(currentArchitectureConfig.mermaidInit.NODE_SPACING).toBeGreaterThan(0);
+      expect(currentArchitectureConfig.mermaidInit.RANK_SPACING).toBeGreaterThan(0);
+    });
+  });
+
+  describe("pieChart config", () => {
+    it("should have CENTER_X and CENTER_Y defined", () => {
+      expect(pieChartConfig.CENTER_X).toBeDefined();
+      expect(pieChartConfig.CENTER_Y).toBeDefined();
+      expect(typeof pieChartConfig.CENTER_X).toBe("number");
+      expect(typeof pieChartConfig.CENTER_Y).toBe("number");
+    });
+
+    it("should have RADIUS defined", () => {
+      expect(pieChartConfig.RADIUS).toBeDefined();
+      expect(typeof pieChartConfig.RADIUS).toBe("number");
+      expect(pieChartConfig.RADIUS).toBeGreaterThan(0);
+    });
+
+    it("should have legend configuration", () => {
+      expect(pieChartConfig.LEGEND_X).toBeDefined();
+      expect(pieChartConfig.LEGEND_Y).toBeDefined();
+      expect(pieChartConfig.LEGEND_ITEM_HEIGHT).toBeGreaterThan(0);
+      expect(pieChartConfig.LEGEND_BOX_SIZE).toBeGreaterThan(0);
+    });
+
+    it("should have COLORS array with multiple colors", () => {
+      expect(Array.isArray(pieChartConfig.COLORS)).toBe(true);
+      expect(pieChartConfig.COLORS.length).toBeGreaterThan(0);
+      // All colors should be valid hex colors
+      for (const color of pieChartConfig.COLORS) {
+        expect(color).toMatch(/^#[0-9A-Fa-f]{6}$/);
+      }
+    });
+  });
+
   describe("config immutability", () => {
-    it("should be a frozen object (as const)", () => {
-      // visualizationConfig uses 'as const', but this is TypeScript-only
-      // We verify the structure exists rather than runtime immutability
-      expect(visualizationConfig).toBeDefined();
-      expect(typeof visualizationConfig).toBe("object");
+    it("should have all configs as frozen objects (as const)", () => {
+      expect(architectureConfig).toBeDefined();
+      expect(domainModelConfig).toBeDefined();
+      expect(flowchartConfig).toBeDefined();
+      expect(currentArchitectureConfig).toBeDefined();
+      expect(pieChartConfig).toBeDefined();
+      expect(typeof architectureConfig).toBe("object");
+      expect(typeof domainModelConfig).toBe("object");
+      expect(typeof flowchartConfig).toBe("object");
+      expect(typeof currentArchitectureConfig).toBe("object");
+      expect(typeof pieChartConfig).toBe("object");
     });
   });
 });

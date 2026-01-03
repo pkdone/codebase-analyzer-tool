@@ -4,6 +4,7 @@ import { repositoryTokens } from "../../../../di/tokens";
 import type { UiTechnologyAnalysis } from "./quality-metrics.types";
 import { uiAnalysisConfig } from "../../config/ui-analysis.config";
 import { UNKNOWN_VALUE_PLACEHOLDER } from "../../../../../common/constants/application.constants";
+import { calculateDebtLevel } from "../../utils/view-helpers";
 
 /**
  * Type for UI analysis summary
@@ -16,6 +17,12 @@ export type UiAnalysisSummary = UiTechnologyAnalysis;
 type UiFrameworkItem = UiTechnologyAnalysis["frameworks"][0];
 type CustomTagLibrary = UiTechnologyAnalysis["customTagLibraries"][0];
 type JspFileMetrics = UiTechnologyAnalysis["topScriptletFiles"][0];
+
+/**
+ * Intermediate type for JSP file metrics before debt level calculation.
+ * Debt levels are computed after sorting to include only in top files.
+ */
+type RawJspFileMetrics = Omit<JspFileMetrics, "debtLevel" | "debtLevelClass">;
 
 /**
  * Data provider responsible for aggregating UI technology data including framework detection, JSP metrics, and tag library usage.
@@ -41,7 +48,7 @@ export class UiDataProvider {
     // Data structures for aggregation
     const frameworkMap = new Map<string, UiFrameworkItem>();
     const tagLibraryMap = new Map<string, CustomTagLibrary>();
-    const jspFileMetrics: JspFileMetrics[] = [];
+    const jspFileMetrics: RawJspFileMetrics[] = [];
 
     let totalScriptlets = 0;
     let totalExpressions = 0;
@@ -122,9 +129,18 @@ export class UiDataProvider {
     }
 
     // Sort JSP files by total scriptlet blocks (descending) and take top N
+    // Add pre-computed debt levels for each file
     const topScriptletFiles = jspFileMetrics
       .toSorted((a, b) => b.totalScriptletBlocks - a.totalScriptletBlocks)
-      .slice(0, uiAnalysisConfig.TOP_FILES_LIMIT);
+      .slice(0, uiAnalysisConfig.TOP_FILES_LIMIT)
+      .map((file) => {
+        const { level, cssClass } = calculateDebtLevel(file.totalScriptletBlocks);
+        return {
+          ...file,
+          debtLevel: level,
+          debtLevelClass: cssClass,
+        };
+      });
 
     // Calculate average scriptlets per file
     const totalJspFiles = jspFileMetrics.length;
