@@ -337,8 +337,12 @@ export default class VertexAIGeminiLLM extends BaseLLMProvider {
 
 /**
  * Type guard to check if a JSON schema is compatible with VertexAI's Schema type.
- * This is a structural compatibility check since the exact Schema interface may not be directly
- * accessible. VertexAI expects schemas to have type information and properties structure.
+ * This is a structural compatibility check. VertexAI expects schemas with:
+ * - A 'type' property (string, matching SchemaType enum values)
+ * - For object types: a 'properties' object
+ *
+ * Returns Record<string, unknown> as the narrowed type since it needs to be
+ * assignable to the SDK's ResponseSchema type which has complex constraints.
  */
 function isVertexAICompatibleSchema(schema: unknown): schema is Record<string, unknown> {
   if (!schema || typeof schema !== "object") return false;

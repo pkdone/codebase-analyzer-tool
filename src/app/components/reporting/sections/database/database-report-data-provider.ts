@@ -1,7 +1,12 @@
 import { injectable, inject } from "tsyringe";
 import type { SourcesRepository } from "../../../../repositories/sources/sources.repository.interface";
 import { repositoryTokens } from "../../../../di/tokens";
-import type { ProcsAndTriggers, DatabaseIntegrationInfo, Complexity } from "./database.types";
+import type {
+  ProcsAndTriggers,
+  DatabaseIntegrationInfo,
+  Complexity,
+  ProcsOrTrigsListItem,
+} from "./database.types";
 import { isComplexityLevel } from "./database.types";
 import { procedureTriggerSchema } from "../../../../schemas/sources.schema";
 import type { z } from "zod";
@@ -128,7 +133,7 @@ export class DatabaseReportDataProvider {
         low: 0,
         medium: 0,
         high: 0,
-        list: [] as ReturnType<typeof this.mapItemToReportFormat>[],
+        list: [] as ProcsOrTrigsListItem[],
       },
     );
   }
@@ -141,7 +146,7 @@ export class DatabaseReportDataProvider {
     type:
       | typeof DATABASE_OBJECT_TYPE_LABELS.STORED_PROCEDURE
       | typeof DATABASE_OBJECT_TYPE_LABELS.TRIGGER,
-  ) {
+  ): ProcsOrTrigsListItem {
     const complexity = this.normalizeComplexity(item.complexity, item.name);
 
     return {

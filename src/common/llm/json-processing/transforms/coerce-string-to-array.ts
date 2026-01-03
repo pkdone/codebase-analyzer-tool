@@ -58,7 +58,7 @@ export function coerceStringToArray(
           // Convert string values to empty arrays for configured property names
           // Check the original value before it's processed recursively
           if (arrayPropertyNames.includes(key) && typeof propVal === "string") {
-            result[key] = [] as unknown;
+            result[key] = [];
           } else {
             // Value will be processed recursively by deepMap
             result[key] = propVal;

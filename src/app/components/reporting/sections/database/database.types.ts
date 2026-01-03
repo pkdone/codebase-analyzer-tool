@@ -14,6 +14,16 @@ export function isComplexityLevel(value: unknown): value is Complexity {
 
 export type ProcedureTrigger = TypeOf<typeof procedureTriggerSchema>;
 
+/**
+ * Shape of a single stored procedure or trigger item in the report list.
+ * Extends ProcedureTrigger with report-specific fields.
+ */
+export type ProcsOrTrigsListItem = ProcedureTrigger & {
+  path: string;
+  type: string;
+  functionName: string;
+};
+
 // Interface for the database interaction list
 export interface ProcsAndTriggers {
   procs: {
@@ -21,20 +31,14 @@ export interface ProcsAndTriggers {
     low: number;
     medium: number;
     high: number;
-    list: (ProcedureTrigger & { path: string; type: string; functionName: string } & Record<
-        string,
-        unknown
-      >)[];
+    list: ProcsOrTrigsListItem[];
   };
   trigs: {
     total: number;
     low: number;
     medium: number;
     high: number;
-    list: (ProcedureTrigger & { path: string; type: string; functionName: string } & Record<
-        string,
-        unknown
-      >)[];
+    list: ProcsOrTrigsListItem[];
   };
 }
 

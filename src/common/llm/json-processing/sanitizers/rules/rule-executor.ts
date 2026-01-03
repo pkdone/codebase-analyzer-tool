@@ -37,53 +37,55 @@ function executeRule(
   const skipInString = rule.skipInString !== false; // Default to true
   const contextLookback = rule.contextLookback ?? parsingHeuristics.CONTEXT_LOOKBACK_LENGTH;
 
-  const result = content.replace(rule.pattern, (match: string, ...args: unknown[]) => {
-    // Extract offset and groups from args
-    // The last two arguments from replace are: offset, fullString
-    const argsArray = args as (string | number | undefined)[];
-    const offset = argsArray[argsArray.length - 2] as number;
-    const groups = argsArray.slice(0, -2) as (string | undefined)[];
+  const result = content.replace(
+    rule.pattern,
+    (match: string, ...args: (string | number | undefined)[]) => {
+      // Extract offset and groups from args
+      // The last two arguments from replace are: offset, fullString
+      const offset = args[args.length - 2] as number;
+      const groups = args.slice(0, -2) as (string | undefined)[];
 
-    // Skip if inside a string literal (unless disabled)
-    if (skipInString && isInStringAt(offset, content)) {
-      return match;
-    }
+      // Skip if inside a string literal (unless disabled)
+      if (skipInString && isInStringAt(offset, content)) {
+        return match;
+      }
 
-    // Build context info for advanced checks
-    const contextInfo: ContextInfo = {
-      beforeMatch: content.substring(Math.max(0, offset - contextLookback), offset),
-      offset,
-      fullContent: content,
-      groups,
-    };
+      // Build context info for advanced checks
+      const contextInfo: ContextInfo = {
+        beforeMatch: content.substring(Math.max(0, offset - contextLookback), offset),
+        offset,
+        fullContent: content,
+        groups,
+      };
 
-    // Apply context check if provided
-    if (rule.contextCheck && !rule.contextCheck(contextInfo)) {
-      return match;
-    }
+      // Apply context check if provided
+      if (rule.contextCheck && !rule.contextCheck(contextInfo)) {
+        return match;
+      }
 
-    // Get the replacement
-    const replacement = rule.replacement(match, groups, contextInfo);
+      // Get the replacement
+      const replacement = rule.replacement(match, groups, contextInfo);
 
-    // If replacement returns null, skip this match
-    if (replacement === null) {
-      return match;
-    }
+      // If replacement returns null, skip this match
+      if (replacement === null) {
+        return match;
+      }
 
-    // Only track changes if the replacement is different
-    if (replacement !== match) {
-      hasChanges = true;
+      // Only track changes if the replacement is different
+      if (replacement !== match) {
+        hasChanges = true;
 
-      // Generate and add diagnostic message
-      const message =
-        typeof rule.diagnosticMessage === "function"
-          ? rule.diagnosticMessage(match, groups)
-          : rule.diagnosticMessage;
-      diagnostics.add(message);
-    }
+        // Generate and add diagnostic message
+        const message =
+          typeof rule.diagnosticMessage === "function"
+            ? rule.diagnosticMessage(match, groups)
+            : rule.diagnosticMessage;
+        diagnostics.add(message);
+      }
 
-    return replacement;
-  });
+      return replacement;
+    },
+  );
 
   return { content: result, changed: hasChanges };
 }
