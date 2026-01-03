@@ -37,6 +37,51 @@ function looksLikeStrayText(word: string): boolean {
 }
 
 /**
+ * Checks if text looks like descriptive/commentary text using structural patterns.
+ * Instead of checking for specific words, we detect sentence-like structures:
+ * - Contains multiple space-separated words (3+)
+ * - Ends with sentence punctuation
+ * - Does not contain JSON structural characters
+ *
+ * @param text - The text to check
+ * @returns True if the text looks like descriptive/commentary content
+ */
+function looksLikeDescriptiveTextStructural(text: string): boolean {
+  const trimmed = text.trim();
+
+  // Must not contain JSON structural characters
+  if (/["{}[\]]/.test(trimmed)) {
+    return false;
+  }
+
+  // Count space-separated words
+  const wordCount = trimmed.split(/\s+/).filter((w) => w.length > 0).length;
+
+  // Text with 3+ words is likely a sentence/commentary
+  if (wordCount >= 3) {
+    return true;
+  }
+
+  // Text ending with sentence punctuation (even single words like "tribulations.")
+  // Single words with punctuation in JSON context are clearly stray text
+  if (/[.!?]$/.test(trimmed) && /^[a-z]+[.!?]$/i.test(trimmed)) {
+    return true;
+  }
+
+  // Text ending with sentence punctuation and has 2+ words
+  if (/[.!?]$/.test(trimmed) && wordCount >= 2) {
+    return true;
+  }
+
+  // Text that is primarily lowercase letters and spaces (prose-like)
+  if (/^[a-z][a-z\s]{10,}$/i.test(trimmed)) {
+    return true;
+  }
+
+  return false;
+}
+
+/**
  * Checks if a property name looks like an LLM artifact or internal property.
  *
  * @param propertyName - The property name to check
@@ -68,6 +113,7 @@ export const textOutsideJsonRemover: SanitizerStrategy = {
     let hasChanges = false;
 
     // Pattern 1: Text appearing after closing quote
+    // Uses structural detection instead of hardcoded word lists
     const textOutsideStringPattern =
       /"([^"]+)"\s*,\s*\n\s*([a-z][^"]{5,200}?)(?=\s*[,}\]]|\s*\n\s*"[a-zA-Z]|\.\s*$)/g;
     sanitized = sanitized.replace(
@@ -78,18 +124,9 @@ export const textOutsideJsonRemover: SanitizerStrategy = {
         }
 
         const strayTextStr = typeof strayText === "string" ? strayText : "";
-        const looksLikeDescriptiveText =
-          (/\b(the|a|an|is|are|was|were|this|that|from|to|for|with|by|in|on|at|suggests|pattern|use|layer|thought|user|wants|act|senior|developer|analyze|provided|java|code|produce|json|output|conforms|specified|schema|since|as|when|where|while|if|although|though|because)\b/i.test(
-            strayTextStr,
-          ) ||
-            /^[a-z][a-z\s]{5,50}\.$/i.test(strayTextStr)) &&
-          !strayTextStr.includes('"') &&
-          !strayTextStr.includes("{") &&
-          !strayTextStr.includes("}") &&
-          !strayTextStr.includes("[") &&
-          !strayTextStr.includes("]");
 
-        if (looksLikeDescriptiveText) {
+        // Use structural detection instead of hardcoded word lists
+        if (looksLikeDescriptiveTextStructural(strayTextStr)) {
           hasChanges = true;
           const valueStr = typeof value === "string" ? value : "";
           const truncated =
@@ -134,6 +171,7 @@ export const textOutsideJsonRemover: SanitizerStrategy = {
     );
 
     // Pattern 3: Text after JSON structure ends
+    // Uses structural detection instead of hardcoded word lists
     const textAfterJsonEndPattern = /(}\s*)\n\s*([a-z][a-z\s]{5,200}?)(\.|\.\.\.|!|\?)?\s*$/i;
     sanitized = sanitized.replace(
       textAfterJsonEndPattern,
@@ -145,17 +183,8 @@ export const textOutsideJsonRemover: SanitizerStrategy = {
         const strayTextStr = typeof strayText === "string" ? strayText : "";
         const closingBraceStr = typeof closingBrace === "string" ? closingBrace : "";
 
-        const looksLikeDescriptiveText =
-          /\b(so\s+many|I\s+will|I\s+shall|stop|here|methods|continue|proceed|skip|ignore|let\s+me|I\s+can|I\s+should|I\s+must|I\s+need|I\s+want|I\s+think|I\s+believe|I\s+see|I\s+notice|I\s+observe)\b/i.test(
-            strayTextStr,
-          ) &&
-          !strayTextStr.includes('"') &&
-          !strayTextStr.includes("{") &&
-          !strayTextStr.includes("}") &&
-          !strayTextStr.includes("[") &&
-          !strayTextStr.includes("]");
-
-        if (looksLikeDescriptiveText) {
+        // Use structural detection instead of hardcoded word lists
+        if (looksLikeDescriptiveTextStructural(strayTextStr)) {
           hasChanges = true;
           const displayText =
             strayTextStr.length > 50 ? `${strayTextStr.substring(0, 47)}...` : strayTextStr;

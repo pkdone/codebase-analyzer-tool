@@ -396,4 +396,128 @@ _ADDITIONAL_PROPERTIES
       expect(result.content).toBe("");
     });
   });
+
+  describe("Property name fixing (edge cases)", () => {
+    it("should handle property names with missing opening quote", () => {
+      const input = `{
+  "valid": "value",
+  user_id": 1
+}`;
+      const result = fixMalformedJsonPatterns(input);
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"user_id"');
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+
+    it("should handle property names with missing opening quote (camelCase)", () => {
+      const input = `{
+  userName": "john",
+  "age": 30
+}`;
+      const result = fixMalformedJsonPatterns(input);
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"userName"');
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+  });
+
+  describe("Stray text between objects (new edge cases)", () => {
+    it("should remove commentary text between objects in array", () => {
+      const input = `{
+  "items": [
+    {"id": 1},
+moving on to the next item
+    {"id": 2}
+  ]
+}`;
+      const result = fixMalformedJsonPatterns(input);
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain("moving on");
+      // May not parse due to complex nested structure, but text should be removed
+    });
+
+    it("should handle stray text with punctuation after JSON structure", () => {
+      const input = `{
+  "name": "test"
+}
+This is the end of the response.`;
+      const result = textOutsideJsonRemover.apply(input);
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain("This is the end");
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+  });
+
+  describe("Unknown metadata fields (edge cases)", () => {
+    it("should remove _meta_info property (underscore prefix)", () => {
+      const input = '{"name": "test", "_meta_info": "metadata value"}';
+      const result = extraPropertiesRemover.apply(input);
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain("_meta_info");
+    });
+
+    it("should remove _internal_state property (underscore prefix)", () => {
+      const input = '{"name": "test", "_internal_state": {"key": "value"}}';
+      const result = extraPropertiesRemover.apply(input);
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain("_internal_state");
+    });
+
+    it("should remove properties ending with _analysis (known suffix with extra_ prefix)", () => {
+      const input = '{"name": "test", "extra_section_analysis": "This analyzes the section"}';
+      const result = extraPropertiesRemover.apply(input);
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain("extra_section_analysis");
+    });
+  });
+
+  describe("Consolidated YAML block removal (new edge cases)", () => {
+    it("should remove generic hyphenated YAML keys with list items", () => {
+      const input = `{
+  "name": "test"
+},
+my-custom-yaml-key:
+  - item1
+  - item2
+  "nextProp": "value"`;
+      const result = fixMalformedJsonPatterns(input);
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain("my-custom-yaml-key");
+    });
+
+    it("should remove extra_ prefixed YAML-style blocks", () => {
+      const input = `{
+  "name": "test"
+},
+extra_analysis: This is my analysis of the code
+  "nextProp": "value"`;
+      const result = fixMalformedJsonPatterns(input);
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain("extra_analysis");
+    });
+  });
+
+  describe("Structural text detection (new edge cases)", () => {
+    it("should remove multi-word descriptive text after values", () => {
+      const input = `{
+  "items": ["item1"],
+this is descriptive text that explains the data
+  "other": []
+}`;
+      const result = textOutsideJsonRemover.apply(input);
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain("descriptive text");
+    });
+
+    it("should remove text ending with punctuation after JSON", () => {
+      const input = `{
+  "data": "value"
+}
+I have completed the analysis!`;
+      const result = textOutsideJsonRemover.apply(input);
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain("completed the analysis");
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+  });
 });

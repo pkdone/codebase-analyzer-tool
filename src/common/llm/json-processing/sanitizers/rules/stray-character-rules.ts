@@ -36,24 +36,67 @@ function isJsonKeyword(text: string): boolean {
 }
 
 /**
+ * Checks if text looks like stray non-JSON content before a property.
+ * Uses structural detection rather than specific word lists.
+ *
+ * @param text - The text to check
+ * @returns True if the text looks like stray content that should be removed
+ */
+function looksLikeStrayTextBeforeProperty(text: string): boolean {
+  const trimmed = text.trim();
+
+  // JSON keywords should never be removed
+  if (isJsonKeyword(trimmed)) {
+    return false;
+  }
+
+  // Empty or whitespace-only is not stray
+  if (trimmed.length === 0) {
+    return false;
+  }
+
+  // Single lowercase character (common LLM artifact)
+  if (/^[a-z]$/.test(trimmed)) {
+    return true;
+  }
+
+  // Short lowercase text (1-40 chars) without JSON structural chars
+  // Extended to catch longer LLM commentary like "running on a different machine"
+  if (/^[a-z][a-z\s]{0,39}$/i.test(trimmed) && !/["{}[\]:,]/.test(trimmed)) {
+    return true;
+  }
+
+  return false;
+}
+
+/**
  * Rules for removing stray characters from JSON content.
  */
 export const STRAY_CHARACTER_RULES: readonly ReplacementRule[] = [
-  // Rule: Remove extra single characters before properties
-  // Pattern: `a  "integrationPoints":`, `s  "publicMethods":`, `e "externalReferences":`
+  // Rule: Generic removal of stray text before property names
+  // Consolidates: extraCharBeforeProperty, strayTextBeforePropertyName, strayTextLongBeforeProperty
+  // Catches single chars, short text, and longer text before properties
+  // Pattern: `a  "prop":`, `stray text "prop":`, `running on a different machine "prop":`
   {
-    name: "extraCharBeforeProperty",
-    pattern: /([}\],]|\n|^)(\s*)([a-z])\s+("([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:)/g,
+    name: "genericStrayTextBeforeProperty",
+    pattern: /([}\],]|\n|^)(\s*)([a-z][a-z\s]{0,40}?)\s*("([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:)/g,
     replacement: (_match, groups) => {
-      const [delimiter, whitespace, , propertyWithQuote] = groups;
+      const [delimiter, whitespace, strayText, propertyWithQuote] = groups;
       const delimiterStr = delimiter ?? "";
       const whitespaceStr = whitespace ?? "";
+      const strayTextStr = (strayText ?? "").trim();
       const propertyWithQuoteStr = propertyWithQuote ?? "";
+
+      // Use structural detection to determine if this is stray text
+      if (!looksLikeStrayTextBeforeProperty(strayTextStr)) {
+        return null;
+      }
+
       return `${delimiterStr}${whitespaceStr}${propertyWithQuoteStr}`;
     },
     diagnosticMessage: (_match, groups) => {
-      const extraChar = groups[2] ?? "";
-      return `Removed extra character '${extraChar}' before property`;
+      const strayText = (groups[2] ?? "").trim();
+      return `Removed stray text '${strayText}' before property`;
     },
     contextCheck: isAfterJsonDelimiter,
   },
@@ -97,13 +140,19 @@ export const STRAY_CHARACTER_RULES: readonly ReplacementRule[] = [
     },
   },
 
-  // Rule: Remove short stray prefix (1-3 lowercase chars) before quoted strings in arrays
-  // Pattern: `ar"stringValue"` -> `"stringValue"`, `x"value"` -> `"value"`, `foo"bar"` -> `"bar"`
+  // Rule: Generic removal of stray prefix (1-10 lowercase chars) before quoted strings in arrays
+  // Consolidates: shortPrefixBeforeQuotedString, strayTextBeforeArrayString
+  // Pattern: `ar"stringValue"`, `x"value"`, `stray"value",` -> `"value",`
   {
-    name: "shortPrefixBeforeQuotedString",
-    pattern: /([}\],]|\n|^)(\s*)([a-z]{1,3})"([^"]+)"(\s*,|\s*\])/g,
+    name: "genericStrayPrefixInArray",
+    pattern: /([}\],]|\n|^)(\s*)([a-z]{1,10})"([^"]+)"(\s*,|\s*\])/g,
     replacement: (_match, groups, context) => {
       if (!isInArrayContext(context)) {
+        return null;
+      }
+      const strayPrefix = groups[2] ?? "";
+      // Skip if the prefix is a JSON keyword
+      if (isJsonKeyword(strayPrefix)) {
         return null;
       }
       const [delimiter, whitespace, , stringValue, terminator] = groups;
@@ -152,28 +201,6 @@ export const STRAY_CHARACTER_RULES: readonly ReplacementRule[] = [
     contextCheck: isAfterJsonDelimiter,
   },
 
-  // Rule: Remove stray text (2-10 lowercase chars) before string values in arrays
-  // Pattern: `strayText"stringValue",` -> `"stringValue",`
-  {
-    name: "strayTextBeforeArrayString",
-    pattern: /([}\],]|\n|^)(\s*)([a-z]{2,10})"([^"]+)"\s*,/g,
-    replacement: (_match, groups, context) => {
-      if (!isInArrayContext(context)) {
-        return null;
-      }
-      const [delimiter, whitespace, , stringValue] = groups;
-      const delimiterStr = delimiter ?? "";
-      const whitespaceStr = whitespace ?? "";
-      const stringValueStr = stringValue ?? "";
-      return `${delimiterStr}${whitespaceStr}"${stringValueStr}",`;
-    },
-    diagnosticMessage: (_match, groups) => {
-      const strayText = groups[2] ?? "";
-      const stringValue = groups[3] ?? "";
-      return `Removed stray text '${strayText}' before array element: "${stringValue.substring(0, 30)}..."`;
-    },
-  },
-
   // Rule: Remove stray text after closing braces
   // Pattern: `},ce` -> `},`
   {
@@ -193,26 +220,6 @@ export const STRAY_CHARACTER_RULES: readonly ReplacementRule[] = [
       const strayText = groups[1] ?? "";
       return `Removed stray text '${strayText}' after ${delimiter}`;
     },
-  },
-
-  // Rule: Remove stray text (short words with spaces) before property names
-  // Pattern: ` tribulations":` -> `"propertyName":`
-  {
-    name: "strayTextBeforePropertyName",
-    pattern: /([}\],]|\n|^)(\s*)([a-z\s]{1,20})"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:/g,
-    replacement: (_match, groups) => {
-      const [delimiter, whitespace, , propertyName] = groups;
-      const delimiterStr = delimiter ?? "";
-      const whitespaceStr = whitespace ?? "";
-      const propertyNameStr = propertyName ?? "";
-      return `${delimiterStr}${whitespaceStr}"${propertyNameStr}":`;
-    },
-    diagnosticMessage: (_match, groups) => {
-      const strayText = (groups[2] ?? "").trim();
-      const propertyName = groups[3] ?? "";
-      return `Removed stray text '${strayText}' before property: "${propertyName}"`;
-    },
-    contextCheck: isAfterJsonDelimiter,
   },
 
   // Rule: Remove stray single characters at start of lines in arrays
@@ -328,25 +335,6 @@ export const STRAY_CHARACTER_RULES: readonly ReplacementRule[] = [
     diagnosticMessage: (_match, groups) => {
       const extraChar = groups[2] ?? "";
       return `Removed extra character '${extraChar}' before opening brace`;
-    },
-    contextCheck: isAfterJsonDelimiter,
-  },
-
-  // Rule: Remove stray text before property names (longer text)
-  // Pattern: `stray text    "propertyName":` -> `"propertyName":`
-  {
-    name: "strayTextLongBeforeProperty",
-    pattern: /([}\],]|\n|^)(\s*)([a-z][a-z\s]{10,}?)\s+("([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:)/g,
-    replacement: (_match, groups) => {
-      const [delimiter, whitespace, , propertyWithQuote] = groups;
-      const delimiterStr = delimiter ?? "";
-      const whitespaceStr = whitespace ?? "";
-      const propertyWithQuoteStr = propertyWithQuote ?? "";
-      return `${delimiterStr}${whitespaceStr}${propertyWithQuoteStr}`;
-    },
-    diagnosticMessage: (_match, groups) => {
-      const strayText = (groups[2] ?? "").trim();
-      return `Removed stray text '${strayText}' before property`;
     },
     contextCheck: isAfterJsonDelimiter,
   },

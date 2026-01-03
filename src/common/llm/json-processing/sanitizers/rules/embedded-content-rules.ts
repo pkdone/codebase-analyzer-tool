@@ -19,76 +19,75 @@ function isValidEmbeddedContentContext(context: ContextInfo): boolean {
 }
 
 /**
+ * Checks if a key looks like a YAML/non-JSON key that should be removed.
+ * Generic detection based on structural patterns rather than specific strings.
+ */
+function looksLikeNonJsonKey(key: string): boolean {
+  const lowerKey = key.toLowerCase();
+  // Match patterns: extra_*, llm_*, ai_*, _* prefix, or hyphenated keys (YAML-style)
+  return (
+    /^(?:extra|llm|ai)_[a-z_]+$/i.test(key) ||
+    /^_[a-z_]+$/i.test(key) ||
+    /^[a-z][a-z0-9_]*(?:-[a-z][a-z0-9_]+)+$/i.test(key) || // hyphenated keys like "my-yaml-key"
+    /_(thoughts?|text|notes?|info|reasoning|analysis)$/i.test(lowerKey)
+  );
+}
+
+/**
  * Rules for removing embedded non-JSON content.
  */
 export const EMBEDDED_CONTENT_RULES: readonly ReplacementRule[] = [
-  // Rule: Remove YAML-like blocks embedded in JSON
-  // Pattern: `semantically-similar-code-detection-results:\n  - score: 0.98\n...` -> remove
+  // Rule: Generic YAML list block removal
+  // Catches any key followed by YAML-style list items (- item\n- item2\n)
+  // Covers: extra_*, llm_*, ai_*, _*, hyphenated-keys, and other non-JSON keys
+  // Pattern: `some-yaml-key:\n  - item1\n  - item2\n  "property":` -> `"property":`
   {
-    name: "yamlBlockRemoval",
+    name: "genericYamlListBlock",
     pattern:
-      /([}\],]|\n)(\s*)((?:extra_|_llm_|_ai_|[a-z][a-z0-9_-]*-[a-z][a-z0-9_-]*)[a-z0-9_-]*:)\s*\n((?:\s+-\s+[^\n]+\n?)+)(\s*")/gi,
+      /([}\],]|\n|,)(\s*)([a-z][a-z0-9_-]*(?:[_-][a-z0-9_-]+)*:)\s*\n((?:\s+(?:-\s+)?[^\n]+\n)+)(\s*")/gi,
     replacement: (_match, groups) => {
-      const [delimiter, , , , continuation] = groups;
+      const [delimiter, , yamlKey] = groups;
       const delimiterStr = delimiter ?? "";
-      const continuationStr = continuation ?? "";
+      const continuationStr = groups[4] ?? "";
+      const keyStr = (yamlKey ?? "").replace(/:$/, "");
+
+      // Only remove if the key looks like a non-JSON key
+      if (!looksLikeNonJsonKey(keyStr)) {
+        return null;
+      }
+
       return `${delimiterStr}\n${continuationStr}`;
     },
     diagnosticMessage: (_match, groups) => {
       const yamlKey = (groups[2] ?? "").substring(0, 30);
-      return `Removed YAML block: ${yamlKey}...`;
+      return `Removed YAML list block: ${yamlKey}`;
     },
   },
 
-  // Rule: Remove YAML-like blocks with simple text (extra_thoughts style)
-  // Pattern: `extra_thoughts: I've identified...` -> remove
+  // Rule: Generic YAML simple value removal
+  // Catches any non-JSON key followed by simple text value (not JSON structure)
+  // Covers: extra_thoughts: some text, my-key: value, etc.
+  // Pattern: `extra_thoughts: I've identified all...` -> remove
   {
-    name: "yamlBlockSimpleText",
+    name: "genericYamlSimpleValue",
     pattern:
-      /([}\],]|\n)(\s*)((?:extra_|_llm_|_ai_|[a-z][a-z0-9_-]*-[a-z][a-z0-9_-]*)[a-z0-9_-]*:)\s*([^\n{"]{10,200}?)\s*\n(\s*")/gi,
+      /([}\],]|\n)(\s*)([a-z][a-z0-9_-]*(?:[_-][a-z0-9_-]+)*:)\s*([^\n{"[\]]{10,200}?)\s*\n(\s*")/gi,
     replacement: (_match, groups) => {
-      const [delimiter, , , , continuation] = groups;
+      const [delimiter, , yamlKey] = groups;
       const delimiterStr = delimiter ?? "";
-      const continuationStr = continuation ?? "";
+      const continuationStr = groups[4] ?? "";
+      const keyStr = (yamlKey ?? "").replace(/:$/, "");
+
+      // Only remove if the key looks like a non-JSON key
+      if (!looksLikeNonJsonKey(keyStr)) {
+        return null;
+      }
+
       return `${delimiterStr}\n${continuationStr}`;
     },
     diagnosticMessage: (_match, groups) => {
       const yamlKey = (groups[2] ?? "").substring(0, 30);
-      return `Removed YAML block: ${yamlKey}...`;
-    },
-  },
-
-  // Rule: Remove YAML blocks with list items (more comprehensive)
-  // Pattern: `key:\n  - item1\n  - item2\n  "property":` -> `"property":`
-  {
-    name: "yamlBlockWithListItems",
-    pattern:
-      /([}\],]|\n)(\s*)([a-z][a-z0-9_-]*-[a-z][a-z0-9_-]*[a-z0-9_-]*:)\s*\n((?:\s+-\s+[^\n]+\n?)+)(\s*")/gi,
-    replacement: (_match, groups) => {
-      const [delimiter, , , , continuation] = groups;
-      const delimiterStr = delimiter ?? "";
-      const continuationStr = continuation ?? "";
-      return `${delimiterStr}\n${continuationStr}`;
-    },
-    diagnosticMessage: (_match, groups) => {
-      const yamlKey = (groups[2] ?? "").substring(0, 30);
-      return `Removed YAML block: ${yamlKey}...`;
-    },
-  },
-
-  // Rule: Remove YAML-like blocks with multiple dashes (for semantically-similar-code-detection-results)
-  // Pattern: `,\nsemantically-similar-code-detection-results:\n  - score: 0.98\n  "property":` -> `,\n  "property":`
-  {
-    name: "yamlBlockRemovalGeneral",
-    pattern:
-      /,\s*\n\s*([a-z][a-z0-9_-]+(?:-[a-z][a-z0-9_-]+)+:)\s*\n((?:\s+(?:-\s+)?[^\n]+\n)+)(\s*")/gi,
-    replacement: (_match, groups) => {
-      const continuation = groups[2] ?? "";
-      return `,\n${continuation}`;
-    },
-    diagnosticMessage: (_match, groups) => {
-      const yamlKey = (groups[0] ?? "").substring(0, 30);
-      return `Removed YAML block: ${yamlKey}...`;
+      return `Removed YAML value block: ${yamlKey}`;
     },
   },
 
