@@ -235,6 +235,9 @@ export function createTokenUsage(
  * `{ name: string }[]` (array of objects), etc. The generic `unknown[]` ensures
  * type compatibility with `T extends LLMGeneratedContent` constraints when T is
  * inferred as a specific array type from a Zod schema.
+ *
+ * For type-safe JSON value operations, use the type guards from json-value.types.ts
+ * (isJsonPrimitive, isJsonObject, isJsonArray, isJsonValue) to narrow types.
  */
 export type LLMGeneratedContent = string | Record<string, unknown> | unknown[] | null;
 

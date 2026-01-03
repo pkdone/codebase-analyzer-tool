@@ -9,7 +9,25 @@ import {
 export type { ProcessedTableCell, ProcessedListItem };
 
 /**
- * Interface for a table row that can be displayed
+ * Valid cell value types for table display.
+ * Supports primitives, nested objects, and arrays that can be serialized for display.
+ * Uses `unknown` for complex nested values to allow flexibility while the formatter
+ * handles serialization to display strings.
+ */
+export type TableCellValue =
+  | string
+  | number
+  | boolean
+  | null
+  | undefined
+  | Record<string, unknown>
+  | readonly unknown[];
+
+/**
+ * Interface for a table row that can be displayed.
+ * Each row is a record of column names to cell values.
+ * The constraint is intentionally permissive to allow domain-specific interfaces
+ * (like DatabaseIntegrationInfo) to be used directly without index signatures.
  */
 export type DisplayableTableRow = Record<string, unknown>;
 

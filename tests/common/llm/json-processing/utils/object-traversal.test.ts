@@ -1,6 +1,7 @@
 import {
   deepMap,
   deepMapObject,
+  isPlainObject,
 } from "../../../../../src/common/llm/json-processing/utils/object-traversal";
 
 describe("deepMap", () => {
@@ -157,6 +158,123 @@ describe("deepMapObject", () => {
         transformKey: (key: string) => (key === "skip" ? null : key),
       });
       expect(result).toEqual({ keep: "value" });
+    });
+  });
+});
+
+describe("isPlainObject", () => {
+  describe("positive cases - plain objects", () => {
+    it("should return true for empty object literal", () => {
+      expect(isPlainObject({})).toBe(true);
+    });
+
+    it("should return true for object literal with properties", () => {
+      expect(isPlainObject({ a: 1, b: "test" })).toBe(true);
+    });
+
+    it("should return true for objects created with Object.create(null)", () => {
+      // Note: Object.create(null) creates an object without prototype,
+      // but its constructor is undefined, not Object
+      const obj = Object.create(null);
+      obj.key = "value";
+      // This will return false because constructor is undefined
+      expect(isPlainObject(obj)).toBe(false);
+    });
+
+    it("should return true for nested plain objects", () => {
+      expect(isPlainObject({ nested: { deep: { value: 42 } } })).toBe(true);
+    });
+
+    it("should return true for objects with symbol keys", () => {
+      const sym = Symbol("test");
+      expect(isPlainObject({ [sym]: "value", regular: "key" })).toBe(true);
+    });
+  });
+
+  describe("negative cases - non-plain objects", () => {
+    it("should return false for null", () => {
+      expect(isPlainObject(null)).toBe(false);
+    });
+
+    it("should return false for undefined", () => {
+      expect(isPlainObject(undefined)).toBe(false);
+    });
+
+    it("should return false for arrays", () => {
+      expect(isPlainObject([])).toBe(false);
+      expect(isPlainObject([1, 2, 3])).toBe(false);
+      expect(isPlainObject([{ obj: "inside" }])).toBe(false);
+    });
+
+    it("should return false for primitive values", () => {
+      expect(isPlainObject("string")).toBe(false);
+      expect(isPlainObject(42)).toBe(false);
+      expect(isPlainObject(true)).toBe(false);
+      expect(isPlainObject(Symbol("test"))).toBe(false);
+      expect(isPlainObject(BigInt(9007199254740991))).toBe(false);
+    });
+
+    it("should return false for Date objects", () => {
+      expect(isPlainObject(new Date())).toBe(false);
+    });
+
+    it("should return false for RegExp objects", () => {
+      expect(isPlainObject(/test/gi)).toBe(false);
+    });
+
+    it("should return false for Map objects", () => {
+      expect(isPlainObject(new Map())).toBe(false);
+    });
+
+    it("should return false for Set objects", () => {
+      expect(isPlainObject(new Set())).toBe(false);
+    });
+
+    it("should return false for custom class instances", () => {
+      class CustomClass {
+        constructor(public value: string) {}
+      }
+      expect(isPlainObject(new CustomClass("test"))).toBe(false);
+    });
+
+    it("should return false for function objects", () => {
+      expect(isPlainObject(() => {})).toBe(false);
+      expect(isPlainObject(function namedFn() {})).toBe(false);
+    });
+
+    it("should return false for Error objects", () => {
+      expect(isPlainObject(new Error("test"))).toBe(false);
+    });
+
+    it("should return false for Promise objects", () => {
+      expect(isPlainObject(Promise.resolve())).toBe(false);
+    });
+  });
+
+  describe("type narrowing", () => {
+    it("should narrow type to allow property access", () => {
+      const maybeObject: unknown = { key: "value", count: 42 };
+
+      if (isPlainObject(maybeObject)) {
+        // TypeScript should allow these accesses without casting
+        expect(maybeObject.key).toBe("value");
+        expect(maybeObject.count).toBe(42);
+      } else {
+        fail("Expected isPlainObject to return true");
+      }
+    });
+
+    it("should narrow type to allow symbol key access", () => {
+      const sym = Symbol("test");
+      const maybeObject: unknown = { [sym]: "symbol-value", regular: "regular-value" };
+
+      if (isPlainObject(maybeObject)) {
+        // TypeScript should allow symbol key access
+        expect(maybeObject[sym]).toBe("symbol-value");
+        expect(maybeObject.regular).toBe("regular-value");
+      } else {
+        fail("Expected isPlainObject to return true");
+      }
     });
   });
 });

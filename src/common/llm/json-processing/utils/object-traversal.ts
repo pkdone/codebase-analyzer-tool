@@ -1,4 +1,21 @@
 /**
+ * Type alias for plain objects with string and symbol keys.
+ * Used for objects that pass the isPlainObject type guard.
+ */
+type PlainObject = Record<string | symbol, unknown>;
+
+/**
+ * Type guard to check if a value is a plain object (not an array, not null, constructed by Object).
+ * This narrows the type from unknown to a record type, allowing property access without casting.
+ *
+ * @param value - The value to check
+ * @returns True if the value is a plain object, false otherwise
+ */
+export function isPlainObject(value: unknown): value is PlainObject {
+  return value !== null && typeof value === "object" && value.constructor === Object;
+}
+
+/**
  * Options for deep traversal with object transformation.
  */
 export interface DeepMapObjectOptions {
@@ -76,26 +93,23 @@ export function deepMap(
 
   // Preserve special built-in objects (Date, RegExp, etc.) as-is
   // Only process plain objects from JSON.parse
-  if (value.constructor !== Object) {
+  if (!isPlainObject(value)) {
     return visitor(value, visited);
   }
 
-  // Handle plain objects
+  // Handle plain objects - value is now narrowed to PlainObject
   visited.add(value);
-  const obj = value as Record<string | symbol, unknown>;
-  const result: Record<string | symbol, unknown> = {};
+  const result: PlainObject = {};
 
   // Process string keys
-  for (const [key, val] of Object.entries(obj)) {
+  for (const [key, val] of Object.entries(value)) {
     result[key] = deepMap(val, visitor, visited);
   }
 
   // Handle symbol keys (preserve them as-is)
-  const symbols = Object.getOwnPropertySymbols(obj);
+  const symbols = Object.getOwnPropertySymbols(value);
   for (const sym of symbols) {
-    const symObj = obj as Record<symbol, unknown>;
-    const resultSym = result as Record<symbol, unknown>;
-    resultSym[sym] = deepMap(symObj[sym], visitor, visited);
+    result[sym] = deepMap(value[sym], visitor, visited);
   }
 
   visited.delete(value);
@@ -148,19 +162,18 @@ export function deepMapObject(
 
   // Preserve special built-in objects (Date, RegExp, etc.) as-is
   // Only process plain objects from JSON.parse
-  if (visitedValue.constructor !== Object) {
+  if (!isPlainObject(visitedValue)) {
     return visitedValue;
   }
 
-  // Handle plain objects
+  // Handle plain objects - visitedValue is now narrowed to PlainObject
   if (typeof value === "object" && value !== null) {
     visited.add(value);
   }
-  const obj = visitedValue as Record<string | symbol, unknown>;
-  const result: Record<string | symbol, unknown> = {};
+  const result: PlainObject = {};
 
   // Process string keys with optional transformation
-  for (const [key, val] of Object.entries(obj)) {
+  for (const [key, val] of Object.entries(visitedValue)) {
     // Recursively process the value
     const transformedVal = deepMapObject(val, visitor, options, visited);
 
@@ -172,7 +185,7 @@ export function deepMapObject(
     // Transform key if needed
     let finalKey: string | null | undefined = key;
     if (options.transformKey) {
-      finalKey = options.transformKey(key, transformedVal, obj);
+      finalKey = options.transformKey(key, transformedVal, visitedValue);
       if (finalKey === null || finalKey === undefined) {
         continue; // Skip this property
       }
@@ -182,18 +195,16 @@ export function deepMapObject(
   }
 
   // Handle symbol keys (preserve them as-is, no transformation)
-  const symbols = Object.getOwnPropertySymbols(obj);
+  const symbols = Object.getOwnPropertySymbols(visitedValue);
   for (const sym of symbols) {
-    const symObj = obj as Record<symbol, unknown>;
-    const resultSym = result as Record<symbol, unknown>;
-    const transformedVal = deepMapObject(symObj[sym], visitor, options, visited);
+    const transformedVal = deepMapObject(visitedValue[sym], visitor, options, visited);
 
     // Check if property should be included
     if (options.shouldInclude && !options.shouldInclude(String(sym), transformedVal)) {
       continue;
     }
 
-    resultSym[sym] = transformedVal;
+    result[sym] = transformedVal;
   }
 
   if (typeof value === "object" && value !== null) {

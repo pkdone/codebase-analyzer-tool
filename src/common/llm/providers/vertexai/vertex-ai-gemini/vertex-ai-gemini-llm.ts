@@ -336,20 +336,34 @@ export default class VertexAIGeminiLLM extends BaseLLMProvider {
 }
 
 /**
- * Type guard to check if a JSON schema is compatible with VertexAI's Schema type.
- * This is a structural compatibility check. VertexAI expects schemas with:
- * - A 'type' property (string, matching SchemaType enum values)
- * - For object types: a 'properties' object
+ * Type representing a JSON schema that is structurally compatible with VertexAI's Schema type.
+ * Used as the narrow type for the isVertexAICompatibleSchema type guard.
  *
- * Returns Record<string, unknown> as the narrowed type since it needs to be
- * assignable to the SDK's ResponseSchema type which has complex constraints.
+ * Note: We use Record<string, unknown> as the narrowed type because:
+ * 1. It satisfies VertexAI's ResponseSchema type requirements
+ * 2. The type guard validates the structure at runtime (type property, etc.)
+ * 3. Using a more specific interface would require importing SDK types that
+ *    have complex constraints (SchemaType enum, etc.)
  */
-function isVertexAICompatibleSchema(schema: unknown): schema is Record<string, unknown> {
+type VertexCompatibleSchema = Record<string, unknown>;
+
+/**
+ * Type guard to check if a JSON schema is compatible with VertexAI's Schema type.
+ * This performs a structural compatibility check validating that:
+ * - The schema is a non-null object
+ * - It has a 'type' property that is a string (maps to SchemaType enum at runtime)
+ * - For object types, it has a 'properties' object
+ *
+ * The narrowed type is Record<string, unknown> to be assignable to the SDK's
+ * ResponseSchema type while still providing runtime validation.
+ *
+ * @param schema - The schema to validate
+ * @returns True if the schema is compatible with VertexAI
+ */
+function isVertexAICompatibleSchema(schema: unknown): schema is VertexCompatibleSchema {
   if (!schema || typeof schema !== "object") return false;
-  const schemaObj = schema as Record<string, unknown>;
-  return (
-    "type" in schemaObj &&
-    typeof schemaObj.type === "string" &&
-    (schemaObj.type === "object" ? "properties" in schemaObj : true)
-  );
+  if (!("type" in schema) || typeof schema.type !== "string") return false;
+  // For object types, require properties to be present
+  if (schema.type === "object" && !("properties" in schema)) return false;
+  return true;
 }

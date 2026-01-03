@@ -199,8 +199,11 @@ export default abstract class BaseLLMProvider implements LLMProvider {
    * Type safety is enforced through generic schema type propagation.
    * Generic over the schema type S directly to simplify type inference.
    * Return type uses z.infer<S> for schema-based type inference.
+   *
+   * The generic constraint `z.ZodType<unknown>` prevents implicit `any` when
+   * no schema is provided, ensuring type safety throughout the call chain.
    */
-  private async executeProviderFunction<S extends z.ZodType>(
+  private async executeProviderFunction<S extends z.ZodType<unknown>>(
     modelKey: string,
     taskType: LLMPurpose,
     request: string,
@@ -306,8 +309,11 @@ export default abstract class BaseLLMProvider implements LLMProvider {
    * Type safety is enforced through generic schema type propagation.
    * Generic over the schema type S directly to simplify type inference.
    * Return type uses z.infer<S> for schema-based type inference.
+   *
+   * The generic constraint `z.ZodType<unknown>` prevents implicit `any` when
+   * no schema is provided, ensuring type safety throughout the call chain.
    */
-  private async formatAndValidateResponse<S extends z.ZodType>(
+  private async formatAndValidateResponse<S extends z.ZodType<unknown>>(
     skeletonResult: Omit<LLMFunctionResponse, "generated" | "status" | "mutationSteps">,
     taskType: LLMPurpose,
     responseContent: LLMGeneratedContent,

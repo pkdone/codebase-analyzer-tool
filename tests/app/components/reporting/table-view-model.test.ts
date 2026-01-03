@@ -3,6 +3,7 @@ import {
   ProcessedListItem,
   isDisplayableTableRow,
   isDisplayableTableRowArray,
+  type DisplayableTableRow,
 } from "../../../../src/app/components/reporting/view-models/table-view-model";
 
 describe("TableViewModel", () => {
@@ -254,7 +255,7 @@ describe("TableViewModel", () => {
     });
 
     it("should handle nested objects in arrays with null/undefined values", () => {
-      const data = [
+      const data: DisplayableTableRow[] = [
         {
           items: [
             { name: "Item 1", value: null, active: true },
@@ -290,7 +291,7 @@ describe("TableViewModel", () => {
 
     it("should handle Date objects in arrays by stringifying them instead of using String()", () => {
       const testDate = new Date("2024-01-15T10:30:00Z");
-      const data = [
+      const data: DisplayableTableRow[] = [
         {
           timestamps: [testDate, "2024-01-16", null],
         },
@@ -311,7 +312,7 @@ describe("TableViewModel", () => {
         constructor(public value: string) {}
       }
       const customInstance = new CustomClass("test");
-      const data = [
+      const data: DisplayableTableRow[] = [
         {
           items: [customInstance, { plain: "object" }],
         },
@@ -444,7 +445,7 @@ describe("TableViewModel", () => {
 
   describe("generic type parameter", () => {
     it("should work with strongly-typed data structures", () => {
-      interface FileTypeData extends Record<string, unknown> {
+      interface FileTypeData extends DisplayableTableRow {
         fileType: string;
         lines: number;
         files: number;
@@ -463,7 +464,7 @@ describe("TableViewModel", () => {
     });
 
     it("should work with nested typed structures", () => {
-      interface DatabaseIntegration extends Record<string, unknown> {
+      interface DatabaseIntegration extends DisplayableTableRow {
         path: string;
         mechanism: string;
         description: string;
@@ -505,13 +506,13 @@ describe("TableViewModel", () => {
     });
 
     it("should handle complex union types in generic parameter", () => {
-      interface ProcedureItem extends Record<string, unknown> {
+      interface ProcedureItem extends DisplayableTableRow {
         name: string;
         type: "STORED PROCEDURE";
         complexity: "LOW" | "MEDIUM" | "HIGH";
       }
 
-      interface TriggerItem extends Record<string, unknown> {
+      interface TriggerItem extends DisplayableTableRow {
         name: string;
         type: "TRIGGER";
         complexity: "LOW" | "MEDIUM" | "HIGH";

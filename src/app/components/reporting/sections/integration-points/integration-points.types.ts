@@ -1,5 +1,10 @@
-// Interface representing integration point information (APIs, queues, topics, SOAP, etc.)
-export interface IntegrationPointInfo extends Record<string, unknown> {
+/**
+ * Interface representing integration point information (APIs, queues, topics, SOAP, etc.).
+ * Contains details about external service integrations found in the codebase.
+ *
+ * The index signature enables compatibility with DisplayableTableRow for table rendering.
+ */
+export interface IntegrationPointInfo extends Record<string, string | undefined> {
   readonly namespace: string;
   readonly filepath: string;
   readonly mechanism: string;

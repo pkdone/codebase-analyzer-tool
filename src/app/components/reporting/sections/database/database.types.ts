@@ -16,13 +16,14 @@ export type ProcedureTrigger = TypeOf<typeof procedureTriggerSchema>;
 
 /**
  * Shape of a single stored procedure or trigger item in the report list.
- * Extends ProcedureTrigger with report-specific fields.
+ * Extends ProcedureTrigger with report-specific fields and an index signature
+ * for DisplayableTableRow compatibility.
  */
 export type ProcsOrTrigsListItem = ProcedureTrigger & {
   path: string;
   type: string;
   functionName: string;
-};
+} & Record<string, unknown>;
 
 // Interface for the database interaction list
 export interface ProcsAndTriggers {
@@ -42,15 +43,23 @@ export interface ProcsAndTriggers {
   };
 }
 
-// Interface representing database integration information
-export interface DatabaseIntegrationInfo extends Record<string, unknown> {
+/**
+ * Interface representing database integration information.
+ * Contains details about how the application interacts with databases.
+ *
+ * The index signature enables compatibility with DisplayableTableRow for table rendering.
+ */
+export interface DatabaseIntegrationInfo extends Record<
+  string,
+  string | readonly string[] | undefined
+> {
   readonly path: string;
   readonly mechanism: string;
   readonly name?: string;
   readonly description: string;
   readonly databaseName?: string;
-  readonly tablesAccessed?: string[];
-  readonly operationType?: string[];
+  readonly tablesAccessed?: readonly string[];
+  readonly operationType?: readonly string[];
   readonly queryPatterns?: string;
   readonly transactionHandling?: string;
   readonly protocol?: string;
