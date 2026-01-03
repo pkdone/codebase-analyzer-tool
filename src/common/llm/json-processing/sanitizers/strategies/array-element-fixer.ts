@@ -273,7 +273,8 @@ export const arrayElementFixer: SanitizerStrategy = {
         }
 
         const terminatorStr = typeof terminator === "string" ? terminator : "";
-        const isInArray = terminatorStr.includes("]") || isDirectlyInArrayContext(offset, sanitized);
+        const isInArray =
+          terminatorStr.includes("]") || isDirectlyInArrayContext(offset, sanitized);
 
         if (isInArray) {
           const value1Str = typeof value1 === "string" ? value1 : "";

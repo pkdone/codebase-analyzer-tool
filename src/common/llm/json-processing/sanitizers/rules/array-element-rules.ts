@@ -1,0 +1,485 @@
+/**
+ * Replacement rules for handling array element issues in JSON.
+ * This module handles:
+ * - Missing quotes on array elements
+ * - Missing commas between elements
+ * - Stray text in arrays
+ * - Minus signs and markdown markers
+ */
+
+import type { ReplacementRule, ContextInfo } from "./replacement-rule.types";
+import { isInArrayContext } from "./rule-executor";
+import { isDirectlyInArrayContext } from "../../utils/parser-context-utils";
+
+/**
+ * Deep array context check using backward scanning.
+ */
+function isDeepArrayContext(context: ContextInfo): boolean {
+  if (isInArrayContext(context)) {
+    return true;
+  }
+  return isDirectlyInArrayContext(context.offset, context.fullContent);
+}
+
+/**
+ * Rules for fixing array element issues in JSON content.
+ */
+export const ARRAY_ELEMENT_RULES: readonly ReplacementRule[] = [
+  // Rule: Fix missing opening quotes in array elements
+  // Pattern: `unquoted.package.ClassB",` -> `"unquoted.package.ClassB",`
+  {
+    name: "missingOpeningQuoteInArrayElement",
+    pattern: /([}\],]|\n|^)(\s*)([a-zA-Z][a-zA-Z0-9_.]+)"\s*,/g,
+    replacement: (_match, groups, context) => {
+      if (!isDeepArrayContext(context)) {
+        return null;
+      }
+      const [delimiter, whitespace, stringValue] = groups;
+      const delimiterStr = delimiter ?? "";
+      const whitespaceStr = whitespace ?? "";
+      const stringValueStr = stringValue ?? "";
+      return `${delimiterStr}${whitespaceStr}"${stringValueStr}",`;
+    },
+    diagnosticMessage: (_match, groups) => {
+      const stringValue = groups[2] ?? "";
+      return `Fixed missing opening quote in array: ${stringValue}" -> "${stringValue}"`;
+    },
+  },
+
+  // Rule: Fix missing opening quotes with capital letter
+  // Pattern: `UnquotedStringValue",` -> `"UnquotedStringValue",`
+  {
+    name: "missingOpeningQuoteCapitalLetter",
+    pattern: /([}\],]|\n|^)(\s*)([A-Z][a-zA-Z0-9_./]+)"\s*,/g,
+    replacement: (_match, groups, context) => {
+      if (!isDeepArrayContext(context)) {
+        return null;
+      }
+      const [delimiter, whitespace, stringValue] = groups;
+      const delimiterStr = delimiter ?? "";
+      const whitespaceStr = whitespace ?? "";
+      const stringValueStr = stringValue ?? "";
+      return `${delimiterStr}${whitespaceStr}"${stringValueStr}",`;
+    },
+    diagnosticMessage: (_match, groups) => {
+      const stringValue = groups[2] ?? "";
+      return `Fixed missing opening quote before array element: ${stringValue}" -> "${stringValue}"`;
+    },
+  },
+
+  // Rule: Remove minus signs before array elements
+  // Pattern: `-"stringValue",` -> `"stringValue",`
+  {
+    name: "minusSignBeforeArrayElement",
+    pattern: /([}\],]|\n|^)(\s*)-\s*("([^"]+)"\s*,)/g,
+    replacement: (_match, groups, context) => {
+      if (!isDeepArrayContext(context)) {
+        return null;
+      }
+      const [delimiter, whitespace, quotedElement] = groups;
+      const delimiterStr = delimiter ?? "";
+      const whitespaceStr = whitespace ?? "";
+      const quotedElementStr = quotedElement ?? "";
+      return `${delimiterStr}${whitespaceStr}${quotedElementStr}`;
+    },
+    diagnosticMessage: "Removed minus sign before array element",
+  },
+
+  // Rule: Remove markdown asterisk list markers in arrays
+  // Pattern: `*   "lombok.NoArgsConstructor",` -> `"lombok.NoArgsConstructor",`
+  {
+    name: "markdownAsteriskInArray",
+    pattern: /([,[]\s*\n?\s*)\*\s*("([^"]+)"\s*,?)/g,
+    replacement: (_match, groups, context) => {
+      if (!isDeepArrayContext(context)) {
+        return null;
+      }
+      const [prefix, quotedElement] = groups;
+      const prefixStr = prefix ?? "";
+      const quotedElementStr = quotedElement ?? "";
+      return `${prefixStr}${quotedElementStr}`;
+    },
+    diagnosticMessage: "Removed markdown list marker (*) from array element",
+  },
+
+  // Rule: Fix stray characters at end of string values
+  // Pattern: `"GroupGeneralData>"` -> `"GroupGeneralData"`
+  {
+    name: "strayCharAtEndOfString",
+    pattern: /"([^"]+)([>\]}])(\s*[,}\]]|\s*\n)/g,
+    replacement: (_match, groups, context) => {
+      // Check if in value context
+      const { beforeMatch } = context;
+      const isValueContext =
+        /:\s*$/.test(beforeMatch) || /,\s*$/.test(beforeMatch) || /\[\s*$/.test(beforeMatch);
+      if (!isValueContext) {
+        return null;
+      }
+      const [stringValue, , terminator] = groups;
+      const stringValueStr = stringValue ?? "";
+      const terminatorStr = terminator ?? "";
+      return `"${stringValueStr}"${terminatorStr}`;
+    },
+    diagnosticMessage: (_match, groups) => {
+      const strayChar = groups[1] ?? "";
+      const stringValue = groups[0] ?? "";
+      return `Removed stray character '${strayChar}' at end of string value: "${stringValue}"`;
+    },
+  },
+
+  // Rule: Remove stray text after array elements with underscores
+  // Pattern: `"stringValue",\nstrayText_with_underscores",` -> `"stringValue",`
+  {
+    name: "strayTextAfterArrayElement",
+    pattern: /"([^"]+)"\s*,\s*\n\s*([a-z_]+)"\s*,/g,
+    replacement: (_match, groups, context) => {
+      if (!isDeepArrayContext(context)) {
+        return null;
+      }
+      const strayText = groups[1] ?? "";
+      // Check if stray text looks like explanatory text
+      const looksLikeExplanatoryText =
+        strayText.includes("_") && !/^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(strayText);
+      if (!looksLikeExplanatoryText) {
+        return null;
+      }
+      const value = groups[0] ?? "";
+      return `"${value}",`;
+    },
+    diagnosticMessage: (_match, groups) => {
+      const value = groups[0] ?? "";
+      const strayText = groups[1] ?? "";
+      return `Removed stray explanatory text after array element: "${value}" + "${strayText}"`;
+    },
+  },
+
+  // Rule: Fix missing comma and quote for unquoted strings at end of array lines
+  // Pattern: `"stringValue",\nunquotedString"` -> `"stringValue",\n    "unquotedString",`
+  {
+    name: "missingCommaAndQuoteAtArrayLineEnd",
+    pattern: /"([^"]+)"\s*,\s*\n(\s*)([a-zA-Z][a-zA-Z0-9_.]+)"\s*(,|\])/g,
+    replacement: (_match, groups, context) => {
+      if (!isDeepArrayContext(context)) {
+        return null;
+      }
+      const [prevValue, whitespace, stringValue, terminator] = groups;
+      const prevValueStr = prevValue ?? "";
+      const whitespaceStr = whitespace ?? "    ";
+      const stringValueStr = stringValue ?? "";
+      const terminatorStr = terminator ?? "";
+      return `"${prevValueStr}",\n${whitespaceStr}"${stringValueStr}"${terminatorStr}`;
+    },
+    diagnosticMessage: (_match, groups) => {
+      const stringValue = groups[2] ?? "";
+      return `Fixed missing comma and quote: ${stringValue}" -> "${stringValue}",`;
+    },
+  },
+
+  // Rule: Fix missing comma and quote before array items with dots
+  // Pattern: `]unquoted.string.value"` -> `], "unquoted.string.value"`
+  {
+    name: "missingCommaAndQuoteBeforeArrayItem",
+    pattern: /([}\],])\s*\n\s*([a-z]+)\.([a-z]+)\.([a-z.]+)"\s*,?\s*\n/g,
+    replacement: (_match, groups, context) => {
+      if (!isInArrayContext(context)) {
+        return null;
+      }
+      const [delimiter, prefix, middle, suffix] = groups;
+      const delimiterStr = delimiter ?? "";
+      const prefixStr = prefix ?? "";
+      const middleStr = middle ?? "";
+      const suffixStr = suffix ?? "";
+      const fullPath = `${prefixStr}.${middleStr}.${suffixStr}`;
+      return `${delimiterStr},\n    "${fullPath}",\n`;
+    },
+    diagnosticMessage: (_match, groups) => {
+      const prefix = groups[1] ?? "";
+      const middle = groups[2] ?? "";
+      const suffix = groups[3] ?? "";
+      return `Fixed missing comma and quote before array item: ${prefix}.${middle}.${suffix}`;
+    },
+  },
+
+  // Rule: Fix missing quotes with stray text before strings in arrays
+  // Pattern: `strayPrefix.stringValue",` -> `"stringValue",`
+  {
+    name: "missingQuoteWithStrayText",
+    pattern: /([}\],]|\n|^)(\s*)([a-zA-Z][a-zA-Z0-9_.]*\.)([a-zA-Z][a-zA-Z0-9_.]*)"\s*,/g,
+    replacement: (_match, groups, context) => {
+      if (!isInArrayContext(context)) {
+        return null;
+      }
+      const [delimiter, whitespace, strayPrefix, stringValue] = groups;
+      const delimiterStr = delimiter ?? "";
+      const whitespaceStr = whitespace ?? "";
+      const strayPrefixStr = strayPrefix ?? "";
+      const stringValueStr = stringValue ?? "";
+      // For package names, we want to keep the full path
+      const fullValue = strayPrefixStr + stringValueStr;
+      return `${delimiterStr}${whitespaceStr}"${fullValue}",`;
+    },
+    diagnosticMessage: (_match, groups) => {
+      const strayPrefix = groups[2] ?? "";
+      const stringValue = groups[3] ?? "";
+      return `Fixed missing quote: ${strayPrefix}${stringValue}" -> "${strayPrefix}${stringValue}"`;
+    },
+  },
+
+  // Rule: Remove stray text after closing braces/brackets in arrays
+  // Pattern: `}],stray_text"` -> `}],`
+  {
+    name: "strayTextAfterClosingBracket",
+    pattern: /([}\]])\s*]\s*,\s*([a-z_]+)"\s*([,}\]]|\n|$)/g,
+    replacement: (_match, groups) => {
+      const [brace, , next] = groups;
+      const braceStr = brace ?? "";
+      const nextStr = next ?? "";
+      return `${braceStr}],${nextStr}`;
+    },
+    diagnosticMessage: (_match, groups) => {
+      const strayText = groups[1] ?? "";
+      return `Removed stray text '${strayText}' after array closing bracket`;
+    },
+  },
+
+  // Rule: Fix non-ASCII characters before array elements
+  // Pattern: Bengali text like `করে"java.util.Arrays",` -> `"java.util.Arrays",`
+  {
+    name: "nonAsciiBeforeArrayElement",
+    // Match any non-ASCII character (above \x7F / 127)
+    pattern: /([}\],]|\n|^)(\s*)([^\x20-\x7E]+)"([^"]+)"\s*,/g,
+    replacement: (_match, groups, context) => {
+      if (!isDeepArrayContext(context)) {
+        return null;
+      }
+      const [delimiter, whitespace, , stringValue] = groups;
+      const delimiterStr = delimiter ?? "";
+      const whitespaceStr = whitespace ?? "";
+      const stringValueStr = stringValue ?? "";
+      return `${delimiterStr}${whitespaceStr}"${stringValueStr}",`;
+    },
+    diagnosticMessage: (_match, groups) => {
+      const stringValue = groups[3] ?? "";
+      return `Removed non-ASCII characters before array element: "${stringValue.substring(0, 30)}..."`;
+    },
+  },
+
+  // Rule: Fix invalid properties in arrays (like _DOC_GEN_NOTE_LIMITED_REF_LIST_)
+  // Pattern: `_DOC_GEN_NOTE_LIMITED_REF_LIST_ = "..."` -> remove
+  {
+    name: "invalidPropertyInArray",
+    pattern: /,\s*\n\s*_[A-Z_]+\s*=\s*"[^"]*"\s*\n/g,
+    replacement: () => ",\n",
+    diagnosticMessage: "Removed invalid property from array",
+  },
+
+  // Rule: Remove stray 'stop' before string values
+  // Pattern: `stop"stringValue",` -> `"stringValue",`
+  {
+    name: "stopBeforeString",
+    pattern: /([}\],]|\n|^)(\s*)stop"([^"]+)"\s*,/g,
+    replacement: (_match, groups, context) => {
+      if (!isInArrayContext(context)) {
+        return null;
+      }
+      const [delimiter, whitespace, stringValue] = groups;
+      const delimiterStr = delimiter ?? "";
+      const whitespaceStr = whitespace ?? "";
+      const stringValueStr = stringValue ?? "";
+      return `${delimiterStr}${whitespaceStr}"${stringValueStr}",`;
+    },
+    diagnosticMessage: (_match, groups) => {
+      const stringValue = groups[2] ?? "";
+      return `Removed 'stop' before array element: "${stringValue.substring(0, 30)}..."`;
+    },
+  },
+
+  // Rule: Fix stray JAR/library names after string values
+  // Pattern: `"lombok.RequiredArgsConstructor",JACKSON-CORE-2.12.0.JAR"` -> `"lombok.RequiredArgsConstructor",`
+  {
+    name: "strayLibraryNameAfterString",
+    pattern: /"([^"]+)"\s*,?\s*([A-Z][A-Z0-9_.-]{5,50})"\s*([,}\]]|\n|$)/g,
+    replacement: (_match, groups, context) => {
+      const strayText = groups[1] ?? "";
+      // Check if it looks like a library/JAR name
+      const looksLikeLibraryName =
+        /^[A-Z][A-Z0-9_.-]+$/.test(strayText) &&
+        (strayText.includes(".") || strayText.includes("-") || strayText.length > 10);
+      if (!looksLikeLibraryName) {
+        return null;
+      }
+      const stringValue = groups[0] ?? "";
+      const terminator = groups[2] ?? "";
+      // Ensure comma if in array context
+      const { beforeMatch } = context;
+      const isInArray = /\[\s*$/.test(beforeMatch) || /,\s*\n\s*$/.test(beforeMatch);
+      const comma = isInArray ? "," : "";
+      return `"${stringValue}"${comma}${terminator}`;
+    },
+    diagnosticMessage: (_match, groups) => {
+      const stringValue = groups[0] ?? "";
+      const strayText = groups[1] ?? "";
+      return `Removed stray library/JAR name '${strayText}' after string: "${stringValue.substring(0, 30)}..."`;
+    },
+  },
+
+  // Rule: Remove trailing comma in last array element
+  // Pattern: `"value",\n  ]` -> `"value"\n  ]`
+  {
+    name: "trailingCommaInArray",
+    pattern: /"([^"]+)",(\s*\])/g,
+    replacement: (_match, groups, context) => {
+      // Check if we're in an array context and this is likely the last element
+      const { fullContent, offset } = context;
+      const matchLen = typeof _match === "string" ? _match.length : 0;
+      const after = fullContent.substring(offset + matchLen).trim();
+      // Only fix if there's nothing significant before the next closing bracket
+      if (!/^\s*[}\]]/.test(after) && after.length > 0) {
+        return null;
+      }
+      const [value, ws] = groups;
+      const valueStr = value ?? "";
+      const wsStr = ws ?? "";
+      return `"${valueStr}"${wsStr}`;
+    },
+    diagnosticMessage: "Removed trailing comma before array closing bracket",
+  },
+
+  // Rule: Fix markdown asterisk in arrays (more lenient)
+  // Pattern: `*   "value",` -> `"value",`
+  {
+    name: "markdownAsteriskInArrayLenient",
+    pattern: /(\n\s*)\*\s+("([^"]+)"\s*,?)/g,
+    replacement: (_match, groups, context) => {
+      if (!isDeepArrayContext(context)) {
+        return null;
+      }
+      const [prefix, quotedElement] = groups;
+      const prefixStr = prefix ?? "";
+      const quotedElementStr = quotedElement ?? "";
+      return `${prefixStr}${quotedElementStr}`;
+    },
+    diagnosticMessage: "Removed markdown asterisk before array element",
+  },
+
+  // Rule: Fix missing opening quote before property values in arrays (Pattern 68)
+  // Pattern: `propertyName": "value",` -> `"value",`
+  {
+    name: "missingQuoteBeforePropertyValueInArray",
+    pattern: /([}\],]|\n|^)(\s*)([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:\s*"([^"]+)"\s*,/g,
+    replacement: (_match, groups, context) => {
+      // Check if we're in an array - be more lenient
+      const { beforeMatch, fullContent, offset } = context;
+      // Check if we're in an array by looking at the context
+      const isInArray =
+        /\[\s*$/.test(beforeMatch) ||
+        /,\s*\n\s*$/.test(beforeMatch) ||
+        /"\s*,\s*\n\s*$/.test(beforeMatch) ||
+        /"\s*,\s*$/.test(beforeMatch);
+
+      // Also check by looking backwards for array opening
+      let foundArray = false;
+      let inString = false;
+      let escape = false;
+      for (let i = offset - 1; i >= 0; i--) {
+        if (escape) {
+          escape = false;
+          continue;
+        }
+        if (fullContent[i] === "\\") {
+          escape = true;
+          continue;
+        }
+        if (fullContent[i] === '"') {
+          inString = !inString;
+          continue;
+        }
+        if (!inString) {
+          if (fullContent[i] === "]") break;
+          if (fullContent[i] === "[") {
+            foundArray = true;
+            break;
+          }
+        }
+      }
+
+      // If we found an array or the context suggests we're in an array, apply the fix
+      if (foundArray || isInArray || isDeepArrayContext(context)) {
+        // In array context, this should just be the value, not a property
+        const [delimiter, whitespace, , value] = groups;
+        const delimiterStr = delimiter ?? "";
+        const whitespaceStr = whitespace ?? "";
+        const valueStr = value ?? "";
+        return `${delimiterStr}${whitespaceStr}"${valueStr}",`;
+      }
+
+      return null;
+    },
+    diagnosticMessage: (_match, groups) => {
+      const value = groups[3] ?? "";
+      return `Fixed missing quote: removed property name, kept value "${value}"`;
+    },
+  },
+
+  // Rule: Remove invalid properties in arrays (Pattern 88)
+  // Pattern: `_DOC_GEN_NOTE_LIMITED_REF_LIST_ = "..."` -> remove
+  {
+    name: "invalidPropertyInArrayWithEquals",
+    pattern: /,\s*\n\s*([_][A-Z_]+)\s*=\s*"[^"]*"\s*,?\s*\n/g,
+    replacement: () => ",\n",
+    diagnosticMessage: (_match, groups) => {
+      const prop = groups[0] ?? "";
+      return `Removed invalid property in array: ${prop}`;
+    },
+  },
+
+  // Rule: Remove stray characters before array elements (Pattern 90)
+  // Pattern: `e    "org.apache...` -> `"org.apache...`
+  {
+    name: "strayCharBeforeArrayElementPattern90",
+    pattern: /(\n)([a-z])\s+("([^"]+)")/g,
+    replacement: (_match, groups, context) => {
+      // Check if we're in an array
+      const { fullContent, offset } = context;
+
+      // Look backwards for array opening
+      let foundArray = false;
+      let inString = false;
+      let escape = false;
+      for (let i = offset - 1; i >= 0; i--) {
+        if (escape) {
+          escape = false;
+          continue;
+        }
+        if (fullContent[i] === "\\") {
+          escape = true;
+          continue;
+        }
+        if (fullContent[i] === '"') {
+          inString = !inString;
+          continue;
+        }
+        if (!inString) {
+          if (fullContent[i] === "]") break;
+          if (fullContent[i] === "[") {
+            foundArray = true;
+            break;
+          }
+        }
+      }
+
+      if (foundArray || isDeepArrayContext(context)) {
+        const [newline, , quotedElement] = groups;
+        const newlineStr = newline ?? "";
+        const quotedElementStr = quotedElement ?? "";
+        return `${newlineStr}    ${quotedElementStr}`;
+      }
+
+      return null;
+    },
+    diagnosticMessage: (_match, groups) => {
+      const strayChar = groups[1] ?? "";
+      return `Removed stray character '${strayChar}' before array element`;
+    },
+  },
+];

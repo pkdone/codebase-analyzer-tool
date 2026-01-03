@@ -1,0 +1,353 @@
+/**
+ * Replacement rules for handling stray characters in JSON.
+ * This module handles:
+ * - Single character removal before properties and array elements
+ * - Bullet points and asterisks before property names
+ * - Stray text before and after JSON structures
+ */
+
+import type { ReplacementRule, ContextInfo } from "./replacement-rule.types";
+import { isAfterJsonDelimiter, isInArrayContext } from "./rule-executor";
+import { isDirectlyInArrayContext } from "../../utils/parser-context-utils";
+
+/**
+ * Checks if content is in an array context using deep scanning.
+ */
+function isDeepArrayContext(context: ContextInfo): boolean {
+  const { fullContent, offset } = context;
+  // First try the simple check
+  if (isInArrayContext(context)) {
+    return true;
+  }
+  // Then try the deep scan
+  return isDirectlyInArrayContext(offset, fullContent);
+}
+
+/**
+ * JSON keywords that should not be treated as stray text.
+ */
+const JSON_KEYWORDS = new Set(["true", "false", "null", "undefined"]);
+
+/**
+ * Checks if a string is a JSON keyword.
+ */
+function isJsonKeyword(text: string): boolean {
+  return JSON_KEYWORDS.has(text.toLowerCase());
+}
+
+/**
+ * Rules for removing stray characters from JSON content.
+ */
+export const STRAY_CHARACTER_RULES: readonly ReplacementRule[] = [
+  // Rule: Remove extra single characters before properties
+  // Pattern: `a  "integrationPoints":`, `s  "publicMethods":`, `e "externalReferences":`
+  {
+    name: "extraCharBeforeProperty",
+    pattern: /([}\],]|\n|^)(\s*)([a-z])\s+("([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:)/g,
+    replacement: (_match, groups) => {
+      const [delimiter, whitespace, , propertyWithQuote] = groups;
+      const delimiterStr = delimiter ?? "";
+      const whitespaceStr = whitespace ?? "";
+      const propertyWithQuoteStr = propertyWithQuote ?? "";
+      return `${delimiterStr}${whitespaceStr}${propertyWithQuoteStr}`;
+    },
+    diagnosticMessage: (_match, groups) => {
+      const extraChar = groups[2] ?? "";
+      return `Removed extra character '${extraChar}' before property`;
+    },
+    contextCheck: isAfterJsonDelimiter,
+  },
+
+  // Rule: Remove stray single characters before quoted strings in arrays
+  // Pattern: `e"org.apache...` -> `"org.apache...`
+  {
+    name: "strayCharBeforeQuotedStringInArray",
+    pattern: /([,[]\s*\n?\s*)([a-z])("([^"]+)"\s*,)/g,
+    replacement: (_match, groups, context) => {
+      if (!isDeepArrayContext(context)) {
+        return null;
+      }
+      const [prefix, , quotedString] = groups;
+      const prefixStr = prefix ?? "";
+      const quotedStringStr = quotedString ?? "";
+      const cleanPrefix = prefixStr.replace(/\s*$/, "");
+      return `${cleanPrefix}\n    ${quotedStringStr}`;
+    },
+    diagnosticMessage: (_match, groups) => {
+      const strayChar = groups[1] ?? "";
+      return `Removed stray character '${strayChar}' before quoted string in array`;
+    },
+  },
+
+  // Rule: Fix missing property name with single character before quote
+  // Pattern: `y"name":` -> `"name":` or `{y"name":` -> `{"name":`
+  {
+    name: "singleCharBeforePropertyQuote",
+    pattern: /([{,]\s*)([a-z])"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:/g,
+    replacement: (_match, groups) => {
+      const [prefix, , propertyName] = groups;
+      const prefixStr = prefix ?? "";
+      const propertyNameStr = propertyName ?? "";
+      return `${prefixStr}"${propertyNameStr}":`;
+    },
+    diagnosticMessage: (_match, groups) => {
+      const extraChar = groups[1] ?? "";
+      const propertyName = groups[2] ?? "";
+      return `Removed extra character '${extraChar}' before property name "${propertyName}"`;
+    },
+  },
+
+  // Rule: Remove short stray prefix (1-3 lowercase chars) before quoted strings in arrays
+  // Pattern: `ar"stringValue"` -> `"stringValue"`, `x"value"` -> `"value"`, `foo"bar"` -> `"bar"`
+  {
+    name: "shortPrefixBeforeQuotedString",
+    pattern: /([}\],]|\n|^)(\s*)([a-z]{1,3})"([^"]+)"(\s*,|\s*\])/g,
+    replacement: (_match, groups, context) => {
+      if (!isInArrayContext(context)) {
+        return null;
+      }
+      const [delimiter, whitespace, , stringValue, terminator] = groups;
+      const delimiterStr = delimiter ?? "";
+      const whitespaceStr = whitespace ?? "";
+      const stringValueStr = stringValue ?? "";
+      const terminatorStr = terminator ?? "";
+      return `${delimiterStr}${whitespaceStr}"${stringValueStr}"${terminatorStr}`;
+    },
+    diagnosticMessage: (_match, groups) => {
+      const prefix = groups[2] ?? "";
+      const stringValue = groups[3] ?? "";
+      return `Removed '${prefix}' prefix before quoted string: "${stringValue.substring(0, 30)}..."`;
+    },
+  },
+
+  // Rule: Remove bullet points before property names
+  // Pattern: `•  "publicConstants":` -> `"publicConstants":`
+  {
+    name: "bulletPointBeforeProperty",
+    pattern: /([}\],]|\n|^)(\s*)•\s+("([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:)/g,
+    replacement: (_match, groups) => {
+      const [delimiter, whitespace, propertyWithQuote] = groups;
+      const delimiterStr = delimiter ?? "";
+      const whitespaceStr = whitespace ?? "";
+      const propertyWithQuoteStr = propertyWithQuote ?? "";
+      return `${delimiterStr}${whitespaceStr}${propertyWithQuoteStr}`;
+    },
+    diagnosticMessage: "Removed bullet point before property name",
+    contextCheck: isAfterJsonDelimiter,
+  },
+
+  // Rule: Remove asterisks before property names
+  // Pattern: `* "purpose":` -> `"purpose":`
+  {
+    name: "asteriskBeforeProperty",
+    pattern: /([}\],]|\n|^)(\s*)\*\s+("([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:)/g,
+    replacement: (_match, groups) => {
+      const [delimiter, whitespace, propertyWithQuote] = groups;
+      const delimiterStr = delimiter ?? "";
+      const whitespaceStr = whitespace ?? "";
+      const propertyWithQuoteStr = propertyWithQuote ?? "";
+      return `${delimiterStr}${whitespaceStr}${propertyWithQuoteStr}`;
+    },
+    diagnosticMessage: "Removed asterisk before property name",
+    contextCheck: isAfterJsonDelimiter,
+  },
+
+  // Rule: Remove stray text (2-10 lowercase chars) before string values in arrays
+  // Pattern: `strayText"stringValue",` -> `"stringValue",`
+  {
+    name: "strayTextBeforeArrayString",
+    pattern: /([}\],]|\n|^)(\s*)([a-z]{2,10})"([^"]+)"\s*,/g,
+    replacement: (_match, groups, context) => {
+      if (!isInArrayContext(context)) {
+        return null;
+      }
+      const [delimiter, whitespace, , stringValue] = groups;
+      const delimiterStr = delimiter ?? "";
+      const whitespaceStr = whitespace ?? "";
+      const stringValueStr = stringValue ?? "";
+      return `${delimiterStr}${whitespaceStr}"${stringValueStr}",`;
+    },
+    diagnosticMessage: (_match, groups) => {
+      const strayText = groups[2] ?? "";
+      const stringValue = groups[3] ?? "";
+      return `Removed stray text '${strayText}' before array element: "${stringValue.substring(0, 30)}..."`;
+    },
+  },
+
+  // Rule: Remove stray text after closing braces
+  // Pattern: `},ce` -> `},`
+  {
+    name: "strayTextAfterBraceComma",
+    pattern: /([}\]])\s*,\s*([a-z]{1,5})(\s*[}\]]|\s*\n\s*[{"])/g,
+    replacement: (_match, groups) => {
+      const strayText = groups[1] ?? "";
+      if (isJsonKeyword(strayText)) {
+        return null;
+      }
+      const delimiter = groups[0] ?? "";
+      const nextToken = groups[2] ?? "";
+      return `${delimiter},${nextToken}`;
+    },
+    diagnosticMessage: (_match, groups) => {
+      const delimiter = groups[0] ?? "";
+      const strayText = groups[1] ?? "";
+      return `Removed stray text '${strayText}' after ${delimiter}`;
+    },
+  },
+
+  // Rule: Remove stray text (short words with spaces) before property names
+  // Pattern: ` tribulations":` -> `"propertyName":`
+  {
+    name: "strayTextBeforePropertyName",
+    pattern: /([}\],]|\n|^)(\s*)([a-z\s]{1,20})"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:/g,
+    replacement: (_match, groups) => {
+      const [delimiter, whitespace, , propertyName] = groups;
+      const delimiterStr = delimiter ?? "";
+      const whitespaceStr = whitespace ?? "";
+      const propertyNameStr = propertyName ?? "";
+      return `${delimiterStr}${whitespaceStr}"${propertyNameStr}":`;
+    },
+    diagnosticMessage: (_match, groups) => {
+      const strayText = (groups[2] ?? "").trim();
+      const propertyName = groups[3] ?? "";
+      return `Removed stray text '${strayText}' before property: "${propertyName}"`;
+    },
+    contextCheck: isAfterJsonDelimiter,
+  },
+
+  // Rule: Remove stray single characters at start of lines in arrays
+  // Pattern: `e    "stringValue",` -> `    "stringValue",`
+  {
+    name: "strayCharAtLineStartInArray",
+    pattern: /([}\],]|\n|^)(\s*)([a-z])\s+("([a-zA-Z0-9_.]+)")/g,
+    replacement: (_match, groups, context) => {
+      const strayChar = groups[2] ?? "";
+      if (!/^[a-z]$/.test(strayChar)) {
+        return null;
+      }
+      if (!isInArrayContext(context)) {
+        return null;
+      }
+      const [delimiter, whitespace, , quotedString] = groups;
+      const delimiterStr = delimiter ?? "";
+      const whitespaceStr = whitespace ?? "";
+      const quotedStringStr = quotedString ?? "";
+      return `${delimiterStr}${whitespaceStr}${quotedStringStr}`;
+    },
+    diagnosticMessage: (_match, groups) => {
+      const strayChar = groups[2] ?? "";
+      const quotedString = groups[3] ?? "";
+      return `Removed stray character '${strayChar}' before array element: ${strayChar} ${quotedString}`;
+    },
+  },
+
+  // Rule: Remove stray text after closing brace at end of JSON
+  // Pattern: `}tribal-council-assistant-v1-final-answer` -> `}`
+  {
+    name: "strayTextAfterClosingBrace",
+    pattern: /([}])\s*([a-zA-Z0-9\-_]{5,100})(\s*)$/g,
+    replacement: (_match, groups, context) => {
+      // Check if this is at the end of the JSON
+      const { fullContent, offset } = context;
+      const matchLen = _match.length;
+      const afterMatch = fullContent.substring(offset + matchLen);
+      if (afterMatch.trim().length !== 0) {
+        return null;
+      }
+      const brace = groups[0] ?? "";
+      return brace;
+    },
+    diagnosticMessage: (_match, groups) => {
+      const strayText = groups[1] ?? "";
+      return `Removed stray text after closing brace: ${strayText}`;
+    },
+  },
+
+  // Rule: Remove placeholder text like _INSERT_DATABASE_INTEGRATION_
+  // Pattern: `_INSERT_DATABASE_INTEGRATION_` -> remove
+  {
+    name: "removePlaceholderText",
+    pattern: /([}\],]|\n|^)(\s*)_[A-Z_]+_(\s*)([}\],]|\n|$)/g,
+    replacement: (_match, groups) => {
+      const [before, , , after] = groups;
+      const beforeStr = before ?? "";
+      const afterStr = after ?? "";
+      if (beforeStr.includes(",")) {
+        return `${beforeStr}\n${afterStr}`;
+      }
+      return `${beforeStr}${afterStr}`;
+    },
+    diagnosticMessage: "Removed placeholder text",
+  },
+
+  // Rule: Remove Python-style triple quotes
+  // Pattern: `extra_text="""` or `"""` -> remove
+  {
+    name: "pythonTripleQuotes",
+    pattern: /([}\],]|\n|^)(\s*)(extra_[a-zA-Z_$]+\s*=\s*)?"(""|""")/g,
+    replacement: (_match, groups) => {
+      const [delimiter, whitespace] = groups;
+      const delimiterStr = delimiter ?? "";
+      const whitespaceStr = whitespace ?? "";
+      return `${delimiterStr}${whitespaceStr}`;
+    },
+    diagnosticMessage: "Removed Python-style triple quotes",
+  },
+
+  // Rule: Remove Python-style triple quotes at end of JSON
+  {
+    name: "pythonTripleQuotesAtEnd",
+    pattern: /"(""|""")\s*$/g,
+    replacement: () => "",
+    diagnosticMessage: "Removed Python-style triple quotes at end",
+  },
+
+  // Rule: Remove corrupted uppercase identifier references from arrays
+  // Pattern: `_MODULE", _CODE", _CONSTANT_NAME"` -> remove
+  {
+    name: "corruptedUppercaseIdentifier",
+    pattern: /([}\],])\s*\n\s*_[A-Z0-9_]+"\s*,?\s*\n/g,
+    replacement: (_match, groups) => {
+      const delimiter = groups[0] ?? "";
+      return `${delimiter}\n`;
+    },
+    diagnosticMessage: "Removed corrupted uppercase identifier reference from array",
+  },
+
+  // Rule: Remove single character before opening brace
+  // Pattern: `c{` -> `{`
+  {
+    name: "extraCharBeforeBrace",
+    pattern: /([}\],]|\n|^)(\s*)([a-z])\s*{/g,
+    replacement: (_match, groups) => {
+      const [delimiter, whitespace] = groups;
+      const delimiterStr = delimiter ?? "";
+      const whitespaceStr = whitespace ?? "";
+      return `${delimiterStr}${whitespaceStr}{`;
+    },
+    diagnosticMessage: (_match, groups) => {
+      const extraChar = groups[2] ?? "";
+      return `Removed extra character '${extraChar}' before opening brace`;
+    },
+    contextCheck: isAfterJsonDelimiter,
+  },
+
+  // Rule: Remove stray text before property names (longer text)
+  // Pattern: `stray text    "propertyName":` -> `"propertyName":`
+  {
+    name: "strayTextLongBeforeProperty",
+    pattern: /([}\],]|\n|^)(\s*)([a-z][a-z\s]{10,}?)\s+("([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:)/g,
+    replacement: (_match, groups) => {
+      const [delimiter, whitespace, , propertyWithQuote] = groups;
+      const delimiterStr = delimiter ?? "";
+      const whitespaceStr = whitespace ?? "";
+      const propertyWithQuoteStr = propertyWithQuote ?? "";
+      return `${delimiterStr}${whitespaceStr}${propertyWithQuoteStr}`;
+    },
+    diagnosticMessage: (_match, groups) => {
+      const strayText = (groups[2] ?? "").trim();
+      return `Removed stray text '${strayText}' before property`;
+    },
+    contextCheck: isAfterJsonDelimiter,
+  },
+];
