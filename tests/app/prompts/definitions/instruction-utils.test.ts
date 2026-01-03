@@ -371,7 +371,11 @@ describe("instruction-utils", () => {
         const result = createDbMechanismInstructions(examples);
 
         expect(result).toContain("mechanism: 'NONE'");
-        expect(result.endsWith("      - Otherwise, if the code does not use a database => mechanism: 'NONE'")).toBe(true);
+        expect(
+          result.endsWith(
+            "      - Otherwise, if the code does not use a database => mechanism: 'NONE'",
+          ),
+        ).toBe(true);
       });
 
       it("should place suffix after examples even with additional note", () => {

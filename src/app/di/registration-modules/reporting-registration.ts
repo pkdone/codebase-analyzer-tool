@@ -78,9 +78,9 @@ export function registerReportingComponents(): void {
   console.log("Reporting components registered");
 
   // Register report sections using multi-injection pattern
-  container.registerSingleton("ReportSection", FileTypesSection);
-  container.registerSingleton("ReportSection", DatabaseSection);
-  container.registerSingleton("ReportSection", IntegrationPointsSection);
-  container.registerSingleton("ReportSection", VisualizationsSection);
-  container.registerSingleton("ReportSection", QualityMetricsSection);
+  container.registerSingleton(reportingTokens.ReportSection, FileTypesSection);
+  container.registerSingleton(reportingTokens.ReportSection, DatabaseSection);
+  container.registerSingleton(reportingTokens.ReportSection, IntegrationPointsSection);
+  container.registerSingleton(reportingTokens.ReportSection, VisualizationsSection);
+  container.registerSingleton(reportingTokens.ReportSection, QualityMetricsSection);
 }

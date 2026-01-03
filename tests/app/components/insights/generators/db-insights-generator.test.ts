@@ -3,11 +3,8 @@ import InsightsFromDBGenerator from "../../../../../src/app/components/insights/
 import { AppSummariesRepository } from "../../../../../src/app/repositories/app-summaries/app-summaries.repository.interface";
 import { SourcesRepository } from "../../../../../src/app/repositories/sources/sources.repository.interface";
 import LLMRouter from "../../../../../src/common/llm/llm-router";
-import { LLMOutputFormat } from "../../../../../src/common/llm/types/llm.types";
 import { llmProviderConfig } from "../../../../../src/common/llm/config/llm.config";
-import * as logging from "../../../../../src/common/utils/logging";
-import { ok, err } from "../../../../../src/common/types/result.types";
-import { LLMError, LLMErrorCode } from "../../../../../src/common/llm/types/llm-errors.types";
+import type { ICompletionStrategy } from "../../../../../src/app/components/insights/strategies/completion-strategy.interface";
 
 // Mock the logging utilities
 jest.mock("../../../../../src/common/utils/logging", () => ({
@@ -20,6 +17,8 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
   let mockAppSummaryRepository: jest.Mocked<AppSummariesRepository>;
   let mockSourcesRepository: jest.Mocked<SourcesRepository>;
   let mockLLMRouter: jest.Mocked<LLMRouter>;
+  let mockSinglePassStrategy: jest.Mocked<ICompletionStrategy>;
+  let mockMapReduceStrategy: jest.Mocked<ICompletionStrategy>;
   let mockConsoleLog: jest.SpyInstance;
 
   const mockManifest = {
@@ -76,11 +75,21 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
       getLLMManifest: jest.fn().mockReturnValue(mockManifest),
     } as unknown as jest.Mocked<LLMRouter>;
 
+    mockSinglePassStrategy = {
+      generateInsights: jest.fn(),
+    } as unknown as jest.Mocked<ICompletionStrategy>;
+
+    mockMapReduceStrategy = {
+      generateInsights: jest.fn(),
+    } as unknown as jest.Mocked<ICompletionStrategy>;
+
     generator = new InsightsFromDBGenerator(
       mockAppSummaryRepository,
       mockLLMRouter,
       mockSourcesRepository,
       "test-project",
+      mockSinglePassStrategy,
+      mockMapReduceStrategy,
     );
   });
 
@@ -118,19 +127,17 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
       const summaries = ["Summary 1", "Summary 2"];
       const mockResponse = { technologies: [{ name: "Entity1", description: "Test entity" }] };
 
-      (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(ok(mockResponse));
+      (mockSinglePassStrategy.generateInsights as jest.Mock).mockResolvedValue(mockResponse);
 
       await (generator as any).generateAndRecordDataForCategory("technologies", summaries);
 
-      // Should call executeCompletion once with the category name (not -chunk or -reduce)
-      expect(mockLLMRouter.executeCompletion).toHaveBeenCalledTimes(1);
-      expect(mockLLMRouter.executeCompletion).toHaveBeenCalledWith(
+      // Should call single-pass strategy, not map-reduce
+      expect(mockSinglePassStrategy.generateInsights).toHaveBeenCalledTimes(1);
+      expect(mockSinglePassStrategy.generateInsights).toHaveBeenCalledWith(
         "technologies",
-        expect.any(String),
-        expect.objectContaining({
-          outputFormat: LLMOutputFormat.JSON,
-        }),
+        summaries,
       );
+      expect(mockMapReduceStrategy.generateInsights).not.toHaveBeenCalled();
 
       expect(mockAppSummaryRepository.updateAppSummary).toHaveBeenCalledWith(
         "test-project",
@@ -145,37 +152,25 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
       const largeSummary = "x".repeat(Math.floor(charsPerChunk * 0.6));
       const summaries = [largeSummary, largeSummary];
 
-      const mockPartialResult = { technologies: [{ name: "Entity1", description: "Test" }] };
       const mockFinalResult = {
-        entities: [
+        technologies: [
           { name: "Entity1", description: "Test" },
           { name: "Entity2", description: "Test" },
         ],
       };
 
-      // Mock partial results for MAP phase and final result for REDUCE phase
-      (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(ok(mockPartialResult));
-      // Override the last call to return the final result
-      (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValueOnce(ok(mockPartialResult));
-      (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValueOnce(ok(mockPartialResult));
-      (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValueOnce(ok(mockFinalResult));
+      // Mock map-reduce strategy to return final result
+      (mockMapReduceStrategy.generateInsights as jest.Mock).mockResolvedValue(mockFinalResult);
 
       await (generator as any).generateAndRecordDataForCategory("technologies", summaries);
 
-      // Should have at least 3 calls: at least 2 for MAP (chunks) + 1 for REDUCE
-      expect(mockLLMRouter.executeCompletion.mock.calls.length).toBeGreaterThanOrEqual(3);
-
-      // Verify MAP calls use -chunk suffix
-      const chunkCalls = mockLLMRouter.executeCompletion.mock.calls.filter(
-        (call) => call[0] === "technologies-chunk",
+      // Should call map-reduce strategy, not single-pass
+      expect(mockMapReduceStrategy.generateInsights).toHaveBeenCalledTimes(1);
+      expect(mockMapReduceStrategy.generateInsights).toHaveBeenCalledWith(
+        "technologies",
+        summaries,
       );
-      expect(chunkCalls.length).toBeGreaterThanOrEqual(2);
-
-      // Verify REDUCE call uses -reduce suffix
-      const reduceCallIndex = mockLLMRouter.executeCompletion.mock.calls.findIndex(
-        (call) => call[0] === "technologies-reduce",
-      );
-      expect(reduceCallIndex).toBeGreaterThanOrEqual(0);
+      expect(mockSinglePassStrategy.generateInsights).not.toHaveBeenCalled();
 
       expect(mockAppSummaryRepository.updateAppSummary).toHaveBeenCalledWith(
         "test-project",
@@ -183,67 +178,48 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
       );
     });
 
-    it("should handle partial results being null in MAP phase", async () => {
+    it("should handle map-reduce strategy returning null", async () => {
       const tokenLimitPerChunk = 128000 * 0.7;
       const charsPerChunk = tokenLimitPerChunk * llmProviderConfig.AVERAGE_CHARS_PER_TOKEN;
       const largeSummary = "x".repeat(Math.floor(charsPerChunk * 0.9));
       const summaries = [largeSummary, largeSummary];
 
-      // First chunk returns valid result, second chunk returns err
-      (mockLLMRouter.executeCompletion as jest.Mock)
-        .mockResolvedValueOnce(ok({ technologies: [{ name: "Entity1", description: "Test" }] }))
-        .mockResolvedValueOnce(err(new LLMError(LLMErrorCode.BAD_RESPONSE_CONTENT, "No response")))
-        .mockResolvedValueOnce(ok({ technologies: [{ name: "Entity1", description: "Final" }] }));
+      // Map-reduce strategy returns null (simulating failure)
+      (mockMapReduceStrategy.generateInsights as jest.Mock).mockResolvedValue(null);
 
       await (generator as any).generateAndRecordDataForCategory("technologies", summaries);
 
-      // Should still proceed to REDUCE with the one valid result
-      expect(mockAppSummaryRepository.updateAppSummary).toHaveBeenCalled();
-      expect(logging.logOneLineWarning).not.toHaveBeenCalledWith(
-        expect.stringContaining("No partial insights were generated"),
-      );
+      // Should not call updateAppSummary when strategy returns null
+      expect(mockAppSummaryRepository.updateAppSummary).not.toHaveBeenCalled();
     });
 
-    it("should skip REDUCE if all partial results are err", async () => {
+    it("should handle map-reduce strategy returning null for all chunks", async () => {
       const tokenLimitPerChunk = 128000 * 0.7;
       const charsPerChunk = tokenLimitPerChunk * llmProviderConfig.AVERAGE_CHARS_PER_TOKEN;
       const largeSummary = "x".repeat(Math.floor(charsPerChunk * 0.9));
       const summaries = [largeSummary, largeSummary];
 
-      // All chunks return err
-      (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(
-        err(new LLMError(LLMErrorCode.BAD_RESPONSE_CONTENT, "No response")),
-      );
+      // Map-reduce strategy returns null (simulating all chunks failed)
+      (mockMapReduceStrategy.generateInsights as jest.Mock).mockResolvedValue(null);
 
       await (generator as any).generateAndRecordDataForCategory("technologies", summaries);
 
       // Should not call updateAppSummary
       expect(mockAppSummaryRepository.updateAppSummary).not.toHaveBeenCalled();
-      expect(logging.logOneLineWarning).toHaveBeenCalledWith(
-        expect.stringContaining("No partial insights were generated"),
-      );
     });
 
-    it("should handle REDUCE phase returning err", async () => {
+    it("should handle map-reduce strategy returning null (REDUCE phase failure)", async () => {
       const tokenLimitPerChunk = 128000 * 0.7;
       const charsPerChunk = tokenLimitPerChunk * llmProviderConfig.AVERAGE_CHARS_PER_TOKEN;
       const largeSummary = "x".repeat(Math.floor(charsPerChunk * 0.9));
       const summaries = [largeSummary, largeSummary];
 
-      // MAP phase succeeds, REDUCE phase fails
-      (mockLLMRouter.executeCompletion as jest.Mock)
-        .mockResolvedValueOnce(ok({ technologies: [{ name: "Entity1", description: "Test" }] }))
-        .mockResolvedValueOnce(ok({ technologies: [{ name: "Entity2", description: "Test" }] }))
-        .mockResolvedValueOnce(
-          err(new LLMError(LLMErrorCode.BAD_RESPONSE_CONTENT, "REDUCE failed")),
-        ); // REDUCE fails
+      // Map-reduce strategy returns null (simulating REDUCE phase failure)
+      (mockMapReduceStrategy.generateInsights as jest.Mock).mockResolvedValue(null);
 
       await (generator as any).generateAndRecordDataForCategory("technologies", summaries);
 
       expect(mockAppSummaryRepository.updateAppSummary).not.toHaveBeenCalled();
-      expect(logging.logOneLineWarning).toHaveBeenCalledWith(
-        expect.stringContaining("Failed to generate final consolidated summary"),
-      );
     });
   });
 
@@ -273,12 +249,13 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
         },
       ]);
 
-      // Mock LLM responses for all categories
-      (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(
-        ok({
-          entities: [{ name: "Entity1", description: "Test" }],
-        }),
-      );
+      // Mock strategy responses for all categories
+      (mockSinglePassStrategy.generateInsights as jest.Mock).mockResolvedValue({
+        entities: [{ name: "Entity1", description: "Test" }],
+      });
+      (mockMapReduceStrategy.generateInsights as jest.Mock).mockResolvedValue({
+        entities: [{ name: "Entity1", description: "Test" }],
+      });
 
       await generator.generateAndStoreInsights();
 

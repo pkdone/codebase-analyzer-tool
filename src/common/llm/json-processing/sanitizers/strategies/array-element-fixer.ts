@@ -247,9 +247,9 @@ export const arrayElementFixer: SanitizerStrategy = {
             diagnostics.add(`Fixed unquoted array element: ${elementStr} -> "${elementStr}"`);
 
             const beforeMatch = sanitized.substring(
-          Math.max(0, offset - parsingHeuristics.CONTEXT_LOOKBACK_LENGTH),
-          offset,
-        );
+              Math.max(0, offset - parsingHeuristics.CONTEXT_LOOKBACK_LENGTH),
+              offset,
+            );
             const beforeTrimmed = beforeMatch.trim();
             // Only add comma if not after [ and not already after a comma
             const needsCommaBefore = !beforeTrimmed.endsWith("[") && !beforeTrimmed.endsWith(",");

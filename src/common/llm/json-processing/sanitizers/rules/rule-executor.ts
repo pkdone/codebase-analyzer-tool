@@ -9,10 +9,7 @@
 
 import { isInStringAt } from "../../utils/parser-context-utils";
 import { DiagnosticCollector } from "../../utils/diagnostic-collector";
-import {
-  processingConfig,
-  parsingHeuristics,
-} from "../../constants/json-processing.config";
+import { processingConfig, parsingHeuristics } from "../../constants/json-processing.config";
 import type {
   ReplacementRule,
   ExecutorOptions,
@@ -38,8 +35,7 @@ function executeRule(
 ): { content: string; changed: boolean } {
   let hasChanges = false;
   const skipInString = rule.skipInString !== false; // Default to true
-  const contextLookback =
-    rule.contextLookback ?? parsingHeuristics.CONTEXT_LOOKBACK_LENGTH;
+  const contextLookback = rule.contextLookback ?? parsingHeuristics.CONTEXT_LOOKBACK_LENGTH;
 
   const result = content.replace(rule.pattern, (match: string, ...args: unknown[]) => {
     // Extract offset and groups from args

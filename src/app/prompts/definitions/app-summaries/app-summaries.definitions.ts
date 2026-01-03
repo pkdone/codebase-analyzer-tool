@@ -8,10 +8,7 @@ import {
 } from "../../../schemas/app-summaries.schema";
 import { CATEGORY_LABELS } from "../../../config/category-labels.config";
 import { APP_SUMMARY_PROMPT_FRAGMENTS } from "./app-summaries.fragments";
-import {
-  buildInstructionBlock,
-  INSTRUCTION_SECTION_TITLES,
-} from "../instruction-utils";
+import { buildInstructionBlock, INSTRUCTION_SECTION_TITLES } from "../instruction-utils";
 import { z } from "zod";
 import type { BasePromptConfigEntry } from "../../prompt.types";
 

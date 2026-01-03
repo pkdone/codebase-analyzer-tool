@@ -12,10 +12,9 @@ import { promptManager } from "../../../prompts/prompt-registry";
 import { AppSummaryCategories } from "../../../schemas/app-summaries.schema";
 import type { IInsightsProcessor } from "./insights-processor.interface";
 import { AppSummaryCategoryEnum } from "../insights.types";
-import { ICompletionStrategy } from "../strategies/completion-strategy.interface";
-import { SinglePassCompletionStrategy } from "../strategies/single-pass-completion-strategy";
-import { MapReduceCompletionStrategy } from "../strategies/map-reduce-completion-strategy";
+import type { ICompletionStrategy } from "../strategies/completion-strategy.interface";
 import { chunkTextByTokenLimit } from "../../../../common/llm/utils/text-chunking";
+import { insightsTokens } from "../../../di/tokens";
 
 /**
  * Generates metadata in database collections to capture application information,
@@ -26,8 +25,6 @@ import { chunkTextByTokenLimit } from "../../../../common/llm/utils/text-chunkin
 export default class InsightsFromDBGenerator implements IInsightsProcessor {
   private readonly llmProviderDescription: string;
   private readonly maxTokens: number;
-  private readonly singlePassStrategy: ICompletionStrategy;
-  private readonly mapReduceStrategy: ICompletionStrategy;
 
   /**
    * Creates a new InsightsFromDBGenerator with strategy-based processing.
@@ -39,15 +36,15 @@ export default class InsightsFromDBGenerator implements IInsightsProcessor {
     @inject(repositoryTokens.SourcesRepository)
     private readonly sourcesRepository: SourcesRepository,
     @inject(coreTokens.ProjectName) private readonly projectName: string,
+    @inject(insightsTokens.SinglePassCompletionStrategy)
+    private readonly singlePassStrategy: ICompletionStrategy,
+    @inject(insightsTokens.MapReduceCompletionStrategy)
+    private readonly mapReduceStrategy: ICompletionStrategy,
   ) {
     this.llmProviderDescription = this.llmRouter.getModelsUsedDescription();
     // Get the token limit from the manifest for chunking calculations
     const manifest = this.llmRouter.getLLMManifest();
     this.maxTokens = manifest.models.primaryCompletion.maxTotalTokens;
-
-    // Initialize strategies
-    this.singlePassStrategy = new SinglePassCompletionStrategy(this.llmRouter);
-    this.mapReduceStrategy = new MapReduceCompletionStrategy(this.llmRouter);
   }
 
   /**

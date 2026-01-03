@@ -244,7 +244,6 @@ describe("rule-executor", () => {
     });
   });
 
-
   describe("context check helpers", () => {
     describe("isAfterJsonDelimiter", () => {
       it("should return true when after closing brace", () => {

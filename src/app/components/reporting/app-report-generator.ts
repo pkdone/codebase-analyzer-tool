@@ -38,7 +38,7 @@ export default class AppReportGenerator {
     private readonly appStatsDataProvider: AppStatisticsDataProvider,
     @inject(reportingTokens.CategorizedSectionDataBuilder)
     private readonly categoriesDataBuilder: CategorizedSectionDataBuilder,
-    @injectAll("ReportSection")
+    @injectAll(reportingTokens.ReportSection)
     private readonly sections: ReportSection[],
   ) {}
 

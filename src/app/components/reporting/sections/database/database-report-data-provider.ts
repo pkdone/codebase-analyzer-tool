@@ -81,10 +81,7 @@ export class DatabaseReportDataProvider {
       allProcs,
       DATABASE_OBJECT_TYPE_LABELS.STORED_PROCEDURE,
     );
-    const trigs = this.summarizeItemsByComplexity(
-      allTrigs,
-      DATABASE_OBJECT_TYPE_LABELS.TRIGGER,
-    );
+    const trigs = this.summarizeItemsByComplexity(allTrigs, DATABASE_OBJECT_TYPE_LABELS.TRIGGER);
     return { procs, trigs };
   }
 

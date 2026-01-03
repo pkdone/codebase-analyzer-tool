@@ -8,10 +8,7 @@ import type { LLMSanitizerConfig } from "../../../config/llm-module-config.types
 import type { SanitizerStrategy, StrategyResult } from "../pipeline/sanitizer-pipeline.types";
 import { isInStringAt } from "../../utils/parser-context-utils";
 import { DiagnosticCollector } from "../../utils/diagnostic-collector";
-import {
-  processingConfig,
-  parsingHeuristics,
-} from "../../constants/json-processing.config";
+import { processingConfig, parsingHeuristics } from "../../constants/json-processing.config";
 
 /**
  * Checks if a string looks like stray non-JSON text.
