@@ -139,35 +139,24 @@ export const STRAY_CHARACTER_RULES: readonly ReplacementRule[] = [
     },
   },
 
-  // Rule: Remove bullet points before property names
-  // Pattern: `•  "publicConstants":` -> `"publicConstants":`
+  // Rule: Generic removal of list markers/prefixes before property names
+  // Consolidates: bulletPointBeforeProperty, asteriskBeforeProperty
+  // Catches bullets (•), asterisks (*), dashes (-), plus (+), and other list markers
+  // Pattern: `• "publicConstants":` or `* "purpose":` or `- "item":` -> `"item":`
   {
-    name: "bulletPointBeforeProperty",
-    pattern: /([}\],]|\n|^)(\s*)•\s+("([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:)/g,
+    name: "genericListMarkerBeforeProperty",
+    pattern: /([}\],]|\n|^)(\s*)([•*\-+>»►▸▹◦‣⁃○●◆◇■□])\s+("([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:)/g,
     replacement: (_match, groups) => {
-      const [delimiter, whitespace, propertyWithQuote] = groups;
+      const [delimiter, whitespace, , propertyWithQuote] = groups;
       const delimiterStr = delimiter ?? "";
       const whitespaceStr = whitespace ?? "";
       const propertyWithQuoteStr = propertyWithQuote ?? "";
       return `${delimiterStr}${whitespaceStr}${propertyWithQuoteStr}`;
     },
-    diagnosticMessage: "Removed bullet point before property name",
-    contextCheck: isAfterJsonDelimiter,
-  },
-
-  // Rule: Remove asterisks before property names
-  // Pattern: `* "purpose":` -> `"purpose":`
-  {
-    name: "asteriskBeforeProperty",
-    pattern: /([}\],]|\n|^)(\s*)\*\s+("([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:)/g,
-    replacement: (_match, groups) => {
-      const [delimiter, whitespace, propertyWithQuote] = groups;
-      const delimiterStr = delimiter ?? "";
-      const whitespaceStr = whitespace ?? "";
-      const propertyWithQuoteStr = propertyWithQuote ?? "";
-      return `${delimiterStr}${whitespaceStr}${propertyWithQuoteStr}`;
+    diagnosticMessage: (_match, groups) => {
+      const marker = groups[2] ?? "";
+      return `Removed list marker '${marker}' before property name`;
     },
-    diagnosticMessage: "Removed asterisk before property name",
     contextCheck: isAfterJsonDelimiter,
   },
 

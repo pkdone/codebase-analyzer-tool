@@ -16,6 +16,8 @@ export interface PropertyMatcherConfig {
   readonly minFuzzyLength: number;
   /** Whether to perform case-insensitive matching */
   readonly caseInsensitive: boolean;
+  /** Whether to normalize identifiers (camelCase/snake_case/kebab-case) before comparison */
+  readonly normalizeIdentifiers: boolean;
 }
 
 /**
@@ -26,7 +28,32 @@ export const DEFAULT_MATCHER_CONFIG: PropertyMatcherConfig = {
   maxLevenshteinDistance: 2,
   minFuzzyLength: 4,
   caseInsensitive: true,
+  normalizeIdentifiers: true,
 };
+
+/**
+ * Normalizes an identifier by converting from various naming conventions to a common format.
+ * Handles camelCase, PascalCase, snake_case, kebab-case, and mixed formats.
+ *
+ * @param identifier - The identifier to normalize
+ * @returns Normalized identifier (lowercase, no separators)
+ *
+ * @example
+ * normalizeIdentifier("userName") // "username"
+ * normalizeIdentifier("user_name") // "username"
+ * normalizeIdentifier("user-name") // "username"
+ * normalizeIdentifier("UserName") // "username"
+ */
+export function normalizeIdentifier(identifier: string): string {
+  if (!identifier) return "";
+
+  // First, insert a separator before capital letters in camelCase/PascalCase
+  // e.g., "userName" -> "user_Name", "APIEndpoint" -> "API_Endpoint"
+  const withSeparators = identifier.replace(/([a-z])([A-Z])/g, "$1_$2");
+
+  // Remove all separators (underscores and hyphens) and convert to lowercase
+  return withSeparators.replace(/[-_]/g, "").toLowerCase();
+}
 
 /**
  * Result of a property name match attempt.
@@ -154,7 +181,46 @@ export function matchPropertyName(
     }
   }
 
-  // Strategy 4: Fuzzy match using Levenshtein distance
+  // Strategy 4: Normalized identifier match (camelCase/snake_case agnostic)
+  // e.g., "user_name" matches "userName", "UserName", "user-name"
+  // Only applies when caseInsensitive is also true (normalization implies case-insensitivity)
+  if (
+    opts.normalizeIdentifiers &&
+    opts.caseInsensitive &&
+    fragment.length >= opts.minPrefixLength
+  ) {
+    const normalizedSearchFragment = normalizeIdentifier(fragment);
+
+    for (const prop of knownProperties) {
+      const normalizedProp = normalizeIdentifier(prop);
+      if (normalizedSearchFragment === normalizedProp) {
+        // Return with high confidence since the normalized forms match exactly
+        return { matched: prop, matchType: "fuzzy", confidence: 0.9 };
+      }
+    }
+
+    // Also try prefix match on normalized identifiers
+    const normalizedPrefixMatches: { prop: string; length: number }[] = [];
+    for (const prop of knownProperties) {
+      const normalizedProp = normalizeIdentifier(prop);
+      if (normalizedProp.startsWith(normalizedSearchFragment)) {
+        normalizedPrefixMatches.push({ prop, length: prop.length });
+      }
+    }
+
+    if (normalizedPrefixMatches.length > 0) {
+      normalizedPrefixMatches.sort((a, b) => a.length - b.length);
+      const confidence = Math.min(
+        0.85,
+        normalizedSearchFragment.length /
+          normalizeIdentifier(normalizedPrefixMatches[0].prop).length +
+          0.2,
+      );
+      return { matched: normalizedPrefixMatches[0].prop, matchType: "prefix", confidence };
+    }
+  }
+
+  // Strategy 5: Fuzzy match using Levenshtein distance
   if (fragment.length >= opts.minFuzzyLength) {
     let bestMatch: { prop: string; distance: number } | undefined;
 

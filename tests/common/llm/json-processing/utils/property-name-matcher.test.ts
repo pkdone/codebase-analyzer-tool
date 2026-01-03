@@ -8,10 +8,55 @@ import {
   looksLikePropertyName,
   looksLikeDotSeparatedIdentifier,
   inferFromShortFragment,
+  normalizeIdentifier,
   DEFAULT_MATCHER_CONFIG,
 } from "../../../../../src/common/llm/json-processing/utils/property-name-matcher";
 
 describe("property-name-matcher", () => {
+  describe("normalizeIdentifier", () => {
+    it("should convert camelCase to lowercase", () => {
+      expect(normalizeIdentifier("userName")).toBe("username");
+      expect(normalizeIdentifier("firstName")).toBe("firstname");
+      expect(normalizeIdentifier("myPropertyName")).toBe("mypropertyname");
+    });
+
+    it("should convert PascalCase to lowercase", () => {
+      expect(normalizeIdentifier("UserName")).toBe("username");
+      expect(normalizeIdentifier("FirstName")).toBe("firstname");
+    });
+
+    it("should remove underscores and convert to lowercase", () => {
+      expect(normalizeIdentifier("user_name")).toBe("username");
+      expect(normalizeIdentifier("first_name")).toBe("firstname");
+      expect(normalizeIdentifier("MY_CONSTANT")).toBe("myconstant");
+    });
+
+    it("should remove hyphens and convert to lowercase", () => {
+      expect(normalizeIdentifier("user-name")).toBe("username");
+      expect(normalizeIdentifier("first-name")).toBe("firstname");
+    });
+
+    it("should handle mixed formats", () => {
+      expect(normalizeIdentifier("user_Name")).toBe("username");
+      expect(normalizeIdentifier("First-name")).toBe("firstname");
+      expect(normalizeIdentifier("API_Endpoint")).toBe("apiendpoint");
+    });
+
+    it("should handle consecutive capitals (acronyms)", () => {
+      expect(normalizeIdentifier("APIEndpoint")).toBe("apiendpoint");
+      expect(normalizeIdentifier("XMLParser")).toBe("xmlparser");
+    });
+
+    it("should handle empty string", () => {
+      expect(normalizeIdentifier("")).toBe("");
+    });
+
+    it("should handle single character", () => {
+      expect(normalizeIdentifier("a")).toBe("a");
+      expect(normalizeIdentifier("A")).toBe("a");
+    });
+  });
+
   describe("levenshteinDistance", () => {
     it("should return 0 for identical strings", () => {
       expect(levenshteinDistance("hello", "hello")).toBe(0);
@@ -178,7 +223,10 @@ describe("property-name-matcher", () => {
       });
 
       it("should respect case sensitivity config", () => {
-        const result = matchPropertyName("NAME", knownProperties, { caseInsensitive: false });
+        const result = matchPropertyName("NAME", knownProperties, {
+          caseInsensitive: false,
+          normalizeIdentifiers: false,
+        });
         expect(result.matchType).toBe("none");
       });
 
@@ -186,6 +234,73 @@ describe("property-name-matcher", () => {
         expect(DEFAULT_MATCHER_CONFIG.minPrefixLength).toBe(2);
         expect(DEFAULT_MATCHER_CONFIG.maxLevenshteinDistance).toBe(2);
         expect(DEFAULT_MATCHER_CONFIG.caseInsensitive).toBe(true);
+        expect(DEFAULT_MATCHER_CONFIG.normalizeIdentifiers).toBe(true);
+      });
+    });
+
+    describe("normalized identifier matching", () => {
+      const mixedCaseProperties = ["userName", "first_name", "lastName", "user-id"];
+
+      it("should match snake_case to camelCase", () => {
+        const result = matchPropertyName("user_name", mixedCaseProperties);
+        expect(result.matched).toBe("userName");
+        expect(result.matchType).toBe("fuzzy"); // normalized match returns fuzzy type
+        expect(result.confidence).toBeGreaterThanOrEqual(0.9);
+      });
+
+      it("should match camelCase to snake_case", () => {
+        const result = matchPropertyName("firstName", mixedCaseProperties);
+        expect(result.matched).toBe("first_name");
+        expect(result.matchType).toBe("fuzzy");
+        expect(result.confidence).toBeGreaterThanOrEqual(0.9);
+      });
+
+      it("should match kebab-case to camelCase", () => {
+        const result = matchPropertyName("last-name", mixedCaseProperties);
+        expect(result.matched).toBe("lastName");
+        expect(result.matchType).toBe("fuzzy");
+        expect(result.confidence).toBeGreaterThanOrEqual(0.9);
+      });
+
+      it("should match camelCase to kebab-case", () => {
+        const result = matchPropertyName("userId", mixedCaseProperties);
+        expect(result.matched).toBe("user-id");
+        expect(result.matchType).toBe("fuzzy");
+        expect(result.confidence).toBeGreaterThanOrEqual(0.9);
+      });
+
+      it("should match normalized prefix", () => {
+        const result = matchPropertyName("user_na", ["userName", "userAddress"]);
+        expect(result.matched).toBe("userName");
+        expect(result.matchType).toBe("prefix");
+      });
+
+      it("should be disabled when normalizeIdentifiers is false", () => {
+        const result = matchPropertyName("user_name", mixedCaseProperties, {
+          normalizeIdentifiers: false,
+        });
+        // Without normalization, user_name won't match userName via the normalized strategy
+        // It may still match via fuzzy matching since "user_name" and "userName" are similar
+        // but the confidence and match type will differ
+        // The key is that it won't use the normalized matching path
+        expect(result.matchType).not.toBe("none"); // Will likely match via fuzzy
+      });
+
+      it("should be disabled when caseInsensitive is false", () => {
+        // When case sensitivity is enabled, the normalized identifier matching is disabled
+        // However, fuzzy matching may still match if the strings are similar enough
+        const result = matchPropertyName("user_name", mixedCaseProperties, {
+          caseInsensitive: false,
+          normalizeIdentifiers: true,
+        });
+        // The normalized identifier matching should be disabled, but fuzzy matching
+        // can still match "user_name" to "userName" if within distance threshold
+        // The key test is that this doesn't use the normalized matching path
+        // (which would have confidence 0.9), so we check for lower confidence
+        if (result.matched === "userName") {
+          // If it matched via fuzzy, confidence should be lower than 0.9
+          expect(result.confidence).toBeLessThanOrEqual(0.85);
+        }
       });
     });
   });

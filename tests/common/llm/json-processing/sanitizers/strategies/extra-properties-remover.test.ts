@@ -156,4 +156,63 @@ describe("extraPropertiesRemover", () => {
     const result = extraPropertiesRemover.apply(input);
     expect(result.diagnostics.length).toBeGreaterThan(0);
   });
+
+  describe("knownProperties-based removal", () => {
+    const knownProperties = ["name", "value", "description", "type"];
+
+    it("should not remove properties that are in knownProperties", () => {
+      const input = '{"name": "test", "value": 123}';
+      const result = extraPropertiesRemover.apply(input, { knownProperties });
+      expect(result.content).toContain('"name"');
+      expect(result.content).toContain('"value"');
+      expect(result.changed).toBe(false);
+    });
+
+    it("should remove unknown _prefixed properties when knownProperties provided", () => {
+      const input = '{"name": "test", "_internal_state": "some state"}';
+      const result = extraPropertiesRemover.apply(input, { knownProperties });
+      expect(result.content).not.toContain("_internal_state");
+      expect(result.changed).toBe(true);
+    });
+
+    it("should remove unknown _internal_output property (underscore prefix with output suffix)", () => {
+      const input = '{"name": "test", "_internal_output": "generated content"}';
+      const result = extraPropertiesRemover.apply(input, { knownProperties });
+      expect(result.content).not.toContain("_internal_output");
+      expect(result.changed).toBe(true);
+    });
+
+    it("should remove extra_ prefixed properties", () => {
+      // The extraPropertiesRemover specifically handles extra_*, llm_*, ai_*, _* prefixes
+      const input = '{"name": "test", extra_data: "some data"}';
+      const result = extraPropertiesRemover.apply(input, { knownProperties });
+      expect(result.content).not.toContain("extra_data");
+      expect(result.changed).toBe(true);
+    });
+
+    it("should not remove regular unknown properties without suspicious patterns", () => {
+      // Properties like "category" or "status" shouldn't be removed even if not in knownProperties
+      // because they don't look like LLM artifacts
+      const input = '{"name": "test", "category": "example"}';
+      const result = extraPropertiesRemover.apply(input, { knownProperties });
+      // "category" should remain since it doesn't match LLM artifact patterns
+      expect(result.content).toContain('"category"');
+      expect(result.changed).toBe(false);
+    });
+
+    it("should work without knownProperties (default behavior)", () => {
+      const input = '{"name": "test", "extra_thoughts": "thinking"}';
+      const result = extraPropertiesRemover.apply(input);
+      expect(result.content).not.toContain("extra_thoughts");
+      expect(result.changed).toBe(true);
+    });
+
+    it("should handle knownProperties case-insensitively", () => {
+      const input = '{"NAME": "test", "Value": 123}';
+      const result = extraPropertiesRemover.apply(input, { knownProperties });
+      expect(result.content).toContain('"NAME"');
+      expect(result.content).toContain('"Value"');
+      expect(result.changed).toBe(false);
+    });
+  });
 });

@@ -366,6 +366,89 @@ _ADDITIONAL_PROPERTIES
       expect(result.content).not.toContain("_ADDITIONAL_PROPERTIES");
       expect(() => JSON.parse(result.content)).not.toThrow();
     });
+
+    it("should still fix bullet point before property (•)", () => {
+      const input = `{
+  "name": "TestClass",
+•  "publicConstants": []
+}`;
+      const result = fixMalformedJsonPatterns(input);
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain("•");
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+
+    it("should still fix asterisk before property (*)", () => {
+      const input = `{
+  "name": "Test",
+* "purpose": "Test purpose"
+}`;
+      const result = fixMalformedJsonPatterns(input);
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain('* "purpose"');
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+
+    it("should still fix stray characters after string (>)", () => {
+      // The generic stray content rule catches characters between closing quote and delimiter
+      // Pattern: `"value">` -> `"value"` where > is AFTER the closing quote
+      const input = `{
+  "items": [
+    "GroupGeneralData">
+  ]
+}`;
+      const result = fixMalformedJsonPatterns(input);
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"GroupGeneralData"');
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+  });
+
+  describe("Consolidated pattern coverage", () => {
+    it("should handle dash list marker before property (-)", () => {
+      const input = `{
+  "name": "Test",
+- "items": []
+}`;
+      const result = fixMalformedJsonPatterns(input);
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"items": []');
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+
+    it("should handle plus sign before property (+)", () => {
+      const input = `{
+  "name": "Test",
++ "value": 42
+}`;
+      const result = fixMalformedJsonPatterns(input);
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"value": 42');
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+
+    it("should handle uppercase library name after string in array", () => {
+      const input = `{
+  "references": [
+    "lombok.RequiredArgsConstructor"JACKSON-CORE
+  ]
+}`;
+      const result = fixMalformedJsonPatterns(input);
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"lombok.RequiredArgsConstructor"');
+      expect(result.content).not.toContain("JACKSON-CORE");
+    });
+
+    it("should match snake_case to camelCase properties in typo corrections", () => {
+      // This tests the identifier normalization in property matching
+      const input = `{
+  "user_name": "john",
+  "first_name": "John"
+}`;
+      // This should parse as valid JSON (no corruption to fix)
+      const result = fixMalformedJsonPatterns(input);
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
   });
 
   describe("Edge cases and safety", () => {

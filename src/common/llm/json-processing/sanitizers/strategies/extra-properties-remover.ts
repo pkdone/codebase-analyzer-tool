@@ -27,13 +27,54 @@ function isLLMArtifactProperty(propertyName: string): boolean {
 }
 
 /**
+ * Checks if a property should be removed based on known properties list.
+ * When knownProperties is provided and a property is not in that list,
+ * and it looks like potential LLM-generated metadata, it should be removed.
+ *
+ * @param propertyName - The property name to check
+ * @param knownProperties - Optional list of known valid property names
+ * @returns True if the property should be removed
+ */
+function shouldRemoveUnknownProperty(
+  propertyName: string,
+  knownProperties: readonly string[] | undefined,
+): boolean {
+  // If no knownProperties provided, don't use this check
+  if (!knownProperties || knownProperties.length === 0) {
+    return false;
+  }
+
+  // Check if property is in the known list (case-insensitive)
+  const lowerName = propertyName.toLowerCase();
+  const isKnown = knownProperties.some((p) => p.toLowerCase() === lowerName);
+
+  if (isKnown) {
+    return false;
+  }
+
+  // Only remove unknown properties that look like potential LLM artifacts:
+  // - Contains underscore (common in LLM-generated metadata like extra_info, _meta)
+  // - Has a suspicious suffix (*_response, *_output, *_result)
+  // - Starts with underscore (internal/hidden properties)
+  return (
+    /^_[a-z_]+$/i.test(propertyName) ||
+    /[_-](response|output|result|data|info|meta|internal|private)$/i.test(propertyName) ||
+    /^(extra|llm|ai|model|gpt|claude|gemini)[_-]/i.test(propertyName)
+  );
+}
+
+/**
  * Strategy that removes LLM artifact properties like extra_thoughts, extra_text,
  * llm_notes, ai_reasoning, _internal_*, etc.
+ *
+ * When knownProperties is provided in the config, this strategy will also remove
+ * properties that are not in the known list but look like LLM-generated metadata.
  */
 export const extraPropertiesRemover: SanitizerStrategy = {
   name: "ExtraPropertiesRemover",
 
-  apply(input: string, _config?: LLMSanitizerConfig): StrategyResult {
+  apply(input: string, config?: LLMSanitizerConfig): StrategyResult {
+    const knownProperties = config?.knownProperties;
     if (!input) {
       return { content: input, changed: false, diagnostics: [] };
     }
@@ -83,8 +124,11 @@ export const extraPropertiesRemover: SanitizerStrategy = {
         }
 
         const propName = match[2] || "";
-        // Validate it's an LLM artifact property
-        if (!isLLMArtifactProperty(propName)) {
+        // Validate it's an LLM artifact property or an unknown property that looks like metadata
+        if (
+          !isLLMArtifactProperty(propName) &&
+          !shouldRemoveUnknownProperty(propName, knownProperties)
+        ) {
           continue;
         }
 
@@ -245,8 +289,11 @@ export const extraPropertiesRemover: SanitizerStrategy = {
         }
 
         const propName = match[2] || "";
-        // Validate it's an LLM artifact property
-        if (!isLLMArtifactProperty(propName)) {
+        // Validate it's an LLM artifact property or an unknown property that looks like metadata
+        if (
+          !isLLMArtifactProperty(propName) &&
+          !shouldRemoveUnknownProperty(propName, knownProperties)
+        ) {
           continue;
         }
 

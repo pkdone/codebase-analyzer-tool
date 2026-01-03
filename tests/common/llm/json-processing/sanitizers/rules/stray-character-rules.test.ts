@@ -26,7 +26,7 @@ s  "publicMethods": []`;
     });
   });
 
-  describe("bulletPointBeforeProperty", () => {
+  describe("genericListMarkerBeforeProperty", () => {
     it('should remove bullet point before property name: •  "publicConstants":', () => {
       const input = `{
   "name": "TestClass",
@@ -37,9 +37,7 @@ s  "publicMethods": []`;
       expect(result.content).toContain('"publicConstants": []');
       expect(result.content).not.toContain("•");
     });
-  });
 
-  describe("asteriskBeforeProperty", () => {
     it('should remove asterisk before property name: * "purpose":', () => {
       const input = `{
   "name": "Test",
@@ -59,6 +57,53 @@ s  "publicMethods": []`;
       const result = executeRules(input, STRAY_CHARACTER_RULES);
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"purpose": "Test purpose"');
+    });
+
+    it('should remove dash list marker before property: - "items":', () => {
+      const input = `{
+  "name": "Test",
+- "items": []
+}`;
+      const result = executeRules(input, STRAY_CHARACTER_RULES);
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"items": []');
+      expect(result.content).not.toContain('- "items"');
+    });
+
+    it('should remove plus sign before property: + "value":', () => {
+      const input = `{
+  "name": "Test",
++ "value": 42
+}`;
+      const result = executeRules(input, STRAY_CHARACTER_RULES);
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"value": 42');
+      expect(result.content).not.toContain('+ "value"');
+    });
+
+    it('should remove arrow marker before property: > "section":', () => {
+      const input = `{
+  "name": "Test",
+> "section": "main"
+}`;
+      const result = executeRules(input, STRAY_CHARACTER_RULES);
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"section": "main"');
+      expect(result.content).not.toContain('> "section"');
+    });
+
+    it("should remove various Unicode bullet markers", () => {
+      const input = `{
+  "name": "Test",
+► "item1": "value1",
+▸ "item2": "value2",
+◦ "item3": "value3"
+}`;
+      const result = executeRules(input, STRAY_CHARACTER_RULES);
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"item1": "value1"');
+      expect(result.content).toContain('"item2": "value2"');
+      expect(result.content).toContain('"item3": "value3"');
     });
   });
 

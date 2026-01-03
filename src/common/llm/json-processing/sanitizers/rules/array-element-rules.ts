@@ -91,54 +91,93 @@ export const ARRAY_ELEMENT_RULES: readonly ReplacementRule[] = [
     diagnosticMessage: "Removed markdown list marker (*) from array element",
   },
 
-  // Rule: Fix stray characters at end of string values
-  // Pattern: `"GroupGeneralData>"` -> `"GroupGeneralData"`
+  // Rule: Generic stray content after string values in arrays
+  // Consolidates: strayCharAtEndOfString, strayTextAfterArrayElement, strayLibraryNameAfterString
+  // Catches any non-JSON content between a closing quote and the next delimiter
+  // Pattern: `"value" garbage,` -> `"value",` or `"value>",` -> `"value",`
   {
-    name: "strayCharAtEndOfString",
-    pattern: /"([^"]+)([>\]}])(\s*[,}\]]|\s*\n)/g,
+    name: "genericStrayContentAfterString",
+    pattern: /"([^"]+)"([^,}\]\n"]+)(\s*[,}\]])/g,
     replacement: (_match, groups, context) => {
-      // Check if in value context
+      // Check if in a value context (after colon, comma, or array start)
       const { beforeMatch } = context;
       const isValueContext =
-        /:\s*$/.test(beforeMatch) || /,\s*$/.test(beforeMatch) || /\[\s*$/.test(beforeMatch);
+        /:\s*$/.test(beforeMatch) ||
+        /,\s*$/.test(beforeMatch) ||
+        /\[\s*$/.test(beforeMatch) ||
+        /,\s*\n\s*$/.test(beforeMatch);
       if (!isValueContext) {
         return null;
       }
-      const [stringValue, , terminator] = groups;
+
+      const [stringValue, strayContent, terminator] = groups;
       const stringValueStr = stringValue ?? "";
+      const strayContentStr = (strayContent ?? "").trim();
       const terminatorStr = terminator ?? "";
+
+      // Skip if the stray content is empty or just whitespace
+      if (!strayContentStr) {
+        return null;
+      }
+
+      // Skip if stray content looks like a valid property start (colon after)
+      // This handles cases like `"value" "nextProp":` which aren't stray text
+      if (strayContentStr.endsWith(":")) {
+        return null;
+      }
+
+      // Check if it looks like stray/corrupted content
+      const looksLikeStrayContent =
+        // Single special characters (>, ], }, etc.)
+        /^[>\]}<)>|\\/#@!$%^&*~`+=]+$/.test(strayContentStr) ||
+        // Uppercase identifiers (like JACKSON-CORE-2.12.0.JAR)
+        /^[A-Z][A-Z0-9_.-]{3,}$/.test(strayContentStr) ||
+        // Text with underscores that doesn't look like a valid identifier
+        (strayContentStr.includes("_") && !/^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(strayContentStr)) ||
+        // Short lowercase words that are clearly stray (not valid JSON)
+        (/^[a-z]{1,5}$/.test(strayContentStr) &&
+          !["true", "false", "null"].includes(strayContentStr));
+
+      if (!looksLikeStrayContent) {
+        return null;
+      }
+
       return `"${stringValueStr}"${terminatorStr}`;
     },
     diagnosticMessage: (_match, groups) => {
-      const strayChar = groups[1] ?? "";
       const stringValue = groups[0] ?? "";
-      return `Removed stray character '${strayChar}' at end of string value: "${stringValue}"`;
+      const strayContent = (groups[1] ?? "").trim();
+      return `Removed stray content '${strayContent}' after string: "${stringValue.substring(0, 30)}..."`;
     },
   },
 
-  // Rule: Remove stray text after array elements with underscores
-  // Pattern: `"stringValue",\nstrayText_with_underscores",` -> `"stringValue",`
+  // Rule: Fix stray JAR/library names after string values
+  // Pattern: `"lombok.RequiredArgsConstructor",JACKSON-CORE-2.12.0.JAR"` -> `"lombok.RequiredArgsConstructor",`
+  // This handles the specific case where comma + uppercase identifier + closing quote pattern appears
   {
-    name: "strayTextAfterArrayElement",
-    pattern: /"([^"]+)"\s*,\s*\n\s*([a-z_]+)"\s*,/g,
+    name: "strayLibraryNameAfterString",
+    pattern: /"([^"]+)"\s*,\s*([A-Z][A-Z0-9_.-]{5,50})"\s*([,}\]]|\n|$)/g,
     replacement: (_match, groups, context) => {
-      if (!isDeepArrayContext(context)) {
-        return null;
-      }
       const strayText = groups[1] ?? "";
-      // Check if stray text looks like explanatory text
-      const looksLikeExplanatoryText =
-        strayText.includes("_") && !/^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(strayText);
-      if (!looksLikeExplanatoryText) {
+      // Check if it looks like a library/JAR name
+      const looksLikeLibraryName =
+        /^[A-Z][A-Z0-9_.-]+$/.test(strayText) &&
+        (strayText.includes(".") || strayText.includes("-") || strayText.length > 10);
+      if (!looksLikeLibraryName) {
         return null;
       }
-      const value = groups[0] ?? "";
-      return `"${value}",`;
+      const stringValue = groups[0] ?? "";
+      const terminator = groups[2] ?? "";
+      // Ensure comma if in array context
+      const { beforeMatch } = context;
+      const isInArray = /\[\s*$/.test(beforeMatch) || /,\s*\n\s*$/.test(beforeMatch);
+      const comma = isInArray ? "," : "";
+      return `"${stringValue}"${comma}${terminator}`;
     },
     diagnosticMessage: (_match, groups) => {
-      const value = groups[0] ?? "";
+      const stringValue = groups[0] ?? "";
       const strayText = groups[1] ?? "";
-      return `Removed stray explanatory text after array element: "${value}" + "${strayText}"`;
+      return `Removed stray library/JAR name '${strayText}' after string: "${stringValue.substring(0, 30)}..."`;
     },
   },
 
@@ -280,35 +319,6 @@ export const ARRAY_ELEMENT_RULES: readonly ReplacementRule[] = [
     diagnosticMessage: (_match, groups) => {
       const stringValue = groups[2] ?? "";
       return `Removed 'stop' before array element: "${stringValue.substring(0, 30)}..."`;
-    },
-  },
-
-  // Rule: Fix stray JAR/library names after string values
-  // Pattern: `"lombok.RequiredArgsConstructor",JACKSON-CORE-2.12.0.JAR"` -> `"lombok.RequiredArgsConstructor",`
-  {
-    name: "strayLibraryNameAfterString",
-    pattern: /"([^"]+)"\s*,?\s*([A-Z][A-Z0-9_.-]{5,50})"\s*([,}\]]|\n|$)/g,
-    replacement: (_match, groups, context) => {
-      const strayText = groups[1] ?? "";
-      // Check if it looks like a library/JAR name
-      const looksLikeLibraryName =
-        /^[A-Z][A-Z0-9_.-]+$/.test(strayText) &&
-        (strayText.includes(".") || strayText.includes("-") || strayText.length > 10);
-      if (!looksLikeLibraryName) {
-        return null;
-      }
-      const stringValue = groups[0] ?? "";
-      const terminator = groups[2] ?? "";
-      // Ensure comma if in array context
-      const { beforeMatch } = context;
-      const isInArray = /\[\s*$/.test(beforeMatch) || /,\s*\n\s*$/.test(beforeMatch);
-      const comma = isInArray ? "," : "";
-      return `"${stringValue}"${comma}${terminator}`;
-    },
-    diagnosticMessage: (_match, groups) => {
-      const stringValue = groups[0] ?? "";
-      const strayText = groups[1] ?? "";
-      return `Removed stray library/JAR name '${strayText}' after string: "${stringValue.substring(0, 30)}..."`;
     },
   },
 

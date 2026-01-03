@@ -32,11 +32,12 @@ export const PROPERTY_NAME_RULES: readonly ReplacementRule[] = [
     },
   },
 
-  // Rule: Fix corrupted property values
+  // Rule: Fix corrupted property values with encoding markers
   // Pattern: `"propertyName":_CODE\`4,` -> `"propertyName": 4,`
+  // Generic pattern catches _CODE, _VALUE, _DATA, etc. followed by backtick and number
   {
     name: "corruptedPropertyValue",
-    pattern: /"([^"]+)"\s*:\s*_CODE`(\d+)(\s*[,}])/g,
+    pattern: /"([^"]+)"\s*:\s*_[A-Z]+`(\d+)(\s*[,}])/g,
     replacement: (_match, groups) => {
       const [propertyName, digits, terminator] = groups;
       const propertyNameStr = propertyName ?? "";
@@ -47,7 +48,7 @@ export const PROPERTY_NAME_RULES: readonly ReplacementRule[] = [
     diagnosticMessage: (_match, groups) => {
       const propertyName = groups[0] ?? "";
       const digits = groups[1] ?? "";
-      return `Fixed corrupted property value: "${propertyName}":_CODE\`${digits} -> "${propertyName}": ${digits}`;
+      return `Fixed corrupted property value: "${propertyName}":_...\`${digits} -> "${propertyName}": ${digits}`;
     },
   },
 
