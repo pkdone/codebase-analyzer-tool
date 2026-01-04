@@ -33,8 +33,9 @@ import { MongoConnectionTestTask } from "../../tasks/dev/mdb-connection-test.tas
 import { PluggableLLMsTestTask } from "../../tasks/dev/test-pluggable-llms.task";
 import { ReportGenerationTask } from "../../tasks/main/report-generation.task";
 
-// Configuration import
+// Configuration imports
 import { databaseConfig } from "../../components/database/database.config";
+import { outputConfig } from "../../config/output.config";
 
 // LLM strategy and pipeline imports
 import { RetryStrategy } from "../../../common/llm/strategies/retry-strategy";
@@ -59,6 +60,9 @@ export function registerAppDependencies(): void {
 function registerRepositories(): void {
   // Register the default database name for the application
   container.registerInstance(coreTokens.DatabaseName, databaseConfig.CODEBASE_DB_NAME);
+
+  // Register output configuration as a singleton instance
+  container.registerInstance(coreTokens.OutputConfig, outputConfig);
 
   // Register repositories as singletons
   container.registerSingleton<SourcesRepository>(

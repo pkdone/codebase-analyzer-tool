@@ -98,9 +98,13 @@ describe("QualityMetricsSection", () => {
 
       mockBomDataProvider.getBillOfMaterials.mockResolvedValue(mockBillOfMaterials);
       mockCodeQualityDataProvider.getCodeQualitySummary.mockResolvedValue(mockCodeQualitySummary);
-      mockScheduledTaskDataProvider.getScheduledJobsSummary.mockResolvedValue(mockScheduledJobsSummary);
+      mockScheduledTaskDataProvider.getScheduledJobsSummary.mockResolvedValue(
+        mockScheduledJobsSummary,
+      );
       mockModuleCouplingDataProvider.getModuleCoupling.mockResolvedValue(mockModuleCoupling);
-      mockServerSideUiDataProvider.getUiTechnologyAnalysis.mockResolvedValue(mockUiTechnologyAnalysis);
+      mockServerSideUiDataProvider.getUiTechnologyAnalysis.mockResolvedValue(
+        mockUiTechnologyAnalysis,
+      );
 
       const result = await section.getData("test-project");
 

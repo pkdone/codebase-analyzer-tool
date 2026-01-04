@@ -1,6 +1,7 @@
-import { injectable } from "tsyringe";
+import { injectable, inject } from "tsyringe";
 import path from "path";
-import { outputConfig } from "../../config/output.config";
+import { coreTokens } from "../../di/tokens";
+import type { OutputConfigType } from "../../config/output.config";
 import { writeFile } from "../../../common/fs/file-operations";
 
 export interface PreparedJsonData {
@@ -14,6 +15,8 @@ export interface PreparedJsonData {
  */
 @injectable()
 export class JsonReportWriter {
+  constructor(@inject(coreTokens.OutputConfig) private readonly config: OutputConfigType) {}
+
   /**
    * Write all prepared JSON data files to the output directory.
    */
@@ -38,7 +41,7 @@ export class JsonReportWriter {
    * Helper method to write a single JSON file with error handling.
    */
   private async writeJsonFile(filename: string, data: unknown): Promise<void> {
-    const jsonFilePath = path.join(outputConfig.OUTPUT_DIR, filename);
+    const jsonFilePath = path.join(this.config.OUTPUT_DIR, filename);
     const jsonContent = JSON.stringify(data, null, 2);
     await writeFile(jsonFilePath, jsonContent);
     console.log(`Generated JSON file: ${filename}`);

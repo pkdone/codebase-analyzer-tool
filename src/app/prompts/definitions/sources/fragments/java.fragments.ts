@@ -1,5 +1,6 @@
 import { createDbMechanismInstructions } from "../../instruction-utils";
 import type { LanguageSpecificFragments } from "../sources.fragments";
+import { MECHANISM_DESCRIPTIONS } from "./common.fragments";
 
 /**
  * Java-specific instruction fragments.
@@ -13,12 +14,12 @@ export const JAVA_SPECIFIC_FRAGMENTS: LanguageSpecificFragments = {
   PUBLIC_METHODS:
     "A list of its public methods (if any) - for each public method, include the method's name, its purpose in detail, a list of its parameters, its return type and a very detailed description of its implementation",
   PUBLIC_CONSTANTS: "A list of public constants (name, value and type) it defines (if any)",
-  INTEGRATION_INSTRUCTIONS: `  * REST APIs (mechanism: 'REST'):
+  INTEGRATION_INSTRUCTIONS: `  * REST APIs ${MECHANISM_DESCRIPTIONS.REST}:
     - JAX-RS annotations (@Path, @GET, @POST, @PUT, @DELETE, @PATCH) - include path, method, request/response body
     - Spring annotations (@RestController, @RequestMapping, @GetMapping, @PostMapping, @PutMapping, @DeleteMapping, @PatchMapping)
     - Servlet mappings (web.xml or @WebServlet) - include URL patterns
     - HTTP client calls (RestTemplate, WebClient, HttpClient, OkHttp, Feign @FeignClient)
-  * SOAP Services (mechanism: 'SOAP'):
+  * SOAP Services ${MECHANISM_DESCRIPTIONS.SOAP}:
     - JAX-WS annotations (@WebService, @WebMethod, @SOAPBinding) - include service name, operation name, SOAP version
     - WSDL references or Apache CXF service definitions
     - SOAPConnectionFactory, SOAPMessage usage
@@ -38,10 +39,10 @@ export const JAVA_SPECIFIC_FRAGMENTS: LanguageSpecificFragments = {
     - ActiveMQ: @JmsListener with ActiveMQ-specific config => 'ACTIVEMQ-QUEUE' or 'ACTIVEMQ-TOPIC'
     - AWS SQS/SNS: AmazonSQS client, sendMessage, receiveMessage => 'AWS-SQS' or 'AWS-SNS'
     - Azure Service Bus: ServiceBusClient, QueueClient, TopicClient => 'AZURE-SERVICE-BUS-QUEUE' or 'AZURE-SERVICE-BUS-TOPIC'
-  * WebSockets (mechanism: 'WEBSOCKET'):
+  * WebSockets ${MECHANISM_DESCRIPTIONS.WEBSOCKET}:
     - @ServerEndpoint annotations - include endpoint path
     - WebSocketHandler implementations
-  * gRPC (mechanism: 'GRPC'):
+  * gRPC ${MECHANISM_DESCRIPTIONS.GRPC}:
     - @GrpcService annotations or gRPC stub usage - include service name, methods`,
   DB_MECHANISM_MAPPING: createDbMechanismInstructions(
     [

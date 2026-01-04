@@ -1,5 +1,6 @@
 import { createDbMechanismInstructions } from "../../instruction-utils";
 import type { LanguageSpecificFragments } from "../sources.fragments";
+import { MECHANISM_DESCRIPTIONS } from "./common.fragments";
 
 /**
  * C#-specific instruction fragments.
@@ -15,11 +16,11 @@ export const CSHARP_SPECIFIC_FRAGMENTS: LanguageSpecificFragments = {
   PUBLIC_METHODS:
     "A list of its public methods (if any) – for each method list: name, purpose (detailed), parameters (name and type), return type, async/sync indicator, and a very detailed implementation description highlighting notable control flow, LINQ queries, awaits, exception handling, and important business logic decisions",
   KIND_OVERRIDE: "Its kind ('class', 'interface', 'record', or 'struct')",
-  INTEGRATION_INSTRUCTIONS: `  * REST APIs (mechanism: 'REST'):
+  INTEGRATION_INSTRUCTIONS: `  * REST APIs ${MECHANISM_DESCRIPTIONS.REST}:
     - ASP.NET Core MVC/Web API controller actions with [HttpGet], [HttpPost], [HttpPut], [HttpDelete], [HttpPatch], [Route]
     - ASP.NET Core Minimal API endpoints (MapGet, MapPost, MapPut, MapDelete)
     - HTTP client calls (HttpClient, RestSharp, Refit interfaces)
-  * WCF/SOAP Services (mechanism: 'SOAP'):
+  * WCF/SOAP Services ${MECHANISM_DESCRIPTIONS.SOAP}:
     - WCF service contracts ([ServiceContract], [OperationContract])
     - SOAP service references, WCF client proxies
     - BasicHttpBinding, WSHttpBinding configurations
@@ -28,7 +29,7 @@ export const CSHARP_SPECIFIC_FRAGMENTS: LanguageSpecificFragments = {
     - RabbitMQ.Client usage (IModel.BasicPublish, BasicConsume) => 'RABBITMQ-QUEUE' or 'RABBITMQ-EXCHANGE'
     - MSMQ (MessageQueue class) => 'OTHER' (specify MSMQ in description and protocol)
     - AWS SQS/SNS (AWSSDK) => 'AWS-SQS' or 'AWS-SNS'
-  * gRPC (mechanism: 'GRPC'):
+  * gRPC ${MECHANISM_DESCRIPTIONS.GRPC}:
     - Grpc.Net.Client, Grpc.Core service definitions
    - gRPC client stubs and service implementations`,
   DB_MECHANISM_MAPPING: createDbMechanismInstructions([

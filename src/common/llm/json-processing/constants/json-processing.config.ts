@@ -125,6 +125,15 @@ export const parsingHeuristics = Object.freeze({
    * Used when determining if a match is in a property name/value context.
    */
   PROPERTY_CONTEXT_OFFSET_LIMIT: 200,
+
+  /**
+   * Options for property context detection in stray character rules.
+   * Controls the sensitivity of stray text detection before property names.
+   */
+  STRAY_CHARACTER_DETECTION: {
+    maxLength: 40,
+    detectSentences: true,
+  },
 });
 
 /**

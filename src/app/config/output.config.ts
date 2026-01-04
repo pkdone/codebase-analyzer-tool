@@ -2,7 +2,7 @@
  * Output configuration interface for type validation.
  * Ensures the configuration conforms to the expected structure at compile time.
  */
-interface OutputConfig {
+export interface OutputConfig {
   readonly OUTPUT_DIR: string;
   readonly OUTPUT_SUMMARY_FILENAME: string;
   readonly OUTPUT_SUMMARY_HTML_FILE: string;
@@ -12,7 +12,18 @@ interface OutputConfig {
     readonly MERMAID_CDN_UMD_URL: string;
     readonly MERMAID_UMD_FILENAME: string;
   };
+  readonly assets: {
+    readonly CSS_FILENAME: string;
+    readonly JSON_ICON_FILENAME: string;
+    readonly ASSETS_SUBDIR: string;
+  };
 }
+
+/**
+ * Type alias for the outputConfig value type.
+ * Used for dependency injection to avoid circular type references.
+ */
+export type OutputConfigType = typeof outputConfig;
 
 /**
  * Output configuration for the application.
@@ -32,5 +43,15 @@ export const outputConfig = {
   externalAssets: {
     MERMAID_CDN_UMD_URL: "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js",
     MERMAID_UMD_FILENAME: "mermaid.min.js",
+  },
+
+  /**
+   * Internal asset filenames and directory structure for HTML reports.
+   * These are used when reading and embedding assets in generated reports.
+   */
+  assets: {
+    CSS_FILENAME: "style.css",
+    JSON_ICON_FILENAME: "json-icon.svg",
+    ASSETS_SUBDIR: "assets",
   },
 } as const satisfies OutputConfig;

@@ -12,6 +12,10 @@ import { procedureTriggerSchema } from "../../../../schemas/sources.schema";
 import type { z } from "zod";
 import { logOneLineWarning } from "../../../../../common/utils/logging";
 import { DATABASE_OBJECT_TYPE_LABELS } from "../../reporting.constants";
+import {
+  NOT_AVAILABLE_PLACEHOLDER,
+  DEFAULT_COMPLEXITY,
+} from "../../../../../common/constants/application.constants";
 
 // Define a more specific type for the items
 type ProcOrTrigItem = z.infer<typeof procedureTriggerSchema> & { filepath: string };
@@ -155,7 +159,7 @@ export class DatabaseReportDataProvider {
       name: item.name,
       functionName: item.name,
       complexity: complexity,
-      complexityReason: item.complexityReason || "N/A",
+      complexityReason: item.complexityReason || NOT_AVAILABLE_PLACEHOLDER,
       linesOfCode: item.linesOfCode,
       purpose: item.purpose,
     };
@@ -167,8 +171,8 @@ export class DatabaseReportDataProvider {
   private normalizeComplexity(complexity: unknown, itemName: string): Complexity {
     if (isComplexityLevel(complexity)) return complexity;
     logOneLineWarning(
-      `Invalid complexity value '${String(complexity)}' found for ${itemName}. Defaulting to LOW.`,
+      `Invalid complexity value '${String(complexity)}' found for ${itemName}. Defaulting to ${DEFAULT_COMPLEXITY}.`,
     );
-    return "LOW";
+    return DEFAULT_COMPLEXITY;
   }
 }

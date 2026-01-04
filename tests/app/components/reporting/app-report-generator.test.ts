@@ -55,6 +55,23 @@ describe("AppReportGenerator", () => {
       },
     ] as unknown as jest.Mocked<ReportSection>[];
 
+    const mockOutputConfig = {
+      OUTPUT_DIR: "output",
+      OUTPUT_SUMMARY_FILENAME: "codebase-report",
+      OUTPUT_SUMMARY_HTML_FILE: "codebase-report.html",
+      HTML_TEMPLATES_DIR: "templates",
+      HTML_MAIN_TEMPLATE_FILE: "main.ejs",
+      externalAssets: {
+        MERMAID_CDN_UMD_URL: "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js",
+        MERMAID_UMD_FILENAME: "mermaid.min.js",
+      },
+      assets: {
+        CSS_FILENAME: "style.css",
+        JSON_ICON_FILENAME: "json-icon.svg",
+        ASSETS_SUBDIR: "assets",
+      },
+    } as const;
+
     generator = new AppReportGenerator(
       mockAppSummariesRepository,
       mockHtmlWriter,
@@ -62,6 +79,7 @@ describe("AppReportGenerator", () => {
       mockAppStatsDataProvider,
       mockCategorizedDataBuilder,
       mockSections,
+      mockOutputConfig,
     );
   });
 

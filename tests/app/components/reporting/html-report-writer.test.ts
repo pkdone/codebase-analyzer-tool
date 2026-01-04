@@ -8,6 +8,8 @@ import {
 } from "../../../../src/app/components/reporting/html-report-writer";
 import { outputConfig } from "../../../../src/app/config/output.config";
 import { writeFile } from "../../../../src/common/fs/file-operations";
+import { container } from "tsyringe";
+import { coreTokens } from "../../../../src/app/di/tokens";
 
 // Mock dependencies
 jest.mock("../../../../src/common/fs/file-operations");
@@ -175,7 +177,9 @@ describe("HtmlReportWriter", () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    htmlReportWriter = new HtmlReportWriter();
+    // Register outputConfig in DI container for testing
+    container.registerInstance(coreTokens.OutputConfig, outputConfig);
+    htmlReportWriter = container.resolve(HtmlReportWriter);
 
     // Mock console.log
     mockConsoleLog = jest.spyOn(console, "log").mockImplementation();

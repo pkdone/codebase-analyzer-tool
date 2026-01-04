@@ -44,6 +44,24 @@ describe("outputConfig", () => {
     });
   });
 
+  describe("assets", () => {
+    it("should have assets defined", () => {
+      expect(outputConfig.assets).toBeDefined();
+    });
+
+    it("should have CSS_FILENAME", () => {
+      expect(outputConfig.assets.CSS_FILENAME).toBe("style.css");
+    });
+
+    it("should have JSON_ICON_FILENAME", () => {
+      expect(outputConfig.assets.JSON_ICON_FILENAME).toBe("json-icon.svg");
+    });
+
+    it("should have ASSETS_SUBDIR", () => {
+      expect(outputConfig.assets.ASSETS_SUBDIR).toBe("assets");
+    });
+  });
+
   describe("immutability", () => {
     it("should be a const object", () => {
       expect(outputConfig).toBeDefined();

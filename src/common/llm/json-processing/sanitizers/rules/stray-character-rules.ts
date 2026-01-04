@@ -9,12 +9,7 @@
 import type { ReplacementRule } from "./replacement-rule.types";
 import { isAfterJsonDelimiter, isInArrayContext, isDeepArrayContext } from "./rule-executor";
 import { isJsonKeyword, looksLikeStrayText } from "../../utils/stray-text-detection";
-
-/** Options for property context - longer text with sentences */
-const PROPERTY_CONTEXT_OPTIONS = {
-  maxLength: 40,
-  detectSentences: true,
-};
+import { parsingHeuristics } from "../../constants/json-processing.config";
 
 /**
  * Checks if text looks like stray non-JSON content before a property.
@@ -36,7 +31,7 @@ function looksLikeStrayTextBeforeProperty(text: string): boolean {
     return false;
   }
 
-  return looksLikeStrayText(trimmed, PROPERTY_CONTEXT_OPTIONS);
+  return looksLikeStrayText(trimmed, parsingHeuristics.STRAY_CHARACTER_DETECTION);
 }
 
 /**

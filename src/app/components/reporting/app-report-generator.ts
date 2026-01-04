@@ -1,5 +1,5 @@
 import { injectable, inject, injectAll } from "tsyringe";
-import { reportingTokens, repositoryTokens } from "../../di/tokens";
+import { reportingTokens, repositoryTokens, coreTokens } from "../../di/tokens";
 import { HtmlReportWriter, type PreparedHtmlReportData } from "./html-report-writer";
 import { JsonReportWriter, type PreparedJsonData } from "./json-report-writer";
 import { AppStatisticsDataProvider } from "./sections/quality-metrics/app-statistics-data-provider";
@@ -15,7 +15,7 @@ import { reportSectionsConfig } from "./report-sections.config";
 import type { ReportSection } from "./sections/report-section.interface";
 import path from "path";
 import { promises as fs } from "fs";
-import { outputConfig } from "../../config/output.config";
+import type { OutputConfigType } from "../../config/output.config";
 import { htmlReportConstants } from "./html-report.constants";
 
 /**
@@ -40,6 +40,7 @@ export default class AppReportGenerator {
     private readonly categoriesDataBuilder: CategorizedSectionDataBuilder,
     @injectAll(reportingTokens.ReportSection)
     private readonly sections: ReportSection[],
+    @inject(coreTokens.OutputConfig) private readonly outputConfig: OutputConfigType,
   ) {}
 
   /**
@@ -119,9 +120,13 @@ export default class AppReportGenerator {
     const preparedJsonData = this.prepareJsonDataFromSections(reportData, sectionDataMap);
 
     // Read asset files for HTML report
-    const templatesDir = path.join(__dirname, outputConfig.HTML_TEMPLATES_DIR);
-    const cssPath = path.join(templatesDir, "style.css");
-    const jsonIconPath = path.join(templatesDir, "assets", "json-icon.svg");
+    const templatesDir = path.join(__dirname, this.outputConfig.HTML_TEMPLATES_DIR);
+    const cssPath = path.join(templatesDir, this.outputConfig.assets.CSS_FILENAME);
+    const jsonIconPath = path.join(
+      templatesDir,
+      this.outputConfig.assets.ASSETS_SUBDIR,
+      this.outputConfig.assets.JSON_ICON_FILENAME,
+    );
 
     const [cssContent, jsonIconContent] = await Promise.all([
       fs.readFile(cssPath, "utf-8"),
@@ -148,7 +153,7 @@ export default class AppReportGenerator {
    */
   private async copyMermaidJsToAssets(outputDir: string): Promise<void> {
     const assetsDir = path.join(outputDir, htmlReportConstants.directories.ASSETS);
-    const mermaidPath = path.join(assetsDir, outputConfig.externalAssets.MERMAID_UMD_FILENAME);
+    const mermaidPath = path.join(assetsDir, this.outputConfig.externalAssets.MERMAID_UMD_FILENAME);
 
     try {
       await fs.mkdir(assetsDir, { recursive: true });
@@ -181,7 +186,7 @@ export default class AppReportGenerator {
       }
 
       console.log("Downloading Mermaid.js for offline report support...");
-      const response = await fetch(outputConfig.externalAssets.MERMAID_CDN_UMD_URL);
+      const response = await fetch(this.outputConfig.externalAssets.MERMAID_CDN_UMD_URL);
       if (!response.ok) {
         throw new Error(`Failed to download Mermaid.js: ${response.status} ${response.statusText}`);
       }

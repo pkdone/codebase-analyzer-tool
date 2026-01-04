@@ -1,7 +1,8 @@
-import { injectable } from "tsyringe";
+import { injectable, inject } from "tsyringe";
 import path from "path";
 import ejs from "ejs";
-import { outputConfig } from "../../config/output.config";
+import { coreTokens } from "../../di/tokens";
+import type { OutputConfigType } from "../../config/output.config";
 import { writeFile } from "../../../common/fs/file-operations";
 import type {
   AppStatistics,
@@ -10,10 +11,7 @@ import type {
   ModuleCoupling,
   UiTechnologyAnalysis,
 } from "./sections/quality-metrics/quality-metrics.types";
-import type {
-  ProcsAndTriggers,
-  DatabaseIntegrationInfo,
-} from "./sections/database/database.types";
+import type { ProcsAndTriggers, DatabaseIntegrationInfo } from "./sections/database/database.types";
 import type { IntegrationPointInfo } from "./sections/integration-points/integration-points.types";
 import type { ProjectedFileTypesCountAndLines } from "../../repositories/sources/sources.model";
 import type { TableViewModel } from "./view-models/table-view-model";
@@ -209,6 +207,8 @@ export interface PreparedHtmlReportData {
  */
 @injectable()
 export class HtmlReportWriter {
+  constructor(@inject(coreTokens.OutputConfig) private readonly config: OutputConfigType) {}
+
   /**
    * Renders HTML report from prepared template data and writes it to file.
    * This is a pure presentation method that only handles template rendering.
@@ -220,8 +220,8 @@ export class HtmlReportWriter {
   ): Promise<void> {
     const templatePath = path.join(
       __dirname,
-      outputConfig.HTML_TEMPLATES_DIR,
-      outputConfig.HTML_MAIN_TEMPLATE_FILE,
+      this.config.HTML_TEMPLATES_DIR,
+      this.config.HTML_MAIN_TEMPLATE_FILE,
     );
 
     const htmlContent = await ejs.renderFile(templatePath, preparedData);

@@ -13,6 +13,7 @@ export const coreTokens = {
   EnvVars: Symbol("EnvVars"),
   ProjectName: Symbol("ProjectName"),
   DatabaseInitializer: Symbol("DatabaseInitializer"),
+  OutputConfig: Symbol("OutputConfig"),
 } as const;
 
 export type CoreToken = keyof typeof coreTokens;

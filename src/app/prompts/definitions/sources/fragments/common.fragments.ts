@@ -102,3 +102,18 @@ export const BASE_FRAGMENTS = {
     "Its namespace (fully qualified module path)",
   ] as const,
 } as const;
+
+/**
+ * Standard mechanism descriptions for integration points.
+ * These are used across multiple language-specific fragments to ensure consistency.
+ * If the enum values for mechanisms change in the schema, update these constants.
+ */
+export const MECHANISM_DESCRIPTIONS = {
+  REST: "(mechanism: 'REST')",
+  GRAPHQL: "(mechanism: 'GRAPHQL')",
+  SOAP: "(mechanism: 'SOAP')",
+  WEBSOCKET: "(mechanism: 'WEBSOCKET')",
+  GRPC: "(mechanism: 'GRPC')",
+  SSE: "(mechanism: 'SSE')",
+  TRPC: "(mechanism: 'TRPC')",
+} as const;

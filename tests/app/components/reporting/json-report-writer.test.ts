@@ -6,6 +6,8 @@ import {
 } from "../../../../src/app/components/reporting/json-report-writer";
 import { outputConfig } from "../../../../src/app/config/output.config";
 import { writeFile } from "../../../../src/common/fs/file-operations";
+import { container } from "tsyringe";
+import { coreTokens } from "../../../../src/app/di/tokens";
 
 // Mock dependencies
 jest.mock("../../../../src/common/fs/file-operations");
@@ -38,7 +40,9 @@ describe("JsonReportWriter", () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    jsonReportWriter = new JsonReportWriter();
+    // Register outputConfig in DI container for testing
+    container.registerInstance(coreTokens.OutputConfig, outputConfig);
+    jsonReportWriter = container.resolve(JsonReportWriter);
 
     // Mock console methods
     mockConsoleLog = jest.spyOn(console, "log").mockImplementation();
