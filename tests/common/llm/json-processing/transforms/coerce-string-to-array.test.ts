@@ -488,4 +488,193 @@ describe("coerceStringToArray", () => {
       expect((result as any).array).toBe("should remain string");
     });
   });
+
+  describe("bulleted and numbered list parsing", () => {
+    const config: LLMSanitizerConfig = {
+      arrayPropertyNames: ["parameters", "dependencies", "references", "items", "tags"],
+    };
+
+    describe("bulleted lists with dash", () => {
+      it("should parse dash-bulleted list into array", () => {
+        const input = {
+          items: "- item1\n- item2\n- item3",
+        };
+
+        const result = coerceStringToArray(input, config);
+
+        expect((result as any).items).toEqual(["item1", "item2", "item3"]);
+      });
+
+      it("should handle extra whitespace in bulleted lists", () => {
+        const input = {
+          items: "-  item1  \n-   item2\n- item3  ",
+        };
+
+        const result = coerceStringToArray(input, config);
+
+        expect((result as any).items).toEqual(["item1", "item2", "item3"]);
+      });
+
+      it("should handle indented bulleted lists", () => {
+        const input = {
+          items: "  - item1\n  - item2\n  - item3",
+        };
+
+        const result = coerceStringToArray(input, config);
+
+        expect((result as any).items).toEqual(["item1", "item2", "item3"]);
+      });
+    });
+
+    describe("bulleted lists with asterisk", () => {
+      it("should parse asterisk-bulleted list into array", () => {
+        const input = {
+          items: "* first\n* second\n* third",
+        };
+
+        const result = coerceStringToArray(input, config);
+
+        expect((result as any).items).toEqual(["first", "second", "third"]);
+      });
+    });
+
+    describe("bulleted lists with bullet points", () => {
+      it("should parse unicode bullet point list into array", () => {
+        const input = {
+          items: "• apple\n• banana\n• cherry",
+        };
+
+        const result = coerceStringToArray(input, config);
+
+        expect((result as any).items).toEqual(["apple", "banana", "cherry"]);
+      });
+    });
+
+    describe("numbered lists", () => {
+      it("should parse numbered list with dots into array", () => {
+        const input = {
+          items: "1. first item\n2. second item\n3. third item",
+        };
+
+        const result = coerceStringToArray(input, config);
+
+        expect((result as any).items).toEqual(["first item", "second item", "third item"]);
+      });
+
+      it("should parse numbered list with parentheses into array", () => {
+        const input = {
+          items: "1) option a\n2) option b\n3) option c",
+        };
+
+        const result = coerceStringToArray(input, config);
+
+        expect((result as any).items).toEqual(["option a", "option b", "option c"]);
+      });
+    });
+
+    describe("comma-separated values", () => {
+      it("should parse comma-separated values into array", () => {
+        const input = {
+          tags: "tag1, tag2, tag3, tag4",
+        };
+
+        const result = coerceStringToArray(input, config);
+
+        expect((result as any).tags).toEqual(["tag1", "tag2", "tag3", "tag4"]);
+      });
+
+      it("should handle semicolon-separated values with multiple separators", () => {
+        const input = {
+          tags: "tag1; tag2; tag3; tag4",
+        };
+
+        const result = coerceStringToArray(input, config);
+
+        expect((result as any).tags).toEqual(["tag1", "tag2", "tag3", "tag4"]);
+      });
+
+      it("should not split sentence-like text with commas", () => {
+        const input = {
+          parameters: "This is a description, which has commas. It should not be split.",
+        };
+
+        const result = coerceStringToArray(input, config);
+
+        // Sentence-like text should return empty array (fallback behavior)
+        expect((result as any).parameters).toEqual([]);
+      });
+    });
+
+    describe("newline-separated values", () => {
+      it("should parse simple newline-separated values into array", () => {
+        const input = {
+          items: "value1\nvalue2\nvalue3",
+        };
+
+        const result = coerceStringToArray(input, config);
+
+        expect((result as any).items).toEqual(["value1", "value2", "value3"]);
+      });
+
+      it("should not split long paragraphs into array", () => {
+        const input = {
+          parameters:
+            "This is a very long paragraph that describes something in detail.\nIt continues on the next line with more detailed information that is quite lengthy.",
+        };
+
+        const result = coerceStringToArray(input, config);
+
+        // Long lines should return empty array (fallback behavior)
+        expect((result as any).parameters).toEqual([]);
+      });
+    });
+
+    describe("empty and descriptive strings", () => {
+      it("should return empty array for empty string", () => {
+        const input = {
+          items: "",
+        };
+
+        const result = coerceStringToArray(input, config);
+
+        expect((result as any).items).toEqual([]);
+      });
+
+      it("should return empty array for purely descriptive strings", () => {
+        const input = {
+          parameters: "59 parameters including id, accountNo, status, externalId, etc.",
+        };
+
+        const result = coerceStringToArray(input, config);
+
+        // This looks like a description, not a list
+        expect((result as any).parameters).toEqual([]);
+      });
+    });
+
+    describe("nested structures with list parsing", () => {
+      it("should parse lists in nested objects", () => {
+        const input = {
+          outer: {
+            items: "- nested1\n- nested2\n- nested3",
+          },
+        };
+
+        const result = coerceStringToArray(input, config);
+
+        expect((result as any).outer.items).toEqual(["nested1", "nested2", "nested3"]);
+      });
+
+      it("should parse lists in array elements", () => {
+        const input = {
+          collection: [{ items: "- a\n- b" }, { items: "- c\n- d" }],
+        };
+
+        const result = coerceStringToArray(input, config);
+
+        expect((result as any).collection[0].items).toEqual(["a", "b"]);
+        expect((result as any).collection[1].items).toEqual(["c", "d"]);
+      });
+    });
+  });
 });

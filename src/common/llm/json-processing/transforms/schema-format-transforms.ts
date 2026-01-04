@@ -279,8 +279,57 @@ export function unwrapJsonSchemaStructure(parsed: unknown, _config?: LLMSanitize
 }
 
 /**
+ * Attempts to extract a numeric value from a string that may contain additional text.
+ * This handles cases where LLMs return values like "~150 items" or "approximately 50".
+ *
+ * Extraction strategy:
+ * 1. First try strict number parsing (handles "19", "3.14", "-5")
+ * 2. Then try extracting leading numeric sequences (handles "150 items", "~50 units")
+ * 3. Then try extracting embedded numeric sequences (handles "approx 150 lines")
+ *
+ * @param value - The string value to extract a number from
+ * @returns The extracted number, or NaN if no valid number could be extracted
+ */
+function extractNumericValue(value: string): number {
+  const trimmed = value.trim();
+
+  // Strategy 1: Strict parsing - handles clean numeric strings
+  const strictValue = Number(trimmed);
+  if (!isNaN(strictValue) && isFinite(strictValue)) {
+    return strictValue;
+  }
+
+  // Strategy 2: Leading numeric sequence (with optional prefix characters like ~ or ≈)
+  // Handles: "~150 items", "≈50 units", "-5 degrees"
+  const leadingNumericMatch = /^[~≈]?\s*(-?\d+(?:\.\d+)?)/.exec(trimmed);
+  if (leadingNumericMatch) {
+    const extracted = Number(leadingNumericMatch[1]);
+    if (!isNaN(extracted) && isFinite(extracted)) {
+      return extracted;
+    }
+  }
+
+  // Strategy 3: Embedded numeric sequence (for phrases like "approximately 150")
+  // Only extract if there's a clear number with word boundaries
+  const embeddedNumericMatch = /\b(-?\d+(?:\.\d+)?)\b/.exec(trimmed);
+  if (embeddedNumericMatch) {
+    const extracted = Number(embeddedNumericMatch[1]);
+    if (!isNaN(extracted) && isFinite(extracted)) {
+      return extracted;
+    }
+  }
+
+  return NaN;
+}
+
+/**
  * Coerces string values to numbers for known numeric properties.
  * This handles cases where LLMs return numeric values as strings (e.g., "linesOfCode": "19" -> "linesOfCode": 19).
+ *
+ * Enhanced to extract numbers from strings with additional text:
+ * - "~150 items" -> 150
+ * - "approximately 50" -> 50
+ * - "19 lines" -> 19
  *
  * Recursively processes objects and arrays to find and fix numeric properties at any nesting level.
  *
@@ -311,8 +360,8 @@ export function coerceNumericProperties(parsed: unknown, config?: LLMSanitizerCo
         typeof value === "string" &&
         value.trim() !== ""
       ) {
-        // Try to parse as number
-        const numValue = Number(value.trim());
+        // Try to extract a number from the string (handles both clean and mixed values)
+        const numValue = extractNumericValue(value);
         if (!isNaN(numValue) && isFinite(numValue)) {
           result[key] = numValue;
           continue;

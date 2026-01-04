@@ -543,5 +543,125 @@ describe("schema-format-transforms", () => {
       expect(coerceNumericProperties(null)).toBeNull();
       expect(coerceNumericProperties(undefined)).toBeUndefined();
     });
+
+    describe("extracting numbers from mixed strings", () => {
+      it("should extract leading numbers with tilde prefix", () => {
+        const input = {
+          linesOfCode: "~150 lines",
+          complexity: "~25 units",
+        };
+
+        const result = coerceNumericProperties(input, mockConfig);
+
+        expect(result).toEqual({
+          linesOfCode: 150,
+          complexity: 25,
+        });
+      });
+
+      it("should extract leading numbers with approximation symbols", () => {
+        const input = {
+          linesOfCode: "≈200 lines of code",
+        };
+
+        const result = coerceNumericProperties(input, mockConfig);
+
+        expect(result).toEqual({
+          linesOfCode: 200,
+        });
+      });
+
+      it("should extract numbers from 'approximately N items' patterns", () => {
+        const input = {
+          linesOfCode: "approximately 50 lines",
+          totalMethods: "about 10 methods",
+        };
+
+        const result = coerceNumericProperties(input, mockConfig);
+
+        expect(result).toEqual({
+          linesOfCode: 50,
+          totalMethods: 10,
+        });
+      });
+
+      it("should extract decimal numbers from mixed strings", () => {
+        const input = {
+          averageComplexity: "~3.5 per method",
+        };
+
+        const result = coerceNumericProperties(input, mockConfig);
+
+        expect(result).toEqual({
+          averageComplexity: 3.5,
+        });
+      });
+
+      it("should extract negative numbers from mixed strings", () => {
+        const input = {
+          lines: "-5 lines removed",
+        };
+
+        const result = coerceNumericProperties(input, mockConfig);
+
+        expect(result).toEqual({
+          lines: -5,
+        });
+      });
+
+      it("should handle leading numbers without prefix", () => {
+        const input = {
+          linesOfCode: "100 lines of code",
+          complexity: "15 cyclomatic",
+        };
+
+        const result = coerceNumericProperties(input, mockConfig);
+
+        expect(result).toEqual({
+          linesOfCode: 100,
+          complexity: 15,
+        });
+      });
+
+      it("should still handle clean numeric strings", () => {
+        const input = {
+          linesOfCode: "19",
+          cyclomaticComplexity: "5.5",
+        };
+
+        const result = coerceNumericProperties(input, mockConfig);
+
+        expect(result).toEqual({
+          linesOfCode: 19,
+          cyclomaticComplexity: 5.5,
+        });
+      });
+
+      it("should not coerce strings without any numbers", () => {
+        const input = {
+          linesOfCode: "many lines",
+          complexity: "high complexity",
+        };
+
+        const result = coerceNumericProperties(input, mockConfig);
+
+        expect(result).toEqual({
+          linesOfCode: "many lines",
+          complexity: "high complexity",
+        });
+      });
+
+      it("should extract first number from complex phrases", () => {
+        const input = {
+          linesOfCode: "between 100 and 200 lines",
+        };
+
+        const result = coerceNumericProperties(input, mockConfig);
+
+        expect(result).toEqual({
+          linesOfCode: 100,
+        });
+      });
+    });
   });
 });

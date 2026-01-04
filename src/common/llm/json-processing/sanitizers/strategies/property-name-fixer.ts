@@ -492,7 +492,41 @@ export const propertyNameFixer: SanitizerStrategy = {
       },
     );
 
-    // Pass 6: Fix completely unquoted property names (generalized)
+    // Pass 6: Fix single-quoted or backticked property names (full quotes)
+    // Pattern: 'key': or `key`: -> "key":
+    const alternateQuotePattern = /([{,}\],]|\n|^)(\s*)(['`])([a-zA-Z_$][a-zA-Z0-9_$.-]*)\3\s*:/g;
+    sanitized = sanitized.replace(
+      alternateQuotePattern,
+      (match, delimiter, whitespace, quote, propertyName, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
+          return match;
+        }
+
+        const delimiterStr = typeof delimiter === "string" ? delimiter : "";
+        const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
+        const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
+        const quoteStr = typeof quote === "string" ? quote : "";
+
+        // Skip JSON keywords
+        const lowerPropertyName = propertyNameStr.toLowerCase();
+        const jsonKeywords = ["true", "false", "null", "undefined"];
+        if (jsonKeywords.includes(lowerPropertyName)) {
+          return match;
+        }
+
+        // Use dynamic matching to fix the property name
+        const fixedName = fixPropertyName(propertyNameStr, knownProperties, PROPERTY_NAME_MAPPINGS);
+
+        hasChanges = true;
+        const quoteType = quoteStr === "`" ? "backticked" : "single-quoted";
+        diagnostics.add(
+          `Fixed ${quoteType} property name: ${quoteStr}${propertyNameStr}${quoteStr} -> "${fixedName}"`,
+        );
+        return `${delimiterStr}${whitespaceStr}"${fixedName}":`;
+      },
+    );
+
+    // Pass 6b: Fix completely unquoted property names (generalized)
     const unquotedPropertyPattern = /([{,}\],]|\n|^)(\s*)([a-zA-Z_$][a-zA-Z0-9_$.-]*)\s*:/g;
     sanitized = sanitized.replace(
       unquotedPropertyPattern,
