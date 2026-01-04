@@ -1,0 +1,748 @@
+[
+  {
+    "name": "Loan Portfolio Service",
+    "description": "This microservice is responsible for the end-to-end lifecycle management of loan accounts and products. It encapsulates the complex financial logic required for loan origination, approval workflows, disbursement, repayment processing, and interest calculation. The service manages loan product configurations, including amortization schedules, delinquency tracking, and penalty calculations. It also handles advanced features such as collateral management and variable installments. By isolating this domain, the system can independently scale the heavy calculation engines required for schedule generation and interest accrual without affecting other modules.",
+    "entities": [
+      {
+        "name": "Loan",
+        "description": "The core entity representing a loan account, tracking principal, interest, and repayment schedules.",
+        "attributes": [
+          "id",
+          "accountNo",
+          "principal",
+          "interestRate",
+          "termFrequency",
+          "status",
+          "repaymentSchedule"
+        ]
+      },
+      {
+        "name": "LoanProduct",
+        "description": "Defines the configuration and terms for a specific type of loan offering.",
+        "attributes": [
+          "id",
+          "name",
+          "shortName",
+          "currency",
+          "amortizationMethod",
+          "interestMethod",
+          "minPrincipal",
+          "maxPrincipal"
+        ]
+      },
+      {
+        "name": "LoanTransaction",
+        "description": "Records financial events associated with a loan, such as repayments, waivers, or disbursements.",
+        "attributes": [
+          "id",
+          "transactionDate",
+          "amount",
+          "transactionType",
+          "principalPortion",
+          "interestPortion"
+        ]
+      },
+      {
+        "name": "LoanCollateral",
+        "description": "Assets pledged by a borrower to secure a loan.",
+        "attributes": [
+          "id",
+          "value",
+          "description",
+          "collateralType",
+          "loanId"
+        ]
+      }
+    ],
+    "endpoints": [
+      {
+        "path": "/api/v1/loans",
+        "method": "POST",
+        "description": "Submits a new loan application for a client or group."
+      },
+      {
+        "path": "/api/v1/loans/{loanId}",
+        "method": "GET",
+        "description": "Retrieves detailed information about a specific loan account."
+      },
+      {
+        "path": "/api/v1/loans/{loanId}/transactions",
+        "method": "POST",
+        "description": "Processes a transaction (repayment, waiver, etc.) against a loan."
+      },
+      {
+        "path": "/api/v1/loanproducts",
+        "method": "GET",
+        "description": "Lists available loan products and their configurations."
+      }
+    ],
+    "operations": [
+      {
+        "operation": "Submit Loan Application",
+        "method": "POST",
+        "description": "Creates a new loan application with specific terms and links it to a client."
+      },
+      {
+        "operation": "Approve Loan",
+        "method": "POST",
+        "description": "Transitions a loan application from pending to approved status."
+      },
+      {
+        "operation": "Disburse Loan",
+        "method": "POST",
+        "description": "Releases funds to the borrower and activates the repayment schedule."
+      },
+      {
+        "operation": "Make Repayment",
+        "method": "POST",
+        "description": "Records a payment against the loan, allocating funds to principal, interest, and fees."
+      }
+    ]
+  },
+  {
+    "name": "Savings and Deposits Service",
+    "description": "This microservice manages the complete lifecycle of savings accounts, fixed deposits, and recurring deposits. It handles the definition of savings products, including interest compounding rules, posting periods, and lock-in settings. The service is responsible for processing transactions such as deposits, withdrawals, and transfers, as well as calculating and posting interest to accounts. It ensures accurate balance tracking and enforces rules regarding minimum balances and withdrawal limits. This separation ensures that the distinct financial logic of liability products is decoupled from asset products.",
+    "entities": [
+      {
+        "name": "SavingsAccount",
+        "description": "Represents a customer's savings account holding a balance and transaction history.",
+        "attributes": [
+          "id",
+          "accountNo",
+          "accountBalance",
+          "status",
+          "clientId",
+          "minRequiredBalance"
+        ]
+      },
+      {
+        "name": "SavingsProduct",
+        "description": "Defines the terms, interest rates, and currency for a savings offering.",
+        "attributes": [
+          "id",
+          "name",
+          "nominalAnnualInterestRate",
+          "currencyCode",
+          "interestCompoundingPeriodType"
+        ]
+      },
+      {
+        "name": "FixedDepositAccount",
+        "description": "A specialized deposit account held for a fixed term with specific maturity rules.",
+        "attributes": [
+          "id",
+          "depositAmount",
+          "maturityDate",
+          "depositPeriod",
+          "preClosurePenalInterest"
+        ]
+      },
+      {
+        "name": "InterestRateChart",
+        "description": "Defines interest rate slabs based on deposit amounts or periods.",
+        "attributes": [
+          "id",
+          "fromDate",
+          "endDate",
+          "chartSlabs"
+        ]
+      }
+    ],
+    "endpoints": [
+      {
+        "path": "/api/v1/savingsaccounts",
+        "method": "POST",
+        "description": "Opens a new savings account for a client."
+      },
+      {
+        "path": "/api/v1/savingsaccounts/{accountId}/transactions",
+        "method": "POST",
+        "description": "Performs a deposit or withdrawal transaction on a savings account."
+      },
+      {
+        "path": "/api/v1/fixeddepositaccounts",
+        "method": "GET",
+        "description": "Retrieves a list of fixed deposit accounts."
+      },
+      {
+        "path": "/api/v1/savingsproducts",
+        "method": "POST",
+        "description": "Creates a new savings product definition."
+      }
+    ],
+    "operations": [
+      {
+        "operation": "Deposit Funds",
+        "method": "POST",
+        "description": "Credits an amount to a savings account."
+      },
+      {
+        "operation": "Withdraw Funds",
+        "method": "POST",
+        "description": "Debits an amount from a savings account, checking for sufficient funds."
+      },
+      {
+        "operation": "Post Interest",
+        "method": "POST",
+        "description": "Calculates and credits accrued interest to savings accounts based on the product configuration."
+      },
+      {
+        "operation": "Activate Account",
+        "method": "POST",
+        "description": "Transitions a savings account from pending to active status."
+      }
+    ]
+  },
+  {
+    "name": "Client Management Service",
+    "description": "This microservice acts as the central registry for all customer data, managing individual clients, groups, and centers. It handles Know Your Customer (KYC) requirements, addresses, and hierarchical relationships within the organization. The service manages the organizational hierarchy of customers, including group memberships, staff assignments, and family member details. It serves as the central source of truth for customer data, supporting other services like Loans and Savings. Isolating this allows for better data governance and compliance management.",
+    "entities": [
+      {
+        "name": "Client",
+        "description": "Represents an individual or corporate customer of the financial institution.",
+        "attributes": [
+          "id",
+          "firstname",
+          "lastname",
+          "accountNo",
+          "status",
+          "officeId",
+          "mobileNo"
+        ]
+      },
+      {
+        "name": "Group",
+        "description": "Represents a collection of clients organized for joint liability or meeting purposes.",
+        "attributes": [
+          "id",
+          "name",
+          "officeId",
+          "staffId",
+          "hierarchy"
+        ]
+      },
+      {
+        "name": "ClientIdentifier",
+        "description": "Identification documents associated with a client (e.g., Passport, National ID).",
+        "attributes": [
+          "id",
+          "documentKey",
+          "documentType",
+          "status"
+        ]
+      },
+      {
+        "name": "Address",
+        "description": "Stores physical address details for a client.",
+        "attributes": [
+          "street",
+          "city",
+          "state",
+          "postalCode",
+          "country"
+        ]
+      }
+    ],
+    "endpoints": [
+      {
+        "path": "/api/v1/clients",
+        "method": "POST",
+        "description": "Registers a new client in the system."
+      },
+      {
+        "path": "/api/v1/clients/{clientId}",
+        "method": "GET",
+        "description": "Retrieves client profile information."
+      },
+      {
+        "path": "/api/v1/groups",
+        "method": "POST",
+        "description": "Creates a new client group."
+      },
+      {
+        "path": "/api/v1/clients/{clientId}/identifiers",
+        "method": "POST",
+        "description": "Adds a new identification document to a client."
+      }
+    ],
+    "operations": [
+      {
+        "operation": "Create Client",
+        "method": "POST",
+        "description": "Onboards a new client into the system."
+      },
+      {
+        "operation": "Activate Client",
+        "method": "POST",
+        "description": "Activates a pending client, allowing them to access financial products."
+      },
+      {
+        "operation": "Assign Staff",
+        "method": "POST",
+        "description": "Assigns a staff member to manage a client or group."
+      },
+      {
+        "operation": "Update Address",
+        "method": "PUT",
+        "description": "Modifies the address details of a client."
+      }
+    ]
+  },
+  {
+    "name": "Accounting Service",
+    "description": "This microservice manages the General Ledger (GL), Chart of Accounts, and financial reporting data. It processes journal entries generated by other services (like Loans and Savings) and maintains the financial health of the organization. It handles accounting closures, accruals, and financial activity mappings. This separation ensures the integrity of financial data and allows for independent scaling of reporting and ledger processing.",
+    "entities": [
+      {
+        "name": "GLAccount",
+        "description": "Represents a General Ledger account in the Chart of Accounts.",
+        "attributes": [
+          "id",
+          "name",
+          "glCode",
+          "type",
+          "usage"
+        ]
+      },
+      {
+        "name": "JournalEntry",
+        "description": "Represents a double-entry accounting record.",
+        "attributes": [
+          "id",
+          "transactionDate",
+          "amount",
+          "entryType",
+          "glAccountId"
+        ]
+      },
+      {
+        "name": "GLClosure",
+        "description": "Represents the closure of an accounting period.",
+        "attributes": [
+          "id",
+          "closingDate",
+          "isDeleted",
+          "officeId"
+        ]
+      }
+    ],
+    "endpoints": [
+      {
+        "path": "/api/v1/glaccounts",
+        "method": "GET",
+        "description": "Retrieves the Chart of Accounts."
+      },
+      {
+        "path": "/api/v1/journalentries",
+        "method": "POST",
+        "description": "Creates a manual journal entry."
+      },
+      {
+        "path": "/api/v1/glclosures",
+        "method": "POST",
+        "description": "Closes the accounting books for a specific period."
+      }
+    ],
+    "operations": [
+      {
+        "operation": "Create GL Account",
+        "method": "POST",
+        "description": "Adds a new account to the Chart of Accounts."
+      },
+      {
+        "operation": "Post Journal Entry",
+        "method": "POST",
+        "description": "Records a debit or credit transaction in the ledger."
+      },
+      {
+        "operation": "Define Opening Balances",
+        "method": "POST",
+        "description": "Sets the initial balances for GL accounts."
+      }
+    ]
+  },
+  {
+    "name": "Identity & Access Management Service",
+    "description": "This microservice handles user authentication, authorization, and role management for the entire platform. It manages application users, roles, permissions, and security policies such as password rotation and validation. It acts as the central authority for securing access to all other microservices, ensuring consistent security enforcement. It also manages the mapping between users and clients for self-service access.",
+    "entities": [
+      {
+        "name": "AppUser",
+        "description": "Represents a system user with login credentials.",
+        "attributes": [
+          "id",
+          "username",
+          "email",
+          "officeId",
+          "staffId",
+          "enabled"
+        ]
+      },
+      {
+        "name": "Role",
+        "description": "Defines a set of permissions that can be assigned to users.",
+        "attributes": [
+          "id",
+          "name",
+          "description",
+          "disabled"
+        ]
+      },
+      {
+        "name": "Permission",
+        "description": "Granular access control right to perform a specific action.",
+        "attributes": [
+          "grouping",
+          "code",
+          "entityName",
+          "actionName"
+        ]
+      },
+      {
+        "name": "PasswordValidationPolicy",
+        "description": "Configuration for password strength and security requirements.",
+        "attributes": [
+          "regex",
+          "description",
+          "active"
+        ]
+      }
+    ],
+    "endpoints": [
+      {
+        "path": "/api/v1/authentication",
+        "method": "POST",
+        "description": "Authenticates a user and returns a token."
+      },
+      {
+        "path": "/api/v1/users",
+        "method": "POST",
+        "description": "Creates a new application user."
+      },
+      {
+        "path": "/api/v1/roles",
+        "method": "GET",
+        "description": "Lists available user roles."
+      },
+      {
+        "path": "/api/v1/permissions",
+        "method": "PUT",
+        "description": "Updates the permissions associated with a role."
+      }
+    ],
+    "operations": [
+      {
+        "operation": "Authenticate",
+        "method": "POST",
+        "description": "Verifies credentials and establishes a session."
+      },
+      {
+        "operation": "Create User",
+        "method": "POST",
+        "description": "Provisions a new user account with specific roles and office access."
+      },
+      {
+        "operation": "Update Permissions",
+        "method": "PUT",
+        "description": "Modifies the access rights associated with a specific role."
+      },
+      {
+        "operation": "Update Password Policy",
+        "method": "PUT",
+        "description": "Changes the global password validation policy."
+      }
+    ]
+  },
+  {
+    "name": "Notification Service",
+    "description": "This microservice manages both outbound communications (SMS, Email) and internal system notifications. It handles the creation and scheduling of marketing campaigns as well as transactional alerts generated by business events. The service integrates with external gateways to deliver messages and tracks the read/unread status of internal notifications for users. This separation decouples communication logic from core business processes and allows for scalable event handling.",
+    "entities": [
+      {
+        "name": "SmsCampaign",
+        "description": "Defines a marketing or notification campaign via SMS.",
+        "attributes": [
+          "id",
+          "campaignName",
+          "message",
+          "triggerType",
+          "status"
+        ]
+      },
+      {
+        "name": "Notification",
+        "description": "Represents a notification event generated by the system for a user.",
+        "attributes": [
+          "objectType",
+          "objectIdentifier",
+          "action",
+          "actor",
+          "notificationContent"
+        ]
+      },
+      {
+        "name": "EmailMessage",
+        "description": "Represents an individual email to be sent.",
+        "attributes": [
+          "id",
+          "emailAddress",
+          "subject",
+          "body",
+          "status"
+        ]
+      }
+    ],
+    "endpoints": [
+      {
+        "path": "/api/v1/smscampaigns",
+        "method": "POST",
+        "description": "Creates a new SMS campaign."
+      },
+      {
+        "path": "/api/v1/notifications",
+        "method": "GET",
+        "description": "Retrieves a list of notifications for the authenticated user."
+      },
+      {
+        "path": "/api/v1/sms",
+        "method": "POST",
+        "description": "Sends a direct SMS message."
+      }
+    ],
+    "operations": [
+      {
+        "operation": "Create Campaign",
+        "method": "POST",
+        "description": "Configures a new notification campaign."
+      },
+      {
+        "operation": "Fetch Notifications",
+        "method": "GET",
+        "description": "Gets unread or all notifications for the current user."
+      },
+      {
+        "operation": "Send SMS",
+        "method": "POST",
+        "description": "Dispatches a single SMS message."
+      },
+      {
+        "operation": "Mark as Read",
+        "method": "PUT",
+        "description": "Updates the state of a notification to indicate it has been viewed."
+      }
+    ]
+  },
+  {
+    "name": "Document Management Service",
+    "description": "This microservice handles the storage, retrieval, and management of documents and images associated with system entities. It abstracts the underlying storage mechanism (File System, S3) and provides APIs for uploading and downloading files. This allows for centralized handling of binary data and attachments, ensuring that other services remain lightweight. It supports linking documents to various parent entities like clients or loans.",
+    "entities": [
+      {
+        "name": "Document",
+        "description": "Metadata for an uploaded file.",
+        "attributes": [
+          "id",
+          "parentEntityType",
+          "parentEntityId",
+          "name",
+          "fileName",
+          "location"
+        ]
+      },
+      {
+        "name": "Image",
+        "description": "Represents an image associated with a client or staff.",
+        "attributes": [
+          "id",
+          "location",
+          "storageType"
+        ]
+      }
+    ],
+    "endpoints": [
+      {
+        "path": "/api/v1/{entityType}/{entityId}/documents",
+        "method": "POST",
+        "description": "Uploads a document for a specific entity."
+      },
+      {
+        "path": "/api/v1/{entityType}/{entityId}/images",
+        "method": "POST",
+        "description": "Uploads or updates an image for an entity."
+      },
+      {
+        "path": "/api/v1/documents/{documentId}",
+        "method": "GET",
+        "description": "Downloads a specific document."
+      }
+    ],
+    "operations": [
+      {
+        "operation": "Upload Document",
+        "method": "POST",
+        "description": "Stores a file and links it to an entity."
+      },
+      {
+        "operation": "Retrieve Image",
+        "method": "GET",
+        "description": "Fetches the image associated with a client or staff."
+      },
+      {
+        "operation": "Delete Document",
+        "method": "DELETE",
+        "description": "Removes a document and its metadata."
+      }
+    ]
+  },
+  {
+    "name": "Reporting & Analytics Service",
+    "description": "This microservice is responsible for generating reports, running ad-hoc queries, and managing data tables. It supports various output formats like PDF, CSV, and JSON and allows for the definition of dynamic 'stretchy' reports. It integrates with external reporting tools and manages custom datatables that extend core entities. Separating this ensures that heavy reporting loads do not impact the performance of transactional services.",
+    "entities": [
+      {
+        "name": "Report",
+        "description": "Definition of a system report including SQL query.",
+        "attributes": [
+          "id",
+          "reportName",
+          "reportType",
+          "reportSql"
+        ]
+      },
+      {
+        "name": "Datatable",
+        "description": "Custom data table definition extending core entities.",
+        "attributes": [
+          "applicationTableName",
+          "registeredTableName",
+          "columnDefinitions"
+        ]
+      },
+      {
+        "name": "AdHoc",
+        "description": "User-defined ad-hoc query configuration.",
+        "attributes": [
+          "id",
+          "name",
+          "query",
+          "tableName"
+        ]
+      }
+    ],
+    "endpoints": [
+      {
+        "path": "/api/v1/runreports/{reportName}",
+        "method": "GET",
+        "description": "Executes a report and returns the data."
+      },
+      {
+        "path": "/api/v1/datatables/{datatable}",
+        "method": "GET",
+        "description": "Retrieves data from a custom datatable."
+      },
+      {
+        "path": "/api/v1/reports",
+        "method": "POST",
+        "description": "Creates a new report definition."
+      }
+    ],
+    "operations": [
+      {
+        "operation": "Run Report",
+        "method": "GET",
+        "description": "Generates a report based on parameters."
+      },
+      {
+        "operation": "Register Datatable",
+        "method": "POST",
+        "description": "Creates a new custom data table linked to an entity."
+      },
+      {
+        "operation": "Create AdHoc Query",
+        "method": "POST",
+        "description": "Saves a custom SQL query for future use."
+      }
+    ]
+  },
+  {
+    "name": "Social Performance Management Service",
+    "description": "This service is responsible for managing surveys and scorecards related to social performance monitoring. It allows the definition of custom surveys with specific components, questions, and response options. The service enables the capture of scorecard data for clients, linking survey results to specific users and timelines. It supports the creation of lookup tables for scoring logic, distinct from financial transactions.",
+    "entities": [
+      {
+        "name": "Survey",
+        "description": "Defines a questionnaire or survey structure.",
+        "attributes": [
+          "key",
+          "name",
+          "countryCode",
+          "validFrom",
+          "validTo"
+        ]
+      },
+      {
+        "name": "Question",
+        "description": "A specific question within a survey.",
+        "attributes": [
+          "text",
+          "key",
+          "sequenceNo",
+          "componentKey"
+        ]
+      },
+      {
+        "name": "Scorecard",
+        "description": "Represents a completed survey for a client.",
+        "attributes": [
+          "surveyId",
+          "clientId",
+          "userId",
+          "submittedOnDate"
+        ]
+      },
+      {
+        "name": "LookupTable",
+        "description": "Reference data for scoring survey responses.",
+        "attributes": [
+          "key",
+          "score",
+          "valueFrom",
+          "valueTo"
+        ]
+      }
+    ],
+    "endpoints": [
+      {
+        "path": "/api/v1/surveys",
+        "method": "POST",
+        "description": "Creates a new survey definition."
+      },
+      {
+        "path": "/api/v1/surveys",
+        "method": "GET",
+        "description": "Retrieves a list of active surveys."
+      },
+      {
+        "path": "/api/v1/scorecards",
+        "method": "POST",
+        "description": "Submits a new scorecard entry for a client."
+      },
+      {
+        "path": "/api/v1/scorecards",
+        "method": "GET",
+        "description": "Retrieves scorecard details for a specific survey and client."
+      }
+    ],
+    "operations": [
+      {
+        "operation": "Create Survey",
+        "method": "POST",
+        "description": "Defines a new survey with questions and options."
+      },
+      {
+        "operation": "Submit Scorecard",
+        "method": "POST",
+        "description": "Records the responses for a survey taken by a client."
+      },
+      {
+        "operation": "Retrieve Scorecards",
+        "method": "GET",
+        "description": "Fetches historical survey results for analysis."
+      }
+    ]
+  }
+]

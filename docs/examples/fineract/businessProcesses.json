@@ -1,0 +1,294 @@
+[
+  {
+    "name": "Client and Group Administration",
+    "description": "This process focuses on the management of the customer base and the organizational hierarchy within the financial institution. It involves the onboarding of individual clients, capturing their personal details, identification documents, and family information. The process also supports the creation and management of groups and centers, allowing for collective lending models like Joint Liability Groups. Staff members are assigned to these clients and groups to facilitate relationship management and loan officer responsibilities. Additionally, the process handles the transfer of clients between different office branches or groups, ensuring data integrity and history preservation.",
+    "keyBusinessActivities": [
+      {
+        "activity": "Client Onboarding",
+        "description": "Creating and activating client records with personal details, identifiers, and addresses."
+      },
+      {
+        "activity": "Group and Center Management",
+        "description": "Organizing clients into groups and centers for hierarchical management and meeting scheduling."
+      },
+      {
+        "activity": "Staff Assignment",
+        "description": "Assigning loan officers or staff members to manage specific clients, groups, or centers."
+      },
+      {
+        "activity": "Client Transfer",
+        "description": "Moving clients between different groups or office branches while maintaining their history."
+      },
+      {
+        "activity": "Identity and Document Management",
+        "description": "Managing KYC documents, identifiers, and family member details for clients."
+      }
+    ]
+  },
+  {
+    "name": "Loan Lifecycle Management",
+    "description": "This process encompasses the comprehensive management of loan products and individual loan accounts throughout their entire lifespan. It begins with the configuration of loan products, defining terms such as interest rates, repayment schedules, and amortization methods. Once products are available, the process moves to the submission of loan applications by clients, followed by a rigorous approval workflow. Upon approval, funds are disbursed to the borrower, initiating the repayment cycle where installments are tracked and processed. The process also handles complex scenarios such as interest recalculation, loan rescheduling, penalty application, and final closure or write-off of the account.",
+    "keyBusinessActivities": [
+      {
+        "activity": "Loan Product Configuration",
+        "description": "Defining the rules, terms, interest rates, and accounting mappings for loan products."
+      },
+      {
+        "activity": "Application and Approval",
+        "description": "Submitting loan applications for clients and processing them through approval or rejection workflows."
+      },
+      {
+        "activity": "Disbursement",
+        "description": "Releasing approved loan funds to the borrower, supporting single or multi-tranche disbursements."
+      },
+      {
+        "activity": "Repayment Processing",
+        "description": "Recording and allocating repayments against principal, interest, fees, and penalties."
+      },
+      {
+        "activity": "Interest Recalculation and Accrual",
+        "description": "Periodically calculating accrued interest and adjusting schedules based on payment history."
+      },
+      {
+        "activity": "Loan Rescheduling",
+        "description": "Modifying loan terms, such as due dates or interest rates, for active loans via a request and approval process."
+      },
+      {
+        "activity": "Closure and Write-off",
+        "description": "Finalizing loan accounts either through full repayment or by writing off unrecoverable amounts."
+      }
+    ]
+  },
+  {
+    "name": "Savings and Deposit Operations",
+    "description": "This process manages the complete lifecycle of deposit accounts, including standard savings, fixed deposits, and recurring deposits. It starts with the definition of savings products that specify interest compounding rules, posting periods, and withdrawal restrictions. Clients can then apply for these accounts, which undergo an approval and activation process before becoming operational. The core of the process involves handling day-to-day transactions such as deposits, withdrawals, and transfers, while ensuring real-time balance updates. Furthermore, the system automatically calculates and posts interest based on the configured schedules and manages account maturity or premature closure events.",
+    "keyBusinessActivities": [
+      {
+        "activity": "Savings Product Definition",
+        "description": "Configuring savings products with specific interest compounding, posting, and calculation rules."
+      },
+      {
+        "activity": "Account Application and Activation",
+        "description": "Managing the submission, approval, and activation of new savings or deposit accounts."
+      },
+      {
+        "activity": "Transaction Processing",
+        "description": "Handling financial transactions including deposits, withdrawals, and account transfers."
+      },
+      {
+        "activity": "Interest Posting",
+        "description": "Calculating and crediting earned interest to accounts based on daily balances and product configuration."
+      },
+      {
+        "activity": "Charge Application",
+        "description": "Applying and collecting fees or penalties, such as annual fees or withdrawal charges."
+      },
+      {
+        "activity": "Maturity and Closure",
+        "description": "Processing the maturity of fixed/recurring deposits and handling account closures."
+      }
+    ]
+  },
+  {
+    "name": "Accounting and General Ledger",
+    "description": "This process manages the financial tracking and reporting of the institution. It maintains the Chart of Accounts and ensures that all portfolio transactions are correctly mapped to the General Ledger. It supports both cash and accrual accounting methodologies to meet diverse regulatory requirements. The process also handles financial closures and periodic accruals to maintain accurate books. Furthermore, it provides the necessary audit trails for all financial adjustments and manual journal entries.",
+    "keyBusinessActivities": [
+      {
+        "activity": "Chart of Accounts Management",
+        "description": "Defining and maintaining the hierarchy of General Ledger accounts (Assets, Liabilities, Income, Expenses, Equity)."
+      },
+      {
+        "activity": "Product-to-GL Mapping",
+        "description": "Configuring rules to automatically map financial product transactions (like repayments or interest posting) to specific GL accounts."
+      },
+      {
+        "activity": "Journal Entry Processing",
+        "description": "Recording debits and credits in the ledger, either manually or automatically triggered by portfolio events."
+      },
+      {
+        "activity": "Accounting Closure",
+        "description": "Closing accounting periods for specific branches to prevent backdated transactions and ensure financial data integrity."
+      },
+      {
+        "activity": "Periodic Accrual Execution",
+        "description": "Running batch processes to calculate and post accrued interest and fees for loans based on the configured schedule."
+      }
+    ]
+  },
+  {
+    "name": "Share Account and Dividend Management",
+    "description": "This process governs the issuance and management of equity shares to members of the financial institution. It begins with the definition of share products, setting parameters such as unit prices, share limits, and market price history. Clients submit applications to purchase shares, which are then reviewed and approved by administrators to issue the shares. A critical aspect of this process is the management of dividends, where payouts are calculated based on holdings and distributed to members' savings accounts. The process also covers the redemption of shares and the eventual closure of share accounts, ensuring a complete audit trail of equity ownership.",
+    "keyBusinessActivities": [
+      {
+        "activity": "Share Product Configuration",
+        "description": "Defining share products including unit prices, currency, and share holding limits."
+      },
+      {
+        "activity": "Share Application and Purchase",
+        "description": "Processing applications for buying shares and recording the purchase transactions."
+      },
+      {
+        "activity": "Dividend Distribution",
+        "description": "Calculating dividends based on share holdings and posting payouts to linked savings accounts."
+      },
+      {
+        "activity": "Share Redemption",
+        "description": "Handling requests from members to sell back or redeem their shares."
+      }
+    ]
+  },
+  {
+    "name": "Teller and Cash Management",
+    "description": "This process is designed to control and track the physical movement of cash within the branch offices of the organization. It involves the creation of teller resources and the assignment of specific staff members as cashiers for defined time periods. The process manages the allocation of cash funds from the main vault to these cashiers to facilitate daily operations. It tracks all cash transactions performed by the cashier, ensuring accountability and auditability. Finally, the process concludes with the settlement of cash, where cashiers return remaining funds to the vault, and balances are reconciled.",
+    "keyBusinessActivities": [
+      {
+        "activity": "Teller Creation",
+        "description": "Defining teller resources within specific office branches."
+      },
+      {
+        "activity": "Cashier Allocation",
+        "description": "Assigning staff members to tellers for specific shifts or time periods."
+      },
+      {
+        "activity": "Cash Allocation and Settlement",
+        "description": "Transferring cash to cashiers for operations and settling balances back to the vault."
+      },
+      {
+        "activity": "Transaction Logging",
+        "description": "Recording all cash-in and cash-out transactions performed by the cashier."
+      }
+    ]
+  },
+  {
+    "name": "Close of Business (COB) Batch Processing",
+    "description": "This process orchestrates the execution of scheduled background jobs essential for daily operations. It handles high-volume processing tasks such as interest calculation, arrears aging, and penalty application. The system supports partitioned execution to handle large datasets efficiently across multiple nodes. It also includes mechanisms for catching up on missed business dates to ensure continuity. Additionally, the process generates detailed logs for every job execution to assist administrators in troubleshooting and performance monitoring.",
+    "keyBusinessActivities": [
+      {
+        "activity": "Job Scheduling and Registration",
+        "description": "Defining and scheduling batch jobs using cron expressions and managing their execution status."
+      },
+      {
+        "activity": "Loan COB Execution",
+        "description": "Executing ordered business steps for loans, such as applying penalties, updating arrears aging, and posting interest."
+      },
+      {
+        "activity": "Partitioning and Parallel Processing",
+        "description": "Splitting large batch jobs into smaller partitions to be processed in parallel by worker nodes."
+      },
+      {
+        "activity": "Catch-Up Processing",
+        "description": "Identifying and processing accounts that are behind the current business date to bring them up to date."
+      }
+    ]
+  },
+  {
+    "name": "Investor and External Asset Management",
+    "description": "This process handles the management of loan assets sold to external investors. It tracks the transfer of ownership, manages buyback scenarios, and ensures financial records reflect these transfers. It integrates with the accounting module to book appropriate journal entries for asset sales and repurchases. The system continuously monitors the status of underlying loans to trigger necessary reconciliation events. This functionality enables the institution to manage liquidity effectively while maintaining accurate records for third-party stakeholders.",
+    "keyBusinessActivities": [
+      {
+        "activity": "Asset Transfer Initiation",
+        "description": "Initiating the sale of loan assets to external owners or the buyback of assets from them."
+      },
+      {
+        "activity": "Transfer Execution",
+        "description": "Processing the transfer logic, updating loan ownership status, and handling settlement dates."
+      },
+      {
+        "activity": "Journal Entry Mapping",
+        "description": "Creating and linking accounting journal entries to reflect the financial impact of asset transfers."
+      },
+      {
+        "activity": "Loan Status Monitoring",
+        "description": "Monitoring loans for status changes (like closure) to trigger necessary reconciliation with external owners."
+      }
+    ]
+  },
+  {
+    "name": "Reporting and Data Queries",
+    "description": "This process enables the extraction and presentation of system data through various report formats. It supports standard reports, dynamic SQL-based 'stretchy' reports, and custom data tables. Users can generate reports in multiple formats and schedule them for automatic email delivery. It also allows for the extension of the data model via Datatables to capture bespoke business requirements. Ultimately, this module empowers management with actionable insights derived from real-time transactional data.",
+    "keyBusinessActivities": [
+      {
+        "activity": "Report Definition and Execution",
+        "description": "Defining reports using SQL queries and executing them with dynamic parameters."
+      },
+      {
+        "activity": "Report Export",
+        "description": "Exporting generated report data into various formats such as PDF, CSV, Excel, or JSON."
+      },
+      {
+        "activity": "Report Mailing Job",
+        "description": "Scheduling jobs to automatically generate reports and email them to configured recipients."
+      },
+      {
+        "activity": "Datatable Management",
+        "description": "Creating and managing custom data tables to store additional information linked to core entities."
+      }
+    ]
+  },
+  {
+    "name": "Notifications and Campaigns",
+    "description": "This process manages communication with clients through SMS and Email channels. It allows for the configuration of external gateways and the creation of marketing or notification campaigns. Campaigns can be triggered by specific system events or scheduled to run at defined intervals. It ensures clients are kept informed about their account activities and upcoming due dates. By automating these communications, the institution can significantly improve customer engagement and transparency.",
+    "keyBusinessActivities": [
+      {
+        "activity": "Gateway Configuration",
+        "description": "Configuring connections to external SMS and Email service providers."
+      },
+      {
+        "activity": "Campaign Creation",
+        "description": "Defining SMS or Email campaigns with specific message templates, target audiences, and schedules."
+      },
+      {
+        "activity": "Event-Triggered Notification",
+        "description": "Sending notifications automatically in response to business events like loan approval or repayment."
+      },
+      {
+        "activity": "Scheduled Message Delivery",
+        "description": "Executing scheduled campaigns to send bulk messages to eligible clients."
+      }
+    ]
+  },
+  {
+    "name": "Bulk Data Import",
+    "description": "This process facilitates the mass ingestion of data into the system using spreadsheet templates. It allows users to download templates, populate them with data, and upload them for processing. The system parses the files, validates the data against business rules, and creates the corresponding entities. It provides feedback on success and error counts to ensure data quality. This capability is particularly vital for migrating legacy data or onboarding large groups of clients simultaneously.",
+    "keyBusinessActivities": [
+      {
+        "activity": "Template Generation",
+        "description": "Generating Excel workbooks pre-populated with reference data (like offices and staff) to guide user input."
+      },
+      {
+        "activity": "File Upload and Parsing",
+        "description": "Uploading populated Excel files and parsing the rows to extract entity data."
+      },
+      {
+        "activity": "Data Validation",
+        "description": "Validating the imported data against system constraints and business rules before persistence."
+      },
+      {
+        "activity": "Entity Creation",
+        "description": "Processing the valid data to create entities (Clients, Loans, etc.) in the system and reporting the outcome."
+      }
+    ]
+  },
+  {
+    "name": "User Administration and Security",
+    "description": "This process ensures the secure and authorized access to the application by managing user identities and permissions. It involves the creation and maintenance of application user accounts, linking them to specific staff members or clients. Administrators define roles and assign granular permissions to control access to specific system functions and data. The process also includes the configuration of password validation policies to enforce security standards. Additionally, it supports the management of self-service users, allowing external clients to register and access their own portfolio data securely.",
+    "keyBusinessActivities": [
+      {
+        "activity": "User Management",
+        "description": "Creating and updating application user accounts and credentials."
+      },
+      {
+        "activity": "Role and Permission Assignment",
+        "description": "Defining roles and assigning specific permissions to control system access."
+      },
+      {
+        "activity": "Password Policy Configuration",
+        "description": "Setting up rules for password complexity and validation."
+      },
+      {
+        "activity": "Self-Service Registration",
+        "description": "Managing the registration and authentication of external self-service users."
+      }
+    ]
+  }
+]

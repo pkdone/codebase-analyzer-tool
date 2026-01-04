@@ -1,0 +1,102 @@
+[
+  {
+    "name": "Java",
+    "description": "Java serves as the primary programming language for the entire backend, providing the foundation for domain modeling, service implementation, and object-oriented structure. The codebase leverages modern Java features, including the Java 8 Time API for robust date handling and standard collections for data processing. It acts as the host language for the Spring ecosystem and utilizes the Java Persistence API (JPA) for object-relational mapping. The infrastructure relies on standard Java Enterprise patterns, utilizing classes, interfaces, and enums to define complex business logic. Furthermore, the build system and numerous utility classes are deeply rooted in the Java ecosystem, ensuring type safety and concurrency management."
+  },
+  {
+    "name": "Spring Boot",
+    "description": "Spring Boot is utilized as the core framework for bootstrapping, configuring, and managing the lifecycle of the application. It simplifies deployment by embedding the servlet container and handling dependency injection through auto-configuration. The code employs conditional configuration annotations to dynamically enable or disable features like messaging queues and authentication modes. It integrates seamlessly with other Spring modules to provide a cohesive development environment and manages database connections efficiently. Additionally, Spring Boot orchestrates the application context, ensuring that all components are correctly initialized and wired together at runtime."
+  },
+  {
+    "name": "Spring Framework",
+    "description": "The Spring Framework provides the foundational infrastructure for the application, encompassing Dependency Injection (DI), Aspect-Oriented Programming (AOP), and transaction management. It integrates key modules such as Spring Security for authentication, Spring Data JPA for repository abstraction, and Spring Batch for processing large volumes of data. The application uses Spring's transaction management to ensure data integrity across business operations and Spring Integration for message-driven architectures. Furthermore, Spring's event publishing mechanism is used to decouple business logic from side effects like notifications. The framework also simplifies database access through JDBC abstractions and manages the complete lifecycle of application components."
+  },
+  {
+    "name": "Jersey (JAX-RS)",
+    "description": "Jersey serves as the implementation of JAX-RS (Java API for RESTful Web Services), defining the application's REST API endpoints and controller layer. Resource classes are annotated with standard JAX-RS annotations to map HTTP requests to specific Java methods, handling content negotiation and request validation. The configuration integrates Jersey with the Spring container, allowing for the direct injection of business services into API resources. It handles the serialization of responses to JSON and supports multipart file uploads within the API. This technology bridges external HTTP clients with the internal service layer, ensuring a standardized and compliant RESTful interface."
+  },
+  {
+    "name": "MySQL / MariaDB / PostgreSQL",
+    "description": "The application is designed to support multiple relational database management systems, specifically MySQL, MariaDB, and PostgreSQL. The infrastructure layer includes specific JDBC drivers, dialect configurations, and database type resolvers to ensure compatibility across these platforms. Logic is implemented to generate database-specific SQL for operations like pagination and date arithmetic, abstracting the underlying differences. Database initialization and migration scripts are tailored to handle the specific syntax and features of each supported database. Additionally, the system utilizes efficient connection pooling to manage interactions with these databases in a high-performance environment."
+  },
+  {
+    "name": "EclipseLink",
+    "description": "EclipseLink is configured as the Java Persistence API (JPA) provider, responsible for mapping Java domain objects to relational database tables. It handles the persistence lifecycle of entities, including state management, dirty checking, and the execution of dynamic queries. The configuration supports advanced ORM features such as lazy loading, cascading updates, and optimistic locking to maintain data consistency. It manages multi-tenant database contexts and allows for the customization of SQL logging and performance tuning. By implementing the standard JPA specification, EclipseLink enables developers to interact with the database using annotated Java entities and relationships."
+  },
+  {
+    "name": "Liquibase",
+    "description": "Liquibase is employed as the primary tool for database schema migration and version control, ensuring consistent schema evolution across environments. It manages the upgrade process for both the central tenant store and individual tenant databases within the multi-tenant architecture. The application integrates custom tasks to synchronize changelogs and support legacy database states. This tool ensures that structural changes to the database are applied reliably and tracked systematically. It allows the database schema to remain in strict sync with the application code through defined change sets."
+  },
+  {
+    "name": "HikariCP",
+    "description": "HikariCP functions as the high-performance JDBC connection pooling library, optimizing resource usage and database connectivity. It manages pools of connections for the underlying databases, allowing for fine-tuning of settings like maximum pool size and idle timeouts. The configuration supports the application's multi-tenant architecture by creating separate, isolated connection pools for each tenant. Factory classes within the infrastructure layer are responsible for instantiating these data sources dynamically. This technology ensures low-latency database access and robust connection management under load."
+  },
+  {
+    "name": "Gradle",
+    "description": "Gradle serves as the build automation tool, managing project dependencies, compilation, testing, and packaging. The codebase utilizes custom Gradle plugins written in Groovy to automate release processes, documentation generation, and artifact signing. It orchestrates the entire build lifecycle, including the execution of annotation processors and the assembly of deployment artifacts. The build scripts define the modular project structure and manage integration with external version control and issue tracking systems. This tool provides a flexible and reproducible build environment for the application."
+  },
+  {
+    "name": "Apache Kafka",
+    "description": "Apache Kafka is integrated as a distributed message broker to handle external events and enable asynchronous messaging. The infrastructure configures producers and consumers to publish and subscribe to domain events, supporting an event-driven architecture. It utilizes binary serialization formats like Avro for efficient data transmission and manages topic provisioning automatically. The system relies on Kafka to decouple components and scale processing capabilities. This technology ensures reliable, high-throughput message delivery for critical business events."
+  },
+  {
+    "name": "ActiveMQ (JMS)",
+    "description": "ActiveMQ is supported as a Java Message Service (JMS) provider, offering an alternative for message-based communication and background processing. The application configures JMS connection factories and templates to reliably send and receive messages for tasks such as batch jobs and notifications. Listeners and producers are implemented to handle message conversion and transaction management off the main execution thread. It facilitates decoupled communication between different parts of the system in environments where JMS is preferred. This technology ensures reliable asynchronous processing and integration with external systems."
+  },
+  {
+    "name": "Apache Avro",
+    "description": "Apache Avro is utilized for compact data serialization, specifically for encoding external events sent to message brokers like Kafka. The application defines schemas for business events and implements mappers to transform internal domain objects into Avro-compatible Data Transfer Objects. This ensures that data exchanged between systems is strongly typed, schema-validated, and efficient for storage. It facilitates schema evolution, allowing the data structure to change over time without breaking consumers. Avro serves as the contract for binary data exchange in the event-driven architecture."
+  },
+  {
+    "name": "Google Gson",
+    "description": "Google Gson is the primary library used for JSON serialization and deserialization throughout the application's API and data layers. It is utilized to parse incoming API request bodies into Java objects and to format response payloads for clients. The infrastructure includes custom type adapters to handle specific data types like dates and enums consistently across the system. It is also extensively used in integration tests to construct JSON payloads and verify API behavior. Gson provides the flexibility needed to handle dynamic data structures and partial response filtering efficiently."
+  },
+  {
+    "name": "Apache POI",
+    "description": "Apache POI is the core engine used for reading and writing Microsoft Excel documents within the application. It powers the bulk import feature, parsing uploaded spreadsheets containing client and loan data for processing. The library is also used to generate downloadable Excel templates complete with data validation and formatting. It supports both legacy HSSF and newer XSSF formats, ensuring compatibility with various Excel versions. This integration enables users to perform bulk data operations seamlessly using standard office software."
+  },
+  {
+    "name": "Quartz Scheduler",
+    "description": "The Quartz Scheduler is integrated to manage and execute scheduled background jobs such as interest posting and fee application. It handles the precise timing and triggering of tasks using cron-based schedules and manages job persistence in the database. The configuration supports multi-tenancy by isolating job contexts, ensuring that tasks run within the correct tenant scope. Listeners are implemented to monitor job execution status and handle misfires or errors automatically. This technology provides a robust framework for automating recurring business processes."
+  },
+  {
+    "name": "Project Lombok",
+    "description": "Project Lombok is extensively used to reduce boilerplate code in Java classes through annotation processing. Annotations such as `@Data`, `@Builder`, and `@RequiredArgsConstructor` automatically generate accessors, constructors, and builder patterns at compile time. This results in cleaner, more concise, and easier-to-maintain domain entities and Data Transfer Objects (DTOs). It eliminates the need for repetitive manual coding of standard Java bean methods. The application relies on Lombok to streamline the codebase and improve developer productivity."
+  },
+  {
+    "name": "MapStruct",
+    "description": "MapStruct is employed as a code generation tool for mapping between different object models, such as domain entities and DTOs. It automates the creation of type-safe mapping implementations based on interface definitions, ensuring high performance and reducing runtime overhead. The application uses MapStruct to transform internal data structures into Avro objects for external events and API responses. Shared configuration classes ensure consistent mapping policies are applied across the application. This technology minimizes manual mapping code and enforces strict type safety during object transformation."
+  },
+  {
+    "name": "Retrofit",
+    "description": "Retrofit is used as a type-safe HTTP client for making REST API calls, primarily within integration tests and internal service communication. It allows the application to define API interfaces using Java annotations, which are dynamically implemented to handle network requests. Configured with OkHttp, it manages connection pooling and request handling efficiently. Retrofit simplifies the consumption of the application's own APIs for testing and handles the serialization of request/response bodies. It provides a clean, declarative way to interact with HTTP services."
+  },
+  {
+    "name": "AWS SDK",
+    "description": "The AWS SDK is integrated to provide support for Amazon S3 (Simple Storage Service) for scalable content storage. The application uses the SDK to upload, retrieve, and delete documents and images, offloading file storage to the cloud. It handles authentication using AWS credentials and manages region-specific configurations. The implementation includes support for LocalStack to facilitate testing and development without connecting to live AWS services. This integration ensures reliable and scalable file management for the application."
+  },
+  {
+    "name": "Docker & Kubernetes",
+    "description": "Docker and Kubernetes are utilized for the containerization and orchestration of the application's deployment pipeline. The codebase includes scripts for building Docker images and configurations for deploying them to Kubernetes clusters. This setup facilitates scalable, manageable, and consistent deployments across development, testing, and production environments. It includes configurations for initializing databases and managing application secrets within the cluster. These technologies enable the application to run reliably in cloud-native environments."
+  },
+  {
+    "name": "Swagger / OpenAPI",
+    "description": "Swagger and OpenAPI tools are used to design, document, and define the application's REST API contracts. Annotations like `@Schema` are applied to code to define the structure of request and response models, enabling automatic documentation generation. This allows external consumers and frontend developers to understand data contracts without analyzing the source code. It facilitates the creation of interactive API documentation for testing and exploration. The technology ensures that the API documentation stays in sync with the actual implementation."
+  },
+  {
+    "name": "iCal4j",
+    "description": "iCal4j is a specialized Java library used for parsing, validating, and manipulating iCalendar data streams. The application employs it to handle complex recurrence logic for meeting schedules and loan repayment cycles. It parses RRULE strings to calculate future dates based on frequencies like daily, weekly, or monthly. This library is critical for the calendar and scheduling features within the portfolio module. It ensures accurate date calculations for recurring events based on standard protocols."
+  },
+  {
+    "name": "Mustache",
+    "description": "Mustache is utilized as a logic-less template engine for generating dynamic content such as documents and SMS messages. The application uses it to merge data maps with pre-defined templates, separating the visual structure from the data population logic. The engine compiles templates and renders them efficiently at runtime. This allows for flexible and maintainable generation of user-facing communications. It simplifies the process of creating dynamic text outputs without embedding logic in the templates."
+  },
+  {
+    "name": "jQuery",
+    "description": "jQuery is a fast and feature-rich JavaScript library included to simplify client-side HTML document traversal and manipulation. It handles event handling, animation, and Ajax interactions for the web interface, providing a cross-browser API. The library enables efficient DOM operations using its powerful selector engine and fluent API. It is used to enhance the interactivity and responsiveness of the user interface. jQuery abstracts browser-specific idiosyncrasies, making frontend development more consistent."
+  },
+  {
+    "name": "JavaScript",
+    "description": "JavaScript is employed as a scripting language for both client-side interactivity and server-side dynamic logic evaluation. On the frontend, it powers the user interface, while on the backend, it is used within the XBRL reporting service to evaluate mathematical expressions. This allows for flexible, runtime execution of logic defined in mappings without the need to recompile Java code. It serves as a core technology for enabling dynamic processing and web-based interactivity. The application leverages JavaScript's versatility to handle logic that requires runtime flexibility."
+  }
+]

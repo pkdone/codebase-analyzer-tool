@@ -1,0 +1,197 @@
+{
+  "topComplexFunctions": [
+    {
+      "complexity": 80,
+      "functionName": "window::ajax",
+      "filePath": "fineract-provider/src/main/resources/static/legacy-docs/jquery-1.7.min.js",
+      "linesOfCode": 1,
+      "codeSmells": [
+        "LONG METHOD",
+        "COMPLEX CONDITIONAL",
+        "LONG PARAMETER LIST"
+      ]
+    },
+    {
+      "complexity": 75,
+      "functionName": "org.apache.fineract.portfolio.loanproduct.serialization.LoanProductDataValidator::validateForUpdate",
+      "filePath": "fineract-provider/src/main/java/org/apache/fineract/portfolio/loanproduct/serialization/LoanProductDataValidator.java",
+      "linesOfCode": 350,
+      "codeSmells": [
+        "LONG METHOD",
+        "COMPLEX CONDITIONAL",
+        "DEEP NESTING"
+      ]
+    },
+    {
+      "complexity": 68,
+      "functionName": "org.apache.fineract.portfolio.loanaccount.service.LoanApplicationWritePlatformServiceJpaRepositoryImpl::modifyApplication",
+      "filePath": "fineract-provider/src/main/java/org/apache/fineract/portfolio/loanaccount/service/LoanApplicationWritePlatformServiceJpaRepositoryImpl.java",
+      "linesOfCode": 265,
+      "codeSmells": [
+        "LONG METHOD",
+        "COMPLEX CONDITIONAL",
+        "DEEP NESTING",
+        "FEATURE ENVY"
+      ]
+    },
+    {
+      "complexity": 68,
+      "functionName": "org.apache.fineract.portfolio.loanproduct.domain.LoanProduct::update",
+      "filePath": "fineract-loan/src/main/java/org/apache/fineract/portfolio/loanproduct/domain/LoanProduct.java",
+      "linesOfCode": 315,
+      "codeSmells": [
+        "LONG METHOD",
+        "COMPLEX CONDITIONAL",
+        "FEATURE ENVY"
+      ]
+    },
+    {
+      "complexity": 68,
+      "functionName": "org.apache.fineract.portfolio.loanproduct.serialization.LoanProductDataValidator::validateForCreate",
+      "filePath": "fineract-provider/src/main/java/org/apache/fineract/portfolio/loanproduct/serialization/LoanProductDataValidator.java",
+      "linesOfCode": 325,
+      "codeSmells": [
+        "LONG METHOD",
+        "COMPLEX CONDITIONAL",
+        "DEEP NESTING"
+      ]
+    },
+    {
+      "complexity": 65,
+      "functionName": "org.apache.fineract.portfolio.loanaccount.serialization.LoanApplicationCommandFromApiJsonHelper::validateForModify",
+      "filePath": "fineract-provider/src/main/java/org/apache/fineract/portfolio/loanaccount/serialization/LoanApplicationCommandFromApiJsonHelper.java",
+      "linesOfCode": 285,
+      "codeSmells": [
+        "LONG METHOD",
+        "COMPLEX CONDITIONAL",
+        "DUPLICATE CODE",
+        "DEEP NESTING"
+      ]
+    },
+    {
+      "complexity": 53,
+      "functionName": "org.apache.fineract.integrationtests.common.shares.ShareAccountIntegrationTests::testCreateShareAccountWithCharges",
+      "filePath": "integration-tests/src/test/java/org/apache/fineract/integrationtests/common/shares/ShareAccountIntegrationTests.java",
+      "linesOfCode": 385,
+      "codeSmells": [
+        "LONG METHOD",
+        "COMPLEX CONDITIONAL",
+        "DUPLICATE CODE",
+        "MAGIC NUMBERS",
+        "DEEP NESTING"
+      ]
+    },
+    {
+      "complexity": 52,
+      "functionName": "org.apache.fineract.portfolio.loanaccount.serialization.LoanApplicationCommandFromApiJsonHelper::validateForCreate",
+      "filePath": "fineract-provider/src/main/java/org/apache/fineract/portfolio/loanaccount/serialization/LoanApplicationCommandFromApiJsonHelper.java",
+      "linesOfCode": 235,
+      "codeSmells": [
+        "LONG METHOD",
+        "COMPLEX CONDITIONAL",
+        "DEEP NESTING"
+      ]
+    },
+    {
+      "complexity": 51,
+      "functionName": "org.apache.fineract.portfolio.loanaccount.domain.Loan::loanApplicationModification",
+      "filePath": "fineract-loan/src/main/java/org/apache/fineract/portfolio/loanaccount/domain/Loan.java",
+      "linesOfCode": 155,
+      "codeSmells": [
+        "LONG METHOD",
+        "COMPLEX CONDITIONAL",
+        "LONG PARAMETER LIST"
+      ]
+    },
+    {
+      "complexity": 50,
+      "functionName": "window::init",
+      "filePath": "fineract-provider/src/main/resources/static/legacy-docs/jquery-1.7.min.js",
+      "linesOfCode": 1,
+      "codeSmells": [
+        "COMPLEX CONDITIONAL",
+        "LONG METHOD"
+      ]
+    }
+  ],
+  "commonCodeSmells": [
+    {
+      "occurrences": 653,
+      "smellType": "DATA CLASS",
+      "affectedFiles": 653
+    },
+    {
+      "occurrences": 337,
+      "smellType": "LONG PARAMETER LIST",
+      "affectedFiles": 337
+    },
+    {
+      "occurrences": 244,
+      "smellType": "LONG METHOD",
+      "affectedFiles": 244
+    },
+    {
+      "occurrences": 219,
+      "smellType": "COMPLEX CONDITIONAL",
+      "affectedFiles": 219
+    },
+    {
+      "occurrences": 172,
+      "smellType": "DUPLICATE CODE",
+      "affectedFiles": 172
+    },
+    {
+      "occurrences": 153,
+      "smellType": "OTHER",
+      "affectedFiles": 147
+    },
+    {
+      "occurrences": 137,
+      "smellType": "MAGIC NUMBERS",
+      "affectedFiles": 137
+    },
+    {
+      "occurrences": 124,
+      "smellType": "TOO MANY METHODS",
+      "affectedFiles": 124
+    },
+    {
+      "occurrences": 110,
+      "smellType": "LARGE FILE",
+      "affectedFiles": 110
+    },
+    {
+      "occurrences": 43,
+      "smellType": "GOD CLASS",
+      "affectedFiles": 43
+    },
+    {
+      "occurrences": 42,
+      "smellType": "INVALID",
+      "affectedFiles": 42
+    },
+    {
+      "occurrences": 32,
+      "smellType": "DEEP NESTING",
+      "affectedFiles": 32
+    },
+    {
+      "occurrences": 28,
+      "smellType": "FEATURE ENVY",
+      "affectedFiles": 24
+    },
+    {
+      "occurrences": 9,
+      "smellType": "DEAD CODE",
+      "affectedFiles": 9
+    }
+  ],
+  "overallStatistics": {
+    "totalFunctions": 18149,
+    "highComplexityCount": 203,
+    "veryHighComplexityCount": 58,
+    "longFunctionCount": 400,
+    "averageComplexity": 1.66,
+    "averageFunctionLength": 7.96
+  }
+}

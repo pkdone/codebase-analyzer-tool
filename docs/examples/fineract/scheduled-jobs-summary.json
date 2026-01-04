@@ -1,0 +1,96 @@
+{
+  "jobs": [
+    {
+      "jobName": "Database Initialization",
+      "sourceFile": "fineract-db/docker/postgresql/01-init.sh",
+      "trigger": "event-driven",
+      "purpose": "Provisions the initial database user, creates required databases, and assigns privileges during the application or container startup phase.",
+      "inputResources": [
+        "Environment Variable: POSTGRES_PASSWORD",
+        "Environment Variable: POSTGRES_USER",
+        "Environment Variable: POSTGRES_DB",
+        "Environment Variable: FINERACT_DB_USER",
+        "Environment Variable: FINERACT_DB_PASS",
+        "Environment Variable: FINERACT_TENANTS_DB_NAME",
+        "Environment Variable: FINERACT_TENANT_DEFAULT_DB_NAME"
+      ],
+      "outputResources": [
+        "PostgreSQL User",
+        "PostgreSQL Database (Tenants)",
+        "PostgreSQL Database (Default Tenant)"
+      ],
+      "dependencies": [
+        "PostgreSQL Server"
+      ]
+    },
+    {
+      "jobName": "Fineract Kubernetes Deployment",
+      "sourceFile": "kubernetes/kubectl-startup.sh",
+      "trigger": "manual",
+      "purpose": "Orchestrates the full deployment of the Fineract ecosystem (Database, Backend, UI) onto a Kubernetes cluster by applying YAML configurations and waiting for pod readiness.",
+      "inputResources": [
+        "fineractmysql-configmap.yml",
+        "fineractmysql-deployment.yml",
+        "fineract-server-deployment.yml",
+        "fineract-mifoscommunity-deployment.yml",
+        "/dev/urandom"
+      ],
+      "outputResources": [
+        "Kubernetes Secret: fineract-tenants-db-secret",
+        "Kubernetes ConfigMap",
+        "Kubernetes Deployment: fineractmysql",
+        "Kubernetes Deployment: fineract-server",
+        "Kubernetes Deployment: fineract-mifoscommunity"
+      ],
+      "dependencies": [
+        "kubectl",
+        "Kubernetes Cluster"
+      ]
+    },
+    {
+      "jobName": "Fineract Kubernetes Teardown",
+      "sourceFile": "kubernetes/kubectl-shutdown.sh",
+      "trigger": "manual",
+      "purpose": "To manually de-provision and delete the Apache Fineract application stack, including its database, server, and community interface deployments, along with associated secrets and configurations from the Kubernetes cluster.",
+      "inputResources": [
+        "fineractmysql-configmap.yml",
+        "fineractmysql-deployment.yml",
+        "fineract-server-deployment.yml",
+        "fineract-mifoscommunity-deployment.yml"
+      ],
+      "outputResources": [],
+      "dependencies": [
+        "kubectl",
+        "Kubernetes Cluster"
+      ]
+    },
+    {
+      "jobName": "Gradle Wrapper Execution",
+      "sourceFile": "gradlew.bat",
+      "trigger": "manual",
+      "purpose": "Executes the Gradle build system using the project-specific wrapper configuration. It bootstraps the download of the correct Gradle distribution (if missing) and runs the requested build tasks.",
+      "inputResources": [
+        "gradle/wrapper/gradle-wrapper.jar",
+        "Environment Variables (JAVA_HOME, JAVA_OPTS, GRADLE_OPTS)"
+      ],
+      "outputResources": [
+        "Build Artifacts (typically in build/ directory)",
+        "Console Output"
+      ],
+      "dependencies": [
+        "Java Runtime Environment (java.exe)"
+      ]
+    }
+  ],
+  "totalJobs": 4,
+  "triggerTypes": [
+    "event-driven",
+    "manual"
+  ],
+  "jobFiles": [
+    "gradlew.bat",
+    "kubernetes/kubectl-startup.sh",
+    "fineract-db/docker/postgresql/01-init.sh",
+    "kubernetes/kubectl-shutdown.sh"
+  ]
+}

@@ -1,0 +1,64 @@
+{
+  "couplings": [
+    {
+      "fromModule": "fineract-provider/src",
+      "toModule": "org.apache",
+      "referenceCount": 17189,
+      "couplingLevel": "Very High",
+      "couplingLevelClass": "badge-danger"
+    },
+    {
+      "fromModule": "integration-tests/src",
+      "toModule": "org.apache",
+      "referenceCount": 2323,
+      "couplingLevel": "Low",
+      "couplingLevelClass": "badge-success"
+    },
+    {
+      "fromModule": "fineract-core/src",
+      "toModule": "org.apache",
+      "referenceCount": 1639,
+      "couplingLevel": "Low",
+      "couplingLevelClass": "badge-success"
+    },
+    {
+      "fromModule": "fineract-loan/src",
+      "toModule": "org.apache",
+      "referenceCount": 673,
+      "couplingLevel": "Low",
+      "couplingLevelClass": "badge-success"
+    },
+    {
+      "fromModule": "fineract-investor/src",
+      "toModule": "org.apache",
+      "referenceCount": 347,
+      "couplingLevel": "Low",
+      "couplingLevelClass": "badge-success"
+    },
+    {
+      "fromModule": "fineract-client/src",
+      "toModule": "org.apache",
+      "referenceCount": 134,
+      "couplingLevel": "Low",
+      "couplingLevelClass": "badge-success"
+    },
+    {
+      "fromModule": "custom/acme",
+      "toModule": "org.apache",
+      "referenceCount": 41,
+      "couplingLevel": "Low",
+      "couplingLevelClass": "badge-success"
+    },
+    {
+      "fromModule": "custom/acme",
+      "toModule": "com.acme",
+      "referenceCount": 5,
+      "couplingLevel": "Low",
+      "couplingLevelClass": "badge-success"
+    }
+  ],
+  "totalModules": 9,
+  "totalCouplings": 8,
+  "highestCouplingCount": 17189,
+  "moduleDepth": 2
+}

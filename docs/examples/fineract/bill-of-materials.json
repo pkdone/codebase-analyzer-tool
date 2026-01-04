@@ -1,0 +1,832 @@
+[
+  {
+    "name": "awaitility",
+    "groupId": "org.awaitility",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "testImplementation"
+    ],
+    "locations": [
+      "build.gradle"
+    ]
+  },
+  {
+    "name": "bcpg-jdk15on",
+    "groupId": "org.bouncycastle",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "compile"
+    ],
+    "locations": [
+      "buildSrc/build.gradle"
+    ]
+  },
+  {
+    "name": "bcpkix-jdk15to18",
+    "groupId": "org.bouncycastle",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "testImplementation"
+    ],
+    "locations": [
+      "build.gradle"
+    ]
+  },
+  {
+    "name": "bcprov-jdk15on",
+    "groupId": "org.bouncycastle",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "compile"
+    ],
+    "locations": [
+      "buildSrc/build.gradle"
+    ]
+  },
+  {
+    "name": "bcprov-jdk15to18",
+    "groupId": "org.bouncycastle",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "testImplementation"
+    ],
+    "locations": [
+      "build.gradle"
+    ]
+  },
+  {
+    "name": "bug-pattern",
+    "groupId": "jp.skypencil.findbugs.slf4j",
+    "versions": [
+      "1.5.0"
+    ],
+    "hasConflict": false,
+    "scopes": [
+      "spotbugsPlugins"
+    ],
+    "locations": [
+      "build.gradle"
+    ]
+  },
+  {
+    "name": "checkstyle",
+    "groupId": "com.puppycrawl.tools",
+    "versions": [
+      "10.12.1"
+    ],
+    "hasConflict": false,
+    "scopes": [
+      "checkstyle"
+    ],
+    "locations": [
+      "build.gradle"
+    ]
+  },
+  {
+    "name": "classgraph",
+    "groupId": "io.github.classgraph",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "testImplementation"
+    ],
+    "locations": [
+      "build.gradle"
+    ]
+  },
+  {
+    "name": "commons-io",
+    "groupId": "commons-io",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "compile"
+    ],
+    "locations": [
+      "buildSrc/build.gradle"
+    ]
+  },
+  {
+    "name": "commons-lang3",
+    "groupId": "org.apache.commons",
+    "versions": [
+      "3.12.0"
+    ],
+    "hasConflict": false,
+    "scopes": [
+      "classpath"
+    ],
+    "locations": [
+      "build.gradle"
+    ]
+  },
+  {
+    "name": "converter-jackson",
+    "groupId": "com.squareup.retrofit2",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "compile"
+    ],
+    "locations": [
+      "buildSrc/build.gradle"
+    ]
+  },
+  {
+    "name": "cucumber-core",
+    "groupId": "io.cucumber",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "testImplementation"
+    ],
+    "locations": [
+      "build.gradle"
+    ]
+  },
+  {
+    "name": "cucumber-java",
+    "groupId": "io.cucumber",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "testImplementation"
+    ],
+    "locations": [
+      "build.gradle"
+    ]
+  },
+  {
+    "name": "cucumber-java8",
+    "groupId": "io.cucumber",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "testImplementation"
+    ],
+    "locations": [
+      "build.gradle"
+    ]
+  },
+  {
+    "name": "cucumber-junit-platform-engine",
+    "groupId": "io.cucumber",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "testImplementation"
+    ],
+    "locations": [
+      "build.gradle"
+    ]
+  },
+  {
+    "name": "cucumber-spring",
+    "groupId": "io.cucumber",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "testImplementation"
+    ],
+    "locations": [
+      "build.gradle"
+    ]
+  },
+  {
+    "name": "eclipselink",
+    "groupId": "org.eclipse.persistence",
+    "versions": [
+      "4.0.0"
+    ],
+    "hasConflict": false,
+    "scopes": [
+      "classpath"
+    ],
+    "locations": [
+      "build.gradle"
+    ]
+  },
+  {
+    "name": "error_prone_core",
+    "groupId": "com.google.errorprone",
+    "versions": [
+      "2.20.0"
+    ],
+    "hasConflict": false,
+    "scopes": [
+      "errorprone"
+    ],
+    "locations": [
+      "build.gradle"
+    ]
+  },
+  {
+    "name": "fineract-core",
+    "groupId": "org.apache.fineract",
+    "versions": [
+      "latest"
+    ],
+    "hasConflict": false,
+    "scopes": [
+      "compile"
+    ],
+    "locations": [
+      "fineract-war/build.gradle"
+    ]
+  },
+  {
+    "name": "fineract-core",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "compile"
+    ],
+    "locations": [
+      "custom/docker/build.gradle"
+    ]
+  },
+  {
+    "name": "fineract-investor",
+    "groupId": "org.apache.fineract",
+    "versions": [
+      "latest"
+    ],
+    "hasConflict": false,
+    "scopes": [
+      "compile"
+    ],
+    "locations": [
+      "fineract-war/build.gradle"
+    ]
+  },
+  {
+    "name": "fineract-loan",
+    "groupId": "org.apache.fineract",
+    "versions": [
+      "latest"
+    ],
+    "hasConflict": false,
+    "scopes": [
+      "compile"
+    ],
+    "locations": [
+      "fineract-war/build.gradle"
+    ]
+  },
+  {
+    "name": "fineract-provider",
+    "groupId": "org.apache.fineract",
+    "versions": [
+      "latest"
+    ],
+    "hasConflict": false,
+    "scopes": [
+      "compile"
+    ],
+    "locations": [
+      "fineract-war/build.gradle"
+    ]
+  },
+  {
+    "name": "fineract-provider",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "compile"
+    ],
+    "locations": [
+      "custom/docker/build.gradle"
+    ]
+  },
+  {
+    "name": "freemarker",
+    "groupId": "org.freemarker",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "compile"
+    ],
+    "locations": [
+      "buildSrc/build.gradle"
+    ]
+  },
+  {
+    "name": "gradle-cargo-plugin",
+    "groupId": "com.bmuschko",
+    "versions": [
+      "2.9.0"
+    ],
+    "hasConflict": false,
+    "scopes": [
+      "classpath"
+    ],
+    "locations": [
+      "build.gradle"
+    ]
+  },
+  {
+    "name": "jackson-databind",
+    "groupId": "com.fasterxml.jackson.core",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "compile"
+    ],
+    "locations": [
+      "buildSrc/build.gradle"
+    ]
+  },
+  {
+    "name": "jakarta.activation",
+    "groupId": "com.sun.activation",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "compile"
+    ],
+    "locations": [
+      "buildSrc/build.gradle"
+    ]
+  },
+  {
+    "name": "jakarta.mail",
+    "groupId": "com.sun.mail",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "compile"
+    ],
+    "locations": [
+      "buildSrc/build.gradle"
+    ]
+  },
+  {
+    "name": "jakarta.servlet-api",
+    "groupId": "jakarta.servlet",
+    "versions": [
+      "6.0.0"
+    ],
+    "hasConflict": false,
+    "scopes": [
+      "classpath"
+    ],
+    "locations": [
+      "build.gradle"
+    ]
+  },
+  {
+    "name": "jakarta.ws.rs-api",
+    "groupId": "jakarta.ws.rs",
+    "versions": [
+      "3.1.0"
+    ],
+    "hasConflict": false,
+    "scopes": [
+      "classpath"
+    ],
+    "locations": [
+      "build.gradle"
+    ]
+  },
+  {
+    "name": "jib-layer-filter-extension-gradle",
+    "groupId": "com.google.cloud.tools",
+    "versions": [
+      "0.3.0"
+    ],
+    "hasConflict": false,
+    "scopes": [
+      "classpath"
+    ],
+    "locations": [
+      "build.gradle"
+    ]
+  },
+  {
+    "name": "jul-to-slf4j",
+    "groupId": "org.slf4j",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "implementation"
+    ],
+    "locations": [
+      "build.gradle"
+    ]
+  },
+  {
+    "name": "junit-jupiter-api",
+    "groupId": "org.junit.jupiter",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "testImplementation"
+    ],
+    "locations": [
+      "build.gradle"
+    ]
+  },
+  {
+    "name": "junit-jupiter-engine",
+    "groupId": "org.junit.jupiter",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "testImplementation"
+    ],
+    "locations": [
+      "build.gradle"
+    ]
+  },
+  {
+    "name": "junit-jupiter-params",
+    "groupId": "org.junit.jupiter",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "testImplementation"
+    ],
+    "locations": [
+      "build.gradle"
+    ]
+  },
+  {
+    "name": "junit-platform-runner",
+    "groupId": "org.junit.platform",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "testImplementation"
+    ],
+    "locations": [
+      "build.gradle"
+    ]
+  },
+  {
+    "name": "log4j-over-slf4j",
+    "groupId": "org.slf4j",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "implementation"
+    ],
+    "locations": [
+      "build.gradle"
+    ]
+  },
+  {
+    "name": "logback-classic",
+    "groupId": "ch.qos.logback",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "implementation"
+    ],
+    "locations": [
+      "build.gradle"
+    ]
+  },
+  {
+    "name": "logback-core",
+    "groupId": "ch.qos.logback",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "implementation"
+    ],
+    "locations": [
+      "build.gradle"
+    ]
+  },
+  {
+    "name": "logging-interceptor",
+    "groupId": "com.squareup.okhttp3",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "compile"
+    ],
+    "locations": [
+      "buildSrc/build.gradle"
+    ]
+  },
+  {
+    "name": "lombok",
+    "groupId": "org.projectlombok",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "annotationProcessor",
+      "compileOnly",
+      "testAnnotationProcessor",
+      "testCompileOnly"
+    ],
+    "locations": [
+      "build.gradle"
+    ]
+  },
+  {
+    "name": "mapstruct-processor",
+    "groupId": "org.mapstruct",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "annotationProcessor",
+      "testAnnotationProcessor"
+    ],
+    "locations": [
+      "build.gradle"
+    ]
+  },
+  {
+    "name": "mariadb-java-client",
+    "groupId": "org.mariadb.jdbc",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "compile",
+      "implementation"
+    ],
+    "locations": [
+      "custom/docker/build.gradle",
+      "fineract-provider/build.gradle"
+    ]
+  },
+  {
+    "name": "mockito-core",
+    "groupId": "org.mockito",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "testImplementation"
+    ],
+    "locations": [
+      "build.gradle"
+    ]
+  },
+  {
+    "name": "mockito-inline",
+    "groupId": "org.mockito",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "testImplementation"
+    ],
+    "locations": [
+      "build.gradle"
+    ]
+  },
+  {
+    "name": "mockito-junit-jupiter",
+    "groupId": "org.mockito",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "testImplementation"
+    ],
+    "locations": [
+      "build.gradle"
+    ]
+  },
+  {
+    "name": "mysql-connector-java",
+    "groupId": "mysql",
+    "versions": [
+      "8.0.33"
+    ],
+    "hasConflict": false,
+    "scopes": [
+      "compile",
+      "driver",
+      "runtime"
+    ],
+    "locations": [
+      "custom/docker/build.gradle",
+      "twofactor-tests/build.gradle",
+      "oauth2-tests/build.gradle",
+      "integration-tests/build.gradle",
+      "fineract-provider/build.gradle"
+    ]
+  },
+  {
+    "name": "okhttp",
+    "groupId": "com.squareup.okhttp3",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "compile"
+    ],
+    "locations": [
+      "buildSrc/build.gradle"
+    ]
+  },
+  {
+    "name": "org.eclipse.jgit",
+    "groupId": "org.eclipse.jgit",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "compile"
+    ],
+    "locations": [
+      "buildSrc/build.gradle"
+    ]
+  },
+  {
+    "name": "org.eclipse.jgit.ssh.apache",
+    "groupId": "org.eclipse.jgit",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "compile"
+    ],
+    "locations": [
+      "buildSrc/build.gradle"
+    ]
+  },
+  {
+    "name": "postgresql",
+    "groupId": "org.postgresql",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "compile",
+      "implementation"
+    ],
+    "locations": [
+      "custom/docker/build.gradle",
+      "fineract-provider/build.gradle"
+    ]
+  },
+  {
+    "name": "retrofit",
+    "groupId": "com.squareup.retrofit2",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "compile"
+    ],
+    "locations": [
+      "buildSrc/build.gradle"
+    ]
+  },
+  {
+    "name": "semver4j",
+    "groupId": "com.vdurmont",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "compile"
+    ],
+    "locations": [
+      "buildSrc/build.gradle"
+    ]
+  },
+  {
+    "name": "sevntu-checks",
+    "groupId": "com.github.sevntu-checkstyle",
+    "versions": [
+      "1.44.1"
+    ],
+    "hasConflict": false,
+    "scopes": [
+      "checkstyle"
+    ],
+    "locations": [
+      "build.gradle"
+    ]
+  },
+  {
+    "name": "slf4j-api",
+    "groupId": "org.slf4j",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "implementation"
+    ],
+    "locations": [
+      "build.gradle"
+    ]
+  },
+  {
+    "name": "spring-boot-autoconfigure-processor",
+    "groupId": "org.springframework.boot",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "annotationProcessor",
+      "provided",
+      "testAnnotationProcessor"
+    ],
+    "locations": [
+      "build.gradle",
+      "custom/docker/build.gradle"
+    ]
+  },
+  {
+    "name": "spring-boot-configuration-processor",
+    "groupId": "org.springframework.boot",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "annotationProcessor",
+      "provided",
+      "testAnnotationProcessor"
+    ],
+    "locations": [
+      "build.gradle",
+      "custom/docker/build.gradle"
+    ]
+  },
+  {
+    "name": "spring-boot-starter-test",
+    "groupId": "org.springframework.boot",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "testImplementation"
+    ],
+    "locations": [
+      "build.gradle"
+    ]
+  },
+  {
+    "name": "spring-context",
+    "groupId": "org.springframework",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "implementation"
+    ],
+    "locations": [
+      "build.gradle"
+    ]
+  },
+  {
+    "name": "svnkit",
+    "groupId": "org.tmatesoft.svnkit",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "compile"
+    ],
+    "locations": [
+      "buildSrc/build.gradle"
+    ]
+  },
+  {
+    "name": "swagger-jaxrs2-jakarta",
+    "groupId": "io.swagger.core.v3",
+    "versions": [
+      "2.2.11"
+    ],
+    "hasConflict": false,
+    "scopes": [
+      "classpath"
+    ],
+    "locations": [
+      "build.gradle"
+    ]
+  },
+  {
+    "name": "text-io",
+    "groupId": "org.beryx",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "compile"
+    ],
+    "locations": [
+      "buildSrc/build.gradle"
+    ]
+  },
+  {
+    "name": "truth",
+    "groupId": "com.google.truth",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "testImplementation"
+    ],
+    "locations": [
+      "build.gradle"
+    ]
+  },
+  {
+    "name": "truth-java8-extension",
+    "groupId": "com.google.truth.extensions",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "testImplementation"
+    ],
+    "locations": [
+      "build.gradle"
+    ]
+  }
+]

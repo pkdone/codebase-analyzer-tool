@@ -1,0 +1,91 @@
+[
+  {
+    "internalComponents": [
+      {
+        "name": "User Account Management",
+        "description": "Manages all aspects of user identity and profiles. This component is responsible for user registration, authentication, and authorization processes. It also handles profile updates, password resets, and maintains user data integrity."
+      },
+      {
+        "name": "Product Catalog Service",
+        "description": "Provides a centralized source for all product-related information. It handles the creation, retrieval, updating, and deletion of products and their associated categories and attributes. This service also powers product search and filtering capabilities for customers."
+      },
+      {
+        "name": "Order Processing Service",
+        "description": "Orchestrates the entire lifecycle of a customer order. Its responsibilities include managing the shopping cart, creating new orders, calculating totals, and tracking order status from placement to fulfillment. It ensures that orders are correctly recorded and communicated to other relevant systems."
+      },
+      {
+        "name": "Payment Gateway",
+        "description": "Acts as a secure interface for handling all financial transactions. This component is responsible for processing payments, handling refunds, and communicating with external payment providers. It ensures that all payment operations are secure, reliable, and properly logged for auditing."
+      }
+    ],
+    "externalDependencies": [
+      {
+        "name": "Primary Database",
+        "type": "Database",
+        "description": "A PostgreSQL relational database used as the main persistence layer for core business entities like users, products, and orders."
+      },
+      {
+        "name": "Stripe API",
+        "type": "External API",
+        "description": "External payment processing service used to securely handle credit card transactions and other payment methods."
+      },
+      {
+        "name": "Search Index",
+        "type": "Cache",
+        "description": "An Elasticsearch cluster used to provide fast, full-text search capabilities over the product catalog."
+      },
+      {
+        "name": "Notification Queue",
+        "type": "Message Queue",
+        "description": "A RabbitMQ message queue used to asynchronously dispatch notifications, such as order confirmation emails and shipping updates."
+      }
+    ],
+    "dependencies": [
+      {
+        "from": "User Account Management",
+        "to": "Primary Database",
+        "description": "Stores and retrieves user account information, credentials, and profiles."
+      },
+      {
+        "from": "Product Catalog Service",
+        "to": "Primary Database",
+        "description": "Persists and fetches product data, including details, pricing, and inventory levels."
+      },
+      {
+        "from": "Product Catalog Service",
+        "to": "Search Index",
+        "description": "Pushes product data updates to the search index to keep search results current."
+      },
+      {
+        "from": "Order Processing Service",
+        "to": "User Account Management",
+        "description": "Retrieves customer details to associate with a new order."
+      },
+      {
+        "from": "Order Processing Service",
+        "to": "Product Catalog Service",
+        "description": "Fetches product information and validates availability when creating an order."
+      },
+      {
+        "from": "Order Processing Service",
+        "to": "Payment Gateway",
+        "description": "Initiates a payment request for the order total."
+      },
+      {
+        "from": "Order Processing Service",
+        "to": "Primary Database",
+        "description": "Saves the created order and its line items to the database."
+      },
+      {
+        "from": "Order Processing Service",
+        "to": "Notification Queue",
+        "description": "Publishes an event to send an order confirmation notification to the user."
+      },
+      {
+        "from": "Payment Gateway",
+        "to": "Stripe API",
+        "description": "Delegates the actual payment processing to the external Stripe service."
+      }
+    ]
+  }
+]

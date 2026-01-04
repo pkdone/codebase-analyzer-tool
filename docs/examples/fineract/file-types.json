@@ -1,0 +1,176 @@
+[
+  {
+    "_id": "java",
+    "lines": 562011,
+    "files": 4464,
+    "fileType": "java"
+  },
+  {
+    "_id": "xml",
+    "lines": 45487,
+    "files": 187,
+    "fileType": "xml"
+  },
+  {
+    "_id": "avsc",
+    "lines": 10226,
+    "files": 75,
+    "fileType": "avsc"
+  },
+  {
+    "_id": "gradle",
+    "lines": 4043,
+    "files": 42,
+    "fileType": "gradle"
+  },
+  {
+    "_id": "sql",
+    "lines": 28394,
+    "files": 23,
+    "fileType": "sql"
+  },
+  {
+    "_id": "feature",
+    "lines": 890,
+    "files": 21,
+    "fileType": "feature"
+  },
+  {
+    "_id": "ftl",
+    "lines": 640,
+    "files": 19,
+    "fileType": "ftl"
+  },
+  {
+    "_id": "properties",
+    "lines": 1291,
+    "files": 18,
+    "fileType": "properties"
+  },
+  {
+    "_id": "json",
+    "lines": 631,
+    "files": 17,
+    "fileType": "json"
+  },
+  {
+    "_id": "yml",
+    "lines": 1188,
+    "files": 11,
+    "fileType": "yml"
+  },
+  {
+    "_id": "md",
+    "lines": 626,
+    "files": 10,
+    "fileType": "md"
+  },
+  {
+    "_id": "groovy",
+    "lines": 1814,
+    "files": 9,
+    "fileType": "groovy"
+  },
+  {
+    "_id": "",
+    "lines": 703,
+    "files": 5,
+    "fileType": ""
+  },
+  {
+    "_id": "mustache",
+    "lines": 337,
+    "files": 5,
+    "fileType": "mustache"
+  },
+  {
+    "_id": "vm",
+    "lines": 1143,
+    "files": 4,
+    "fileType": "vm"
+  },
+  {
+    "_id": "sh",
+    "lines": 183,
+    "files": 4,
+    "fileType": "sh"
+  },
+  {
+    "_id": "txt",
+    "lines": 13,
+    "files": 4,
+    "fileType": "txt"
+  },
+  {
+    "_id": "imports",
+    "lines": 3,
+    "files": 3,
+    "fileType": "imports"
+  },
+  {
+    "_id": "htm",
+    "lines": 55044,
+    "files": 1,
+    "fileType": "htm"
+  },
+  {
+    "_id": "css",
+    "lines": 752,
+    "files": 1,
+    "fileType": "css"
+  },
+  {
+    "_id": "html",
+    "lines": 152,
+    "files": 1,
+    "fileType": "html"
+  },
+  {
+    "_id": "bat",
+    "lines": 91,
+    "files": 1,
+    "fileType": "bat"
+  },
+  {
+    "_id": "epf",
+    "lines": 52,
+    "files": 1,
+    "fileType": "epf"
+  },
+  {
+    "_id": "template",
+    "lines": 30,
+    "files": 1,
+    "fileType": "template"
+  },
+  {
+    "_id": "cnf",
+    "lines": 28,
+    "files": 1,
+    "fileType": "cnf"
+  },
+  {
+    "_id": "config",
+    "lines": 23,
+    "files": 1,
+    "fileType": "config"
+  },
+  {
+    "_id": "jsp",
+    "lines": 21,
+    "files": 1,
+    "fileType": "jsp"
+  },
+  {
+    "_id": "jks",
+    "lines": 15,
+    "files": 1,
+    "fileType": "jks"
+  },
+  {
+    "_id": "js",
+    "lines": 4,
+    "files": 1,
+    "fileType": "js"
+  }
+]
