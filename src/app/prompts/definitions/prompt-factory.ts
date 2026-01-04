@@ -47,9 +47,9 @@ interface CreatePromptMetadataOptions {
  * schema type for each key in the config map. This enables better type inference
  * for downstream consumers when accessing prompt definitions by key.
  *
- * This simplified version reads contentDesc and instructions directly from the config
- * entries, since all configs now contain these fields explicitly. This removes the need
- * for builder callbacks and makes the factory a pure data mapper.
+ * Reads contentDesc and instructions directly from the config entries, which contain
+ * these fields explicitly. The factory is a pure data mapper that transforms config
+ * entries into PromptDefinition objects.
  *
  * @param configMap - The configuration map (e.g., sourceConfigMap, appSummaryConfigMap)
  * @param template - The template string to use for all prompts

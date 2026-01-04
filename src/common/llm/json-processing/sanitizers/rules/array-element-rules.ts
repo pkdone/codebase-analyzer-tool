@@ -361,7 +361,7 @@ export const ARRAY_ELEMENT_RULES: readonly ReplacementRule[] = [
     diagnosticMessage: "Removed markdown asterisk before array element",
   },
 
-  // Rule: Fix missing opening quote before property values in arrays (Pattern 68)
+  // Rule: Fix missing opening quote before property values in arrays
   // Pattern: `propertyName": "value",` -> `"value",`
   {
     name: "missingQuoteBeforePropertyValueInArray",
@@ -420,7 +420,7 @@ export const ARRAY_ELEMENT_RULES: readonly ReplacementRule[] = [
     },
   },
 
-  // Rule: Remove invalid properties in arrays (Pattern 88)
+  // Rule: Remove invalid properties in arrays
   // Pattern: `_DOC_GEN_NOTE_LIMITED_REF_LIST_ = "..."` -> remove
   {
     name: "invalidPropertyInArrayWithEquals",
@@ -432,7 +432,7 @@ export const ARRAY_ELEMENT_RULES: readonly ReplacementRule[] = [
     },
   },
 
-  // Rule: Remove stray characters before array elements (Pattern 90)
+  // Rule: Remove stray characters before array elements
   // Pattern: `e    "org.apache...` -> `"org.apache...`
   {
     name: "strayCharBeforeArrayElementPattern90",

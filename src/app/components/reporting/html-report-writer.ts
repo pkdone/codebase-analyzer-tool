@@ -5,14 +5,16 @@ import { outputConfig } from "../../config/output.config";
 import { writeFile } from "../../../common/fs/file-operations";
 import type {
   AppStatistics,
-  ProcsAndTriggers,
-  DatabaseIntegrationInfo,
-  IntegrationPointInfo,
   CodeQualitySummary,
   ScheduledJobsSummary,
   ModuleCoupling,
   UiTechnologyAnalysis,
-} from "./report-data.types";
+} from "./sections/quality-metrics/quality-metrics.types";
+import type {
+  ProcsAndTriggers,
+  DatabaseIntegrationInfo,
+} from "./sections/database/database.types";
+import type { IntegrationPointInfo } from "./sections/integration-points/integration-points.types";
 import type { ProjectedFileTypesCountAndLines } from "../../repositories/sources/sources.model";
 import type { TableViewModel } from "./view-models/table-view-model";
 import type { CategorizedDataItem } from "./sections/shared/categorized-section-data-builder";

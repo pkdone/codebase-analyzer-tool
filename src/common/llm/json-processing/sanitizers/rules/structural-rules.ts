@@ -344,7 +344,7 @@ export const STRUCTURAL_RULES: readonly ReplacementRule[] = [
     diagnosticMessage: "Added missing comma after array closing bracket",
   },
 
-  // Rule: Add missing comma after array before extra_text (Pattern 50)
+  // Rule: Add missing comma after array before extra_text
   // Pattern: `]\n    extra_text:` -> `],\n    extra_text:`
   {
     name: "missingCommaAfterArrayBeforeExtraText",
@@ -374,7 +374,7 @@ export const STRUCTURAL_RULES: readonly ReplacementRule[] = [
     diagnosticMessage: "Removed trailing comma after array before closing brace",
   },
 
-  // Rule: Fix unclosed array before property name (Pattern 52)
+  // Rule: Fix unclosed array before property name
   // Pattern: `}, "propertyName":` after array opening -> `}], "propertyName":`
   {
     name: "unclosedArrayBeforeProperty",
@@ -451,7 +451,7 @@ export const STRUCTURAL_RULES: readonly ReplacementRule[] = [
     diagnosticMessage: "Removed trailing comma before closing bracket/brace",
   },
 
-  // Rule: Escape unescaped quotes in string values (Pattern 89)
+  // Rule: Escape unescaped quotes in string values
   // Pattern: `"description": "This uses "quotes" in text"` -> `"description": "This uses \"quotes\" in text"`
   {
     name: "escapeUnescapedQuotesInString",

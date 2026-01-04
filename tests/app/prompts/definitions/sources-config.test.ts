@@ -2,7 +2,7 @@ import "reflect-metadata";
 import { promptManager } from "../../../../src/app/prompts/prompt-registry";
 const fileTypePromptMetadata = promptManager.sources;
 import { PromptDefinition } from "../../../../src/app/prompts/prompt.types";
-import { getCanonicalFileType } from "../../../../src/app/components/capture/config/file-types.config";
+import { getCanonicalFileType } from "../../../../src/app/domain/file-types";
 import { sourceSummarySchema } from "../../../../src/app/schemas/sources.schema";
 import { SourceSummaryType } from "../../../../src/app/components/capture/file-summarizer.service";
 

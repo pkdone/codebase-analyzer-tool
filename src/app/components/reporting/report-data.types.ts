@@ -10,26 +10,6 @@
 import type { ProjectedFileTypesCountAndLines } from "../../repositories/sources/sources.model";
 import type { CategorizedDataItem } from "./sections/shared/categorized-section-data-builder";
 
-// Re-export domain-specific types for backward compatibility
-export {
-  type Complexity,
-  isComplexityLevel,
-  type ProcedureTrigger,
-  type ProcsAndTriggers,
-  type DatabaseIntegrationInfo,
-} from "./sections/database/database.types";
-
-export { type IntegrationPointInfo } from "./sections/integration-points/integration-points.types";
-
-export {
-  type AppStatistics,
-  type BomDependency,
-  type CodeQualitySummary,
-  type ScheduledJobsSummary,
-  type ModuleCoupling,
-  type UiTechnologyAnalysis,
-} from "./sections/quality-metrics/quality-metrics.types";
-
 /**
  * Unified data model for report generation.
  * Contains all the data needed to generate both HTML and JSON reports.

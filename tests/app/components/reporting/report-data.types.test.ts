@@ -1,7 +1,7 @@
 import {
   isComplexityLevel,
-  Complexity,
-} from "../../../../src/app/components/reporting/report-data.types";
+  type Complexity,
+} from "../../../../src/app/components/reporting/sections/database/database.types";
 
 /**
  * Tests for report-data.types, specifically testing the Set-based membership

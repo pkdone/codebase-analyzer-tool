@@ -3,7 +3,7 @@ import {
   canonicalFileTypeSchema,
   getCanonicalFileType,
   type CanonicalFileType,
-} from "../../../src/app/components/capture/config/file-types.config";
+} from "../../../src/app/domain/file-types";
 
 describe("file-types.config", () => {
   describe("CANONICAL_FILE_TYPES", () => {

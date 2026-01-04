@@ -416,7 +416,7 @@ export const EMBEDDED_CONTENT_RULES: readonly ReplacementRule[] = [
     },
   },
 
-  // Rule: Remove Java package declarations in JSON (Pattern 69)
+  // Rule: Remove Java package declarations in JSON
   // Pattern: `],\npackage com.example.test;` -> `],`
   {
     name: "javaPackageInJson",
@@ -431,7 +431,7 @@ export const EMBEDDED_CONTENT_RULES: readonly ReplacementRule[] = [
     skipInString: true,
   },
 
-  // Rule: Remove Java import statements in JSON (Pattern 69)
+  // Rule: Remove Java import statements in JSON
   // Pattern: `],\nimport java.util.List;` -> `],`
   {
     name: "javaImportInJson",

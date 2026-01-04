@@ -17,7 +17,7 @@ jest.mock("../../../../src/common/utils/logging", () => ({
   logOneLineWarning: jest.fn(),
 }));
 
-jest.mock("../../../../src/app/components/capture/config/file-types.config", () => ({
+jest.mock("../../../../src/app/domain/file-types", () => ({
   getCanonicalFileType: jest.fn().mockReturnValue("javascript"),
 }));
 

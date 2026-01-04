@@ -18,4 +18,4 @@ export {
   getCanonicalFileType,
   CANONICAL_FILE_TYPES,
   type CanonicalFileType,
-} from "./config/file-types.config";
+} from "../../domain/file-types";
