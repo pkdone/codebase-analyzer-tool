@@ -11,7 +11,7 @@ import { getFileExtension } from "../../common/fs/path-utils";
 import { readFile } from "../../common/fs/file-operations";
 import {
   formatFilesAsMarkdownCodeBlocksWithPath,
-  type FileLike,
+  type SourceFileContent,
 } from "../../common/utils/markdown-formatter";
 
 /**
@@ -70,7 +70,7 @@ async function mergeSourceFilesIntoMarkdownCodeblock(
   srcDirPath: string,
   ignoreList: readonly string[],
 ): Promise<string> {
-  const filePromises = filepaths.map(async (filepath): Promise<FileLike | null> => {
+  const filePromises = filepaths.map(async (filepath): Promise<SourceFileContent | null> => {
     const type = getFileExtension(filepath).toLowerCase();
     if (ignoreList.includes(type)) return null; // Skip file if it has binary content
     const content = await readFile(filepath);
@@ -80,6 +80,8 @@ async function mergeSourceFilesIntoMarkdownCodeblock(
       content: content.trim(),
     };
   });
-  const files = (await Promise.all(filePromises)).filter((file): file is FileLike => file !== null);
+  const files = (await Promise.all(filePromises)).filter(
+    (file): file is SourceFileContent => file !== null,
+  );
   return formatFilesAsMarkdownCodeBlocksWithPath(files, srcDirPath).trim();
 }

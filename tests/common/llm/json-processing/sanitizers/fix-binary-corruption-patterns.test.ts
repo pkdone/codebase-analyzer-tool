@@ -1,17 +1,17 @@
-import { fixBinaryCorruptionPatterns } from "../../../../../src/common/llm/json-processing/sanitizers/index";
+import { fixLlmTokenArtifacts } from "../../../../../src/common/llm/json-processing/sanitizers/index";
 import { SANITIZATION_STEP } from "../../../../../src/common/llm/json-processing/constants/sanitization-steps.config";
 
-describe("fixBinaryCorruptionPatterns", () => {
-  describe("binary corruption markers", () => {
+describe("fixLlmTokenArtifacts", () => {
+  describe("LLM token artifacts", () => {
     it("should remove <y_bin_XXX> markers", () => {
       const input = `      "cyclomaticComplexity": 1,
       <y_bin_305>OfCode": 1,
       "codeSmells": []`;
 
-      const result = fixBinaryCorruptionPatterns(input);
+      const result = fixLlmTokenArtifacts(input);
 
       expect(result.changed).toBe(true);
-      expect(result.description).toBe(SANITIZATION_STEP.FIXED_BINARY_CORRUPTION_PATTERNS);
+      expect(result.description).toBe(SANITIZATION_STEP.FIXED_LLM_TOKEN_ARTIFACTS);
       // The sanitizer now just removes the marker - property name fixing is handled by unifiedSyntaxSanitizer
       expect(result.content).toContain('OfCode": 1');
       expect(result.content).not.toContain("<y_bin_");
@@ -27,7 +27,7 @@ describe("fixBinaryCorruptionPatterns", () => {
     {
       "name": "createTransactionRequest"`;
 
-      const result = fixBinaryCorruptionPatterns(input);
+      const result = fixLlmTokenArtifacts(input);
 
       expect(result.changed).toBe(true);
       // The sanitizer removes the marker - property name will be fixed by unifiedSyntaxSanitizer later
@@ -39,7 +39,7 @@ describe("fixBinaryCorruptionPatterns", () => {
       const input = `      "name": "test",
       <y_bin_123>something": "value"`;
 
-      const result = fixBinaryCorruptionPatterns(input);
+      const result = fixLlmTokenArtifacts(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).not.toContain("<y_bin_");
@@ -50,7 +50,7 @@ describe("fixBinaryCorruptionPatterns", () => {
     it("should not modify binary markers inside string values", () => {
       const input = `      "description": "This contains <y_bin_305>OfCode marker in text"`;
 
-      const result = fixBinaryCorruptionPatterns(input);
+      const result = fixLlmTokenArtifacts(input);
 
       // Should not change because it's inside a string
       expect(result.changed).toBe(false);
@@ -69,7 +69,7 @@ describe("fixBinaryCorruptionPatterns", () => {
     }
   ]`;
 
-      const result = fixBinaryCorruptionPatterns(input);
+      const result = fixLlmTokenArtifacts(input);
 
       // This functionality was moved to removeInvalidPrefixes sanitizer
       // This sanitizer now only handles binary markers
@@ -91,7 +91,7 @@ describe("fixBinaryCorruptionPatterns", () => {
     }
   ]`;
 
-      const result = fixBinaryCorruptionPatterns(input);
+      const result = fixLlmTokenArtifacts(input);
 
       expect(result.changed).toBe(true);
       // Only removes binary markers - property name fixing happens later in pipeline
@@ -118,7 +118,7 @@ describe("fixBinaryCorruptionPatterns", () => {
       "name": "getKyc",
       "purpose": "Retrieves Know Your Customer"`;
 
-      const result = fixBinaryCorruptionPatterns(input);
+      const result = fixLlmTokenArtifacts(input);
 
       expect(result.changed).toBe(true);
       // Removes binary marker - property name will be fixed by unifiedSyntaxSanitizer
@@ -136,7 +136,7 @@ describe("fixBinaryCorruptionPatterns", () => {
       "linesOfCode": 1
     }`;
 
-      const result = fixBinaryCorruptionPatterns(input);
+      const result = fixLlmTokenArtifacts(input);
 
       expect(result.changed).toBe(false);
       expect(result.content).toBe(input);
@@ -145,7 +145,7 @@ describe("fixBinaryCorruptionPatterns", () => {
     it("should handle different binary marker numbers", () => {
       const input = `      <y_bin_999>OfCode": 1`;
 
-      const result = fixBinaryCorruptionPatterns(input);
+      const result = fixLlmTokenArtifacts(input);
 
       expect(result.changed).toBe(true);
       // Just removes the marker - property name fixing happens later
@@ -163,7 +163,7 @@ describe("fixBinaryCorruptionPatterns", () => {
     }
   ]`;
 
-      const result = fixBinaryCorruptionPatterns(input);
+      const result = fixLlmTokenArtifacts(input);
 
       // This functionality was moved to removeInvalidPrefixes sanitizer
       expect(result.changed).toBe(false);

@@ -4,7 +4,7 @@ import { AppSummariesRepository } from "../../../../../src/app/repositories/app-
 import { SourcesRepository } from "../../../../../src/app/repositories/sources/sources.repository.interface";
 import LLMRouter from "../../../../../src/common/llm/llm-router";
 import { llmProviderConfig } from "../../../../../src/common/llm/config/llm.config";
-import type { ICompletionStrategy } from "../../../../../src/app/components/insights/strategies/completion-strategy.interface";
+import type { IInsightGenerationStrategy } from "../../../../../src/app/components/insights/strategies/completion-strategy.interface";
 
 // Mock the logging utilities
 jest.mock("../../../../../src/common/utils/logging", () => ({
@@ -17,8 +17,8 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
   let mockAppSummaryRepository: jest.Mocked<AppSummariesRepository>;
   let mockSourcesRepository: jest.Mocked<SourcesRepository>;
   let mockLLMRouter: jest.Mocked<LLMRouter>;
-  let mockSinglePassStrategy: jest.Mocked<ICompletionStrategy>;
-  let mockMapReduceStrategy: jest.Mocked<ICompletionStrategy>;
+  let mockSinglePassStrategy: jest.Mocked<IInsightGenerationStrategy>;
+  let mockMapReduceStrategy: jest.Mocked<IInsightGenerationStrategy>;
   let mockConsoleLog: jest.SpyInstance;
 
   const mockManifest = {
@@ -77,11 +77,11 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
 
     mockSinglePassStrategy = {
       generateInsights: jest.fn(),
-    } as unknown as jest.Mocked<ICompletionStrategy>;
+    } as unknown as jest.Mocked<IInsightGenerationStrategy>;
 
     mockMapReduceStrategy = {
       generateInsights: jest.fn(),
-    } as unknown as jest.Mocked<ICompletionStrategy>;
+    } as unknown as jest.Mocked<IInsightGenerationStrategy>;
 
     generator = new InsightsFromDBGenerator(
       mockAppSummaryRepository,

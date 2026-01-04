@@ -15,11 +15,11 @@ export type ScheduledJobsAggregationResult = ScheduledJobsSummary;
 type ScheduledJobItem = ScheduledJobsSummary["jobs"][0];
 
 /**
- * Data provider responsible for aggregating scheduled jobs and batch processes from script files.
- * Identifies batch jobs, shell scripts, JCL, and other automated processes.
+ * Data provider responsible for aggregating scheduled tasks and batch processes from script files.
+ * Identifies scheduled tasks (cron, task scheduler), shell scripts, JCL, and other automated processes.
  */
 @injectable()
-export class JobDataProvider {
+export class ScheduledTaskDataProvider {
   constructor(
     @inject(repositoryTokens.SourcesRepository)
     private readonly sourcesRepository: SourcesRepository,

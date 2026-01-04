@@ -2,18 +2,18 @@ import "reflect-metadata";
 import { QualityMetricsSection } from "../../../../../src/app/components/reporting/sections/quality-metrics/quality-metrics-section";
 import { BomDataProvider } from "../../../../../src/app/components/reporting/sections/quality-metrics/bom-data-provider";
 import { CodeQualityDataProvider } from "../../../../../src/app/components/reporting/sections/quality-metrics/code-quality-data-provider";
-import { JobDataProvider } from "../../../../../src/app/components/reporting/sections/quality-metrics/job-data-provider";
+import { ScheduledTaskDataProvider } from "../../../../../src/app/components/reporting/sections/quality-metrics/job-data-provider";
 import { ModuleCouplingDataProvider } from "../../../../../src/app/components/reporting/sections/quality-metrics/module-coupling-data-provider";
-import { UiDataProvider } from "../../../../../src/app/components/reporting/sections/quality-metrics/ui-data-provider";
+import { ServerSideUiDataProvider } from "../../../../../src/app/components/reporting/sections/quality-metrics/ui-data-provider";
 import type { ReportData } from "../../../../../src/app/components/reporting/report-data.types";
 
 describe("QualityMetricsSection", () => {
   let section: QualityMetricsSection;
   let mockBomDataProvider: jest.Mocked<BomDataProvider>;
   let mockCodeQualityDataProvider: jest.Mocked<CodeQualityDataProvider>;
-  let mockJobDataProvider: jest.Mocked<JobDataProvider>;
+  let mockScheduledTaskDataProvider: jest.Mocked<ScheduledTaskDataProvider>;
   let mockModuleCouplingDataProvider: jest.Mocked<ModuleCouplingDataProvider>;
-  let mockUiDataProvider: jest.Mocked<UiDataProvider>;
+  let mockServerSideUiDataProvider: jest.Mocked<ServerSideUiDataProvider>;
 
   beforeEach(() => {
     mockBomDataProvider = {
@@ -24,24 +24,24 @@ describe("QualityMetricsSection", () => {
       getCodeQualitySummary: jest.fn(),
     } as unknown as jest.Mocked<CodeQualityDataProvider>;
 
-    mockJobDataProvider = {
+    mockScheduledTaskDataProvider = {
       getScheduledJobsSummary: jest.fn(),
-    } as unknown as jest.Mocked<JobDataProvider>;
+    } as unknown as jest.Mocked<ScheduledTaskDataProvider>;
 
     mockModuleCouplingDataProvider = {
       getModuleCoupling: jest.fn(),
     } as unknown as jest.Mocked<ModuleCouplingDataProvider>;
 
-    mockUiDataProvider = {
+    mockServerSideUiDataProvider = {
       getUiTechnologyAnalysis: jest.fn(),
-    } as unknown as jest.Mocked<UiDataProvider>;
+    } as unknown as jest.Mocked<ServerSideUiDataProvider>;
 
     section = new QualityMetricsSection(
       mockBomDataProvider,
       mockCodeQualityDataProvider,
-      mockJobDataProvider,
+      mockScheduledTaskDataProvider,
       mockModuleCouplingDataProvider,
-      mockUiDataProvider,
+      mockServerSideUiDataProvider,
     );
   });
 
@@ -98,9 +98,9 @@ describe("QualityMetricsSection", () => {
 
       mockBomDataProvider.getBillOfMaterials.mockResolvedValue(mockBillOfMaterials);
       mockCodeQualityDataProvider.getCodeQualitySummary.mockResolvedValue(mockCodeQualitySummary);
-      mockJobDataProvider.getScheduledJobsSummary.mockResolvedValue(mockScheduledJobsSummary);
+      mockScheduledTaskDataProvider.getScheduledJobsSummary.mockResolvedValue(mockScheduledJobsSummary);
       mockModuleCouplingDataProvider.getModuleCoupling.mockResolvedValue(mockModuleCoupling);
-      mockUiDataProvider.getUiTechnologyAnalysis.mockResolvedValue(mockUiTechnologyAnalysis);
+      mockServerSideUiDataProvider.getUiTechnologyAnalysis.mockResolvedValue(mockUiTechnologyAnalysis);
 
       const result = await section.getData("test-project");
 

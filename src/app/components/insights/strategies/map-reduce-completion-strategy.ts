@@ -7,7 +7,7 @@ import { promptManager, createReduceInsightsPrompt } from "../../../prompts/prom
 import { logOneLineWarning } from "../../../../common/utils/logging";
 import { renderPrompt } from "../../../prompts/prompt-renderer";
 import { llmTokens } from "../../../di/tokens";
-import { ICompletionStrategy } from "./completion-strategy.interface";
+import { IInsightGenerationStrategy } from "./completion-strategy.interface";
 import {
   AppSummaryCategoryEnum,
   CategoryInsightResult,
@@ -26,7 +26,7 @@ const CATEGORY_SCHEMA_IS_VERTEXAI_COMPATIBLE = true;
  * Splits summaries into chunks, processes each chunk (MAP), then consolidates results (REDUCE).
  */
 @injectable()
-export class MapReduceCompletionStrategy implements ICompletionStrategy {
+export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
   private readonly maxTokens: number;
 
   constructor(@inject(llmTokens.LLMRouter) private readonly llmRouter: LLMRouter) {

@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import { VisualizationsSection } from "../../../../../src/app/components/reporting/sections/visualizations/visualizations-section";
+import { ArchitectureAndDomainSection } from "../../../../../src/app/components/reporting/sections/visualizations/visualizations-section";
 import { DomainModelDataProvider } from "../../../../../src/app/components/reporting/sections/visualizations/domain-model-data-provider";
 import {
   FlowchartDiagramGenerator,
@@ -10,8 +10,8 @@ import {
 import type { ReportData } from "../../../../../src/app/components/reporting/report-data.types";
 import type { AppSummaryNameDescArray } from "../../../../../src/app/repositories/app-summaries/app-summaries.model";
 
-describe("VisualizationsSection", () => {
-  let section: VisualizationsSection;
+describe("ArchitectureAndDomainSection", () => {
+  let section: ArchitectureAndDomainSection;
   let mockDomainModelDataProvider: jest.Mocked<DomainModelDataProvider>;
   let mockFlowchartDiagramGenerator: jest.Mocked<FlowchartDiagramGenerator>;
   let mockDomainModelDiagramGenerator: jest.Mocked<DomainModelDiagramGenerator>;
@@ -46,7 +46,7 @@ describe("VisualizationsSection", () => {
         .mockResolvedValue("<svg>current architecture</svg>"),
     } as unknown as jest.Mocked<CurrentArchitectureDiagramGenerator>;
 
-    section = new VisualizationsSection(
+    section = new ArchitectureAndDomainSection(
       mockDomainModelDataProvider,
       mockFlowchartDiagramGenerator,
       mockDomainModelDiagramGenerator,

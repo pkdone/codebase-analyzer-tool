@@ -1,13 +1,13 @@
 import {
   formatFilesAsMarkdownCodeBlocks,
   formatFilesAsMarkdownCodeBlocksWithPath,
-  type FileLike,
+  type SourceFileContent,
 } from "../../../src/common/utils/markdown-formatter";
 
 describe("markdown-formatter", () => {
   describe("formatFilesAsMarkdownCodeBlocks", () => {
     it("should format a single file as markdown code block", () => {
-      const files: FileLike[] = [
+      const files: SourceFileContent[] = [
         {
           filepath: "src/app.ts",
           type: "ts",
@@ -20,7 +20,7 @@ describe("markdown-formatter", () => {
     });
 
     it("should format multiple files as markdown code blocks", () => {
-      const files: FileLike[] = [
+      const files: SourceFileContent[] = [
         {
           filepath: "src/app.ts",
           type: "ts",
@@ -44,7 +44,7 @@ describe("markdown-formatter", () => {
     });
 
     it("should handle different file types", () => {
-      const files: FileLike[] = [
+      const files: SourceFileContent[] = [
         {
           filepath: "src/app.ts",
           type: "ts",
@@ -65,7 +65,7 @@ describe("markdown-formatter", () => {
 
   describe("formatFilesAsMarkdownCodeBlocksWithPath", () => {
     it("should format files with filepath as header", () => {
-      const files: FileLike[] = [
+      const files: SourceFileContent[] = [
         {
           filepath: "/project/src/app.ts",
           type: "ts",
@@ -78,7 +78,7 @@ describe("markdown-formatter", () => {
     });
 
     it("should calculate relative paths correctly", () => {
-      const files: FileLike[] = [
+      const files: SourceFileContent[] = [
         {
           filepath: "/project/src/components/Button.tsx",
           type: "tsx",
@@ -91,7 +91,7 @@ describe("markdown-formatter", () => {
     });
 
     it("should handle files without baseDirPath", () => {
-      const files: FileLike[] = [
+      const files: SourceFileContent[] = [
         {
           filepath: "src/app.ts",
           type: "ts",
@@ -104,7 +104,7 @@ describe("markdown-formatter", () => {
     });
 
     it("should trim content", () => {
-      const files: FileLike[] = [
+      const files: SourceFileContent[] = [
         {
           filepath: "src/app.ts",
           type: "ts",
@@ -118,7 +118,7 @@ describe("markdown-formatter", () => {
     });
 
     it("should handle multiple files", () => {
-      const files: FileLike[] = [
+      const files: SourceFileContent[] = [
         {
           filepath: "/project/src/app.ts",
           type: "ts",

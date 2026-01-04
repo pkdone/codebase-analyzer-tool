@@ -1,7 +1,7 @@
 import "reflect-metadata";
-import { ICompletionStrategy } from "../../../../../src/app/components/insights/strategies/completion-strategy.interface";
-import { SinglePassCompletionStrategy } from "../../../../../src/app/components/insights/strategies/single-pass-completion-strategy";
-import { MapReduceCompletionStrategy } from "../../../../../src/app/components/insights/strategies/map-reduce-completion-strategy";
+import { IInsightGenerationStrategy } from "../../../../../src/app/components/insights/strategies/completion-strategy.interface";
+import { SinglePassInsightStrategy } from "../../../../../src/app/components/insights/strategies/single-pass-completion-strategy";
+import { MapReduceInsightStrategy } from "../../../../../src/app/components/insights/strategies/map-reduce-completion-strategy";
 import { executeInsightCompletion } from "../../../../../src/app/components/insights/strategies/completion-executor";
 import {
   PartialAppSummaryRecord,
@@ -14,10 +14,10 @@ import LLMRouter from "../../../../../src/common/llm/llm-router";
 import { z } from "zod";
 
 describe("Type Safety Tests", () => {
-  describe("ICompletionStrategy interface", () => {
+  describe("IInsightGenerationStrategy interface", () => {
     it("should have a generic generateInsights method", () => {
       // This test verifies the interface signature is correctly generic
-      const strategy: ICompletionStrategy = {
+      const strategy: IInsightGenerationStrategy = {
         generateInsights: async <C extends AppSummaryCategoryEnum>(
           _category: C,
           _sourceFileSummaries: string[],
@@ -33,7 +33,7 @@ describe("Type Safety Tests", () => {
     });
 
     it("should return strongly-typed result based on category", async () => {
-      const strategy: ICompletionStrategy = {
+      const strategy: IInsightGenerationStrategy = {
         generateInsights: async <C extends AppSummaryCategoryEnum>(
           _category: C,
           _sourceFileSummaries: string[],
@@ -53,15 +53,15 @@ describe("Type Safety Tests", () => {
     });
   });
 
-  describe("SinglePassCompletionStrategy type safety", () => {
+  describe("SinglePassInsightStrategy type safety", () => {
     let mockLLMRouter: jest.Mocked<LLMRouter>;
-    let strategy: SinglePassCompletionStrategy;
+    let strategy: SinglePassInsightStrategy;
 
     beforeEach(() => {
       mockLLMRouter = {
         executeCompletion: jest.fn(),
       } as unknown as jest.Mocked<LLMRouter>;
-      strategy = new SinglePassCompletionStrategy(mockLLMRouter);
+      strategy = new SinglePassInsightStrategy(mockLLMRouter);
     });
 
     it("should return strongly-typed result for appDescription", async () => {
@@ -114,9 +114,9 @@ describe("Type Safety Tests", () => {
     });
   });
 
-  describe("MapReduceCompletionStrategy type safety", () => {
+  describe("MapReduceInsightStrategy type safety", () => {
     let mockLLMRouter: jest.Mocked<LLMRouter>;
-    let strategy: MapReduceCompletionStrategy;
+    let strategy: MapReduceInsightStrategy;
 
     beforeEach(() => {
       mockLLMRouter = {
@@ -129,7 +129,7 @@ describe("Type Safety Tests", () => {
           },
         }),
       } as unknown as jest.Mocked<LLMRouter>;
-      strategy = new MapReduceCompletionStrategy(mockLLMRouter);
+      strategy = new MapReduceInsightStrategy(mockLLMRouter);
     });
 
     it("should return strongly-typed result for technologies category", async () => {
@@ -262,7 +262,7 @@ describe("Type Safety Tests", () => {
         }),
       } as unknown as jest.Mocked<LLMRouter>;
 
-      const strategy = new SinglePassCompletionStrategy(mockLLMRouter);
+      const strategy = new SinglePassInsightStrategy(mockLLMRouter);
       const category: AppSummaryCategoryEnum = "appDescription";
 
       // This should compile without any type assertions or casts

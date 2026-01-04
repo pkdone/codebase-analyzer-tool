@@ -1,7 +1,7 @@
 import {
   CODE_FENCE_REGEXES,
   CONCATENATION_REGEXES,
-  BINARY_CORRUPTION_REGEX,
+  LLM_TOKEN_ARTIFACT_REGEX,
 } from "../../../../../src/common/llm/json-processing/constants/regex.constants";
 import { CODE_FENCE_MARKERS } from "../../../../../src/common/llm/json-processing/constants/json-processing.config";
 
@@ -66,25 +66,25 @@ describe("regex.constants", () => {
     });
   });
 
-  describe("BINARY_CORRUPTION_REGEX", () => {
-    it("should match binary corruption markers", () => {
+  describe("LLM_TOKEN_ARTIFACT_REGEX", () => {
+    it("should match LLM token artifacts", () => {
       const testString = '{"name": "value<y_bin_305>more"}';
-      const matches = testString.match(BINARY_CORRUPTION_REGEX);
+      const matches = testString.match(LLM_TOKEN_ARTIFACT_REGEX);
       expect(matches).not.toBeNull();
       expect(matches?.[0]).toBe("<y_bin_305>");
     });
 
-    it("should match multiple binary corruption markers", () => {
+    it("should match multiple LLM token artifacts", () => {
       const testString = '{"name": "<y_bin_123>value<y_bin_456>"}';
-      const matches = Array.from(testString.matchAll(BINARY_CORRUPTION_REGEX));
+      const matches = Array.from(testString.matchAll(LLM_TOKEN_ARTIFACT_REGEX));
       expect(matches.length).toBe(2);
       expect(matches[0][0]).toBe("<y_bin_123>");
       expect(matches[1][0]).toBe("<y_bin_456>");
     });
 
-    it("should not match non-binary patterns", () => {
+    it("should not match non-artifact patterns", () => {
       const testString = '{"name": "value"}';
-      const matches = testString.match(BINARY_CORRUPTION_REGEX);
+      const matches = testString.match(LLM_TOKEN_ARTIFACT_REGEX);
       expect(matches).toBeNull();
     });
   });

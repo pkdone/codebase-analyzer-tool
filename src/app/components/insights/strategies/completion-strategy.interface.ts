@@ -8,7 +8,7 @@ import { AppSummaryCategoryEnum, CategoryInsightResult } from "../insights.types
  * Each category returns its specific type (e.g., `{ entities: [...] }` for "entities" category),
  * which is inferred from the `appSummaryCategorySchemas` mapping.
  */
-export interface ICompletionStrategy {
+export interface IInsightGenerationStrategy {
   /**
    * Generate insights for a specific category using source file summaries.
    * The return type is inferred from the category parameter using the strongly-typed

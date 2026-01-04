@@ -3,9 +3,9 @@ import type { ReportSection } from "../report-section.interface";
 import { reportingTokens } from "../../../../di/tokens";
 import { BomDataProvider } from "./bom-data-provider";
 import { CodeQualityDataProvider } from "./code-quality-data-provider";
-import { JobDataProvider } from "./job-data-provider";
+import { ScheduledTaskDataProvider } from "./job-data-provider";
 import { ModuleCouplingDataProvider } from "./module-coupling-data-provider";
-import { UiDataProvider } from "./ui-data-provider";
+import { ServerSideUiDataProvider } from "./ui-data-provider";
 import type { PreparedHtmlReportData } from "../../html-report-writer";
 import type { PreparedJsonData } from "../../json-report-writer";
 import type { ReportData } from "../../report-data.types";
@@ -20,10 +20,12 @@ export class QualityMetricsSection implements ReportSection {
     @inject(reportingTokens.BomDataProvider) private readonly bomDataProvider: BomDataProvider,
     @inject(reportingTokens.CodeQualityDataProvider)
     private readonly codeQualityDataProvider: CodeQualityDataProvider,
-    @inject(reportingTokens.JobDataProvider) private readonly jobDataProvider: JobDataProvider,
+    @inject(reportingTokens.ScheduledTaskDataProvider)
+    private readonly scheduledTaskDataProvider: ScheduledTaskDataProvider,
     @inject(reportingTokens.ModuleCouplingDataProvider)
     private readonly moduleCouplingDataProvider: ModuleCouplingDataProvider,
-    @inject(reportingTokens.UiDataProvider) private readonly uiDataProvider: UiDataProvider,
+    @inject(reportingTokens.ServerSideUiDataProvider)
+    private readonly serverSideUiDataProvider: ServerSideUiDataProvider,
   ) {}
 
   getName(): string {
@@ -40,9 +42,9 @@ export class QualityMetricsSection implements ReportSection {
     ] = await Promise.all([
       this.bomDataProvider.getBillOfMaterials(projectName),
       this.codeQualityDataProvider.getCodeQualitySummary(projectName),
-      this.jobDataProvider.getScheduledJobsSummary(projectName),
+      this.scheduledTaskDataProvider.getScheduledJobsSummary(projectName),
       this.moduleCouplingDataProvider.getModuleCoupling(projectName),
-      this.uiDataProvider.getUiTechnologyAnalysis(projectName),
+      this.serverSideUiDataProvider.getUiTechnologyAnalysis(projectName),
     ]);
 
     return {

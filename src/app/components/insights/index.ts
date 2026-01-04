@@ -28,10 +28,10 @@ export { default as InsightsFromRawCodeGenerator } from "./generators/raw-code-i
 export { InsightsProcessorSelector } from "./generators/insights-processor-selector";
 
 // Strategies
-export type { ICompletionStrategy } from "./strategies/completion-strategy.interface";
+export type { IInsightGenerationStrategy } from "./strategies/completion-strategy.interface";
 export {
   executeInsightCompletion,
   type InsightCompletionOptions,
 } from "./strategies/completion-executor";
-export { MapReduceCompletionStrategy } from "./strategies/map-reduce-completion-strategy";
-export { SinglePassCompletionStrategy } from "./strategies/single-pass-completion-strategy";
+export { MapReduceInsightStrategy } from "./strategies/map-reduce-completion-strategy";
+export { SinglePassInsightStrategy } from "./strategies/single-pass-completion-strategy";

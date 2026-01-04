@@ -25,11 +25,11 @@ import {
 } from "../shared/categorized-section-data-builder";
 
 /**
- * Report section for visualizations (flowcharts, domain diagrams, architecture diagrams).
+ * Report section for architecture and domain visualizations (domain models, microservices architecture, current architecture diagrams).
  * Diagrams are generated as Mermaid definitions and rendered client-side.
  */
 @injectable()
-export class VisualizationsSection implements ReportSection {
+export class ArchitectureAndDomainSection implements ReportSection {
   constructor(
     @inject(reportingTokens.DomainModelDataProvider)
     private readonly domainModelDataProvider: DomainModelDataProvider,

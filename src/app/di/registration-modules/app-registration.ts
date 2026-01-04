@@ -21,8 +21,8 @@ import InsightsFromDBGenerator from "../../components/insights/generators/db-ins
 import InsightsFromRawCodeGenerator from "../../components/insights/generators/raw-code-insights-generator";
 import { PromptFileInsightsGenerator } from "../../components/insights/generators/prompt-file-insights-generator";
 import { InsightsProcessorSelector } from "../../components/insights/generators/insights-processor-selector";
-import { SinglePassCompletionStrategy } from "../../components/insights/strategies/single-pass-completion-strategy";
-import { MapReduceCompletionStrategy } from "../../components/insights/strategies/map-reduce-completion-strategy";
+import { SinglePassInsightStrategy } from "../../components/insights/strategies/single-pass-completion-strategy";
+import { MapReduceInsightStrategy } from "../../components/insights/strategies/map-reduce-completion-strategy";
 
 // Task imports (these are top-level orchestrators for CLI commands)
 import { CodebaseCaptureTask } from "../../tasks/main/codebase-capture.task";
@@ -102,14 +102,8 @@ function registerComponents(): void {
     InsightsFromRawCodeGenerator,
   );
   container.registerSingleton(insightsTokens.InsightsProcessorSelector, InsightsProcessorSelector);
-  container.registerSingleton(
-    insightsTokens.SinglePassCompletionStrategy,
-    SinglePassCompletionStrategy,
-  );
-  container.registerSingleton(
-    insightsTokens.MapReduceCompletionStrategy,
-    MapReduceCompletionStrategy,
-  );
+  container.registerSingleton(insightsTokens.SinglePassInsightStrategy, SinglePassInsightStrategy);
+  container.registerSingleton(insightsTokens.MapReduceInsightStrategy, MapReduceInsightStrategy);
 
   // Register reporting components (kept separate due to size)
   registerReportingComponents();

@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import { MapReduceCompletionStrategy } from "../../../../../src/app/components/insights/strategies/map-reduce-completion-strategy";
+import { MapReduceInsightStrategy } from "../../../../../src/app/components/insights/strategies/map-reduce-completion-strategy";
 import {
   PartialAppSummaryRecord,
   AppSummaryCategoryEnum,
@@ -14,9 +14,9 @@ import { z } from "zod";
 import { ok, err } from "../../../../../src/common/types/result.types";
 import { LLMError, LLMErrorCode } from "../../../../../src/common/llm/types/llm-errors.types";
 
-describe("MapReduceCompletionStrategy", () => {
+describe("MapReduceInsightStrategy", () => {
   let mockLLMRouter: jest.Mocked<LLMRouter>;
-  let strategy: MapReduceCompletionStrategy;
+  let strategy: MapReduceInsightStrategy;
 
   beforeEach(() => {
     mockLLMRouter = {
@@ -29,16 +29,16 @@ describe("MapReduceCompletionStrategy", () => {
         },
       }),
     } as unknown as jest.Mocked<LLMRouter>;
-    strategy = new MapReduceCompletionStrategy(mockLLMRouter);
+    strategy = new MapReduceInsightStrategy(mockLLMRouter);
   });
 
   describe("generateInsights", () => {
-    it("should export MapReduceCompletionStrategy class", () => {
-      expect(MapReduceCompletionStrategy).toBeDefined();
-      expect(typeof MapReduceCompletionStrategy).toBe("function");
+    it("should export MapReduceInsightStrategy class", () => {
+      expect(MapReduceInsightStrategy).toBeDefined();
+      expect(typeof MapReduceInsightStrategy).toBe("function");
     });
 
-    it("should implement ICompletionStrategy interface", () => {
+    it("should implement IInsightGenerationStrategy interface", () => {
       expect(strategy.generateInsights).toBeDefined();
       expect(typeof strategy.generateInsights).toBe("function");
     });
@@ -553,7 +553,7 @@ describe("MapReduceCompletionStrategy", () => {
           },
         },
       });
-      strategy = new MapReduceCompletionStrategy(mockLLMRouter);
+      strategy = new MapReduceInsightStrategy(mockLLMRouter);
 
       // Create long summary strings to force chunking
       const longSummary1 = "* file1.ts: " + "implementation ".repeat(50);
@@ -641,7 +641,7 @@ describe("MapReduceCompletionStrategy", () => {
           },
         },
       });
-      strategy = new MapReduceCompletionStrategy(mockLLMRouter);
+      strategy = new MapReduceInsightStrategy(mockLLMRouter);
 
       // Create long summary strings to force chunking
       const longSummary1 = "* file1.ts: " + "implementation ".repeat(50);
@@ -720,7 +720,7 @@ describe("MapReduceCompletionStrategy", () => {
           },
         },
       });
-      strategy = new MapReduceCompletionStrategy(mockLLMRouter);
+      strategy = new MapReduceInsightStrategy(mockLLMRouter);
 
       // Create long summary strings to force chunking
       const longSummary1 = "* file1.ts: " + "implementation ".repeat(50);
@@ -829,7 +829,7 @@ describe("MapReduceCompletionStrategy", () => {
           },
         },
       });
-      strategy = new MapReduceCompletionStrategy(mockLLMRouter);
+      strategy = new MapReduceInsightStrategy(mockLLMRouter);
 
       // Create long summary strings to force chunking
       const longSummary1 = "* file1.ts: " + "implementation ".repeat(50);

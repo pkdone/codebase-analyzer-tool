@@ -54,8 +54,8 @@ export const insightsTokens = {
   InsightsFromRawCodeGenerator: Symbol("InsightsFromRawCodeGenerator"),
   PromptFileInsightsGenerator: Symbol("PromptFileInsightsGenerator"),
   InsightsProcessorSelector: Symbol("InsightsProcessorSelector"),
-  SinglePassCompletionStrategy: Symbol("SinglePassCompletionStrategy"),
-  MapReduceCompletionStrategy: Symbol("MapReduceCompletionStrategy"),
+  SinglePassInsightStrategy: Symbol("SinglePassInsightStrategy"),
+  MapReduceInsightStrategy: Symbol("MapReduceInsightStrategy"),
 } as const;
 
 export type InsightsToken = keyof typeof insightsTokens;
@@ -87,9 +87,9 @@ export const reportingTokens = {
   AppReportGenerator: Symbol("AppReportGenerator"),
   BomDataProvider: Symbol("BomDataProvider"),
   CodeQualityDataProvider: Symbol("CodeQualityDataProvider"),
-  JobDataProvider: Symbol("JobDataProvider"),
+  ScheduledTaskDataProvider: Symbol("ScheduledTaskDataProvider"),
   ModuleCouplingDataProvider: Symbol("ModuleCouplingDataProvider"),
-  UiDataProvider: Symbol("UiDataProvider"),
+  ServerSideUiDataProvider: Symbol("ServerSideUiDataProvider"),
   IntegrationPointsDataProvider: Symbol("IntegrationPointsDataProvider"),
   ReportSection: Symbol("ReportSection"),
 } as const;

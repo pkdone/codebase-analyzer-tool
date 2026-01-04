@@ -60,7 +60,7 @@ export const CONCATENATION_REGEXES = Object.freeze({
 } as const);
 
 /**
- * Binary corruption pattern regex.
- * Matches binary corruption markers like <y_bin_XXX> that appear in LLM responses.
+ * LLM token artifact regex.
+ * Matches LLM token artifacts like <y_bin_XXX> that leak into LLM responses.
  */
-export const BINARY_CORRUPTION_REGEX = /<y_bin_\d+>/g;
+export const LLM_TOKEN_ARTIFACT_REGEX = /<y_bin_\d+>/g;

@@ -26,7 +26,7 @@ const TRIGGER_TYPE_PATTERNS: readonly TriggerTypePattern[] = [
 
 /**
  * Extracts the trigger type from a trigger string using data-driven pattern matching.
- * Exported for testability while also being used internally by JobDataProvider.
+ * Exported for testability while also being used internally by ScheduledTaskDataProvider.
  *
  * @param trigger - The trigger string to categorize (e.g., "cron: 0 2 * * *")
  * @returns The categorized trigger type (e.g., "cron", "manual", "scheduled")

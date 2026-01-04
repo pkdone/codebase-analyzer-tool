@@ -80,14 +80,14 @@ function parseInferredArchitectureData(data: unknown): InferredArchitectureInner
 
 /**
  * Wraps the validated inferred architecture data in an array for compatibility with
- * the categorizedData interface. The VisualizationsSection will use its own type guard
+ * the categorizedData interface. The ArchitectureAndDomainSection will use its own type guard
  * to validate the structure when extracting the data.
  */
 function wrapInferredArchitectureAsArray(
   validatedData: InferredArchitectureInner,
 ): InferredArchitectureInner[] {
   // The data is validated by Zod schema; we wrap it in an array for interface compatibility
-  // The consuming code (VisualizationsSection) validates this structure with its own type guard
+  // The consuming code (ArchitectureAndDomainSection) validates this structure with its own type guard
   return [validatedData];
 }
 
@@ -114,7 +114,7 @@ export class CategorizedSectionDataBuilder {
       const fieldData = appSummaryData[category];
 
       // Handle inferredArchitecture specially - it's an object, not an array
-      // Wrap it in an array so it can be processed by VisualizationsSection
+      // Wrap it in an array so it can be processed by ArchitectureAndDomainSection
       let data: CategorizedDataItem;
       if (category === "inferredArchitecture") {
         const parsedArchData = parseInferredArchitectureData(fieldData);

@@ -12,7 +12,7 @@ import { promptManager } from "../../../prompts/prompt-registry";
 import { AppSummaryCategories } from "../../../schemas/app-summaries.schema";
 import type { IInsightsProcessor } from "./insights-processor.interface";
 import { AppSummaryCategoryEnum } from "../insights.types";
-import type { ICompletionStrategy } from "../strategies/completion-strategy.interface";
+import type { IInsightGenerationStrategy } from "../strategies/completion-strategy.interface";
 import { chunkTextByTokenLimit } from "../../../../common/llm/utils/text-chunking";
 import { insightsTokens } from "../../../di/tokens";
 
@@ -36,10 +36,10 @@ export default class InsightsFromDBGenerator implements IInsightsProcessor {
     @inject(repositoryTokens.SourcesRepository)
     private readonly sourcesRepository: SourcesRepository,
     @inject(coreTokens.ProjectName) private readonly projectName: string,
-    @inject(insightsTokens.SinglePassCompletionStrategy)
-    private readonly singlePassStrategy: ICompletionStrategy,
-    @inject(insightsTokens.MapReduceCompletionStrategy)
-    private readonly mapReduceStrategy: ICompletionStrategy,
+    @inject(insightsTokens.SinglePassInsightStrategy)
+    private readonly singlePassStrategy: IInsightGenerationStrategy,
+    @inject(insightsTokens.MapReduceInsightStrategy)
+    private readonly mapReduceStrategy: IInsightGenerationStrategy,
   ) {
     this.llmProviderDescription = this.llmRouter.getModelsUsedDescription();
     // Get the token limit from the manifest for chunking calculations

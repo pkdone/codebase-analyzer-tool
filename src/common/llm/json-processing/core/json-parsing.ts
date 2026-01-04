@@ -6,7 +6,7 @@ import {
   removeComments,
   fixJsonStructure,
   unifiedSyntaxSanitizer,
-  fixBinaryCorruptionPatterns,
+  fixLlmTokenArtifacts,
   fixHeuristicJsonErrors,
   fixMalformedJsonPatterns,
   type Sanitizer,
@@ -62,7 +62,7 @@ export type ParseResult =
  *
  * Phase 6: Content Fixes
  *   Fixes content corruption
- *   - fixBinaryCorruptionPatterns: Fix binary corruption patterns (e.g., <y_bin_XXX> markers)
+ *   - fixLlmTokenArtifacts: Fix LLM token artifacts (e.g., <y_bin_XXX> markers)
  *
  * Each sanitizer only runs if it makes changes. Parsing is attempted after each step,
  * so earlier sanitizers have priority in fixing issues.
@@ -79,7 +79,7 @@ const SANITIZATION_PIPELINE_PHASES = [
   // Phase 5: Property & Value Fixes
   [fixJsonStructure, unifiedSyntaxSanitizer, fixHeuristicJsonErrors, fixMalformedJsonPatterns],
   // Phase 6: Content Fixes
-  [fixBinaryCorruptionPatterns],
+  [fixLlmTokenArtifacts],
 ] as const satisfies readonly (readonly Sanitizer[])[];
 
 /**

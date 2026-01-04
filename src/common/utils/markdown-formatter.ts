@@ -5,9 +5,10 @@ import path from "path";
  */
 
 /**
- * Interface for file-like objects that can be formatted as markdown code blocks.
+ * Interface for source file content that can be formatted as markdown code blocks.
+ * Represents a DTO containing file path, type, and content string.
  */
-export interface FileLike {
+export interface SourceFileContent {
   /** File path or relative path */
   filepath: string;
   /** File type/extension (e.g., 'ts', 'js', 'java') */
@@ -17,10 +18,10 @@ export interface FileLike {
 }
 
 /**
- * Formats an array of file-like objects into markdown code blocks.
+ * Formats an array of source file content objects into markdown code blocks.
  * Each file is wrapped in a code block with the appropriate language identifier.
  *
- * @param files - Array of file-like objects with filepath, type, and content
+ * @param files - Array of source file content objects with filepath, type, and content
  * @returns Formatted string with markdown code blocks for each file
  *
  * @example
@@ -32,15 +33,15 @@ export interface FileLike {
  * // Returns: "```ts\nexport const app = {};\n```\n\n"
  * ```
  */
-export function formatFilesAsMarkdownCodeBlocks(files: FileLike[]): string {
+export function formatFilesAsMarkdownCodeBlocks(files: SourceFileContent[]): string {
   return files.map((file) => `\`\`\`${file.type}\n${file.content}\n\`\`\`\n\n`).join("");
 }
 
 /**
- * Formats an array of file-like objects into markdown code blocks with filepath as header.
+ * Formats an array of source file content objects into markdown code blocks with filepath as header.
  * Each file is wrapped in a code block with the filepath as a comment/header.
  *
- * @param files - Array of file-like objects with filepath, type, and content
+ * @param files - Array of source file content objects with filepath, type, and content
  * @param baseDirPath - Optional base directory path for calculating relative paths
  * @returns Formatted string with markdown code blocks for each file
  *
@@ -54,7 +55,7 @@ export function formatFilesAsMarkdownCodeBlocks(files: FileLike[]): string {
  * ```
  */
 export function formatFilesAsMarkdownCodeBlocksWithPath(
-  files: FileLike[],
+  files: SourceFileContent[],
   baseDirPath?: string,
 ): string {
   return files

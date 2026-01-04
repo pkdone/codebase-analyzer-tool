@@ -25,11 +25,11 @@ type JspFileMetrics = UiTechnologyAnalysis["topScriptletFiles"][0];
 type RawJspFileMetrics = Omit<JspFileMetrics, "debtLevel" | "debtLevelClass">;
 
 /**
- * Data provider responsible for aggregating UI technology data including framework detection, JSP metrics, and tag library usage.
- * Analyzes JSP files for scriptlets and custom tags to measure technical debt.
+ * Data provider responsible for aggregating server-side UI technology data including framework detection, JSP metrics, and tag library usage.
+ * Analyzes server-side UI technologies (JSP, Struts, JSF, Spring MVC) for scriptlets and custom tags to measure technical debt.
  */
 @injectable()
-export class UiDataProvider {
+export class ServerSideUiDataProvider {
   constructor(
     @inject(repositoryTokens.SourcesRepository)
     private readonly sourcesRepository: SourcesRepository,
