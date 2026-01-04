@@ -1,0 +1,131 @@
+{
+  "frameworks": [
+    {
+      "name": "Sun Java BluePrints WAF",
+      "version": "Unknown",
+      "configFiles": [
+        "screen-definitions.xml"
+      ]
+    }
+  ],
+  "totalJspFiles": 98,
+  "totalScriptlets": 17,
+  "totalExpressions": 12,
+  "totalDeclarations": 0,
+  "averageScriptletsPerFile": 0.17346938775510204,
+  "filesWithHighScriptletCount": 1,
+  "customTagLibraries": [
+    {
+      "prefix": "c",
+      "uri": "/WEB-INF/c.tld",
+      "usageCount": 40
+    },
+    {
+      "prefix": "waf",
+      "uri": "/WEB-INF/waftags.tld",
+      "usageCount": 33
+    },
+    {
+      "prefix": "fmt",
+      "uri": "/WEB-INF/fmt.tld",
+      "usageCount": 12
+    },
+    {
+      "prefix": "template",
+      "uri": "/WEB-INF/template.tld",
+      "usageCount": 5
+    }
+  ],
+  "topScriptletFiles": [
+    {
+      "filePath": "src/apps/supplier/src/docroot/displayinventory.jsp",
+      "scriptletCount": 7,
+      "expressionCount": 4,
+      "declarationCount": 0,
+      "totalScriptletBlocks": 11,
+      "debtLevel": "High",
+      "debtLevelClass": "badge-warning"
+    },
+    {
+      "filePath": "src/apps/petstore/src/docroot/general_error.jsp",
+      "scriptletCount": 2,
+      "expressionCount": 2,
+      "declarationCount": 0,
+      "totalScriptletBlocks": 4,
+      "debtLevel": "Low",
+      "debtLevelClass": "badge-success"
+    },
+    {
+      "filePath": "src/apps/petstore/src/docroot/ja/general_error.jsp",
+      "scriptletCount": 2,
+      "expressionCount": 1,
+      "declarationCount": 0,
+      "totalScriptletBlocks": 3,
+      "debtLevel": "Low",
+      "debtLevelClass": "badge-success"
+    },
+    {
+      "filePath": "src/apps/petstore/src/docroot/zh/general_error.jsp",
+      "scriptletCount": 2,
+      "expressionCount": 1,
+      "declarationCount": 0,
+      "totalScriptletBlocks": 3,
+      "debtLevel": "Low",
+      "debtLevelClass": "badge-success"
+    },
+    {
+      "filePath": "src/apps/petstore/src/docroot/populating.jsp",
+      "scriptletCount": 0,
+      "expressionCount": 2,
+      "declarationCount": 0,
+      "totalScriptletBlocks": 2,
+      "debtLevel": "Low",
+      "debtLevelClass": "badge-success"
+    },
+    {
+      "filePath": "src/waf/src/docroot/clientstatetag_test.jsp",
+      "scriptletCount": 1,
+      "expressionCount": 0,
+      "declarationCount": 0,
+      "totalScriptletBlocks": 1,
+      "debtLevel": "Low",
+      "debtLevelClass": "badge-success"
+    },
+    {
+      "filePath": "src/apps/supplier/src/docroot/populating.jsp",
+      "scriptletCount": 0,
+      "expressionCount": 1,
+      "declarationCount": 0,
+      "totalScriptletBlocks": 1,
+      "debtLevel": "Low",
+      "debtLevelClass": "badge-success"
+    },
+    {
+      "filePath": "src/apps/supplier/src/docroot/logout.jsp",
+      "scriptletCount": 1,
+      "expressionCount": 0,
+      "declarationCount": 0,
+      "totalScriptletBlocks": 1,
+      "debtLevel": "Low",
+      "debtLevelClass": "badge-success"
+    },
+    {
+      "filePath": "src/apps/admin/src/docroot/logout.jsp",
+      "scriptletCount": 1,
+      "expressionCount": 0,
+      "declarationCount": 0,
+      "totalScriptletBlocks": 1,
+      "debtLevel": "Low",
+      "debtLevelClass": "badge-success"
+    },
+    {
+      "filePath": "src/waf/src/docroot/changelocalesuccess.jsp",
+      "scriptletCount": 0,
+      "expressionCount": 1,
+      "declarationCount": 0,
+      "totalScriptletBlocks": 1,
+      "debtLevel": "Low",
+      "debtLevelClass": "badge-success"
+    }
+  ]
+}

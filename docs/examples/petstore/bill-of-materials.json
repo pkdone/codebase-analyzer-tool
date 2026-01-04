@@ -1,0 +1,696 @@
+[
+  {
+    "name": "asyncsender-ejb-client.jar",
+    "groupId": "internal",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "compile"
+    ],
+    "locations": [
+      "src/apps/admin/src/build.xml"
+    ]
+  },
+  {
+    "name": "asyncsender-ejb-client.jar",
+    "groupId": "petstore.component",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "compile"
+    ],
+    "locations": [
+      "src/apps/petstore/src/build.xml"
+    ]
+  },
+  {
+    "name": "asyncsender-ejb.jar",
+    "groupId": "internal",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "runtime"
+    ],
+    "locations": [
+      "src/apps/admin/src/build.xml"
+    ]
+  },
+  {
+    "name": "base64.jar",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "compile"
+    ],
+    "locations": [
+      "src/waf/src/build.xml"
+    ]
+  },
+  {
+    "name": "cart-ejb-client.jar",
+    "groupId": "petstore.component",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "compile"
+    ],
+    "locations": [
+      "src/apps/petstore/src/build.xml"
+    ]
+  },
+  {
+    "name": "catalog-ejb-client.jar",
+    "groupId": "com.sun.j2ee.blueprints",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "compile"
+    ],
+    "locations": [
+      "src/components/cart/src/build.xml"
+    ]
+  },
+  {
+    "name": "catalog-ejb-client.jar",
+    "groupId": "petstore.component",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "compile"
+    ],
+    "locations": [
+      "src/apps/petstore/src/build.xml"
+    ]
+  },
+  {
+    "name": "contactinfo",
+    "groupId": "com.sun.j2ee.blueprints",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "compile"
+    ],
+    "locations": [
+      "src/components/customer/src/build.xml"
+    ]
+  },
+  {
+    "name": "creditcard",
+    "groupId": "com.sun.j2ee.blueprints",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "compile"
+    ],
+    "locations": [
+      "src/components/customer/src/build.xml"
+    ]
+  },
+  {
+    "name": "crimson.jar",
+    "groupId": "org.apache.crimson",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "runtime"
+    ],
+    "locations": [
+      "src/apps/admin/src/build.xml"
+    ]
+  },
+  {
+    "name": "customer-ejb-client.jar",
+    "groupId": "petstore.component",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "compile"
+    ],
+    "locations": [
+      "src/apps/petstore/src/build.xml"
+    ]
+  },
+  {
+    "name": "j2ee.jar",
+    "groupId": "javax.j2ee",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "compile"
+    ],
+    "locations": [
+      "src/components/address/src/build.xml",
+      "src/components/signon/src/build.xml",
+      "src/components/processmanager/src/build.xml",
+      "src/components/asyncsender/src/build.xml",
+      "src/components/catalog/src/build.xml",
+      "src/components/cart/src/build.xml",
+      "src/components/creditcard/src/build.xml",
+      "src/components/customer/src/build.xml",
+      "src/components/contactinfo/src/build.xml",
+      "src/components/purchaseorder/src/build.xml",
+      "src/apps/admin/src/build.xml"
+    ]
+  },
+  {
+    "name": "j2ee.jar",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "compile"
+    ],
+    "locations": [
+      "src/components/util/tracer/src/build.xml",
+      "src/components/encodingfilter/src/build.xml",
+      "src/components/servicelocator/src/build.xml",
+      "src/components/xmldocuments/src/build.xml",
+      "src/components/lineitem/src/build.xml",
+      "src/build.xml",
+      "src/components/supplierpo/src/build.xml",
+      "src/waf/src/build.xml",
+      "src/apps/supplier/src/build.xml"
+    ]
+  },
+  {
+    "name": "j2ee.jar",
+    "groupId": "Sun Microsystems",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "compile"
+    ],
+    "locations": [
+      "src/components/uidgen/src/build.xml"
+    ]
+  },
+  {
+    "name": "j2ee.jar",
+    "groupId": "sun.j2ee",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "compile"
+    ],
+    "locations": [
+      "src/components/mailer/src/build.xml",
+      "src/apps/petstore/src/build.xml"
+    ]
+  },
+  {
+    "name": "j2ee.jar",
+    "groupId": "com.sun.j2ee",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "compile"
+    ],
+    "locations": [
+      "src/apps/opc/src/build.xml"
+    ]
+  },
+  {
+    "name": "j2eetools.jar",
+    "groupId": "com.sun.j2ee",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "compile"
+    ],
+    "locations": [
+      "src/apps/opc/src/build.xml"
+    ]
+  },
+  {
+    "name": "j2eetools.jar",
+    "groupId": "javax.j2ee",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "compile"
+    ],
+    "locations": [
+      "src/apps/admin/src/build.xml"
+    ]
+  },
+  {
+    "name": "j2eetools.jar",
+    "groupId": "sun.j2ee",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "compile"
+    ],
+    "locations": [
+      "src/apps/petstore/src/build.xml"
+    ]
+  },
+  {
+    "name": "j2eetools.jar",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "compile"
+    ],
+    "locations": [
+      "src/apps/supplier/src/build.xml"
+    ]
+  },
+  {
+    "name": "jaxp.jar",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "runtime"
+    ],
+    "locations": [
+      "src/apps/admin/src/build.xml"
+    ]
+  },
+  {
+    "name": "jstl.jar",
+    "groupId": "javax.servlet.jsp.jstl",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "runtime"
+    ],
+    "locations": [
+      "src/apps/petstore/src/build.xml"
+    ]
+  },
+  {
+    "name": "locale",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "compile",
+      "runtime"
+    ],
+    "locations": [
+      "src/components/address/src/build.xml",
+      "src/components/encodingfilter/src/build.xml",
+      "src/components/servicelocator/src/build.xml",
+      "src/components/lineitem/src/build.xml",
+      "src/components/customer/src/build.xml",
+      "src/waf/src/build.xml"
+    ]
+  },
+  {
+    "name": "locale",
+    "groupId": "sun.j2ee",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "runtime"
+    ],
+    "locations": [
+      "src/components/mailer/src/build.xml"
+    ]
+  },
+  {
+    "name": "locale",
+    "groupId": "javax.j2ee",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "compile"
+    ],
+    "locations": [
+      "src/components/contactinfo/src/build.xml"
+    ]
+  },
+  {
+    "name": "mailer-ejb-client.jar",
+    "groupId": "com.sun.j2ee.blueprints",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "compile"
+    ],
+    "locations": [
+      "src/apps/opc/src/build.xml"
+    ]
+  },
+  {
+    "name": "opc-ejb-client.jar",
+    "groupId": "internal",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "compile"
+    ],
+    "locations": [
+      "src/apps/admin/src/build.xml"
+    ]
+  },
+  {
+    "name": "opc-ejb.jar",
+    "groupId": "internal",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "runtime"
+    ],
+    "locations": [
+      "src/apps/admin/src/build.xml"
+    ]
+  },
+  {
+    "name": "po-ejb-client.jar",
+    "groupId": "com.sun.j2ee.blueprints",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "compile"
+    ],
+    "locations": [
+      "src/apps/opc/src/build.xml"
+    ]
+  },
+  {
+    "name": "po-ejb-client.jar",
+    "groupId": "petstore.component",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "compile"
+    ],
+    "locations": [
+      "src/apps/petstore/src/build.xml"
+    ]
+  },
+  {
+    "name": "processmanager-ejb-client.jar",
+    "groupId": "com.sun.j2ee.blueprints",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "compile"
+    ],
+    "locations": [
+      "src/apps/opc/src/build.xml"
+    ]
+  },
+  {
+    "name": "processmanager-ejb-client.jar",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "compile"
+    ],
+    "locations": [
+      "src/apps/supplier/src/build.xml"
+    ]
+  },
+  {
+    "name": "servicelocator.jar",
+    "groupId": "com.sun.j2ee.blueprints",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "compile"
+    ],
+    "locations": [
+      "src/components/asyncsender/src/build.xml",
+      "src/apps/opc/src/build.xml"
+    ]
+  },
+  {
+    "name": "servicelocator.jar",
+    "groupId": "internal",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "compile"
+    ],
+    "locations": [
+      "src/components/catalog/src/build.xml",
+      "src/apps/admin/src/build.xml"
+    ]
+  },
+  {
+    "name": "servicelocator.jar",
+    "groupId": "contactinfo.components",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "compile"
+    ],
+    "locations": [
+      "src/components/contactinfo/src/build.xml"
+    ]
+  },
+  {
+    "name": "servicelocator.jar",
+    "groupId": "project.servicelocator",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "compile"
+    ],
+    "locations": [
+      "src/components/purchaseorder/src/build.xml"
+    ]
+  },
+  {
+    "name": "servicelocator.jar",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "compile"
+    ],
+    "locations": [
+      "src/components/supplierpo/src/build.xml",
+      "src/waf/src/build.xml",
+      "src/apps/supplier/src/build.xml"
+    ]
+  },
+  {
+    "name": "servicelocator.jar",
+    "groupId": "petstore.component",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "compile"
+    ],
+    "locations": [
+      "src/apps/petstore/src/build.xml"
+    ]
+  },
+  {
+    "name": "signon-ejb-client.jar",
+    "groupId": "petstore.component",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "compile"
+    ],
+    "locations": [
+      "src/apps/petstore/src/build.xml"
+    ]
+  },
+  {
+    "name": "standard.jar",
+    "groupId": "javax.servlet.jsp.jstl",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "runtime"
+    ],
+    "locations": [
+      "src/apps/petstore/src/build.xml"
+    ]
+  },
+  {
+    "name": "supplierpo-ejb-client.jar",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "compile"
+    ],
+    "locations": [
+      "src/apps/supplier/src/build.xml"
+    ]
+  },
+  {
+    "name": "tracer.jar",
+    "groupId": "internal",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "compile"
+    ],
+    "locations": [
+      "src/components/catalog/src/build.xml"
+    ]
+  },
+  {
+    "name": "tracer.jar",
+    "groupId": "com.sun.j2ee.blueprints",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "compile"
+    ],
+    "locations": [
+      "src/components/cart/src/build.xml"
+    ]
+  },
+  {
+    "name": "tracer.jar",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "compile"
+    ],
+    "locations": [
+      "src/waf/src/build.xml"
+    ]
+  },
+  {
+    "name": "tracer.jar",
+    "groupId": "petstore.component",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "compile"
+    ],
+    "locations": [
+      "src/apps/petstore/src/build.xml"
+    ]
+  },
+  {
+    "name": "uidgen-ejb-client.jar",
+    "groupId": "petstore.component",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "compile"
+    ],
+    "locations": [
+      "src/apps/petstore/src/build.xml"
+    ]
+  },
+  {
+    "name": "waf-ejb.jar",
+    "groupId": "petstore.component",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "compile"
+    ],
+    "locations": [
+      "src/apps/petstore/src/build.xml"
+    ]
+  },
+  {
+    "name": "waf-web.jar",
+    "groupId": "petstore.component",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "runtime"
+    ],
+    "locations": [
+      "src/apps/petstore/src/build.xml"
+    ]
+  },
+  {
+    "name": "xmldocuments.jar",
+    "groupId": "com.sun.j2ee.blueprints",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "compile"
+    ],
+    "locations": [
+      "src/components/address/src/build.xml",
+      "src/apps/opc/src/build.xml",
+      "src/components/creditcard/src/build.xml"
+    ]
+  },
+  {
+    "name": "xmldocuments.jar",
+    "groupId": "lineitem",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "compile"
+    ],
+    "locations": [
+      "src/components/lineitem/src/build.xml"
+    ]
+  },
+  {
+    "name": "xmldocuments.jar",
+    "groupId": "xmldocuments",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "compile"
+    ],
+    "locations": [
+      "src/components/mailer/src/build.xml"
+    ]
+  },
+  {
+    "name": "xmldocuments.jar",
+    "groupId": "contactinfo.components",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "compile"
+    ],
+    "locations": [
+      "src/components/contactinfo/src/build.xml"
+    ]
+  },
+  {
+    "name": "xmldocuments.jar",
+    "groupId": "project.xmldocuments",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "compile"
+    ],
+    "locations": [
+      "src/components/purchaseorder/src/build.xml"
+    ]
+  },
+  {
+    "name": "xmldocuments.jar",
+    "groupId": "internal",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "compile"
+    ],
+    "locations": [
+      "src/apps/admin/src/build.xml"
+    ]
+  },
+  {
+    "name": "xmldocuments.jar",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "compile"
+    ],
+    "locations": [
+      "src/components/supplierpo/src/build.xml",
+      "src/apps/supplier/src/build.xml"
+    ]
+  },
+  {
+    "name": "xmldocuments.jar",
+    "groupId": "petstore.component",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "compile"
+    ],
+    "locations": [
+      "src/apps/petstore/src/build.xml"
+    ]
+  }
+]

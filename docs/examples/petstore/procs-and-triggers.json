@@ -1,0 +1,128 @@
+{
+  "procs": {
+    "total": 9,
+    "low": 5,
+    "medium": 4,
+    "high": 0,
+    "list": [
+      {
+        "path": "dbstuff/cursor-for-loop-optimization.sql",
+        "type": "STORED PROCEDURE",
+        "name": "test_cursor_performance",
+        "functionName": "test_cursor_performance",
+        "complexity": "MEDIUM",
+        "complexityReason": "Contains internal sub-procedures, dynamic cursor handling, bulk collection logic, and case switching for different execution paths.",
+        "linesOfCode": 76,
+        "purpose": "Benchmarks cursor iteration performance by generating dummy data and iterating through it using implicit loops, explicit fetches, or bulk collects. It measures and prints the execution time for the selected method. It is designed to show the impact of compiler optimization levels."
+      },
+      {
+        "path": "dbstuff/cursor-for-loop.sql",
+        "type": "STORED PROCEDURE",
+        "name": "emps_pkg",
+        "functionName": "emps_pkg",
+        "complexity": "LOW",
+        "complexityReason": "The package consists primarily of declarative cursor definitions and simple SQL queries without complex procedural logic.",
+        "linesOfCode": 18,
+        "purpose": "A PL/SQL package that defines a reusable cursor for the employees table, demonstrating how to declare cursors in a package specification and optionally hide the query implementation in the package body."
+      },
+      {
+        "path": "dbstuff/cursors-in-plsql.sql",
+        "type": "STORED PROCEDURE",
+        "name": "show_common_names",
+        "functionName": "show_common_names",
+        "complexity": "MEDIUM",
+        "complexityReason": "It utilizes the DBMS_SQL package which requires manual parsing, column definition, and fetching, making it more verbose than standard SQL.",
+        "linesOfCode": 19,
+        "purpose": "Dynamically queries a specified table to retrieve and print the 'common_name' column using the DBMS_SQL package."
+      },
+      {
+        "path": "dbstuff/cursors-in-plsql.sql",
+        "type": "STORED PROCEDURE",
+        "name": "refcursor_pkg.filtered_species_cv",
+        "functionName": "refcursor_pkg.filtered_species_cv",
+        "complexity": "LOW",
+        "complexityReason": "Contains simple conditional logic to open a cursor with or without a WHERE clause.",
+        "linesOfCode": 13,
+        "purpose": "Returns a strongly typed REF CURSOR containing species data, optionally filtered by a search string."
+      },
+      {
+        "path": "dbstuff/cursors-in-plsql.sql",
+        "type": "STORED PROCEDURE",
+        "name": "refcursor_pkg.data_from_any_query_cv",
+        "functionName": "refcursor_pkg.data_from_any_query_cv",
+        "complexity": "LOW",
+        "complexityReason": "Consists of a single OPEN-FOR statement using a dynamic string.",
+        "linesOfCode": 7,
+        "purpose": "Returns a weakly typed REF CURSOR based on any dynamic SQL query string provided as an argument."
+      },
+      {
+        "path": "dbstuff/cursors-in-plsql.sql",
+        "type": "STORED PROCEDURE",
+        "name": "refcursor_pkg.data_from_any_query_cv2",
+        "functionName": "refcursor_pkg.data_from_any_query_cv2",
+        "complexity": "LOW",
+        "complexityReason": "Consists of a single OPEN-FOR statement using the standard SYS_REFCURSOR type.",
+        "linesOfCode": 7,
+        "purpose": "Returns a SYS_REFCURSOR based on a dynamic query string, utilizing the built-in system cursor type."
+      },
+      {
+        "path": "dbstuff/forall-bulk-rowcount.sql",
+        "type": "STORED PROCEDURE",
+        "name": "put_in_table",
+        "functionName": "put_in_table",
+        "complexity": "MEDIUM",
+        "complexityReason": "Uses autonomous transactions, dynamic SQL for both DDL and DML, and bulk binding.",
+        "linesOfCode": 26,
+        "purpose": "A helper procedure designed to log a collection of IDs into a database table. It handles the creation of the target table dynamically and ensures the data is committed independently of the main transaction."
+      },
+      {
+        "path": "dbstuff/forall-inserts-comparison.sql",
+        "type": "STORED PROCEDURE",
+        "name": "compare_inserting",
+        "functionName": "compare_inserting",
+        "complexity": "MEDIUM",
+        "complexityReason": "The procedure utilizes advanced PL/SQL features such as bulk binding (FORALL), dynamic SQL, custom object types, and nested table manipulations.",
+        "linesOfCode": 103,
+        "purpose": "This procedure runs a series of performance tests to compare different methods of inserting data into a database table. It populates in-memory collections with dummy data and then times the execution of row-by-row inserts, bulk inserts, and SQL-based inserts. It outputs the elapsed CPU time for each method to the console to facilitate performance analysis."
+      },
+      {
+        "path": "dbstuff/trigger-predicates.sql",
+        "type": "STORED PROCEDURE",
+        "name": "show_trigger_event",
+        "functionName": "show_trigger_event",
+        "complexity": "LOW",
+        "complexityReason": "It consists of a single CASE statement to check boolean predicates and print a string.",
+        "linesOfCode": 11,
+        "purpose": "This utility procedure determines the context in which it was called by checking Oracle conditional predicates (INSERTING, UPDATING, DELETING). It outputs the type of DML operation occurring to the console via DBMS_OUTPUT. It also handles cases where it is called outside of a trigger context."
+      }
+    ]
+  },
+  "trigs": {
+    "total": 2,
+    "low": 2,
+    "medium": 0,
+    "high": 0,
+    "list": [
+      {
+        "path": "dbstuff/trigger-predicates.sql",
+        "type": "TRIGGER",
+        "name": "employee_changes_after",
+        "functionName": "employee_changes_after",
+        "complexity": "LOW",
+        "complexityReason": "The trigger body contains a single line of code calling a stored procedure.",
+        "linesOfCode": 5,
+        "purpose": "This trigger fires after any INSERT or UPDATE operation is performed on the employees table. It calls the shared utility procedure to log the specific event type."
+      },
+      {
+        "path": "dbstuff/trigger-predicates.sql",
+        "type": "TRIGGER",
+        "name": "employee_changes_before",
+        "functionName": "employee_changes_before",
+        "complexity": "LOW",
+        "complexityReason": "The trigger body contains a single line of code calling a stored procedure.",
+        "linesOfCode": 5,
+        "purpose": "This trigger fires before any DELETE operation is performed on the employees table. It calls the shared utility procedure to log the specific event type."
+      }
+    ]
+  }
+}

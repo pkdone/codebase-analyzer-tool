@@ -1,0 +1,78 @@
+[
+  {
+    "name": "Customer Shopping and Checkout",
+    "description": "The process where a user browses the catalog, manages a shopping cart, and places an order.",
+    "keyBusinessActivities": [
+      {
+        "activity": "Catalog Browsing",
+        "description": "User views categories, products, and specific items with details."
+      },
+      {
+        "activity": "Cart Management",
+        "description": "User adds items to the shopping cart, updates quantities, or removes items."
+      },
+      {
+        "activity": "User Authentication",
+        "description": "User signs in or creates a new account to proceed with checkout."
+      },
+      {
+        "activity": "Order Placement",
+        "description": "User confirms shipping and billing information and submits the order, generating a unique Order ID."
+      }
+    ]
+  },
+  {
+    "name": "Order Fulfillment (OPC)",
+    "description": "The asynchronous workflow managed by the Order Processing Center to validate, approve, and ship orders.",
+    "keyBusinessActivities": [
+      {
+        "activity": "Order Ingestion",
+        "description": "The system receives the new order via JMS and persists it as a pending order."
+      },
+      {
+        "activity": "Order Approval",
+        "description": "Orders are checked against business rules (e.g., credit limits); small orders are auto-approved, larger ones require manual admin approval."
+      },
+      {
+        "activity": "Supplier Coordination",
+        "description": "Approved orders are converted to XML and sent to the Supplier via JMS for fulfillment."
+      },
+      {
+        "activity": "Invoice Processing",
+        "description": "The system receives an invoice from the supplier indicating shipment and updates the local order status."
+      }
+    ]
+  },
+  {
+    "name": "Supplier Inventory Management",
+    "description": "The B2B process where the supplier receives orders and manages inventory.",
+    "keyBusinessActivities": [
+      {
+        "activity": "Order Reception",
+        "description": "Supplier receives a purchase order XML message."
+      },
+      {
+        "activity": "Inventory Check",
+        "description": "System checks stock levels and decrements inventory if items are available."
+      },
+      {
+        "activity": "Shipment Notification",
+        "description": "Supplier generates an invoice XML and sends it back to the OPC to confirm shipment."
+      }
+    ]
+  },
+  {
+    "name": "Administration",
+    "description": "Back-office management of the system by an administrator.",
+    "keyBusinessActivities": [
+      {
+        "activity": "Order Review",
+        "description": "Administrator views pending orders and manually approves or denies them."
+      },
+      {
+        "activity": "Sales Analysis",
+        "description": "Administrator views charts and statistics regarding sales revenue and order volume."
+      }
+    ]
+  }
+]

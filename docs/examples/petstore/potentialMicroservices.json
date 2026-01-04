@@ -1,0 +1,174 @@
+[
+  {
+    "name": "Catalog Service",
+    "description": "A read-heavy service responsible for managing and serving product, category, and item data. It would replace the CatalogEJB and DAO layers, providing a RESTful interface for the storefront to browse and search for pets.",
+    "entities": [
+      {
+        "name": "Product",
+        "description": "A specific type of pet available for sale.",
+        "attributes": [
+          "productId",
+          "categoryId",
+          "name",
+          "description",
+          "image"
+        ]
+      },
+      {
+        "name": "Item",
+        "description": "A specific SKU of a product with pricing.",
+        "attributes": [
+          "itemId",
+          "productId",
+          "listPrice",
+          "unitCost",
+          "status"
+        ]
+      }
+    ],
+    "endpoints": [
+      {
+        "path": "/categories",
+        "method": "GET",
+        "description": "List all product categories."
+      },
+      {
+        "path": "/products",
+        "method": "GET",
+        "description": "List products, optionally filtered by category."
+      },
+      {
+        "path": "/items/{itemId}",
+        "method": "GET",
+        "description": "Get details for a specific item."
+      }
+    ],
+    "operations": [
+      {
+        "operation": "Search Items",
+        "method": "GET",
+        "description": "Search for items based on keywords."
+      }
+    ]
+  },
+  {
+    "name": "Order Service",
+    "description": "Manages the lifecycle of customer orders. It handles order creation, persistence, and status updates. It would replace the PurchaseOrderEJB and related MDBs, potentially using an event bus for asynchronous processing.",
+    "entities": [
+      {
+        "name": "Order",
+        "description": "The primary record of a transaction.",
+        "attributes": [
+          "orderId",
+          "userId",
+          "orderDate",
+          "totalPrice",
+          "status"
+        ]
+      }
+    ],
+    "endpoints": [
+      {
+        "path": "/orders",
+        "method": "POST",
+        "description": "Create a new order."
+      },
+      {
+        "path": "/orders/{orderId}",
+        "method": "GET",
+        "description": "Retrieve order details."
+      }
+    ],
+    "operations": [
+      {
+        "operation": "Create Order",
+        "method": "POST",
+        "description": "Submit a new order from the shopping cart."
+      },
+      {
+        "operation": "Update Order Status",
+        "method": "PATCH",
+        "description": "Update the status (e.g., Approved, Shipped) of an order."
+      }
+    ]
+  },
+  {
+    "name": "Customer Service",
+    "description": "Manages user accounts, profiles, and authentication. It replaces the Customer, Account, and SignOn EJBs.",
+    "entities": [
+      {
+        "name": "Customer",
+        "description": "The user account information.",
+        "attributes": [
+          "userId",
+          "email",
+          "firstName",
+          "lastName"
+        ]
+      },
+      {
+        "name": "Address",
+        "description": "Shipping or billing address.",
+        "attributes": [
+          "street",
+          "city",
+          "state",
+          "zip",
+          "country"
+        ]
+      }
+    ],
+    "endpoints": [
+      {
+        "path": "/customers/{userId}",
+        "method": "GET",
+        "description": "Get customer profile."
+      },
+      {
+        "path": "/customers",
+        "method": "POST",
+        "description": "Register a new customer."
+      }
+    ],
+    "operations": [
+      {
+        "operation": "Authenticate",
+        "method": "POST",
+        "description": "Verify user credentials."
+      }
+    ]
+  },
+  {
+    "name": "Inventory Service",
+    "description": "Manages stock levels and supplier interactions. It replaces the Supplier module and Inventory EJB.",
+    "entities": [
+      {
+        "name": "InventoryItem",
+        "description": "Stock level for a specific item.",
+        "attributes": [
+          "itemId",
+          "quantity"
+        ]
+      }
+    ],
+    "endpoints": [
+      {
+        "path": "/inventory/{itemId}",
+        "method": "GET",
+        "description": "Get current stock level."
+      },
+      {
+        "path": "/inventory/{itemId}",
+        "method": "PATCH",
+        "description": "Update stock level (deduct or restock)."
+      }
+    ],
+    "operations": [
+      {
+        "operation": "Check Availability",
+        "method": "GET",
+        "description": "Check if an item is in stock."
+      }
+    ]
+  }
+]

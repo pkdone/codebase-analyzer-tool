@@ -1,0 +1,30 @@
+[
+  {
+    "name": "Java 2 Platform, Enterprise Edition (J2EE) 1.3",
+    "description": "The core platform for the application, utilizing EJB 2.0, Servlet 2.3, and JSP 1.2 specifications. It provides the container services for transaction management, security, and concurrency."
+  },
+  {
+    "name": "Enterprise JavaBeans (EJB)",
+    "description": "Used extensively for the business logic layer. Includes Stateless and Stateful Session Beans for workflow, Entity Beans (CMP) for persistence, and Message-Driven Beans (MDB) for asynchronous messaging."
+  },
+  {
+    "name": "Java Message Service (JMS)",
+    "description": "Provides the asynchronous messaging backbone. It is used to decouple the Pet Store front-end from the OPC and the OPC from the Supplier, using Queues and Topics for reliable data transfer."
+  },
+  {
+    "name": "XML and XSLT",
+    "description": "Used for B2B data exchange between the OPC and Supplier. Orders and Invoices are serialized to XML, and XSLT is used for transforming XML data for presentation (e.g., email content)."
+  },
+  {
+    "name": "Ant",
+    "description": "The build tool used for compiling the application, packaging EAR/WAR/JAR files, and deploying the application to the J2EE server."
+  },
+  {
+    "name": "Cloudscape / Oracle",
+    "description": "The relational database management systems supported for data persistence. The application includes SQL scripts and DAO implementations for both platforms."
+  },
+  {
+    "name": "Java Swing",
+    "description": "Used to build the rich-client Administration application, which communicates with the server via HTTP tunneling (XML over HTTP)."
+  }
+]

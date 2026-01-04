@@ -1,0 +1,274 @@
+{
+  "couplings": [
+    {
+      "fromModule": "src/apps",
+      "toModule": "com.sun",
+      "referenceCount": 583,
+      "couplingLevel": "Very High",
+      "couplingLevelClass": "badge-danger"
+    },
+    {
+      "fromModule": "src/components",
+      "toModule": "com.sun",
+      "referenceCount": 226,
+      "couplingLevel": "Medium",
+      "couplingLevelClass": "badge-warning"
+    },
+    {
+      "fromModule": "src/waf",
+      "toModule": "com.sun",
+      "referenceCount": 124,
+      "couplingLevel": "Medium",
+      "couplingLevelClass": "badge-warning"
+    },
+    {
+      "fromModule": "src/apps",
+      "toModule": "customer.account",
+      "referenceCount": 16,
+      "couplingLevel": "Low",
+      "couplingLevelClass": "badge-success"
+    },
+    {
+      "fromModule": "src/apps",
+      "toModule": "WEB-INF/c.tld",
+      "referenceCount": 12,
+      "couplingLevel": "Low",
+      "couplingLevelClass": "badge-success"
+    },
+    {
+      "fromModule": "src/apps",
+      "toModule": "WEB-INF/waftags.tld",
+      "referenceCount": 12,
+      "couplingLevel": "Low",
+      "couplingLevelClass": "badge-success"
+    },
+    {
+      "fromModule": "src/waf",
+      "toModule": "WEB-INF/waftags.tld",
+      "referenceCount": 7,
+      "couplingLevel": "Low",
+      "couplingLevelClass": "badge-success"
+    },
+    {
+      "fromModule": "src/apps",
+      "toModule": "customer.profile",
+      "referenceCount": 4,
+      "couplingLevel": "Low",
+      "couplingLevelClass": "badge-success"
+    },
+    {
+      "fromModule": "src/apps",
+      "toModule": "cart.do",
+      "referenceCount": 3,
+      "couplingLevel": "Low",
+      "couplingLevelClass": "badge-success"
+    },
+    {
+      "fromModule": "src/apps",
+      "toModule": "customer.do",
+      "referenceCount": 3,
+      "couplingLevel": "Low",
+      "couplingLevelClass": "badge-success"
+    },
+    {
+      "fromModule": "src/apps",
+      "toModule": "order.do",
+      "referenceCount": 3,
+      "couplingLevel": "Low",
+      "couplingLevelClass": "badge-success"
+    },
+    {
+      "fromModule": "src/apps",
+      "toModule": "WEB-INF/fmt.tld",
+      "referenceCount": 3,
+      "couplingLevel": "Low",
+      "couplingLevelClass": "badge-success"
+    },
+    {
+      "fromModule": "src/apps",
+      "toModule": "WEB-INF/template.tld",
+      "referenceCount": 3,
+      "couplingLevel": "Low",
+      "couplingLevelClass": "badge-success"
+    },
+    {
+      "fromModule": "src/apps",
+      "toModule": "enter_order_information.screen",
+      "referenceCount": 2,
+      "couplingLevel": "Low",
+      "couplingLevelClass": "badge-success"
+    },
+    {
+      "fromModule": "src/apps",
+      "toModule": "item.screen",
+      "referenceCount": 2,
+      "couplingLevel": "Low",
+      "couplingLevelClass": "badge-success"
+    },
+    {
+      "fromModule": "src/apps",
+      "toModule": "update_customer.screen",
+      "referenceCount": 2,
+      "couplingLevel": "Low",
+      "couplingLevelClass": "badge-success"
+    },
+    {
+      "fromModule": "src/apps",
+      "toModule": "admin/AdminRequestProcessor",
+      "referenceCount": 1,
+      "couplingLevel": "Low",
+      "couplingLevelClass": "badge-success"
+    },
+    {
+      "fromModule": "src/apps",
+      "toModule": "cart.count",
+      "referenceCount": 1,
+      "couplingLevel": "Low",
+      "couplingLevelClass": "badge-success"
+    },
+    {
+      "fromModule": "src/apps",
+      "toModule": "cart.items",
+      "referenceCount": 1,
+      "couplingLevel": "Low",
+      "couplingLevelClass": "badge-success"
+    },
+    {
+      "fromModule": "src/apps",
+      "toModule": "cart.subTotal",
+      "referenceCount": 1,
+      "couplingLevel": "Low",
+      "couplingLevelClass": "badge-success"
+    },
+    {
+      "fromModule": "src/apps",
+      "toModule": "changelocale.do",
+      "referenceCount": 1,
+      "couplingLevel": "Low",
+      "couplingLevelClass": "badge-success"
+    },
+    {
+      "fromModule": "src/apps",
+      "toModule": "index.html",
+      "referenceCount": 1,
+      "couplingLevel": "Low",
+      "couplingLevelClass": "badge-success"
+    },
+    {
+      "fromModule": "src/apps",
+      "toModule": "item.attribute",
+      "referenceCount": 1,
+      "couplingLevel": "Low",
+      "couplingLevelClass": "badge-success"
+    },
+    {
+      "fromModule": "src/apps",
+      "toModule": "item.itemId",
+      "referenceCount": 1,
+      "couplingLevel": "Low",
+      "couplingLevelClass": "badge-success"
+    },
+    {
+      "fromModule": "src/apps",
+      "toModule": "item.name",
+      "referenceCount": 1,
+      "couplingLevel": "Low",
+      "couplingLevelClass": "badge-success"
+    },
+    {
+      "fromModule": "src/apps",
+      "toModule": "item.quantity",
+      "referenceCount": 1,
+      "couplingLevel": "Low",
+      "couplingLevelClass": "badge-success"
+    },
+    {
+      "fromModule": "src/apps",
+      "toModule": "item.unitCost",
+      "referenceCount": 1,
+      "couplingLevel": "Low",
+      "couplingLevelClass": "badge-success"
+    },
+    {
+      "fromModule": "src/apps",
+      "toModule": "main.screen",
+      "referenceCount": 1,
+      "couplingLevel": "Low",
+      "couplingLevelClass": "badge-success"
+    },
+    {
+      "fromModule": "src/apps",
+      "toModule": "petstore/main.screen",
+      "referenceCount": 1,
+      "couplingLevel": "Low",
+      "couplingLevelClass": "badge-success"
+    },
+    {
+      "fromModule": "src/apps",
+      "toModule": "search.screen",
+      "referenceCount": 1,
+      "couplingLevel": "Low",
+      "couplingLevelClass": "badge-success"
+    },
+    {
+      "fromModule": "src/apps",
+      "toModule": "signoff.do",
+      "referenceCount": 1,
+      "couplingLevel": "Low",
+      "couplingLevelClass": "badge-success"
+    },
+    {
+      "fromModule": "src/apps",
+      "toModule": "signon_welcome.screen",
+      "referenceCount": 1,
+      "couplingLevel": "Low",
+      "couplingLevelClass": "badge-success"
+    },
+    {
+      "fromModule": "src/apps",
+      "toModule": "signon.screen",
+      "referenceCount": 1,
+      "couplingLevel": "Low",
+      "couplingLevelClass": "badge-success"
+    },
+    {
+      "fromModule": "src/apps",
+      "toModule": "supplier/populating.jsp",
+      "referenceCount": 1,
+      "couplingLevel": "Low",
+      "couplingLevelClass": "badge-success"
+    },
+    {
+      "fromModule": "src/waf",
+      "toModule": "clientstatetag_test.screen",
+      "referenceCount": 1,
+      "couplingLevel": "Low",
+      "couplingLevelClass": "badge-success"
+    },
+    {
+      "fromModule": "src/waf",
+      "toModule": "formtag.screen",
+      "referenceCount": 1,
+      "couplingLevel": "Low",
+      "couplingLevelClass": "badge-success"
+    },
+    {
+      "fromModule": "src/waf",
+      "toModule": "images/clientstate.jpg",
+      "referenceCount": 1,
+      "couplingLevel": "Low",
+      "couplingLevelClass": "badge-success"
+    },
+    {
+      "fromModule": "src/waf",
+      "toModule": "inputtag.screen",
+      "referenceCount": 1,
+      "couplingLevel": "Low",
+      "couplingLevelClass": "badge-success"
+    }
+  ],
+  "totalModules": 38,
+  "totalCouplings": 38,
+  "highestCouplingCount": 583,
+  "moduleDepth": 2
+}

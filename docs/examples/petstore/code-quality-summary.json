@@ -1,0 +1,188 @@
+{
+  "topComplexFunctions": [
+    {
+      "complexity": 22,
+      "functionName": "com.sun.j2ee.blueprints.waf.view.template.TemplateServlet::process",
+      "filePath": "src/waf/src/view/template/com/sun/j2ee/blueprints/waf/view/template/TemplateServlet.java",
+      "linesOfCode": 82,
+      "codeSmells": [
+        "LONG METHOD",
+        "COMPLEX CONDITIONAL",
+        "DEEP NESTING"
+      ]
+    },
+    {
+      "complexity": 22,
+      "functionName": "com.sun.j2ee.blueprints.admin.client.TableSorter::compareRowsByColumn",
+      "filePath": "src/apps/admin/src/client/com/sun/j2ee/blueprints/admin/client/TableSorter.java",
+      "linesOfCode": 68,
+      "codeSmells": [
+        "COMPLEX CONDITIONAL",
+        "LONG METHOD"
+      ]
+    },
+    {
+      "complexity": 21,
+      "functionName": "com.sun.j2ee.blueprints.waf.controller.web.URLMappingsXmlDAO::getRequestMappings",
+      "filePath": "src/waf/src/controller/com/sun/j2ee/blueprints/waf/controller/web/URLMappingsXmlDAO.java",
+      "linesOfCode": 75,
+      "codeSmells": [
+        "LONG METHOD",
+        "DEEP NESTING",
+        "COMPLEX CONDITIONAL"
+      ]
+    },
+    {
+      "complexity": 16,
+      "functionName": "com.sun.j2ee.blueprints.waf.view.taglibs.smart::doEndTag",
+      "filePath": "src/waf/src/view/taglibs/com/sun/j2ee/blueprints/taglibs/smart/ClientStateTag.java",
+      "linesOfCode": 92,
+      "codeSmells": [
+        "LONG METHOD",
+        "DEEP NESTING",
+        "COMPLEX CONDITIONAL"
+      ]
+    },
+    {
+      "complexity": 14,
+      "functionName": "com.sun.j2ee.blueprints.catalog.dao.CloudscapeCatalogDAO::searchItems",
+      "filePath": "src/components/catalog/src/com/sun/j2ee/blueprints/catalog/dao/CloudscapeCatalogDAO.java",
+      "linesOfCode": 65,
+      "codeSmells": [
+        "LONG METHOD",
+        "COMPLEX CONDITIONAL",
+        "DUPLICATE CODE",
+        "MAGIC NUMBERS"
+      ]
+    },
+    {
+      "complexity": 13,
+      "functionName": "com.sun.j2ee.blueprints.supplier.inventory.web::doPost",
+      "filePath": "src/apps/supplier/src/com/sun/j2ee/blueprints/supplier/inventory/web/RcvrRequestProcessor.java",
+      "linesOfCode": 36,
+      "codeSmells": [
+        "COMPLEX CONDITIONAL",
+        "MAGIC NUMBERS",
+        "LONG METHOD"
+      ]
+    },
+    {
+      "complexity": 13,
+      "functionName": "com.sun.j2ee.blueprints.opc.admin.ejb::getChartInfo",
+      "filePath": "src/apps/opc/src/com/sun/j2ee/blueprints/opc/admin/ejb/OPCAdminFacadeEJB.java",
+      "linesOfCode": 56,
+      "codeSmells": [
+        "LONG METHOD",
+        "DEEP NESTING",
+        "COMPLEX CONDITIONAL",
+        "DUPLICATE CODE"
+      ]
+    },
+    {
+      "complexity": 13,
+      "functionName": "com.sun.j2ee.blueprints.petstore.tools.populate::startElement",
+      "filePath": "src/apps/petstore/src/com/sun/j2ee/blueprints/petstore/tools/populate/XMLDBHandler.java",
+      "linesOfCode": 36,
+      "codeSmells": [
+        "COMPLEX CONDITIONAL",
+        "LONG METHOD"
+      ]
+    },
+    {
+      "complexity": 12,
+      "functionName": "com.sun.j2ee.blueprints.supplier.tools.populate.XMLDBHandler::startElement",
+      "filePath": "src/apps/supplier/src/com/sun/j2ee/blueprints/supplier/tools/populate/XMLDBHandler.java",
+      "linesOfCode": 30,
+      "codeSmells": [
+        "COMPLEX CONDITIONAL",
+        "LONG METHOD"
+      ]
+    },
+    {
+      "complexity": 10,
+      "functionName": "com.sun.j2ee.blueprints.opc.customerrelations.ejb.LocaleUtil::getLocaleFromString",
+      "filePath": "src/apps/opc/src/com/sun/j2ee/blueprints/opc/customerrelations/ejb/LocaleUtil.java",
+      "linesOfCode": 22,
+      "codeSmells": [
+        "COMPLEX CONDITIONAL",
+        "DEAD CODE",
+        "MAGIC NUMBERS"
+      ]
+    }
+  ],
+  "commonCodeSmells": [
+    {
+      "occurrences": 39,
+      "smellType": "OTHER",
+      "affectedFiles": 31
+    },
+    {
+      "occurrences": 37,
+      "smellType": "DATA CLASS",
+      "affectedFiles": 37
+    },
+    {
+      "occurrences": 18,
+      "smellType": "MAGIC NUMBERS",
+      "affectedFiles": 18
+    },
+    {
+      "occurrences": 14,
+      "smellType": "COMPLEX CONDITIONAL",
+      "affectedFiles": 14
+    },
+    {
+      "occurrences": 13,
+      "smellType": "LONG PARAMETER LIST",
+      "affectedFiles": 13
+    },
+    {
+      "occurrences": 13,
+      "smellType": "LONG METHOD",
+      "affectedFiles": 13
+    },
+    {
+      "occurrences": 12,
+      "smellType": "DUPLICATE CODE",
+      "affectedFiles": 12
+    },
+    {
+      "occurrences": 12,
+      "smellType": "TOO MANY METHODS",
+      "affectedFiles": 12
+    },
+    {
+      "occurrences": 6,
+      "smellType": "DEEP NESTING",
+      "affectedFiles": 6
+    },
+    {
+      "occurrences": 4,
+      "smellType": "DEAD CODE",
+      "affectedFiles": 4
+    },
+    {
+      "occurrences": 2,
+      "smellType": "FEATURE ENVY",
+      "affectedFiles": 2
+    },
+    {
+      "occurrences": 2,
+      "smellType": "INVALID",
+      "affectedFiles": 2
+    },
+    {
+      "occurrences": 1,
+      "smellType": "LARGE FILE",
+      "affectedFiles": 1
+    }
+  ],
+  "overallStatistics": {
+    "totalFunctions": 1500,
+    "highComplexityCount": 9,
+    "veryHighComplexityCount": 3,
+    "longFunctionCount": 7,
+    "averageComplexity": 1.63,
+    "averageFunctionLength": 4.9
+  }
+}

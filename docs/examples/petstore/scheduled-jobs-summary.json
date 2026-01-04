@@ -1,0 +1,331 @@
+{
+  "jobs": [
+    {
+      "jobName": "Ant Build Execution",
+      "sourceFile": "src/apps/admin/src/build.bat",
+      "trigger": "manual",
+      "purpose": "Executes the Apache Ant build system with a pre-configured classpath and system properties tailored for the 'estore' J2EE application. It acts as the primary entry point for compiling, packaging, and managing the application lifecycle.",
+      "inputResources": [
+        "JAVA_HOME environment variable",
+        "J2EE_HOME environment variable",
+        "Ant libraries (ant.jar, xml.jar)",
+        "Java tools (tools.jar)",
+        "J2EE libraries (j2ee.jar)",
+        "build.xml (implicit Ant configuration)"
+      ],
+      "outputResources": [
+        "Compiled Java classes",
+        "Javadocs",
+        "Build artifacts (likely WAR or EAR files)"
+      ],
+      "dependencies": [
+        "Java SDK",
+        "J2EE SDK",
+        "Apache Ant"
+      ]
+    },
+    {
+      "jobName": "Ant Build Execution",
+      "sourceFile": "src/build.bat",
+      "trigger": "manual",
+      "purpose": "Configures the Java classpath with J2EE and Ant dependencies and launches the Apache Ant build tool to process build targets.",
+      "inputResources": [
+        "Environment Variable: JAVA_HOME",
+        "Environment Variable: J2EE_HOME",
+        "File: ./lib/ant/lib/ant.jar",
+        "File: ./lib/ant/lib/jaxp.jar",
+        "File: ./lib/ant/lib/parser.jar",
+        "File: %J2EE_HOME%/lib/j2ee.jar"
+      ],
+      "outputResources": [
+        "Process: org.apache.tools.ant.Main"
+      ],
+      "dependencies": [
+        "Java SDK",
+        "J2EE SDK",
+        "Apache Ant Libraries"
+      ]
+    },
+    {
+      "jobName": "Ant Build Wrapper",
+      "sourceFile": "src/waf/src/build.bat",
+      "trigger": "Manual",
+      "purpose": "Sets up the Java classpath including J2EE and Ant libraries and executes the Apache Ant Main class to perform build tasks.",
+      "inputResources": [
+        "../../lib/ant",
+        "%JAVA_HOME%/lib/tools.jar",
+        "%J2EE_HOME%/lib/j2ee.jar"
+      ],
+      "outputResources": [
+        "Build Artifacts (determined by build.xml)"
+      ],
+      "dependencies": [
+        "JAVA_HOME environment variable",
+        "J2EE_HOME environment variable",
+        "Apache Ant libraries"
+      ]
+    },
+    {
+      "jobName": "Ant Setup Build",
+      "sourceFile": "setup.bat",
+      "trigger": "manual",
+      "purpose": "Initiates the Apache Ant build process using the configuration defined in setup.xml, typically used to compile, package, or configure the J2EE application.",
+      "inputResources": [
+        "setup.xml",
+        "src/lib/ant/lib/ant.jar",
+        "src/lib/ant/lib/parser.jar",
+        "src/lib/ant/lib/jaxp.jar",
+        "%JAVA_HOME%/lib/tools.jar",
+        "%J2EE_HOME%/lib/j2ee.jar"
+      ],
+      "outputResources": [
+        "Build artifacts (determined by setup.xml targets)"
+      ],
+      "dependencies": [
+        "Java Development Kit (JAVA_HOME)",
+        "J2EE SDK (J2EE_HOME)",
+        "Apache Ant libraries"
+      ]
+    },
+    {
+      "jobName": "build.sh",
+      "sourceFile": "src/apps/petstore/src/build.sh",
+      "trigger": "manual",
+      "purpose": "Initiates the Apache Ant build process for the application, handling environment setup and classpath configuration automatically.",
+      "inputResources": [
+        "JAVA_HOME environment variable",
+        "J2EE_HOME environment variable",
+        "Ant libraries (ant.jar, parser.jar, jaxp.jar)",
+        "J2EE libraries (j2ee.jar)",
+        "Project source code (implied by Ant execution)"
+      ],
+      "outputResources": [
+        "Compiled Java classes",
+        "Build artifacts (likely JAR, WAR, or EAR files)"
+      ],
+      "dependencies": [
+        "Java Development Kit (JDK)",
+        "J2EE SDK",
+        "Apache Ant"
+      ]
+    },
+    {
+      "jobName": "build.sh",
+      "sourceFile": "src/apps/admin/src/build.sh",
+      "trigger": "manual",
+      "purpose": "Wraps the Apache Ant execution to compile, build, and potentially package the J2EE application (referenced as 'estore').",
+      "inputResources": [
+        "JAVA_HOME environment variable",
+        "J2EE_HOME environment variable",
+        "../../../lib/ant (Ant libraries)",
+        "Source code (implied by Ant execution)"
+      ],
+      "outputResources": [
+        "Compiled Java classes",
+        "J2EE Archives (WAR/EAR files)",
+        "Javadoc documentation"
+      ],
+      "dependencies": [
+        "Java SDK",
+        "J2EE SDK",
+        "Apache Ant"
+      ]
+    },
+    {
+      "jobName": "build.sh",
+      "sourceFile": "src/build.sh",
+      "trigger": "manual",
+      "purpose": "Initializes the environment and executes the Apache Ant build tool to compile and package the J2EE application.",
+      "inputResources": [
+        "JAVA_HOME environment variable",
+        "J2EE_HOME environment variable",
+        "lib/ant/lib/ant.jar",
+        "lib/ant/lib/jaxp.jar",
+        "lib/ant/lib/parser.jar",
+        "$J2EE_HOME/lib/j2ee.jar",
+        "$JAVA_HOME/lib/tools.jar"
+      ],
+      "outputResources": [
+        "Ant Build Artifacts (determined by build.xml targets)"
+      ],
+      "dependencies": [
+        "Java SDK",
+        "J2EE SDK",
+        "Apache Ant (embedded in lib/ant)"
+      ]
+    },
+    {
+      "jobName": "build.sh",
+      "sourceFile": "src/waf/src/build.sh",
+      "trigger": "manual",
+      "purpose": "Initializes the environment and executes the Apache Ant build process for a J2EE application.",
+      "inputResources": [
+        "JAVA_HOME environment variable",
+        "J2EE_HOME environment variable",
+        "../../lib/ant (Ant libraries)",
+        "build.xml (implied Ant default)"
+      ],
+      "outputResources": [
+        "Compiled Java classes",
+        "J2EE archives (WAR/EAR/JAR)"
+      ],
+      "dependencies": [
+        "Java SDK",
+        "J2EE SDK",
+        "Apache Ant"
+      ]
+    },
+    {
+      "jobName": "build.sh",
+      "sourceFile": "src/apps/opc/src/build.sh",
+      "trigger": "manual",
+      "purpose": "Initializes the environment and executes the Apache Ant build system to compile and package the application.",
+      "inputResources": [
+        "JAVA_HOME environment variable",
+        "J2EE_HOME environment variable",
+        "../../../lib/ant/lib/ant.jar",
+        "../../../lib/ant/lib/xml.jar",
+        "$J2EE_HOME/lib/j2ee.jar"
+      ],
+      "outputResources": [
+        "Ant Build Process"
+      ],
+      "dependencies": [
+        "java",
+        "ant",
+        "j2ee-sdk"
+      ]
+    },
+    {
+      "jobName": "build.sh",
+      "sourceFile": "src/apps/supplier/src/build.sh",
+      "trigger": "manual",
+      "purpose": "Initializes the environment and executes the Apache Ant build process for the application.",
+      "inputResources": [
+        "JAVA_HOME environment variable",
+        "J2EE_HOME environment variable",
+        "../../../lib/ant/lib/ant.jar",
+        "$JAVA_HOME/lib/tools.jar",
+        "$J2EE_HOME/lib/j2ee.jar"
+      ],
+      "outputResources": [
+        "Ant build artifacts (compiled classes, JARs, WARs)",
+        "Console build logs"
+      ],
+      "dependencies": [
+        "Java Development Kit (JDK)",
+        "J2EE SDK",
+        "Apache Ant"
+      ]
+    },
+    {
+      "jobName": "J2EE Ant Build Launcher",
+      "sourceFile": "src/apps/petstore/src/build.bat",
+      "trigger": "manual",
+      "purpose": "Configures the Java classpath and system properties to launch the Apache Ant build tool for a J2EE project.",
+      "inputResources": [
+        "Environment Variable: JAVA_HOME",
+        "Environment Variable: J2EE_HOME",
+        "File: ../../../lib/ant/lib/ant.jar",
+        "File: ../../../lib/ant/lib/xml.jar",
+        "File: %JAVA_HOME%/lib/tools.jar",
+        "File: %J2EE_HOME%/lib/j2ee.jar"
+      ],
+      "outputResources": [
+        "Ant Build Artifacts (dependent on build.xml targets)"
+      ],
+      "dependencies": [
+        "Java Runtime Environment",
+        "Apache Ant",
+        "J2EE SDK"
+      ]
+    },
+    {
+      "jobName": "J2EE Ant Build Launcher",
+      "sourceFile": "src/apps/supplier/src/build.bat",
+      "trigger": "manual",
+      "purpose": "Configures the Java classpath with J2EE and Ant libraries, then executes the Apache Ant Main class to perform build operations defined in an associated build.xml file.",
+      "inputResources": [
+        "JAVA_HOME environment variable",
+        "J2EE_HOME environment variable",
+        "../../../lib/ant/lib/ant.jar",
+        "lib/j2ee.jar",
+        "Command line arguments (%1 %2 %3 %4)"
+      ],
+      "outputResources": [
+        "Java Process (Ant Build)",
+        "Console Output"
+      ],
+      "dependencies": [
+        "Java SDK (tools.jar)",
+        "Apache Ant",
+        "J2EE SDK"
+      ]
+    },
+    {
+      "jobName": "J2EE Ant Build Wrapper",
+      "sourceFile": "src/apps/opc/src/build.bat",
+      "trigger": "manual",
+      "purpose": "Invokes the Apache Ant build system with a pre-configured classpath that includes J2EE and Java tool dependencies to compile and package the application.",
+      "inputResources": [
+        "JAVA_HOME environment variable",
+        "J2EE_HOME environment variable",
+        "../../../lib/ant (Ant libraries)",
+        "build.xml (implicit Ant input)"
+      ],
+      "outputResources": [
+        "Console output (Build logs)",
+        "Compiled Java classes",
+        "J2EE Artifacts (WAR/EAR/JAR files)"
+      ],
+      "dependencies": [
+        "Java Development Kit (JDK)",
+        "J2EE SDK",
+        "Apache Ant"
+      ]
+    },
+    {
+      "jobName": "setup.sh",
+      "sourceFile": "setup.sh",
+      "trigger": "manual",
+      "purpose": "Initiates the application setup or build process by configuring the environment and invoking the Apache Ant build tool with the 'setup.xml' file.",
+      "inputResources": [
+        "setup.xml",
+        "JAVA_HOME environment variable",
+        "J2EE_HOME environment variable",
+        "./src/lib/ant or ./lib/ant directory",
+        "tools.jar",
+        "j2ee.jar"
+      ],
+      "outputResources": [
+        "Console output (classpath echo)",
+        "Ant build artifacts (defined in setup.xml)"
+      ],
+      "dependencies": [
+        "Java Runtime Environment",
+        "J2EE SDK",
+        "Apache Ant libraries"
+      ]
+    }
+  ],
+  "totalJobs": 14,
+  "triggerTypes": [
+    "manual"
+  ],
+  "jobFiles": [
+    "src/apps/admin/src/build.bat",
+    "setup.bat",
+    "src/apps/opc/src/build.bat",
+    "src/build.bat",
+    "src/apps/petstore/src/build.bat",
+    "src/apps/supplier/src/build.bat",
+    "src/waf/src/build.bat",
+    "setup.sh",
+    "src/apps/petstore/src/build.sh",
+    "src/apps/admin/src/build.sh",
+    "src/build.sh",
+    "src/waf/src/build.sh",
+    "src/apps/opc/src/build.sh",
+    "src/apps/supplier/src/build.sh"
+  ]
+}

@@ -1,0 +1,126 @@
+[
+  {
+    "internalComponents": [
+      {
+        "name": "Catalog Manager",
+        "description": "Responsible for retrieving and searching product information. It abstracts the data access logic (DAO) and provides product details to the presentation layer."
+      },
+      {
+        "name": "Shopping Cart Manager",
+        "description": "Manages the temporary state of a user's shopping session. It handles adding/removing items and calculating subtotals before an order is placed."
+      },
+      {
+        "name": "Customer Account Manager",
+        "description": "Handles user registration, authentication (SignOn), and profile management (Contact Info, Credit Card, Preferences)."
+      },
+      {
+        "name": "Order Manager",
+        "description": "Handles the creation and persistence of customer orders. It initiates the fulfillment workflow by sending order data to the processing center."
+      },
+      {
+        "name": "Order Processing Center (OPC)",
+        "description": "The core workflow engine that manages the lifecycle of an order. It handles order approval (manual or automatic), coordinates with suppliers, and tracks order status."
+      },
+      {
+        "name": "Supplier Manager",
+        "description": "Simulates an external B2B partner. It receives purchase orders from the OPC, checks inventory, and sends back invoices/shipment notifications."
+      },
+      {
+        "name": "Notification Service",
+        "description": "Responsible for generating and sending emails to customers regarding order status updates (Received, Approved, Shipped)."
+      },
+      {
+        "name": "Administration Manager",
+        "description": "Provides capabilities for administrators to view sales statistics and manually approve or deny pending orders."
+      },
+      {
+        "name": "Unique ID Generator",
+        "description": "A utility component responsible for generating unique primary keys for orders and other entities."
+      }
+    ],
+    "externalDependencies": [
+      {
+        "name": "Cloudscape/Oracle Database",
+        "type": "Database",
+        "description": "Stores persistent data for Catalog, Customers, Orders, and Inventory."
+      },
+      {
+        "name": "JMS Provider",
+        "type": "Message Queue",
+        "description": "Handles asynchronous messaging between the Pet Store, OPC, and Supplier components (Queues and Topics)."
+      },
+      {
+        "name": "JavaMail Service",
+        "type": "External API",
+        "description": "Used by the Notification Service to send SMTP emails to customers."
+      }
+    ],
+    "dependencies": [
+      {
+        "from": "Shopping Cart Manager",
+        "to": "Catalog Manager",
+        "description": "Retrieves item details for cart display."
+      },
+      {
+        "from": "Order Manager",
+        "to": "Customer Account Manager",
+        "description": "Retrieves customer billing and shipping info for the order."
+      },
+      {
+        "from": "Order Manager",
+        "to": "Unique ID Generator",
+        "description": "Requests new IDs for orders."
+      },
+      {
+        "from": "Order Manager",
+        "to": "JMS Provider",
+        "description": "Sends new orders to the OPC queue."
+      },
+      {
+        "from": "Order Processing Center (OPC)",
+        "to": "JMS Provider",
+        "description": "Consumes orders, sends supplier requests, and receives invoices."
+      },
+      {
+        "from": "Order Processing Center (OPC)",
+        "to": "Cloudscape/Oracle Database",
+        "description": "Persists workflow state and order status."
+      },
+      {
+        "from": "Supplier Manager",
+        "to": "JMS Provider",
+        "description": "Receives POs and sends Invoices."
+      },
+      {
+        "from": "Supplier Manager",
+        "to": "Cloudscape/Oracle Database",
+        "description": "Manages inventory data."
+      },
+      {
+        "from": "Notification Service",
+        "to": "JMS Provider",
+        "description": "Listens for order status events."
+      },
+      {
+        "from": "Notification Service",
+        "to": "JavaMail Service",
+        "description": "Sends emails."
+      },
+      {
+        "from": "Administration Manager",
+        "to": "Order Processing Center (OPC)",
+        "description": "Queries order status and updates approval state."
+      },
+      {
+        "from": "Catalog Manager",
+        "to": "Cloudscape/Oracle Database",
+        "description": "Reads product data."
+      },
+      {
+        "from": "Customer Account Manager",
+        "to": "Cloudscape/Oracle Database",
+        "description": "Persists user data."
+      }
+    ]
+  }
+]

@@ -1,0 +1,122 @@
+[
+  {
+    "name": "Catalog Context",
+    "description": "Manages the product information, categories, and specific items available for sale. It provides browsing and searching capabilities.",
+    "aggregates": [
+      {
+        "name": "Catalog",
+        "description": "The root aggregate for browsing products. It provides read-only access to product data.",
+        "repository": {
+          "name": "CatalogDAO",
+          "description": "Provides data access to catalog tables, supporting both direct JDBC (Fast Lane Reader) and EJB access."
+        },
+        "entities": [
+          {
+            "name": "Category",
+            "description": "Represents a grouping of products (e.g., Birds, Dogs)."
+          },
+          {
+            "name": "Product",
+            "description": "Represents a specific type of animal (e.g., Golden Retriever)."
+          },
+          {
+            "name": "Item",
+            "description": "Represents a specific stock keeping unit (SKU) with a price and specific attributes."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Customer Context",
+    "description": "Handles user identity, authentication, and profile management.",
+    "aggregates": [
+      {
+        "name": "Customer",
+        "description": "Represents the registered user and their associated data.",
+        "repository": {
+          "name": "CustomerLocalHome",
+          "description": "Manages the persistence of Customer entity beans."
+        },
+        "entities": [
+          {
+            "name": "Account",
+            "description": "Holds account status and links to contact info."
+          },
+          {
+            "name": "ContactInfo",
+            "description": "Stores address, email, and phone number."
+          },
+          {
+            "name": "CreditCard",
+            "description": "Stores payment information."
+          },
+          {
+            "name": "Profile",
+            "description": "Stores user preferences like language and favorite category."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Order Context",
+    "description": "Manages the lifecycle of a customer's purchase order within the Pet Store front-end.",
+    "aggregates": [
+      {
+        "name": "PurchaseOrder",
+        "description": "Represents a placed order containing all billing, shipping, and item details.",
+        "repository": {
+          "name": "PurchaseOrderLocalHome",
+          "description": "Manages the persistence of PurchaseOrder entity beans."
+        },
+        "entities": [
+          {
+            "name": "LineItem",
+            "description": "Represents a specific item and quantity within an order."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Fulfillment Context",
+    "description": "Manages the backend processing of orders, including workflow state and supplier interaction.",
+    "aggregates": [
+      {
+        "name": "ProcessManager",
+        "description": "Tracks the state of an order through the fulfillment workflow (Pending, Approved, Completed).",
+        "repository": {
+          "name": "ManagerLocalHome",
+          "description": "Persists the state of order processing managers."
+        },
+        "entities": [
+          {
+            "name": "Manager",
+            "description": "Represents the workflow state for a specific order ID."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Supplier Context",
+    "description": "Manages the supplier's view of orders and inventory.",
+    "aggregates": [
+      {
+        "name": "SupplierOrder",
+        "description": "Represents an order received by the supplier from the OPC.",
+        "repository": {
+          "name": "SupplierOrderLocalHome",
+          "description": "Persists supplier orders."
+        },
+        "entities": [
+          {
+            "name": "Inventory",
+            "description": "Tracks stock levels for items."
+          }
+        ]
+      }
+    ]
+  }
+]

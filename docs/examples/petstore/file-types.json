@@ -1,0 +1,86 @@
+[
+  {
+    "_id": "java",
+    "lines": 34137,
+    "files": 283,
+    "fileType": "java"
+  },
+  {
+    "_id": "jsp",
+    "lines": 10794,
+    "files": 98,
+    "fileType": "jsp"
+  },
+  {
+    "_id": "xml",
+    "lines": 19227,
+    "files": 75,
+    "fileType": "xml"
+  },
+  {
+    "_id": "dtd",
+    "lines": 1589,
+    "files": 31,
+    "fileType": "dtd"
+  },
+  {
+    "_id": "xsl",
+    "lines": 541,
+    "files": 13,
+    "fileType": "xsl"
+  },
+  {
+    "_id": "tld",
+    "lines": 3061,
+    "files": 12,
+    "fileType": "tld"
+  },
+  {
+    "_id": "mf",
+    "lines": 39,
+    "files": 11,
+    "fileType": "mf"
+  },
+  {
+    "_id": "html",
+    "lines": 292,
+    "files": 9,
+    "fileType": "html"
+  },
+  {
+    "_id": "sql",
+    "lines": 1177,
+    "files": 7,
+    "fileType": "sql"
+  },
+  {
+    "_id": "sh",
+    "lines": 475,
+    "files": 7,
+    "fileType": "sh"
+  },
+  {
+    "_id": "bat",
+    "lines": 307,
+    "files": 7,
+    "fileType": "bat"
+  },
+  {
+    "_id": "properties",
+    "lines": 241,
+    "files": 7,
+    "fileType": "properties"
+  },
+  {
+    "_id": "xsd",
+    "lines": 103,
+    "files": 3,
+    "fileType": "xsd"
+  },
+  {
+    "_id": "",
+    "lines": 96,
+    "files": 2,
+    "fileType": ""
+  }
+]
