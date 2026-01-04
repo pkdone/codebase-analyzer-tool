@@ -1,0 +1,62 @@
+[
+  {
+    "name": "*.jar (JBoss Core Libraries)",
+    "groupId": "jboss.home/lib",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "provided"
+    ],
+    "locations": [
+      "backend/build.xml"
+    ]
+  },
+  {
+    "name": "*.jar (JBoss Server Libraries)",
+    "groupId": "jboss.home/server/default/lib",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "provided"
+    ],
+    "locations": [
+      "backend/build.xml"
+    ]
+  },
+  {
+    "name": "*.jar (Local Project Libraries)",
+    "groupId": "lib.dir",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "compile"
+    ],
+    "locations": [
+      "backend/build.xml"
+    ]
+  },
+  {
+    "name": "jsp-api.jar",
+    "groupId": "javax.servlet.jsp",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "provided"
+    ],
+    "locations": [
+      "backend/build.xml"
+    ]
+  },
+  {
+    "name": "servlet-api.jar",
+    "groupId": "javax.servlet",
+    "versions": [],
+    "hasConflict": false,
+    "scopes": [
+      "provided"
+    ],
+    "locations": [
+      "backend/build.xml"
+    ]
+  }
+]

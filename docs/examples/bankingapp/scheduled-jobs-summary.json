@@ -1,0 +1,370 @@
+{
+  "jobs": [
+    {
+      "jobName": "capture_query_log.sh",
+      "sourceFile": "database/capture_query_log.sh",
+      "trigger": "manual",
+      "purpose": "Runs a banking simulation against a Dockerized Oracle database and scrapes the executed SQL queries from the database cache to create an analysis log.",
+      "inputResources": [
+        "simulate_banking_operations.sql",
+        "Oracle Database (Docker container)",
+        "v$sql (Oracle System View)"
+      ],
+      "outputResources": [
+        "query_log.sql"
+      ],
+      "dependencies": [
+        "docker-compose",
+        "sqlplus",
+        "simulate_banking_operations.sql"
+      ]
+    },
+    {
+      "jobName": "check_all_tables.sh",
+      "sourceFile": "database/check_all_tables.sh",
+      "trigger": "manual",
+      "purpose": "Connects to the Oracle database to print sample records, row counts, and ID ranges for all major banking tables (branches, employees, customers, accounts, transactions, loans, cards, payments) to the console for debugging purposes.",
+      "inputResources": [
+        "Oracle Database",
+        "Table: branches",
+        "Table: employees",
+        "Table: customers",
+        "Table: accounts",
+        "Table: transactions",
+        "Table: loans",
+        "Table: cards",
+        "Table: payments"
+      ],
+      "outputResources": [
+        "Console Output (Standard Output)"
+      ],
+      "dependencies": [
+        "sqlplus",
+        "Docker (optional)",
+        "legacy-bank-oracle container"
+      ]
+    },
+    {
+      "jobName": "Daily Interest Calculation Batch Job",
+      "sourceFile": "batch/daily_interest.sh",
+      "trigger": "Scheduled (Daily implied by header comments)",
+      "purpose": "Calculates daily interest for all banking accounts by invoking a database stored procedure and committing the results.",
+      "inputResources": [
+        "Oracle Database (Connection)",
+        "interest_calculation.calculate_daily_interest (Stored Procedure)"
+      ],
+      "outputResources": [
+        "/var/log/legacybank/daily_interest.log",
+        "Oracle Database (Data Updates)"
+      ],
+      "dependencies": [
+        "sqlplus (Oracle Client)",
+        "Oracle Database Instance"
+      ]
+    },
+    {
+      "jobName": "End of Day Processing",
+      "sourceFile": "batch/eod_processing.sh",
+      "trigger": "Scheduled (End of Day)",
+      "purpose": "Executes the nightly financial close process, including transaction finalization, balance reconciliation, and reporting.",
+      "inputResources": [
+        "Oracle Database (transactions table)",
+        "Oracle Database (accounts table)"
+      ],
+      "outputResources": [
+        "Oracle Database (updated transaction statuses)",
+        "Oracle Database (updated account balances)",
+        "/var/log/legacybank/eod_processing.log",
+        "/var/log/legacybank/eod_summary_YYYYMMDD.txt"
+      ],
+      "dependencies": [
+        "sqlplus",
+        "Oracle Database Instance"
+      ]
+    },
+    {
+      "jobName": "javac_wrapper_execution",
+      "sourceFile": "docker/javac-wrapper.sh",
+      "trigger": "event-driven",
+      "purpose": "This process is triggered whenever a build system or JSP container invokes the 'javac' command. It wraps the standard compilation process to inject the 'rt.jar' dependency into the classpath to prevent 'CharSequence' resolution errors.",
+      "inputResources": [
+        "Java Source Files",
+        "rt.jar",
+        "JAVA_HOME environment variable"
+      ],
+      "outputResources": [
+        "Compiled Java Bytecode (.class files)"
+      ],
+      "dependencies": [
+        "/opt/java/openjdk/bin/javac",
+        "/usr/lib/jvm/java-8-openjdk-amd64/bin/javac"
+      ]
+    },
+    {
+      "jobName": "JBoss Startup Process",
+      "sourceFile": "docker/run-jboss.sh",
+      "trigger": "manual",
+      "purpose": "Initializes the Java environment with specific legacy compatibility fixes, cleans JSP caches, and launches the JBoss application server.",
+      "inputResources": [
+        "/usr/lib/jvm/java-8-openjdk-amd64",
+        "/opt/jboss/server/default/lib/rt.jar",
+        "/opt/jboss/bin/javac"
+      ],
+      "outputResources": [
+        "/opt/jboss/server/default/tmp",
+        "/opt/jboss/server/default/work",
+        "/opt/jboss/server/default/data"
+      ],
+      "dependencies": [
+        "/opt/jboss/bin/run.sh"
+      ]
+    },
+    {
+      "jobName": "Monthly Statement Generation Batch Job",
+      "sourceFile": "batch/statement_generation.sh",
+      "trigger": "scheduled",
+      "purpose": "Generates text-based monthly account statements for all active customers containing their address, account summary, and a list of transactions for the previous month.",
+      "inputResources": [
+        "Oracle Database",
+        "Table: accounts",
+        "Table: customers",
+        "Table: transactions"
+      ],
+      "outputResources": [
+        "Directory: /var/statements/legacybank",
+        "Files: statement_{account_number}_{YYYYMM}.txt",
+        "Log: /var/log/legacybank/statement_generation.log"
+      ],
+      "dependencies": [
+        "sqlplus",
+        "Oracle Database Connection",
+        "UTL_FILE package permissions"
+      ]
+    },
+    {
+      "jobName": "Oracle Database Initialization",
+      "sourceFile": "database/init/01_init_schema.sh",
+      "trigger": "event-driven (container startup)",
+      "purpose": "Initializes the Oracle database by creating the 'legacybank' user, applying schema definitions (tables, constraints), compiling stored procedures, and loading sample data.",
+      "inputResources": [
+        "01_tables.sql",
+        "02_constraints.sql",
+        "03_indexes.sql",
+        "04_triggers.sql",
+        "05_supplemental_logging.sql",
+        "account_management.pkg",
+        "transaction_processing.pkg",
+        "loan_processing.pkg",
+        "interest_calculation.pkg",
+        "reload_all_data.sql"
+      ],
+      "outputResources": [
+        "Oracle User 'legacybank'",
+        "Database Tables (customers, accounts, transactions, loans)",
+        "Stored Procedures",
+        "Database Schema"
+      ],
+      "dependencies": [
+        "Oracle Database Instance (XEPDB1)",
+        "sqlplus utility",
+        "sysdba credentials"
+      ]
+    },
+    {
+      "jobName": "Oracle Database Setup",
+      "sourceFile": "database/init/00_setup.sh",
+      "trigger": "Container Startup (Event-driven)",
+      "purpose": "Initializes the Legacy Banking Application schema by waiting for the database to stabilize and then executing the specific schema initialization script.",
+      "inputResources": [
+        "/opt/oracle/scripts/setup/init/01_init_schema.sh"
+      ],
+      "outputResources": [
+        "Oracle Database Schema"
+      ],
+      "dependencies": [
+        "/opt/oracle/scripts/setup/init/01_init_schema.sh",
+        "Oracle Database Service"
+      ]
+    },
+    {
+      "jobName": "prepare_for_spda.sh",
+      "sourceFile": "database/prepare_for_spda.sh",
+      "trigger": "manual",
+      "purpose": "Reorganizes legacy database source files into an SPDA-compatible folder structure by splitting monolithic SQL files and renaming packages.",
+      "inputResources": [
+        "${SCRIPT_DIR}/procedures/*.pkg",
+        "${SCRIPT_DIR}/schema/01_tables.sql",
+        "${SCRIPT_DIR}/schema/04_triggers.sql"
+      ],
+      "outputResources": [
+        "${SCRIPT_DIR}/spda/LEGACYBANK/packages/*.sql",
+        "${SCRIPT_DIR}/spda/LEGACYBANK/tables/*.sql",
+        "${SCRIPT_DIR}/spda/LEGACYBANK/triggers/*.sql"
+      ],
+      "dependencies": [
+        "bash",
+        "sed",
+        "grep",
+        "tr"
+      ]
+    },
+    {
+      "jobName": "rebuild_and_redeploy.sh",
+      "sourceFile": "rebuild_and_redeploy.sh",
+      "trigger": "manual",
+      "purpose": "Orchestrates the full rebuild and redeployment cycle for the legacy-bank application, including database procedure updates, Java compilation, and JBoss server restart/cache clearing.",
+      "inputResources": [
+        "backend/ source code",
+        "database/recompile_procedures.sh",
+        "docker/docker-compose.yml"
+      ],
+      "outputResources": [
+        "dist/legacy-bank.war",
+        "http://localhost:8080/legacy-bank/",
+        "JBoss server logs"
+      ],
+      "dependencies": [
+        "docker",
+        "docker-compose",
+        "ant",
+        "curl/wget/nc",
+        "database/recompile_procedures.sh"
+      ]
+    },
+    {
+      "jobName": "recompile_procedures.sh",
+      "sourceFile": "database/recompile_procedures.sh",
+      "trigger": "manual",
+      "purpose": "Iterates through a predefined list of Oracle stored procedure packages and a triggers file to recompile them in the target database.",
+      "inputResources": [
+        "database/procedures/account_management.pkg",
+        "database/procedures/transaction_processing.pkg",
+        "database/procedures/loan_processing.pkg",
+        "database/procedures/interest_calculation.pkg",
+        "database/schema/04_triggers.sql"
+      ],
+      "outputResources": [
+        "Oracle Database (Stored Procedures)",
+        "Oracle Database (Triggers)"
+      ],
+      "dependencies": [
+        "sqlplus",
+        "docker",
+        "legacy-bank-oracle container"
+      ]
+    },
+    {
+      "jobName": "reload_all_data.sh",
+      "sourceFile": "database/data/reload_all_data.sh",
+      "trigger": "manual",
+      "purpose": "Clears existing database data and reloads fresh sample data by executing an external SQL script.",
+      "inputResources": [
+        "database/data/reload_all_data.sql",
+        "User Input (Credentials)"
+      ],
+      "outputResources": [
+        "Oracle Database (legacy-bank-oracle)"
+      ],
+      "dependencies": [
+        "docker",
+        "sqlplus",
+        "reload_all_data.sql"
+      ]
+    },
+    {
+      "jobName": "show_test_ids.sh",
+      "sourceFile": "database/show_test_ids.sh",
+      "trigger": "manual",
+      "purpose": "Displays test data entities (Branches, Employees, Customers, Accounts, Loans, Cards) either from static text or a live Oracle database to assist with testing.",
+      "inputResources": [
+        "Oracle Database",
+        "Environment Variables (ORACLE_USER, ORACLE_PASSWORD, ORACLE_HOST, ORACLE_PORT, ORACLE_SERVICE)"
+      ],
+      "outputResources": [
+        "Console Output (Formatted Text Tables)"
+      ],
+      "dependencies": [
+        "bash",
+        "sqlplus"
+      ]
+    },
+    {
+      "jobName": "test_stored_procedures.sh",
+      "sourceFile": "database/validation/test_stored_procedures.sh",
+      "trigger": "manual",
+      "purpose": "Executes the `test_stored_procedures.sql` script via `sqlplus` to validate the functionality of database stored procedures.",
+      "inputResources": [
+        "test_stored_procedures.sql",
+        "Oracle Database (XEPDB1)"
+      ],
+      "outputResources": [
+        "Console Standard Output"
+      ],
+      "dependencies": [
+        "sqlplus",
+        "test_stored_procedures.sql"
+      ]
+    },
+    {
+      "jobName": "validate_all.sh",
+      "sourceFile": "database/validation/validate_all.sh",
+      "trigger": "manual",
+      "purpose": "Runs the complete suite of database validation checks and stored procedure tests against a specified database connection.",
+      "inputResources": [
+        "Oracle Database (via connection string)",
+        "validate_database.sh",
+        "test_stored_procedures.sh"
+      ],
+      "outputResources": [
+        "Console Output (Validation Report)"
+      ],
+      "dependencies": [
+        "validate_database.sh",
+        "test_stored_procedures.sh"
+      ]
+    },
+    {
+      "jobName": "validate_database.sh",
+      "sourceFile": "database/validation/validate_database.sh",
+      "trigger": "manual",
+      "purpose": "Validates database connectivity, schema object existence (tables, procedures, sequences, triggers), and data population.",
+      "inputResources": [
+        "Oracle Database",
+        "Connection String Argument"
+      ],
+      "outputResources": [
+        "Console Validation Report",
+        "Exit Code"
+      ],
+      "dependencies": [
+        "sqlplus",
+        "Oracle Database Instance"
+      ]
+    }
+  ],
+  "totalJobs": 17,
+  "triggerTypes": [
+    "event-driven",
+    "manual",
+    "scheduled"
+  ],
+  "jobFiles": [
+    "database/recompile_procedures.sh",
+    "database/validation/test_stored_procedures.sh",
+    "database/init/00_setup.sh",
+    "batch/daily_interest.sh",
+    "database/validation/validate_all.sh",
+    "docker/javac-wrapper.sh",
+    "database/data/reload_all_data.sh",
+    "batch/eod_processing.sh",
+    "database/capture_query_log.sh",
+    "database/show_test_ids.sh",
+    "batch/statement_generation.sh",
+    "database/validation/validate_database.sh",
+    "database/init/01_init_schema.sh",
+    "docker/run-jboss.sh",
+    "database/check_all_tables.sh",
+    "database/prepare_for_spda.sh",
+    "rebuild_and_redeploy.sh"
+  ]
+}

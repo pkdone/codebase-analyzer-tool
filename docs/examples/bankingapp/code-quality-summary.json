@@ -1,0 +1,162 @@
+{
+  "topComplexFunctions": [
+    {
+      "complexity": 22,
+      "functionName": "com.legacybank.servlet.CustomerServlet::doPost",
+      "filePath": "backend/src/servlet/CustomerServlet.java",
+      "linesOfCode": 88,
+      "codeSmells": [
+        "LONG METHOD",
+        "COMPLEX CONDITIONAL",
+        "MAGIC NUMBERS",
+        "DEEP NESTING"
+      ]
+    },
+    {
+      "complexity": 8,
+      "functionName": "com.legacybank.ejb.LoanServiceBean::getLoanPayments",
+      "filePath": "backend/src/ejb/LoanServiceBean.java",
+      "linesOfCode": 48,
+      "codeSmells": [
+        "MAGIC NUMBERS"
+      ]
+    },
+    {
+      "complexity": 8,
+      "functionName": "com.legacybank.ejb.LoanServiceBean::getLoanDetails",
+      "filePath": "backend/src/ejb/LoanServiceBean.java",
+      "linesOfCode": 63,
+      "codeSmells": [
+        "LONG METHOD",
+        "MAGIC NUMBERS"
+      ]
+    },
+    {
+      "complexity": 8,
+      "functionName": "com.legacybank.servlet.AccountServlet::doGet",
+      "filePath": "backend/src/servlet/AccountServlet.java",
+      "linesOfCode": 48,
+      "codeSmells": [
+        "DUPLICATE CODE",
+        "MAGIC NUMBERS",
+        "COMPLEX CONDITIONAL"
+      ]
+    },
+    {
+      "complexity": 7,
+      "functionName": "com.legacybank.dao.CustomerDAO::create",
+      "filePath": "backend/src/dao/CustomerDAO.java",
+      "linesOfCode": 58,
+      "codeSmells": [
+        "LONG METHOD",
+        "MAGIC NUMBERS"
+      ]
+    },
+    {
+      "complexity": 6,
+      "functionName": "com.legacybank.servlet.CustomerServlet::doGet",
+      "filePath": "backend/src/servlet/CustomerServlet.java",
+      "linesOfCode": 28,
+      "codeSmells": [
+        "COMPLEX CONDITIONAL"
+      ]
+    },
+    {
+      "complexity": 6,
+      "functionName": "com.legacybank.servlet.LoanServlet::doGet",
+      "filePath": "backend/src/servlet/LoanServlet.java",
+      "linesOfCode": 36,
+      "codeSmells": []
+    },
+    {
+      "complexity": 6,
+      "functionName": "com.legacybank.servlet.AccountServlet::doPost",
+      "filePath": "backend/src/servlet/AccountServlet.java",
+      "linesOfCode": 38,
+      "codeSmells": [
+        "DUPLICATE CODE",
+        "MAGIC NUMBERS"
+      ]
+    },
+    {
+      "complexity": 5,
+      "functionName": "com.legacybank.servlet.LoanServlet::init",
+      "filePath": "backend/src/servlet/LoanServlet.java",
+      "linesOfCode": 26,
+      "codeSmells": [
+        "DEEP NESTING",
+        "COMPLEX CONDITIONAL"
+      ]
+    },
+    {
+      "complexity": 5,
+      "functionName": "com.legacybank.servlet.AccountServlet::init",
+      "filePath": "backend/src/servlet/AccountServlet.java",
+      "linesOfCode": 26,
+      "codeSmells": [
+        "DEEP NESTING",
+        "SHOTGUN SURGERY"
+      ]
+    }
+  ],
+  "commonCodeSmells": [
+    {
+      "occurrences": 10,
+      "smellType": "DATA CLASS",
+      "affectedFiles": 10
+    },
+    {
+      "occurrences": 9,
+      "smellType": "TOO MANY METHODS",
+      "affectedFiles": 9
+    },
+    {
+      "occurrences": 8,
+      "smellType": "MAGIC NUMBERS",
+      "affectedFiles": 8
+    },
+    {
+      "occurrences": 8,
+      "smellType": "OTHER",
+      "affectedFiles": 8
+    },
+    {
+      "occurrences": 6,
+      "smellType": "DUPLICATE CODE",
+      "affectedFiles": 6
+    },
+    {
+      "occurrences": 4,
+      "smellType": "COMPLEX CONDITIONAL",
+      "affectedFiles": 4
+    },
+    {
+      "occurrences": 4,
+      "smellType": "DEEP NESTING",
+      "affectedFiles": 4
+    },
+    {
+      "occurrences": 3,
+      "smellType": "LONG PARAMETER LIST",
+      "affectedFiles": 3
+    },
+    {
+      "occurrences": 3,
+      "smellType": "LONG METHOD",
+      "affectedFiles": 3
+    },
+    {
+      "occurrences": 1,
+      "smellType": "SHOTGUN SURGERY",
+      "affectedFiles": 1
+    }
+  ],
+  "overallStatistics": {
+    "totalFunctions": 323,
+    "highComplexityCount": 1,
+    "veryHighComplexityCount": 1,
+    "longFunctionCount": 3,
+    "averageComplexity": 1.36,
+    "averageFunctionLength": 5.92
+  }
+}

@@ -1,0 +1,38 @@
+[
+  {
+    "name": "Java EE 5",
+    "description": "The core enterprise Java platform version used for the backend, utilizing specifications like EJB 3.0, Servlet 2.5, and JSP 2.1. It provides the runtime environment for the monolithic application."
+  },
+  {
+    "name": "JBoss Application Server 4.2.3.GA",
+    "description": "The legacy application server hosting the WAR/EAR artifacts. It provides the EJB container, transaction management, and servlet engine required by the application."
+  },
+  {
+    "name": "Oracle Database 21c XE",
+    "description": "The relational database management system used for data persistence. It is heavily utilized for business logic implementation through PL/SQL stored procedures, packages, and triggers."
+  },
+  {
+    "name": "Java Server Pages (JSP)",
+    "description": "The server-side templating technology used for the presentation layer. In this application, it is used with scriptlets to perform direct database queries and render HTML."
+  },
+  {
+    "name": "Enterprise JavaBeans (EJB)",
+    "description": "Server-side components that encapsulate business logic. The application uses Stateless Session Beans to manage transactions and invoke database stored procedures."
+  },
+  {
+    "name": "JAX-WS (SOAP)",
+    "description": "The technology used to expose banking services via XML-based web services. It allows external systems to interact with account and transaction logic."
+  },
+  {
+    "name": "PL/SQL",
+    "description": "Oracle's procedural extension to SQL. It is used extensively in this application to implement core business rules, interest calculations, and complex transaction logic directly within the database."
+  },
+  {
+    "name": "Shell Scripting (Bash)",
+    "description": "Used for operational tasks and batch processing. Scripts are used to trigger SQL*Plus jobs for interest calculation and statement generation."
+  },
+  {
+    "name": "Docker",
+    "description": "Containerization platform used to package the legacy JBoss server and Oracle database, facilitating easier deployment and development setup."
+  }
+]

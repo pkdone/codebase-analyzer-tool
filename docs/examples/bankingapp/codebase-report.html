@@ -1,0 +1,5182 @@
+<html>
+  <head>
+    <title>Codebase Analysis Tools (CAT) Report</title>
+    <style>
+      /* === MongoDB Theme &amp; New CAT Report Styles === */
+
+:root {
+  /* MongoDB Color Palette */
+  --mdb-green-light: #00ED64;
+  --mdb-green-dark: #00684A;
+  --mdb-black: #001E2B;
+  --mdb-grey-dark-1: #3F3E42;
+  --mdb-grey-light-1: #C1C7C6;
+  --mdb-grey-light-2: #E8EDEB;
+  --mdb-white: #FFFFFF;
+
+  /* Semantic Colors */
+  --bg-color: var(--mdb-white);
+  --text-color: var(--mdb-black);
+  --text-color-secondary: var(--mdb-grey-dark-1);
+  --header-bg: var(--mdb-green-dark);
+  --header-text: var(--mdb-white);
+  --tab-bg: var(--mdb-grey-light-2);
+  --tab-active-bg: var(--mdb-white);
+  --tab-active-border: var(--mdb-green-dark);
+  --table-header-bg: var(--mdb-grey-dark-1);
+  --table-row-stripe: var(--mdb-grey-light-2);
+  --card-bg: var(--mdb-white);
+  --card-border: #E0E0E0;
+  --card-shadow: 0 2px 5px rgba(0, 30, 43, 0.05);
+  --badge-proc-bg: #E8F5E9; /* Light Green */
+  --badge-proc-text: #00684A;
+  --badge-trig-bg: #FFF3E0; /* Light Orange */
+  --badge-trig-text: #E65100;
+  --link-color: var(--mdb-green-dark);
+  --color-warning: #FFC107;
+  
+  /* Typography &amp; Spacing */
+  --font-family: system-ui, -apple-system, BlinkMacSystemFont, &#39;Segoe UI&#39;, Roboto, &#39;Helvetica Neue&#39;, Arial, sans-serif;
+  --font-family-mono: &#39;SF Mono&#39;, Monaco, &#39;Cascadia Code&#39;, &#39;Roboto Mono&#39;, Consolas, &#39;Courier New&#39;, monospace;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+}
+
+/* --- Base &amp; Typography --- */
+body {
+  font-family: var(--font-family);
+  color: var(--text-color);
+  background-color: var(--bg-color);
+  line-height: 1.6;
+  margin: 0;
+  padding: var(--spacing-lg);
+}
+
+h1 {
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: var(--text-color);
+  margin-bottom: var(--spacing-md);
+  padding-bottom: var(--spacing-md);
+}
+
+h2 {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: var(--text-color);
+  margin-top: var(--spacing-lg);
+  margin-bottom: var(--spacing-md);
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--card-border);
+}
+
+h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--header-bg);
+}
+
+p {
+  font-size: 1rem;
+  margin-bottom: var(--spacing-md);
+  color: var(--text-color-secondary);
+}
+
+hr {
+  border: none;
+  height: 1px;
+  background-color: var(--card-border);
+  margin: var(--spacing-lg) 0;
+}
+
+a {
+  color: var(--link-color);
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+code, pre {
+  font-family: var(--font-family-mono);
+}
+
+pre &gt; code {
+  display: block;
+  background-color: var(--tab-bg);
+  border: 1px solid var(--card-border);
+  padding: 12px;
+  border-radius: 6px;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+/* --- Tab Navigation --- */
+nav.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  background-color: var(--tab-bg);
+  border-radius: 8px;
+  padding: 6px;
+  margin-bottom: var(--spacing-lg);
+}
+
+.tab-button {
+  font-family: var(--font-family);
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 10px 16px;
+  margin: 4px;
+  border: none;
+  background-color: transparent;
+  color: var(--text-color-secondary);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.tab-button:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.tab-button.active {
+  background-color: var(--tab-active-bg);
+  color: var(--text-color);
+  box-shadow: var(--card-shadow);
+  border-bottom: 3px solid var(--tab-active-border);
+}
+
+.tab-content {
+  display: none;
+  animation: fadeIn 0.3s ease;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- Styled Tables (for &#39;Database Interactions&#39;) --- */
+table.data-table {
+  border-collapse: collapse;
+  width: 100%;
+  margin-bottom: var(--spacing-lg);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  overflow: hidden; /* For border-radius */
+  box-shadow: var(--card-shadow);
+}
+
+.data-table th, .data-table td {
+  border: 1px solid var(--card-border);
+  padding: 12px 16px;
+  text-align: left;
+  vertical-align: top;
+  word-wrap: break-word; /* Ensure long content wraps */
+}
+
+.data-table th {
+  background-color: var(--table-header-bg);
+  color: var(--header-text);
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.data-table tr:nth-child(even) {
+  background-color: var(--table-row-stripe);
+}
+
+.data-table tr:hover {
+  background-color: #f0f0f0;
+}
+
+/* --- Card Layout (for &#39;Integration Points&#39; &amp; &#39;Procs/Triggers&#39;) --- */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-md);
+  align-items: stretch;
+}
+
+.info-card {
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  padding: var(--spacing-md);
+  box-shadow: var(--card-shadow);
+  display: flex;
+  flex-direction: column;
+  height: 100%; /* Ensure card fills grid cell height */
+}
+
+.info-card h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-color);
+  margin: 0 0 12px 0;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--card-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.info-card p {
+  font-size: 0.9rem;
+  color: var(--text-color-secondary);
+  margin-bottom: 8px;
+  line-height: 1.5;
+}
+
+.info-card p strong {
+  color: var(--text-color);
+  font-weight: 600;
+  min-width: 90px;
+  display: inline-block;
+}
+
+.info-card .badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 12px;
+  text-transform: uppercase;
+}
+
+/* --- Badge Components --- */
+.badge-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-lg);
+}
+
+.badge {
+  display: inline-block;
+  background-color: var(--mdb-green-dark);
+  color: var(--mdb-white);
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.badge-proc {
+  background-color: var(--badge-proc-bg);
+  color: var(--badge-proc-text);
+}
+
+.badge-trig {
+  background-color: var(--badge-trig-bg);
+  color: var(--badge-trig-text);
+}
+
+.badge-warning {
+  background-color: #ffc107;
+  color: #212529;
+}
+
+.badge-success {
+  background-color: #28a745;
+  color: white;
+}
+
+.badge-danger {
+  background-color: #dc3545;
+  color: white;
+}
+
+.badge-info {
+  background-color: #17a2b8;
+  color: white;
+}
+
+.badge-secondary {
+  background-color: #6c757d;
+  color: white;
+}
+
+.badge-high {
+  background-color: #fd7e14;
+  color: white;
+}
+
+/* --- JSON Icon Links --- */
+a svg {
+  vertical-align: super;
+  margin-left: 6px;
+  margin-right: 2px;
+  transition: transform 0.2s ease;
+}
+
+a:hover svg {
+  transform: scale(1.1);
+}
+
+/* --- Technology Badges --- */
+.technologies-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: var(--spacing-lg);
+}
+
+.tech-badge {
+  display: inline-block;
+  background-color: var(--mdb-green-dark);
+  color: var(--mdb-white);
+  padding: 8px 16px;
+  border-radius: 16px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 4px;
+  transition: all 0.2s ease;
+}
+
+.tech-badge:hover {
+  background-color: var(--mdb-green-light);
+  color: var(--mdb-black);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 104, 74, 0.3);
+}
+
+/* --- Note Box --- */
+.note-box {
+  background-color: var(--tab-bg);
+  border: 1px solid var(--card-border);
+  border-left: 4px solid #ffc107;
+  border-radius: 6px;
+  padding: var(--spacing-md);
+  margin: var(--spacing-md) 0;
+}
+
+.note-box p {
+  margin: 0;
+  color: var(--text-color-secondary);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.note-box strong {
+  color: var(--text-color);
+  font-weight: 600;
+}
+
+/* --- Conflict styling --- */
+.conflict-warning {
+  color: #d9534f;
+  font-weight: bold;
+}
+
+.no-conflicts {
+  color: #5cb85c;
+  font-weight: bold;
+}
+
+.conflict-row {
+  background-color: #fff3cd;
+}
+
+.version-conflict {
+  color: #d9534f;
+  font-weight: bold;
+}
+
+/* --- Job-specific styling --- */
+.job-name { 
+  font-weight: bold; 
+  color: #0066cc;
+}
+
+.job-file {
+  font-family: var(--font-family-mono);
+  font-size: 0.9rem;
+  color: var(--text-color-secondary);
+}
+
+.job-trigger {
+  text-align: center;
+}
+
+.job-purpose {
+  max-width: 300px;
+  line-height: 1.4;
+}
+
+.job-resources {
+  min-width: 150px;
+}
+
+.resource-list {
+  list-style-type: disc;
+  margin: 0;
+  padding-left: 1.25rem;
+  font-size: 0.9rem;
+}
+
+.resource-list li {
+  margin-bottom: 0.25rem;
+  line-height: 1.3;
+}
+
+.no-data-cell {
+  color: #999;
+  font-style: italic;
+  font-size: 0.9rem;
+}
+
+.badge-trigger { 
+  padding: 0.25rem 0.6rem; 
+  border-radius: 3px; 
+  font-size: 0.85rem;
+  background: #17a2b8; 
+  color: white;
+  white-space: nowrap;
+  display: inline-block;
+}
+
+.dependencies-row {
+  background: #f9f9f9;
+  border-top: none;
+}
+
+.dependencies-info {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.dependencies-info strong {
+  color: #333;
+}
+
+/* --- Module coupling styling --- */
+.module-name { 
+  font-family: var(--font-family-mono);
+  font-size: 0.9rem;
+  max-width: 300px;
+  word-break: break-all;
+}
+
+.module-name code {
+  background: var(--tab-bg);
+  padding: 0.2rem 0.4rem;
+  border-radius: 3px;
+  border: 1px solid var(--card-border);
+  display: inline-block;
+}
+
+.from-module code {
+  color: #0066cc;
+}
+
+.to-module code {
+  color: #6c00cc;
+}
+
+.coupling-count {
+  text-align: center;
+  font-weight: bold;
+  min-width: 80px;
+}
+
+.coupling-level {
+  text-align: center;
+  min-width: 120px;
+}
+
+.card-code {
+  margin-top: auto; /* Pushes code block to the bottom */
+  padding-top: 12px;
+}
+
+/* --- Stats Grid Cards (for summary metrics) --- */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+}
+
+.card {
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  padding: var(--spacing-md);
+  box-shadow: var(--card-shadow);
+  transition: box-shadow 0.2s ease;
+  text-align: center;
+}
+
+.card:hover {
+  box-shadow: 0 4px 8px rgba(0, 30, 43, 0.1);
+}
+
+.card-title {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-color-secondary);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.card-value {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-color);
+  line-height: 1.4;
+}
+
+/* --- Expandable Paths (for long file/function names in tables) --- */
+.expandable-path {
+  margin: 0;
+}
+
+.expandable-path summary {
+  font-family: var(--font-family-mono);
+  font-size: 0.9em;
+  color: var(--link-color);
+  cursor: pointer;
+  list-style: none;
+}
+
+.expandable-path summary::-webkit-details-marker {
+  display: none;
+}
+
+.expandable-path summary::before {
+  content: &#34;▸ &#34;;
+  color: #999;
+}
+
+.expandable-path[open] summary::before {
+  content: &#34;▾ &#34;;
+}
+
+.expandable-path code {
+  display: block;
+  margin-top: 4px;
+  padding: 4px 8px;
+  background: var(--table-row-stripe);
+  border-radius: 3px;
+  font-size: 0.85em;
+  word-break: break-all;
+}
+
+/* --- Legacy table styles (for compatibility) --- */
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin-bottom: var(--spacing-lg);
+  table-layout: fixed;
+  word-wrap: break-word;
+  background-color: var(--card-bg);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: var(--card-shadow);
+}
+
+th, td {
+  border: 1px solid var(--card-border);
+  padding: 12px 16px;
+  text-align: left;
+  vertical-align: top;
+  overflow: hidden;
+}
+
+th {
+  background-color: var(--table-header-bg);
+  color: var(--header-text);
+  font-weight: 600;
+  white-space: nowrap;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+tr:nth-child(even) {
+  background-color: var(--table-row-stripe);
+}
+
+tr:hover {
+  background-color: #f0f0f0;
+}
+
+/* Column type specific styling */
+.col-narrow {
+  width: 8%;
+  text-align: center;
+}
+
+.col-small {
+  width: 12%;
+  text-align: center;
+}
+
+.col-medium {
+  width: 15%;
+}
+
+.col-wide {
+  width: 25%;
+}
+
+.col-description {
+  width: 40%;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+/* Numeric columns */
+.numeric {
+  text-align: right;
+  font-weight: 500;
+}
+
+/* Code styling in tables */
+td pre {
+  margin: 0;
+  padding: 8px;
+  background-color: var(--tab-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 4px;
+  font-size: 0.875rem;
+  white-space: pre-wrap;
+  word-break: break-all;
+  font-family: var(--font-family-mono);
+}
+
+td code {
+  background-color: var(--tab-bg);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  font-family: var(--font-family-mono);
+  color: var(--mdb-green-dark);
+}
+
+/* SQL Code Highlighting */
+.language-sql {
+  font-family: var(--font-family-mono);
+  background-color: var(--tab-bg);
+  color: var(--text-color);
+}
+
+/* Section Headers */
+.section-header {
+  margin-top: var(--spacing-lg);
+  margin-bottom: var(--spacing-md);
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--card-border);
+}
+
+.section-header h2 {
+  margin-top: 0;
+  margin-bottom: 8px;
+}
+
+.section-header .json-link {
+  font-size: 0.75rem;
+  margin-left: 8px;
+  text-decoration: none;
+  color: var(--text-color-secondary);
+  font-weight: 400;
+}
+
+.section-header .json-link:hover {
+  color: var(--mdb-green-dark);
+  text-decoration: underline;
+}
+
+/* SVG Diagram Containers */
+.diagram-container {
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  padding: var(--spacing-md);
+  margin: var(--spacing-md) 0;
+  box-shadow: var(--card-shadow);
+  overflow-x: auto;
+  overflow-y: visible;
+}
+
+.diagram-container svg {
+  max-width: 100%;
+  width: auto;
+  height: auto;
+  min-width: 700px;
+}
+
+/* Domain Model Color Scheme */
+.bounded-context-title {
+  color: var(--mdb-green-dark);
+  margin-bottom: var(--spacing-md);
+}
+
+.aggregates-header {
+  color: #1976d2;
+  border-left: 4px solid #1976d2;
+  padding-left: 8px;
+  margin-top: var(--spacing-md);
+}
+
+.aggregates-list {
+  border-left: 2px solid #e3f2fd;
+  padding-left: var(--spacing-md);
+  margin-left: 2px;
+}
+
+.repositories-header {
+  color: #d2691e;
+  border-left: 4px solid #d2691e;
+  padding-left: 8px;
+  margin-top: var(--spacing-md);
+}
+
+.repositories-list {
+  border-left: 2px solid #fff5f0;
+  padding-left: var(--spacing-md);
+  margin-left: 2px;
+}
+
+.entities-header {
+  color: #7b1fa2;
+  border-left: 4px solid #7b1fa2;
+  padding-left: 8px;
+  margin-top: var(--spacing-md);
+}
+
+.entities-list {
+  border-left: 2px solid #f3e5f5;
+  padding-left: var(--spacing-md);
+  margin-left: 2px;
+}
+
+/* Responsive Design */
+@media screen and (max-width: 1024px) {
+  body {
+    padding: var(--spacing-md);
+  }
+  
+  .stats-grid {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: var(--spacing-md);
+  }
+  
+  .card-grid {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  }
+  
+  table {
+    font-size: 0.9rem;
+  }
+  
+  th, td {
+    padding: 8px 12px;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  body {
+    padding: var(--spacing-md);
+  }
+  
+  h1 {
+    font-size: 2rem;
+  }
+  
+  h2 {
+    font-size: 1.5rem;
+  }
+  
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-md);
+  }
+  
+  .card-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  table {
+    font-size: 0.8rem;
+  }
+  
+  th, td {
+    padding: 6px 8px;
+  }
+  
+  .col-narrow, .col-small {
+    width: 10%;
+  }
+  
+  .col-medium {
+    width: 20%;
+  }
+  
+  .col-description {
+    width: 50%;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  body {
+    padding: 8px;
+  }
+  
+  h1 {
+    font-size: 1.75rem;
+  }
+  
+  h2 {
+    font-size: 1.25rem;
+  }
+  
+  .card {
+    padding: var(--spacing-md);
+  }
+  
+  .card-value {
+    font-size: 1.25rem;
+  }
+  
+  table {
+    font-size: 0.75rem;
+  }
+  
+  th, td {
+    padding: 4px 6px;
+  }
+}
+    </style>
+    <!-- Mermaid.js for client-side diagram rendering (local file for offline support) -->
+    <!-- Note: avoid ESM imports here, as many browsers block module loading from file:// -->
+    <script src="assets/mermaid.min.js"></script>
+  </head>
+  <body>
+    <h1>Codebase Analysis Tools (CAT) Report <a href="codebase-report.json" target="_blank" style="text-decoration: none;"><svg width="28" height="16" viewBox="0 0 28 16" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="0" width="28" height="16" rx="0" fill="#cc5500" stroke="#000" stroke-width="0.5"/>
+  <text x="14" y="11" font-family="monospace" font-size="10" font-weight="bold" text-anchor="middle" fill="#ffffff">JSON</text>
+</svg>
+</a></h1>
+    
+    <nav class="tabs">
+      <button class="tab-button active" data-target="tab-overview">Overview</button>
+      <button class="tab-button" data-target="tab-business">Business Processes</button>
+      <button class="tab-button" data-target="tab-current-arch">Current Architecture</button>
+      <button class="tab-button" data-target="tab-arch">Future Architecture</button>
+      <button class="tab-button" data-target="tab-domain">Domain Model</button>
+      <button class="tab-button" data-target="tab-quality">Code Quality</button>
+      <button class="tab-button" data-target="tab-ui">UI Analysis</button>
+      <button class="tab-button" data-target="tab-db">Database Integrations</button>
+      <button class="tab-button" data-target="tab-integration">Integration & APIs</button>
+    </nav>
+    <div id="tab-overview" class="tab-content active">
+      <h2>Statistics <a href="app-stats.json" target="_blank" style="text-decoration: none;"><svg width="28" height="16" viewBox="0 0 28 16" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="0" width="28" height="16" rx="0" fill="#cc5500" stroke="#000" stroke-width="0.5"/>
+  <text x="14" y="11" font-family="monospace" font-size="10" font-weight="bold" text-anchor="middle" fill="#ffffff">JSON</text>
+</svg>
+</a></h2>
+
+
+<div class="stats-grid">
+  <div class="card">
+    <span class="card-title">Project Name</span>
+    <span class="card-value">legacy-bank-app-main</span>
+  </div>
+  
+  <div class="card">
+    <span class="card-title">Snapshot Date</span>
+    <span class="card-value">04/01/2026, 11:12:04</span>
+  </div>
+  
+  <div class="card">
+    <span class="card-title">LLM Provider</span>
+    <span class="card-value long-text">VertexAI Gemini (Gemini Embeddings, Gemini Pro 3.0, Gemini Pro 2.5)</span>
+  </div>
+  
+  <div class="card">
+    <span class="card-title">Files Count</span>
+    <span class="card-value">93</span>
+  </div>
+  
+  <div class="card">
+    <span class="card-title">Lines of Code</span>
+    <span class="card-value">18321</span>
+  </div>
+</div> 
+      
+      
+        
+          <h2>Technologies <a href="technologies.json" target="_blank" style="text-decoration: none;"><svg width="28" height="16" viewBox="0 0 28 16" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="0" width="28" height="16" rx="0" fill="#cc5500" stroke="#000" stroke-width="0.5"/>
+  <text x="14" y="11" font-family="monospace" font-size="10" font-weight="bold" text-anchor="middle" fill="#ffffff">JSON</text>
+</svg>
+</a></h2>
+
+
+<div class="technologies-container">
+  
+    <span class="tech-badge" title="The core enterprise Java platform version used for the backend, utilizing specifications like EJB 3.0, Servlet 2.5, and JSP 2.1. It provides the runtime environment for the monolithic application.">
+      Java EE 5
+    </span>
+  
+    <span class="tech-badge" title="The legacy application server hosting the WAR/EAR artifacts. It provides the EJB container, transaction management, and servlet engine required by the application.">
+      JBoss Application Server 4.2.3.GA
+    </span>
+  
+    <span class="tech-badge" title="The relational database management system used for data persistence. It is heavily utilized for business logic implementation through PL/SQL stored procedures, packages, and triggers.">
+      Oracle Database 21c XE
+    </span>
+  
+    <span class="tech-badge" title="The server-side templating technology used for the presentation layer. In this application, it is used with scriptlets to perform direct database queries and render HTML.">
+      Java Server Pages (JSP)
+    </span>
+  
+    <span class="tech-badge" title="Server-side components that encapsulate business logic. The application uses Stateless Session Beans to manage transactions and invoke database stored procedures.">
+      Enterprise JavaBeans (EJB)
+    </span>
+  
+    <span class="tech-badge" title="The technology used to expose banking services via XML-based web services. It allows external systems to interact with account and transaction logic.">
+      JAX-WS (SOAP)
+    </span>
+  
+    <span class="tech-badge" title="Oracle&#39;s procedural extension to SQL. It is used extensively in this application to implement core business rules, interest calculations, and complex transaction logic directly within the database.">
+      PL/SQL
+    </span>
+  
+    <span class="tech-badge" title="Used for operational tasks and batch processing. Scripts are used to trigger SQL*Plus jobs for interest calculation and statement generation.">
+      Shell Scripting (Bash)
+    </span>
+  
+    <span class="tech-badge" title="Containerization platform used to package the legacy JBoss server and Oracle database, facilitating easier deployment and development setup.">
+      Docker
+    </span>
+  
+</div>
+
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+      
+      <h2>Description <a href="app-description.json" target="_blank" style="text-decoration: none;"><svg width="28" height="16" viewBox="0 0 28 16" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="0" width="28" height="16" rx="0" fill="#cc5500" stroke="#000" stroke-width="0.5"/>
+  <text x="14" y="11" font-family="monospace" font-size="10" font-weight="bold" text-anchor="middle" fill="#ffffff">JSON</text>
+</svg>
+</a></h2>
+
+<p>The Legacy Banking Application is a comprehensive, monolithic enterprise system designed to manage core banking operations. It is built upon a legacy Java EE technology stack, specifically utilizing Java 6/8 compatibility and running on the JBoss 4.2.3.GA application server. The application&#39;s architecture is heavily data-centric, relying on an Oracle 21c XE database not just for storage, but for critical business logic execution via PL/SQL stored procedures. The frontend is constructed using Java Server Pages (JSP) which frequently demonstrate the anti-pattern of embedding direct database queries within the presentation layer. The backend logic is distributed across Stateless Session EJBs (Enterprise JavaBeans) and standard Java Servlets, which act as controllers. These components are tightly coupled to the database schema, often invoking stored procedures for operations like account creation, transaction processing, and loan approval. The system handles a wide array of domain entities including Customers, Accounts, Transactions, Loans, and Branch information. Integration capabilities are provided through a SOAP-based web service (BankingService) using JAX-WS. Batch processing is implemented via shell scripts that invoke SQL*Plus to trigger database-side logic for end-of-day reconciliation and interest calculations. The application enforces business rules such as KYC validation and balance checks, often implemented within database triggers or complex SQL queries. Security and auditing are managed through database triggers that populate audit log tables. The system is containerized using Docker, orchestrating the JBoss application server and the Oracle database. This application serves as a prime example of legacy architecture requiring modernization, showcasing tight coupling, logic leakage into the database, and monolithic deployment artifacts.</p>
+
+      
+      <h2>File Types <a href="file-types.json" target="_blank" style="text-decoration: none;"><svg width="28" height="16" viewBox="0 0 28 16" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="0" width="28" height="16" rx="0" fill="#cc5500" stroke="#000" stroke-width="0.5"/>
+  <text x="14" y="11" font-family="monospace" font-size="10" font-weight="bold" text-anchor="middle" fill="#ffffff">JSON</text>
+</svg>
+</a></h2>
+
+<div style="text-align: center; margin: 20px 0;">
+  
+  <svg width="950" height="570" xmlns="http://www.w3.org/2000/svg" style="max-width: 100%; height: auto; border: 1px solid #ddd; border-radius: 8px; background: #fafafa;">
+    <!-- Pie slices -->
+    
+      
+        <path d="M 300 300 L 300 50 A 250 250 0 0 1 549.6791267927632 312.6622922096782 Z" 
+              fill="#2196F3" 
+              stroke="#ffffff" 
+              stroke-width="2"/>
+        
+          <text x="426.83873776509597" y="179.43078916175486" 
+                text-anchor="middle" 
+                dominant-baseline="middle"
+                font-family="system-ui, sans-serif" 
+                font-size="14" 
+                font-weight="bold"
+                fill="#ffffff"
+                stroke="#000000"
+                stroke-width="0.5">25.8%</text>
+        
+      
+    
+      
+        <path d="M 300 300 L 549.6791267927632 312.6622922096782 A 250 250 0 0 1 342.02522356053703 546.4424488287009 Z" 
+              fill="#4CAF50" 
+              stroke="#ffffff" 
+              stroke-width="2"/>
+        
+          <text x="430.83849674836654" y="416.21655548426685" 
+                text-anchor="middle" 
+                dominant-baseline="middle"
+                font-family="system-ui, sans-serif" 
+                font-size="14" 
+                font-weight="bold"
+                fill="#ffffff"
+                stroke="#000000"
+                stroke-width="0.5">21.5%</text>
+        
+      
+    
+      
+        <path d="M 300 300 L 342.02522356053703 546.4424488287009 A 250 250 0 0 1 92.42630182190592 439.33111578060914 Z" 
+              fill="#FF9800" 
+              stroke="#ffffff" 
+              stroke-width="2"/>
+        
+          <text x="230.9877253551693" y="460.8176170335404" 
+                text-anchor="middle" 
+                dominant-baseline="middle"
+                font-family="system-ui, sans-serif" 
+                font-size="14" 
+                font-weight="bold"
+                fill="#ffffff"
+                stroke="#000000"
+                stroke-width="0.5">18.3%</text>
+        
+      
+    
+      
+        <path d="M 300 300 L 92.42630182190592 439.33111578060914 A 250 250 0 0 1 52.88291891797215 262.14305562385584 Z" 
+              fill="#9C27B0" 
+              stroke="#ffffff" 
+              stroke-width="2"/>
+        
+          <text x="129.2016806515048" y="338.117372781049" 
+                text-anchor="middle" 
+                dominant-baseline="middle"
+                font-family="system-ui, sans-serif" 
+                font-size="14" 
+                font-weight="bold"
+                fill="#ffffff"
+                stroke="#000000"
+                stroke-width="0.5">11.8%</text>
+        
+      
+    
+      
+        <path d="M 300 300 L 52.88291891797215 262.14305562385584 A 250 250 0 0 1 97.25051337262474 153.73775035117305 Z" 
+              fill="#F44336" 
+              stroke="#ffffff" 
+              stroke-width="2"/>
+        
+          <text x="138.03974014637708" y="233.71369501814922" 
+                text-anchor="middle" 
+                dominant-baseline="middle"
+                font-family="system-ui, sans-serif" 
+                font-size="14" 
+                font-weight="bold"
+                fill="#ffffff"
+                stroke="#000000"
+                stroke-width="0.5">7.5%</text>
+        
+      
+    
+      
+        <path d="M 300 300 L 97.25051337262474 153.73775035117305 A 250 250 0 0 1 171.3611499928429 85.63571596733718 Z" 
+              fill="#00BCD4" 
+              stroke="#ffffff" 
+              stroke-width="2"/>
+        
+          <text x="181.59022717184254" y="171.1430029110404" 
+                text-anchor="middle" 
+                dominant-baseline="middle"
+                font-family="system-ui, sans-serif" 
+                font-size="14" 
+                font-weight="bold"
+                fill="#ffffff"
+                stroke="#000000"
+                stroke-width="0.5">6.5%</text>
+        
+      
+    
+      
+        <path d="M 300 300 L 171.3611499928429 85.63571596733718 A 250 250 0 0 1 233.25822525646214 59.07358902751477 Z" 
+              fill="#8BC34A" 
+              stroke="#ffffff" 
+              stroke-width="2"/>
+        
+          <text x="230.98772535516923" y="139.18238296645964" 
+                text-anchor="middle" 
+                dominant-baseline="middle"
+                font-family="system-ui, sans-serif" 
+                font-size="14" 
+                font-weight="bold"
+                fill="#ffffff"
+                stroke="#000000"
+                stroke-width="0.5">4.3%</text>
+        
+      
+    
+      
+        <path d="M 300 300 L 233.25822525646214 59.07358902751477 A 250 250 0 0 1 249.67536997783495 55.117514686876376 Z" 
+              fill="#E91E63" 
+              stroke="#ffffff" 
+              stroke-width="2"/>
+        
+      
+    
+      
+        <path d="M 300 300 L 249.67536997783495 55.117514686876376 A 250 250 0 0 1 266.32213444353465 52.27878296044028 Z" 
+              fill="#607D8B" 
+              stroke="#ffffff" 
+              stroke-width="2"/>
+        
+      
+    
+      
+        <path d="M 300 300 L 266.32213444353465 52.27878296044028 A 250 250 0 0 1 283.1225632854085 50.57034632998233 Z" 
+              fill="#795548" 
+              stroke="#ffffff" 
+              stroke-width="2"/>
+        
+      
+    
+      
+        <path d="M 300 300 L 283.1225632854085 50.57034632998233 A 250 250 0 0 1 299.9999999999997 50 Z" 
+              fill="#FFC107" 
+              stroke="#ffffff" 
+              stroke-width="2"/>
+        
+      
+    
+    
+    <!-- Legend -->
+    
+      <rect x="620" y="30" 
+            width="14" height="14" 
+            fill="#2196F3" 
+            stroke="#cccccc" 
+            stroke-width="1"/>
+      <text x="642" y="42" 
+            font-family="system-ui, sans-serif" 
+            font-size="13" 
+            fill="#333333">java (24 files)</text>
+    
+      <rect x="620" y="58" 
+            width="14" height="14" 
+            fill="#4CAF50" 
+            stroke="#cccccc" 
+            stroke-width="1"/>
+      <text x="642" y="70" 
+            font-family="system-ui, sans-serif" 
+            font-size="13" 
+            fill="#333333">jsp (20 files)</text>
+    
+      <rect x="620" y="86" 
+            width="14" height="14" 
+            fill="#FF9800" 
+            stroke="#cccccc" 
+            stroke-width="1"/>
+      <text x="642" y="98" 
+            font-family="system-ui, sans-serif" 
+            font-size="13" 
+            fill="#333333">sh (17 files)</text>
+    
+      <rect x="620" y="114" 
+            width="14" height="14" 
+            fill="#9C27B0" 
+            stroke="#cccccc" 
+            stroke-width="1"/>
+      <text x="642" y="126" 
+            font-family="system-ui, sans-serif" 
+            font-size="13" 
+            fill="#333333">sql (11 files)</text>
+    
+      <rect x="620" y="142" 
+            width="14" height="14" 
+            fill="#F44336" 
+            stroke="#cccccc" 
+            stroke-width="1"/>
+      <text x="642" y="154" 
+            font-family="system-ui, sans-serif" 
+            font-size="13" 
+            fill="#333333">xml (7 files)</text>
+    
+      <rect x="620" y="170" 
+            width="14" height="14" 
+            fill="#00BCD4" 
+            stroke="#cccccc" 
+            stroke-width="1"/>
+      <text x="642" y="182" 
+            font-family="system-ui, sans-serif" 
+            font-size="13" 
+            fill="#333333">md (6 files)</text>
+    
+      <rect x="620" y="198" 
+            width="14" height="14" 
+            fill="#8BC34A" 
+            stroke="#cccccc" 
+            stroke-width="1"/>
+      <text x="642" y="210" 
+            font-family="system-ui, sans-serif" 
+            font-size="13" 
+            fill="#333333">pkg (4 files)</text>
+    
+      <rect x="620" y="226" 
+            width="14" height="14" 
+            fill="#E91E63" 
+            stroke="#cccccc" 
+            stroke-width="1"/>
+      <text x="642" y="238" 
+            font-family="system-ui, sans-serif" 
+            font-size="13" 
+            fill="#333333">jboss (1 files)</text>
+    
+      <rect x="620" y="254" 
+            width="14" height="14" 
+            fill="#607D8B" 
+            stroke="#cccccc" 
+            stroke-width="1"/>
+      <text x="642" y="266" 
+            font-family="system-ui, sans-serif" 
+            font-size="13" 
+            fill="#333333">wsdl (1 files)</text>
+    
+      <rect x="620" y="282" 
+            width="14" height="14" 
+            fill="#795548" 
+            stroke="#cccccc" 
+            stroke-width="1"/>
+      <text x="642" y="294" 
+            font-family="system-ui, sans-serif" 
+            font-size="13" 
+            fill="#333333">yml (1 files)</text>
+    
+      <rect x="620" y="310" 
+            width="14" height="14" 
+            fill="#FFC107" 
+            stroke="#cccccc" 
+            stroke-width="1"/>
+      <text x="642" y="322" 
+            font-family="system-ui, sans-serif" 
+            font-size="13" 
+            fill="#333333">oracle (1 files)</text>
+    
+  </svg>
+  
+</div>    
+
+  <p><table>
+    <thead>
+      <tr>
+        
+        
+          <th>File Type</th>
+        
+          <th>Files Count</th>
+        
+          <th>Lines Count</th>
+        
+      </tr>
+    </thead>
+    <tbody>
+      
+        <tr>
+          
+            
+              <td>java</td>
+            
+          
+            
+              <td>24</td>
+            
+          
+            
+              <td>3563</td>
+            
+          
+        </tr>
+      
+        <tr>
+          
+            
+              <td>jsp</td>
+            
+          
+            
+              <td>20</td>
+            
+          
+            
+              <td>6527</td>
+            
+          
+        </tr>
+      
+        <tr>
+          
+            
+              <td>sh</td>
+            
+          
+            
+              <td>17</td>
+            
+          
+            
+              <td>2600</td>
+            
+          
+        </tr>
+      
+        <tr>
+          
+            
+              <td>sql</td>
+            
+          
+            
+              <td>11</td>
+            
+          
+            
+              <td>2509</td>
+            
+          
+        </tr>
+      
+        <tr>
+          
+            
+              <td>xml</td>
+            
+          
+            
+              <td>7</td>
+            
+          
+            
+              <td>328</td>
+            
+          
+        </tr>
+      
+        <tr>
+          
+            
+              <td>md</td>
+            
+          
+            
+              <td>6</td>
+            
+          
+            
+              <td>999</td>
+            
+          
+        </tr>
+      
+        <tr>
+          
+            
+              <td>pkg</td>
+            
+          
+            
+              <td>4</td>
+            
+          
+            
+              <td>1403</td>
+            
+          
+        </tr>
+      
+        <tr>
+          
+            
+              <td>jboss</td>
+            
+          
+            
+              <td>1</td>
+            
+          
+            
+              <td>147</td>
+            
+          
+        </tr>
+      
+        <tr>
+          
+            
+              <td>wsdl</td>
+            
+          
+            
+              <td>1</td>
+            
+          
+            
+              <td>142</td>
+            
+          
+        </tr>
+      
+        <tr>
+          
+            
+              <td>yml</td>
+            
+          
+            
+              <td>1</td>
+            
+          
+            
+              <td>56</td>
+            
+          
+        </tr>
+      
+        <tr>
+          
+            
+              <td>oracle</td>
+            
+          
+            
+              <td>1</td>
+            
+          
+            
+              <td>47</td>
+            
+          
+        </tr>
+      
+    </tbody>
+  </table></p>
+ 
+
+      
+      <h2>Bill of Materials (Dependencies) <a href="bill-of-materials.json" target="_blank" style="text-decoration: none;"><svg width="28" height="16" viewBox="0 0 28 16" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="0" width="28" height="16" rx="0" fill="#cc5500" stroke="#000" stroke-width="0.5"/>
+  <text x="14" y="11" font-family="monospace" font-size="10" font-weight="bold" text-anchor="middle" fill="#ffffff">JSON</text>
+</svg>
+</a></h2>
+
+      
+  <div class="stats-grid">
+    <div class="card">
+      <span class="card-title">Total Dependencies</span>
+      <span class="card-value">5</span>
+    </div>
+    <div class="card">
+      <span class="card-title">Version Conflicts</span>
+      <span class="card-value no-conflicts">0</span>
+    </div>
+    <div class="card">
+      <span class="card-title">Build Files</span>
+      <span class="card-value">1</span>
+    </div>
+  </div>
+
+  
+
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Dependency Name</th>
+        <th>Group ID</th>
+        <th>Versions</th>
+        <th>Scopes</th>
+        <th>Locations</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      
+        <tr class="">
+          <td class="dep-name">*.jar (JBoss Core Libraries)</td>
+          <td class="dep-group">jboss.home/lib</td>
+          <td class="dep-versions">
+            
+              
+            
+          </td>
+          <td class="dep-scopes">provided</td>
+          <td class="dep-locations" title="backend/build.xml">
+            1 file
+          </td>
+          <td class="dep-status">
+            
+              <span class="badge badge-success">✓ OK</span>
+            
+          </td>
+        </tr>
+      
+        <tr class="">
+          <td class="dep-name">*.jar (JBoss Server Libraries)</td>
+          <td class="dep-group">jboss.home/server/default/lib</td>
+          <td class="dep-versions">
+            
+              
+            
+          </td>
+          <td class="dep-scopes">provided</td>
+          <td class="dep-locations" title="backend/build.xml">
+            1 file
+          </td>
+          <td class="dep-status">
+            
+              <span class="badge badge-success">✓ OK</span>
+            
+          </td>
+        </tr>
+      
+        <tr class="">
+          <td class="dep-name">*.jar (Local Project Libraries)</td>
+          <td class="dep-group">lib.dir</td>
+          <td class="dep-versions">
+            
+              
+            
+          </td>
+          <td class="dep-scopes">compile</td>
+          <td class="dep-locations" title="backend/build.xml">
+            1 file
+          </td>
+          <td class="dep-status">
+            
+              <span class="badge badge-success">✓ OK</span>
+            
+          </td>
+        </tr>
+      
+        <tr class="">
+          <td class="dep-name">jsp-api.jar</td>
+          <td class="dep-group">javax.servlet.jsp</td>
+          <td class="dep-versions">
+            
+              
+            
+          </td>
+          <td class="dep-scopes">provided</td>
+          <td class="dep-locations" title="backend/build.xml">
+            1 file
+          </td>
+          <td class="dep-status">
+            
+              <span class="badge badge-success">✓ OK</span>
+            
+          </td>
+        </tr>
+      
+        <tr class="">
+          <td class="dep-name">servlet-api.jar</td>
+          <td class="dep-group">javax.servlet</td>
+          <td class="dep-versions">
+            
+              
+            
+          </td>
+          <td class="dep-scopes">provided</td>
+          <td class="dep-locations" title="backend/build.xml">
+            1 file
+          </td>
+          <td class="dep-status">
+            
+              <span class="badge badge-success">✓ OK</span>
+            
+          </td>
+        </tr>
+      
+    </tbody>
+  </table>
+
+
+
+    </div>
+
+    <div id="tab-business" class="tab-content">
+      
+        <h2>Existing Business Processes <a href="businessProcesses.json" target="_blank" style="text-decoration: none;"><svg width="28" height="16" viewBox="0 0 28 16" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="0" width="28" height="16" rx="0" fill="#cc5500" stroke="#000" stroke-width="0.5"/>
+  <text x="14" y="11" font-family="monospace" font-size="10" font-weight="bold" text-anchor="middle" fill="#ffffff">JSON</text>
+</svg>
+</a></h2>
+
+
+
+  <div class="diagram-container">
+    <h3>Customer Onboarding process</h3>
+    <p>The process of registering a new customer into the banking system, verifying their identity, and establishing their profile. This involves collecting personal details, validating KYC status, and persisting the customer record. It is the prerequisite for opening accounts or applying for loans.</p>
+    
+    <div class="flowchart-svg">
+      <pre class="mermaid" style="background-color: #F0F3F2; border-radius: 8px; padding: 20px; overflow-x: auto;">
+%%{init: {'flowchart': {'diagramPadding': 30}}}%%
+graph LR
+
+    classDef boundedContext fill:#e8f5e8,stroke:#00684A,stroke-width:3px,color:#001e2b
+    classDef aggregate fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#001e2b
+    classDef entity fill:#f3e5f5,stroke:#7b1fa2,stroke-width:1.5px,color:#001e2b
+    classDef repository fill:#fff5f0,stroke:#d2691e,stroke-width:1.5px,color:#001e2b
+    classDef service fill:#ffffff,stroke:#00684A,stroke-width:2px,color:#001e2b
+    classDef process fill:#ffffff,stroke:#00684A,stroke-width:2px,color:#001e2b
+    classDef dependency fill:#f8f9fa,stroke:#6c757d,stroke-width:1px,color:#001e2b
+    classDef rootDependency fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#001e2b
+    classDef internalComponent fill:#e8f5e8,stroke:#00684A,stroke-width:2px,color:#001e2b
+    classDef externalComponent fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#001e2b
+    capture_customer_data_0["Capture Customer Data"]
+    class capture_customer_data_0 process
+    kyc_validation_1["KYC Validation"]
+    class kyc_validation_1 process
+    profile_creation_2["Profile Creation"]
+    class profile_creation_2 process
+    capture_customer_data_0 --> kyc_validation_1
+    kyc_validation_1 --> profile_creation_2
+</pre>
+    </div>
+    
+    <!-- Activity details -->
+    
+      <div class="activity-details">
+        <h4>Process Activities:</h4>
+        <ul class="activity-list">
+          
+            <li class="activity-item">
+              <strong>Capture Customer Data</strong>
+              <span class="activity-description">Collection of personal information including name, SSN, DOB, and contact details via the Customer Form.</span>
+            </li>
+          
+            <li class="activity-item">
+              <strong>KYC Validation</strong>
+              <span class="activity-description">Verification of the customer&#39;s Know Your Customer status to ensure compliance before allowing banking services.</span>
+            </li>
+          
+            <li class="activity-item">
+              <strong>Profile Creation</strong>
+              <span class="activity-description">Persisting the customer entity into the database and generating a unique Customer ID.</span>
+            </li>
+          
+        </ul>
+      </div>
+    
+  </div>
+
+  <div class="diagram-container">
+    <h3>Account Origination process</h3>
+    <p>The lifecycle of opening a new financial account for an existing customer. This process links a customer to a specific branch, defines the account type (Checking, Savings, etc.), and handles the initial funding. It relies on stored procedures to ensure data integrity during creation.</p>
+    
+    <div class="flowchart-svg">
+      <pre class="mermaid" style="background-color: #F0F3F2; border-radius: 8px; padding: 20px; overflow-x: auto;">
+%%{init: {'flowchart': {'diagramPadding': 30}}}%%
+graph LR
+
+    classDef boundedContext fill:#e8f5e8,stroke:#00684A,stroke-width:3px,color:#001e2b
+    classDef aggregate fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#001e2b
+    classDef entity fill:#f3e5f5,stroke:#7b1fa2,stroke-width:1.5px,color:#001e2b
+    classDef repository fill:#fff5f0,stroke:#d2691e,stroke-width:1.5px,color:#001e2b
+    classDef service fill:#ffffff,stroke:#00684A,stroke-width:2px,color:#001e2b
+    classDef process fill:#ffffff,stroke:#00684A,stroke-width:2px,color:#001e2b
+    classDef dependency fill:#f8f9fa,stroke:#6c757d,stroke-width:1px,color:#001e2b
+    classDef rootDependency fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#001e2b
+    classDef internalComponent fill:#e8f5e8,stroke:#00684A,stroke-width:2px,color:#001e2b
+    classDef externalComponent fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#001e2b
+    account_application_0["Account Application"]
+    class account_application_0 process
+    initial_deposit_processing_1["Initial Deposit Processing"]
+    class initial_deposit_processing_1 process
+    account_activation_2["Account Activation"]
+    class account_activation_2 process
+    account_application_0 --> initial_deposit_processing_1
+    initial_deposit_processing_1 --> account_activation_2
+</pre>
+    </div>
+    
+    <!-- Activity details -->
+    
+      <div class="activity-details">
+        <h4>Process Activities:</h4>
+        <ul class="activity-list">
+          
+            <li class="activity-item">
+              <strong>Account Application</strong>
+              <span class="activity-description">Selection of account type, branch assignment, and interest rate configuration.</span>
+            </li>
+          
+            <li class="activity-item">
+              <strong>Initial Deposit Processing</strong>
+              <span class="activity-description">Handling the initial monetary deposit required to activate the account.</span>
+            </li>
+          
+            <li class="activity-item">
+              <strong>Account Activation</strong>
+              <span class="activity-description">Generating the account number and setting the account status to ACTIVE.</span>
+            </li>
+          
+        </ul>
+      </div>
+    
+  </div>
+
+  <div class="diagram-container">
+    <h3>Loan Lifecycle Management process</h3>
+    <p>Manages the end-to-end process of lending, from application to approval and repayment. This process involves assessing customer eligibility, calculating terms and interest, and managing monthly payments. It utilizes complex logic to track principal and interest portions of payments.</p>
+    
+    <div class="flowchart-svg">
+      <pre class="mermaid" style="background-color: #F0F3F2; border-radius: 8px; padding: 20px; overflow-x: auto;">
+%%{init: {'flowchart': {'diagramPadding': 30}}}%%
+graph LR
+
+    classDef boundedContext fill:#e8f5e8,stroke:#00684A,stroke-width:3px,color:#001e2b
+    classDef aggregate fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#001e2b
+    classDef entity fill:#f3e5f5,stroke:#7b1fa2,stroke-width:1.5px,color:#001e2b
+    classDef repository fill:#fff5f0,stroke:#d2691e,stroke-width:1.5px,color:#001e2b
+    classDef service fill:#ffffff,stroke:#00684A,stroke-width:2px,color:#001e2b
+    classDef process fill:#ffffff,stroke:#00684A,stroke-width:2px,color:#001e2b
+    classDef dependency fill:#f8f9fa,stroke:#6c757d,stroke-width:1px,color:#001e2b
+    classDef rootDependency fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#001e2b
+    classDef internalComponent fill:#e8f5e8,stroke:#00684A,stroke-width:2px,color:#001e2b
+    classDef externalComponent fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#001e2b
+    loan_application_0["Loan Application"]
+    class loan_application_0 process
+    credit_approval_1["Credit Approval"]
+    class credit_approval_1 process
+    disbursement_2["Disbursement"]
+    class disbursement_2 process
+    repayment_processing_3["Repayment Processing"]
+    class repayment_processing_3 process
+    loan_application_0 --> credit_approval_1
+    credit_approval_1 --> disbursement_2
+    disbursement_2 --> repayment_processing_3
+</pre>
+    </div>
+    
+    <!-- Activity details -->
+    
+      <div class="activity-details">
+        <h4>Process Activities:</h4>
+        <ul class="activity-list">
+          
+            <li class="activity-item">
+              <strong>Loan Application</strong>
+              <span class="activity-description">Submission of loan request details including type, principal amount, and desired term.</span>
+            </li>
+          
+            <li class="activity-item">
+              <strong>Credit Approval</strong>
+              <span class="activity-description">Review of the application by an authorized employee and updating the status to APPROVED.</span>
+            </li>
+          
+            <li class="activity-item">
+              <strong>Disbursement</strong>
+              <span class="activity-description">Crediting the loan principal to the customer&#39;s linked account upon activation.</span>
+            </li>
+          
+            <li class="activity-item">
+              <strong>Repayment Processing</strong>
+              <span class="activity-description">Processing periodic payments, splitting amounts between interest and principal reduction.</span>
+            </li>
+          
+        </ul>
+      </div>
+    
+  </div>
+
+  <div class="diagram-container">
+    <h3>Transaction Processing process</h3>
+    <p>The core operational process of moving funds within the bank. This includes deposits, withdrawals, and transfers between accounts. It ensures ACID properties are maintained and balances are updated atomically.</p>
+    
+    <div class="flowchart-svg">
+      <pre class="mermaid" style="background-color: #F0F3F2; border-radius: 8px; padding: 20px; overflow-x: auto;">
+%%{init: {'flowchart': {'diagramPadding': 30}}}%%
+graph LR
+
+    classDef boundedContext fill:#e8f5e8,stroke:#00684A,stroke-width:3px,color:#001e2b
+    classDef aggregate fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#001e2b
+    classDef entity fill:#f3e5f5,stroke:#7b1fa2,stroke-width:1.5px,color:#001e2b
+    classDef repository fill:#fff5f0,stroke:#d2691e,stroke-width:1.5px,color:#001e2b
+    classDef service fill:#ffffff,stroke:#00684A,stroke-width:2px,color:#001e2b
+    classDef process fill:#ffffff,stroke:#00684A,stroke-width:2px,color:#001e2b
+    classDef dependency fill:#f8f9fa,stroke:#6c757d,stroke-width:1px,color:#001e2b
+    classDef rootDependency fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#001e2b
+    classDef internalComponent fill:#e8f5e8,stroke:#00684A,stroke-width:2px,color:#001e2b
+    classDef externalComponent fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#001e2b
+    transaction_validation_0["Transaction Validation"]
+    class transaction_validation_0 process
+    fund_movement_1["Fund Movement"]
+    class fund_movement_1 process
+    audit_logging_2["Audit Logging"]
+    class audit_logging_2 process
+    transaction_validation_0 --> fund_movement_1
+    fund_movement_1 --> audit_logging_2
+</pre>
+    </div>
+    
+    <!-- Activity details -->
+    
+      <div class="activity-details">
+        <h4>Process Activities:</h4>
+        <ul class="activity-list">
+          
+            <li class="activity-item">
+              <strong>Transaction Validation</strong>
+              <span class="activity-description">Checking account status and available balance before authorizing a transaction.</span>
+            </li>
+          
+            <li class="activity-item">
+              <strong>Fund Movement</strong>
+              <span class="activity-description">Executing the debit and credit operations against the respective account balances.</span>
+            </li>
+          
+            <li class="activity-item">
+              <strong>Audit Logging</strong>
+              <span class="activity-description">Recording the transaction details and updating the account&#39;s last activity timestamp.</span>
+            </li>
+          
+        </ul>
+      </div>
+    
+  </div>
+
+  <div class="diagram-container">
+    <h3>End of Day Processing process</h3>
+    <p>A batch-oriented process that runs periodically to perform maintenance tasks. This includes calculating daily interest for eligible accounts and generating system-wide reports. It is triggered externally via shell scripts.</p>
+    
+    <div class="flowchart-svg">
+      <pre class="mermaid" style="background-color: #F0F3F2; border-radius: 8px; padding: 20px; overflow-x: auto;">
+%%{init: {'flowchart': {'diagramPadding': 30}}}%%
+graph LR
+
+    classDef boundedContext fill:#e8f5e8,stroke:#00684A,stroke-width:3px,color:#001e2b
+    classDef aggregate fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#001e2b
+    classDef entity fill:#f3e5f5,stroke:#7b1fa2,stroke-width:1.5px,color:#001e2b
+    classDef repository fill:#fff5f0,stroke:#d2691e,stroke-width:1.5px,color:#001e2b
+    classDef service fill:#ffffff,stroke:#00684A,stroke-width:2px,color:#001e2b
+    classDef process fill:#ffffff,stroke:#00684A,stroke-width:2px,color:#001e2b
+    classDef dependency fill:#f8f9fa,stroke:#6c757d,stroke-width:1px,color:#001e2b
+    classDef rootDependency fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#001e2b
+    classDef internalComponent fill:#e8f5e8,stroke:#00684A,stroke-width:2px,color:#001e2b
+    classDef externalComponent fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#001e2b
+    interest_calculation_0["Interest Calculation"]
+    class interest_calculation_0 process
+    balance_reconciliation_1["Balance Reconciliation"]
+    class balance_reconciliation_1 process
+    statement_generation_2["Statement Generation"]
+    class statement_generation_2 process
+    interest_calculation_0 --> balance_reconciliation_1
+    balance_reconciliation_1 --> statement_generation_2
+</pre>
+    </div>
+    
+    <!-- Activity details -->
+    
+      <div class="activity-details">
+        <h4>Process Activities:</h4>
+        <ul class="activity-list">
+          
+            <li class="activity-item">
+              <strong>Interest Calculation</strong>
+              <span class="activity-description">Computing compound interest for Savings and Money Market accounts based on daily balances.</span>
+            </li>
+          
+            <li class="activity-item">
+              <strong>Balance Reconciliation</strong>
+              <span class="activity-description">Verifying that account balances match the sum of their transaction history.</span>
+            </li>
+          
+            <li class="activity-item">
+              <strong>Statement Generation</strong>
+              <span class="activity-description">Creating monthly statement files for customers detailing their transaction history.</span>
+            </li>
+          
+        </ul>
+      </div>
+    
+  </div>
+
+
+
+      
+    </div>
+
+    <div id="tab-current-arch" class="tab-content">
+      
+        <h2>Current Architecture <a href="inferred-architecture.json" target="_blank" style="text-decoration: none;"><svg width="28" height="16" viewBox="0 0 28 16" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="0" width="28" height="16" rx="0" fill="#cc5500" stroke="#000" stroke-width="0.5"/>
+  <text x="14" y="11" font-family="monospace" font-size="10" font-weight="bold" text-anchor="middle" fill="#ffffff">JSON</text>
+</svg>
+</a></h2>
+
+
+<div class="note-box">
+  <p><strong>Note:</strong> This diagram shows the high-level business components inferred from the existing codebase. Internal components (green) represent core business functionality, while external dependencies (orange) represent external systems such as databases, message queues, and external APIs.</p>
+</div>
+
+<div class="diagram-container">
+  <h3>Architecture Overview</h3>
+  
+  <div class="architecture-diagram-svg">
+    <pre class="mermaid" style="background-color: #F0F3F2; border-radius: 8px; padding: 20px; overflow-x: auto;">
+%%{init: {'flowchart': {'diagramPadding': 50, 'nodeSpacing': 30, 'rankSpacing': 60}}}%%
+flowchart TB
+
+    classDef boundedContext fill:#e8f5e8,stroke:#00684A,stroke-width:3px,color:#001e2b
+    classDef aggregate fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#001e2b
+    classDef entity fill:#f3e5f5,stroke:#7b1fa2,stroke-width:1.5px,color:#001e2b
+    classDef repository fill:#fff5f0,stroke:#d2691e,stroke-width:1.5px,color:#001e2b
+    classDef service fill:#ffffff,stroke:#00684A,stroke-width:2px,color:#001e2b
+    classDef process fill:#ffffff,stroke:#00684A,stroke-width:2px,color:#001e2b
+    classDef dependency fill:#f8f9fa,stroke:#6c757d,stroke-width:1px,color:#001e2b
+    classDef rootDependency fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#001e2b
+    classDef internalComponent fill:#e8f5e8,stroke:#00684A,stroke-width:2px,color:#001e2b
+    classDef externalComponent fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#001e2b
+    int_account_manager_0["Account Manager"]
+    int_transaction_processor_1["Transaction Processor"]
+    int_loan_manager_2["Loan Manager"]
+    int_customer_manager_3["Customer Manager"]
+    int_branch_manager_4["Branch Manager"]
+    int_interest_calculator_5["Interest Calculator"]
+    int_statement_generator_6["Statement Generator"]
+    int_card_manager_7["Card Manager"]
+    int_bill_pay_service_8["Bill Pay Service"]
+    int_audit_logger_9["Audit Logger"]
+    ext_oracle_database_0["Oracle Database<br/><i>Database</i>"]
+    ext_local_file_system_1["Local File System<br/><i>File System</i>"]
+    int_account_manager_0 --> ext_oracle_database_0
+    int_transaction_processor_1 --> ext_oracle_database_0
+    int_loan_manager_2 --> ext_oracle_database_0
+    int_customer_manager_3 --> ext_oracle_database_0
+    int_branch_manager_4 --> ext_oracle_database_0
+    int_interest_calculator_5 --> ext_oracle_database_0
+    int_statement_generator_6 --> ext_oracle_database_0
+    int_statement_generator_6 --> ext_local_file_system_1
+    int_card_manager_7 --> ext_oracle_database_0
+    int_bill_pay_service_8 --> ext_oracle_database_0
+    int_audit_logger_9 --> ext_oracle_database_0
+    int_transaction_processor_1 --> int_account_manager_0
+    int_loan_manager_2 --> int_account_manager_0
+    int_loan_manager_2 --> int_customer_manager_3
+    int_account_manager_0 --> int_customer_manager_3
+    int_account_manager_0 --> int_branch_manager_4
+    class int_account_manager_0 internalComponent
+    class int_transaction_processor_1 internalComponent
+    class int_loan_manager_2 internalComponent
+    class int_customer_manager_3 internalComponent
+    class int_branch_manager_4 internalComponent
+    class int_interest_calculator_5 internalComponent
+    class int_statement_generator_6 internalComponent
+    class int_card_manager_7 internalComponent
+    class int_bill_pay_service_8 internalComponent
+    class int_audit_logger_9 internalComponent
+    class ext_oracle_database_0 externalComponent
+    class ext_local_file_system_1 externalComponent
+</pre>
+  </div>
+</div>
+
+
+  
+    <div class="architecture-details">
+      <h3>Internal Business Components</h3>
+      
+      
+        <div class="component-detail">
+          <h4>Account Manager</h4>
+          <p>Responsible for the lifecycle of bank accounts. It handles creation, status updates (closing/freezing), and retrieving account details. It interacts heavily with the database to maintain balance consistency.</p>
+        </div>
+      
+        <div class="component-detail">
+          <h4>Transaction Processor</h4>
+          <p>Manages the execution of financial transactions such as deposits, withdrawals, and transfers. It ensures that funds are available before processing and maintains an audit trail of all movements.</p>
+        </div>
+      
+        <div class="component-detail">
+          <h4>Loan Manager</h4>
+          <p>Handles the lending business capability. It processes loan applications, manages the approval workflow, calculates monthly payments, and tracks the remaining balance and interest.</p>
+        </div>
+      
+        <div class="component-detail">
+          <h4>Customer Manager</h4>
+          <p>Manages customer identity and profiles. It handles onboarding, KYC verification status, and updates to personal contact information.</p>
+        </div>
+      
+        <div class="component-detail">
+          <h4>Branch Manager</h4>
+          <p>Manages the physical branch locations and the employees assigned to them. It provides data regarding where accounts are held and where staff are located.</p>
+        </div>
+      
+        <div class="component-detail">
+          <h4>Interest Calculator</h4>
+          <p>A batch-oriented component responsible for calculating compound interest for savings and money market accounts. It runs periodically to credit interest to eligible accounts.</p>
+        </div>
+      
+        <div class="component-detail">
+          <h4>Statement Generator</h4>
+          <p>A batch component that generates monthly account statements for customers. It aggregates transaction history for a specific period into a report format.</p>
+        </div>
+      
+        <div class="component-detail">
+          <h4>Card Manager</h4>
+          <p>Manages the lifecycle of debit and credit cards linked to accounts. It handles card issuance, status tracking, and transaction authorization.</p>
+        </div>
+      
+        <div class="component-detail">
+          <h4>Bill Pay Service</h4>
+          <p>Manages scheduled and recurring payments to external payees. It tracks payment schedules and executes transfers from customer accounts.</p>
+        </div>
+      
+        <div class="component-detail">
+          <h4>Audit Logger</h4>
+          <p>Captures and records changes to critical data entities. It ensures compliance and security by logging who changed what and when.</p>
+        </div>
+      
+    </div>
+  
+  
+  
+    <div class="architecture-details">
+      <h3>External Dependencies</h3>
+      
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          
+            <tr>
+              <td><strong>Oracle Database</strong></td>
+              <td><span class="badge">Database</span></td>
+              <td>The primary persistence store and execution engine for business logic (via PL/SQL). All internal components depend on this for state and processing.</td>
+            </tr>
+          
+            <tr>
+              <td><strong>Local File System</strong></td>
+              <td><span class="badge">File System</span></td>
+              <td>Used by the Statement Generator to output generated monthly statement files.</td>
+            </tr>
+          
+        </tbody>
+      </table>
+    </div>
+  
+
+
+
+
+      
+    </div>
+
+    <div id="tab-arch" class="tab-content">
+      
+        <h2>Derived Microservices Architecture <a href="microservices-architecture.json" target="_blank" style="text-decoration: none;"><svg width="28" height="16" viewBox="0 0 28 16" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="0" width="28" height="16" rx="0" fill="#cc5500" stroke="#000" stroke-width="0.5"/>
+  <text x="14" y="11" font-family="monospace" font-size="10" font-weight="bold" text-anchor="middle" fill="#ffffff">JSON</text>
+</svg>
+</a></h2>
+
+
+<div class="note-box">
+  <p><strong>Note:</strong> This is a suggested new Microservices architecture derived from what the application does and how it functions  - it intentionally does not reflect the curent the current archiecture of the application or any of its existing Microservices (if any).</p>
+</div>
+
+<div class="diagram-container">
+  <h3>Microservices</h3>
+  
+  <div class="architecture-diagram-svg">
+    <pre class="mermaid" style="background-color: #F0F3F2; border-radius: 8px; padding: 20px; overflow-x: auto;">
+%%{init: {'flowchart': {'diagramPadding': 30}}}%%
+flowchart TB
+
+    classDef boundedContext fill:#e8f5e8,stroke:#00684A,stroke-width:3px,color:#001e2b
+    classDef aggregate fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#001e2b
+    classDef entity fill:#f3e5f5,stroke:#7b1fa2,stroke-width:1.5px,color:#001e2b
+    classDef repository fill:#fff5f0,stroke:#d2691e,stroke-width:1.5px,color:#001e2b
+    classDef service fill:#ffffff,stroke:#00684A,stroke-width:2px,color:#001e2b
+    classDef process fill:#ffffff,stroke:#00684A,stroke-width:2px,color:#001e2b
+    classDef dependency fill:#f8f9fa,stroke:#6c757d,stroke-width:1px,color:#001e2b
+    classDef rootDependency fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#001e2b
+    classDef internalComponent fill:#e8f5e8,stroke:#00684A,stroke-width:2px,color:#001e2b
+    classDef externalComponent fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#001e2b
+    subgraph services[" "]
+        account_service_0["Account Service"]
+        transaction_service_1["Transaction Service"]
+        customer_service_2["Customer Service"]
+        loan_service_3["Loan Service"]
+        account_service_0 ~~~ transaction_service_1
+        transaction_service_1 ~~~ customer_service_2
+        account_service_0 ~~~ loan_service_3
+    end
+    class account_service_0 service
+    class transaction_service_1 service
+    class customer_service_2 service
+    class loan_service_3 service
+    style services fill:transparent,stroke:transparent,stroke-width:0
+</pre>
+  </div>
+</div>
+
+
+  <div class="microservices-details">
+    <h3>Microservices Details</h3>
+    
+    
+      <div class="service-detail">
+        <h4>Account Service</h4>
+        <p>A core service responsible for managing the lifecycle of bank accounts. It will handle account creation, balance inquiries, and status updates. It will abstract the legacy &#39;account_management&#39; stored procedures into Java-based business logic.</p>
+        
+        
+          <h5>Entities</h5>
+          <ul>
+            
+              <li>
+                <strong>Account</strong>: Represents a financial account.
+                
+                  <br><small>Attributes: accountId, accountNumber, balance, type, status</small>
+                
+              </li>
+            
+          </ul>
+        
+        
+        
+          <h5>API Endpoints</h5>
+          <ul>
+            
+              <li>
+                <code>POST</code> <code>/api/accounts</code>
+                <br><small>Create a new account for a customer.</small>
+              </li>
+            
+              <li>
+                <code>GET</code> <code>/api/accounts/{id}</code>
+                <br><small>Retrieve details and balance for a specific account.</small>
+              </li>
+            
+              <li>
+                <code>PATCH</code> <code>/api/accounts/{id}/status</code>
+                <br><small>Update the status of an account (e.g., freeze, close).</small>
+              </li>
+            
+          </ul>
+        
+        
+        
+          <h5>Operations</h5>
+          <ul>
+            
+              <li>
+                <strong>Create Account</strong> (POST)
+                <br><small>Validates customer and branch, generates account number, and initializes balance.</small>
+              </li>
+            
+              <li>
+                <strong>Get Balance</strong> (GET)
+                <br><small>Returns the current available balance.</small>
+              </li>
+            
+          </ul>
+        
+      </div>
+    
+      <div class="service-detail">
+        <h4>Transaction Service</h4>
+        <p>Handles all monetary movements including deposits, withdrawals, and transfers. It ensures transactional integrity and maintains the transaction history log. It replaces the &#39;transaction_processing&#39; package.</p>
+        
+        
+          <h5>Entities</h5>
+          <ul>
+            
+              <li>
+                <strong>Transaction</strong>: A record of a financial event.
+                
+                  <br><small>Attributes: transactionId, amount, type, timestamp, description</small>
+                
+              </li>
+            
+          </ul>
+        
+        
+        
+          <h5>API Endpoints</h5>
+          <ul>
+            
+              <li>
+                <code>POST</code> <code>/api/transactions</code>
+                <br><small>Execute a new transaction (deposit, withdrawal, transfer).</small>
+              </li>
+            
+              <li>
+                <code>GET</code> <code>/api/accounts/{accountId}/transactions</code>
+                <br><small>Get transaction history for a specific account.</small>
+              </li>
+            
+          </ul>
+        
+        
+        
+          <h5>Operations</h5>
+          <ul>
+            
+              <li>
+                <strong>Post Transaction</strong> (POST)
+                <br><small>Validates funds and records the transaction.</small>
+              </li>
+            
+              <li>
+                <strong>Transfer Funds</strong> (POST)
+                <br><small>Atomically debits one account and credits another.</small>
+              </li>
+            
+          </ul>
+        
+      </div>
+    
+      <div class="service-detail">
+        <h4>Customer Service</h4>
+        <p>Manages customer profiles, KYC data, and contact information. It serves as the source of truth for customer identity.</p>
+        
+        
+          <h5>Entities</h5>
+          <ul>
+            
+              <li>
+                <strong>Customer</strong>: The banking client.
+                
+                  <br><small>Attributes: customerId, firstName, lastName, ssn, kycStatus</small>
+                
+              </li>
+            
+          </ul>
+        
+        
+        
+          <h5>API Endpoints</h5>
+          <ul>
+            
+              <li>
+                <code>POST</code> <code>/api/customers</code>
+                <br><small>Register a new customer.</small>
+              </li>
+            
+              <li>
+                <code>GET</code> <code>/api/customers/{id}</code>
+                <br><small>Retrieve customer profile details.</small>
+              </li>
+            
+              <li>
+                <code>PUT</code> <code>/api/customers/{id}</code>
+                <br><small>Update customer contact info or KYC status.</small>
+              </li>
+            
+          </ul>
+        
+        
+        
+          <h5>Operations</h5>
+          <ul>
+            
+              <li>
+                <strong>Onboard Customer</strong> (POST)
+                <br><small>Creates a new customer record.</small>
+              </li>
+            
+              <li>
+                <strong>Update Profile</strong> (PUT)
+                <br><small>Modifies customer details.</small>
+              </li>
+            
+          </ul>
+        
+      </div>
+    
+      <div class="service-detail">
+        <h4>Loan Service</h4>
+        <p>Manages loan applications, approvals, and amortization schedules. It replaces the &#39;loan_processing&#39; stored procedures.</p>
+        
+        
+          <h5>Entities</h5>
+          <ul>
+            
+              <li>
+                <strong>Loan</strong>: A lending agreement.
+                
+                  <br><small>Attributes: loanId, principal, interestRate, term, status</small>
+                
+              </li>
+            
+          </ul>
+        
+        
+        
+          <h5>API Endpoints</h5>
+          <ul>
+            
+              <li>
+                <code>POST</code> <code>/api/loans</code>
+                <br><small>Submit a new loan application.</small>
+              </li>
+            
+              <li>
+                <code>POST</code> <code>/api/loans/{id}/approval</code>
+                <br><small>Approve a pending loan application.</small>
+              </li>
+            
+              <li>
+                <code>POST</code> <code>/api/loans/{id}/payment</code>
+                <br><small>Process a loan repayment.</small>
+              </li>
+            
+          </ul>
+        
+        
+        
+          <h5>Operations</h5>
+          <ul>
+            
+              <li>
+                <strong>Apply for Loan</strong> (POST)
+                <br><small>Creates a loan application.</small>
+              </li>
+            
+              <li>
+                <strong>Calculate Amortization</strong> (GET)
+                <br><small>Calculates monthly payments and interest.</small>
+              </li>
+            
+          </ul>
+        
+      </div>
+    
+  </div>
+
+
+      
+    </div>
+
+    <div id="tab-domain" class="tab-content">
+      
+        <h2>Derived Domain Model <a href="domain-model-diagrams.json" target="_blank" style="text-decoration: none;"><svg width="28" height="16" viewBox="0 0 28 16" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="0" width="28" height="16" rx="0" fill="#cc5500" stroke="#000" stroke-width="0.5"/>
+  <text x="14" y="11" font-family="monospace" font-size="10" font-weight="bold" text-anchor="middle" fill="#ffffff">JSON</text>
+</svg>
+</a></h2>
+
+
+<div class="note-box">
+  <p><strong>Note:</strong> This domain model has been derived from what the application does and how it functions  - it intentionally does not reflect how the current code manages and persists business data.</p>
+</div>
+
+
+  <div class="diagram-container">
+    <h3 class="bounded-context-title">Account Management Context bounded context</h3>
+    <p>This context encapsulates all capabilities related to the lifecycle and maintenance of financial accounts. It handles account creation, status management (freezing/closing), and balance tracking. It is the central hub for customer financial data.</p>
+    
+    <div class="domain-diagram-svg">
+      <pre class="mermaid" style="background-color: #F0F3F2; border-radius: 8px; padding: 20px; overflow-x: auto;">
+%%{init: {'flowchart': {'diagramPadding': 30}}}%%
+flowchart TB
+
+    classDef boundedContext fill:#e8f5e8,stroke:#00684A,stroke-width:3px,color:#001e2b
+    classDef aggregate fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#001e2b
+    classDef entity fill:#f3e5f5,stroke:#7b1fa2,stroke-width:1.5px,color:#001e2b
+    classDef repository fill:#fff5f0,stroke:#d2691e,stroke-width:1.5px,color:#001e2b
+    classDef service fill:#ffffff,stroke:#00684A,stroke-width:2px,color:#001e2b
+    classDef process fill:#ffffff,stroke:#00684A,stroke-width:2px,color:#001e2b
+    classDef dependency fill:#f8f9fa,stroke:#6c757d,stroke-width:1px,color:#001e2b
+    classDef rootDependency fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#001e2b
+    classDef internalComponent fill:#e8f5e8,stroke:#00684A,stroke-width:2px,color:#001e2b
+    classDef externalComponent fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#001e2b
+    account_management_context_0{{"Account Management Context"}}
+    account_management_context_0 --> agg_bankaccount_0
+    agg_bankaccount_0 -.-> entity_account_0
+    agg_bankaccount_0 -.-> entity_transaction_1
+    subgraph aggRepoGroup0[" "]
+        direction LR
+        agg_bankaccount_0(["BankAccount"])
+        repo_accountrepository_0(("AccountRepository"))
+        agg_bankaccount_0 -.- repo_accountrepository_0
+    end
+    class agg_bankaccount_0 aggregate
+    class repo_accountrepository_0 repository
+    subgraph entitiesGroup[" "]
+        direction LR
+        entity_account_0("Account")
+        entity_transaction_1("Transaction")
+    end
+    class entity_account_0 entity
+    class entity_transaction_1 entity
+    class account_management_context_0 boundedContext
+    style aggRepoGroup0 fill:transparent,stroke:transparent,stroke-width:0
+    style entitiesGroup fill:transparent,stroke:transparent,stroke-width:0
+</pre>
+    </div>
+    
+    <div class="domain-details">
+      
+        <h4 class="aggregates-header">Aggregates (1)</h4>
+        <ul class="aggregates-list">
+          
+            <li><strong>BankAccount</strong>: The core aggregate representing a customer&#39;s financial holding. It enforces rules regarding minimum balances, valid account types, and status transitions.</li>
+          
+        </ul>
+      
+      
+      
+        <h4 class="repositories-header">Repositories (1)</h4>
+        <ul class="repositories-list">
+          
+            <li><strong>AccountRepository</strong>: Handles persistence for Account entities, providing methods to find accounts by ID, customer, or account number.</li>
+          
+        </ul>
+      
+      
+      
+        <h4 class="entities-header">Entities (2)</h4>
+        <ul class="entities-list">
+          
+            <li><strong>Account</strong>: The root entity containing balance, type (Checking/Savings), and status.</li>
+          
+            <li><strong>Transaction</strong>: A record of financial movement affecting the account balance.</li>
+          
+        </ul>
+      
+    </div>
+  </div>
+
+  <div class="diagram-container">
+    <h3 class="bounded-context-title">Lending Context bounded context</h3>
+    <p>Focuses on the borrowing aspect of the banking business. It manages the entire loan lifecycle from application to payoff, including interest rates, terms, and repayment schedules.</p>
+    
+    <div class="domain-diagram-svg">
+      <pre class="mermaid" style="background-color: #F0F3F2; border-radius: 8px; padding: 20px; overflow-x: auto;">
+%%{init: {'flowchart': {'diagramPadding': 30}}}%%
+flowchart TB
+
+    classDef boundedContext fill:#e8f5e8,stroke:#00684A,stroke-width:3px,color:#001e2b
+    classDef aggregate fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#001e2b
+    classDef entity fill:#f3e5f5,stroke:#7b1fa2,stroke-width:1.5px,color:#001e2b
+    classDef repository fill:#fff5f0,stroke:#d2691e,stroke-width:1.5px,color:#001e2b
+    classDef service fill:#ffffff,stroke:#00684A,stroke-width:2px,color:#001e2b
+    classDef process fill:#ffffff,stroke:#00684A,stroke-width:2px,color:#001e2b
+    classDef dependency fill:#f8f9fa,stroke:#6c757d,stroke-width:1px,color:#001e2b
+    classDef rootDependency fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#001e2b
+    classDef internalComponent fill:#e8f5e8,stroke:#00684A,stroke-width:2px,color:#001e2b
+    classDef externalComponent fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#001e2b
+    lending_context_0{{"Lending Context"}}
+    lending_context_0 --> agg_loanagreement_0
+    agg_loanagreement_0 -.-> entity_loan_0
+    agg_loanagreement_0 -.-> entity_loanpayment_1
+    subgraph aggRepoGroup0[" "]
+        direction LR
+        agg_loanagreement_0(["LoanAgreement"])
+        repo_loanrepository_0(("LoanRepository"))
+        agg_loanagreement_0 -.- repo_loanrepository_0
+    end
+    class agg_loanagreement_0 aggregate
+    class repo_loanrepository_0 repository
+    subgraph entitiesGroup[" "]
+        direction LR
+        entity_loan_0("Loan")
+        entity_loanpayment_1("LoanPayment")
+    end
+    class entity_loan_0 entity
+    class entity_loanpayment_1 entity
+    class lending_context_0 boundedContext
+    style aggRepoGroup0 fill:transparent,stroke:transparent,stroke-width:0
+    style entitiesGroup fill:transparent,stroke:transparent,stroke-width:0
+</pre>
+    </div>
+    
+    <div class="domain-details">
+      
+        <h4 class="aggregates-header">Aggregates (1)</h4>
+        <ul class="aggregates-list">
+          
+            <li><strong>LoanAgreement</strong>: Represents a contract between the bank and a customer for borrowed funds. It enforces rules regarding approval workflows and repayment calculations.</li>
+          
+        </ul>
+      
+      
+      
+        <h4 class="repositories-header">Repositories (1)</h4>
+        <ul class="repositories-list">
+          
+            <li><strong>LoanRepository</strong>: Manages the storage and retrieval of Loan applications and active loan records.</li>
+          
+        </ul>
+      
+      
+      
+        <h4 class="entities-header">Entities (2)</h4>
+        <ul class="entities-list">
+          
+            <li><strong>Loan</strong>: The root entity detailing principal, interest rate, term, and remaining balance.</li>
+          
+            <li><strong>LoanPayment</strong>: A record of a repayment installment, split into principal and interest components.</li>
+          
+        </ul>
+      
+    </div>
+  </div>
+
+  <div class="diagram-container">
+    <h3 class="bounded-context-title">Customer Context bounded context</h3>
+    <p>Manages the identity and profile information of the bank&#39;s clients. It is responsible for KYC compliance, contact information, and relationship management.</p>
+    
+    <div class="domain-diagram-svg">
+      <pre class="mermaid" style="background-color: #F0F3F2; border-radius: 8px; padding: 20px; overflow-x: auto;">
+%%{init: {'flowchart': {'diagramPadding': 30}}}%%
+flowchart TB
+
+    classDef boundedContext fill:#e8f5e8,stroke:#00684A,stroke-width:3px,color:#001e2b
+    classDef aggregate fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#001e2b
+    classDef entity fill:#f3e5f5,stroke:#7b1fa2,stroke-width:1.5px,color:#001e2b
+    classDef repository fill:#fff5f0,stroke:#d2691e,stroke-width:1.5px,color:#001e2b
+    classDef service fill:#ffffff,stroke:#00684A,stroke-width:2px,color:#001e2b
+    classDef process fill:#ffffff,stroke:#00684A,stroke-width:2px,color:#001e2b
+    classDef dependency fill:#f8f9fa,stroke:#6c757d,stroke-width:1px,color:#001e2b
+    classDef rootDependency fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#001e2b
+    classDef internalComponent fill:#e8f5e8,stroke:#00684A,stroke-width:2px,color:#001e2b
+    classDef externalComponent fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#001e2b
+    customer_context_0{{"Customer Context"}}
+    customer_context_0 --> agg_customerprofile_0
+    agg_customerprofile_0 -.-> entity_customer_0
+    agg_customerprofile_0 -.-> entity_relationship_1
+    subgraph aggRepoGroup0[" "]
+        direction LR
+        agg_customerprofile_0(["CustomerProfile"])
+        repo_customerrepository_0(("CustomerRepository"))
+        agg_customerprofile_0 -.- repo_customerrepository_0
+    end
+    class agg_customerprofile_0 aggregate
+    class repo_customerrepository_0 repository
+    subgraph entitiesGroup[" "]
+        direction LR
+        entity_customer_0("Customer")
+        entity_relationship_1("Relationship")
+    end
+    class entity_customer_0 entity
+    class entity_relationship_1 entity
+    class customer_context_0 boundedContext
+    style aggRepoGroup0 fill:transparent,stroke:transparent,stroke-width:0
+    style entitiesGroup fill:transparent,stroke:transparent,stroke-width:0
+</pre>
+    </div>
+    
+    <div class="domain-details">
+      
+        <h4 class="aggregates-header">Aggregates (1)</h4>
+        <ul class="aggregates-list">
+          
+            <li><strong>CustomerProfile</strong>: The aggregate for customer identity. It ensures unique identification (SSN) and validates contact data.</li>
+          
+        </ul>
+      
+      
+      
+        <h4 class="repositories-header">Repositories (1)</h4>
+        <ul class="repositories-list">
+          
+            <li><strong>CustomerRepository</strong>: Provides access to customer records and supports searching by various attributes.</li>
+          
+        </ul>
+      
+      
+      
+        <h4 class="entities-header">Entities (2)</h4>
+        <ul class="entities-list">
+          
+            <li><strong>Customer</strong>: The root entity containing personal details, KYC status, and demographics.</li>
+          
+            <li><strong>Relationship</strong>: Defines links between different customers (e.g., Spouse, Joint Account Holder).</li>
+          
+        </ul>
+      
+    </div>
+  </div>
+
+  <div class="diagram-container">
+    <h3 class="bounded-context-title">Branch Operations Context bounded context</h3>
+    <p>Deals with the physical infrastructure and staffing of the bank. It manages branch locations and the employees assigned to them.</p>
+    
+    <div class="domain-diagram-svg">
+      <pre class="mermaid" style="background-color: #F0F3F2; border-radius: 8px; padding: 20px; overflow-x: auto;">
+%%{init: {'flowchart': {'diagramPadding': 30}}}%%
+flowchart TB
+
+    classDef boundedContext fill:#e8f5e8,stroke:#00684A,stroke-width:3px,color:#001e2b
+    classDef aggregate fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#001e2b
+    classDef entity fill:#f3e5f5,stroke:#7b1fa2,stroke-width:1.5px,color:#001e2b
+    classDef repository fill:#fff5f0,stroke:#d2691e,stroke-width:1.5px,color:#001e2b
+    classDef service fill:#ffffff,stroke:#00684A,stroke-width:2px,color:#001e2b
+    classDef process fill:#ffffff,stroke:#00684A,stroke-width:2px,color:#001e2b
+    classDef dependency fill:#f8f9fa,stroke:#6c757d,stroke-width:1px,color:#001e2b
+    classDef rootDependency fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#001e2b
+    classDef internalComponent fill:#e8f5e8,stroke:#00684A,stroke-width:2px,color:#001e2b
+    classDef externalComponent fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#001e2b
+    branch_operations_context_0{{"Branch Operations Context"}}
+    branch_operations_context_0 --> agg_branchoffice_0
+    agg_branchoffice_0 -.-> entity_branch_0
+    agg_branchoffice_0 -.-> entity_employee_1
+    subgraph aggRepoGroup0[" "]
+        direction LR
+        agg_branchoffice_0(["BranchOffice"])
+        repo_branchrepository_0(("BranchRepository"))
+        agg_branchoffice_0 -.- repo_branchrepository_0
+    end
+    class agg_branchoffice_0 aggregate
+    class repo_branchrepository_0 repository
+    subgraph entitiesGroup[" "]
+        direction LR
+        entity_branch_0("Branch")
+        entity_employee_1("Employee")
+    end
+    class entity_branch_0 entity
+    class entity_employee_1 entity
+    class branch_operations_context_0 boundedContext
+    style aggRepoGroup0 fill:transparent,stroke:transparent,stroke-width:0
+    style entitiesGroup fill:transparent,stroke:transparent,stroke-width:0
+</pre>
+    </div>
+    
+    <div class="domain-details">
+      
+        <h4 class="aggregates-header">Aggregates (1)</h4>
+        <ul class="aggregates-list">
+          
+            <li><strong>BranchOffice</strong>: Represents a physical bank location. It manages the association of employees and accounts to a specific location.</li>
+          
+        </ul>
+      
+      
+      
+        <h4 class="repositories-header">Repositories (1)</h4>
+        <ul class="repositories-list">
+          
+            <li><strong>BranchRepository</strong>: Handles persistence for Branch and Employee data.</li>
+          
+        </ul>
+      
+      
+      
+        <h4 class="entities-header">Entities (2)</h4>
+        <ul class="entities-list">
+          
+            <li><strong>Branch</strong>: The root entity defining the location and contact details of a bank branch.</li>
+          
+            <li><strong>Employee</strong>: Staff members assigned to a branch, including their roles and permissions.</li>
+          
+        </ul>
+      
+    </div>
+  </div>
+
+  <div class="diagram-container">
+    <h3 class="bounded-context-title">Payment Services Context bounded context</h3>
+    <p>Handles ancillary payment methods and external transfers. This includes bill payments and card management.</p>
+    
+    <div class="domain-diagram-svg">
+      <pre class="mermaid" style="background-color: #F0F3F2; border-radius: 8px; padding: 20px; overflow-x: auto;">
+%%{init: {'flowchart': {'diagramPadding': 30}}}%%
+flowchart TB
+
+    classDef boundedContext fill:#e8f5e8,stroke:#00684A,stroke-width:3px,color:#001e2b
+    classDef aggregate fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#001e2b
+    classDef entity fill:#f3e5f5,stroke:#7b1fa2,stroke-width:1.5px,color:#001e2b
+    classDef repository fill:#fff5f0,stroke:#d2691e,stroke-width:1.5px,color:#001e2b
+    classDef service fill:#ffffff,stroke:#00684A,stroke-width:2px,color:#001e2b
+    classDef process fill:#ffffff,stroke:#00684A,stroke-width:2px,color:#001e2b
+    classDef dependency fill:#f8f9fa,stroke:#6c757d,stroke-width:1px,color:#001e2b
+    classDef rootDependency fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#001e2b
+    classDef internalComponent fill:#e8f5e8,stroke:#00684A,stroke-width:2px,color:#001e2b
+    classDef externalComponent fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#001e2b
+    payment_services_context_0{{"Payment Services Context"}}
+    payment_services_context_0 --> agg_paymentinstrument_0
+    agg_paymentinstrument_0 -.-> entity_card_0
+    agg_paymentinstrument_0 -.-> entity_billpayment_1
+    subgraph aggRepoGroup0[" "]
+        direction LR
+        agg_paymentinstrument_0(["PaymentInstrument"])
+        repo_paymentrepository_0(("PaymentRepository"))
+        agg_paymentinstrument_0 -.- repo_paymentrepository_0
+    end
+    class agg_paymentinstrument_0 aggregate
+    class repo_paymentrepository_0 repository
+    subgraph entitiesGroup[" "]
+        direction LR
+        entity_card_0("Card")
+        entity_billpayment_1("BillPayment")
+    end
+    class entity_card_0 entity
+    class entity_billpayment_1 entity
+    class payment_services_context_0 boundedContext
+    style aggRepoGroup0 fill:transparent,stroke:transparent,stroke-width:0
+    style entitiesGroup fill:transparent,stroke:transparent,stroke-width:0
+</pre>
+    </div>
+    
+    <div class="domain-details">
+      
+        <h4 class="aggregates-header">Aggregates (1)</h4>
+        <ul class="aggregates-list">
+          
+            <li><strong>PaymentInstrument</strong>: Manages cards and bill payment setups. It enforces limits and expiration dates.</li>
+          
+        </ul>
+      
+      
+      
+        <h4 class="repositories-header">Repositories (1)</h4>
+        <ul class="repositories-list">
+          
+            <li><strong>PaymentRepository</strong>: Stores data related to debit/credit cards and bill payment schedules.</li>
+          
+        </ul>
+      
+      
+      
+        <h4 class="entities-header">Entities (2)</h4>
+        <ul class="entities-list">
+          
+            <li><strong>Card</strong>: Represents a physical debit or credit card linked to an account.</li>
+          
+            <li><strong>BillPayment</strong>: A scheduled or recurring payment to an external payee.</li>
+          
+        </ul>
+      
+    </div>
+  </div>
+
+
+      
+    </div>
+
+    <div id="tab-quality" class="tab-content">
+      <h2>Code Quality Summary <a href="code-quality-summary.json" target="_blank" style="text-decoration: none;"><svg width="28" height="16" viewBox="0 0 28 16" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="0" width="28" height="16" rx="0" fill="#cc5500" stroke="#000" stroke-width="0.5"/>
+  <text x="14" y="11" font-family="monospace" font-size="10" font-weight="bold" text-anchor="middle" fill="#ffffff">JSON</text>
+</svg>
+</a></h2>
+
+      
+<p class="note-paragraph">
+  This section provides code quality metrics to help identify complex, hard-to-maintain code.
+  Metrics are estimated by AI and should be verified manually.
+</p>
+
+<h3>Overall Statistics</h3>
+<table class="data-table">
+  <thead>
+    <tr>
+      <th class="col-medium">Metric</th>
+      <th class="col-small numeric">Value</th>
+      <th class="col-description">Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Total Functions/Methods Analyzed</td>
+      <td class="numeric">323</td>
+      <td>Total number of functions/methods analyzed across the codebase</td>
+    </tr>
+    <tr>
+      <td>Average Complexity</td>
+      <td class="numeric">1.36</td>
+      <td>Average cyclomatic complexity (1-10: simple, 11-20: moderate, >20: complex)</td>
+    </tr>
+    <tr>
+      <td>High Complexity Functions/Methods</td>
+      <td class="numeric">1</td>
+      <td>Functions/methods with complexity > 10 (candidate for refactoring)</td>
+    </tr>
+    <tr>
+      <td>Very High Complexity</td>
+      <td class="numeric">1</td>
+      <td>Functions/methods with complexity > 20 (high priority for refactoring)</td>
+    </tr>
+    <tr>
+      <td>Average Function/Method Length</td>
+      <td class="numeric">5.92 LOC</td>
+      <td>Average lines of code per function/method</td>
+    </tr>
+    <tr>
+      <td>Long Functions/Methods</td>
+      <td class="numeric">3</td>
+      <td>Functions/methods with > 50 lines of code</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>Top 10 Most Complex Functions/Methods</h3>
+<p>These functions/methods have the highest cyclomatic complexity and should be prioritized for refactoring.</p>
+<table class="data-table">
+  <thead>
+    <tr>
+      <th class="col-wide">Function/Method Name</th>
+      <th class="col-medium">File Path</th>
+      <th class="col-small numeric">Complexity</th>
+      <th class="col-small numeric">Lines</th>
+      <th class="col-description">Code Smells</th>
+    </tr>
+  </thead>
+  <tbody>
+    
+    <tr>
+      <td>
+        <details class="expandable-path">
+          <summary>doPost</summary>
+          <code>com.legacybank.servlet.CustomerServlet::doPost</code>
+        </details>
+      </td>
+      <td>
+        <details class="expandable-path">
+          <summary>CustomerServlet.java</summary>
+          <code>backend/src/servlet/CustomerServlet.java</code>
+        </details>
+      </td>
+      <td class="numeric">22</td>
+      <td class="numeric">88</td>
+      <td>
+        
+          <ul>
+            
+              <li>LONG METHOD</li>
+            
+              <li>COMPLEX CONDITIONAL</li>
+            
+              <li>MAGIC NUMBERS</li>
+            
+              <li>DEEP NESTING</li>
+            
+          </ul>
+        
+      </td>
+    </tr>
+    
+    <tr>
+      <td>
+        <details class="expandable-path">
+          <summary>getLoanPayments</summary>
+          <code>com.legacybank.ejb.LoanServiceBean::getLoanPayments</code>
+        </details>
+      </td>
+      <td>
+        <details class="expandable-path">
+          <summary>LoanServiceBean.java</summary>
+          <code>backend/src/ejb/LoanServiceBean.java</code>
+        </details>
+      </td>
+      <td class="numeric">8</td>
+      <td class="numeric">48</td>
+      <td>
+        
+          <ul>
+            
+              <li>MAGIC NUMBERS</li>
+            
+          </ul>
+        
+      </td>
+    </tr>
+    
+    <tr>
+      <td>
+        <details class="expandable-path">
+          <summary>getLoanDetails</summary>
+          <code>com.legacybank.ejb.LoanServiceBean::getLoanDetails</code>
+        </details>
+      </td>
+      <td>
+        <details class="expandable-path">
+          <summary>LoanServiceBean.java</summary>
+          <code>backend/src/ejb/LoanServiceBean.java</code>
+        </details>
+      </td>
+      <td class="numeric">8</td>
+      <td class="numeric">63</td>
+      <td>
+        
+          <ul>
+            
+              <li>LONG METHOD</li>
+            
+              <li>MAGIC NUMBERS</li>
+            
+          </ul>
+        
+      </td>
+    </tr>
+    
+    <tr>
+      <td>
+        <details class="expandable-path">
+          <summary>doGet</summary>
+          <code>com.legacybank.servlet.AccountServlet::doGet</code>
+        </details>
+      </td>
+      <td>
+        <details class="expandable-path">
+          <summary>AccountServlet.java</summary>
+          <code>backend/src/servlet/AccountServlet.java</code>
+        </details>
+      </td>
+      <td class="numeric">8</td>
+      <td class="numeric">48</td>
+      <td>
+        
+          <ul>
+            
+              <li>DUPLICATE CODE</li>
+            
+              <li>MAGIC NUMBERS</li>
+            
+              <li>COMPLEX CONDITIONAL</li>
+            
+          </ul>
+        
+      </td>
+    </tr>
+    
+    <tr>
+      <td>
+        <details class="expandable-path">
+          <summary>create</summary>
+          <code>com.legacybank.dao.CustomerDAO::create</code>
+        </details>
+      </td>
+      <td>
+        <details class="expandable-path">
+          <summary>CustomerDAO.java</summary>
+          <code>backend/src/dao/CustomerDAO.java</code>
+        </details>
+      </td>
+      <td class="numeric">7</td>
+      <td class="numeric">58</td>
+      <td>
+        
+          <ul>
+            
+              <li>LONG METHOD</li>
+            
+              <li>MAGIC NUMBERS</li>
+            
+          </ul>
+        
+      </td>
+    </tr>
+    
+    <tr>
+      <td>
+        <details class="expandable-path">
+          <summary>doGet</summary>
+          <code>com.legacybank.servlet.CustomerServlet::doGet</code>
+        </details>
+      </td>
+      <td>
+        <details class="expandable-path">
+          <summary>CustomerServlet.java</summary>
+          <code>backend/src/servlet/CustomerServlet.java</code>
+        </details>
+      </td>
+      <td class="numeric">6</td>
+      <td class="numeric">28</td>
+      <td>
+        
+          <ul>
+            
+              <li>COMPLEX CONDITIONAL</li>
+            
+          </ul>
+        
+      </td>
+    </tr>
+    
+    <tr>
+      <td>
+        <details class="expandable-path">
+          <summary>doGet</summary>
+          <code>com.legacybank.servlet.LoanServlet::doGet</code>
+        </details>
+      </td>
+      <td>
+        <details class="expandable-path">
+          <summary>LoanServlet.java</summary>
+          <code>backend/src/servlet/LoanServlet.java</code>
+        </details>
+      </td>
+      <td class="numeric">6</td>
+      <td class="numeric">36</td>
+      <td>
+        
+          None detected
+        
+      </td>
+    </tr>
+    
+    <tr>
+      <td>
+        <details class="expandable-path">
+          <summary>doPost</summary>
+          <code>com.legacybank.servlet.AccountServlet::doPost</code>
+        </details>
+      </td>
+      <td>
+        <details class="expandable-path">
+          <summary>AccountServlet.java</summary>
+          <code>backend/src/servlet/AccountServlet.java</code>
+        </details>
+      </td>
+      <td class="numeric">6</td>
+      <td class="numeric">38</td>
+      <td>
+        
+          <ul>
+            
+              <li>DUPLICATE CODE</li>
+            
+              <li>MAGIC NUMBERS</li>
+            
+          </ul>
+        
+      </td>
+    </tr>
+    
+    <tr>
+      <td>
+        <details class="expandable-path">
+          <summary>init</summary>
+          <code>com.legacybank.servlet.LoanServlet::init</code>
+        </details>
+      </td>
+      <td>
+        <details class="expandable-path">
+          <summary>LoanServlet.java</summary>
+          <code>backend/src/servlet/LoanServlet.java</code>
+        </details>
+      </td>
+      <td class="numeric">5</td>
+      <td class="numeric">26</td>
+      <td>
+        
+          <ul>
+            
+              <li>DEEP NESTING</li>
+            
+              <li>COMPLEX CONDITIONAL</li>
+            
+          </ul>
+        
+      </td>
+    </tr>
+    
+    <tr>
+      <td>
+        <details class="expandable-path">
+          <summary>init</summary>
+          <code>com.legacybank.servlet.AccountServlet::init</code>
+        </details>
+      </td>
+      <td>
+        <details class="expandable-path">
+          <summary>AccountServlet.java</summary>
+          <code>backend/src/servlet/AccountServlet.java</code>
+        </details>
+      </td>
+      <td class="numeric">5</td>
+      <td class="numeric">26</td>
+      <td>
+        
+          <ul>
+            
+              <li>DEEP NESTING</li>
+            
+              <li>SHOTGUN SURGERY</li>
+            
+          </ul>
+        
+      </td>
+    </tr>
+    
+  </tbody>
+</table>
+
+<h3>Most Common Code Smells</h3>
+<p>Frequently occurring code quality issues across the codebase.</p>
+<table class="data-table">
+  <thead>
+    <tr>
+      <th class="col-wide">Code Smell Type</th>
+      <th class="col-small numeric">Occurrences</th>
+      <th class="col-small numeric">Affected Files</th>
+      <th class="col-description">Recommendation</th>
+    </tr>
+  </thead>
+  <tbody>
+    
+    <tr>
+      <td><strong>DATA CLASS</strong></td>
+      <td class="numeric">10</td>
+      <td class="numeric">10</td>
+      <td>
+        
+          Review and refactor as part of modernization effort
+        
+      </td>
+    </tr>
+    
+    <tr>
+      <td><strong>TOO MANY METHODS</strong></td>
+      <td class="numeric">9</td>
+      <td class="numeric">9</td>
+      <td>
+        
+          Review and refactor as part of modernization effort
+        
+      </td>
+    </tr>
+    
+    <tr>
+      <td><strong>MAGIC NUMBERS</strong></td>
+      <td class="numeric">8</td>
+      <td class="numeric">8</td>
+      <td>
+        
+          Review and refactor as part of modernization effort
+        
+      </td>
+    </tr>
+    
+    <tr>
+      <td><strong>OTHER</strong></td>
+      <td class="numeric">8</td>
+      <td class="numeric">8</td>
+      <td>
+        
+          Review and refactor as part of modernization effort
+        
+      </td>
+    </tr>
+    
+    <tr>
+      <td><strong>DUPLICATE CODE</strong></td>
+      <td class="numeric">6</td>
+      <td class="numeric">6</td>
+      <td>
+        
+          Review and refactor as part of modernization effort
+        
+      </td>
+    </tr>
+    
+    <tr>
+      <td><strong>COMPLEX CONDITIONAL</strong></td>
+      <td class="numeric">4</td>
+      <td class="numeric">4</td>
+      <td>
+        
+          Review and refactor as part of modernization effort
+        
+      </td>
+    </tr>
+    
+    <tr>
+      <td><strong>DEEP NESTING</strong></td>
+      <td class="numeric">4</td>
+      <td class="numeric">4</td>
+      <td>
+        
+          Review and refactor as part of modernization effort
+        
+      </td>
+    </tr>
+    
+    <tr>
+      <td><strong>LONG PARAMETER LIST</strong></td>
+      <td class="numeric">3</td>
+      <td class="numeric">3</td>
+      <td>
+        
+          Review and refactor as part of modernization effort
+        
+      </td>
+    </tr>
+    
+    <tr>
+      <td><strong>LONG METHOD</strong></td>
+      <td class="numeric">3</td>
+      <td class="numeric">3</td>
+      <td>
+        
+          Review and refactor as part of modernization effort
+        
+      </td>
+    </tr>
+    
+    <tr>
+      <td><strong>SHOTGUN SURGERY</strong></td>
+      <td class="numeric">1</td>
+      <td class="numeric">1</td>
+      <td>
+        
+          Review and refactor as part of modernization effort
+        
+      </td>
+    </tr>
+    
+  </tbody>
+</table>
+
+
+
+
+      
+        <h2>Scheduled Jobs and Batch Processes <a href="scheduled-jobs-summary.json" target="_blank" style="text-decoration: none;"><svg width="28" height="16" viewBox="0 0 28 16" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="0" width="28" height="16" rx="0" fill="#cc5500" stroke="#000" stroke-width="0.5"/>
+  <text x="14" y="11" font-family="monospace" font-size="10" font-weight="bold" text-anchor="middle" fill="#ffffff">JSON</text>
+</svg>
+</a></h2>
+
+        
+  <div class="stats-grid">
+    <div class="card">
+      <span class="card-title">Total Jobs</span>
+      <span class="card-value">17</span>
+    </div>
+    <div class="card">
+      <span class="card-title">Trigger Types</span>
+      <span class="card-value">3</span>
+    </div>
+    <div class="card">
+      <span class="card-title">Script Files</span>
+      <span class="card-value">17</span>
+    </div>
+  </div>
+
+  
+    <div class="note-box">
+      <p><strong>Trigger Types Found:</strong> event-driven, manual, scheduled</p>
+    </div>
+  
+
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Job Name</th>
+        <th>Source File</th>
+        <th>Trigger</th>
+        <th>Purpose</th>
+        <th>Input Resources</th>
+        <th>Output Resources</th>
+      </tr>
+    </thead>
+    <tbody>
+      
+        <tr>
+          <td class="job-name"><strong>capture_query_log.sh</strong></td>
+          <td class="job-file" title="database/capture_query_log.sh">
+            capture_query_log.sh
+          </td>
+          <td class="job-trigger">
+            <span class="badge badge-trigger">manual</span>
+          </td>
+          <td class="job-purpose">Runs a banking simulation against a Dockerized Oracle database and scrapes the executed SQL queries from the database cache to create an analysis log.</td>
+          <td class="job-resources">
+            
+              <ul class="resource-list">
+                
+                  <li>simulate_banking_operations.sql</li>
+                
+                  <li>Oracle Database (Docker container)</li>
+                
+                  <li>v$sql (Oracle System View)</li>
+                
+              </ul>
+            
+          </td>
+          <td class="job-resources">
+            
+              <ul class="resource-list">
+                
+                  <li>query_log.sql</li>
+                
+              </ul>
+            
+          </td>
+        </tr>
+        
+          <tr class="dependencies-row">
+            <td colspan="6">
+              <div class="dependencies-info">
+                <strong>Dependencies:</strong> docker-compose, sqlplus, simulate_banking_operations.sql
+              </div>
+            </td>
+          </tr>
+        
+      
+        <tr>
+          <td class="job-name"><strong>check_all_tables.sh</strong></td>
+          <td class="job-file" title="database/check_all_tables.sh">
+            check_all_tables.sh
+          </td>
+          <td class="job-trigger">
+            <span class="badge badge-trigger">manual</span>
+          </td>
+          <td class="job-purpose">Connects to the Oracle database to print sample records, row counts, and ID ranges for all major banking tables (branches, employees, customers, accounts, transactions, loans, cards, payments) to the console for debugging purposes.</td>
+          <td class="job-resources">
+            
+              <ul class="resource-list">
+                
+                  <li>Oracle Database</li>
+                
+                  <li>Table: branches</li>
+                
+                  <li>Table: employees</li>
+                
+                  <li>Table: customers</li>
+                
+                  <li>Table: accounts</li>
+                
+                  <li>Table: transactions</li>
+                
+                  <li>Table: loans</li>
+                
+                  <li>Table: cards</li>
+                
+                  <li>Table: payments</li>
+                
+              </ul>
+            
+          </td>
+          <td class="job-resources">
+            
+              <ul class="resource-list">
+                
+                  <li>Console Output (Standard Output)</li>
+                
+              </ul>
+            
+          </td>
+        </tr>
+        
+          <tr class="dependencies-row">
+            <td colspan="6">
+              <div class="dependencies-info">
+                <strong>Dependencies:</strong> sqlplus, Docker (optional), legacy-bank-oracle container
+              </div>
+            </td>
+          </tr>
+        
+      
+        <tr>
+          <td class="job-name"><strong>Daily Interest Calculation Batch Job</strong></td>
+          <td class="job-file" title="batch/daily_interest.sh">
+            daily_interest.sh
+          </td>
+          <td class="job-trigger">
+            <span class="badge badge-trigger">Scheduled (Daily implied by header comments)</span>
+          </td>
+          <td class="job-purpose">Calculates daily interest for all banking accounts by invoking a database stored procedure and committing the results.</td>
+          <td class="job-resources">
+            
+              <ul class="resource-list">
+                
+                  <li>Oracle Database (Connection)</li>
+                
+                  <li>interest_calculation.calculate_daily_interest (Stored Procedure)</li>
+                
+              </ul>
+            
+          </td>
+          <td class="job-resources">
+            
+              <ul class="resource-list">
+                
+                  <li>/var/log/legacybank/daily_interest.log</li>
+                
+                  <li>Oracle Database (Data Updates)</li>
+                
+              </ul>
+            
+          </td>
+        </tr>
+        
+          <tr class="dependencies-row">
+            <td colspan="6">
+              <div class="dependencies-info">
+                <strong>Dependencies:</strong> sqlplus (Oracle Client), Oracle Database Instance
+              </div>
+            </td>
+          </tr>
+        
+      
+        <tr>
+          <td class="job-name"><strong>End of Day Processing</strong></td>
+          <td class="job-file" title="batch/eod_processing.sh">
+            eod_processing.sh
+          </td>
+          <td class="job-trigger">
+            <span class="badge badge-trigger">Scheduled (End of Day)</span>
+          </td>
+          <td class="job-purpose">Executes the nightly financial close process, including transaction finalization, balance reconciliation, and reporting.</td>
+          <td class="job-resources">
+            
+              <ul class="resource-list">
+                
+                  <li>Oracle Database (transactions table)</li>
+                
+                  <li>Oracle Database (accounts table)</li>
+                
+              </ul>
+            
+          </td>
+          <td class="job-resources">
+            
+              <ul class="resource-list">
+                
+                  <li>Oracle Database (updated transaction statuses)</li>
+                
+                  <li>Oracle Database (updated account balances)</li>
+                
+                  <li>/var/log/legacybank/eod_processing.log</li>
+                
+                  <li>/var/log/legacybank/eod_summary_YYYYMMDD.txt</li>
+                
+              </ul>
+            
+          </td>
+        </tr>
+        
+          <tr class="dependencies-row">
+            <td colspan="6">
+              <div class="dependencies-info">
+                <strong>Dependencies:</strong> sqlplus, Oracle Database Instance
+              </div>
+            </td>
+          </tr>
+        
+      
+        <tr>
+          <td class="job-name"><strong>javac_wrapper_execution</strong></td>
+          <td class="job-file" title="docker/javac-wrapper.sh">
+            javac-wrapper.sh
+          </td>
+          <td class="job-trigger">
+            <span class="badge badge-trigger">event-driven</span>
+          </td>
+          <td class="job-purpose">This process is triggered whenever a build system or JSP container invokes the &#39;javac&#39; command. It wraps the standard compilation process to inject the &#39;rt.jar&#39; dependency into the classpath to prevent &#39;CharSequence&#39; resolution errors.</td>
+          <td class="job-resources">
+            
+              <ul class="resource-list">
+                
+                  <li>Java Source Files</li>
+                
+                  <li>rt.jar</li>
+                
+                  <li>JAVA_HOME environment variable</li>
+                
+              </ul>
+            
+          </td>
+          <td class="job-resources">
+            
+              <ul class="resource-list">
+                
+                  <li>Compiled Java Bytecode (.class files)</li>
+                
+              </ul>
+            
+          </td>
+        </tr>
+        
+          <tr class="dependencies-row">
+            <td colspan="6">
+              <div class="dependencies-info">
+                <strong>Dependencies:</strong> /opt/java/openjdk/bin/javac, /usr/lib/jvm/java-8-openjdk-amd64/bin/javac
+              </div>
+            </td>
+          </tr>
+        
+      
+        <tr>
+          <td class="job-name"><strong>JBoss Startup Process</strong></td>
+          <td class="job-file" title="docker/run-jboss.sh">
+            run-jboss.sh
+          </td>
+          <td class="job-trigger">
+            <span class="badge badge-trigger">manual</span>
+          </td>
+          <td class="job-purpose">Initializes the Java environment with specific legacy compatibility fixes, cleans JSP caches, and launches the JBoss application server.</td>
+          <td class="job-resources">
+            
+              <ul class="resource-list">
+                
+                  <li>/usr/lib/jvm/java-8-openjdk-amd64</li>
+                
+                  <li>/opt/jboss/server/default/lib/rt.jar</li>
+                
+                  <li>/opt/jboss/bin/javac</li>
+                
+              </ul>
+            
+          </td>
+          <td class="job-resources">
+            
+              <ul class="resource-list">
+                
+                  <li>/opt/jboss/server/default/tmp</li>
+                
+                  <li>/opt/jboss/server/default/work</li>
+                
+                  <li>/opt/jboss/server/default/data</li>
+                
+              </ul>
+            
+          </td>
+        </tr>
+        
+          <tr class="dependencies-row">
+            <td colspan="6">
+              <div class="dependencies-info">
+                <strong>Dependencies:</strong> /opt/jboss/bin/run.sh
+              </div>
+            </td>
+          </tr>
+        
+      
+        <tr>
+          <td class="job-name"><strong>Monthly Statement Generation Batch Job</strong></td>
+          <td class="job-file" title="batch/statement_generation.sh">
+            statement_generation.sh
+          </td>
+          <td class="job-trigger">
+            <span class="badge badge-trigger">scheduled</span>
+          </td>
+          <td class="job-purpose">Generates text-based monthly account statements for all active customers containing their address, account summary, and a list of transactions for the previous month.</td>
+          <td class="job-resources">
+            
+              <ul class="resource-list">
+                
+                  <li>Oracle Database</li>
+                
+                  <li>Table: accounts</li>
+                
+                  <li>Table: customers</li>
+                
+                  <li>Table: transactions</li>
+                
+              </ul>
+            
+          </td>
+          <td class="job-resources">
+            
+              <ul class="resource-list">
+                
+                  <li>Directory: /var/statements/legacybank</li>
+                
+                  <li>Files: statement_{account_number}_{YYYYMM}.txt</li>
+                
+                  <li>Log: /var/log/legacybank/statement_generation.log</li>
+                
+              </ul>
+            
+          </td>
+        </tr>
+        
+          <tr class="dependencies-row">
+            <td colspan="6">
+              <div class="dependencies-info">
+                <strong>Dependencies:</strong> sqlplus, Oracle Database Connection, UTL_FILE package permissions
+              </div>
+            </td>
+          </tr>
+        
+      
+        <tr>
+          <td class="job-name"><strong>Oracle Database Initialization</strong></td>
+          <td class="job-file" title="database/init/01_init_schema.sh">
+            01_init_schema.sh
+          </td>
+          <td class="job-trigger">
+            <span class="badge badge-trigger">event-driven (container startup)</span>
+          </td>
+          <td class="job-purpose">Initializes the Oracle database by creating the &#39;legacybank&#39; user, applying schema definitions (tables, constraints), compiling stored procedures, and loading sample data.</td>
+          <td class="job-resources">
+            
+              <ul class="resource-list">
+                
+                  <li>01_tables.sql</li>
+                
+                  <li>02_constraints.sql</li>
+                
+                  <li>03_indexes.sql</li>
+                
+                  <li>04_triggers.sql</li>
+                
+                  <li>05_supplemental_logging.sql</li>
+                
+                  <li>account_management.pkg</li>
+                
+                  <li>transaction_processing.pkg</li>
+                
+                  <li>loan_processing.pkg</li>
+                
+                  <li>interest_calculation.pkg</li>
+                
+                  <li>reload_all_data.sql</li>
+                
+              </ul>
+            
+          </td>
+          <td class="job-resources">
+            
+              <ul class="resource-list">
+                
+                  <li>Oracle User &#39;legacybank&#39;</li>
+                
+                  <li>Database Tables (customers, accounts, transactions, loans)</li>
+                
+                  <li>Stored Procedures</li>
+                
+                  <li>Database Schema</li>
+                
+              </ul>
+            
+          </td>
+        </tr>
+        
+          <tr class="dependencies-row">
+            <td colspan="6">
+              <div class="dependencies-info">
+                <strong>Dependencies:</strong> Oracle Database Instance (XEPDB1), sqlplus utility, sysdba credentials
+              </div>
+            </td>
+          </tr>
+        
+      
+        <tr>
+          <td class="job-name"><strong>Oracle Database Setup</strong></td>
+          <td class="job-file" title="database/init/00_setup.sh">
+            00_setup.sh
+          </td>
+          <td class="job-trigger">
+            <span class="badge badge-trigger">Container Startup (Event-driven)</span>
+          </td>
+          <td class="job-purpose">Initializes the Legacy Banking Application schema by waiting for the database to stabilize and then executing the specific schema initialization script.</td>
+          <td class="job-resources">
+            
+              <ul class="resource-list">
+                
+                  <li>/opt/oracle/scripts/setup/init/01_init_schema.sh</li>
+                
+              </ul>
+            
+          </td>
+          <td class="job-resources">
+            
+              <ul class="resource-list">
+                
+                  <li>Oracle Database Schema</li>
+                
+              </ul>
+            
+          </td>
+        </tr>
+        
+          <tr class="dependencies-row">
+            <td colspan="6">
+              <div class="dependencies-info">
+                <strong>Dependencies:</strong> /opt/oracle/scripts/setup/init/01_init_schema.sh, Oracle Database Service
+              </div>
+            </td>
+          </tr>
+        
+      
+        <tr>
+          <td class="job-name"><strong>prepare_for_spda.sh</strong></td>
+          <td class="job-file" title="database/prepare_for_spda.sh">
+            prepare_for_spda.sh
+          </td>
+          <td class="job-trigger">
+            <span class="badge badge-trigger">manual</span>
+          </td>
+          <td class="job-purpose">Reorganizes legacy database source files into an SPDA-compatible folder structure by splitting monolithic SQL files and renaming packages.</td>
+          <td class="job-resources">
+            
+              <ul class="resource-list">
+                
+                  <li>${SCRIPT_DIR}/procedures/*.pkg</li>
+                
+                  <li>${SCRIPT_DIR}/schema/01_tables.sql</li>
+                
+                  <li>${SCRIPT_DIR}/schema/04_triggers.sql</li>
+                
+              </ul>
+            
+          </td>
+          <td class="job-resources">
+            
+              <ul class="resource-list">
+                
+                  <li>${SCRIPT_DIR}/spda/LEGACYBANK/packages/*.sql</li>
+                
+                  <li>${SCRIPT_DIR}/spda/LEGACYBANK/tables/*.sql</li>
+                
+                  <li>${SCRIPT_DIR}/spda/LEGACYBANK/triggers/*.sql</li>
+                
+              </ul>
+            
+          </td>
+        </tr>
+        
+          <tr class="dependencies-row">
+            <td colspan="6">
+              <div class="dependencies-info">
+                <strong>Dependencies:</strong> bash, sed, grep, tr
+              </div>
+            </td>
+          </tr>
+        
+      
+        <tr>
+          <td class="job-name"><strong>rebuild_and_redeploy.sh</strong></td>
+          <td class="job-file" title="rebuild_and_redeploy.sh">
+            rebuild_and_redeploy.sh
+          </td>
+          <td class="job-trigger">
+            <span class="badge badge-trigger">manual</span>
+          </td>
+          <td class="job-purpose">Orchestrates the full rebuild and redeployment cycle for the legacy-bank application, including database procedure updates, Java compilation, and JBoss server restart/cache clearing.</td>
+          <td class="job-resources">
+            
+              <ul class="resource-list">
+                
+                  <li>backend/ source code</li>
+                
+                  <li>database/recompile_procedures.sh</li>
+                
+                  <li>docker/docker-compose.yml</li>
+                
+              </ul>
+            
+          </td>
+          <td class="job-resources">
+            
+              <ul class="resource-list">
+                
+                  <li>dist/legacy-bank.war</li>
+                
+                  <li>http://localhost:8080/legacy-bank/</li>
+                
+                  <li>JBoss server logs</li>
+                
+              </ul>
+            
+          </td>
+        </tr>
+        
+          <tr class="dependencies-row">
+            <td colspan="6">
+              <div class="dependencies-info">
+                <strong>Dependencies:</strong> docker, docker-compose, ant, curl/wget/nc, database/recompile_procedures.sh
+              </div>
+            </td>
+          </tr>
+        
+      
+        <tr>
+          <td class="job-name"><strong>recompile_procedures.sh</strong></td>
+          <td class="job-file" title="database/recompile_procedures.sh">
+            recompile_procedures.sh
+          </td>
+          <td class="job-trigger">
+            <span class="badge badge-trigger">manual</span>
+          </td>
+          <td class="job-purpose">Iterates through a predefined list of Oracle stored procedure packages and a triggers file to recompile them in the target database.</td>
+          <td class="job-resources">
+            
+              <ul class="resource-list">
+                
+                  <li>database/procedures/account_management.pkg</li>
+                
+                  <li>database/procedures/transaction_processing.pkg</li>
+                
+                  <li>database/procedures/loan_processing.pkg</li>
+                
+                  <li>database/procedures/interest_calculation.pkg</li>
+                
+                  <li>database/schema/04_triggers.sql</li>
+                
+              </ul>
+            
+          </td>
+          <td class="job-resources">
+            
+              <ul class="resource-list">
+                
+                  <li>Oracle Database (Stored Procedures)</li>
+                
+                  <li>Oracle Database (Triggers)</li>
+                
+              </ul>
+            
+          </td>
+        </tr>
+        
+          <tr class="dependencies-row">
+            <td colspan="6">
+              <div class="dependencies-info">
+                <strong>Dependencies:</strong> sqlplus, docker, legacy-bank-oracle container
+              </div>
+            </td>
+          </tr>
+        
+      
+        <tr>
+          <td class="job-name"><strong>reload_all_data.sh</strong></td>
+          <td class="job-file" title="database/data/reload_all_data.sh">
+            reload_all_data.sh
+          </td>
+          <td class="job-trigger">
+            <span class="badge badge-trigger">manual</span>
+          </td>
+          <td class="job-purpose">Clears existing database data and reloads fresh sample data by executing an external SQL script.</td>
+          <td class="job-resources">
+            
+              <ul class="resource-list">
+                
+                  <li>database/data/reload_all_data.sql</li>
+                
+                  <li>User Input (Credentials)</li>
+                
+              </ul>
+            
+          </td>
+          <td class="job-resources">
+            
+              <ul class="resource-list">
+                
+                  <li>Oracle Database (legacy-bank-oracle)</li>
+                
+              </ul>
+            
+          </td>
+        </tr>
+        
+          <tr class="dependencies-row">
+            <td colspan="6">
+              <div class="dependencies-info">
+                <strong>Dependencies:</strong> docker, sqlplus, reload_all_data.sql
+              </div>
+            </td>
+          </tr>
+        
+      
+        <tr>
+          <td class="job-name"><strong>show_test_ids.sh</strong></td>
+          <td class="job-file" title="database/show_test_ids.sh">
+            show_test_ids.sh
+          </td>
+          <td class="job-trigger">
+            <span class="badge badge-trigger">manual</span>
+          </td>
+          <td class="job-purpose">Displays test data entities (Branches, Employees, Customers, Accounts, Loans, Cards) either from static text or a live Oracle database to assist with testing.</td>
+          <td class="job-resources">
+            
+              <ul class="resource-list">
+                
+                  <li>Oracle Database</li>
+                
+                  <li>Environment Variables (ORACLE_USER, ORACLE_PASSWORD, ORACLE_HOST, ORACLE_PORT, ORACLE_SERVICE)</li>
+                
+              </ul>
+            
+          </td>
+          <td class="job-resources">
+            
+              <ul class="resource-list">
+                
+                  <li>Console Output (Formatted Text Tables)</li>
+                
+              </ul>
+            
+          </td>
+        </tr>
+        
+          <tr class="dependencies-row">
+            <td colspan="6">
+              <div class="dependencies-info">
+                <strong>Dependencies:</strong> bash, sqlplus
+              </div>
+            </td>
+          </tr>
+        
+      
+        <tr>
+          <td class="job-name"><strong>test_stored_procedures.sh</strong></td>
+          <td class="job-file" title="database/validation/test_stored_procedures.sh">
+            test_stored_procedures.sh
+          </td>
+          <td class="job-trigger">
+            <span class="badge badge-trigger">manual</span>
+          </td>
+          <td class="job-purpose">Executes the `test_stored_procedures.sql` script via `sqlplus` to validate the functionality of database stored procedures.</td>
+          <td class="job-resources">
+            
+              <ul class="resource-list">
+                
+                  <li>test_stored_procedures.sql</li>
+                
+                  <li>Oracle Database (XEPDB1)</li>
+                
+              </ul>
+            
+          </td>
+          <td class="job-resources">
+            
+              <ul class="resource-list">
+                
+                  <li>Console Standard Output</li>
+                
+              </ul>
+            
+          </td>
+        </tr>
+        
+          <tr class="dependencies-row">
+            <td colspan="6">
+              <div class="dependencies-info">
+                <strong>Dependencies:</strong> sqlplus, test_stored_procedures.sql
+              </div>
+            </td>
+          </tr>
+        
+      
+        <tr>
+          <td class="job-name"><strong>validate_all.sh</strong></td>
+          <td class="job-file" title="database/validation/validate_all.sh">
+            validate_all.sh
+          </td>
+          <td class="job-trigger">
+            <span class="badge badge-trigger">manual</span>
+          </td>
+          <td class="job-purpose">Runs the complete suite of database validation checks and stored procedure tests against a specified database connection.</td>
+          <td class="job-resources">
+            
+              <ul class="resource-list">
+                
+                  <li>Oracle Database (via connection string)</li>
+                
+                  <li>validate_database.sh</li>
+                
+                  <li>test_stored_procedures.sh</li>
+                
+              </ul>
+            
+          </td>
+          <td class="job-resources">
+            
+              <ul class="resource-list">
+                
+                  <li>Console Output (Validation Report)</li>
+                
+              </ul>
+            
+          </td>
+        </tr>
+        
+          <tr class="dependencies-row">
+            <td colspan="6">
+              <div class="dependencies-info">
+                <strong>Dependencies:</strong> validate_database.sh, test_stored_procedures.sh
+              </div>
+            </td>
+          </tr>
+        
+      
+        <tr>
+          <td class="job-name"><strong>validate_database.sh</strong></td>
+          <td class="job-file" title="database/validation/validate_database.sh">
+            validate_database.sh
+          </td>
+          <td class="job-trigger">
+            <span class="badge badge-trigger">manual</span>
+          </td>
+          <td class="job-purpose">Validates database connectivity, schema object existence (tables, procedures, sequences, triggers), and data population.</td>
+          <td class="job-resources">
+            
+              <ul class="resource-list">
+                
+                  <li>Oracle Database</li>
+                
+                  <li>Connection String Argument</li>
+                
+              </ul>
+            
+          </td>
+          <td class="job-resources">
+            
+              <ul class="resource-list">
+                
+                  <li>Console Validation Report</li>
+                
+                  <li>Exit Code</li>
+                
+              </ul>
+            
+          </td>
+        </tr>
+        
+          <tr class="dependencies-row">
+            <td colspan="6">
+              <div class="dependencies-info">
+                <strong>Dependencies:</strong> sqlplus, Oracle Database Instance
+              </div>
+            </td>
+          </tr>
+        
+      
+    </tbody>
+  </table>
+
+
+
+      
+      
+      
+        <h2>Module Coupling Analysis <a href="module-coupling.json" target="_blank" style="text-decoration: none;"><svg width="28" height="16" viewBox="0 0 28 16" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="0" width="28" height="16" rx="0" fill="#cc5500" stroke="#000" stroke-width="0.5"/>
+  <text x="14" y="11" font-family="monospace" font-size="10" font-weight="bold" text-anchor="middle" fill="#ffffff">JSON</text>
+</svg>
+</a></h2>
+
+        
+  <div class="stats-grid">
+    <div class="card">
+      <span class="card-title">Total Modules</span>
+      <span class="card-value">3</span>
+    </div>
+    <div class="card">
+      <span class="card-title">Coupling Relationships</span>
+      <span class="card-value">2</span>
+    </div>
+    <div class="card">
+      <span class="card-title">Highest Coupling</span>
+      <span class="card-value">32</span>
+    </div>
+    <div class="card">
+      <span class="card-title">Module Depth</span>
+      <span class="card-value">2</span>
+    </div>
+  </div>
+
+  <div class="note-box">
+    <p><strong>Interpretation:</strong> High reference counts indicate tightly coupled modules (candidates for single services). Low reference counts indicate loosely coupled modules (candidates for easy separation).</p>
+  </div>
+
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>From Module</th>
+        <th>To Module</th>
+        <th class="coupling-count">Reference Count</th>
+        <th class="coupling-level">Coupling Level</th>
+      </tr>
+    </thead>
+    <tbody>
+      
+        <tr>
+          <td class="module-name from-module">
+            <code>backend/src</code>
+          </td>
+          <td class="module-name to-module">
+            <code>com.legacybank</code>
+          </td>
+          <td class="coupling-count">
+            <strong>32</strong>
+          </td>
+          <td class="coupling-level">
+            <span class="badge badge-danger">Very High</span>
+          </td>
+        </tr>
+      
+        <tr>
+          <td class="module-name from-module">
+            <code>backend/web</code>
+          </td>
+          <td class="module-name to-module">
+            <code>com.legacybank</code>
+          </td>
+          <td class="coupling-count">
+            <strong>23</strong>
+          </td>
+          <td class="coupling-level">
+            <span class="badge badge-danger">Very High</span>
+          </td>
+        </tr>
+      
+    </tbody>
+  </table>
+
+  <div class="note-box">
+    <h4>Coupling Level Guide:</h4>
+    <ul>
+      <li><span class="badge badge-danger">Very High</span> - Strong coupling, consider keeping in same service</li>
+      <li><span class="badge badge-high">High</span> - Significant coupling, requires careful design if separated</li>
+      <li><span class="badge badge-warning">Medium</span> - Moderate coupling, separation feasible with clear interfaces</li>
+      <li><span class="badge badge-success">Low</span> - Weak coupling, good candidate for separation</li>
+    </ul>
+  </div>
+
+
+
+      
+    </div>
+
+    <div id="tab-ui" class="tab-content">
+      <h2>UI Technology Deep-Dive Analysis <a href="ui-technology-analysis.json" target="_blank" style="text-decoration: none;"><svg width="28" height="16" viewBox="0 0 28 16" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="0" width="28" height="16" rx="0" fill="#cc5500" stroke="#000" stroke-width="0.5"/>
+  <text x="14" y="11" font-family="monospace" font-size="10" font-weight="bold" text-anchor="middle" fill="#ffffff">JSON</text>
+</svg>
+</a></h2>
+
+      
+  <div class="ui-summary">
+    <p class="stats">
+      <strong>JSP Files:</strong> 20 |
+      <strong>Total Scriptlets:</strong> 
+      <span class="high-scriptlet-warning">
+        299
+      </span> |
+      <strong>Avg Scriptlets/File:</strong> 14.9 |
+      <strong>High Debt Files:</strong> 
+      <span class="warning-text">
+        18
+      </span>
+    </p>
+  </div>
+
+  
+    <div class="alert alert-warning">
+      <strong>⚠️ High Technical Debt Detected!</strong> 
+      18 files have 
+      more than 10 scriptlet blocks. Consider refactoring to modern UI patterns (JSP tags, JSF components, or React/Vue).
+    </div>
+  
+
+  <!-- UI Frameworks Detected -->
+  
+    <p class="no-data">No UI frameworks detected in configuration files.</p>
+  
+
+  <!-- Top JSP Files with High Scriptlet Count -->
+  
+    <h3>Top JSP Files by Scriptlet Count (Technical Debt Hotspots)</h3>
+    <table class="data-table scriptlets-table">
+      <thead>
+        <tr>
+          <th>File Path</th>
+          <th>Scriptlets</th>
+          <th>Expressions</th>
+          <th>Declarations</th>
+          <th>Total Blocks</th>
+          <th>Debt Level</th>
+        </tr>
+      </thead>
+      <tbody>
+        
+          <tr>
+            <td class="file-path">
+              <details class="expandable-path">
+                <summary>transaction_form.jsp</summary>
+                <code>backend/web/jsp/transaction_form.jsp</code>
+              </details>
+            </td>
+            <td class="metric-count">28</td>
+            <td class="metric-count">50</td>
+            <td class="metric-count">0</td>
+            <td class="total-count"><strong>78</strong></td>
+            <td class="debt-indicator">
+              <span class="badge badge-danger">Very High</span>
+            </td>
+          </tr>
+        
+          <tr>
+            <td class="file-path">
+              <details class="expandable-path">
+                <summary>branch_portal.jsp</summary>
+                <code>backend/web/jsp/branch_portal.jsp</code>
+              </details>
+            </td>
+            <td class="metric-count">50</td>
+            <td class="metric-count">27</td>
+            <td class="metric-count">0</td>
+            <td class="total-count"><strong>77</strong></td>
+            <td class="debt-indicator">
+              <span class="badge badge-danger">Very High</span>
+            </td>
+          </tr>
+        
+          <tr>
+            <td class="file-path">
+              <details class="expandable-path">
+                <summary>customer_portal.jsp</summary>
+                <code>backend/web/jsp/customer_portal.jsp</code>
+              </details>
+            </td>
+            <td class="metric-count">49</td>
+            <td class="metric-count">21</td>
+            <td class="metric-count">0</td>
+            <td class="total-count"><strong>70</strong></td>
+            <td class="debt-indicator">
+              <span class="badge badge-danger">Very High</span>
+            </td>
+          </tr>
+        
+          <tr>
+            <td class="file-path">
+              <details class="expandable-path">
+                <summary>loan_details.jsp</summary>
+                <code>backend/web/jsp/loan_details.jsp</code>
+              </details>
+            </td>
+            <td class="metric-count">29</td>
+            <td class="metric-count">10</td>
+            <td class="metric-count">0</td>
+            <td class="total-count"><strong>39</strong></td>
+            <td class="debt-indicator">
+              <span class="badge badge-danger">Very High</span>
+            </td>
+          </tr>
+        
+          <tr>
+            <td class="file-path">
+              <details class="expandable-path">
+                <summary>customer_form.jsp</summary>
+                <code>backend/web/jsp/customer_form.jsp</code>
+              </details>
+            </td>
+            <td class="metric-count">3</td>
+            <td class="metric-count">26</td>
+            <td class="metric-count">0</td>
+            <td class="total-count"><strong>29</strong></td>
+            <td class="debt-indicator">
+              <span class="badge badge-danger">Very High</span>
+            </td>
+          </tr>
+        
+          <tr>
+            <td class="file-path">
+              <details class="expandable-path">
+                <summary>audit_log_list.jsp</summary>
+                <code>backend/web/jsp/audit_log_list.jsp</code>
+              </details>
+            </td>
+            <td class="metric-count">18</td>
+            <td class="metric-count">10</td>
+            <td class="metric-count">0</td>
+            <td class="total-count"><strong>28</strong></td>
+            <td class="debt-indicator">
+              <span class="badge badge-danger">Very High</span>
+            </td>
+          </tr>
+        
+          <tr>
+            <td class="file-path">
+              <details class="expandable-path">
+                <summary>employee_portal.jsp</summary>
+                <code>backend/web/jsp/employee_portal.jsp</code>
+              </details>
+            </td>
+            <td class="metric-count">12</td>
+            <td class="metric-count">15</td>
+            <td class="metric-count">0</td>
+            <td class="total-count"><strong>27</strong></td>
+            <td class="debt-indicator">
+              <span class="badge badge-danger">Very High</span>
+            </td>
+          </tr>
+        
+          <tr>
+            <td class="file-path">
+              <details class="expandable-path">
+                <summary>transaction_history.jsp</summary>
+                <code>backend/web/jsp/transaction_history.jsp</code>
+              </details>
+            </td>
+            <td class="metric-count">9</td>
+            <td class="metric-count">17</td>
+            <td class="metric-count">0</td>
+            <td class="total-count"><strong>26</strong></td>
+            <td class="debt-indicator">
+              <span class="badge badge-danger">Very High</span>
+            </td>
+          </tr>
+        
+          <tr>
+            <td class="file-path">
+              <details class="expandable-path">
+                <summary>account_list.jsp</summary>
+                <code>backend/web/jsp/account_list.jsp</code>
+              </details>
+            </td>
+            <td class="metric-count">11</td>
+            <td class="metric-count">14</td>
+            <td class="metric-count">0</td>
+            <td class="total-count"><strong>25</strong></td>
+            <td class="debt-indicator">
+              <span class="badge badge-danger">Very High</span>
+            </td>
+          </tr>
+        
+          <tr>
+            <td class="file-path">
+              <details class="expandable-path">
+                <summary>loan_form.jsp</summary>
+                <code>backend/web/jsp/loan_form.jsp</code>
+              </details>
+            </td>
+            <td class="metric-count">9</td>
+            <td class="metric-count">15</td>
+            <td class="metric-count">0</td>
+            <td class="total-count"><strong>24</strong></td>
+            <td class="debt-indicator">
+              <span class="badge badge-danger">Very High</span>
+            </td>
+          </tr>
+        
+      </tbody>
+    </table>
+  
+
+  <!-- Custom Tag Libraries -->
+  
+
+  <!-- Summary Statistics -->
+  
+    <div class="ui-insights">
+      <h3>UI Modernization Insights</h3>
+      <ul>
+        <li>
+          <strong>Scriptlet Usage:</strong> 
+          
+            High scriptlet usage (14.9 per file). 
+            Significant refactoring needed for modernization.
+          
+        </li>
+        
+          <li>
+            <strong>Expressions:</strong> 280 JSP expressions found. 
+            These can often be replaced with EL (Expression Language) for cleaner code.
+          </li>
+        
+        
+        
+          <li class="warning-item">
+            <strong>⚠️ No UI Framework Detected:</strong> 
+            The application appears to use raw JSP without a modern UI framework. 
+            Consider migrating to a framework like JSF, Spring MVC, or a modern JavaScript framework.
+          </li>
+        
+      </ul>
+    </div>
+  
+
+
+
+<style>
+  .ui-summary { margin: 0 0 0.5rem 0; padding: 0.75rem 1rem; background: #f5f5f5; border-radius: 4px; }
+  .high-scriptlet-warning { color: #d9534f; font-weight: bold; }
+  .warning-text { color: #ff6600; font-weight: bold; }
+  .alert { padding: 0.75rem 1rem; margin: 0.5rem 0; border-radius: 4px; }
+  .alert-warning { background: #fff3cd; border: 1px solid #ffc107; color: #856404; }
+  
+  .framework-name { font-weight: bold; color: #2c5aa0; }
+  .file-path { font-family: monospace; font-size: 0.9em; }
+  .metric-count { text-align: center; }
+  .total-count { text-align: center; font-size: 1.1em; }
+  .tag-prefix code { background: #f4f4f4; padding: 2px 4px; border-radius: 3px; }
+  .tag-uri { font-size: 0.9em; color: #666; }
+  .usage-count { text-align: center; }
+  
+  .ui-insights { background: #e7f3ff; padding: 1rem; border-radius: 4px; margin-top: 1rem; }
+  .ui-insights ul { margin: 0.5rem 0 0 1rem; }
+  .ui-insights li { margin-bottom: 0.5rem; }
+  .warning-item { color: #856404; }
+  
+  details { cursor: pointer; }
+  details summary { font-weight: bold; }
+  details ul { margin-top: 0.5rem; padding-left: 1.5rem; }
+  details li { font-size: 0.9em; }
+  
+  /* Expandable file paths */
+  .expandable-path { margin: 0; }
+  .expandable-path summary { font-family: monospace; font-size: 0.9em; color: var(--link-color, #00684A); cursor: pointer; list-style: none; }
+  .expandable-path summary::-webkit-details-marker { display: none; }
+  .expandable-path summary::before { content: "▸ "; color: #999; }
+  .expandable-path[open] summary::before { content: "▾ "; }
+  .expandable-path code { display: block; margin-top: 4px; padding: 4px 8px; background: #f4f4f4; border-radius: 3px; font-size: 0.85em; word-break: break-all; }
+</style>
+
+
+
+    </div>
+
+    <div id="tab-db" class="tab-content">
+      <h2>Database Stored Procedures &amp; Triggers <a href="procs-and-triggers.json" target="_blank" style="text-decoration: none;"><svg width="28" height="16" viewBox="0 0 28 16" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="0" width="28" height="16" rx="0" fill="#cc5500" stroke="#000" stroke-width="0.5"/>
+  <text x="14" y="11" font-family="monospace" font-size="10" font-weight="bold" text-anchor="middle" fill="#ffffff">JSON</text>
+</svg>
+</a></h2>
+
+
+<div class="stats-grid">
+  <div class="card">
+    <span class="card-title">Stored Procedures</span>
+    <span class="card-value">0</span>
+  </div>
+  <div class="card">
+    <span class="card-title">Triggers</span>
+    <span class="card-value">9</span>
+  </div>
+  <div class="card">
+    <span class="card-title">Low Complexity</span>
+    <span class="card-value">5</span>
+  </div>
+  <div class="card">
+    <span class="card-title">Medium Complexity</span>
+    <span class="card-value">4</span>
+  </div>
+  <div class="card">
+    <span class="card-title">High Complexity</span>
+    <span class="card-value">0</span>
+  </div>
+</div>
+
+
+
+
+  <div class="card-grid">
+    
+      <div class="info-card">
+        <h3>
+          trg_customers_update
+          
+            <span class="badge badge-trig">Trigger</span>
+          
+        </h3>
+        <p><strong>Path:</strong> <code>database/schema/04_triggers.sql</code></p>
+        <p><strong>Complexity:</strong> LOW (Consists of a single assignment statement.)</p>
+        <p><strong>Lines:</strong> 6</p>
+        <p><strong>Purpose:</strong> Updates the last_updated timestamp on the customers table whenever a row is updated.</p>
+      </div>
+    
+      <div class="info-card">
+        <h3>
+          trg_customers_audit
+          
+            <span class="badge badge-trig">Trigger</span>
+          
+        </h3>
+        <p><strong>Path:</strong> <code>database/schema/04_triggers.sql</code></p>
+        <p><strong>Complexity:</strong> MEDIUM (Handles multiple event types (INSERT/UPDATE/DELETE) with string concatenation and conditional logic.)</p>
+        <p><strong>Lines:</strong> 28</p>
+        <p><strong>Purpose:</strong> Audits INSERT, UPDATE, and DELETE operations on the customers table by writing details to the audit_logs table.</p>
+      </div>
+    
+      <div class="info-card">
+        <h3>
+          trg_transactions_balance
+          
+            <span class="badge badge-trig">Trigger</span>
+          
+        </h3>
+        <p><strong>Path:</strong> <code>database/schema/04_triggers.sql</code></p>
+        <p><strong>Complexity:</strong> MEDIUM (Contains conditional logic based on transaction type and performs updates on a related table.)</p>
+        <p><strong>Lines:</strong> 21</p>
+        <p><strong>Purpose:</strong> Updates the corresponding account balance and activity date in the accounts table whenever a new transaction is inserted.</p>
+      </div>
+    
+      <div class="info-card">
+        <h3>
+          trg_accounts_audit
+          
+            <span class="badge badge-trig">Trigger</span>
+          
+        </h3>
+        <p><strong>Path:</strong> <code>database/schema/04_triggers.sql</code></p>
+        <p><strong>Complexity:</strong> LOW (Performs a single conditional insert operation.)</p>
+        <p><strong>Lines:</strong> 10</p>
+        <p><strong>Purpose:</strong> Audits changes to account balance or status by inserting a record into the audit_logs table.</p>
+      </div>
+    
+      <div class="info-card">
+        <h3>
+          trg_loans_approval
+          
+            <span class="badge badge-trig">Trigger</span>
+          
+        </h3>
+        <p><strong>Path:</strong> <code>database/schema/04_triggers.sql</code></p>
+        <p><strong>Complexity:</strong> MEDIUM (Includes a SELECT query, validation logic with error raising, and date calculations.)</p>
+        <p><strong>Lines:</strong> 19</p>
+        <p><strong>Purpose:</strong> Validates that a customer has a verified KYC status before a loan can be approved and sets approval/maturity dates.</p>
+      </div>
+    
+      <div class="info-card">
+        <h3>
+          trg_loan_payments_balance
+          
+            <span class="badge badge-trig">Trigger</span>
+          
+        </h3>
+        <p><strong>Path:</strong> <code>database/schema/04_triggers.sql</code></p>
+        <p><strong>Complexity:</strong> MEDIUM (Updates multiple fields and checks conditions for loan payoff status.)</p>
+        <p><strong>Lines:</strong> 13</p>
+        <p><strong>Purpose:</strong> Updates the remaining loan balance when a payment is made and marks the loan as paid off if the balance reaches zero.</p>
+      </div>
+    
+      <div class="info-card">
+        <h3>
+          trg_cards_expiration
+          
+            <span class="badge badge-trig">Trigger</span>
+          
+        </h3>
+        <p><strong>Path:</strong> <code>database/schema/04_triggers.sql</code></p>
+        <p><strong>Complexity:</strong> LOW (Simple conditional check and assignment.)</p>
+        <p><strong>Lines:</strong> 7</p>
+        <p><strong>Purpose:</strong> Checks if a card&#39;s expiration date is in the past during insert or update and sets the status to EXPIRED if true.</p>
+      </div>
+    
+      <div class="info-card">
+        <h3>
+          trg_transactions_audit
+          
+            <span class="badge badge-trig">Trigger</span>
+          
+        </h3>
+        <p><strong>Path:</strong> <code>database/schema/04_triggers.sql</code></p>
+        <p><strong>Complexity:</strong> LOW (Performs a single conditional insert operation.)</p>
+        <p><strong>Lines:</strong> 10</p>
+        <p><strong>Purpose:</strong> Audits changes to transaction status by recording the old and new values in the audit_logs table.</p>
+      </div>
+    
+      <div class="info-card">
+        <h3>
+          trg_accounts_balance_check
+          
+            <span class="badge badge-trig">Trigger</span>
+          
+        </h3>
+        <p><strong>Path:</strong> <code>database/schema/04_triggers.sql</code></p>
+        <p><strong>Complexity:</strong> LOW (Simple validation check raising an error.)</p>
+        <p><strong>Lines:</strong> 7</p>
+        <p><strong>Purpose:</strong> Prevents checking or savings accounts from having a negative balance by raising an application error.</p>
+      </div>
+    
+  </div>
+
+
+<h2>Database Interactions <a href="db-interactions.json" target="_blank" style="text-decoration: none;"><svg width="28" height="16" viewBox="0 0 28 16" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="0" width="28" height="16" rx="0" fill="#cc5500" stroke="#000" stroke-width="0.5"/>
+  <text x="14" y="11" font-family="monospace" font-size="10" font-weight="bold" text-anchor="middle" fill="#ffffff">JSON</text>
+</svg>
+</a></h2>
+
+
+
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th class="col-medium">Path</th>
+        <th class="col-small">Mechanism</th>
+        <th class="col-description">Description</th>
+        <th class="col-wide">Code Example</th>
+      </tr>
+    </thead>
+    <tbody>
+      
+        <tr>
+          <td><code>database/schema/01_tables.sql</code></td>
+          <td>DDL</td>
+          <td>The file consists entirely of SQL Data Definition Language (DDL) statements designed to initialize the database structure. It creates tables with specific columns, data types, and default values. It establishes relationships between these tables using Foreign Key constraints and enforces data validity using Check and Unique constraints. Additionally, it creates Sequences to handle auto-incrementing primary keys for every table defined.</td>
+          <td>
+            <pre><code class="language-sql">CREATE TABLE customers (
+    customer_id NUMBER(10) PRIMARY KEY,
+    first_name VARCHAR2(50) NOT NULL,
+    last_name VARCHAR2(50) NOT NULL,
+    ssn VARCHAR2(11) NOT NULL CONSTRAINT uk_customer_ssn UNIQUE,
+    date_of_birth DATE NOT NULL,</code></pre>
+          </td>
+        </tr>
+      
+        <tr>
+          <td><code>database/schema/03_indexes.sql</code></td>
+          <td>DDL</td>
+          <td>The file interacts with the database via Data Definition Language (DDL) statements to modify the physical schema structure. It creates indexes on existing tables to optimize query performance. There is no application-layer code (like Java or Python); it is a direct SQL script intended for database administration or migration tools.</td>
+          <td>
+            <pre><code class="language-sql">CREATE INDEX idx_customers_name ON customers(last_name, first_name);
+CREATE INDEX idx_customers_email ON customers(email);
+CREATE INDEX idx_customers_kyc ON customers(kyc_status, kyc_verified_date);</code></pre>
+          </td>
+        </tr>
+      
+        <tr>
+          <td><code>database/schema/05_supplemental_logging.sql</code></td>
+          <td>DDL</td>
+          <td>The code utilizes Oracle-specific Data Definition Language (DDL) to modify the logging attributes of existing tables. It does not perform data manipulation or retrieval, but rather executes administrative commands (`ALTER TABLE ... ADD SUPPLEMENTAL LOG DATA`) to configure the database engine for Change Data Capture (CDC).</td>
+          <td>
+            <pre><code class="language-sql">ALTER TABLE customers ADD SUPPLEMENTAL LOG DATA (PRIMARY KEY) COLUMNS;
+ALTER TABLE accounts ADD SUPPLEMENTAL LOG DATA (FOREIGN KEY) COLUMNS;
+ALTER TABLE transactions ADD SUPPLEMENTAL LOG DATA (ALL) COLUMNS;</code></pre>
+          </td>
+        </tr>
+      
+        <tr>
+          <td><code>database/schema/02_constraints.sql</code></td>
+          <td>DDL</td>
+          <td>The file interacts with the database using Data Definition Language (DDL) to modify the schema structure. It specifically uses `ALTER TABLE` commands to inject `CHECK` constraints that validate data integrity upon insertion or update.</td>
+          <td>
+            <pre><code class="language-sql">ALTER TABLE customers ADD CONSTRAINT chk_email_format 
+    CHECK (email IS NULL OR email LIKE &#39;%@%.%&#39;);
+ALTER TABLE transactions ADD CONSTRAINT chk_transaction_amount
+    CHECK (amount &gt; 0);</code></pre>
+          </td>
+        </tr>
+      
+        <tr>
+          <td><code>database/init/README.md</code></td>
+          <td>DDL</td>
+          <td>Database integration is achieved through shell scripts (`.sh`) that invoke the Oracle `sqlplus` CLI tool to execute raw SQL files. These scripts handle the full lifecycle of schema creation, including user management, object definition (tables, constraints, triggers), and initial data population.</td>
+          <td>
+            <pre><code class="language-sql">sqlplus legacybank/password@${ORACLE_SID} @database/schema/01_tables.sql</code></pre>
+          </td>
+        </tr>
+      
+        <tr>
+          <td><code>database/test_audit_logs.sql</code></td>
+          <td>DML</td>
+          <td>The file interacts with the database purely through SQL Data Manipulation Language (DML) scripts. It executes direct UPDATE statements against the &#39;customers&#39; and &#39;accounts&#39; tables. The script relies on the database&#39;s internal trigger mechanisms (mentioned in comments as &#39;trg_customers_audit&#39; and &#39;trg_accounts_audit&#39;) to perform the actual auditing logic, although those triggers are not defined in this file. It uses explicit transaction management.</td>
+          <td>
+            <pre><code class="language-sql">UPDATE customers 
+SET kyc_status = CASE 
+    WHEN kyc_status = &#39;VERIFIED&#39; THEN &#39;PENDING&#39;
+    ELSE &#39;VERIFIED&#39;
+END,
+last_updated = SYSDATE</code></pre>
+          </td>
+        </tr>
+      
+        <tr>
+          <td><code>com.legacybank.servlet.AccountServlet</code></td>
+          <td>EJB</td>
+          <td>The servlet primarily delegates database interactions to the AccountServiceLocal EJB. However, it contains a fallback mechanism in the init() method that directly interacts with the container&#39;s JNDI registry to look up a JDBC DataSource (&#39;java:LegacyBankDS&#39;) and inject it into a manually instantiated bean instance.</td>
+          <td>
+            <pre><code class="language-sql">DataSource ds = (DataSource) ctx.lookup(&#34;java:LegacyBankDS&#34;);
+com.legacybank.ejb.AccountServiceBean bean = new com.legacybank.ejb.AccountServiceBean();
+bean.setDataSource(ds);</code></pre>
+          </td>
+        </tr>
+      
+        <tr>
+          <td><code>com.legacybank.servlet.LoanServlet</code></td>
+          <td>EJB</td>
+          <td>The servlet primarily interacts with the database through the `LoanServiceLocal` EJB. However, in the `init` method&#39;s fallback logic, it directly looks up a JDBC `DataSource` via JNDI to manually configure the service bean, indicating a direct dependency on a configured database resource.</td>
+          <td>
+            <pre><code class="language-sql">DataSource ds = (DataSource) ctx.lookup(&#34;java:LegacyBankDS&#34;);
+com.legacybank.ejb.LoanServiceBean bean = new com.legacybank.ejb.LoanServiceBean();
+bean.setDataSource(ds);</code></pre>
+          </td>
+        </tr>
+      
+        <tr>
+          <td><code>com.legacybank.servlet.TransactionServlet</code></td>
+          <td>EJB</td>
+          <td>The servlet primarily delegates database persistence logic to an EJB (TransactionServiceLocal). However, in the init() method, there is explicit code to look up a JDBC DataSource via JNDI (&#39;java:LegacyBankDS&#39;) and inject it into a bean if the EJB lookup fails. This indicates a hybrid approach where the servlet can manually wire up database connectivity.</td>
+          <td>
+            <pre><code class="language-sql">DataSource ds = (DataSource) ctx.lookup(&#34;java:LegacyBankDS&#34;);
+com.legacybank.ejb.TransactionServiceBean bean = new com.legacybank.ejb.TransactionServiceBean();
+bean.setDataSource(ds);</code></pre>
+          </td>
+        </tr>
+      
+        <tr>
+          <td><code>README.md</code></td>
+          <td>JDBC</td>
+          <td>The application interacts with an Oracle 21c XE database using direct JDBC connections obtained via JNDI lookups (java:LegacyBankDS). It relies heavily on raw SQL for complex joins and CallableStatements for executing PL/SQL stored procedures to handle business logic like interest calculations and account creation. Batch operations are handled via shell scripts invoking SQL*Plus.</td>
+          <td>
+            <pre><code class="language-sql">// Call stored procedure - demonstrates tight coupling
+String sql = &#34;{call account_management.create_account(?, ?, ?, ?, ?, ?, ?, ?, ?)}&#34;;
+stmt = conn.prepareCall(sql);
+stmt.setLong(1, customerId);
+stmt.setLong(2, branchId);
+stmt.execute();</code></pre>
+          </td>
+        </tr>
+      
+        <tr>
+          <td><code>docker/Dockerfile.jboss</code></td>
+          <td>JDBC</td>
+          <td>The Dockerfile enables database connectivity by downloading the Oracle JDBC driver (`ojdbc6.jar`) and installing it into the JBoss server&#39;s global library directory. It further integrates the database by copying a specific `datasource.xml` configuration file into the JBoss deployment folder, which registers the datasource with the application server&#39;s JNDI registry.</td>
+          <td>
+            <pre><code class="language-sql">RUN echo &#34;Downloading Oracle JDBC driver...&#34; &amp;&amp; \
+    mkdir -p /opt/jboss/server/default/lib &amp;&amp; \
+    curl -L ... -o /opt/jboss/server/default/lib/ojdbc6.jar ...
+
+# Configure datasource
+COPY --chown=jboss:jboss docker/datasource.xml /opt/jboss/server/default/deploy/legacy-bank-ds.xml</code></pre>
+          </td>
+        </tr>
+      
+        <tr>
+          <td><code>docker/README-JBOSS-SETUP.md</code></td>
+          <td>JDBC</td>
+          <td>The document provides instructions for installing the Oracle JDBC driver (`ojdbc6.jar`) into the JBoss server&#39;s library path. It explains that the driver must be downloaded manually from Oracle due to licensing restrictions and placed in the specific `docker/` directory or mounted as a volume to enable database connectivity.</td>
+          <td>
+            <pre><code class="language-sql">volumes:
+  - ./ojdbc6.jar:/opt/jboss/server/default/lib/ojdbc6.jar</code></pre>
+          </td>
+        </tr>
+      
+        <tr>
+          <td><code>com.legacybank.dao.AccountDAO</code></td>
+          <td>JDBC</td>
+          <td>The file uses raw JDBC (Java Database Connectivity) to interact with the database. It manually manages Connections, PreparedStatements, and ResultSets. SQL queries are embedded directly as strings within the Java code.</td>
+          <td>
+            <pre><code class="language-sql">conn = dataSource.getConnection();
+String sql = &#34;SELECT ... FROM accounts a WHERE a.account_id = ?&#34;;
+stmt = conn.prepareStatement(sql);
+stmt.setLong(1, accountId);
+rs = stmt.executeQuery();</code></pre>
+          </td>
+        </tr>
+      
+        <tr>
+          <td><code>com.legacybank.dao.CustomerDAO</code></td>
+          <td>JDBC</td>
+          <td>The file uses standard Java JDBC (Java Database Connectivity) to interact with the database. It manually manages `Connection`, `PreparedStatement`, and `ResultSet` objects. It uses a `DataSource` for connection pooling.</td>
+          <td>
+            <pre><code class="language-sql">conn = dataSource.getConnection();
+String sql = &#34;SELECT ... FROM customers WHERE customer_id = ?&#34;;
+stmt = conn.prepareStatement(sql);
+stmt.setLong(1, customerId);
+rs = stmt.executeQuery();</code></pre>
+          </td>
+        </tr>
+      
+        <tr>
+          <td><code>com.legacybank.dao.TransactionDAO</code></td>
+          <td>JDBC</td>
+          <td>The file uses raw JDBC (Java Database Connectivity) to interact with the database. It manually manages Connections, PreparedStatements, and ResultSets. It constructs SQL strings directly within the Java code and handles the mapping of database rows to Java objects manually.</td>
+          <td>
+            <pre><code class="language-sql">conn = dataSource.getConnection();
+String sql = &#34;SELECT ... FROM transactions WHERE transaction_id = ?&#34;;
+stmt = conn.prepareStatement(sql);
+stmt.setLong(1, transactionId);
+rs = stmt.executeQuery();</code></pre>
+          </td>
+        </tr>
+      
+        <tr>
+          <td><code>com.legacybank.servlet.CustomerServlet</code></td>
+          <td>JDBC</td>
+          <td>The servlet uses JNDI to look up a DataSource (&#39;java:LegacyBankDS&#39;) and injects it into a CustomerDAO helper class. The servlet itself does not execute SQL but delegates all persistence operations (create, read, update) to the DAO which holds the DataSource connection.</td>
+          <td>
+            <pre><code class="language-sql">InitialContext ctx = new InitialContext();
+DataSource ds = (DataSource) ctx.lookup(&#34;java:LegacyBankDS&#34;);
+customerDAO = new CustomerDAO();
+customerDAO.setDataSource(ds);</code></pre>
+          </td>
+        </tr>
+      
+        <tr>
+          <td><code>docker/docker-compose.yml</code></td>
+          <td>OTHER</td>
+          <td>The file configures an Oracle Database container instance and defines the connection parameters (Host, Port, SID, PDB, User, Password) passed to the application server. It also executes a direct SQL command via the container health check mechanism.</td>
+          <td>
+            <pre><code class="language-sql">test: [&#34;CMD-SHELL&#34;, &#34;sqlplus -s sys/REDACTED@localhost:1521/XEPDB1 as sysdba &lt;&lt;&lt; &#39;SELECT 1 FROM DUAL;&#39; || exit 1&#34;]</code></pre>
+          </td>
+        </tr>
+      
+        <tr>
+          <td><code>docker/Dockerfile.oracle</code></td>
+          <td>OTHER</td>
+          <td>This file does not connect to a database as a client; rather, it defines the database server environment itself. It integrates database initialization by copying schema, procedure, and data scripts into the Oracle container&#39;s startup directories. It configures the database instance parameters via environment variables.</td>
+          <td>
+            <pre><code class="language-sql">ENV ORACLE_SID=XE
+ENV ORACLE_PDB=XEPDB1
+ENV ORACLE_PWD=Oracle123
+COPY database/schema/ /opt/oracle/scripts/setup/schema/</code></pre>
+          </td>
+        </tr>
+      
+        <tr>
+          <td><code>docker/README-ORACLE-SETUP.md</code></td>
+          <td>OTHER</td>
+          <td>The file documents the infrastructure setup and connection parameters for Oracle Database (XE and Enterprise editions), defining connection strings, SIDs, and PDBs used by the application&#39;s Docker containers.</td>
+          <td>
+            <pre><code class="language-sql">environment:
+  - ORACLE_SID=ORCL
+  - ORACLE_PDB=LEGACYPDB</code></pre>
+          </td>
+        </tr>
+      
+        <tr>
+          <td><code>database/simulate_banking_operations.sql</code></td>
+          <td>SQL</td>
+          <td>The file is a standalone SQL script containing Direct Manipulation Language (DML) and Data Query Language (DQL) statements. It interacts directly with an Oracle database to simulate banking operations. The script performs extensive read operations involving joins and aggregations, and simulates write operations within a transaction that is ultimately rolled back.</td>
+          <td>
+            <pre><code class="language-sql">SELECT account_id, balance FROM accounts WHERE account_id = 1;
+UPDATE accounts SET balance = balance + 500.00, last_activity_date = SYSDATE
+WHERE account_id = 1;
+ROLLBACK;</code></pre>
+          </td>
+        </tr>
+      
+        <tr>
+          <td><code>database/query_log.sql</code></td>
+          <td>SQL</td>
+          <td>The file represents direct SQL interaction with an Oracle database. It contains a mix of DQL (Data Query Language) for retrieving customer and account data, and DML (Data Manipulation Language) for processing transactions and updating balances. The presence of bind variables (e.g., :B1) suggests the original application used JDBC or a similar driver with prepared statements. The schema is identified as &#39;LEGACYBANK&#39;.</td>
+          <td>
+            <pre><code class="language-sql">SELECT a.*, t.transaction_id, t.amount, t.transaction_type 
+FROM accounts a 
+JOIN transactions t ON a.account_id = t.account_id 
+WHERE a.account_id = 2;</code></pre>
+          </td>
+        </tr>
+      
+        <tr>
+          <td><code>database/data/README.md</code></td>
+          <td>SQL</td>
+          <td>Database integration is achieved through direct execution of SQL scripts using the Oracle `sqlplus` command-line tool. The scripts perform bulk Data Manipulation Language (DML) operations, specifically deleting existing rows and inserting new sample data, as well as executing stored procedures to generate complex related data.</td>
+          <td>
+            <pre><code class="language-sql">sqlplus legacybank/REDACTED@localhost:1521/XEPDB1 @database/data/reload_all_data.sql</code></pre>
+          </td>
+        </tr>
+      
+        <tr>
+          <td><code>database/validation/cleanup_test_customer.sql</code></td>
+          <td>SQL</td>
+          <td>The code interacts with the database via a raw PL/SQL anonymous block intended for execution in a client like SQL*Plus. It utilizes procedural SQL features including variable declaration, cursor loops, exception handling, and dynamic SQL execution. The integration performs deep administrative cleanup tasks involving complex read and write operations across the schema.</td>
+          <td>
+            <pre><code class="language-sql">BEGIN
+    SELECT customer_id INTO v_test_customer_id 
+    FROM customers 
+    WHERE ssn = &#39;999-99-9999&#39;;
+    DELETE FROM customers WHERE customer_id = v_test_customer_id;</code></pre>
+          </td>
+        </tr>
+      
+        <tr>
+          <td><code>database/data/reload_all_data.sql</code></td>
+          <td>SQL</td>
+          <td>The file is a standalone Oracle PL/SQL script that interacts directly with the database engine. It performs a combination of DDL (Data Definition Language) to manage sequences and constraints, and DML (Data Manipulation Language) to delete and insert data. It leverages Oracle-specific features such as `EXECUTE IMMEDIATE` for dynamic SQL, `RETURNING ... INTO` clauses for capturing generated IDs, and `DBMS_OUTPUT` for logging progress. The script also integrates with existing database packages (`account_management`, `transaction_processing`, `loan_processing`) to insert data through the application&#39;s business logic layer rather than raw inserts for complex entities.</td>
+          <td>
+            <pre><code class="language-sql">INSERT INTO branches (branch_id, branch_code, branch_name, address_line1...)
+VALUES (seq_branch_id.NEXTVAL, &#39;NYC001&#39;, &#39;Manhattan Main Branch&#39;...)
+RETURNING branch_id INTO v_branch_nyc;
+
+COMMIT;</code></pre>
+          </td>
+        </tr>
+      
+        <tr>
+          <td><code>database/validation/test_stored_procedures.sql</code></td>
+          <td>SQL</td>
+          <td>The file is a PL/SQL script that acts as a test harness for the database. It interacts with the database by executing anonymous blocks that call existing stored procedures within packages (e.g., &#39;account_management&#39;, &#39;transaction_processing&#39;). It performs direct DML operations (INSERT, SELECT, DELETE) to stage test data and clean it up. It also performs administrative tasks by disabling and enabling triggers via EXECUTE IMMEDIATE statements.</td>
+          <td>
+            <pre><code class="language-sql">account_management.create_account(
+    p_customer_id =&gt; v_customer_id,
+    p_branch_id =&gt; v_branch_id,
+    p_account_type =&gt; &#39;CHECKING&#39;,
+    p_initial_deposit =&gt; 1000.00,
+    p_account_id =&gt; :v_account_id,</code></pre>
+          </td>
+        </tr>
+      
+        <tr>
+          <td><code>database/validation/README.md</code></td>
+          <td>SQL</td>
+          <td>Database integration is achieved through the execution of Shell scripts that invoke the Oracle SQL*Plus command-line tool. These scripts pass connection strings and SQL files to the database engine to perform schema validation, data counting, and stored procedure execution tests.</td>
+          <td>
+            <pre><code class="language-sql">sqlplus legacybank/REDACTED@localhost/XEPDB1 @test_stored_procedures.sql</code></pre>
+          </td>
+        </tr>
+      
+        <tr>
+          <td><code>database/procedures/account_management.pkg</code></td>
+          <td>STORED-PROCEDURE</td>
+          <td>The file is a PL/SQL package (Specification and Body) that runs directly inside the Oracle database, executing SQL statements against local tables to manage data.</td>
+          <td>
+            <pre><code class="language-sql">INSERT INTO accounts (
+    account_id, customer_id, branch_id, account_number,
+    account_type, balance, interest_rate, opened_date
+) VALUES (
+    seq_account_id.CURRVAL, p_customer_id, p_branch_id, v_account_num,
+    p_account_type, p_initial_deposit, 
+    NVL(p_interest_rate, 0.0000), SYSDATE
+);</code></pre>
+          </td>
+        </tr>
+      
+        <tr>
+          <td><code>database/procedures/interest_calculation.pkg</code></td>
+          <td>STORED-PROCEDURE</td>
+          <td>The code is a native Oracle PL/SQL package that executes directly within the database engine. It performs direct SQL operations including selecting account details, inserting transaction records, and logging audits. It utilizes cursors for row-by-row processing and manages transaction consistency explicitly.</td>
+          <td>
+            <pre><code class="language-sql">SELECT account_type, balance, interest_rate... INTO ... FROM accounts WHERE account_id = p_account_id; INSERT INTO transactions (...) VALUES (...);</code></pre>
+          </td>
+        </tr>
+      
+        <tr>
+          <td><code>database/procedures/loan_processing.pkg</code></td>
+          <td>STORED-PROCEDURE</td>
+          <td>The code is a native Oracle PL/SQL package that executes directly within the database engine. It performs direct Data Manipulation Language (DML) and Data Query Language (DQL) operations on the underlying tables without an intermediate ORM or driver layer.</td>
+          <td>
+            <pre><code class="language-sql">INSERT INTO loans (
+    loan_id, customer_id, branch_id, loan_number, ...
+) VALUES (
+    seq_loan_id.CURRVAL, p_customer_id, p_branch_id, v_loan_number, ...
+);
+
+COMMIT;</code></pre>
+          </td>
+        </tr>
+      
+        <tr>
+          <td><code>database/procedures/transaction_processing.pkg</code></td>
+          <td>STORED-PROCEDURE</td>
+          <td>This file represents a server-side Oracle PL/SQL package that directly interacts with the database engine. It executes Data Manipulation Language (DML) operations to insert transaction records and update balances (implied via triggers or subsequent logic), and Data Query Language (DQL) to validate account states and aggregate history.</td>
+          <td>
+            <pre><code class="language-sql">SELECT account_status, balance INTO v_account_status, v_current_balance
+FROM accounts
+WHERE account_id = p_account_id;
+
+-- ... validation logic ...
+
+INSERT INTO transactions (
+    transaction_id, account_id, transaction_type, ...
+) VALUES (
+    seq_transaction_id.NEXTVAL, p_account_id, &#39;DEPOSIT&#39;, ...
+);
+
+COMMIT;</code></pre>
+          </td>
+        </tr>
+      
+        <tr>
+          <td><code>com.legacybank.ejb.AccountServiceBean</code></td>
+          <td>STORED-PROCEDURE</td>
+          <td>The application interacts with the database exclusively through JDBC `CallableStatement` objects invoking stored procedures defined in an `account_management` package. It uses a DataSource resource mapped to `java:LegacyBankDS`.</td>
+          <td>
+            <pre><code class="language-sql">String sql = &#34;{call account_management.create_account(?, ?, ?, ?, ?, ?, ?, ?, ?)}&#34;;
+stmt = conn.prepareCall(sql);
+stmt.setLong(1, customerId);</code></pre>
+          </td>
+        </tr>
+      
+        <tr>
+          <td><code>com.legacybank.ejb.LoanServiceBean</code></td>
+          <td>STORED-PROCEDURE</td>
+          <td>The class interacts with an Oracle-style database via a DataSource. It primarily uses Stored Procedures (via CallableStatement) for business logic (creation, approval) and complex data retrieval. It also uses direct SQL (via PreparedStatement) for simple data fetching.</td>
+          <td>
+            <pre><code class="language-sql">String sql = &#34;{call loan_processing.create_loan_application(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}&#34;;
+stmt = conn.prepareCall(sql);
+stmt.setLong(1, customerId);</code></pre>
+          </td>
+        </tr>
+      
+        <tr>
+          <td><code>com.legacybank.ejb.TransactionServiceBean</code></td>
+          <td>STORED-PROCEDURE</td>
+          <td>The application integrates with the database primarily through Stored Procedures invoked via JDBC CallableStatements. It uses a DataSource resource mapped to &#39;java:LegacyBankDS&#39;.</td>
+          <td>
+            <pre><code class="language-sql">String sql = &#34;{call transaction_processing.process_deposit(?, ?, ?, ?, ?, ?, ?, ?, ?)}&#34;;
+stmt = conn.prepareCall(sql);
+stmt.setLong(1, accountId);
+...</code></pre>
+          </td>
+        </tr>
+      
+        <tr>
+          <td><code>database/schema/04_triggers.sql</code></td>
+          <td>TRIGGER</td>
+          <td>The code integrates directly into the database using Oracle PL/SQL triggers to execute business logic automatically in response to DML events. It performs cross-table updates (e.g., updating accounts from transactions) and enforces data integrity rules.</td>
+          <td>
+            <pre><code class="language-sql">CREATE OR REPLACE TRIGGER trg_customers_update
+BEFORE UPDATE ON customers
+FOR EACH ROW
+BEGIN
+    :NEW.last_updated := SYSDATE;
+END;</code></pre>
+          </td>
+        </tr>
+      
+    </tbody>
+  </table>
+ 
+    </div>
+
+    <div id="tab-integration" class="tab-content">
+      <h2>Integration Points <a href="integration-points.json" target="_blank" style="text-decoration: none;"><svg width="28" height="16" viewBox="0 0 28 16" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="0" width="28" height="16" rx="0" fill="#cc5500" stroke="#000" stroke-width="0.5"/>
+  <text x="14" y="11" font-family="monospace" font-size="10" font-weight="bold" text-anchor="middle" fill="#ffffff">JSON</text>
+</svg>
+</a></h2>
+
+
+
+  <div class="card-grid">
+    
+      <div class="info-card">
+        <h3>AccountServiceLocal</h3>
+        <p><strong>Namespace:</strong> <code>com.legacybank.ejb.AccountServiceLocal</code></p>
+        <p><strong>Mechanism:</strong> <code>OTHER</code></p>
+        <p><strong>Direction:</strong> BIDIRECTIONAL</p>
+        <p><strong>Path/Topic:</strong> <code>N/A</code></p>
+        <p><strong>Description:</strong> EJB Local Interface definition used for internal service-to-service communication within the application container.</p>
+      </div>
+    
+      <div class="info-card">
+        <h3>EJB Local Interface</h3>
+        <p><strong>Namespace:</strong> <code>com.legacybank.ejb.LoanServiceLocal</code></p>
+        <p><strong>Mechanism:</strong> <code>OTHER</code></p>
+        <p><strong>Direction:</strong> BIDIRECTIONAL</p>
+        <p><strong>Path/Topic:</strong> <code>N/A</code></p>
+        <p><strong>Description:</strong> Defines the local business interface for an Enterprise Java Bean.</p>
+      </div>
+    
+      <div class="info-card">
+        <h3>AccountServlet</h3>
+        <p><strong>Namespace:</strong> <code>com.legacybank.servlet.AccountServlet</code></p>
+        <p><strong>Mechanism:</strong> <code>REST</code></p>
+        <p><strong>Direction:</strong> CONSUMER</p>
+        <p><strong>Path/Topic:</strong> <code>unknown (defined in web.xml)</code></p>
+        <p><strong>Description:</strong> Servlet endpoint handling HTTP requests for account operations.</p>
+      </div>
+    
+      <div class="info-card">
+        <h3>CustomerServlet</h3>
+        <p><strong>Namespace:</strong> <code>com.legacybank.servlet.CustomerServlet</code></p>
+        <p><strong>Mechanism:</strong> <code>REST</code></p>
+        <p><strong>Direction:</strong> BOTH</p>
+        <p><strong>Path/Topic:</strong> <code>unknown</code></p>
+        <p><strong>Description:</strong> Handles HTTP requests for customer management (Servlet acting as a web endpoint).</p>
+      </div>
+    
+      <div class="info-card">
+        <h3>LoanServlet HTTP Endpoint</h3>
+        <p><strong>Namespace:</strong> <code>com.legacybank.servlet.LoanServlet</code></p>
+        <p><strong>Mechanism:</strong> <code>REST</code></p>
+        <p><strong>Direction:</strong> CONSUMER</p>
+        <p><strong>Path/Topic:</strong> <code>Mapped via web.xml (implied)</code></p>
+        <p><strong>Description:</strong> Standard Java Servlet endpoint handling HTTP requests for loan management.</p>
+      </div>
+    
+      <div class="info-card">
+        <h3>TransactionServlet</h3>
+        <p><strong>Namespace:</strong> <code>com.legacybank.servlet.TransactionServlet</code></p>
+        <p><strong>Mechanism:</strong> <code>REST</code></p>
+        <p><strong>Direction:</strong> BIDIRECTIONAL</p>
+        <p><strong>Path/Topic:</strong> <code>/TransactionServlet (inferred)</code></p>
+        <p><strong>Description:</strong> HTTP Servlet entry point handling transaction requests.</p>
+      </div>
+    
+      <div class="info-card">
+        <h3>TransactionServiceLocal</h3>
+        <p><strong>Namespace:</strong> <code>com.legacybank.servlet.TransactionServlet</code></p>
+        <p><strong>Mechanism:</strong> <code>OTHER</code></p>
+        <p><strong>Direction:</strong> CONSUMER</p>
+        <p><strong>Path/Topic:</strong> <code>legacy-bank/TransactionServiceLocal</code></p>
+        <p><strong>Description:</strong> JNDI Lookup for EJB Service</p>
+      </div>
+    
+      <div class="info-card">
+        <h3>BankingService</h3>
+        <p><strong>Namespace:</strong> <code>com.legacybank.soap.BankingServiceEndpoint</code></p>
+        <p><strong>Mechanism:</strong> <code>SOAP</code></p>
+        <p><strong>Direction:</strong> BIDIRECTIONAL</p>
+        <p><strong>Path/Topic:</strong> <code>http://legacybank.com/soap</code></p>
+        <p><strong>Description:</strong> JAX-WS SOAP Service Endpoint exposing banking operations</p>
+      </div>
+    
+  </div>
+
+
+
+    </div>
+
+    <script>
+      async function renderMermaidDiagrams(root) {
+        if (!window.mermaid) return;
+
+        // Initialize once
+        if (!window.__mermaidInitialized) {
+          window.mermaid.initialize({
+            startOnLoad: false,
+            theme: "default",
+            securityLevel: "loose",
+            flowchart: {
+              useMaxWidth: true,
+              htmlLabels: true,
+            },
+          });
+          window.__mermaidInitialized = true;
+        }
+
+        const diagrams = root.querySelectorAll('pre.mermaid:not([data-processed="true"])');
+        if (diagrams.length > 0) {
+          await window.mermaid.run({ nodes: diagrams });
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        const tabs = document.querySelectorAll(".tab-button");
+        const contents = document.querySelectorAll(".tab-content");
+
+        // Render diagrams in the initially active tab
+        const activeTab = document.querySelector(".tab-content.active");
+        if (activeTab) {
+          renderMermaidDiagrams(activeTab);
+        }
+        
+        tabs.forEach(tab => {
+          tab.addEventListener("click", async () => {
+            const targetId = tab.getAttribute("data-target");
+            const targetContent = document.getElementById(targetId);
+            
+            tabs.forEach(t => t.classList.remove("active"));
+            contents.forEach(c => c.classList.remove("active"));
+            
+            tab.classList.add("active");
+            if (targetContent) {
+              targetContent.classList.add("active");
+
+              // Render any unprocessed Mermaid diagrams in the newly visible tab
+              await renderMermaidDiagrams(targetContent);
+            }
+          });
+        });
+      });
+    </script>
+  </body>
+</html> 

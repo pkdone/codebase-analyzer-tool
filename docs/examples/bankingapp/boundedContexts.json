@@ -1,0 +1,122 @@
+[
+  {
+    "name": "Account Management Context",
+    "description": "This context encapsulates all capabilities related to the lifecycle and maintenance of financial accounts. It handles account creation, status management (freezing/closing), and balance tracking. It is the central hub for customer financial data.",
+    "aggregates": [
+      {
+        "name": "BankAccount",
+        "description": "The core aggregate representing a customer's financial holding. It enforces rules regarding minimum balances, valid account types, and status transitions.",
+        "repository": {
+          "name": "AccountRepository",
+          "description": "Handles persistence for Account entities, providing methods to find accounts by ID, customer, or account number."
+        },
+        "entities": [
+          {
+            "name": "Account",
+            "description": "The root entity containing balance, type (Checking/Savings), and status."
+          },
+          {
+            "name": "Transaction",
+            "description": "A record of financial movement affecting the account balance."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Lending Context",
+    "description": "Focuses on the borrowing aspect of the banking business. It manages the entire loan lifecycle from application to payoff, including interest rates, terms, and repayment schedules.",
+    "aggregates": [
+      {
+        "name": "LoanAgreement",
+        "description": "Represents a contract between the bank and a customer for borrowed funds. It enforces rules regarding approval workflows and repayment calculations.",
+        "repository": {
+          "name": "LoanRepository",
+          "description": "Manages the storage and retrieval of Loan applications and active loan records."
+        },
+        "entities": [
+          {
+            "name": "Loan",
+            "description": "The root entity detailing principal, interest rate, term, and remaining balance."
+          },
+          {
+            "name": "LoanPayment",
+            "description": "A record of a repayment installment, split into principal and interest components."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Customer Context",
+    "description": "Manages the identity and profile information of the bank's clients. It is responsible for KYC compliance, contact information, and relationship management.",
+    "aggregates": [
+      {
+        "name": "CustomerProfile",
+        "description": "The aggregate for customer identity. It ensures unique identification (SSN) and validates contact data.",
+        "repository": {
+          "name": "CustomerRepository",
+          "description": "Provides access to customer records and supports searching by various attributes."
+        },
+        "entities": [
+          {
+            "name": "Customer",
+            "description": "The root entity containing personal details, KYC status, and demographics."
+          },
+          {
+            "name": "Relationship",
+            "description": "Defines links between different customers (e.g., Spouse, Joint Account Holder)."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Branch Operations Context",
+    "description": "Deals with the physical infrastructure and staffing of the bank. It manages branch locations and the employees assigned to them.",
+    "aggregates": [
+      {
+        "name": "BranchOffice",
+        "description": "Represents a physical bank location. It manages the association of employees and accounts to a specific location.",
+        "repository": {
+          "name": "BranchRepository",
+          "description": "Handles persistence for Branch and Employee data."
+        },
+        "entities": [
+          {
+            "name": "Branch",
+            "description": "The root entity defining the location and contact details of a bank branch."
+          },
+          {
+            "name": "Employee",
+            "description": "Staff members assigned to a branch, including their roles and permissions."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Payment Services Context",
+    "description": "Handles ancillary payment methods and external transfers. This includes bill payments and card management.",
+    "aggregates": [
+      {
+        "name": "PaymentInstrument",
+        "description": "Manages cards and bill payment setups. It enforces limits and expiration dates.",
+        "repository": {
+          "name": "PaymentRepository",
+          "description": "Stores data related to debit/credit cards and bill payment schedules."
+        },
+        "entities": [
+          {
+            "name": "Card",
+            "description": "Represents a physical debit or credit card linked to an account."
+          },
+          {
+            "name": "BillPayment",
+            "description": "A scheduled or recurring payment to an external payee."
+          }
+        ]
+      }
+    ]
+  }
+]

@@ -1,0 +1,764 @@
+[
+  {
+    "path": "database/schema/01_tables.sql",
+    "mechanism": "DDL",
+    "name": "Legacy Banking Application Schema",
+    "description": "The file consists entirely of SQL Data Definition Language (DDL) statements designed to initialize the database structure. It creates tables with specific columns, data types, and default values. It establishes relationships between these tables using Foreign Key constraints and enforces data validity using Check and Unique constraints. Additionally, it creates Sequences to handle auto-incrementing primary keys for every table defined.",
+    "databaseName": "Oracle Database (Schema)",
+    "tablesAccessed": [
+      "customers",
+      "branches",
+      "employees",
+      "accounts",
+      "transactions",
+      "loans",
+      "loan_payments",
+      "cards",
+      "card_transactions",
+      "payments",
+      "audit_logs",
+      "reports",
+      "customer_relationships"
+    ],
+    "operationType": [
+      "DDL"
+    ],
+    "queryPatterns": "CREATE TABLE statements with constraints, CREATE SEQUENCE statements",
+    "transactionHandling": "DDL statements in Oracle are implicitly committed",
+    "protocol": "Oracle 12c",
+    "connectionInfo": "not applicable for SQL files",
+    "codeExample": "CREATE TABLE customers (\n    customer_id NUMBER(10) PRIMARY KEY,\n    first_name VARCHAR2(50) NOT NULL,\n    last_name VARCHAR2(50) NOT NULL,\n    ssn VARCHAR2(11) NOT NULL CONSTRAINT uk_customer_ssn UNIQUE,\n    date_of_birth DATE NOT NULL,"
+  },
+  {
+    "path": "database/schema/03_indexes.sql",
+    "mechanism": "DDL",
+    "name": "Database Indexing Script",
+    "description": "The file interacts with the database via Data Definition Language (DDL) statements to modify the physical schema structure. It creates indexes on existing tables to optimize query performance. There is no application-layer code (like Java or Python); it is a direct SQL script intended for database administration or migration tools.",
+    "databaseName": "Oracle (implied by comments)",
+    "tablesAccessed": [
+      "customers",
+      "branches",
+      "employees",
+      "accounts",
+      "transactions",
+      "loans",
+      "loan_payments",
+      "cards",
+      "card_transactions",
+      "payments",
+      "audit_logs",
+      "reports",
+      "customer_relationships"
+    ],
+    "operationType": [
+      "DDL"
+    ],
+    "queryPatterns": "CREATE INDEX statements for performance optimization",
+    "transactionHandling": "Implicit auto-commit or managed by migration tool",
+    "protocol": "Oracle SQL",
+    "connectionInfo": "not applicable for SQL files",
+    "codeExample": "CREATE INDEX idx_customers_name ON customers(last_name, first_name);\nCREATE INDEX idx_customers_email ON customers(email);\nCREATE INDEX idx_customers_kyc ON customers(kyc_status, kyc_verified_date);"
+  },
+  {
+    "path": "database/schema/05_supplemental_logging.sql",
+    "mechanism": "DDL",
+    "name": "Oracle GoldenGate Configuration",
+    "description": "The code utilizes Oracle-specific Data Definition Language (DDL) to modify the logging attributes of existing tables. It does not perform data manipulation or retrieval, but rather executes administrative commands (`ALTER TABLE ... ADD SUPPLEMENTAL LOG DATA`) to configure the database engine for Change Data Capture (CDC).",
+    "databaseName": "Oracle",
+    "tablesAccessed": [
+      "customers",
+      "branches",
+      "employees",
+      "accounts",
+      "transactions",
+      "loans",
+      "loan_payments",
+      "cards",
+      "card_transactions",
+      "payments",
+      "audit_logs",
+      "reports",
+      "customer_relationships"
+    ],
+    "operationType": [
+      "DDL",
+      "ADMIN"
+    ],
+    "queryPatterns": "ALTER TABLE statements for configuration",
+    "transactionHandling": "Implicit DDL commit",
+    "protocol": "Oracle Database",
+    "connectionInfo": "not applicable for SQL files",
+    "codeExample": "ALTER TABLE customers ADD SUPPLEMENTAL LOG DATA (PRIMARY KEY) COLUMNS;\nALTER TABLE accounts ADD SUPPLEMENTAL LOG DATA (FOREIGN KEY) COLUMNS;\nALTER TABLE transactions ADD SUPPLEMENTAL LOG DATA (ALL) COLUMNS;"
+  },
+  {
+    "path": "database/schema/02_constraints.sql",
+    "mechanism": "DDL",
+    "name": "Oracle Database Schema Constraints",
+    "description": "The file interacts with the database using Data Definition Language (DDL) to modify the schema structure. It specifically uses `ALTER TABLE` commands to inject `CHECK` constraints that validate data integrity upon insertion or update.",
+    "databaseName": "Oracle",
+    "tablesAccessed": [
+      "customers",
+      "accounts",
+      "transactions",
+      "loans",
+      "loan_payments",
+      "cards",
+      "customer_relationships",
+      "reports"
+    ],
+    "operationType": [
+      "DDL"
+    ],
+    "queryPatterns": "ALTER TABLE statements with CHECK constraints using REGEXP_LIKE and logical operators",
+    "transactionHandling": "Implicit (DDL is typically auto-committed in Oracle)",
+    "protocol": "Oracle Database (12c or later implied by comments)",
+    "connectionInfo": "not applicable for SQL files",
+    "codeExample": "ALTER TABLE customers ADD CONSTRAINT chk_email_format \n    CHECK (email IS NULL OR email LIKE '%@%.%');\nALTER TABLE transactions ADD CONSTRAINT chk_transaction_amount\n    CHECK (amount > 0);"
+  },
+  {
+    "path": "database/init/README.md",
+    "mechanism": "DDL",
+    "name": "Oracle Database Initialization",
+    "description": "Database integration is achieved through shell scripts (`.sh`) that invoke the Oracle `sqlplus` CLI tool to execute raw SQL files. These scripts handle the full lifecycle of schema creation, including user management, object definition (tables, constraints, triggers), and initial data population.",
+    "databaseName": "ORCL (SID) / legacybank (Schema)",
+    "tablesAccessed": [
+      "unknown"
+    ],
+    "operationType": [
+      "DDL",
+      "ADMIN",
+      "WRITE"
+    ],
+    "queryPatterns": "Sequential execution of SQL scripts for schema creation, user privilege granting, stored procedure compilation, and bulk data loading.",
+    "transactionHandling": "Implicit commits are used for DDL operations within Oracle; the scripts run sequentially to ensure dependencies are met.",
+    "protocol": "Oracle Database (via sqlplus)",
+    "connectionInfo": "sqlplus legacybank/[REDACTED]@${ORACLE_SID}",
+    "codeExample": "sqlplus legacybank/password@${ORACLE_SID} @database/schema/01_tables.sql"
+  },
+  {
+    "path": "database/test_audit_logs.sql",
+    "mechanism": "DML",
+    "name": "Audit Log Test Script",
+    "description": "The file interacts with the database purely through SQL Data Manipulation Language (DML) scripts. It executes direct UPDATE statements against the 'customers' and 'accounts' tables. The script relies on the database's internal trigger mechanisms (mentioned in comments as 'trg_customers_audit' and 'trg_accounts_audit') to perform the actual auditing logic, although those triggers are not defined in this file. It uses explicit transaction management.",
+    "databaseName": "LEGACYBANK",
+    "tablesAccessed": [
+      "customers",
+      "accounts"
+    ],
+    "operationType": [
+      "WRITE"
+    ],
+    "queryPatterns": "UPDATE statements using CASE logic and subqueries",
+    "transactionHandling": "Explicit COMMIT after each update operation",
+    "protocol": "Oracle SQL (inferred from SYSDATE and PROMPT syntax)",
+    "connectionInfo": "not applicable for SQL files",
+    "codeExample": "UPDATE customers \nSET kyc_status = CASE \n    WHEN kyc_status = 'VERIFIED' THEN 'PENDING'\n    ELSE 'VERIFIED'\nEND,\nlast_updated = SYSDATE"
+  },
+  {
+    "path": "com.legacybank.servlet.AccountServlet",
+    "mechanism": "EJB",
+    "name": "AccountServiceLocal",
+    "description": "The servlet primarily delegates database interactions to the AccountServiceLocal EJB. However, it contains a fallback mechanism in the init() method that directly interacts with the container's JNDI registry to look up a JDBC DataSource ('java:LegacyBankDS') and inject it into a manually instantiated bean instance.",
+    "databaseName": "LegacyBankDS",
+    "tablesAccessed": [
+      "unknown"
+    ],
+    "operationType": [
+      "READ_WRITE"
+    ],
+    "queryPatterns": "n/a",
+    "transactionHandling": "unknown",
+    "protocol": "JDBC",
+    "connectionInfo": "java:LegacyBankDS",
+    "codeExample": "DataSource ds = (DataSource) ctx.lookup(\"java:LegacyBankDS\");\ncom.legacybank.ejb.AccountServiceBean bean = new com.legacybank.ejb.AccountServiceBean();\nbean.setDataSource(ds);"
+  },
+  {
+    "path": "com.legacybank.servlet.LoanServlet",
+    "mechanism": "EJB",
+    "name": "LoanServiceLocal / LegacyBankDS",
+    "description": "The servlet primarily interacts with the database through the `LoanServiceLocal` EJB. However, in the `init` method's fallback logic, it directly looks up a JDBC `DataSource` via JNDI to manually configure the service bean, indicating a direct dependency on a configured database resource.",
+    "databaseName": "LegacyBankDS",
+    "tablesAccessed": [],
+    "operationType": [
+      "READ_WRITE"
+    ],
+    "queryPatterns": "Delegated to EJB service",
+    "transactionHandling": "Likely managed by the EJB container (CMT)",
+    "protocol": "JDBC",
+    "connectionInfo": "java:LegacyBankDS",
+    "codeExample": "DataSource ds = (DataSource) ctx.lookup(\"java:LegacyBankDS\");\ncom.legacybank.ejb.LoanServiceBean bean = new com.legacybank.ejb.LoanServiceBean();\nbean.setDataSource(ds);"
+  },
+  {
+    "path": "com.legacybank.servlet.TransactionServlet",
+    "mechanism": "EJB",
+    "name": "TransactionServiceLocal",
+    "description": "The servlet primarily delegates database persistence logic to an EJB (TransactionServiceLocal). However, in the init() method, there is explicit code to look up a JDBC DataSource via JNDI ('java:LegacyBankDS') and inject it into a bean if the EJB lookup fails. This indicates a hybrid approach where the servlet can manually wire up database connectivity.",
+    "databaseName": "LegacyBankDS",
+    "tablesAccessed": [],
+    "operationType": [
+      "READ_WRITE"
+    ],
+    "queryPatterns": "Delegated to EJB service",
+    "transactionHandling": "Delegated to EJB container or manual bean",
+    "protocol": "JDBC",
+    "connectionInfo": "java:LegacyBankDS",
+    "codeExample": "DataSource ds = (DataSource) ctx.lookup(\"java:LegacyBankDS\");\ncom.legacybank.ejb.TransactionServiceBean bean = new com.legacybank.ejb.TransactionServiceBean();\nbean.setDataSource(ds);"
+  },
+  {
+    "path": "README.md",
+    "mechanism": "JDBC",
+    "name": "LegacyBankDS",
+    "description": "The application interacts with an Oracle 21c XE database using direct JDBC connections obtained via JNDI lookups (java:LegacyBankDS). It relies heavily on raw SQL for complex joins and CallableStatements for executing PL/SQL stored procedures to handle business logic like interest calculations and account creation. Batch operations are handled via shell scripts invoking SQL*Plus.",
+    "databaseName": "XEPDB1",
+    "tablesAccessed": [
+      "customers",
+      "accounts",
+      "transactions",
+      "loans",
+      "payments",
+      "cards",
+      "branches",
+      "employees",
+      "audit_logs",
+      "statements"
+    ],
+    "operationType": [
+      "READ_WRITE",
+      "DDL",
+      "ADMIN"
+    ],
+    "queryPatterns": "Complex joins with subqueries, stored procedure calls, and batch operations.",
+    "transactionHandling": "Mixed approach; batch scripts use explicit COMMITs, while Java EJBs likely use container-managed transactions via JNDI DataSources.",
+    "protocol": "Oracle 21c XE",
+    "connectionInfo": "jdbc:oracle:thin:@localhost:1521/XEPDB1",
+    "codeExample": "// Call stored procedure - demonstrates tight coupling\nString sql = \"{call account_management.create_account(?, ?, ?, ?, ?, ?, ?, ?, ?)}\";\nstmt = conn.prepareCall(sql);\nstmt.setLong(1, customerId);\nstmt.setLong(2, branchId);\nstmt.execute();"
+  },
+  {
+    "path": "docker/Dockerfile.jboss",
+    "mechanism": "JDBC",
+    "name": "Oracle JDBC Driver",
+    "description": "The Dockerfile enables database connectivity by downloading the Oracle JDBC driver (`ojdbc6.jar`) and installing it into the JBoss server's global library directory. It further integrates the database by copying a specific `datasource.xml` configuration file into the JBoss deployment folder, which registers the datasource with the application server's JNDI registry.",
+    "databaseName": "Oracle Database",
+    "tablesAccessed": [],
+    "operationType": [
+      "OTHER"
+    ],
+    "queryPatterns": "n/a (Infrastructure setup only)",
+    "transactionHandling": "Managed by JBoss Application Server (JTA) via the configured datasource",
+    "protocol": "Oracle Database (via ojdbc6-11.2.0.4.jar)",
+    "connectionInfo": "Configured via external file: docker/datasource.xml",
+    "codeExample": "RUN echo \"Downloading Oracle JDBC driver...\" && \\\n    mkdir -p /opt/jboss/server/default/lib && \\\n    curl -L ... -o /opt/jboss/server/default/lib/ojdbc6.jar ...\n\n# Configure datasource\nCOPY --chown=jboss:jboss docker/datasource.xml /opt/jboss/server/default/deploy/legacy-bank-ds.xml"
+  },
+  {
+    "path": "docker/README-JBOSS-SETUP.md",
+    "mechanism": "JDBC",
+    "name": "Oracle JDBC Driver",
+    "description": "The document provides instructions for installing the Oracle JDBC driver (`ojdbc6.jar`) into the JBoss server's library path. It explains that the driver must be downloaded manually from Oracle due to licensing restrictions and placed in the specific `docker/` directory or mounted as a volume to enable database connectivity.",
+    "databaseName": "Oracle Database 12c",
+    "tablesAccessed": [],
+    "operationType": [
+      "OTHER"
+    ],
+    "queryPatterns": "n/a",
+    "transactionHandling": "n/a",
+    "protocol": "Oracle JDBC",
+    "connectionInfo": "n/a",
+    "codeExample": "volumes:\n  - ./ojdbc6.jar:/opt/jboss/server/default/lib/ojdbc6.jar"
+  },
+  {
+    "path": "com.legacybank.dao.AccountDAO",
+    "mechanism": "JDBC",
+    "name": "AccountDAO",
+    "description": "The file uses raw JDBC (Java Database Connectivity) to interact with the database. It manually manages Connections, PreparedStatements, and ResultSets. SQL queries are embedded directly as strings within the Java code.",
+    "databaseName": "unknown",
+    "tablesAccessed": [
+      "accounts",
+      "customers",
+      "branches",
+      "transactions",
+      "loans"
+    ],
+    "operationType": [
+      "READ"
+    ],
+    "queryPatterns": "The code uses a mix of simple SELECT statements and complex queries involving INNER JOINs, LEFT JOINs, and correlated subqueries for aggregation (COUNT, SUM with CASE statements).",
+    "transactionHandling": "Transactions are not explicitly managed within this file (no setAutoCommit(false) or commit() calls). It relies on the default auto-commit behavior of the connection provided by the DataSource.",
+    "protocol": "JDBC",
+    "connectionInfo": "DataSource injected via setter",
+    "codeExample": "conn = dataSource.getConnection();\nString sql = \"SELECT ... FROM accounts a WHERE a.account_id = ?\";\nstmt = conn.prepareStatement(sql);\nstmt.setLong(1, accountId);\nrs = stmt.executeQuery();"
+  },
+  {
+    "path": "com.legacybank.dao.CustomerDAO",
+    "mechanism": "JDBC",
+    "name": "CustomerDAO",
+    "description": "The file uses standard Java JDBC (Java Database Connectivity) to interact with the database. It manually manages `Connection`, `PreparedStatement`, and `ResultSet` objects. It uses a `DataSource` for connection pooling.",
+    "databaseName": "unknown",
+    "tablesAccessed": [
+      "customers",
+      "dual"
+    ],
+    "operationType": [
+      "READ_WRITE"
+    ],
+    "queryPatterns": "The code uses parameterized SQL queries for CRUD operations. It includes SELECT with WHERE clauses (exact match and LIKE), INSERT with sequence generation, and UPDATE statements. It uses Oracle-specific syntax (DUAL, SYSDATE).",
+    "transactionHandling": "Transactions are handled via the default auto-commit mode of the JDBC connection. There are no explicit `commit()` or `rollback()` calls, nor are there transaction annotations.",
+    "protocol": "Oracle Database (inferred from usage of 'seq_customer_id.NEXTVAL FROM DUAL' and 'SYSDATE')",
+    "connectionInfo": "DataSource injected via setter (details hidden in configuration)",
+    "codeExample": "conn = dataSource.getConnection();\nString sql = \"SELECT ... FROM customers WHERE customer_id = ?\";\nstmt = conn.prepareStatement(sql);\nstmt.setLong(1, customerId);\nrs = stmt.executeQuery();"
+  },
+  {
+    "path": "com.legacybank.dao.TransactionDAO",
+    "mechanism": "JDBC",
+    "name": "TransactionDAO",
+    "description": "The file uses raw JDBC (Java Database Connectivity) to interact with the database. It manually manages Connections, PreparedStatements, and ResultSets. It constructs SQL strings directly within the Java code and handles the mapping of database rows to Java objects manually.",
+    "databaseName": "unknown",
+    "tablesAccessed": [
+      "transactions",
+      "accounts",
+      "branches"
+    ],
+    "operationType": [
+      "READ"
+    ],
+    "queryPatterns": "The code uses a mix of simple SELECTs, complex queries with INNER/LEFT JOINS, and aggregation queries using COUNT, SUM (with CASE logic), MIN, and MAX.",
+    "transactionHandling": "Transaction handling is manual/implicit. The code does not explicitly begin or commit transactions, relying on the default auto-commit behavior of the connection provided by the DataSource for read operations.",
+    "protocol": "SQL (Generic JDBC)",
+    "connectionInfo": "DataSource (injected)",
+    "codeExample": "conn = dataSource.getConnection();\nString sql = \"SELECT ... FROM transactions WHERE transaction_id = ?\";\nstmt = conn.prepareStatement(sql);\nstmt.setLong(1, transactionId);\nrs = stmt.executeQuery();"
+  },
+  {
+    "path": "com.legacybank.servlet.CustomerServlet",
+    "mechanism": "JDBC",
+    "name": "CustomerDAO",
+    "description": "The servlet uses JNDI to look up a DataSource ('java:LegacyBankDS') and injects it into a CustomerDAO helper class. The servlet itself does not execute SQL but delegates all persistence operations (create, read, update) to the DAO which holds the DataSource connection.",
+    "databaseName": "LegacyBankDS",
+    "tablesAccessed": [
+      "unknown"
+    ],
+    "operationType": [
+      "READ_WRITE"
+    ],
+    "queryPatterns": "Delegates CRUD operations to DAO",
+    "transactionHandling": "unknown",
+    "protocol": "unknown",
+    "connectionInfo": "java:LegacyBankDS",
+    "codeExample": "InitialContext ctx = new InitialContext();\nDataSource ds = (DataSource) ctx.lookup(\"java:LegacyBankDS\");\ncustomerDAO = new CustomerDAO();\ncustomerDAO.setDataSource(ds);"
+  },
+  {
+    "path": "docker/docker-compose.yml",
+    "mechanism": "OTHER",
+    "name": "Oracle Database Service",
+    "description": "The file configures an Oracle Database container instance and defines the connection parameters (Host, Port, SID, PDB, User, Password) passed to the application server. It also executes a direct SQL command via the container health check mechanism.",
+    "databaseName": "XEPDB1",
+    "tablesAccessed": [
+      "DUAL"
+    ],
+    "operationType": [
+      "READ",
+      "ADMIN"
+    ],
+    "queryPatterns": "Infrastructure health check query using SQL*Plus.",
+    "transactionHandling": "none",
+    "protocol": "Oracle Database 12c/18c/21c XE",
+    "connectionInfo": "jdbc:oracle:thin:@oracle:1521/XEPDB1 (constructed from env vars: DB_HOST=oracle, DB_PORT=1521, DB_PDB=XEPDB1)",
+    "codeExample": "test: [\"CMD-SHELL\", \"sqlplus -s sys/REDACTED@localhost:1521/XEPDB1 as sysdba <<< 'SELECT 1 FROM DUAL;' || exit 1\"]"
+  },
+  {
+    "path": "docker/Dockerfile.oracle",
+    "mechanism": "OTHER",
+    "name": "Oracle Database Container Configuration",
+    "description": "This file does not connect to a database as a client; rather, it defines the database server environment itself. It integrates database initialization by copying schema, procedure, and data scripts into the Oracle container's startup directories. It configures the database instance parameters via environment variables.",
+    "databaseName": "XEPDB1",
+    "tablesAccessed": [
+      "unknown"
+    ],
+    "operationType": [
+      "DDL",
+      "ADMIN"
+    ],
+    "queryPatterns": "Database initialization scripts, schema creation, and stored procedure definitions are loaded via file copy operations.",
+    "transactionHandling": "Transaction handling is delegated to the SQL scripts being copied, not handled by the Dockerfile.",
+    "protocol": "Oracle Database 21c Express Edition",
+    "connectionInfo": "localhost:1521/XEPDB1 (Credentials: ORACLE_PWD=REDACTED)",
+    "codeExample": "ENV ORACLE_SID=XE\nENV ORACLE_PDB=XEPDB1\nENV ORACLE_PWD=Oracle123\nCOPY database/schema/ /opt/oracle/scripts/setup/schema/"
+  },
+  {
+    "path": "docker/README-ORACLE-SETUP.md",
+    "mechanism": "OTHER",
+    "name": "Oracle Database Configuration",
+    "description": "The file documents the infrastructure setup and connection parameters for Oracle Database (XE and Enterprise editions), defining connection strings, SIDs, and PDBs used by the application's Docker containers.",
+    "databaseName": "XEPDB1 (for XE) or LEGACYPDB (for Enterprise)",
+    "tablesAccessed": [],
+    "operationType": [
+      "ADMIN",
+      "DDL"
+    ],
+    "queryPatterns": "Database schema initialization, user creation, and privilege assignment via shell scripts",
+    "transactionHandling": "n/a",
+    "protocol": "Oracle 21c (XE) / Oracle 12.2.0.1 (Enterprise)",
+    "connectionInfo": "hostname:port/XEPDB1",
+    "codeExample": "environment:\n  - ORACLE_SID=ORCL\n  - ORACLE_PDB=LEGACYPDB"
+  },
+  {
+    "path": "database/simulate_banking_operations.sql",
+    "mechanism": "SQL",
+    "name": "Banking Simulation Script",
+    "description": "The file is a standalone SQL script containing Direct Manipulation Language (DML) and Data Query Language (DQL) statements. It interacts directly with an Oracle database to simulate banking operations. The script performs extensive read operations involving joins and aggregations, and simulates write operations within a transaction that is ultimately rolled back.",
+    "databaseName": "Oracle",
+    "tablesAccessed": [
+      "accounts",
+      "transactions",
+      "customers",
+      "branches"
+    ],
+    "operationType": [
+      "READ",
+      "WRITE"
+    ],
+    "queryPatterns": "The script uses standard SELECT statements with WHERE clauses, LEFT JOINs between accounts and transactions, and aggregation functions like COUNT and SUM.",
+    "transactionHandling": "The script uses implicit transaction starting with UPDATE statements and an explicit ROLLBACK command to undo changes.",
+    "protocol": "Oracle Database",
+    "connectionInfo": "not applicable for SQL files",
+    "codeExample": "SELECT account_id, balance FROM accounts WHERE account_id = 1;\nUPDATE accounts SET balance = balance + 500.00, last_activity_date = SYSDATE\nWHERE account_id = 1;\nROLLBACK;"
+  },
+  {
+    "path": "database/query_log.sql",
+    "mechanism": "SQL",
+    "name": "Legacy Banking Database",
+    "description": "The file represents direct SQL interaction with an Oracle database. It contains a mix of DQL (Data Query Language) for retrieving customer and account data, and DML (Data Manipulation Language) for processing transactions and updating balances. The presence of bind variables (e.g., :B1) suggests the original application used JDBC or a similar driver with prepared statements. The schema is identified as 'LEGACYBANK'.",
+    "databaseName": "LEGACYBANK",
+    "tablesAccessed": [
+      "accounts",
+      "transactions",
+      "customers",
+      "branches",
+      "AUDIT_LOGS",
+      "dual"
+    ],
+    "operationType": [
+      "READ",
+      "WRITE"
+    ],
+    "queryPatterns": "The code features standard CRUD operations, including complex joins between 3-4 tables, aggregations (COUNT, SUM), and specific date-based filtering. It also includes parameterized updates and inserts.",
+    "transactionHandling": "Implicit transaction logic is observed where updates to account balances are paired with inserts into transaction history, though explicit BEGIN/COMMIT statements are not present in this log snippet.",
+    "protocol": "Oracle Database",
+    "connectionInfo": "not applicable for SQL files",
+    "codeExample": "SELECT a.*, t.transaction_id, t.amount, t.transaction_type \nFROM accounts a \nJOIN transactions t ON a.account_id = t.account_id \nWHERE a.account_id = 2;"
+  },
+  {
+    "path": "database/data/README.md",
+    "mechanism": "SQL",
+    "name": "Oracle Database / SQL*Plus",
+    "description": "Database integration is achieved through direct execution of SQL scripts using the Oracle `sqlplus` command-line tool. The scripts perform bulk Data Manipulation Language (DML) operations, specifically deleting existing rows and inserting new sample data, as well as executing stored procedures to generate complex related data.",
+    "databaseName": "XEPDB1",
+    "tablesAccessed": [
+      "Branches",
+      "Employees",
+      "Customers",
+      "Accounts",
+      "Transactions",
+      "Loans",
+      "Cards",
+      "Card Transactions",
+      "Payments",
+      "Relationships",
+      "Reports"
+    ],
+    "operationType": [
+      "READ_WRITE",
+      "OTHER"
+    ],
+    "queryPatterns": "The scripts utilize destructive DELETE statements followed by bulk INSERTs and calls to PL/SQL stored procedures to populate data with referential integrity.",
+    "transactionHandling": "Transaction handling is implicit within the SQL script execution flow, likely relying on the script to commit changes after successful loading or auto-commit behavior of the client.",
+    "protocol": "Oracle SQL*Plus",
+    "connectionInfo": "legacybank/REDACTED@localhost:1521/XEPDB1",
+    "codeExample": "sqlplus legacybank/REDACTED@localhost:1521/XEPDB1 @database/data/reload_all_data.sql"
+  },
+  {
+    "path": "database/validation/cleanup_test_customer.sql",
+    "mechanism": "SQL",
+    "name": "Oracle PL/SQL Script",
+    "description": "The code interacts with the database via a raw PL/SQL anonymous block intended for execution in a client like SQL*Plus. It utilizes procedural SQL features including variable declaration, cursor loops, exception handling, and dynamic SQL execution. The integration performs deep administrative cleanup tasks involving complex read and write operations across the schema.",
+    "databaseName": "legacybank",
+    "tablesAccessed": [
+      "customers",
+      "loans",
+      "loan_payments",
+      "accounts",
+      "card_transactions",
+      "cards",
+      "payments",
+      "transactions",
+      "customer_relationships",
+      "branches",
+      "employees"
+    ],
+    "operationType": [
+      "READ",
+      "WRITE",
+      "DDL",
+      "ADMIN"
+    ],
+    "queryPatterns": "The script uses `SELECT ... INTO` for variable assignment, cursor `FOR` loops for iterating over child records to perform cascading `DELETE` operations, and `EXECUTE IMMEDIATE` for dynamic DDL statements.",
+    "transactionHandling": "The script manages its own transaction scope, performing multiple delete operations and concluding with an explicit `COMMIT` statement at the end of the block.",
+    "protocol": "Oracle PL/SQL",
+    "connectionInfo": "legacybank/password@localhost/XEPDB1",
+    "codeExample": "BEGIN\n    SELECT customer_id INTO v_test_customer_id \n    FROM customers \n    WHERE ssn = '999-99-9999';\n    DELETE FROM customers WHERE customer_id = v_test_customer_id;"
+  },
+  {
+    "path": "database/data/reload_all_data.sql",
+    "mechanism": "SQL",
+    "name": "Oracle PL/SQL Script",
+    "description": "The file is a standalone Oracle PL/SQL script that interacts directly with the database engine. It performs a combination of DDL (Data Definition Language) to manage sequences and constraints, and DML (Data Manipulation Language) to delete and insert data. It leverages Oracle-specific features such as `EXECUTE IMMEDIATE` for dynamic SQL, `RETURNING ... INTO` clauses for capturing generated IDs, and `DBMS_OUTPUT` for logging progress. The script also integrates with existing database packages (`account_management`, `transaction_processing`, `loan_processing`) to insert data through the application's business logic layer rather than raw inserts for complex entities.",
+    "databaseName": "Banking Schema (Oracle)",
+    "tablesAccessed": [
+      "card_transactions",
+      "cards",
+      "loan_payments",
+      "loans",
+      "payments",
+      "transactions",
+      "accounts",
+      "customer_relationships",
+      "reports",
+      "audit_logs",
+      "employees",
+      "customers",
+      "branches",
+      "user_constraints"
+    ],
+    "operationType": [
+      "READ",
+      "WRITE",
+      "DDL",
+      "ADMIN"
+    ],
+    "queryPatterns": "The script uses bulk DELETE statements, INSERT statements with subqueries, and anonymous PL/SQL blocks. It frequently uses `RETURNING INTO` to capture primary keys for maintaining foreign key relationships in subsequent inserts. It also employs dynamic SQL for DDL operations inside PL/SQL blocks.",
+    "transactionHandling": "The script uses explicit transaction management with `COMMIT` statements placed after logical groups of operations (e.g., after deleting data, after resetting sequences, after inserting specific entities).",
+    "protocol": "Oracle PL/SQL",
+    "codeExample": "INSERT INTO branches (branch_id, branch_code, branch_name, address_line1...)\nVALUES (seq_branch_id.NEXTVAL, 'NYC001', 'Manhattan Main Branch'...)\nRETURNING branch_id INTO v_branch_nyc;\n\nCOMMIT;"
+  },
+  {
+    "path": "database/validation/test_stored_procedures.sql",
+    "mechanism": "SQL",
+    "name": "Oracle PL/SQL Test Harness",
+    "description": "The file is a PL/SQL script that acts as a test harness for the database. It interacts with the database by executing anonymous blocks that call existing stored procedures within packages (e.g., 'account_management', 'transaction_processing'). It performs direct DML operations (INSERT, SELECT, DELETE) to stage test data and clean it up. It also performs administrative tasks by disabling and enabling triggers via EXECUTE IMMEDIATE statements.",
+    "databaseName": "legacybank",
+    "tablesAccessed": [
+      "customers",
+      "branches",
+      "accounts",
+      "employees",
+      "transactions",
+      "loans",
+      "loan_payments",
+      "card_transactions",
+      "cards",
+      "payments",
+      "customer_relationships"
+    ],
+    "operationType": [
+      "READ",
+      "WRITE",
+      "ADMIN"
+    ],
+    "queryPatterns": "The script uses anonymous PL/SQL blocks containing INSERT statements with RETURNING clauses, SELECT INTO statements for data retrieval, and complex DELETE operations involving cursors and loops. It heavily relies on calling stored procedures defined in external packages.",
+    "transactionHandling": "The script uses explicit transaction control with COMMIT statements after data setup and cleanup operations.",
+    "protocol": "Oracle PL/SQL",
+    "connectionInfo": "legacybank/password@localhost/XEPDB1",
+    "codeExample": "account_management.create_account(\n    p_customer_id => v_customer_id,\n    p_branch_id => v_branch_id,\n    p_account_type => 'CHECKING',\n    p_initial_deposit => 1000.00,\n    p_account_id => :v_account_id,"
+  },
+  {
+    "path": "database/validation/README.md",
+    "mechanism": "SQL",
+    "name": "Oracle SQL*Plus Client",
+    "description": "Database integration is achieved through the execution of Shell scripts that invoke the Oracle SQL*Plus command-line tool. These scripts pass connection strings and SQL files to the database engine to perform schema validation, data counting, and stored procedure execution tests.",
+    "databaseName": "XEPDB1",
+    "tablesAccessed": [
+      "customers",
+      "accounts",
+      "transactions",
+      "loans",
+      "user_procedures",
+      "user_errors"
+    ],
+    "operationType": [
+      "READ",
+      "WRITE",
+      "OTHER"
+    ],
+    "queryPatterns": "The scripts utilize SQL queries to check the data dictionary for object existence, perform count aggregations on data tables, and execute PL/SQL stored procedures for functional testing.",
+    "transactionHandling": "Transaction handling is managed by the SQL*Plus session or the stored procedures themselves; the documentation implies tests run sequentially, but specific commit/rollback strategies are not detailed in the snippets.",
+    "protocol": "Oracle Database (via SQL*Plus)",
+    "connectionInfo": "legacybank/REDACTED@localhost/XEPDB1",
+    "codeExample": "sqlplus legacybank/REDACTED@localhost/XEPDB1 @test_stored_procedures.sql"
+  },
+  {
+    "path": "database/procedures/account_management.pkg",
+    "mechanism": "STORED-PROCEDURE",
+    "name": "account_management",
+    "description": "The file is a PL/SQL package (Specification and Body) that runs directly inside the Oracle database, executing SQL statements against local tables to manage data.",
+    "databaseName": "Oracle 12c",
+    "tablesAccessed": [
+      "customers",
+      "branches",
+      "accounts",
+      "transactions",
+      "loans",
+      "seq_account_id",
+      "seq_transaction_id"
+    ],
+    "operationType": [
+      "READ_WRITE"
+    ],
+    "queryPatterns": "The code contains standard CRUD operations, including SELECTs with JOINs, INSERTs using sequences, and UPDATEs, wrapped in procedural logic.",
+    "transactionHandling": "Transactions are managed manually using explicit COMMIT and ROLLBACK statements within the procedures.",
+    "protocol": "Oracle PL/SQL",
+    "connectionInfo": "n/a",
+    "codeExample": "INSERT INTO accounts (\n    account_id, customer_id, branch_id, account_number,\n    account_type, balance, interest_rate, opened_date\n) VALUES (\n    seq_account_id.CURRVAL, p_customer_id, p_branch_id, v_account_num,\n    p_account_type, p_initial_deposit, \n    NVL(p_interest_rate, 0.0000), SYSDATE\n);"
+  },
+  {
+    "path": "database/procedures/interest_calculation.pkg",
+    "mechanism": "STORED-PROCEDURE",
+    "name": "interest_calculation",
+    "description": "The code is a native Oracle PL/SQL package that executes directly within the database engine. It performs direct SQL operations including selecting account details, inserting transaction records, and logging audits. It utilizes cursors for row-by-row processing and manages transaction consistency explicitly.",
+    "databaseName": "Oracle",
+    "tablesAccessed": [
+      "accounts",
+      "transactions",
+      "audit_logs"
+    ],
+    "operationType": [
+      "READ",
+      "WRITE"
+    ],
+    "queryPatterns": "PL/SQL cursors, loops, aggregate subqueries, and transactional DML.",
+    "transactionHandling": "Manual transaction management with batch commits every 100 records and rollback on critical errors.",
+    "protocol": "Oracle PL/SQL (Oracle 12c compatible)",
+    "connectionInfo": "n/a",
+    "codeExample": "SELECT account_type, balance, interest_rate... INTO ... FROM accounts WHERE account_id = p_account_id; INSERT INTO transactions (...) VALUES (...);"
+  },
+  {
+    "path": "database/procedures/loan_processing.pkg",
+    "mechanism": "STORED-PROCEDURE",
+    "name": "loan_processing",
+    "description": "The code is a native Oracle PL/SQL package that executes directly within the database engine. It performs direct Data Manipulation Language (DML) and Data Query Language (DQL) operations on the underlying tables without an intermediate ORM or driver layer.",
+    "databaseName": "Oracle Database",
+    "tablesAccessed": [
+      "customers",
+      "branches",
+      "loans",
+      "accounts",
+      "loan_payments"
+    ],
+    "operationType": [
+      "READ",
+      "WRITE",
+      "READ_WRITE"
+    ],
+    "queryPatterns": "The package uses standard SQL for CRUD operations, including `SELECT INTO` for fetching single row data, `INSERT` for creating records, and `UPDATE` for modifying status. It includes aggregation logic (counts) and joins (in `get_loan_details`).",
+    "transactionHandling": "Transactions are managed explicitly within the procedures using `COMMIT` on success and `ROLLBACK` within `EXCEPTION` handlers.",
+    "protocol": "Oracle PL/SQL (12c compatible)",
+    "connectionInfo": "n/a",
+    "codeExample": "INSERT INTO loans (\n    loan_id, customer_id, branch_id, loan_number, ...\n) VALUES (\n    seq_loan_id.CURRVAL, p_customer_id, p_branch_id, v_loan_number, ...\n);\n\nCOMMIT;"
+  },
+  {
+    "path": "database/procedures/transaction_processing.pkg",
+    "mechanism": "STORED-PROCEDURE",
+    "name": "transaction_processing",
+    "description": "This file represents a server-side Oracle PL/SQL package that directly interacts with the database engine. It executes Data Manipulation Language (DML) operations to insert transaction records and update balances (implied via triggers or subsequent logic), and Data Query Language (DQL) to validate account states and aggregate history.",
+    "databaseName": "unknown",
+    "tablesAccessed": [
+      "accounts",
+      "transactions",
+      "seq_transaction_id"
+    ],
+    "operationType": [
+      "READ_WRITE"
+    ],
+    "queryPatterns": "The code uses standard SQL SELECT statements for validation and reporting, INSERT statements for recording transactions, and utilizes Oracle sequences for ID generation. It also includes aggregation queries (SUM, COUNT) for history reporting.",
+    "transactionHandling": "Transactions are managed manually within the PL/SQL procedures using explicit COMMIT statements upon success and ROLLBACK statements within EXCEPTION blocks to handle errors.",
+    "protocol": "Oracle PL/SQL (12c compatible)",
+    "connectionInfo": "n/a",
+    "codeExample": "SELECT account_status, balance INTO v_account_status, v_current_balance\nFROM accounts\nWHERE account_id = p_account_id;\n\n-- ... validation logic ...\n\nINSERT INTO transactions (\n    transaction_id, account_id, transaction_type, ...\n) VALUES (\n    seq_transaction_id.NEXTVAL, p_account_id, 'DEPOSIT', ...\n);\n\nCOMMIT;"
+  },
+  {
+    "path": "com.legacybank.ejb.AccountServiceBean",
+    "mechanism": "STORED-PROCEDURE",
+    "name": "LegacyBankDS",
+    "description": "The application interacts with the database exclusively through JDBC `CallableStatement` objects invoking stored procedures defined in an `account_management` package. It uses a DataSource resource mapped to `java:LegacyBankDS`.",
+    "databaseName": "unknown",
+    "tablesAccessed": [
+      "unknown"
+    ],
+    "operationType": [
+      "READ_WRITE"
+    ],
+    "queryPatterns": "Heavy reliance on Stored Procedures for all CRUD and business logic operations.",
+    "transactionHandling": "EJB Container Managed Transactions (CMT) implicitly, though JDBC connections are managed manually.",
+    "protocol": "JDBC",
+    "connectionInfo": "java:LegacyBankDS",
+    "codeExample": "String sql = \"{call account_management.create_account(?, ?, ?, ?, ?, ?, ?, ?, ?)}\";\nstmt = conn.prepareCall(sql);\nstmt.setLong(1, customerId);"
+  },
+  {
+    "path": "com.legacybank.ejb.LoanServiceBean",
+    "mechanism": "STORED-PROCEDURE",
+    "name": "LegacyBankDS",
+    "description": "The class interacts with an Oracle-style database via a DataSource. It primarily uses Stored Procedures (via CallableStatement) for business logic (creation, approval) and complex data retrieval. It also uses direct SQL (via PreparedStatement) for simple data fetching.",
+    "databaseName": "unknown",
+    "tablesAccessed": [
+      "loans",
+      "loan_payments"
+    ],
+    "operationType": [
+      "READ_WRITE"
+    ],
+    "queryPatterns": "Mix of Stored Procedure calls (loan_processing package) and inline SQL SELECT statements.",
+    "transactionHandling": "Container Managed (EJB Default)",
+    "protocol": "JDBC",
+    "connectionInfo": "java:LegacyBankDS",
+    "codeExample": "String sql = \"{call loan_processing.create_loan_application(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}\";\nstmt = conn.prepareCall(sql);\nstmt.setLong(1, customerId);"
+  },
+  {
+    "path": "com.legacybank.ejb.TransactionServiceBean",
+    "mechanism": "STORED-PROCEDURE",
+    "name": "LegacyBankDS",
+    "description": "The application integrates with the database primarily through Stored Procedures invoked via JDBC CallableStatements. It uses a DataSource resource mapped to 'java:LegacyBankDS'.",
+    "databaseName": "transaction_processing",
+    "tablesAccessed": [
+      "unknown (encapsulated in stored procedures)"
+    ],
+    "operationType": [
+      "READ_WRITE"
+    ],
+    "queryPatterns": "The code exclusively uses CallableStatements to execute stored procedures ({call ...}) with input and output parameters.",
+    "transactionHandling": "Transactions are likely managed by the EJB container (CMT) due to the @Stateless annotation, although the code manages JDBC connections explicitly.",
+    "protocol": "JDBC",
+    "connectionInfo": "java:LegacyBankDS",
+    "codeExample": "String sql = \"{call transaction_processing.process_deposit(?, ?, ?, ?, ?, ?, ?, ?, ?)}\";\nstmt = conn.prepareCall(sql);\nstmt.setLong(1, accountId);\n..."
+  },
+  {
+    "path": "database/schema/04_triggers.sql",
+    "mechanism": "TRIGGER",
+    "name": "Oracle PL/SQL Triggers",
+    "description": "The code integrates directly into the database using Oracle PL/SQL triggers to execute business logic automatically in response to DML events. It performs cross-table updates (e.g., updating accounts from transactions) and enforces data integrity rules.",
+    "databaseName": "Oracle",
+    "tablesAccessed": [
+      "customers",
+      "audit_logs",
+      "transactions",
+      "accounts",
+      "loans",
+      "loan_payments",
+      "cards"
+    ],
+    "operationType": [
+      "READ",
+      "WRITE"
+    ],
+    "queryPatterns": "Triggers using :NEW/:OLD pseudo-records, SELECT INTO for validation, and INSERT/UPDATE for data maintenance.",
+    "transactionHandling": "Implicitly part of the triggering DML transaction; uses RAISE_APPLICATION_ERROR to rollback.",
+    "protocol": "Oracle PL/SQL",
+    "codeExample": "CREATE OR REPLACE TRIGGER trg_customers_update\nBEFORE UPDATE ON customers\nFOR EACH ROW\nBEGIN\n    :NEW.last_updated := SYSDATE;\nEND;"
+  }
+]

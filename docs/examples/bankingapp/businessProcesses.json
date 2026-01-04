@@ -1,0 +1,96 @@
+[
+  {
+    "name": "Customer Onboarding",
+    "description": "The process of registering a new customer into the banking system, verifying their identity, and establishing their profile. This involves collecting personal details, validating KYC status, and persisting the customer record. It is the prerequisite for opening accounts or applying for loans.",
+    "keyBusinessActivities": [
+      {
+        "activity": "Capture Customer Data",
+        "description": "Collection of personal information including name, SSN, DOB, and contact details via the Customer Form."
+      },
+      {
+        "activity": "KYC Validation",
+        "description": "Verification of the customer's Know Your Customer status to ensure compliance before allowing banking services."
+      },
+      {
+        "activity": "Profile Creation",
+        "description": "Persisting the customer entity into the database and generating a unique Customer ID."
+      }
+    ]
+  },
+  {
+    "name": "Account Origination",
+    "description": "The lifecycle of opening a new financial account for an existing customer. This process links a customer to a specific branch, defines the account type (Checking, Savings, etc.), and handles the initial funding. It relies on stored procedures to ensure data integrity during creation.",
+    "keyBusinessActivities": [
+      {
+        "activity": "Account Application",
+        "description": "Selection of account type, branch assignment, and interest rate configuration."
+      },
+      {
+        "activity": "Initial Deposit Processing",
+        "description": "Handling the initial monetary deposit required to activate the account."
+      },
+      {
+        "activity": "Account Activation",
+        "description": "Generating the account number and setting the account status to ACTIVE."
+      }
+    ]
+  },
+  {
+    "name": "Loan Lifecycle Management",
+    "description": "Manages the end-to-end process of lending, from application to approval and repayment. This process involves assessing customer eligibility, calculating terms and interest, and managing monthly payments. It utilizes complex logic to track principal and interest portions of payments.",
+    "keyBusinessActivities": [
+      {
+        "activity": "Loan Application",
+        "description": "Submission of loan request details including type, principal amount, and desired term."
+      },
+      {
+        "activity": "Credit Approval",
+        "description": "Review of the application by an authorized employee and updating the status to APPROVED."
+      },
+      {
+        "activity": "Disbursement",
+        "description": "Crediting the loan principal to the customer's linked account upon activation."
+      },
+      {
+        "activity": "Repayment Processing",
+        "description": "Processing periodic payments, splitting amounts between interest and principal reduction."
+      }
+    ]
+  },
+  {
+    "name": "Transaction Processing",
+    "description": "The core operational process of moving funds within the bank. This includes deposits, withdrawals, and transfers between accounts. It ensures ACID properties are maintained and balances are updated atomically.",
+    "keyBusinessActivities": [
+      {
+        "activity": "Transaction Validation",
+        "description": "Checking account status and available balance before authorizing a transaction."
+      },
+      {
+        "activity": "Fund Movement",
+        "description": "Executing the debit and credit operations against the respective account balances."
+      },
+      {
+        "activity": "Audit Logging",
+        "description": "Recording the transaction details and updating the account's last activity timestamp."
+      }
+    ]
+  },
+  {
+    "name": "End of Day Processing",
+    "description": "A batch-oriented process that runs periodically to perform maintenance tasks. This includes calculating daily interest for eligible accounts and generating system-wide reports. It is triggered externally via shell scripts.",
+    "keyBusinessActivities": [
+      {
+        "activity": "Interest Calculation",
+        "description": "Computing compound interest for Savings and Money Market accounts based on daily balances."
+      },
+      {
+        "activity": "Balance Reconciliation",
+        "description": "Verifying that account balances match the sum of their transaction history."
+      },
+      {
+        "activity": "Statement Generation",
+        "description": "Creating monthly statement files for customers detailing their transaction history."
+      }
+    ]
+  }
+]

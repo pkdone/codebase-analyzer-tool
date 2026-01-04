@@ -1,0 +1,102 @@
+{
+  "frameworks": [],
+  "totalJspFiles": 20,
+  "totalScriptlets": 299,
+  "totalExpressions": 280,
+  "totalDeclarations": 0,
+  "averageScriptletsPerFile": 14.95,
+  "filesWithHighScriptletCount": 18,
+  "customTagLibraries": [],
+  "topScriptletFiles": [
+    {
+      "filePath": "backend/web/jsp/transaction_form.jsp",
+      "scriptletCount": 28,
+      "expressionCount": 50,
+      "declarationCount": 0,
+      "totalScriptletBlocks": 78,
+      "debtLevel": "Very High",
+      "debtLevelClass": "badge-danger"
+    },
+    {
+      "filePath": "backend/web/jsp/branch_portal.jsp",
+      "scriptletCount": 50,
+      "expressionCount": 27,
+      "declarationCount": 0,
+      "totalScriptletBlocks": 77,
+      "debtLevel": "Very High",
+      "debtLevelClass": "badge-danger"
+    },
+    {
+      "filePath": "backend/web/jsp/customer_portal.jsp",
+      "scriptletCount": 49,
+      "expressionCount": 21,
+      "declarationCount": 0,
+      "totalScriptletBlocks": 70,
+      "debtLevel": "Very High",
+      "debtLevelClass": "badge-danger"
+    },
+    {
+      "filePath": "backend/web/jsp/loan_details.jsp",
+      "scriptletCount": 29,
+      "expressionCount": 10,
+      "declarationCount": 0,
+      "totalScriptletBlocks": 39,
+      "debtLevel": "Very High",
+      "debtLevelClass": "badge-danger"
+    },
+    {
+      "filePath": "backend/web/jsp/customer_form.jsp",
+      "scriptletCount": 3,
+      "expressionCount": 26,
+      "declarationCount": 0,
+      "totalScriptletBlocks": 29,
+      "debtLevel": "Very High",
+      "debtLevelClass": "badge-danger"
+    },
+    {
+      "filePath": "backend/web/jsp/audit_log_list.jsp",
+      "scriptletCount": 18,
+      "expressionCount": 10,
+      "declarationCount": 0,
+      "totalScriptletBlocks": 28,
+      "debtLevel": "Very High",
+      "debtLevelClass": "badge-danger"
+    },
+    {
+      "filePath": "backend/web/jsp/employee_portal.jsp",
+      "scriptletCount": 12,
+      "expressionCount": 15,
+      "declarationCount": 0,
+      "totalScriptletBlocks": 27,
+      "debtLevel": "Very High",
+      "debtLevelClass": "badge-danger"
+    },
+    {
+      "filePath": "backend/web/jsp/transaction_history.jsp",
+      "scriptletCount": 9,
+      "expressionCount": 17,
+      "declarationCount": 0,
+      "totalScriptletBlocks": 26,
+      "debtLevel": "Very High",
+      "debtLevelClass": "badge-danger"
+    },
+    {
+      "filePath": "backend/web/jsp/account_list.jsp",
+      "scriptletCount": 11,
+      "expressionCount": 14,
+      "declarationCount": 0,
+      "totalScriptletBlocks": 25,
+      "debtLevel": "Very High",
+      "debtLevelClass": "badge-danger"
+    },
+    {
+      "filePath": "backend/web/jsp/loan_form.jsp",
+      "scriptletCount": 9,
+      "expressionCount": 15,
+      "declarationCount": 0,
+      "totalScriptletBlocks": 24,
+      "debtLevel": "Very High",
+      "debtLevelClass": "badge-danger"
+    }
+  ]
+}

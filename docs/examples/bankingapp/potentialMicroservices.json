@@ -1,0 +1,181 @@
+[
+  {
+    "name": "Account Service",
+    "description": "A core service responsible for managing the lifecycle of bank accounts. It will handle account creation, balance inquiries, and status updates. It will abstract the legacy 'account_management' stored procedures into Java-based business logic.",
+    "entities": [
+      {
+        "name": "Account",
+        "description": "Represents a financial account.",
+        "attributes": [
+          "accountId",
+          "accountNumber",
+          "balance",
+          "type",
+          "status"
+        ]
+      }
+    ],
+    "endpoints": [
+      {
+        "path": "/api/accounts",
+        "method": "POST",
+        "description": "Create a new account for a customer."
+      },
+      {
+        "path": "/api/accounts/{id}",
+        "method": "GET",
+        "description": "Retrieve details and balance for a specific account."
+      },
+      {
+        "path": "/api/accounts/{id}/status",
+        "method": "PATCH",
+        "description": "Update the status of an account (e.g., freeze, close)."
+      }
+    ],
+    "operations": [
+      {
+        "operation": "Create Account",
+        "method": "POST",
+        "description": "Validates customer and branch, generates account number, and initializes balance."
+      },
+      {
+        "operation": "Get Balance",
+        "method": "GET",
+        "description": "Returns the current available balance."
+      }
+    ]
+  },
+  {
+    "name": "Transaction Service",
+    "description": "Handles all monetary movements including deposits, withdrawals, and transfers. It ensures transactional integrity and maintains the transaction history log. It replaces the 'transaction_processing' package.",
+    "entities": [
+      {
+        "name": "Transaction",
+        "description": "A record of a financial event.",
+        "attributes": [
+          "transactionId",
+          "amount",
+          "type",
+          "timestamp",
+          "description"
+        ]
+      }
+    ],
+    "endpoints": [
+      {
+        "path": "/api/transactions",
+        "method": "POST",
+        "description": "Execute a new transaction (deposit, withdrawal, transfer)."
+      },
+      {
+        "path": "/api/accounts/{accountId}/transactions",
+        "method": "GET",
+        "description": "Get transaction history for a specific account."
+      }
+    ],
+    "operations": [
+      {
+        "operation": "Post Transaction",
+        "method": "POST",
+        "description": "Validates funds and records the transaction."
+      },
+      {
+        "operation": "Transfer Funds",
+        "method": "POST",
+        "description": "Atomically debits one account and credits another."
+      }
+    ]
+  },
+  {
+    "name": "Customer Service",
+    "description": "Manages customer profiles, KYC data, and contact information. It serves as the source of truth for customer identity.",
+    "entities": [
+      {
+        "name": "Customer",
+        "description": "The banking client.",
+        "attributes": [
+          "customerId",
+          "firstName",
+          "lastName",
+          "ssn",
+          "kycStatus"
+        ]
+      }
+    ],
+    "endpoints": [
+      {
+        "path": "/api/customers",
+        "method": "POST",
+        "description": "Register a new customer."
+      },
+      {
+        "path": "/api/customers/{id}",
+        "method": "GET",
+        "description": "Retrieve customer profile details."
+      },
+      {
+        "path": "/api/customers/{id}",
+        "method": "PUT",
+        "description": "Update customer contact info or KYC status."
+      }
+    ],
+    "operations": [
+      {
+        "operation": "Onboard Customer",
+        "method": "POST",
+        "description": "Creates a new customer record."
+      },
+      {
+        "operation": "Update Profile",
+        "method": "PUT",
+        "description": "Modifies customer details."
+      }
+    ]
+  },
+  {
+    "name": "Loan Service",
+    "description": "Manages loan applications, approvals, and amortization schedules. It replaces the 'loan_processing' stored procedures.",
+    "entities": [
+      {
+        "name": "Loan",
+        "description": "A lending agreement.",
+        "attributes": [
+          "loanId",
+          "principal",
+          "interestRate",
+          "term",
+          "status"
+        ]
+      }
+    ],
+    "endpoints": [
+      {
+        "path": "/api/loans",
+        "method": "POST",
+        "description": "Submit a new loan application."
+      },
+      {
+        "path": "/api/loans/{id}/approval",
+        "method": "POST",
+        "description": "Approve a pending loan application."
+      },
+      {
+        "path": "/api/loans/{id}/payment",
+        "method": "POST",
+        "description": "Process a loan repayment."
+      }
+    ],
+    "operations": [
+      {
+        "operation": "Apply for Loan",
+        "method": "POST",
+        "description": "Creates a loan application."
+      },
+      {
+        "operation": "Calculate Amortization",
+        "method": "GET",
+        "description": "Calculates monthly payments and interest."
+      }
+    ]
+  }
+]

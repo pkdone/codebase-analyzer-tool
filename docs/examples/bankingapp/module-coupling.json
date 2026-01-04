@@ -1,0 +1,22 @@
+{
+  "couplings": [
+    {
+      "fromModule": "backend/src",
+      "toModule": "com.legacybank",
+      "referenceCount": 32,
+      "couplingLevel": "Very High",
+      "couplingLevelClass": "badge-danger"
+    },
+    {
+      "fromModule": "backend/web",
+      "toModule": "com.legacybank",
+      "referenceCount": 23,
+      "couplingLevel": "Very High",
+      "couplingLevelClass": "badge-danger"
+    }
+  ],
+  "totalModules": 3,
+  "totalCouplings": 2,
+  "highestCouplingCount": 32,
+  "moduleDepth": 2
+}

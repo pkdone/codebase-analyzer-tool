@@ -1,0 +1,68 @@
+[
+  {
+    "_id": "java",
+    "lines": 3563,
+    "files": 24,
+    "fileType": "java"
+  },
+  {
+    "_id": "jsp",
+    "lines": 6527,
+    "files": 20,
+    "fileType": "jsp"
+  },
+  {
+    "_id": "sh",
+    "lines": 2600,
+    "files": 17,
+    "fileType": "sh"
+  },
+  {
+    "_id": "sql",
+    "lines": 2509,
+    "files": 11,
+    "fileType": "sql"
+  },
+  {
+    "_id": "xml",
+    "lines": 328,
+    "files": 7,
+    "fileType": "xml"
+  },
+  {
+    "_id": "md",
+    "lines": 999,
+    "files": 6,
+    "fileType": "md"
+  },
+  {
+    "_id": "pkg",
+    "lines": 1403,
+    "files": 4,
+    "fileType": "pkg"
+  },
+  {
+    "_id": "jboss",
+    "lines": 147,
+    "files": 1,
+    "fileType": "jboss"
+  },
+  {
+    "_id": "wsdl",
+    "lines": 142,
+    "files": 1,
+    "fileType": "wsdl"
+  },
+  {
+    "_id": "yml",
+    "lines": 56,
+    "files": 1,
+    "fileType": "yml"
+  },
+  {
+    "_id": "oracle",
+    "lines": 47,
+    "files": 1,
+    "fileType": "oracle"
+  }
+]

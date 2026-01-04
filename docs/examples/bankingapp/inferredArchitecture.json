@@ -1,0 +1,140 @@
+[
+  {
+    "internalComponents": [
+      {
+        "name": "Account Manager",
+        "description": "Responsible for the lifecycle of bank accounts. It handles creation, status updates (closing/freezing), and retrieving account details. It interacts heavily with the database to maintain balance consistency."
+      },
+      {
+        "name": "Transaction Processor",
+        "description": "Manages the execution of financial transactions such as deposits, withdrawals, and transfers. It ensures that funds are available before processing and maintains an audit trail of all movements."
+      },
+      {
+        "name": "Loan Manager",
+        "description": "Handles the lending business capability. It processes loan applications, manages the approval workflow, calculates monthly payments, and tracks the remaining balance and interest."
+      },
+      {
+        "name": "Customer Manager",
+        "description": "Manages customer identity and profiles. It handles onboarding, KYC verification status, and updates to personal contact information."
+      },
+      {
+        "name": "Branch Manager",
+        "description": "Manages the physical branch locations and the employees assigned to them. It provides data regarding where accounts are held and where staff are located."
+      },
+      {
+        "name": "Interest Calculator",
+        "description": "A batch-oriented component responsible for calculating compound interest for savings and money market accounts. It runs periodically to credit interest to eligible accounts."
+      },
+      {
+        "name": "Statement Generator",
+        "description": "A batch component that generates monthly account statements for customers. It aggregates transaction history for a specific period into a report format."
+      },
+      {
+        "name": "Card Manager",
+        "description": "Manages the lifecycle of debit and credit cards linked to accounts. It handles card issuance, status tracking, and transaction authorization."
+      },
+      {
+        "name": "Bill Pay Service",
+        "description": "Manages scheduled and recurring payments to external payees. It tracks payment schedules and executes transfers from customer accounts."
+      },
+      {
+        "name": "Audit Logger",
+        "description": "Captures and records changes to critical data entities. It ensures compliance and security by logging who changed what and when."
+      }
+    ],
+    "externalDependencies": [
+      {
+        "name": "Oracle Database",
+        "type": "Database",
+        "description": "The primary persistence store and execution engine for business logic (via PL/SQL). All internal components depend on this for state and processing."
+      },
+      {
+        "name": "Local File System",
+        "type": "File System",
+        "description": "Used by the Statement Generator to output generated monthly statement files."
+      }
+    ],
+    "dependencies": [
+      {
+        "from": "Account Manager",
+        "to": "Oracle Database",
+        "description": "Persists account data and executes account management stored procedures."
+      },
+      {
+        "from": "Transaction Processor",
+        "to": "Oracle Database",
+        "description": "Records transactions and updates balances via stored procedures."
+      },
+      {
+        "from": "Loan Manager",
+        "to": "Oracle Database",
+        "description": "Persists loan applications and payments."
+      },
+      {
+        "from": "Customer Manager",
+        "to": "Oracle Database",
+        "description": "Stores and retrieves customer profile data."
+      },
+      {
+        "from": "Branch Manager",
+        "to": "Oracle Database",
+        "description": "Accesses branch and employee records."
+      },
+      {
+        "from": "Interest Calculator",
+        "to": "Oracle Database",
+        "description": "Executes batch PL/SQL for interest calculation."
+      },
+      {
+        "from": "Statement Generator",
+        "to": "Oracle Database",
+        "description": "Queries transaction history for reports."
+      },
+      {
+        "from": "Statement Generator",
+        "to": "Local File System",
+        "description": "Writes generated statement text files to disk."
+      },
+      {
+        "from": "Card Manager",
+        "to": "Oracle Database",
+        "description": "Manages card data and transactions."
+      },
+      {
+        "from": "Bill Pay Service",
+        "to": "Oracle Database",
+        "description": "Persists payment schedules and history."
+      },
+      {
+        "from": "Audit Logger",
+        "to": "Oracle Database",
+        "description": "Writes audit logs to the database tables."
+      },
+      {
+        "from": "Transaction Processor",
+        "to": "Account Manager",
+        "description": "Requires account status and balance checks before processing."
+      },
+      {
+        "from": "Loan Manager",
+        "to": "Account Manager",
+        "description": "Disburses funds to and collects payments from accounts."
+      },
+      {
+        "from": "Loan Manager",
+        "to": "Customer Manager",
+        "description": "Validates customer KYC status before loan approval."
+      },
+      {
+        "from": "Account Manager",
+        "to": "Customer Manager",
+        "description": "Links accounts to valid customers."
+      },
+      {
+        "from": "Account Manager",
+        "to": "Branch Manager",
+        "description": "Associates accounts with specific branches."
+      }
+    ]
+  }
+]

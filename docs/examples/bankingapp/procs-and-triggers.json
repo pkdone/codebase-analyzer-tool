@@ -1,0 +1,107 @@
+{
+  "procs": {
+    "total": 0,
+    "low": 0,
+    "medium": 0,
+    "high": 0,
+    "list": []
+  },
+  "trigs": {
+    "total": 9,
+    "low": 5,
+    "medium": 4,
+    "high": 0,
+    "list": [
+      {
+        "path": "database/schema/04_triggers.sql",
+        "type": "TRIGGER",
+        "name": "trg_customers_update",
+        "functionName": "trg_customers_update",
+        "complexity": "LOW",
+        "complexityReason": "Consists of a single assignment statement.",
+        "linesOfCode": 6,
+        "purpose": "Updates the last_updated timestamp on the customers table whenever a row is updated."
+      },
+      {
+        "path": "database/schema/04_triggers.sql",
+        "type": "TRIGGER",
+        "name": "trg_customers_audit",
+        "functionName": "trg_customers_audit",
+        "complexity": "MEDIUM",
+        "complexityReason": "Handles multiple event types (INSERT/UPDATE/DELETE) with string concatenation and conditional logic.",
+        "linesOfCode": 28,
+        "purpose": "Audits INSERT, UPDATE, and DELETE operations on the customers table by writing details to the audit_logs table."
+      },
+      {
+        "path": "database/schema/04_triggers.sql",
+        "type": "TRIGGER",
+        "name": "trg_transactions_balance",
+        "functionName": "trg_transactions_balance",
+        "complexity": "MEDIUM",
+        "complexityReason": "Contains conditional logic based on transaction type and performs updates on a related table.",
+        "linesOfCode": 21,
+        "purpose": "Updates the corresponding account balance and activity date in the accounts table whenever a new transaction is inserted."
+      },
+      {
+        "path": "database/schema/04_triggers.sql",
+        "type": "TRIGGER",
+        "name": "trg_accounts_audit",
+        "functionName": "trg_accounts_audit",
+        "complexity": "LOW",
+        "complexityReason": "Performs a single conditional insert operation.",
+        "linesOfCode": 10,
+        "purpose": "Audits changes to account balance or status by inserting a record into the audit_logs table."
+      },
+      {
+        "path": "database/schema/04_triggers.sql",
+        "type": "TRIGGER",
+        "name": "trg_loans_approval",
+        "functionName": "trg_loans_approval",
+        "complexity": "MEDIUM",
+        "complexityReason": "Includes a SELECT query, validation logic with error raising, and date calculations.",
+        "linesOfCode": 19,
+        "purpose": "Validates that a customer has a verified KYC status before a loan can be approved and sets approval/maturity dates."
+      },
+      {
+        "path": "database/schema/04_triggers.sql",
+        "type": "TRIGGER",
+        "name": "trg_loan_payments_balance",
+        "functionName": "trg_loan_payments_balance",
+        "complexity": "MEDIUM",
+        "complexityReason": "Updates multiple fields and checks conditions for loan payoff status.",
+        "linesOfCode": 13,
+        "purpose": "Updates the remaining loan balance when a payment is made and marks the loan as paid off if the balance reaches zero."
+      },
+      {
+        "path": "database/schema/04_triggers.sql",
+        "type": "TRIGGER",
+        "name": "trg_cards_expiration",
+        "functionName": "trg_cards_expiration",
+        "complexity": "LOW",
+        "complexityReason": "Simple conditional check and assignment.",
+        "linesOfCode": 7,
+        "purpose": "Checks if a card's expiration date is in the past during insert or update and sets the status to EXPIRED if true."
+      },
+      {
+        "path": "database/schema/04_triggers.sql",
+        "type": "TRIGGER",
+        "name": "trg_transactions_audit",
+        "functionName": "trg_transactions_audit",
+        "complexity": "LOW",
+        "complexityReason": "Performs a single conditional insert operation.",
+        "linesOfCode": 10,
+        "purpose": "Audits changes to transaction status by recording the old and new values in the audit_logs table."
+      },
+      {
+        "path": "database/schema/04_triggers.sql",
+        "type": "TRIGGER",
+        "name": "trg_accounts_balance_check",
+        "functionName": "trg_accounts_balance_check",
+        "complexity": "LOW",
+        "complexityReason": "Simple validation check raising an error.",
+        "linesOfCode": 7,
+        "purpose": "Prevents checking or savings accounts from having a negative balance by raising an application error."
+      }
+    ]
+  }
+}

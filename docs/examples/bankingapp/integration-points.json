@@ -1,0 +1,84 @@
+[
+  {
+    "namespace": "com.legacybank.ejb.AccountServiceLocal",
+    "filepath": "backend/src/ejb/AccountServiceLocal.java",
+    "mechanism": "OTHER",
+    "name": "AccountServiceLocal",
+    "description": "EJB Local Interface definition used for internal service-to-service communication within the application container.",
+    "direction": "BIDIRECTIONAL"
+  },
+  {
+    "namespace": "com.legacybank.ejb.LoanServiceLocal",
+    "filepath": "backend/src/ejb/LoanServiceLocal.java",
+    "mechanism": "OTHER",
+    "name": "EJB Local Interface",
+    "description": "Defines the local business interface for an Enterprise Java Bean.",
+    "direction": "BIDIRECTIONAL"
+  },
+  {
+    "namespace": "com.legacybank.servlet.AccountServlet",
+    "filepath": "backend/src/servlet/AccountServlet.java",
+    "mechanism": "REST",
+    "name": "AccountServlet",
+    "description": "Servlet endpoint handling HTTP requests for account operations.",
+    "path": "unknown (defined in web.xml)",
+    "method": "GET, POST",
+    "direction": "CONSUMER"
+  },
+  {
+    "namespace": "com.legacybank.servlet.CustomerServlet",
+    "filepath": "backend/src/servlet/CustomerServlet.java",
+    "mechanism": "REST",
+    "name": "CustomerServlet",
+    "description": "Handles HTTP requests for customer management (Servlet acting as a web endpoint).",
+    "path": "unknown",
+    "method": "GET, POST",
+    "direction": "BOTH",
+    "protocol": "HTTP/1.1",
+    "connectionInfo": "Servlet Container"
+  },
+  {
+    "namespace": "com.legacybank.servlet.LoanServlet",
+    "filepath": "backend/src/servlet/LoanServlet.java",
+    "mechanism": "REST",
+    "name": "LoanServlet HTTP Endpoint",
+    "description": "Standard Java Servlet endpoint handling HTTP requests for loan management.",
+    "path": "Mapped via web.xml (implied)",
+    "method": "GET, POST",
+    "direction": "CONSUMER",
+    "protocol": "HTTP/1.1"
+  },
+  {
+    "namespace": "com.legacybank.servlet.TransactionServlet",
+    "filepath": "backend/src/servlet/TransactionServlet.java",
+    "mechanism": "REST",
+    "name": "TransactionServlet",
+    "description": "HTTP Servlet entry point handling transaction requests.",
+    "path": "/TransactionServlet (inferred)",
+    "method": "GET, POST",
+    "direction": "BIDIRECTIONAL",
+    "protocol": "HTTP/1.1"
+  },
+  {
+    "namespace": "com.legacybank.servlet.TransactionServlet",
+    "filepath": "backend/src/servlet/TransactionServlet.java",
+    "mechanism": "OTHER",
+    "name": "TransactionServiceLocal",
+    "description": "JNDI Lookup for EJB Service",
+    "path": "legacy-bank/TransactionServiceLocal",
+    "direction": "CONSUMER",
+    "protocol": "JNDI"
+  },
+  {
+    "namespace": "com.legacybank.soap.BankingServiceEndpoint",
+    "filepath": "backend/src/soap/BankingServiceEndpoint.java",
+    "mechanism": "SOAP",
+    "name": "BankingService",
+    "description": "JAX-WS SOAP Service Endpoint exposing banking operations",
+    "path": "http://legacybank.com/soap",
+    "method": "getAccountDetails, processDeposit, processWithdrawal",
+    "direction": "BIDIRECTIONAL",
+    "protocol": "SOAP",
+    "connectionInfo": "Service Name: BankingService"
+  }
+]
