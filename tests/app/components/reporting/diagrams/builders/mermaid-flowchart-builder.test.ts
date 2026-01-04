@@ -381,3 +381,4 @@ describe("SubgraphBuilder", () => {
     expect(subBuilder.getStyles()).toHaveLength(1);
   });
 });
+
