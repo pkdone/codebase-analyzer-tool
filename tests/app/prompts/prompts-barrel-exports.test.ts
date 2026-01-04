@@ -22,6 +22,11 @@ describe("prompts module barrel exports", () => {
       expect(PromptsModule.renderPrompt).toBeDefined();
       expect(typeof PromptsModule.renderPrompt).toBe("function");
     });
+
+    it("should export buildSchemaSection", () => {
+      expect(PromptsModule.buildSchemaSection).toBeDefined();
+      expect(typeof PromptsModule.buildSchemaSection).toBe("function");
+    });
   });
 
   describe("template exports", () => {
@@ -38,6 +43,16 @@ describe("prompts module barrel exports", () => {
     it("should export FORCE_JSON_FORMAT", () => {
       expect(PromptsModule.FORCE_JSON_FORMAT).toBeDefined();
       expect(typeof PromptsModule.FORCE_JSON_FORMAT).toBe("string");
+    });
+
+    it("should export DEFAULT_SYSTEM_ROLE", () => {
+      expect(PromptsModule.DEFAULT_SYSTEM_ROLE).toBeDefined();
+      expect(typeof PromptsModule.DEFAULT_SYSTEM_ROLE).toBe("string");
+    });
+
+    it("should export QUERY_SYSTEM_ROLE", () => {
+      expect(PromptsModule.QUERY_SYSTEM_ROLE).toBeDefined();
+      expect(typeof PromptsModule.QUERY_SYSTEM_ROLE).toBe("string");
     });
   });
 

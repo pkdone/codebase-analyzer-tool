@@ -10,11 +10,14 @@ import { CATEGORY_LABELS } from "../../../config/category-labels.config";
 import { APP_SUMMARY_PROMPT_FRAGMENTS } from "./app-summaries.fragments";
 import { buildInstructionBlock, INSTRUCTION_SECTION_TITLES } from "../instruction-utils";
 import { z } from "zod";
-import type { BasePromptConfigEntry } from "../../prompt.types";
+import type { StrictPromptConfigEntry } from "../../prompt.types";
 
 /**
  * Configuration entry for an app summary prompt definition.
- * Extends BasePromptConfigEntry with required label, contentDesc, responseSchema, and instructions fields.
+ * Extends StrictPromptConfigEntry with an additional required `label` field.
+ *
+ * App summaries require a label for UI display and logging purposes,
+ * which distinguishes them from source configs where labels are optional.
  *
  * This interface is generic over the schema type S to preserve specific Zod schema types
  * through the type system, enabling better type inference for downstream consumers.
@@ -23,15 +26,9 @@ import type { BasePromptConfigEntry } from "../../prompt.types";
  */
 export interface AppSummaryConfigEntry<
   S extends z.ZodType = z.ZodType,
-> extends BasePromptConfigEntry<S> {
+> extends StrictPromptConfigEntry<S> {
   /** Label for UI display and logging (required for app summary configs) */
   label: string;
-  /** Description of the content being analyzed (required for app summary configs) */
-  contentDesc: string;
-  /** Zod schema for validating the LLM response (required for app summary configs) */
-  responseSchema: S;
-  /** Array of instruction strings for the LLM (required for app summary configs) */
-  instructions: readonly string[];
 }
 
 /**

@@ -4,8 +4,7 @@ import {
   type DataBlockHeader,
   type PromptDefinition,
 } from "../../../src/app/prompts/prompt.types";
-import { buildSchemaSection } from "../../../src/app/prompts/templates";
-import { renderPrompt } from "../../../src/app/prompts/prompt-renderer";
+import { buildSchemaSection, renderPrompt } from "../../../src/app/prompts/prompt-renderer";
 import {
   promptManager,
   createReduceInsightsPrompt,
@@ -16,7 +15,7 @@ import { appSummaryConfigMap } from "../../../src/app/prompts/definitions/app-su
 /**
  * Tests for the prompt refactoring changes:
  * 1. DATA_BLOCK_HEADERS const object
- * 2. buildSchemaSection moved to templates.ts
+ * 2. buildSchemaSection in prompt-renderer.ts
  * 3. Self-contained source configs with "the " prefix
  * 4. Self-contained app summary configs with contentDesc
  * 5. Simplified createPromptMetadata factory
@@ -53,7 +52,7 @@ describe("Prompt Refactoring", () => {
     });
   });
 
-  describe("buildSchemaSection in templates.ts", () => {
+  describe("buildSchemaSection in prompt-renderer.ts", () => {
     it("should generate proper JSON schema section", () => {
       const testSchema = z.object({
         name: z.string(),

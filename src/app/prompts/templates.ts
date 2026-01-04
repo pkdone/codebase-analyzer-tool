@@ -1,10 +1,23 @@
-import { zodToJsonSchema } from "zod-to-json-schema";
-import type { z } from "zod";
-
 /**
  * Centralized prompt templates for the application.
  * Consolidates all prompt templates in one location for better organization.
+ * This file contains pure template data - logic for building schema sections
+ * is in prompt-renderer.ts.
  */
+
+/**
+ * Default system role for source code analysis prompts.
+ * Used for detailed code analysis where the LLM acts as a senior developer
+ * analyzing legacy applications.
+ */
+export const DEFAULT_SYSTEM_ROLE =
+  "Act as a senior developer analyzing the code in a legacy application.";
+
+/**
+ * System role for codebase query prompts.
+ * Used for answering questions about code where the LLM acts as a senior developer.
+ */
+export const QUERY_SYSTEM_ROLE = "Act as a senior developer.";
 
 /**
  * JSON format enforcement instruction used across all prompt templates.
@@ -39,7 +52,7 @@ export const FORCE_JSON_FORMAT = `The response MUST be valid JSON and meet the f
  * - {{contentWrapper}}: Optional code block markers (```) if wrapInCodeBlock is true
  * - {{schemaSection}}: Conditional JSON schema section (empty for TEXT-mode prompts)
  */
-export const BASE_PROMPT_TEMPLATE = `Act as a senior developer analyzing the code in a legacy application. Based on the {{contentDesc}} shown below in the section marked '{{dataBlockHeader}}', return a JSON response that contains {{instructionsText}}.
+export const BASE_PROMPT_TEMPLATE = `${DEFAULT_SYSTEM_ROLE} Based on the {{contentDesc}} shown below in the section marked '{{dataBlockHeader}}', return a JSON response that contains {{instructionsText}}.
 
 {{partialAnalysisNote}}{{schemaSection}}
 {{dataBlockHeader}}:
@@ -50,31 +63,10 @@ export const BASE_PROMPT_TEMPLATE = `Act as a senior developer analyzing the cod
  * Used for RAG (Retrieval-Augmented Generation) workflows where vector search results
  * are provided as context for answering developer questions about the codebase.
  */
-export const CODEBASE_QUERY_TEMPLATE = `Act as a senior developer. I've provided the content of some source code files below in the section marked 'CODE'. Using all that code for context, answer the question a developer has asked about the code, where their question is shown in the section marked 'QUESTION' below. Provide your answer in a few paragraphs, referring to specific evidence in the provided code.
+export const CODEBASE_QUERY_TEMPLATE = `${QUERY_SYSTEM_ROLE} I've provided the content of some source code files below in the section marked 'CODE'. Using all that code for context, answer the question a developer has asked about the code, where their question is shown in the section marked 'QUESTION' below. Provide your answer in a few paragraphs, referring to specific evidence in the provided code.
 
 QUESTION:
 {{question}}
 
 CODE:
 {{content}}`;
-
-/**
- * Builds the schema section for JSON-mode prompts.
- * This function generates the JSON schema block with format enforcement instructions.
- *
- * The schema section is only included in JSON-mode prompts. TEXT-mode prompts
- * return an empty string to avoid rendering an empty JSON code block.
- *
- * @param responseSchema - The Zod schema for the response
- * @returns The formatted schema section string including schema and FORCE_JSON_FORMAT instructions
- */
-export function buildSchemaSection(responseSchema: z.ZodType): string {
-  const jsonSchemaString = JSON.stringify(zodToJsonSchema(responseSchema), null, 2);
-  return `The JSON response must follow this JSON schema:
-\`\`\`json
-${jsonSchemaString}
-\`\`\`
-
-${FORCE_JSON_FORMAT}
-`;
-}

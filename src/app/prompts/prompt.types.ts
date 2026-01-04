@@ -50,6 +50,30 @@ export interface BasePromptConfigEntry<S extends z.ZodType = z.ZodType> {
 }
 
 /**
+ * Strict configuration entry interface where core fields are required.
+ * Used for concrete prompt definitions (Sources, App Summaries) to ensure completeness.
+ *
+ * This type enforces that all essential fields for prompt generation are provided,
+ * reducing the need for defensive checks at runtime and improving type safety
+ * for downstream consumers.
+ *
+ * Note: `label` remains optional as it's often derived from the category key
+ * or not strictly needed for the prompt itself.
+ *
+ * @template S - The Zod schema type for validating the LLM response. Defaults to z.ZodType.
+ */
+export interface StrictPromptConfigEntry<
+  S extends z.ZodType = z.ZodType,
+> extends BasePromptConfigEntry<S> {
+  /** Description of the content being analyzed (required) */
+  contentDesc: string;
+  /** Array of instruction strings for the LLM (required) */
+  instructions: readonly string[];
+  /** Zod schema for validating the LLM response (required) */
+  responseSchema: S;
+}
+
+/**
  * Formal prompt definition interface for consistent structure
  * This enforces a standard shape for prompt configurations across the application.
  *

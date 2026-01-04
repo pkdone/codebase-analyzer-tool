@@ -13,29 +13,21 @@ import {
   sourceSummarySchema,
   commonSourceAnalysisSchema,
 } from "../../../../schemas/sources.schema";
-import type { BasePromptConfigEntry } from "../../../prompt.types";
+import type { StrictPromptConfigEntry } from "../../../prompt.types";
 
 /**
  * Configuration entry for a source prompt definition.
- * Extends BasePromptConfigEntry with required contentDesc, responseSchema, and instructions fields.
+ * Extends StrictPromptConfigEntry which requires contentDesc, responseSchema, and instructions fields.
  * Each entry directly includes the responseSchema using sourceSummarySchema.pick(),
  * making the schemas explicit and type-safe.
  *
- * This interface is generic over the schema type S to preserve specific Zod schema types
- * through the type system, enabling better type inference for downstream consumers.
+ * This type alias uses StrictPromptConfigEntry to ensure consistency with other prompt
+ * config types (like AppSummaryConfigEntry) while preserving the semantic meaning
+ * in the source context.
  *
  * @template S - The Zod schema type for validating the LLM response. Defaults to z.ZodType for backward compatibility.
  */
-export interface SourceConfigEntry<
-  S extends z.ZodType = z.ZodType,
-> extends BasePromptConfigEntry<S> {
-  /** Description of the content being analyzed (required for source configs) */
-  contentDesc: string;
-  /** Zod schema for validating the LLM response (required for source configs) */
-  responseSchema: S;
-  /** Array of instruction strings for the LLM (required for source configs) */
-  instructions: readonly string[];
-}
+export type SourceConfigEntry<S extends z.ZodType = z.ZodType> = StrictPromptConfigEntry<S>;
 
 /**
  * Options for creating a standard code source configuration.
