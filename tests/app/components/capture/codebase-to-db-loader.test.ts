@@ -22,27 +22,44 @@ jest.mock("../../../../src/common/utils/logging", () => ({
   logOneLineError: jest.fn(),
 }));
 
-jest.mock("../../../../src/app/domain/file-types", () => ({
-  fileProcessingRules: {
-    FOLDER_IGNORE_LIST: [".git", "node_modules"],
-    FILENAME_PREFIX_IGNORE: "test-",
-    FILENAME_IGNORE_LIST: ["package-lock.json"],
-    BINARY_FILE_EXTENSION_IGNORE_LIST: ["jpg", "png", "pdf", "exe"],
-    MAX_CONCURRENCY: 3,
-  },
-}));
+jest.mock("../../../../src/app/domain/file-types", () => {
+  const actual = jest.requireActual("../../../../src/app/domain/file-types");
+  return {
+    ...actual,
+    fileProcessingRules: {
+      FOLDER_IGNORE_LIST: [".git", "node_modules"],
+      FILENAME_PREFIX_IGNORE: "test-",
+      FILENAME_IGNORE_LIST: ["package-lock.json"],
+      BINARY_FILE_EXTENSION_IGNORE_LIST: ["jpg", "png", "pdf", "exe"],
+      MAX_CONCURRENCY: 3,
+    },
+  };
+});
+
+const mockPathRelative = jest.fn();
+const mockPathBasename = jest.fn();
 
 jest.mock("path", () => ({
   ...jest.requireActual("path"),
-  relative: jest.fn(),
-  basename: jest.fn(),
+  relative: (...args: unknown[]) => mockPathRelative(...args),
+  basename: (...args: unknown[]) => mockPathBasename(...args),
+}));
+
+jest.mock("node:path", () => ({
+  ...jest.requireActual("node:path"),
+  relative: (...args: unknown[]) => mockPathRelative(...args),
+  basename: (...args: unknown[]) => mockPathBasename(...args),
 }));
 
 const mockFileOperations = fileOperations as jest.Mocked<typeof fileOperations>;
 const mockDirectoryOperations = directoryOperations as jest.Mocked<typeof directoryOperations>;
 const mockPathUtils = pathUtils as jest.Mocked<typeof pathUtils>;
 const mockTextUtils = textAnalysis as jest.Mocked<typeof textAnalysis>;
-const mockPath = path as jest.Mocked<typeof path>;
+const mockPath = {
+  ...jest.requireActual("path"),
+  relative: mockPathRelative,
+  basename: mockPathBasename,
+} as jest.Mocked<typeof path>;
 
 describe("CodebaseToDBLoader", () => {
   let loader: CodebaseToDBLoader;
@@ -54,6 +71,8 @@ describe("CodebaseToDBLoader", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockPathRelative.mockClear();
+    mockPathBasename.mockClear();
 
     mockConsoleLog = jest.spyOn(console, "log").mockImplementation();
     mockConsoleWarn = jest.spyOn(console, "warn").mockImplementation();
@@ -105,8 +124,14 @@ describe("CodebaseToDBLoader", () => {
 
       mockDirectoryOperations.findFilesRecursively.mockResolvedValue(mockFiles);
       mockPathUtils.getFileExtension.mockReturnValue("ts");
-      mockPath.relative.mockReturnValue("file1.ts");
-      mockPath.basename.mockReturnValue("file1.ts");
+      mockPath.relative.mockReturnValueOnce("file1.ts").mockReturnValueOnce("file2.ts");
+      // path.basename is called once per file in processAndStoreSourceFile,
+      // and once per file inside getCanonicalFileType, so we need 4 return values
+      mockPath.basename
+        .mockReturnValueOnce("file1.ts") // called in processAndStoreSourceFile for file1
+        .mockReturnValueOnce("file1.ts") // called in getCanonicalFileType for file1
+        .mockReturnValueOnce("file2.ts") // called in processAndStoreSourceFile for file2
+        .mockReturnValueOnce("file2.ts"); // called in getCanonicalFileType for file2
       mockFileOperations.readFile.mockResolvedValue("const x = 1;");
       mockTextUtils.countLines.mockReturnValue(1);
 
