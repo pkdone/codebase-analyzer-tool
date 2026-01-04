@@ -215,7 +215,14 @@ export default abstract class BaseLLMProvider implements LLMProvider {
       context,
       modelKey,
     };
-    const finalOptions =
+
+    // Default to TEXT mode when no options provided.
+    // Type safety note: When completionOptions is undefined, the generic S defaults to z.ZodType
+    // at the call site (due to LLMFunction's signature), making z.infer<S> resolve to `unknown`.
+    // TEXT mode returns string which is assignable to unknown, so this default is type-safe.
+    // The cast is necessary because TypeScript cannot infer that { outputFormat: TEXT }
+    // satisfies LLMCompletionOptions<S> for arbitrary S.
+    const finalOptions: LLMCompletionOptions<S> =
       completionOptions ??
       ({
         outputFormat: LLMOutputFormat.TEXT,
@@ -331,6 +338,18 @@ export default abstract class BaseLLMProvider implements LLMProvider {
 
     // Early return for non-JSON output format (TEXT mode)
     if (completionOptions.outputFormat !== LLMOutputFormat.JSON) {
+      // Configuration validation: TEXT format should not have a jsonSchema.
+      // If someone provides a schema but uses TEXT format, that's a configuration error
+      // that would cause type mismatches at runtime (schema expects object, TEXT returns string).
+      if (completionOptions.jsonSchema !== undefined) {
+        throw new LLMError(
+          LLMErrorCode.BAD_CONFIGURATION,
+          "Configuration error: jsonSchema was provided but outputFormat is TEXT. " +
+            "Use outputFormat: LLMOutputFormat.JSON when providing a schema, " +
+            "or remove the jsonSchema for TEXT output.",
+        );
+      }
+
       // Runtime validation: TEXT format must return string.
       // This validates the type before assignment to ensure type safety.
       if (typeof responseContent !== "string") {
