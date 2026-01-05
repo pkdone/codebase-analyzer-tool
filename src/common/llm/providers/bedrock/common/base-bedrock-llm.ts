@@ -126,11 +126,20 @@ export default abstract class BaseBedrockLLM extends BaseLLMProvider {
    * overloading.
    */
   protected isLLMOverloaded(error: unknown) {
-    return (
+    if  (
       error instanceof ThrottlingException ||
       error instanceof ModelTimeoutException ||
       error instanceof ServiceUnavailableException
-    );
+    ) {
+      return true;
+    }
+
+    if (error instanceof Error) {
+      const errMsg = formatError(error).toLowerCase() || "";
+      if (errMsg.includes("stream timed out because of no activity")) return true;
+    }
+
+    return false;
   }
 
   /**
@@ -139,7 +148,6 @@ export default abstract class BaseBedrockLLM extends BaseLLMProvider {
    */
   protected isTokenLimitExceeded(error: unknown): error is ValidationException {
     if (!(error instanceof ValidationException)) return false;
-
     const lowercaseContent = formatError(error).toLowerCase();
     return TOKEN_LIMIT_ERROR_KEYWORDS.some((keyword) => lowercaseContent.includes(keyword));
   }

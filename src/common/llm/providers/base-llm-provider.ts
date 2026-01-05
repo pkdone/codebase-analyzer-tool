@@ -209,6 +209,7 @@ export default abstract class BaseLLMProvider implements LLMProvider {
     request: string,
     context: LLMContext,
     completionOptions?: LLMCompletionOptions<S>,
+    doDeburErrorLogging = true,
   ): Promise<LLMFunctionResponse<z.infer<S>>> {
     const skeletonResponse: Omit<LLMFunctionResponse, "generated" | "status" | "mutationSteps"> = {
       request,
@@ -256,9 +257,6 @@ export default abstract class BaseLLMProvider implements LLMProvider {
         );
       }
     } catch (error: unknown) {
-      // Explicitly type error as unknown
-      // OPTIONAL: this.debugUnhandledError(error, modelKey);
-
       if (this.isLLMOverloaded(error)) {
         return {
           ...skeletonResponse,
@@ -278,6 +276,7 @@ export default abstract class BaseLLMProvider implements LLMProvider {
           ),
         };
       } else {
+        if (doDeburErrorLogging) this.debugUnhandledError(error, modelKey);
         return {
           ...skeletonResponse,
           status: LLMResponseStatus.ERRORED,
