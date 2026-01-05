@@ -50,7 +50,7 @@ export const bedrockClaudeProviderManifest = createBedrockManifest(
     maxRetryAttempts: 6,
     minRetryDelayMillis: 40 * 1000,
     maxRetryDelayMillis: 360 * 1000,
-    requestTimeoutMillis: 2 * 60 * 1000, // Largerfor Claude's longer inference times TODO: set to 20
+    requestTimeoutMillis: 16 * 60 * 1000, // Largerfor Claude's longer inference times
     // Anthropic beta flags for specific features (e.g., extended context window)
     anthropicBetaFlags: ["context-1m-2025-08-07"] as const,
   },
