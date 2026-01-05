@@ -28,7 +28,7 @@ You can also view an examples of full report generated for various sample applic
 
 1. Ensure you have the codebase for a sample application ready to access on your local filesystem. You can optionally [download a zip of some example projects](https://drive.google.com/file/d/1rDSOiLOH0xq3Hc5k8i3DvZpCDVvDccr1/view?usp=sharing) for testing (for subset of people who have link access). Note the current version of these tools work better with Java-based codebases, but over time, many more programming languages will be supported equally.
 
-1. Ensure you have can leverage LLMs from OpenAI/Azure GPT, GCP Vertex AI or AWS Bedrock API, with the following three models types available to use, along with appropriate LLM provider API keys / credentials:
+1. Ensure you can leverage LLMs from OpenAI/Azure GPT, GCP Vertex AI or AWS Bedrock API, with the following three models types available to use, along with appropriate LLM provider API keys / credentials:
 
     -  __Embeddings model__ for generating vector embeddings 
     -  __Text completions 'primaary' model, typically with a small token limit__ for generating text and JSON content to process text inputs 
