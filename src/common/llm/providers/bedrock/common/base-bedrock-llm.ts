@@ -126,7 +126,7 @@ export default abstract class BaseBedrockLLM extends BaseLLMProvider {
    * overloading.
    */
   protected isLLMOverloaded(error: unknown) {
-    if  (
+    if (
       error instanceof ThrottlingException ||
       error instanceof ModelTimeoutException ||
       error instanceof ServiceUnavailableException

@@ -2,13 +2,13 @@ import path from "path";
 import os from "os";
 import { injectable } from "tsyringe";
 import { fileProcessingRules as fileProcessingConfig } from "../../../domain/file-types";
+import { llmConcurrencyLimiter } from "../../../config/concurrency.config";
 import { outputConfig } from "../../../config/output.config";
 import { readFile, writeFile } from "../../../../common/fs/file-operations";
 import {
   listDirectoryEntries,
   ensureDirectoryExists,
 } from "../../../../common/fs/directory-operations";
-import pLimit from "p-limit";
 import { logOneLineError } from "../../../../common/utils/logging";
 import { formatError } from "../../../../common/utils/error-formatters";
 import { inject } from "tsyringe";
@@ -53,9 +53,8 @@ export class PromptFileInsightsGenerator {
       fileProcessingConfig.FILENAME_IGNORE_LIST,
     );
     await this.dumpCodeBlocksToTempFile(codeBlocksContent);
-    const limit = pLimit(fileProcessingConfig.MAX_CONCURRENCY);
     const tasks = prompts.map(async (prompt) => {
-      return limit(async () => {
+      return llmConcurrencyLimiter(async () => {
         const result = await this.executePromptAgainstCodebase(prompt, codeBlocksContent);
         const outputFileName = `${prompt.filename}.result`;
         const outputFilePath = path.join(process.cwd(), outputConfig.OUTPUT_DIR, outputFileName);

@@ -1,6 +1,7 @@
 import { injectable, inject } from "tsyringe";
 import LLMRouter from "../../../../common/llm/llm-router";
 import { fileProcessingRules as fileProcessingConfig } from "../../../domain/file-types";
+import { llmConcurrencyLimiter } from "../../../config/concurrency.config";
 import { logOneLineError } from "../../../../common/utils/logging";
 import type { AppSummariesRepository } from "../../../repositories/app-summaries/app-summaries.repository.interface";
 import type { SourcesRepository } from "../../../repositories/sources/sources.repository.interface";
@@ -68,10 +69,14 @@ export default class InsightsFromDBGenerator implements IInsightsProcessor {
     });
     const categories: AppSummaryCategoryEnum[] = AppSummaryCategories.options;
 
-    // Process all categories with LLM
+    // Process all categories with LLM using shared concurrency limiter
+    // The limiter is shared with map-reduce chunk processing to prevent nested parallelism
+    // from exceeding rate limits
     const results = await Promise.allSettled(
       categories.map(async (category) =>
-        this.generateAndRecordDataForCategory(category, sourceFileSummaries),
+        llmConcurrencyLimiter(async () =>
+          this.generateAndRecordDataForCategory(category, sourceFileSummaries),
+        ),
       ),
     );
     results.forEach((result, index) => {

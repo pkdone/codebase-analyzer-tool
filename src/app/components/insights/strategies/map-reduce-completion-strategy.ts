@@ -3,6 +3,7 @@ import { z } from "zod";
 import LLMRouter from "../../../../common/llm/llm-router";
 import { LLMOutputFormat } from "../../../../common/llm/types/llm.types";
 import { insightsTuningConfig } from "../insights.config";
+import { llmConcurrencyLimiter } from "../../../config/concurrency.config";
 import { promptManager, createReduceInsightsPrompt } from "../../../prompts/prompt-registry";
 import { logOneLineWarning } from "../../../../common/utils/logging";
 import { renderPrompt } from "../../../prompts/prompt-renderer";
@@ -62,19 +63,22 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
         `  - Split summaries into ${summaryChunks.length} chunks for map-reduce processing`,
       );
 
-      // 2. MAP: Generate partial insights for each chunk
-      // Collect with category-specific typing to preserve type safety through the pipeline
-      const partialResults: CategoryInsightResult<C>[] = [];
-      for (const chunk of summaryChunks) {
-        const index = partialResults.length;
-        console.log(
-          `  - [MAP ${index + 1}/${summaryChunks.length}] Processing chunk for ${categoryLabel}...`,
-        );
-        const result = await this.generatePartialInsightsForCategory(category, chunk);
-        if (result !== null) {
-          partialResults.push(result);
-        }
-      }
+      // 2. MAP: Generate partial insights for each chunk in parallel
+      // Uses shared concurrency limiter to prevent rate limit issues from nested parallelism
+      // (categories are also processed in parallel at the generator level)
+      const partialResultsPromises = summaryChunks.map(async (chunk, index) =>
+        llmConcurrencyLimiter(async () => {
+          console.log(
+            `  - [MAP ${index + 1}/${summaryChunks.length}] Processing chunk for ${categoryLabel}...`,
+          );
+          return this.generatePartialInsightsForCategory(category, chunk);
+        }),
+      );
+
+      const results = await Promise.all(partialResultsPromises);
+      // Filter null results and assert type - the filter correctly removes nulls but TypeScript
+      // can't narrow the Awaited<> wrapped generic type through the type guard
+      const partialResults = results.filter((r) => r !== null) as CategoryInsightResult<C>[];
 
       if (partialResults.length === 0) {
         logOneLineWarning(

@@ -1,4 +1,5 @@
 import { fileProcessingRules as fileProcessingConfig } from "../../../src/app/domain/file-types";
+import { concurrencyConfig } from "../../../src/app/config/concurrency.config";
 
 describe("file-processing.config", () => {
   describe("fileProcessingConfig", () => {
@@ -11,7 +12,6 @@ describe("file-processing.config", () => {
       expect(fileProcessingConfig).toHaveProperty("FILENAME_PREFIX_IGNORE");
       expect(fileProcessingConfig).toHaveProperty("BINARY_FILE_EXTENSION_IGNORE_LIST");
       expect(fileProcessingConfig).toHaveProperty("CODE_FILE_EXTENSIONS");
-      expect(fileProcessingConfig).toHaveProperty("MAX_CONCURRENCY");
     });
   });
 
@@ -110,15 +110,21 @@ describe("file-processing.config", () => {
       expect(fileProcessingConfig.CODE_FILE_EXTENSIONS).toContain("ddl");
     });
   });
+});
 
-  describe("MAX_CONCURRENCY", () => {
-    it("should be a positive number", () => {
-      expect(typeof fileProcessingConfig.MAX_CONCURRENCY).toBe("number");
-      expect(fileProcessingConfig.MAX_CONCURRENCY).toBeGreaterThan(0);
+describe("concurrency.config", () => {
+  describe("concurrencyConfig", () => {
+    it("should be defined", () => {
+      expect(concurrencyConfig).toBeDefined();
     });
 
-    it("should have a reasonable value for concurrency", () => {
-      expect(fileProcessingConfig.MAX_CONCURRENCY).toBe(50);
+    it("should have MAX_LLM_CONCURRENCY as a positive number", () => {
+      expect(typeof concurrencyConfig.MAX_LLM_CONCURRENCY).toBe("number");
+      expect(concurrencyConfig.MAX_LLM_CONCURRENCY).toBeGreaterThan(0);
+    });
+
+    it("should have a reasonable value for LLM concurrency", () => {
+      expect(concurrencyConfig.MAX_LLM_CONCURRENCY).toBe(50);
     });
   });
 });

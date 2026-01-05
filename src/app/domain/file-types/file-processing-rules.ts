@@ -149,5 +149,4 @@ export const fileProcessingRules = {
     "hrl",
     "hs",
   ] as const satisfies readonly string[],
-  MAX_CONCURRENCY: 50,
 } as const;

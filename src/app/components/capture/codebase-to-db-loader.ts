@@ -1,8 +1,8 @@
 import { injectable, inject } from "tsyringe";
 import type LLMRouter from "../../../common/llm/llm-router";
 import path from "path";
-import pLimit from "p-limit";
 import { fileProcessingRules as fileProcessingConfig } from "../../domain/file-types";
+import { llmConcurrencyLimiter } from "../../config/concurrency.config";
 import { readFile } from "../../../common/fs/file-operations";
 import { findFilesRecursively, sortFilesBySize } from "../../../common/fs/directory-operations";
 import { getFileExtension } from "../../../common/fs/path-utils";
@@ -85,11 +85,10 @@ export default class CodebaseToDBLoader {
       await this.sourcesRepository.deleteSourcesByProject(projectName);
     }
 
-    const limit = pLimit(fileProcessingConfig.MAX_CONCURRENCY);
     let successes = 0;
     let failures = 0;
     const tasks = filepaths.map(async (filepath) => {
-      return limit(async () => {
+      return llmConcurrencyLimiter(async () => {
         try {
           await this.processAndStoreSourceFile(
             filepath,
