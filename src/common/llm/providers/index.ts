@@ -4,34 +4,31 @@
 
 import { LLMProviderManifest } from "./llm-provider.types";
 import { openAIProviderManifest, OPENAI } from "./openai/openai/openai.manifest";
-import {
-  azureOpenAIProviderManifest,
-  AZURE_OPENAI,
-} from "./openai/azureOpenai/azure-openai.manifest";
+import { azureOpenAIProviderManifest, AZURE_OPENAI } from "./openai/azure/azure-openai.manifest";
 import {
   vertexAIGeminiProviderManifest,
   VERTEX_GEMINI,
-} from "./vertexai/vertex-ai-gemini/vertex-ai-gemini.manifest";
+} from "./vertexai/gemini/vertex-ai-gemini.manifest";
 import {
   bedrockClaudeProviderManifest,
   BEDROCK_CLAUDE_FAMILY,
-} from "./bedrock/bedrockClaude/bedrock-claude.manifest";
+} from "./bedrock/claude/bedrock-claude.manifest";
 import {
   bedrockDeepseekProviderManifest,
   BEDROCK_DEEPSEEK_FAMILY,
-} from "./bedrock/bedrockDeepseek/bedrock-deepseek.manifest";
+} from "./bedrock/deepseek/bedrock-deepseek.manifest";
 import {
   bedrockLlamaProviderManifest,
   BEDROCK_LLAMA_FAMILY,
-} from "./bedrock/bedrockLlama/bedrock-llama.manifest";
+} from "./bedrock/llama/bedrock-llama.manifest";
 import {
   bedrockMistralProviderManifest,
   BEDROCK_MISTRAL_FAMILY,
-} from "./bedrock/bedrockMistral/bedrock-mistral.manifest";
+} from "./bedrock/mistral/bedrock-mistral.manifest";
 import {
   bedrockNovaProviderManifest,
   BEDROCK_NOVA_FAMILY,
-} from "./bedrock/bedrockNova/bedrock-nova.manifest";
+} from "./bedrock/nova/bedrock-nova.manifest";
 
 /**
  * Map of model family names to their provider manifests.

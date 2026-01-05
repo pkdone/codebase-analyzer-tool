@@ -1,7 +1,7 @@
 import {
   isBedrockLlamaProviderConfig,
   BedrockLlamaProviderConfigSchema,
-} from "../../../../../../src/common/llm/providers/bedrock/bedrockLlama/bedrock-llama.types";
+} from "../../../../../../src/common/llm/providers/bedrock/llama/bedrock-llama.types";
 import type { LLMProviderSpecificConfig } from "../../../../../../src/common/llm/providers/llm-provider.types";
 
 describe("bedrock-llama.types", () => {

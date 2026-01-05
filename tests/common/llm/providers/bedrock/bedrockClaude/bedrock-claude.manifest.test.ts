@@ -1,5 +1,5 @@
 import { calculateTokenUsageFromError } from "../../../../../../src/common/llm/utils/error-parser";
-import { bedrockClaudeProviderManifest } from "../../../../../../src/common/llm/providers/bedrock/bedrockClaude/bedrock-claude.manifest";
+import { bedrockClaudeProviderManifest } from "../../../../../../src/common/llm/providers/bedrock/claude/bedrock-claude.manifest";
 import {
   createBedrockMockEnv,
   createBedrockTestData,

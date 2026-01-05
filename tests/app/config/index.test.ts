@@ -2,7 +2,7 @@ import { databaseConfig } from "../../../src/app/components/database/database.co
 import {
   fileProcessingRules as fileProcessingConfig,
   getCanonicalFileType,
-} from "../../../src/app/domain/file-types";
+} from "../../../src/app/config/file-handling";
 import { outputConfig } from "../../../src/app/config/output.config";
 
 describe("individual config modules", () => {

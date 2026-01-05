@@ -22,8 +22,8 @@ jest.mock("../../../../src/common/utils/logging", () => ({
   logOneLineError: jest.fn(),
 }));
 
-jest.mock("../../../../src/app/domain/file-types", () => {
-  const actual = jest.requireActual("../../../../src/app/domain/file-types");
+jest.mock("../../../../src/app/config/file-handling", () => {
+  const actual = jest.requireActual("../../../../src/app/config/file-handling");
   return {
     ...actual,
     fileProcessingRules: {
@@ -31,7 +31,6 @@ jest.mock("../../../../src/app/domain/file-types", () => {
       FILENAME_PREFIX_IGNORE: "test-",
       FILENAME_IGNORE_LIST: ["package-lock.json"],
       BINARY_FILE_EXTENSION_IGNORE_LIST: ["jpg", "png", "pdf", "exe"],
-      MAX_CONCURRENCY: 3,
     },
   };
 });

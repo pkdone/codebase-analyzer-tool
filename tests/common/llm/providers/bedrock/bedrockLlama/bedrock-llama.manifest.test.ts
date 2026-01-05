@@ -1,5 +1,5 @@
 import { calculateTokenUsageFromError } from "../../../../../../src/common/llm/utils/error-parser";
-import { bedrockLlamaProviderManifest } from "../../../../../../src/common/llm/providers/bedrock/bedrockLlama/bedrock-llama.manifest";
+import { bedrockLlamaProviderManifest } from "../../../../../../src/common/llm/providers/bedrock/llama/bedrock-llama.manifest";
 
 // Test-only model constant for legacy 405B model testing
 const AWS_COMPLETIONS_LLAMA_V31_405B_INSTRUCT = "AWS_COMPLETIONS_LLAMA_V31_405B_INSTRUCT";

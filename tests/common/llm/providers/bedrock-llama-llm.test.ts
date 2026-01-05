@@ -11,7 +11,7 @@ describe("BedrockLlamaLLM", () => {
   beforeAll(() => {
     const filePath = path.join(
       __dirname,
-      "../../../../src/common/llm/providers/bedrock/bedrockLlama/bedrock-llama-llm.ts",
+      "../../../../src/common/llm/providers/bedrock/llama/bedrock-llama-llm.ts",
     );
     fileContent = fs.readFileSync(filePath, "utf-8");
   });

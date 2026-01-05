@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import BedrockClaudeLLM from "../../../../../../src/common/llm/providers/bedrock/bedrockClaude/bedrock-claude-llm";
+import BedrockClaudeLLM from "../../../../../../src/common/llm/providers/bedrock/claude/bedrock-claude-llm";
 import {
   ResolvedLLMModelMetadata,
   LLMPurpose,
@@ -14,7 +14,7 @@ import {
   AWS_COMPLETIONS_CLAUDE_OPUS_V45,
   AWS_COMPLETIONS_CLAUDE_SONNET_V45,
   bedrockClaudeProviderManifest,
-} from "../../../../../../src/common/llm/providers/bedrock/bedrockClaude/bedrock-claude.manifest";
+} from "../../../../../../src/common/llm/providers/bedrock/claude/bedrock-claude.manifest";
 import { createMockErrorLogger } from "../../../../helpers/llm/mock-error-logger";
 
 // Define model keys used in tests (matching the manifest internal constants)

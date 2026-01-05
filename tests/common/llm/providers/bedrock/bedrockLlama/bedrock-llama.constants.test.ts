@@ -4,7 +4,7 @@ import {
   LLAMA_HEADER_END_TOKEN,
   LLAMA_EOT_TOKEN,
   LLAMA_SYSTEM_MESSAGE,
-} from "../../../../../../src/common/llm/providers/bedrock/bedrockLlama/bedrock-llama.constants";
+} from "../../../../../../src/common/llm/providers/bedrock/llama/bedrock-llama.constants";
 
 describe("Bedrock Llama Constants", () => {
   describe("LLAMA_BEGIN_TOKEN", () => {

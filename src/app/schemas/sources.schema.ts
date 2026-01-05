@@ -16,7 +16,7 @@ import {
   normalizeEnumArray,
   DEFAULT_INVALID_VALUE,
 } from "../../common/schema/schema-utils";
-import { canonicalFileTypeSchema } from "../domain/file-types";
+import { canonicalFileTypeSchema } from "./canonical-file-types";
 
 /**
  * Schema for database integration information

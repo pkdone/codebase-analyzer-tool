@@ -6,11 +6,11 @@ import {
   createBedrockEnvSchema,
 } from "../../../../../../src/common/llm/providers/bedrock/common/bedrock-models.constants";
 import { LLMPurpose } from "../../../../../../src/common/llm/types/llm.types";
-import { BEDROCK_CLAUDE_FAMILY } from "../../../../../../src/common/llm/providers/bedrock/bedrockClaude/bedrock-claude.manifest";
-import { BEDROCK_LLAMA_FAMILY } from "../../../../../../src/common/llm/providers/bedrock/bedrockLlama/bedrock-llama.manifest";
-import { BEDROCK_MISTRAL_FAMILY } from "../../../../../../src/common/llm/providers/bedrock/bedrockMistral/bedrock-mistral.manifest";
-import { BEDROCK_NOVA_FAMILY } from "../../../../../../src/common/llm/providers/bedrock/bedrockNova/bedrock-nova.manifest";
-import { BEDROCK_DEEPSEEK_FAMILY } from "../../../../../../src/common/llm/providers/bedrock/bedrockDeepseek/bedrock-deepseek.manifest";
+import { BEDROCK_CLAUDE_FAMILY } from "../../../../../../src/common/llm/providers/bedrock/claude/bedrock-claude.manifest";
+import { BEDROCK_LLAMA_FAMILY } from "../../../../../../src/common/llm/providers/bedrock/llama/bedrock-llama.manifest";
+import { BEDROCK_MISTRAL_FAMILY } from "../../../../../../src/common/llm/providers/bedrock/mistral/bedrock-mistral.manifest";
+import { BEDROCK_NOVA_FAMILY } from "../../../../../../src/common/llm/providers/bedrock/nova/bedrock-nova.manifest";
+import { BEDROCK_DEEPSEEK_FAMILY } from "../../../../../../src/common/llm/providers/bedrock/deepseek/bedrock-deepseek.manifest";
 
 describe("bedrock-models.constants", () => {
   describe("environment variable name constants", () => {

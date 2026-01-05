@@ -1,6 +1,6 @@
 import { injectable, inject } from "tsyringe";
 import LLMRouter from "../../../../common/llm/llm-router";
-import { fileProcessingRules as fileProcessingConfig } from "../../../domain/file-types";
+import { fileProcessingRules as fileProcessingConfig } from "../../../config/file-handling";
 import { llmConcurrencyLimiter } from "../../../config/concurrency.config";
 import { logOneLineError } from "../../../../common/utils/logging";
 import type { AppSummariesRepository } from "../../../repositories/app-summaries/app-summaries.repository.interface";

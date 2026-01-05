@@ -1,7 +1,7 @@
 import path from "path";
 import os from "os";
 import { injectable } from "tsyringe";
-import { fileProcessingRules as fileProcessingConfig } from "../../../domain/file-types";
+import { fileProcessingRules as fileProcessingConfig } from "../../../config/file-handling";
 import { llmConcurrencyLimiter } from "../../../config/concurrency.config";
 import { outputConfig } from "../../../config/output.config";
 import { readFile, writeFile } from "../../../../common/fs/file-operations";

@@ -7,7 +7,7 @@ import type { EnvVars } from "../../../env/env.types";
 import type InsightsFromDBGenerator from "./db-insights-generator";
 import type InsightsFromRawCodeGenerator from "./raw-code-insights-generator";
 import { formatSourceFilesAsMarkdown } from "../../../utils/codebase-formatting";
-import { fileProcessingRules as fileProcessingConfig } from "../../../domain/file-types";
+import { fileProcessingRules as fileProcessingConfig } from "../../../config/file-handling";
 import { llmProviderConfig } from "../../../../common/llm/config/llm.config";
 
 /**

@@ -4,7 +4,7 @@ import { sourceSummarySchema } from "../../../../../src/app/schemas/sources.sche
 import {
   CANONICAL_FILE_TYPES,
   type CanonicalFileType,
-} from "../../../../../src/app/domain/file-types";
+} from "../../../../../src/app/schemas/canonical-file-types";
 
 /**
  * Tests for sourceConfigMap.responseSchema schemas.

@@ -1,4 +1,4 @@
-import { bedrockLlamaProviderManifest } from "../../../src/common/llm/providers/bedrock/bedrockLlama/bedrock-llama.manifest";
+import { bedrockLlamaProviderManifest } from "../../../src/common/llm/providers/bedrock/llama/bedrock-llama.manifest";
 
 describe("bedrockLlamaProviderManifest", () => {
   describe("providerSpecificConfig", () => {

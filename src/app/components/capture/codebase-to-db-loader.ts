@@ -1,7 +1,10 @@
 import { injectable, inject } from "tsyringe";
 import type LLMRouter from "../../../common/llm/llm-router";
 import path from "path";
-import { fileProcessingRules as fileProcessingConfig } from "../../domain/file-types";
+import {
+  fileProcessingRules as fileProcessingConfig,
+  getCanonicalFileType,
+} from "../../config/file-handling";
 import { llmConcurrencyLimiter } from "../../config/concurrency.config";
 import { readFile } from "../../../common/fs/file-operations";
 import { findFilesRecursively, sortFilesBySize } from "../../../common/fs/directory-operations";
@@ -9,7 +12,6 @@ import { getFileExtension } from "../../../common/fs/path-utils";
 import { countLines } from "../../../common/utils/text-utils";
 import { logOneLineError } from "../../../common/utils/logging";
 import { FileSummarizerService, type PartialSourceSummaryType } from "./file-summarizer.service";
-import { getCanonicalFileType } from "../../domain/file-types";
 import type { SourcesRepository } from "../../repositories/sources/sources.repository.interface";
 import type { SourceRecord } from "../../repositories/sources/sources.model";
 import { repositoryTokens, llmTokens, captureTokens } from "../../di/tokens";

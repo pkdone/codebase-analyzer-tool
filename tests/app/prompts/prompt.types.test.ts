@@ -7,7 +7,7 @@ import {
   CANONICAL_FILE_TYPES,
   canonicalFileTypeSchema,
   type CanonicalFileType,
-} from "../../../src/app/domain/file-types";
+} from "../../../src/app/schemas/canonical-file-types";
 import type { AppSummaryCategoryType } from "../../../src/app/components/insights/insights.types";
 import { z } from "zod";
 

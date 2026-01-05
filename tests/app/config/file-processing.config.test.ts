@@ -1,4 +1,4 @@
-import { fileProcessingRules as fileProcessingConfig } from "../../../src/app/domain/file-types";
+import { fileProcessingRules as fileProcessingConfig } from "../../../src/app/config/file-handling";
 import { concurrencyConfig } from "../../../src/app/config/concurrency.config";
 
 describe("file-processing.config", () => {

@@ -2,7 +2,7 @@ import {
   VERTEXAI_API_ENDPOINT,
   VERTEXAI_TERMINAL_FINISH_REASONS,
   VERTEXAI_GLOBAL_LOCATION,
-} from "../../../../../src/common/llm/providers/vertexai/vertex-ai-gemini/vertex-ai-gemini.constants";
+} from "../../../../../src/common/llm/providers/vertexai/gemini/vertex-ai-gemini.constants";
 import { FinishReason } from "@google-cloud/vertexai";
 
 describe("Vertex AI Gemini Constants", () => {

@@ -1,8 +1,8 @@
-import BedrockLlamaLLM from "../../../../../../src/common/llm/providers/bedrock/bedrockLlama/bedrock-llama-llm";
+import BedrockLlamaLLM from "../../../../../../src/common/llm/providers/bedrock/llama/bedrock-llama-llm";
 import {
   bedrockLlamaProviderManifest,
   BedrockLlamaProviderConfigSchema,
-} from "../../../../../../src/common/llm/providers/bedrock/bedrockLlama/bedrock-llama.manifest";
+} from "../../../../../../src/common/llm/providers/bedrock/llama/bedrock-llama.manifest";
 import { z } from "zod";
 import {
   createBedrockProviderInit,

@@ -4,7 +4,7 @@ import {
   SourceConfigEntry,
   type SourceConfigMap,
 } from "../../../../../src/app/prompts/definitions/sources/sources.definitions";
-import { CANONICAL_FILE_TYPES } from "../../../../../src/app/domain/file-types";
+import { CANONICAL_FILE_TYPES } from "../../../../../src/app/schemas/canonical-file-types";
 
 /**
  * Type safety tests for sourceConfigMap.

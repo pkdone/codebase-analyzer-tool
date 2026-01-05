@@ -297,6 +297,12 @@ function removeInvalidPrefixesInternal(jsonString: string, diagnostics: string[]
  *
  * This must run BEFORE delimiter mismatch detection, as that would otherwise
  * corrupt the structure by incorrectly "fixing" the delimiters.
+ *
+ * IMPORTANT: This function must correctly distinguish between:
+ * - Array element objects: `[{ ... }, { ... }]` - where `}` closes an array element
+ * - Nested object properties: `{ "prop": { ... }, "other": ... }` - where `}` closes a nested object
+ *
+ * Only array element objects that are missing their array's closing `]` should be fixed.
  */
 function fixUnclosedArraysBeforePropertiesInternal(
   jsonString: string,
@@ -320,15 +326,19 @@ function fixUnclosedArraysBeforePropertiesInternal(
       const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
 
       // Check if we're in an array context by scanning backwards
+      // We need to track BOTH bracket depth AND brace depth to correctly identify
+      // whether the closing brace is for an array element or a nested object property
       const beforeMatch = sanitized.substring(
         Math.max(0, offset - parsingHeuristics.CONTEXT_LOOKBACK_LENGTH),
         offset,
       );
 
       let bracketDepth = 0;
+      let braceDepth = 0; // Track brace depth to identify nested objects
       let inString = false;
       let escape = false;
       let foundUnclosedArray = false;
+      let foundMatchingOpenBrace = false;
 
       for (let i = beforeMatch.length - 1; i >= 0; i--) {
         const char = beforeMatch[i];
@@ -349,10 +359,41 @@ function fixUnclosedArraysBeforePropertiesInternal(
             bracketDepth++;
           } else if (char === "[") {
             bracketDepth--;
-            if (bracketDepth < 0) {
-              // Found an unclosed array
+            // Only consider this an unclosed array if:
+            // 1. We've already found the matching opening brace for our closing brace
+            // 2. The bracket depth is negative (unclosed bracket)
+            if (foundMatchingOpenBrace && bracketDepth < 0) {
               foundUnclosedArray = true;
               break;
+            }
+          } else if (char === "}") {
+            braceDepth++;
+          } else if (char === "{") {
+            braceDepth--;
+            if (braceDepth < 0 && !foundMatchingOpenBrace) {
+              // Found the opening brace that matches our closing brace
+              foundMatchingOpenBrace = true;
+              // Now check if this opening brace is directly preceded by `[`
+              // (meaning we're in an array element context)
+              // Look backwards, skipping whitespace
+              let j = i - 1;
+              while (j >= 0 && /\s/.test(beforeMatch[j])) {
+                j--;
+              }
+              if (j >= 0 && beforeMatch[j] === "[") {
+                // The object we're closing is directly inside an array
+                // Check if there's already a `]` at the right position
+                // (we need to check if the array is unclosed)
+                foundUnclosedArray = true;
+                break;
+              }
+              // If the character before the opening brace is `:`, this is a nested object
+              // property (like `"repository": { ... }`), not an array element
+              if (j >= 0 && beforeMatch[j] === ":") {
+                // This is a nested object property, not an array element
+                // Don't add a closing bracket
+                break;
+              }
             }
           }
         }

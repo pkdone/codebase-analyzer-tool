@@ -5,7 +5,7 @@ import type LLMRouter from "../../../common/llm/llm-router";
 import { LLMOutputFormat } from "../../../common/llm/types/llm.types";
 import { renderPrompt } from "../../prompts/prompt-renderer";
 import { sourceSummarySchema } from "../../schemas/sources.schema";
-import { getCanonicalFileType } from "../../domain/file-types";
+import { getCanonicalFileType } from "../../config/file-handling";
 import { getLlmArtifactCorrections } from "../../config/llm-artifact-corrections";
 import { llmTokens, captureTokens } from "../../di/tokens";
 import type { PromptManager } from "../../prompts/prompt-registry";

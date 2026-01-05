@@ -1,7 +1,7 @@
 import {
   isBedrockClaudeProviderConfig,
   BedrockClaudeProviderConfigSchema,
-} from "../../../../../../src/common/llm/providers/bedrock/bedrockClaude/bedrock-claude.types";
+} from "../../../../../../src/common/llm/providers/bedrock/claude/bedrock-claude.types";
 import type { LLMProviderSpecificConfig } from "../../../../../../src/common/llm/providers/llm-provider.types";
 
 describe("bedrock-claude.types", () => {

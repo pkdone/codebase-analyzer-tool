@@ -1,9 +1,9 @@
 import BaseBedrockLLM from "../../../../../src/common/llm/providers/bedrock/common/base-bedrock-llm";
-import BedrockDeepseekLLM from "../../../../../src/common/llm/providers/bedrock/bedrockDeepseek/bedrock-deepseek-llm";
-import BedrockMistralLLM from "../../../../../src/common/llm/providers/bedrock/bedrockMistral/bedrock-mistral-llm";
-import BedrockClaudeLLM from "../../../../../src/common/llm/providers/bedrock/bedrockClaude/bedrock-claude-llm";
-import BedrockLlamaLLM from "../../../../../src/common/llm/providers/bedrock/bedrockLlama/bedrock-llama-llm";
-import BedrockNovaLLM from "../../../../../src/common/llm/providers/bedrock/bedrockNova/bedrock-nova-llm";
+import BedrockDeepseekLLM from "../../../../../src/common/llm/providers/bedrock/deepseek/bedrock-deepseek-llm";
+import BedrockMistralLLM from "../../../../../src/common/llm/providers/bedrock/mistral/bedrock-mistral-llm";
+import BedrockClaudeLLM from "../../../../../src/common/llm/providers/bedrock/claude/bedrock-claude-llm";
+import BedrockLlamaLLM from "../../../../../src/common/llm/providers/bedrock/llama/bedrock-llama-llm";
+import BedrockNovaLLM from "../../../../../src/common/llm/providers/bedrock/nova/bedrock-nova-llm";
 import type { ProviderInit } from "../../../../../src/common/llm/providers/llm-provider.types";
 import { LLMPurpose } from "../../../../../src/common/llm/types/llm.types";
 import type { IErrorLogger } from "../../../../../src/common/llm/tracking/llm-error-logger.interface";

@@ -1,9 +1,9 @@
-import BedrockLlamaLLM from "../../../../../src/common/llm/providers/bedrock/bedrockLlama/bedrock-llama-llm";
+import BedrockLlamaLLM from "../../../../../src/common/llm/providers/bedrock/llama/bedrock-llama-llm";
 import type {
   ProviderInit,
   LLMProviderSpecificConfig,
 } from "../../../../../src/common/llm/providers/llm-provider.types";
-import type { BedrockLlamaProviderConfig } from "../../../../../src/common/llm/providers/bedrock/bedrockLlama/bedrock-llama.types";
+import type { BedrockLlamaProviderConfig } from "../../../../../src/common/llm/providers/bedrock/llama/bedrock-llama.types";
 import { LLMPurpose } from "../../../../../src/common/llm/types/llm.types";
 import type { IErrorLogger } from "../../../../../src/common/llm/tracking/llm-error-logger.interface";
 import { z } from "zod";

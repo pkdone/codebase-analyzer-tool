@@ -94,6 +94,122 @@ describe("fixJsonStructureAndNoise", () => {
     });
   });
 
+  describe("should correctly handle nested objects vs array elements", () => {
+    it("should NOT add closing bracket after nested object properties like repository", () => {
+      // This test ensures we don't incorrectly add `]` after `},` when the `}` is closing
+      // a nested object property (like `repository`) rather than an array element
+      const input = `{
+  "aggregates": [
+    {
+      "name": "Hook",
+      "description": "The Hook aggregate manages webhook configurations.",
+      "repository": {
+        "name": "HookRepository",
+        "description": "Provides persistence operations for Hook entities."
+      },
+      "entities": [
+        {
+          "name": "Hook",
+          "description": "Represents a webhook configuration."
+        }
+      ]
+    }
+  ]
+}`;
+
+      const result = fixJsonStructureAndNoise(input);
+
+      // The input is valid JSON - should NOT be changed
+      expect(result.changed).toBe(false);
+      // Verify the JSON is still valid
+      const parsed = JSON.parse(result.content);
+      expect(parsed.aggregates[0].name).toBe("Hook");
+      expect(parsed.aggregates[0].repository.name).toBe("HookRepository");
+      expect(parsed.aggregates[0].entities[0].name).toBe("Hook");
+    });
+
+    it("should NOT corrupt JSON with multiple nested objects in array elements", () => {
+      // Complex nested structure that was being corrupted by the old logic
+      const input = `{
+  "boundedContexts": [
+    {
+      "name": "UserManagement",
+      "aggregates": [
+        {
+          "name": "User",
+          "repository": {
+            "name": "UserRepository",
+            "description": "Manages user data."
+          },
+          "entities": [
+            {
+              "name": "User",
+              "description": "User entity."
+            }
+          ]
+        },
+        {
+          "name": "Role",
+          "repository": {
+            "name": "RoleRepository",
+            "description": "Manages role data."
+          },
+          "entities": [
+            {
+              "name": "Role",
+              "description": "Role entity."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}`;
+
+      const result = fixJsonStructureAndNoise(input);
+
+      // Should NOT change valid JSON
+      expect(result.changed).toBe(false);
+      // Verify the JSON is still valid and complete
+      const parsed = JSON.parse(result.content);
+      expect(parsed.boundedContexts[0].aggregates).toHaveLength(2);
+      expect(parsed.boundedContexts[0].aggregates[0].repository.name).toBe("UserRepository");
+      expect(parsed.boundedContexts[0].aggregates[1].repository.name).toBe("RoleRepository");
+    });
+
+    it("should handle markdown code fences with nested objects correctly", () => {
+      // This simulates the actual error case from the log file
+      const input = `\`\`\`json
+{
+  "aggregates": [
+    {
+      "name": "Hook",
+      "repository": {
+        "name": "HookRepository"
+      },
+      "entities": [
+        {
+          "name": "Hook"
+        }
+      ]
+    }
+  ]
+}
+\`\`\``;
+
+      const result = fixJsonStructureAndNoise(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.diagnostics).toContain("Removed markdown code fences");
+      // Should NOT contain "Fixed unclosed array" since there's no unclosed array
+      expect(result.diagnostics).not.toContain("Fixed unclosed array before property name");
+      // Verify the JSON is valid
+      const parsed = JSON.parse(result.content);
+      expect(parsed.aggregates[0].repository.name).toBe("HookRepository");
+      expect(parsed.aggregates[0].entities[0].name).toBe("Hook");
+    });
+  });
+
   describe("should fix missing opening brace for array elements", () => {
     it("should fix missing opening brace and leading underscore before property", () => {
       const input = `{

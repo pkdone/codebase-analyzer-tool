@@ -1,5 +1,5 @@
 import path from "node:path";
-import type { CanonicalFileType } from "./canonical-file-types";
+import type { CanonicalFileType } from "../../schemas/canonical-file-types";
 
 /**
  * Map of exact filename matches to canonical file types.

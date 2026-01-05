@@ -1,4 +1,4 @@
-import type { CanonicalFileType } from "../../../domain/file-types";
+import type { CanonicalFileType } from "../../../schemas/canonical-file-types";
 import {
   standardCodeDefinitions,
   dependencyFileDefinitions,

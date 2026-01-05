@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import BedrockDeepseekLLM from "../../../../../../src/common/llm/providers/bedrock/bedrockDeepseek/bedrock-deepseek-llm";
+import BedrockDeepseekLLM from "../../../../../../src/common/llm/providers/bedrock/deepseek/bedrock-deepseek-llm";
 import { createMockErrorLogger } from "../../../../helpers/llm/mock-error-logger";
 import {
   ResolvedLLMModelMetadata,
@@ -11,7 +11,7 @@ import {
   ProviderInit,
 } from "../../../../../../src/common/llm/providers/llm-provider.types";
 import { llmConfig } from "../../../../../../src/common/llm/config/llm.config";
-import { bedrockDeepseekProviderManifest } from "../../../../../../src/common/llm/providers/bedrock/bedrockDeepseek/bedrock-deepseek.manifest";
+import { bedrockDeepseekProviderManifest } from "../../../../../../src/common/llm/providers/bedrock/deepseek/bedrock-deepseek.manifest";
 
 // Define model key used in tests (matching the manifest internal constant)
 const AWS_COMPLETIONS_DEEPSEEK_R1 = "AWS_COMPLETIONS_DEEPSEEK_R1";

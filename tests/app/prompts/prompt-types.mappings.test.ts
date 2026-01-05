@@ -1,4 +1,4 @@
-import { CANONICAL_FILE_TYPES } from "../../../src/app/domain/file-types";
+import { CANONICAL_FILE_TYPES } from "../../../src/app/schemas/canonical-file-types";
 
 describe("prompt.types individual exports", () => {
   describe("CANONICAL_FILE_TYPES", () => {

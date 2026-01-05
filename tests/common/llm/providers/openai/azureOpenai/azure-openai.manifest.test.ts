@@ -3,7 +3,7 @@ import {
   ResolvedLLMModelMetadata,
 } from "../../../../../../src/common/llm/types/llm.types";
 import { calculateTokenUsageFromError } from "../../../../../../src/common/llm/utils/error-parser";
-import { azureOpenAIProviderManifest } from "../../../../../../src/common/llm/providers/openai/azureOpenai/azure-openai.manifest";
+import { azureOpenAIProviderManifest } from "../../../../../../src/common/llm/providers/openai/azure/azure-openai.manifest";
 import { loadBaseEnvVarsOnly } from "../../../../../../src/app/env/env";
 import { createMockErrorLogger } from "../../../../helpers/llm/mock-error-logger";
 import type { ProviderInit } from "../../../../../../src/common/llm/providers/llm-provider.types";

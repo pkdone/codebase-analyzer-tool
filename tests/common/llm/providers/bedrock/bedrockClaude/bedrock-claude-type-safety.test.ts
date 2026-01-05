@@ -1,8 +1,8 @@
-import BedrockClaudeLLM from "../../../../../../src/common/llm/providers/bedrock/bedrockClaude/bedrock-claude-llm";
+import BedrockClaudeLLM from "../../../../../../src/common/llm/providers/bedrock/claude/bedrock-claude-llm";
 import {
   bedrockClaudeProviderManifest,
   AWS_COMPLETIONS_CLAUDE_OPUS_V45,
-} from "../../../../../../src/common/llm/providers/bedrock/bedrockClaude/bedrock-claude.manifest";
+} from "../../../../../../src/common/llm/providers/bedrock/claude/bedrock-claude.manifest";
 import {
   createBedrockMockEnv,
   createBedrockProviderInit,
