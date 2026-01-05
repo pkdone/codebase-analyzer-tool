@@ -183,18 +183,6 @@ export default abstract class BaseLLMProvider implements LLMProvider {
   }
 
   /**
-   * Used for debugging purposes - prints the error type and message to the console. Set to
-   * protected to avoid lint errors saying it is unused.
-   */
-  protected debugUnhandledError(error: unknown, modelKey: string) {
-    if (error instanceof Error) {
-      console.log(
-        `${error.constructor.name}: ${formatError(error)} - LLM: ${this.llmModelsMetadata[modelKey].urn}`,
-      );
-    }
-  }
-
-  /**
    * Executes the LLM function for the given model key and task type.
    * Type safety is enforced through generic schema type propagation.
    * Generic over the schema type S directly to simplify type inference.
@@ -399,6 +387,26 @@ export default abstract class BaseLLMProvider implements LLMProvider {
         context,
       );
       return { ...skeletonResult, status: LLMResponseStatus.INVALID };
+    }
+  }
+
+  /**
+   * Used for debugging purposes - prints the error type and message to the console.
+   */
+  private debugUnhandledError(error: unknown, modelKey: string) {
+    const urn = this.llmModelsMetadata[modelKey].urn;
+    const details = formatError(error);
+
+    if (error instanceof Error) {
+      const errorName = error.name;
+      const constructorName = error.constructor.name;
+
+      console.log(
+        `[DEBUG] Error Name: ${errorName}, Constructor: ${constructorName}, ` +
+          `Details: ${details}, URN: ${urn}`,
+      );
+    } else {
+      console.log(`[DEBUG] Non-Error type: ${typeof error}, Details: ${details}, URN: ${urn}`);
     }
   }
 
