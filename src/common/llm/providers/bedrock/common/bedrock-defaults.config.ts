@@ -6,9 +6,9 @@ import type { LLMProviderSpecificConfig } from "../../llm-provider.types";
 
 /**
  * Default request timeout for Bedrock API calls
- * Set to 8 minutes to accommodate long-running inference requests
+ * Set to large amount of minutes to accommodate long-running inference requests
  */
-const DEFAULT_BEDROCK_REQUEST_TIMEOUT_MILLIS = 8 * 60 * 1000;
+const DEFAULT_BEDROCK_REQUEST_TIMEOUT_MILLIS = 15 * 60 * 1000;
 
 /**
  * Default retry configuration for Bedrock API calls
