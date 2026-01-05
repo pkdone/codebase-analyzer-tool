@@ -12,12 +12,13 @@ import { isInStringAt } from "../utils/parser-context-utils";
  * Consolidated structural sanitizer that handles high-level structural issues and noise.
  *
  * This sanitizer combines the functionality of multiple noise removal sanitizers:
- * 1. trimWhitespace: Remove leading/trailing whitespace
- * 2. removeCodeFences: Strip markdown code fences (```json)
- * 3. removeInvalidPrefixes: Remove invalid prefixes and stray text
- * 4. removeTruncationMarkers: Remove truncation markers (e.g., ...)
- * 5. extractLargestJsonSpan: Isolate the main JSON structure from surrounding text
- * 6. collapseDuplicateJsonObject: Fix cases where LLMs repeat the entire JSON object
+ * - trimWhitespace: Remove leading/trailing whitespace
+ * - removeCodeFences: Strip markdown code fences (```json)
+ * - removeInvalidPrefixes: Remove invalid prefixes and stray text
+ * - fixUnclosedArrays: Fix arrays missing closing brackets before sibling properties
+ * - extractLargestJsonSpan: Isolate the main JSON structure from surrounding text
+ * - collapseDuplicateJsonObject: Fix cases where LLMs repeat the entire JSON object
+ * - removeTruncationMarkers: Remove truncation markers (e.g., ...)
  *
  * ## Purpose
  * LLMs often include noise, formatting artifacts, and structural issues in their JSON responses.
@@ -25,12 +26,13 @@ import { isInStringAt } from "../utils/parser-context-utils";
  *
  * ## Implementation Order
  * The sanitizers are applied in this order for optimal results:
- * 1. Trim whitespace (removes leading/trailing noise)
- * 2. Remove code fences (removes markdown formatting)
- * 3. Remove invalid prefixes (removes introductory text)
- * 4. Extract largest JSON span (isolates JSON from surrounding text)
- * 5. Collapse duplicate objects (fixes repeated content)
- * 6. Remove truncation markers (removes truncation indicators)
+ * - Trim whitespace (removes leading/trailing noise)
+ * - Remove code fences (removes markdown formatting)
+ * - Remove invalid prefixes (removes introductory text)
+ * - Fix unclosed arrays (must run before delimiter mismatch detection)
+ * - Extract largest JSON span (isolates JSON from surrounding text)
+ * - Collapse duplicate objects (fixes repeated content)
+ * - Remove truncation markers (removes truncation indicators)
  *
  * @param input - The raw string content to sanitize
  * @returns Sanitizer result with structural fixes applied
@@ -45,7 +47,7 @@ export const fixJsonStructureAndNoise: Sanitizer = (input: string): SanitizerRes
     let hasChanges = false;
     const diagnostics: string[] = [];
 
-    // Step 1: Trim whitespace
+    // Trim whitespace
     const trimmed = sanitized.trim();
     if (trimmed !== sanitized) {
       sanitized = trimmed;
@@ -53,7 +55,7 @@ export const fixJsonStructureAndNoise: Sanitizer = (input: string): SanitizerRes
       diagnostics.push("Trimmed leading/trailing whitespace");
     }
 
-    // Step 2: Remove code fences
+    // Remove code fences
     if (sanitized.includes(CODE_FENCE_MARKERS.GENERIC)) {
       const beforeFences = sanitized;
       for (const regex of CODE_FENCE_REGEXES) {
@@ -65,14 +67,23 @@ export const fixJsonStructureAndNoise: Sanitizer = (input: string): SanitizerRes
       }
     }
 
-    // Step 3: Remove invalid prefixes (introductory text, stray prefixes, etc.)
+    // Remove invalid prefixes (introductory text, stray prefixes, etc.)
     const beforePrefixes = sanitized;
     sanitized = removeInvalidPrefixesInternal(sanitized, diagnostics);
     if (sanitized !== beforePrefixes) {
       hasChanges = true;
     }
 
-    // Step 4: Extract largest JSON span
+    // Fix unclosed arrays before property names
+    // This MUST run before delimiter mismatch detection (in fixJsonSyntax)
+    // to prevent incorrect delimiter corrections that corrupt the structure
+    const beforeUnclosedArrays = sanitized;
+    sanitized = fixUnclosedArraysBeforePropertiesInternal(sanitized, diagnostics);
+    if (sanitized !== beforeUnclosedArrays) {
+      hasChanges = true;
+    }
+
+    // Extract largest JSON span
     const beforeExtract = sanitized;
     sanitized = extractLargestJsonSpanInternal(sanitized);
     if (sanitized !== beforeExtract) {
@@ -80,7 +91,7 @@ export const fixJsonStructureAndNoise: Sanitizer = (input: string): SanitizerRes
       diagnostics.push("Extracted largest JSON span from surrounding text");
     }
 
-    // Step 5: Collapse duplicate JSON objects
+    // Collapse duplicate JSON objects
     const beforeCollapse = sanitized;
     sanitized = collapseDuplicateJsonObjectInternal(sanitized);
     if (sanitized !== beforeCollapse) {
@@ -88,7 +99,7 @@ export const fixJsonStructureAndNoise: Sanitizer = (input: string): SanitizerRes
       diagnostics.push("Collapsed duplicate JSON object");
     }
 
-    // Step 6: Remove truncation markers
+    // Remove truncation markers
     const beforeTruncation = sanitized;
     sanitized = removeTruncationMarkersInternal(sanitized, diagnostics);
     if (sanitized !== beforeTruncation) {
@@ -270,6 +281,92 @@ function removeInvalidPrefixesInternal(jsonString: string, diagnostics: string[]
       }
 
       return match;
+    },
+  );
+
+  return sanitized;
+}
+
+/**
+ * Internal helper to fix unclosed arrays before property names.
+ * This pattern occurs when the LLM forgets to close an array with `]` before
+ * the next sibling property.
+ *
+ * Pattern: `},\n  "propertyName":` when inside an array that's not closed
+ * Should be: `}],\n  "propertyName":`
+ *
+ * This must run BEFORE delimiter mismatch detection, as that would otherwise
+ * corrupt the structure by incorrectly "fixing" the delimiters.
+ */
+function fixUnclosedArraysBeforePropertiesInternal(
+  jsonString: string,
+  diagnostics: string[],
+): string {
+  let sanitized = jsonString;
+
+  // Pattern: closing brace, comma, newline + whitespace, then a property name with colon
+  // This indicates an unclosed array if we're inside an array context
+  const unclosedArrayPattern = /(\})\s*,\s*\n(\s*)("[a-zA-Z_$][a-zA-Z0-9_$]*"\s*:)/g;
+
+  sanitized = sanitized.replace(
+    unclosedArrayPattern,
+    (match, closingBrace, whitespace, propertyName, offset: number) => {
+      if (isInStringAt(offset, sanitized)) {
+        return match;
+      }
+
+      const closingBraceStr = typeof closingBrace === "string" ? closingBrace : "";
+      const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
+      const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
+
+      // Check if we're in an array context by scanning backwards
+      const beforeMatch = sanitized.substring(
+        Math.max(0, offset - parsingHeuristics.CONTEXT_LOOKBACK_LENGTH),
+        offset,
+      );
+
+      let bracketDepth = 0;
+      let inString = false;
+      let escape = false;
+      let foundUnclosedArray = false;
+
+      for (let i = beforeMatch.length - 1; i >= 0; i--) {
+        const char = beforeMatch[i];
+        if (escape) {
+          escape = false;
+          continue;
+        }
+        if (char === "\\") {
+          escape = true;
+          continue;
+        }
+        if (char === '"') {
+          inString = !inString;
+          continue;
+        }
+        if (!inString) {
+          if (char === "]") {
+            bracketDepth++;
+          } else if (char === "[") {
+            bracketDepth--;
+            if (bracketDepth < 0) {
+              // Found an unclosed array
+              foundUnclosedArray = true;
+              break;
+            }
+          }
+        }
+      }
+
+      if (!foundUnclosedArray) {
+        return match;
+      }
+
+      if (diagnostics.length < 10) {
+        diagnostics.push("Fixed unclosed array before property name");
+      }
+
+      return `${closingBraceStr}],\n${whitespaceStr}${propertyNameStr}`;
     },
   );
 

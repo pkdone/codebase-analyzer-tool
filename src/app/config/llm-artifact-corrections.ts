@@ -130,4 +130,3 @@ export function getLlmArtifactCorrections(): LLMSanitizerConfig {
     packageNameTypoPatterns: [...PACKAGE_NAME_TYPO_PATTERNS],
   };
 }
-
