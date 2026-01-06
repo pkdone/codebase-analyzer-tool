@@ -197,7 +197,7 @@ export default abstract class BaseLLMProvider implements LLMProvider {
     request: string,
     context: LLMContext,
     completionOptions?: LLMCompletionOptions<S>,
-    doDeburErrorLogging = true,
+    doDeburErrorLogging = false,
   ): Promise<LLMFunctionResponse<z.infer<S>>> {
     const skeletonResponse: Omit<LLMFunctionResponse, "generated" | "status" | "mutationSteps"> = {
       request,

@@ -47,9 +47,9 @@ export const bedrockClaudeProviderManifest = createBedrockManifest(
     temperature: llmConfig.DEFAULT_ZERO_TEMP,
     topP: llmConfig.DEFAULT_TOP_P_LOWEST,
     topK: llmConfig.DEFAULT_TOP_K_LOWEST,
-    maxRetryAttempts: 6,
-    minRetryDelayMillis: 40 * 1000,
-    maxRetryDelayMillis: 360 * 1000,
+    maxRetryAttempts: 3,
+    minRetryDelayMillis: 30 * 1000,
+    maxRetryDelayMillis: 200 * 1000,
     requestTimeoutMillis: 60 * 60 * 1000, // For Claude OPUS longer inference times
     // Anthropic beta flags for specific features (e.g., extended context window)
     anthropicBetaFlags: ["context-1m-2025-08-07"] as const,
