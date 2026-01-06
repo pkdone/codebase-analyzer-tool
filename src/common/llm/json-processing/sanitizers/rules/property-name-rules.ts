@@ -86,8 +86,8 @@ export const PROPERTY_NAME_RULES: readonly ReplacementRule[] = [
       if (/^_[A-Z0-9_]+$/.test(propertyNameStr)) {
         return null;
       }
-      // Skip Pattern 68 cases: in array context with `: "value",` pattern
-      // These are handled by missingQuoteBeforePropertyValueInArray
+      // Skip cases in array context with `: "value",` pattern
+      // (handled by missingQuoteBeforePropertyValueInArray)
       const { fullContent, offset } = context;
       const afterMatch = fullContent.substring(
         offset + (typeof _match === "string" ? _match.length : 0),
@@ -262,8 +262,8 @@ export const PROPERTY_NAME_RULES: readonly ReplacementRule[] = [
       const propertyNameStr = propertyName ?? "";
       const valueStr = value ?? "";
 
-      // Skip Pattern 68 cases: DIRECTLY in array context with string value
-      // These are handled by missingQuoteBeforePropertyValueInArray
+      // Skip cases directly in array context with string value
+      // (handled by missingQuoteBeforePropertyValueInArray)
       if (/^"[^"]+"$/.test(valueStr.trim())) {
         const { fullContent, offset } = context;
         // Check what comes after this match - if comma, it's likely an array element

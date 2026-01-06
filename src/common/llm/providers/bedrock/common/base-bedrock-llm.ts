@@ -82,13 +82,14 @@ export default abstract class BaseBedrockLLM extends BaseLLMProvider {
   /**
    * Call close on underlying LLM client library to release resources.
    */
-  // eslint-disable-next-line @typescript-eslint/require-await
-  override async close() {
+  override async close(): Promise<void> {
     try {
       this.client.destroy();
     } catch (error: unknown) {
       logOneLineError("Error when calling destroy on AWSBedrock LLM", error);
     }
+    // Implementation of async interface - destroy() is synchronous but base class requires Promise
+    await Promise.resolve();
   }
 
   /**

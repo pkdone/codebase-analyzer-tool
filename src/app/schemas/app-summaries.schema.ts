@@ -2,9 +2,9 @@ import { z } from "zod";
 import { createNameDescSchema } from "./schema-factories";
 
 /**
- * Zod schema for application summary categories
- * This is used to validate the category names in app summaries
- * Note: aggregates, entities, and repositories are now nested within boundedContexts
+ * Zod schema for application summary categories.
+ * This is used to validate the category names in app summaries.
+ * Note: aggregates, entities, and repositories are nested within boundedContexts.
  */
 export const AppSummaryCategories = z.enum([
   "appDescription",
@@ -338,8 +338,8 @@ export const inferredArchitectureSchema = z
   .passthrough();
 
 /**
- * Schema for full application summary of categories
- * Note: aggregates, entities, and repositories are now nested within boundedContexts
+ * Schema for full application summary of categories.
+ * Note: aggregates, entities, and repositories are nested within boundedContexts.
  */
 export const appSummarySchema = z
   .object({

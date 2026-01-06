@@ -164,8 +164,9 @@ export default abstract class BaseOpenAILLM extends BaseLLMProvider {
     }
 
     // Capture response content
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    const responseContent = llmResponse?.message?.content; // Using extra condition checking in case Open AI types say these should exists, but they don't happen to at runtime
+    // llmResponse is verified to exist above, so we access message directly.
+    // message.content may be null according to OpenAI types when no content is returned.
+    const responseContent = llmResponse.message.content;
 
     // Capture finish reason
     const finishReason = llmResponse.finish_reason;

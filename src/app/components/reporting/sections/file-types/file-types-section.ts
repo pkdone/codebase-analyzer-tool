@@ -33,19 +33,6 @@ export class FileTypesSection implements ReportSection {
     return { fileTypesData };
   }
 
-  /**
-   * Process file types data to show placeholder for empty file types.
-   */
-  private processFileTypesData(
-    fileTypesData: ReportData["fileTypesData"],
-  ): ReportData["fileTypesData"] {
-    return fileTypesData.map((item) => ({
-      ...item,
-      fileType: item.fileType || UNKNOWN_VALUE_PLACEHOLDER,
-    }));
-  }
-
-  // eslint-disable-next-line @typescript-eslint/member-ordering, @typescript-eslint/require-await
   async prepareHtmlData(
     _baseData: ReportData,
     sectionData: Partial<ReportData>,
@@ -61,17 +48,17 @@ export class FileTypesSection implements ReportSection {
       [htmlReportConstants.columnHeaders.LINES_COUNT]: item.lines,
     }));
 
-    // Calculate pie chart data (moved from EJS template)
+    // Calculate pie chart data
     const pieChartData = calculatePieChartData(processedFileTypesData);
 
-    return {
+    // Implementation of async interface - computation is synchronous but interface requires Promise
+    return await Promise.resolve({
       fileTypesData: processedFileTypesData,
       pieChartData,
       fileTypesTableViewModel: new TableViewModel(fileTypesDisplayData),
-    };
+    });
   }
 
-  // eslint-disable-next-line @typescript-eslint/member-ordering
   prepareJsonData(_baseData: ReportData, sectionData: Partial<ReportData>): PreparedJsonData[] {
     const fileTypesData = sectionData.fileTypesData ?? [];
 
@@ -81,5 +68,17 @@ export class FileTypesSection implements ReportSection {
         data: fileTypesData,
       },
     ];
+  }
+
+  /**
+   * Process file types data to show placeholder for empty file types.
+   */
+  private processFileTypesData(
+    fileTypesData: ReportData["fileTypesData"],
+  ): ReportData["fileTypesData"] {
+    return fileTypesData.map((item) => ({
+      ...item,
+      fileType: item.fileType || UNKNOWN_VALUE_PLACEHOLDER,
+    }));
   }
 }

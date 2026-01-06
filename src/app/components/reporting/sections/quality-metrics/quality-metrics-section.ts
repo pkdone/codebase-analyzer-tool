@@ -56,7 +56,6 @@ export class QualityMetricsSection implements ReportSection {
     };
   }
 
-  // eslint-disable-next-line @typescript-eslint/require-await
   async prepareHtmlData(
     _baseData: ReportData,
     sectionData: Partial<ReportData>,
@@ -71,7 +70,7 @@ export class QualityMetricsSection implements ReportSection {
     } = sectionData;
 
     if (!billOfMaterials) {
-      return null;
+      return await Promise.resolve(null);
     }
 
     // Calculate BOM statistics
@@ -100,7 +99,8 @@ export class QualityMetricsSection implements ReportSection {
         }
       : null;
 
-    return {
+    // Implementation of async interface - computation is synchronous but interface requires Promise
+    return await Promise.resolve({
       billOfMaterials,
       bomStatistics,
       codeQualitySummary: codeQualitySummary ?? null,
@@ -109,7 +109,7 @@ export class QualityMetricsSection implements ReportSection {
       moduleCoupling: moduleCoupling ?? null,
       couplingStatistics,
       uiTechnologyAnalysis: uiTechnologyAnalysis ?? null,
-    };
+    });
   }
 
   prepareJsonData(_baseData: ReportData, sectionData: Partial<ReportData>): PreparedJsonData[] {

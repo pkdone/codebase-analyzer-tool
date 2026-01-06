@@ -2,12 +2,14 @@ import {
   createDependencyConfig,
   createSimpleConfig,
   createBasicInfoBlock,
+  type SourceSummaryField,
 } from "../../../../../../src/app/prompts/definitions/sources/definitions/shared-utilities";
 import {
   INSTRUCTION_SECTION_TITLES,
   buildInstructionBlock,
 } from "../../../../../../src/app/prompts/definitions/instruction-utils";
 import { SOURCES_PROMPT_FRAGMENTS } from "../../../../../../src/app/prompts/definitions/sources/sources.fragments";
+import { sourceSummarySchema } from "../../../../../../src/app/schemas/sources.schema";
 
 describe("shared-utilities", () => {
   describe("createBasicInfoBlock", () => {
@@ -144,6 +146,94 @@ describe("shared-utilities", () => {
       );
 
       expect(config.instructions[0]).toContain("__References__");
+    });
+
+    describe("type safety with SourceSummaryField", () => {
+      it("should accept valid sourceSummarySchema field names", () => {
+        // These are valid SourceSummaryField values
+        const validFields: SourceSummaryField[] = [
+          "purpose",
+          "implementation",
+          "name",
+          "namespace",
+          "kind",
+          "internalReferences",
+          "externalReferences",
+          "dependencies",
+          "databaseIntegration",
+        ];
+
+        const config = createSimpleConfig("test", validFields, [
+          {
+            title: INSTRUCTION_SECTION_TITLES.BASIC_INFO,
+            fragments: [SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE],
+          },
+        ]);
+
+        // Verify schema was created correctly with all fields
+        const schemaShape = Object.keys((config.responseSchema as any).shape);
+        validFields.forEach((field) => {
+          expect(schemaShape).toContain(field);
+        });
+      });
+
+      it("should create pick mask that produces valid Zod schema", () => {
+        const fields: SourceSummaryField[] = ["purpose", "implementation", "dependencies"];
+
+        const config = createSimpleConfig("test", fields, [
+          {
+            title: INSTRUCTION_SECTION_TITLES.BASIC_INFO,
+            fragments: [SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE],
+          },
+        ]);
+
+        // Verify the schema is a valid Zod schema that can parse data
+        const testData = {
+          purpose: "Test purpose",
+          implementation: "Test implementation",
+          dependencies: [],
+        };
+
+        const parseResult = config.responseSchema.safeParse(testData);
+        expect(parseResult.success).toBe(true);
+      });
+
+      it("should only include specified fields in the schema", () => {
+        const fields: SourceSummaryField[] = ["purpose", "implementation"];
+
+        const config = createSimpleConfig("test", fields, [
+          {
+            title: INSTRUCTION_SECTION_TITLES.BASIC_INFO,
+            fragments: [SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE],
+          },
+        ]);
+
+        const schemaShape = Object.keys((config.responseSchema as any).shape);
+        expect(schemaShape).toEqual(fields);
+      });
+
+      it("should align with sourceSummarySchema available keys", () => {
+        // Get all valid keys from sourceSummarySchema
+        const sourceSummaryKeys = Object.keys(sourceSummarySchema.shape);
+
+        // Use a subset as SourceSummaryField type requires
+        const testFields: SourceSummaryField[] = ["purpose", "implementation", "name"];
+
+        // Verify all test fields exist in the source schema
+        testFields.forEach((field) => {
+          expect(sourceSummaryKeys).toContain(field);
+        });
+
+        // Create config and verify it works
+        const config = createSimpleConfig("test", testFields, [
+          {
+            title: INSTRUCTION_SECTION_TITLES.BASIC_INFO,
+            fragments: [SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE],
+          },
+        ]);
+
+        expect(config.responseSchema).toBeDefined();
+      });
     });
   });
 });

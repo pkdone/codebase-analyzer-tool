@@ -36,7 +36,7 @@ export type {
 export class DomainModelDataProvider {
   /**
    * Extract and transform domain model data from categorized app summary data.
-   * The boundedContexts category now contains the full hierarchical structure
+   * The boundedContexts category contains the full hierarchical structure
    * with embedded aggregates, each containing its repository and entities.
    */
   getDomainModelData(

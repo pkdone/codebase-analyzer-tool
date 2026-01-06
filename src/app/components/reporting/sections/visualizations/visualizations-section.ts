@@ -23,6 +23,7 @@ import {
   isCategorizedDataInferredArchitecture,
   type CategorizedDataItem,
 } from "../shared/categorized-section-data-builder";
+import { AppSummaryCategories } from "../../../../schemas/app-summaries.schema";
 
 /**
  * Report section for architecture and domain visualizations (domain models, microservices architecture, current architecture diagrams).
@@ -50,10 +51,9 @@ export class ArchitectureAndDomainSection implements ReportSection {
   async getData(_projectName: string): Promise<Partial<ReportData>> {
     // This section uses categorized data that comes from baseData
     // Return empty object as the data is already in baseData
-    return Promise.resolve({});
+    return await Promise.resolve({});
   }
 
-  // eslint-disable-next-line @typescript-eslint/require-await
   async prepareHtmlData(
     baseData: ReportData,
     _sectionData: Partial<ReportData>,
@@ -84,7 +84,8 @@ export class ArchitectureAndDomainSection implements ReportSection {
         inferredArchitectureData,
       );
 
-    return {
+    // Implementation of async interface - computation is synchronous but interface requires Promise
+    return await Promise.resolve({
       businessProcessesFlowchartSvgs,
       domainModelData,
       contextDiagramSvgs,
@@ -92,7 +93,7 @@ export class ArchitectureAndDomainSection implements ReportSection {
       architectureDiagramSvg,
       inferredArchitectureData,
       currentArchitectureDiagramSvg,
-    };
+    });
   }
 
   prepareJsonData(_baseData: ReportData, _sectionData: Partial<ReportData>): PreparedJsonData[] {
@@ -111,7 +112,7 @@ export class ArchitectureAndDomainSection implements ReportSection {
     }[],
   ): string[] {
     const businessProcessesCategory = categorizedData.find(
-      (category) => category.category === "businessProcesses",
+      (category) => category.category === AppSummaryCategories.enum.businessProcesses,
     );
 
     if (
@@ -161,7 +162,7 @@ export class ArchitectureAndDomainSection implements ReportSection {
     }[];
   }[] {
     const microservicesCategory = categorizedData.find(
-      (category) => category.category === "potentialMicroservices",
+      (category) => category.category === AppSummaryCategories.enum.potentialMicroservices,
     );
 
     if (
@@ -196,7 +197,7 @@ export class ArchitectureAndDomainSection implements ReportSection {
     }[],
   ): InferredArchitectureData | null {
     const inferredArchitectureCategory = categorizedData.find(
-      (category) => category.category === "inferredArchitecture",
+      (category) => category.category === AppSummaryCategories.enum.inferredArchitecture,
     );
 
     if (

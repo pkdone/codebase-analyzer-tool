@@ -35,7 +35,6 @@ export class DatabaseSection implements ReportSection {
     };
   }
 
-  // eslint-disable-next-line @typescript-eslint/require-await
   async prepareHtmlData(
     _baseData: ReportData,
     sectionData: Partial<ReportData>,
@@ -44,7 +43,7 @@ export class DatabaseSection implements ReportSection {
     const { dbInteractions, procsAndTriggers } = sectionData;
 
     if (!dbInteractions || !procsAndTriggers) {
-      return null;
+      return await Promise.resolve(null);
     }
 
     // Create view model for database interactions
@@ -54,12 +53,13 @@ export class DatabaseSection implements ReportSection {
     const combinedProcsTrigsList = [...procsAndTriggers.procs.list, ...procsAndTriggers.trigs.list];
     const procsAndTriggersTableViewModel = new TableViewModel(combinedProcsTrigsList);
 
-    return {
+    // Implementation of async interface - computation is synchronous but interface requires Promise
+    return await Promise.resolve({
       dbInteractions,
       procsAndTriggers,
       dbInteractionsTableViewModel,
       procsAndTriggersTableViewModel,
-    };
+    });
   }
 
   prepareJsonData(_baseData: ReportData, sectionData: Partial<ReportData>): PreparedJsonData[] {

@@ -172,14 +172,9 @@ export default class VertexAIGeminiLLM extends BaseLLMProvider {
 
     // Capture response content
     const embeddingsArray = this.extractEmbeddingsFromPredictions(predictions);
-    const responseContentRaw = embeddingsArray[0];
-    // Convert undefined to null to match LLMGeneratedContent type
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    const responseContent = responseContentRaw ?? null;
-
-    // Capture finish reason
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    const isIncompleteResponse = responseContent == null;
+    // Array access may return undefined for empty arrays - use explicit check for type safety
+    const responseContent = embeddingsArray.length > 0 ? embeddingsArray[0] : null;
+    const isIncompleteResponse = responseContent === null;
 
     // Capture token usage (Embeddings API doesn't provide token counts)
     const tokenUsage = createTokenUsageRecord();
@@ -207,12 +202,11 @@ export default class VertexAIGeminiLLM extends BaseLLMProvider {
       throw new LLMError(LLMErrorCode.BAD_RESPONSE_CONTENT, "LLM response was completely empty");
 
     // Capture response content
-    // Using extra checking because even though Vertex AI types say these should exists they may not
-    // if there is a bad "finish reason"
-    // Preserve null values from LLM (null has different semantic meaning than empty string)
-    // Convert undefined to null to match LLMGeneratedContent type
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    const responseContent = llmResponse?.content?.parts?.[0]?.text ?? null;
+    // llmResponse is verified to exist above with the guard check.
+    // Per SDK types, content and parts are required. Access the first part's text if available.
+    // Parts array is typed as non-empty per SDK, so parts[0] is guaranteed to exist.
+    const firstPart = llmResponse.content.parts[0];
+    const responseContent = firstPart.text ?? null;
 
     // Capture finish reason
     const finishReason = llmResponse.finishReason ?? FinishReason.OTHER;
@@ -322,16 +316,34 @@ export default class VertexAIGeminiLLM extends BaseLLMProvider {
   ): number[][] {
     if (!predictions) return [];
     return predictions.flatMap((p) => {
-      // For Gemini models, the response structure might be different
-      /* eslint-disable @typescript-eslint/no-unnecessary-condition */
-      const values =
-        p.structValue?.fields?.embeddings?.structValue?.fields?.values?.listValue?.values ??
-        p.listValue?.values ??
-        [];
-      /* eslint-enable @typescript-eslint/no-unnecessary-condition */
+      // Protobuf IValue has multiple possible shapes - extract values from either structure
+      const values = this.extractValuesFromProtobufValue(p);
       const numbers = values.map((v) => v.numberValue ?? 0);
       return numbers.length > 0 ? [numbers] : [];
     });
+  }
+
+  /**
+   * Extract list values from a protobuf IValue, handling both embedding and direct list structures.
+   * Protobuf types declare fields as potentially undefined even when they exist at runtime,
+   * so we use explicit checks to satisfy TypeScript while handling both response formats.
+   */
+  private extractValuesFromProtobufValue(
+    value: aiplatform.protos.google.protobuf.IValue,
+  ): aiplatform.protos.google.protobuf.IValue[] {
+    // Try the nested embeddings structure first (standard Gemini embedding response)
+    const embeddingsStruct = value.structValue?.fields?.embeddings;
+    if (embeddingsStruct) {
+      const valuesField = embeddingsStruct.structValue?.fields?.values;
+      if (valuesField?.listValue?.values) {
+        return valuesField.listValue.values;
+      }
+    }
+    // Fall back to direct list structure
+    if (value.listValue?.values) {
+      return value.listValue.values;
+    }
+    return [];
   }
 }
 

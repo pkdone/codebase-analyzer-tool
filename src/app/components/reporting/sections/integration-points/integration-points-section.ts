@@ -29,7 +29,6 @@ export class IntegrationPointsSection implements ReportSection {
     return { integrationPoints };
   }
 
-  // eslint-disable-next-line @typescript-eslint/require-await
   async prepareHtmlData(
     _baseData: ReportData,
     sectionData: Partial<ReportData>,
@@ -38,15 +37,16 @@ export class IntegrationPointsSection implements ReportSection {
     const { integrationPoints } = sectionData;
 
     if (!integrationPoints) {
-      return null;
+      return await Promise.resolve(null);
     }
 
     const integrationPointsTableViewModel = new TableViewModel(integrationPoints);
 
-    return {
+    // Implementation of async interface - computation is synchronous but interface requires Promise
+    return await Promise.resolve({
       integrationPoints,
       integrationPointsTableViewModel,
-    };
+    });
   }
 
   prepareJsonData(_baseData: ReportData, sectionData: Partial<ReportData>): PreparedJsonData[] {

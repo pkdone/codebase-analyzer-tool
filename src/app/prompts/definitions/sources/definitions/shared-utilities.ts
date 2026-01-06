@@ -30,6 +30,13 @@ import type { StrictPromptConfigEntry } from "../../../prompt.types";
 export type SourceConfigEntry<S extends z.ZodType = z.ZodType> = StrictPromptConfigEntry<S>;
 
 /**
+ * Valid field names that can be picked from sourceSummarySchema.
+ * This type ensures compile-time safety when specifying schema fields.
+ * We use keyof shape to get the actual schema keys, not the inferred type keys.
+ */
+export type SourceSummaryField = keyof typeof sourceSummarySchema.shape;
+
+/**
  * Options for creating a standard code source configuration.
  */
 export interface StandardCodeConfigOptions {
@@ -97,18 +104,20 @@ export function createDependencyConfig(
  */
 export function createSimpleConfig(
   contentDesc: string,
-  schemaFields: readonly string[],
+  schemaFields: readonly SourceSummaryField[],
   instructionBlocks: readonly {
     title: InstructionSectionTitle;
     fragments: readonly (string | readonly string[])[];
   }[],
 ): SourceConfigEntry {
-  const pickObject = schemaFields.reduce<Record<string, true>>((acc, field) => {
-    acc[field] = true;
-    return acc;
-  }, {});
-  // Type assertion needed because Zod's pick requires exact key matching at compile time
-  // but we're building the keys dynamically at runtime
+  // Build the pick mask dynamically from the field names
+  // Type assertion is required because Zod's pick() uses `Exactly<>` which requires
+  // compile-time known keys, but we're building them dynamically at runtime.
+  // The SourceSummaryField type ensures we only accept valid field names.
+  const pickMask = Object.fromEntries(
+    schemaFields.map((field) => [field, true] as const),
+  ) as Partial<Record<SourceSummaryField, true>>;
+
   const instructions = instructionBlocks.map((block) => {
     // If this is the first block and it's BASIC_INFO with standard fragments, use the helper
     if (
@@ -124,8 +133,12 @@ export function createSimpleConfig(
 
   return {
     contentDesc,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    responseSchema: sourceSummarySchema.pick(pickObject as any),
+    // Type assertion needed because Zod's pick() signature uses Exactly<> which
+    // requires compile-time knowledge of the mask, but we build it at runtime.
+    // Runtime safety is ensured by SourceSummaryField constraining valid keys.
+    responseSchema: sourceSummarySchema.pick(
+      pickMask as Parameters<typeof sourceSummarySchema.pick>[0],
+    ),
     instructions,
   };
 }

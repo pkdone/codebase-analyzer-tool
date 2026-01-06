@@ -9,6 +9,7 @@ import {
 } from "../../../../../src/app/components/reporting/diagrams";
 import type { ReportData } from "../../../../../src/app/components/reporting/report-data.types";
 import type { AppSummaryNameDescArray } from "../../../../../src/app/repositories/app-summaries/app-summaries.model";
+import { AppSummaryCategories } from "../../../../../src/app/schemas/app-summaries.schema";
 
 describe("ArchitectureAndDomainSection", () => {
   let section: ArchitectureAndDomainSection;
@@ -274,6 +275,153 @@ describe("ArchitectureAndDomainSection", () => {
       const result = section.prepareJsonData(baseData, {});
 
       expect(result).toEqual([]);
+    });
+  });
+
+  describe("category lookups using AppSummaryCategories enum", () => {
+    it("should find business processes using enum value", async () => {
+      const businessProcesses = [
+        {
+          name: "Order Processing",
+          description: "Handles order creation",
+          keyBusinessActivities: [{ activity: "Create Order", description: "Creates new order" }],
+        },
+      ];
+
+      const baseData: ReportData = {
+        appStats: {
+          projectName: "test",
+          currentDate: "2024-01-01",
+          llmProvider: "test",
+          fileCount: 100,
+          linesOfCode: 5000,
+          appDescription: "Test app",
+        },
+        fileTypesData: [],
+        categorizedData: [
+          {
+            category: AppSummaryCategories.enum.businessProcesses,
+            label: "Business Processes",
+            data: businessProcesses as AppSummaryNameDescArray,
+          },
+        ],
+        integrationPoints: [],
+        dbInteractions: [],
+        procsAndTriggers: {
+          procs: { total: 0, low: 0, medium: 0, high: 0, list: [] },
+          trigs: { total: 0, low: 0, medium: 0, high: 0, list: [] },
+        },
+        billOfMaterials: [],
+        codeQualitySummary: null,
+        scheduledJobsSummary: null,
+        moduleCoupling: null,
+        uiTechnologyAnalysis: null,
+      };
+
+      await section.prepareHtmlData(baseData, {}, "/output");
+
+      expect(mockFlowchartDiagramGenerator.generateMultipleFlowchartDiagrams).toHaveBeenCalled();
+    });
+
+    it("should find potential microservices using enum value", async () => {
+      const microservices = [
+        {
+          name: "User Service",
+          description: "Handles user management",
+          entities: [],
+          endpoints: [],
+          operations: [],
+        },
+      ];
+
+      const baseData: ReportData = {
+        appStats: {
+          projectName: "test",
+          currentDate: "2024-01-01",
+          llmProvider: "test",
+          fileCount: 100,
+          linesOfCode: 5000,
+          appDescription: "Test app",
+        },
+        fileTypesData: [],
+        categorizedData: [
+          {
+            category: AppSummaryCategories.enum.potentialMicroservices,
+            label: "Potential Microservices",
+            data: microservices as AppSummaryNameDescArray,
+          },
+        ],
+        integrationPoints: [],
+        dbInteractions: [],
+        procsAndTriggers: {
+          procs: { total: 0, low: 0, medium: 0, high: 0, list: [] },
+          trigs: { total: 0, low: 0, medium: 0, high: 0, list: [] },
+        },
+        billOfMaterials: [],
+        codeQualitySummary: null,
+        scheduledJobsSummary: null,
+        moduleCoupling: null,
+        uiTechnologyAnalysis: null,
+      };
+
+      const result = await section.prepareHtmlData(baseData, {}, "/output");
+
+      expect(result?.microservicesData).toHaveLength(1);
+      expect(result?.microservicesData?.[0]?.name).toBe("User Service");
+    });
+
+    it("should find inferred architecture using enum value", async () => {
+      const inferredArchData = {
+        internalComponents: [{ name: "Payment Service", description: "Handles payments" }],
+        externalDependencies: [
+          { name: "Stripe", type: "External API", description: "Payment gateway" },
+        ],
+        dependencies: [
+          { from: "Payment Service", to: "Stripe", description: "Payment processing" },
+        ],
+      };
+
+      const baseData: ReportData = {
+        appStats: {
+          projectName: "test",
+          currentDate: "2024-01-01",
+          llmProvider: "test",
+          fileCount: 100,
+          linesOfCode: 5000,
+          appDescription: "Test app",
+        },
+        fileTypesData: [],
+        categorizedData: [
+          {
+            category: AppSummaryCategories.enum.inferredArchitecture,
+            label: "Inferred Architecture",
+            data: [inferredArchData] as unknown as AppSummaryNameDescArray,
+          },
+        ],
+        integrationPoints: [],
+        dbInteractions: [],
+        procsAndTriggers: {
+          procs: { total: 0, low: 0, medium: 0, high: 0, list: [] },
+          trigs: { total: 0, low: 0, medium: 0, high: 0, list: [] },
+        },
+        billOfMaterials: [],
+        codeQualitySummary: null,
+        scheduledJobsSummary: null,
+        moduleCoupling: null,
+        uiTechnologyAnalysis: null,
+      };
+
+      const result = await section.prepareHtmlData(baseData, {}, "/output");
+
+      expect(result?.inferredArchitectureData).not.toBeNull();
+      expect(result?.inferredArchitectureData?.internalComponents).toHaveLength(1);
+    });
+
+    it("should verify AppSummaryCategories enum values match expected strings", () => {
+      // These tests ensure the enum values match what the code expects
+      expect(AppSummaryCategories.enum.businessProcesses).toBe("businessProcesses");
+      expect(AppSummaryCategories.enum.potentialMicroservices).toBe("potentialMicroservices");
+      expect(AppSummaryCategories.enum.inferredArchitecture).toBe("inferredArchitecture");
     });
   });
 });
