@@ -94,15 +94,15 @@ export class LLMExecutionPipeline {
           this.llmStats.recordJsonMutated();
         }
 
-        if (result.generated === undefined) {
+        if (!result.generated) {
           logOneLineWarning(
-            `LLM response has COMPLETED status but generated content is undefined for resource: '${resourceName}'`,
+            `LLM response has COMPLETED status but generated no content for resource: '${resourceName}'`,
             context,
           );
           return {
             success: false,
             error: new LLMExecutionError(
-              `LLM response has COMPLETED status but generated content is undefined for resource: '${resourceName}'`,
+              `LLM response has COMPLETED status but generated no content for resource: '${resourceName}'`,
               resourceName,
               context,
             ),

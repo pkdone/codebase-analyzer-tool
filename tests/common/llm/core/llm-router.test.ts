@@ -1098,7 +1098,7 @@ describe("LLM Router tests", () => {
       expect(isOk(result)).toBe(false);
     });
 
-    test("should handle completion with null generated content", async () => {
+    test("should handle completion with null generated content as failure", async () => {
       const { router, mockProvider } = createLLMRouter();
       (mockProvider.executeCompletionPrimary as any).mockResolvedValue({
         status: LLMResponseStatus.COMPLETED,
@@ -1116,9 +1116,10 @@ describe("LLM Router tests", () => {
         null,
       );
 
-      expect(isOk(result)).toBe(true);
-      if (isOk(result)) {
-        expect(result.value).toBeNull();
+      expect(isOk(result)).toBe(false);
+      if (!isOk(result)) {
+        expect(result.error).toBeDefined();
+        expect(result.error.message).toContain("COMPLETED status but generated no content");
       }
     });
 

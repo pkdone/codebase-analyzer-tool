@@ -86,10 +86,12 @@ export async function executeInsightCompletion<C extends AppSummaryCategoryEnum>
       hasComplexSchema: !CATEGORY_SCHEMA_IS_VERTEXAI_COMPATIBLE,
       sanitizerConfig: getLlmArtifactCorrections(),
     });
+
     if (!isOk(result)) {
       logOneLineWarning(`LLM completion failed for ${categoryLabel}: ${result.error.message}`);
       return null;
     }
+
     return result.value as z.infer<AppSummaryCategorySchemas[C]>;
   } catch (error: unknown) {
     logOneLineWarning(

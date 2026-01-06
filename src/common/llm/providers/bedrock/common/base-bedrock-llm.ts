@@ -137,8 +137,6 @@ export default abstract class BaseBedrockLLM extends BaseLLMProvider {
     if (error instanceof Error) {
       const errMsg = formatError(error).toLowerCase() || "";
       if (errMsg.includes("stream timed out because of no activity")) return true;
-      // TODO: remove
-      console.log("BENDROCK timeout");
     }
 
     return false;
