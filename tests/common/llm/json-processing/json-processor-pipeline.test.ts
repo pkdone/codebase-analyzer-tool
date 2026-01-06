@@ -304,8 +304,10 @@ describe("JsonProcessor - Unified Pipeline", () => {
 
     it("should provide sanitized content in error for debugging", () => {
       // Use a more complex malformed JSON that can't be easily fixed
-      // Note: Our sanitizers now fix unquoted properties, so we need truly broken JSON
-      const malformed = "```json\n{broken: value without quotes, missing: }\n```";
+      // Note: Our sanitizers now fix many patterns including unquoted properties and
+      // missing values. Use fundamentally broken structure that can't be recovered.
+      const malformed =
+        "```json\n{{{nested broken: [[[invalid array structure without proper syntax\n```";
       const result = processJson(
         malformed,
         { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },

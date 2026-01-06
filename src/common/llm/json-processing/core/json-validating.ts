@@ -5,6 +5,7 @@ import {
   coerceStringToArray,
   unwrapJsonSchemaStructure,
   coerceNumericProperties,
+  removeIncompleteArrayItems,
 } from "../transforms/index.js";
 import { type SchemaFixingTransform } from "../sanitizers/index.js";
 
@@ -21,6 +22,7 @@ export type ValidationWithTransformsResult<T> =
  * These normalize and correct parsed data to help it pass schema validation.
  *
  * Transform order:
+ * - removeIncompleteArrayItems: Removes truncated items from end of arrays (must run early)
  * - coerceStringToArray: Converts string values to empty arrays for predefined property names (generic)
  * - convertNullToUndefined: Converts null to undefined for optional fields (generic)
  * - fixCommonPropertyNameTypos: Fixes typos in property names ending with underscore (generic)
@@ -28,6 +30,7 @@ export type ValidationWithTransformsResult<T> =
  * - unwrapJsonSchemaStructure: Unwraps when LLM returns JSON Schema instead of data (generic)
  */
 const SCHEMA_FIXING_TRANSFORMS: readonly SchemaFixingTransform[] = [
+  removeIncompleteArrayItems,
   coerceStringToArray,
   convertNullToUndefined,
   fixCommonPropertyNameTypos,

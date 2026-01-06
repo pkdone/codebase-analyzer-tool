@@ -482,4 +482,36 @@ export const STRUCTURAL_RULES: readonly ReplacementRule[] = [
     diagnosticMessage: "Escaped unescaped quotes in string value",
     skipInString: false, // This rule specifically targets content within strings
   },
+
+  // Rule: Remove truncated property with missing value before closing delimiter
+  // Pattern: `"propertyName":}` or `"propertyName":]` or `"propertyName":,`
+  // This occurs when LLM runs out of tokens mid-property assignment
+  {
+    name: "missingPropertyValue",
+    pattern: /,?\s*"([^"]+)"\s*:\s*([}\],])/g,
+    replacement: (_match, groups, context) => {
+      const { beforeMatch } = context;
+      // Only apply if we're in a valid JSON context (after a value or at start of object)
+      const isValidContext =
+        /"\s*$/.test(beforeMatch) ||
+        /\d\s*$/.test(beforeMatch) ||
+        /true\s*$/i.test(beforeMatch) ||
+        /false\s*$/i.test(beforeMatch) ||
+        /null\s*$/i.test(beforeMatch) ||
+        /]\s*$/.test(beforeMatch) ||
+        /}\s*$/.test(beforeMatch) ||
+        /{\s*$/.test(beforeMatch) ||
+        /,\s*$/.test(beforeMatch);
+      if (!isValidContext) {
+        return null;
+      }
+      // Return just the closing delimiter, removing the incomplete property
+      const closingDelimiter = groups[1] ?? "";
+      return closingDelimiter;
+    },
+    diagnosticMessage: (_match, groups) => {
+      const propertyName = groups[0] ?? "";
+      return `Removed truncated property with missing value: "${propertyName}":`;
+    },
+  },
 ];
