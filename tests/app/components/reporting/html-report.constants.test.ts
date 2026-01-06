@@ -1,26 +1,6 @@
 import { htmlReportConstants } from "../../../../src/app/components/reporting/html-report.constants";
 
 describe("htmlReportConstants", () => {
-  describe("paths", () => {
-    it("should be defined", () => {
-      expect(htmlReportConstants.paths).toBeDefined();
-    });
-
-    it("should have ASSETS_DIR", () => {
-      expect(htmlReportConstants.paths.ASSETS_DIR).toBe("assets/");
-    });
-  });
-
-  describe("directories", () => {
-    it("should be defined", () => {
-      expect(htmlReportConstants.directories).toBeDefined();
-    });
-
-    it("should have ASSETS", () => {
-      expect(htmlReportConstants.directories.ASSETS).toBe("assets");
-    });
-  });
-
   describe("columnHeaders", () => {
     it("should be defined", () => {
       expect(htmlReportConstants.columnHeaders).toBeDefined();
@@ -39,7 +19,15 @@ describe("htmlReportConstants", () => {
     });
   });
 
-  describe("protocols (removed)", () => {
+  describe("removed properties", () => {
+    it("should not have paths property (now derived from outputConfig)", () => {
+      expect(htmlReportConstants).not.toHaveProperty("paths");
+    });
+
+    it("should not have directories property (now derived from outputConfig)", () => {
+      expect(htmlReportConstants).not.toHaveProperty("directories");
+    });
+
     it("should not have protocols property", () => {
       expect(htmlReportConstants).not.toHaveProperty("protocols");
     });

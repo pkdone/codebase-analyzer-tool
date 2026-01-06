@@ -2,7 +2,11 @@ import { injectable, inject } from "tsyringe";
 import type { SourcesRepository } from "../../../../repositories/sources/sources.repository.interface";
 import { repositoryTokens } from "../../../../di/tokens";
 import type { UiTechnologyAnalysis } from "./quality-metrics.types";
-import { uiAnalysisConfig } from "../../config/ui-analysis.config";
+import {
+  uiAnalysisConfig,
+  classifyTagLibrary,
+  TAG_LIBRARY_BADGE_CLASSES,
+} from "../../config/ui-analysis.config";
 import { UNKNOWN_VALUE_PLACEHOLDER } from "../../../../../common/constants/application.constants";
 import { calculateDebtLevel } from "../../utils/view-helpers";
 
@@ -23,6 +27,11 @@ type JspFileMetrics = UiTechnologyAnalysis["topScriptletFiles"][0];
  * Debt levels are computed after sorting to include only in top files.
  */
 type RawJspFileMetrics = Omit<JspFileMetrics, "debtLevel" | "debtLevelClass">;
+
+/**
+ * Intermediate type for tag library aggregation before type classification.
+ */
+type RawCustomTagLibrary = Omit<CustomTagLibrary, "tagType" | "tagTypeClass">;
 
 /**
  * Data provider responsible for aggregating server-side UI technology data including framework detection, JSP metrics, and tag library usage.
@@ -47,7 +56,7 @@ export class ServerSideUiDataProvider {
 
     // Data structures for aggregation
     const frameworkMap = new Map<string, UiFrameworkItem>();
-    const tagLibraryMap = new Map<string, CustomTagLibrary>();
+    const tagLibraryMap = new Map<string, RawCustomTagLibrary>();
     const jspFileMetrics: RawJspFileMetrics[] = [];
 
     let totalScriptlets = 0;
@@ -151,13 +160,23 @@ export class ServerSideUiDataProvider {
       a.name.localeCompare(b.name),
     );
 
-    const customTagLibraries = Array.from(tagLibraryMap.values()).toSorted((a, b) => {
-      // Sort by usage count (descending), then by prefix
-      if (a.usageCount !== b.usageCount) {
-        return b.usageCount - a.usageCount;
-      }
-      return a.prefix.localeCompare(b.prefix);
-    });
+    // Convert tag libraries map to array, compute types, and sort
+    const customTagLibraries = Array.from(tagLibraryMap.values())
+      .map((tagLib) => {
+        const tagType = classifyTagLibrary(tagLib.uri);
+        return {
+          ...tagLib,
+          tagType,
+          tagTypeClass: TAG_LIBRARY_BADGE_CLASSES[tagType],
+        };
+      })
+      .toSorted((a, b) => {
+        // Sort by usage count (descending), then by prefix
+        if (a.usageCount !== b.usageCount) {
+          return b.usageCount - a.usageCount;
+        }
+        return a.prefix.localeCompare(b.prefix);
+      });
 
     return {
       frameworks,

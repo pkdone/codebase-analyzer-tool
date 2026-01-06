@@ -1,4 +1,9 @@
-import { uiAnalysisConfig } from "../../../../../src/app/components/reporting/config/ui-analysis.config";
+import {
+  uiAnalysisConfig,
+  TAG_LIBRARY_PATTERNS,
+  TAG_LIBRARY_BADGE_CLASSES,
+  classifyTagLibrary,
+} from "../../../../../src/app/components/reporting/config/ui-analysis.config";
 
 describe("uiAnalysisConfig", () => {
   describe("configuration values", () => {
@@ -23,6 +28,89 @@ describe("uiAnalysisConfig", () => {
       const config = uiAnalysisConfig;
       expect(config).toHaveProperty("TOP_FILES_LIMIT");
       expect(config).toHaveProperty("HIGH_SCRIPTLET_THRESHOLD");
+    });
+  });
+});
+
+describe("TAG_LIBRARY_PATTERNS", () => {
+  it("should have JSTL pattern defined", () => {
+    expect(TAG_LIBRARY_PATTERNS.JSTL).toBe("java.sun.com/jsp/jstl");
+  });
+
+  it("should have SPRING pattern defined", () => {
+    expect(TAG_LIBRARY_PATTERNS.SPRING).toBe("springframework.org");
+  });
+
+  it("should have custom tag library indicators defined", () => {
+    expect(TAG_LIBRARY_PATTERNS.CUSTOM_WEB_INF).toBe("/WEB-INF/");
+    expect(TAG_LIBRARY_PATTERNS.CUSTOM_KEYWORD).toBe("custom");
+  });
+});
+
+describe("TAG_LIBRARY_BADGE_CLASSES", () => {
+  it("should have CSS class for JSTL", () => {
+    expect(TAG_LIBRARY_BADGE_CLASSES.JSTL).toBe("badge-info");
+  });
+
+  it("should have CSS class for Spring", () => {
+    expect(TAG_LIBRARY_BADGE_CLASSES.Spring).toBe("badge-info");
+  });
+
+  it("should have CSS class for Custom", () => {
+    expect(TAG_LIBRARY_BADGE_CLASSES.Custom).toBe("badge-warning");
+  });
+
+  it("should have CSS class for Other", () => {
+    expect(TAG_LIBRARY_BADGE_CLASSES.Other).toBe("badge-secondary");
+  });
+});
+
+describe("classifyTagLibrary", () => {
+  describe("JSTL classification", () => {
+    it("should classify JSTL core URI as JSTL", () => {
+      expect(classifyTagLibrary("http://java.sun.com/jsp/jstl/core")).toBe("JSTL");
+    });
+
+    it("should classify JSTL fmt URI as JSTL", () => {
+      expect(classifyTagLibrary("http://java.sun.com/jsp/jstl/fmt")).toBe("JSTL");
+    });
+
+    it("should classify JSTL functions URI as JSTL", () => {
+      expect(classifyTagLibrary("http://java.sun.com/jsp/jstl/functions")).toBe("JSTL");
+    });
+  });
+
+  describe("Spring classification", () => {
+    it("should classify Spring tags URI as Spring", () => {
+      expect(classifyTagLibrary("http://www.springframework.org/tags")).toBe("Spring");
+    });
+
+    it("should classify Spring form URI as Spring", () => {
+      expect(classifyTagLibrary("http://www.springframework.org/tags/form")).toBe("Spring");
+    });
+  });
+
+  describe("Custom classification", () => {
+    it("should classify WEB-INF URIs as Custom", () => {
+      expect(classifyTagLibrary("/WEB-INF/tlds/mytags.tld")).toBe("Custom");
+    });
+
+    it("should classify URIs containing 'custom' as Custom", () => {
+      expect(classifyTagLibrary("http://mycompany.com/custom/tags")).toBe("Custom");
+    });
+  });
+
+  describe("Other classification", () => {
+    it("should classify unrecognized URIs as Other", () => {
+      expect(classifyTagLibrary("http://mycompany.com/tags")).toBe("Other");
+    });
+
+    it("should classify empty string as Other", () => {
+      expect(classifyTagLibrary("")).toBe("Other");
+    });
+
+    it("should classify Struts URIs as Other", () => {
+      expect(classifyTagLibrary("http://struts.apache.org/tags-html")).toBe("Other");
     });
   });
 });

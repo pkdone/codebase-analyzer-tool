@@ -123,9 +123,6 @@ describe("HtmlReportWriter", () => {
       paths: {
         ASSETS_DIR: "assets/",
       },
-      directories: {
-        ASSETS: "assets",
-      },
     },
     convertToDisplayName: (text: string) => text.replace(/_/g, " "),
     fileTypesTableViewModel: new (jest.requireActual(

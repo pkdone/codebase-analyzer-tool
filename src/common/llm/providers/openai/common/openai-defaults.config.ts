@@ -1,46 +1,17 @@
 import type { LLMProviderSpecificConfig } from "../../llm-provider.types";
-
-/**
- * Shared default configuration values for OpenAI-family LLM providers
- * (OpenAI GPT and Azure OpenAI)
- */
-
-/**
- * Default request timeout for OpenAI API calls
- * Set to 5 minutes to accommodate long-running inference requests
- */
-const DEFAULT_OPENAI_REQUEST_TIMEOUT_MILLIS = 5 * 60 * 1000;
-
-/**
- * Default retry configuration for OpenAI API calls
- * These values provide a balance between resilience and avoiding excessive wait times
- */
-const DEFAULT_OPENAI_MAX_RETRY_ATTEMPTS = 3;
-
-/**
- * Default minimum delay between retries in milliseconds
- * Used as the base for exponential backoff calculations
- */
-const DEFAULT_OPENAI_MIN_RETRY_DELAY_MILLIS = 10 * 1000;
-
-/**
- * Default maximum delay between retries in milliseconds
- * Caps the exponential backoff to avoid excessively long delays
- */
-const DEFAULT_OPENAI_MAX_RETRY_DELAY_MILLIS = 90 * 1000;
+import { DEFAULT_PROVIDER_CONFIG } from "../../../config/llm.config";
 
 /**
  * Default provider-specific configuration for OpenAI-family LLM providers.
- * This object can be spread into provider manifests to reduce boilerplate.
+ * Inherits from the system-wide defaults and can be spread into provider manifests.
  * Individual providers (e.g., Azure OpenAI) can override specific properties as needed.
- * All required fields from LLMRetryConfig are included.
+ *
+ * Note: OpenAI-family providers use the system defaults as-is since they represent
+ * a good balance for these APIs.
  */
 export const defaultOpenAIProviderConfig: Pick<
   LLMProviderSpecificConfig,
   "requestTimeoutMillis" | "maxRetryAttempts" | "minRetryDelayMillis" | "maxRetryDelayMillis"
 > = {
-  requestTimeoutMillis: DEFAULT_OPENAI_REQUEST_TIMEOUT_MILLIS,
-  maxRetryAttempts: DEFAULT_OPENAI_MAX_RETRY_ATTEMPTS,
-  minRetryDelayMillis: DEFAULT_OPENAI_MIN_RETRY_DELAY_MILLIS,
-  maxRetryDelayMillis: DEFAULT_OPENAI_MAX_RETRY_DELAY_MILLIS,
+  ...DEFAULT_PROVIDER_CONFIG,
 } as const;

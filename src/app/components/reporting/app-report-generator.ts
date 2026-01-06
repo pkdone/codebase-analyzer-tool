@@ -16,7 +16,6 @@ import type { ReportSection } from "./sections/report-section.interface";
 import path from "path";
 import { promises as fs } from "fs";
 import type { OutputConfigType } from "../../config/output.config";
-import { htmlReportConstants } from "./html-report.constants";
 
 /**
  * Class responsible for orchestrating report generation using a modular section-based architecture.
@@ -152,7 +151,7 @@ export default class AppReportGenerator {
    * Download and copy Mermaid.js to the assets directory for offline report viewing.
    */
   private async copyMermaidJsToAssets(outputDir: string): Promise<void> {
-    const assetsDir = path.join(outputDir, htmlReportConstants.directories.ASSETS);
+    const assetsDir = path.join(outputDir, this.outputConfig.assets.ASSETS_SUBDIR);
     const mermaidPath = path.join(assetsDir, this.outputConfig.externalAssets.MERMAID_UMD_FILENAME);
 
     try {
@@ -246,12 +245,19 @@ export default class AppReportGenerator {
       };
     });
 
+    // Construct template constants from centralized output config
+    const templateConstants = {
+      paths: {
+        ASSETS_DIR: `${this.outputConfig.assets.ASSETS_SUBDIR}/`,
+      },
+    };
+
     return {
       ...mergedHtmlData,
       appStats: reportData.appStats,
       categorizedData: categorizedDataWithViewModels,
       jsonFilesConfig: reportSectionsConfig,
-      htmlReportConstants,
+      htmlReportConstants: templateConstants,
       convertToDisplayName,
     } as PreparedHtmlReportData;
   }

@@ -92,6 +92,10 @@ export interface UiTechnologyAnalysis {
     prefix: string;
     uri: string;
     usageCount: number;
+    /** Pre-computed tag library type (e.g., "JSTL", "Spring", "Custom", "Other") */
+    tagType: string;
+    /** Pre-computed CSS class for the tag type badge */
+    tagTypeClass: string;
   }[];
   topScriptletFiles: {
     filePath: string;

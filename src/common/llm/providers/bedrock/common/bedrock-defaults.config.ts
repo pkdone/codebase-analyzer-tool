@@ -1,45 +1,23 @@
 import type { LLMProviderSpecificConfig } from "../../llm-provider.types";
+import { DEFAULT_PROVIDER_CONFIG } from "../../../config/llm.config";
 
 /**
- * Shared default configuration values for AWS Bedrock LLM providers
- */
-
-/**
- * Default request timeout for Bedrock API calls
- * Set to a fairly large an amount of minutes to accommodate long-running inference requests
- */
-const DEFAULT_BEDROCK_REQUEST_TIMEOUT_MILLIS = 8 * 60 * 1000;
-
-/**
- * Default retry configuration for Bedrock API calls
- * These values provide a balance between resilience and avoiding excessive wait times
- */
-const DEFAULT_BEDROCK_MAX_RETRY_ATTEMPTS = 4;
-
-/**
- * Default minimum delay between retries in milliseconds
- * Used as the base for exponential backoff calculations
- */
-const DEFAULT_BEDROCK_MIN_RETRY_DELAY_MILLIS = 25 * 1000;
-
-/**
- * Default maximum delay between retries in milliseconds
- * Caps the exponential backoff to avoid excessively long delays
- */
-const DEFAULT_BEDROCK_MAX_RETRY_DELAY_MILLIS = 240 * 1000;
-
-/**
- * Default provider-specific configuration for Bedrock LLM providers.
- * This object can be spread into provider manifests to reduce boilerplate.
- * Individual providers can override specific properties as needed.
- * All required fields from LLMRetryConfig are included.
+ * Default provider-specific configuration for AWS Bedrock LLM providers.
+ * Inherits from system-wide defaults with Bedrock-specific overrides.
+ *
+ * Bedrock-specific tuning:
+ * - Longer timeout (8 min) to accommodate Bedrock's inference times
+ * - Extra retry attempt (4 total) for resilience against throttling
+ * - Longer retry delays for Bedrock's rate limiting patterns
  */
 export const defaultBedrockProviderConfig: Pick<
   LLMProviderSpecificConfig,
   "requestTimeoutMillis" | "maxRetryAttempts" | "minRetryDelayMillis" | "maxRetryDelayMillis"
 > = {
-  requestTimeoutMillis: DEFAULT_BEDROCK_REQUEST_TIMEOUT_MILLIS,
-  maxRetryAttempts: DEFAULT_BEDROCK_MAX_RETRY_ATTEMPTS,
-  minRetryDelayMillis: DEFAULT_BEDROCK_MIN_RETRY_DELAY_MILLIS,
-  maxRetryDelayMillis: DEFAULT_BEDROCK_MAX_RETRY_DELAY_MILLIS,
+  ...DEFAULT_PROVIDER_CONFIG,
+  // Bedrock-specific overrides
+  requestTimeoutMillis: 8 * 60 * 1000,
+  maxRetryAttempts: 4,
+  minRetryDelayMillis: 25 * 1000,
+  maxRetryDelayMillis: 240 * 1000,
 } as const;

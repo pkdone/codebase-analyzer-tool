@@ -1,4 +1,8 @@
-import { llmConfig, llmProviderConfig } from "../../../src/common/llm/config/llm.config";
+import {
+  llmConfig,
+  llmProviderConfig,
+  DEFAULT_PROVIDER_CONFIG,
+} from "../../../src/common/llm/config/llm.config";
 
 describe("llmConfig", () => {
   it("should have JSON_OUTPUT_TYPE defined", () => {
@@ -76,5 +80,50 @@ describe("llmProviderConfig", () => {
     // The 'as const' assertion should make all properties readonly
     const avgChars: 3.6 = llmProviderConfig.AVERAGE_CHARS_PER_TOKEN;
     expect(avgChars).toBe(3.6);
+  });
+});
+
+describe("DEFAULT_PROVIDER_CONFIG", () => {
+  describe("timeout configuration", () => {
+    it("should have requestTimeoutMillis defined", () => {
+      expect(DEFAULT_PROVIDER_CONFIG.requestTimeoutMillis).toBeDefined();
+      expect(typeof DEFAULT_PROVIDER_CONFIG.requestTimeoutMillis).toBe("number");
+    });
+
+    it("should have 5 minutes as default timeout", () => {
+      expect(DEFAULT_PROVIDER_CONFIG.requestTimeoutMillis).toBe(5 * 60 * 1000);
+    });
+  });
+
+  describe("retry configuration", () => {
+    it("should have maxRetryAttempts defined", () => {
+      expect(DEFAULT_PROVIDER_CONFIG.maxRetryAttempts).toBeDefined();
+      expect(DEFAULT_PROVIDER_CONFIG.maxRetryAttempts).toBe(3);
+    });
+
+    it("should have minRetryDelayMillis defined", () => {
+      expect(DEFAULT_PROVIDER_CONFIG.minRetryDelayMillis).toBeDefined();
+      expect(DEFAULT_PROVIDER_CONFIG.minRetryDelayMillis).toBe(10 * 1000);
+    });
+
+    it("should have maxRetryDelayMillis defined", () => {
+      expect(DEFAULT_PROVIDER_CONFIG.maxRetryDelayMillis).toBeDefined();
+      expect(DEFAULT_PROVIDER_CONFIG.maxRetryDelayMillis).toBe(90 * 1000);
+    });
+
+    it("should have minRetryDelayMillis less than maxRetryDelayMillis", () => {
+      expect(DEFAULT_PROVIDER_CONFIG.minRetryDelayMillis).toBeLessThan(
+        DEFAULT_PROVIDER_CONFIG.maxRetryDelayMillis,
+      );
+    });
+  });
+
+  describe("immutability", () => {
+    it("should be a readonly object with all required retry fields", () => {
+      expect(DEFAULT_PROVIDER_CONFIG).toHaveProperty("requestTimeoutMillis");
+      expect(DEFAULT_PROVIDER_CONFIG).toHaveProperty("maxRetryAttempts");
+      expect(DEFAULT_PROVIDER_CONFIG).toHaveProperty("minRetryDelayMillis");
+      expect(DEFAULT_PROVIDER_CONFIG).toHaveProperty("maxRetryDelayMillis");
+    });
   });
 });

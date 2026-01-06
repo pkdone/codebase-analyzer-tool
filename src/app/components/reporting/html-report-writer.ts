@@ -114,9 +114,6 @@ export interface PreparedHtmlReportData {
     readonly paths: {
       readonly ASSETS_DIR: string;
     };
-    readonly directories: {
-      readonly ASSETS: string;
-    };
   };
   convertToDisplayName: (text: string) => string;
   fileTypesTableViewModel: TableViewModel;

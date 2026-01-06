@@ -4,6 +4,7 @@ import VertexAIGeminiLLM from "./vertex-ai-gemini-llm";
 import { LLMPurpose } from "../../../types/llm.types";
 import { llmConfig } from "../../../config/llm.config";
 import { VERTEXAI_COMMON_ERROR_PATTERNS } from "./vertex-ai-error-patterns";
+import { defaultVertexAIProviderConfig } from "./vertex-ai-gemini-defaults.config";
 
 // Environment variable name constants
 const VERTEXAI_PROJECTID_KEY = "VERTEXAI_PROJECTID";
@@ -59,13 +60,10 @@ export const vertexAIGeminiProviderManifest: LLMProviderManifest = {
   },
   errorPatterns: VERTEXAI_COMMON_ERROR_PATTERNS,
   providerSpecificConfig: {
+    ...defaultVertexAIProviderConfig,
     temperature: llmConfig.DEFAULT_ZERO_TEMP,
     topP: llmConfig.DEFAULT_TOP_P_LOWEST,
     topK: llmConfig.DEFAULT_TOP_K_LOWEST,
-    requestTimeoutMillis: 10 * 60 * 1000,
-    maxRetryAttempts: 3,
-    minRetryDelayMillis: 30 * 1000,
-    maxRetryDelayMillis: 150 * 1000,
   },
   implementation: VertexAIGeminiLLM,
 };

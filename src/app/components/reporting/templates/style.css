@@ -859,3 +859,92 @@ td code {
     padding: 4px 6px;
   }
 }
+
+/* === UI Analysis Section Styles === */
+
+.ui-summary {
+  margin: 0 0 0.5rem 0;
+  padding: 0.75rem 1rem;
+  background: var(--tab-bg);
+  border-radius: 4px;
+}
+
+.high-scriptlet-warning {
+  color: #d9534f;
+  font-weight: bold;
+}
+
+.warning-text {
+  color: #ff6600;
+  font-weight: bold;
+}
+
+.alert {
+  padding: 0.75rem 1rem;
+  margin: 0.5rem 0;
+  border-radius: 4px;
+}
+
+.alert-warning {
+  background: #fff3cd;
+  border: 1px solid #ffc107;
+  color: #856404;
+}
+
+.framework-name {
+  font-weight: bold;
+  color: #2c5aa0;
+}
+
+.file-path {
+  font-family: var(--font-family-mono);
+  font-size: 0.9em;
+}
+
+.metric-count {
+  text-align: center;
+}
+
+.total-count {
+  text-align: center;
+  font-size: 1.1em;
+}
+
+.tag-prefix code {
+  background: var(--tab-bg);
+  padding: 2px 4px;
+  border-radius: 3px;
+}
+
+.tag-uri {
+  font-size: 0.9em;
+  color: var(--text-color-secondary);
+}
+
+.usage-count {
+  text-align: center;
+}
+
+.ui-insights {
+  background: #e7f3ff;
+  padding: 1rem;
+  border-radius: 4px;
+  margin-top: 1rem;
+}
+
+.ui-insights ul {
+  margin: 0.5rem 0 0 1rem;
+}
+
+.ui-insights li {
+  margin-bottom: 0.5rem;
+}
+
+.warning-item {
+  color: #856404;
+}
+
+.no-data {
+  color: var(--text-color-secondary);
+  font-style: italic;
+}
