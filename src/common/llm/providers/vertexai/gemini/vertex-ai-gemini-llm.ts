@@ -333,12 +333,14 @@ export default class VertexAIGeminiLLM extends BaseLLMProvider {
   ): aiplatform.protos.google.protobuf.IValue[] {
     // Try the nested embeddings structure first (standard Gemini embedding response)
     const embeddingsStruct = value.structValue?.fields?.embeddings;
+
     if (embeddingsStruct) {
       const valuesField = embeddingsStruct.structValue?.fields?.values;
       if (valuesField?.listValue?.values) {
         return valuesField.listValue.values;
       }
     }
+    
     // Fall back to direct list structure
     if (value.listValue?.values) {
       return value.listValue.values;
