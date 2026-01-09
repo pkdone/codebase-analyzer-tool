@@ -11,3 +11,4 @@ import { runApplication } from "./application-runner";
 export function runCliTask(taskToken: symbol): void {
   void runApplication(taskToken);
 }
+
