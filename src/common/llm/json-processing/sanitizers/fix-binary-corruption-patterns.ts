@@ -1,7 +1,7 @@
 import { Sanitizer, SanitizerResult } from "./sanitizers-types";
 import { SANITIZATION_STEP } from "../constants/sanitization-steps.config";
 import { LLM_TOKEN_ARTIFACT_REGEX } from "../constants/regex.constants";
-import { logOneLineWarning } from "../../../utils/logging";
+import { logWarn } from "../../../utils/logging";
 import { isInStringAt } from "../utils/parser-context-utils";
 
 /**
@@ -61,7 +61,7 @@ export const fixLlmTokenArtifacts: Sanitizer = (jsonString: string): SanitizerRe
     };
   } catch (error) {
     // If sanitization fails, return the original string
-    logOneLineWarning(`fixLlmTokenArtifacts sanitizer failed: ${String(error)}`);
+    logWarn(`fixLlmTokenArtifacts sanitizer failed: ${String(error)}`);
     return {
       content: jsonString,
       changed: false,

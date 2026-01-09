@@ -26,7 +26,7 @@ import { isOk } from "../../../../src/common/types/result.types";
 // postProcessAsJSONIfNeededGeneratingNewResult have been moved to BaseLLMProvider class
 
 jest.mock("../../../../src/common/utils/logging", () => ({
-  logOneLineWarning: jest.fn(),
+  logWarn: jest.fn(),
   logError: jest.fn(),
   logErrorMsg: jest.fn(),
 }));

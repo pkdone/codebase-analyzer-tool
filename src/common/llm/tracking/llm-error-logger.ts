@@ -1,7 +1,7 @@
 import { writeFile } from "../../fs/file-operations";
 import { ensureDirectoryExists } from "../../fs/directory-operations";
 import { formatErrorMessageAndDetail } from "../../utils/error-formatters";
-import { logOneLineWarning, logOneLineError } from "../../utils/logging";
+import { logWarn, logErr } from "../../utils/logging";
 import { LLMErrorLoggingConfig } from "../config/llm-module-config.types";
 import type { LLMContext, LLMGeneratedContent } from "../types/llm.types";
 import type { IErrorLogger } from "./llm-error-logger.interface";
@@ -50,13 +50,13 @@ export class LLMErrorLogger implements IErrorLogger {
       await writeFile(filepath, logContent);
 
       if (!this.hasLoggedJsonError) {
-        logOneLineWarning(
+        logWarn(
           `First of potentially numerous errors detected trying to convert an LLM response to JSON - details written to: ${filepath}`,
         );
         this.hasLoggedJsonError = true;
       }
     } catch (fileError: unknown) {
-      logOneLineError("Failed to write error log file:", fileError);
+      logErr("Failed to write error log file:", fileError);
     }
   }
 }

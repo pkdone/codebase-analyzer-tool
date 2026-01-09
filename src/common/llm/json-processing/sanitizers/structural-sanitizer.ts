@@ -5,7 +5,7 @@ import {
   parsingHeuristics,
 } from "../constants/json-processing.config";
 import { CODE_FENCE_REGEXES } from "../constants/regex.constants";
-import { logOneLineWarning } from "../../../utils/logging";
+import { logWarn } from "../../../utils/logging";
 import { isInStringAt } from "../utils/parser-context-utils";
 
 /**
@@ -117,7 +117,7 @@ export const fixJsonStructureAndNoise: Sanitizer = (input: string): SanitizerRes
       diagnostics: diagnostics.length > 0 ? diagnostics : undefined,
     };
   } catch (error) {
-    logOneLineWarning(`fixJsonStructureAndNoise sanitizer failed: ${String(error)}`);
+    logWarn(`fixJsonStructureAndNoise sanitizer failed: ${String(error)}`);
     return {
       content: input,
       changed: false,

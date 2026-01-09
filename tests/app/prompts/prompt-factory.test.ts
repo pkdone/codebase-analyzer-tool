@@ -1,4 +1,4 @@
-import { createPromptMetadata } from "../../../src/app/prompts/definitions/prompt-factory";
+import { createPromptMetadata } from "../../../src/app/prompts/prompt-registry";
 import { DATA_BLOCK_HEADERS } from "../../../src/app/prompts/prompt.types";
 import { z } from "zod";
 
@@ -92,7 +92,7 @@ describe("Prompt Factory", () => {
 
       expect(result.test1.hasComplexSchema).toBe(false);
       expect(result.test2.hasComplexSchema).toBe(true);
-      expect(result.test3.hasComplexSchema).toBeUndefined();
+      expect(result.test3.hasComplexSchema).toBe(true); // Defaults to true when not specified
     });
 
     it("should apply dataBlockHeader option to all entries", () => {

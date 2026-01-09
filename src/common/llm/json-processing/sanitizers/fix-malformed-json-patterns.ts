@@ -1,5 +1,5 @@
 import type { Sanitizer, SanitizerResult } from "./sanitizers-types";
-import { logOneLineWarning } from "../../../utils/logging";
+import { logWarn } from "../../../utils/logging";
 import { executeRulesMultiPass, ALL_RULES } from "./rules";
 
 /**
@@ -83,7 +83,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       diagnostics: result.diagnostics?.length ? [...result.diagnostics] : undefined,
     };
   } catch (error) {
-    logOneLineWarning(`fixMalformedJsonPatterns sanitizer failed: ${String(error)}`);
+    logWarn(`fixMalformedJsonPatterns sanitizer failed: ${String(error)}`);
     return {
       content: input,
       changed: false,

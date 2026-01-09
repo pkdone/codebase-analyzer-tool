@@ -3,7 +3,7 @@
  * Removes username/password credentials while preserving protocol, host, port and path.
  * Falls back gracefully if parsing fails.
  */
-import { logOneLineError } from "../utils/logging";
+import { logErr } from "../utils/logging";
 
 const REDACTED_URL = "REDACTED_URL";
 const REDACTED_CREDENTIALS = "REDACTED";
@@ -25,7 +25,7 @@ export function redactUrl(url: string): string {
 
     return parsed.toString();
   } catch (error: unknown) {
-    logOneLineError("Could not parse URL for redaction", error);
+    logErr("Could not parse URL for redaction", error);
     return REDACTED_URL;
   }
 }

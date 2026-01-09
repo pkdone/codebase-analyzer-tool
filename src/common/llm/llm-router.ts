@@ -23,7 +23,7 @@ import {
   buildCompletionCandidates,
 } from "./utils/completions-models-retriever";
 import { loadManifestForModelFamily } from "./utils/manifest-loader";
-import { logOneLineWarning } from "../utils/logging";
+import { logWarn } from "../utils/logging";
 import { LLMErrorLogger } from "./tracking/llm-error-logger";
 
 /**
@@ -187,7 +187,7 @@ export default class LLMRouter {
 
     // Validate that the result is actually an array of numbers (embeddings)
     if (!Array.isArray(result.data)) {
-      logOneLineWarning(
+      logWarn(
         `Embedding response has invalid type: expected number[] but got ${typeof result.data}`,
         context,
       );
@@ -268,7 +268,7 @@ export default class LLMRouter {
     });
 
     if (!result.success) {
-      logOneLineWarning(`Failed to execute completion: ${result.error.message}`, context);
+      logWarn(`Failed to execute completion: ${result.error.message}`, context);
       return err(
         new LLMError(LLMErrorCode.BAD_RESPONSE_CONTENT, result.error.message, {
           resourceName,

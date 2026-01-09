@@ -1,6 +1,6 @@
 import { inspect } from "util";
 import { MongoServerError } from "mongodb";
-import { logOneLineWarning } from "../utils/logging";
+import { logWarn } from "../utils/logging";
 
 /**
  * Type guard and interface for MongoDB server error with response details
@@ -44,7 +44,7 @@ export function logMongoValidationErrorIfPresent(error: unknown, doLog = true): 
         maxArrayLength: null,
         maxStringLength: null,
       });
-      logOneLineWarning("MongoDB document validation failed", detailedInfo);
+      logWarn("MongoDB document validation failed", detailedInfo);
     }
   }
 }

@@ -3,7 +3,7 @@ import { LLMErrorLogger } from "../../../../src/common/llm/tracking/llm-error-lo
 import type { LLMContext, LLMGeneratedContent } from "../../../../src/common/llm/types/llm.types";
 import { writeFile } from "../../../../src/common/fs/file-operations";
 import { ensureDirectoryExists } from "../../../../src/common/fs/directory-operations";
-import { logOneLineWarning, logOneLineError } from "../../../../src/common/utils/logging";
+import { logWarn, logErr } from "../../../../src/common/utils/logging";
 
 // Mock dependencies
 jest.mock("../../../../src/common/fs/file-operations");
@@ -14,8 +14,8 @@ const mockWriteFile = writeFile as jest.MockedFunction<typeof writeFile>;
 const mockEnsureDirectoryExists = ensureDirectoryExists as jest.MockedFunction<
   typeof ensureDirectoryExists
 >;
-const mockLogOneLineWarning = logOneLineWarning as jest.MockedFunction<typeof logOneLineWarning>;
-const mockLogOneLineError = logOneLineError as jest.MockedFunction<typeof logOneLineError>;
+const mockLogOneLineWarning = logWarn as jest.MockedFunction<typeof logWarn>;
+const mockLogOneLineError = logErr as jest.MockedFunction<typeof logErr>;
 
 describe("LLMErrorLogger", () => {
   let logger: LLMErrorLogger;

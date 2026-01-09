@@ -1,10 +1,10 @@
 import { redactUrl } from "../../../src/common/security/url-redactor";
-import { logOneLineError } from "../../../src/common/utils/logging";
+import { logErr } from "../../../src/common/utils/logging";
 
 // Mock the logging module
 jest.mock("../../../src/common/utils/logging");
 // No need to mock the old shim path; using generic redactor directly
-const mockLogOneLineError = logOneLineError as jest.MockedFunction<typeof logOneLineError>;
+const mockLogOneLineError = logErr as jest.MockedFunction<typeof logErr>;
 
 describe("url-redactor", () => {
   beforeEach(() => {

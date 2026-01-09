@@ -1,8 +1,6 @@
 import { BASE_PROMPT_TEMPLATE } from "../../../src/app/prompts/templates";
 import { renderPrompt } from "../../../src/app/prompts/prompt-renderer";
-import { createReduceInsightsPrompt } from "../../../src/app/prompts/prompt-registry";
 import { z } from "zod";
-import { AppSummaryCategoryEnum } from "../../../src/app/components/insights/insights.types";
 
 describe("Template Consolidation", () => {
   describe("BASE_PROMPT_TEMPLATE", () => {
@@ -85,19 +83,6 @@ describe("Template Consolidation", () => {
     it("should support partial analysis note", () => {
       // The partialAnalysisNote is followed by schemaSection which contains the JSON schema
       expect(BASE_PROMPT_TEMPLATE).toContain("{{partialAnalysisNote}}{{schemaSection}}");
-    });
-
-    it("should render correctly with reduce configuration using factory", () => {
-      // Use the factory function to create a reduce prompt with categoryKey baked in
-      const category: AppSummaryCategoryEnum = "technologies";
-      const schema = z.object({ technologies: z.array(z.object({ name: z.string() })) });
-      const definition = createReduceInsightsPrompt(category, "technologies", schema);
-
-      const rendered = renderPrompt(definition, { content: "test data" });
-      expect(rendered).toContain("Act as a senior developer analyzing the code");
-      expect(rendered).toContain("FRAGMENTED_DATA:");
-      expect(rendered).toContain("technologies");
-      expect(rendered).toContain("consolidate these lists into a single, de-duplicated");
     });
   });
 

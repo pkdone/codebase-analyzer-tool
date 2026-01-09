@@ -7,9 +7,9 @@ import {
 // Simple spy for logging (avoid importing real logger implementation)
 jest.mock("../../../src/common/utils/logging", () => ({
   logErrorMsg: jest.fn(),
-  logOneLineWarning: jest.fn(),
+  logWarn: jest.fn(),
 }));
-import { logOneLineWarning } from "../../../src/common/utils/logging";
+import { logWarn } from "../../../src/common/utils/logging";
 
 describe("mdb-error-utils", () => {
   /**
@@ -71,13 +71,13 @@ describe("mdb-error-utils", () => {
 
   describe("logMongoValidationErrorIfPresent", () => {
     beforeEach(() => {
-      (logOneLineWarning as jest.Mock).mockClear();
+      (logWarn as jest.Mock).mockClear();
     });
 
     it("should log validation failure when errmsg contains document failed validation", () => {
       const err = buildMongoError({ errorResponse: { errmsg: "Document failed validation" } });
       logMongoValidationErrorIfPresent(err, true);
-      expect(logOneLineWarning).toHaveBeenCalled();
+      expect(logWarn).toHaveBeenCalled();
     });
 
     it("should log validation failure case-insensitively", () => {
@@ -85,24 +85,24 @@ describe("mdb-error-utils", () => {
         errorResponse: { errmsg: "DOCUMENT FAILED VALIDATION" },
       });
       logMongoValidationErrorIfPresent(err, true);
-      expect(logOneLineWarning).toHaveBeenCalled();
+      expect(logWarn).toHaveBeenCalled();
     });
 
     it("should not log when doLog is false", () => {
       const err = buildMongoError({ errorResponse: { errmsg: "Document failed validation" } });
       logMongoValidationErrorIfPresent(err, false);
-      expect(logOneLineWarning).not.toHaveBeenCalled();
+      expect(logWarn).not.toHaveBeenCalled();
     });
 
     it("should not log for non-validation errors", () => {
       const err = buildMongoError({ errorResponse: { errmsg: "Some other error" } });
       logMongoValidationErrorIfPresent(err, true);
-      expect(logOneLineWarning).not.toHaveBeenCalled();
+      expect(logWarn).not.toHaveBeenCalled();
     });
 
     it("should not log for non-MongoServerError", () => {
       logMongoValidationErrorIfPresent(new Error("regular error"), true);
-      expect(logOneLineWarning).not.toHaveBeenCalled();
+      expect(logWarn).not.toHaveBeenCalled();
     });
 
     it("should include errInfo when logging", () => {
@@ -112,7 +112,7 @@ describe("mdb-error-utils", () => {
       });
       logMongoValidationErrorIfPresent(err, true);
       // errInfo is now passed through util.inspect() for deep object expansion
-      expect(logOneLineWarning).toHaveBeenCalledWith(
+      expect(logWarn).toHaveBeenCalledWith(
         "MongoDB document validation failed",
         "{ details: 'validation schema mismatch' }",
       );

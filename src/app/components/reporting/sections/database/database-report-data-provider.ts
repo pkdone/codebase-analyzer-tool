@@ -10,7 +10,7 @@ import type {
 import { isComplexityLevel } from "./database.types";
 import { procedureTriggerSchema } from "../../../../schemas/sources.schema";
 import type { z } from "zod";
-import { logOneLineWarning } from "../../../../../common/utils/logging";
+import { logWarn } from "../../../../../common/utils/logging";
 import { DATABASE_OBJECT_TYPE_LABELS } from "../../reporting.constants";
 import {
   NOT_AVAILABLE_PLACEHOLDER,
@@ -170,7 +170,7 @@ export class DatabaseReportDataProvider {
    */
   private normalizeComplexity(complexity: unknown, itemName: string): Complexity {
     if (isComplexityLevel(complexity)) return complexity;
-    logOneLineWarning(
+    logWarn(
       `Invalid complexity value '${String(complexity)}' found for ${itemName}. Defaulting to ${DEFAULT_COMPLEXITY}.`,
     );
     return DEFAULT_COMPLEXITY;

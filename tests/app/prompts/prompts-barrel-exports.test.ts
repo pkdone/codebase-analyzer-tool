@@ -10,11 +10,6 @@ describe("prompts module barrel exports", () => {
       expect(PromptsModule.promptManager).toBeDefined();
       expect(typeof PromptsModule.promptManager).toBe("object");
     });
-
-    it("should export createReduceInsightsPrompt", () => {
-      expect(PromptsModule.createReduceInsightsPrompt).toBeDefined();
-      expect(typeof PromptsModule.createReduceInsightsPrompt).toBe("function");
-    });
   });
 
   describe("renderer exports", () => {

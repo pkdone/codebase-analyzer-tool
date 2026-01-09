@@ -1,4 +1,4 @@
-import { logOneLineWarning, logOneLineError } from "../../../src/common/utils/logging";
+import { logWarn, logErr } from "../../../src/common/utils/logging";
 
 describe("logging", () => {
   let consoleWarnSpy: jest.SpyInstance;
@@ -14,10 +14,10 @@ describe("logging", () => {
     consoleErrorSpy.mockRestore();
   });
 
-  describe("logOneLineError", () => {
+  describe("logErr", () => {
     it("should log an error message with an Error object", () => {
       const error = new Error("Test error");
-      logOneLineError("Operation failed", error);
+      logErr("Operation failed", error);
 
       expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
       const loggedMessage = consoleErrorSpy.mock.calls[0][0];
@@ -28,7 +28,7 @@ describe("logging", () => {
     });
 
     it("should log an error message with a string error", () => {
-      logOneLineError("Operation failed", "String error");
+      logErr("Operation failed", "String error");
 
       expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
       const loggedMessage = consoleErrorSpy.mock.calls[0][0];
@@ -37,7 +37,7 @@ describe("logging", () => {
     });
 
     it("should log an error message with an object error", () => {
-      logOneLineError("Operation failed", { custom: "error object" });
+      logErr("Operation failed", { custom: "error object" });
 
       expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
       const loggedMessage = consoleErrorSpy.mock.calls[0][0];
@@ -45,7 +45,7 @@ describe("logging", () => {
     });
 
     it("should log an error message with null error", () => {
-      logOneLineError("Operation failed", null);
+      logErr("Operation failed", null);
 
       expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
       const loggedMessage = consoleErrorSpy.mock.calls[0][0];
@@ -54,7 +54,7 @@ describe("logging", () => {
     });
 
     it("should log an error message with undefined error", () => {
-      logOneLineError("Operation failed", undefined);
+      logErr("Operation failed", undefined);
 
       expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
       const loggedMessage = consoleErrorSpy.mock.calls[0][0];
@@ -64,7 +64,7 @@ describe("logging", () => {
 
     it("should require a message parameter", () => {
       const error = new Error("Test error");
-      logOneLineError("Required message", error);
+      logErr("Required message", error);
 
       expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
       const loggedMessage = consoleErrorSpy.mock.calls[0][0];
@@ -73,7 +73,7 @@ describe("logging", () => {
 
     it("should replace newlines in error message with spaces", () => {
       const error = new Error("Error\nwith\nnewlines");
-      logOneLineError("Operation failed", error);
+      logErr("Operation failed", error);
 
       expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
       const loggedMessage = consoleErrorSpy.mock.calls[0][0];
@@ -83,21 +83,21 @@ describe("logging", () => {
 
   describe("logSingleLineWarning", () => {
     it("should log a warning message", () => {
-      logOneLineWarning("Warning message");
+      logWarn("Warning message");
 
       expect(consoleWarnSpy).toHaveBeenCalledTimes(1);
       expect(consoleWarnSpy).toHaveBeenCalledWith("Warning message");
     });
 
     it("should replace newlines with spaces in message", () => {
-      logOneLineWarning("Warning\nmessage\nwith\nnewlines");
+      logWarn("Warning\nmessage\nwith\nnewlines");
 
       expect(consoleWarnSpy).toHaveBeenCalledTimes(1);
       expect(consoleWarnSpy).toHaveBeenCalledWith("Warning message with newlines");
     });
 
     it("should include context when provided", () => {
-      logOneLineWarning("Warning message", { key: "value", nested: { data: "test" } });
+      logWarn("Warning message", { key: "value", nested: { data: "test" } });
 
       expect(consoleWarnSpy).toHaveBeenCalledTimes(1);
       const callArg = consoleWarnSpy.mock.calls[0][0];
@@ -109,7 +109,7 @@ describe("logging", () => {
     });
 
     it("should replace newlines in context JSON", () => {
-      logOneLineWarning("Warning", { multiline: "text\nwith\nnewlines" });
+      logWarn("Warning", { multiline: "text\nwith\nnewlines" });
 
       expect(consoleWarnSpy).toHaveBeenCalledTimes(1);
       const callArg = consoleWarnSpy.mock.calls[0][0];
@@ -119,7 +119,7 @@ describe("logging", () => {
 
     it("should handle Error objects in context", () => {
       const error = new Error("Test error message");
-      logOneLineWarning("Warning message", error);
+      logWarn("Warning message", error);
 
       expect(consoleWarnSpy).toHaveBeenCalledTimes(1);
       const callArg = consoleWarnSpy.mock.calls[0][0];
@@ -131,7 +131,7 @@ describe("logging", () => {
 
     it("should handle Error objects with newlines in message", () => {
       const error = new Error("Error\nwith\nnewlines");
-      logOneLineWarning("Warning", error);
+      logWarn("Warning", error);
 
       expect(consoleWarnSpy).toHaveBeenCalledTimes(1);
       const callArg = consoleWarnSpy.mock.calls[0][0];
@@ -140,7 +140,7 @@ describe("logging", () => {
 
     it("should handle plain objects using formatError (unified logging)", () => {
       const plainObject = { key: "value", nested: { data: "test" } };
-      logOneLineWarning("Warning message", plainObject);
+      logWarn("Warning message", plainObject);
 
       expect(consoleWarnSpy).toHaveBeenCalledTimes(1);
       const callArg = consoleWarnSpy.mock.calls[0][0];
@@ -157,7 +157,7 @@ describe("logging", () => {
 
       // Should not throw - formatError uses util.inspect which handles circular refs
       expect(() => {
-        logOneLineWarning("Warning", circular);
+        logWarn("Warning", circular);
       }).not.toThrow();
 
       expect(consoleWarnSpy).toHaveBeenCalledTimes(1);
@@ -167,7 +167,7 @@ describe("logging", () => {
     });
 
     it("should handle primitives using String()", () => {
-      logOneLineWarning("Warning", 123);
+      logWarn("Warning", 123);
 
       expect(consoleWarnSpy).toHaveBeenCalledTimes(1);
       const callArg = consoleWarnSpy.mock.calls[0][0];
@@ -176,7 +176,7 @@ describe("logging", () => {
     });
 
     it("should handle string primitives using String()", () => {
-      logOneLineWarning("Warning", "string context");
+      logWarn("Warning", "string context");
 
       expect(consoleWarnSpy).toHaveBeenCalledTimes(1);
       const callArg = consoleWarnSpy.mock.calls[0][0];
@@ -185,7 +185,7 @@ describe("logging", () => {
     });
 
     it("should handle boolean primitives using String()", () => {
-      logOneLineWarning("Warning", true);
+      logWarn("Warning", true);
 
       expect(consoleWarnSpy).toHaveBeenCalledTimes(1);
       const callArg = consoleWarnSpy.mock.calls[0][0];

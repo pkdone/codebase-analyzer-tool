@@ -52,7 +52,9 @@ export const FORCE_JSON_FORMAT = `The response MUST be valid JSON and meet the f
  * - {{contentWrapper}}: Optional code block markers (```) if wrapInCodeBlock is true
  * - {{schemaSection}}: Conditional JSON schema section (empty for TEXT-mode prompts)
  */
-export const BASE_PROMPT_TEMPLATE = `${DEFAULT_SYSTEM_ROLE} Based on the {{contentDesc}} shown below in the section marked '{{dataBlockHeader}}', return a JSON response that contains {{instructionsText}}.
+export const BASE_PROMPT_TEMPLATE = `${DEFAULT_SYSTEM_ROLE} Based on the {{contentDesc}} shown below in the section marked '{{dataBlockHeader}}', return a JSON response that contains:
+
+{{instructionsText}}
 
 {{partialAnalysisNote}}{{schemaSection}}
 {{dataBlockHeader}}:

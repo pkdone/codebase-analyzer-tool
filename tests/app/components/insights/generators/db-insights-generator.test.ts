@@ -9,7 +9,7 @@ import type { IInsightGenerationStrategy } from "../../../../../src/app/componen
 // Mock the logging utilities
 jest.mock("../../../../../src/common/utils/logging", () => ({
   logError: jest.fn(),
-  logOneLineWarning: jest.fn(),
+  logWarn: jest.fn(),
 }));
 
 describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {

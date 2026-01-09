@@ -10,14 +10,6 @@ import {
 export { appSummaryCategorySchemas, type AppSummaryCategorySchemas };
 
 /**
- * Schema for all category fields of app summary (so excluding 'projectName' and 'llmProvider')
- */
-export const appSummaryRecordCategoriesSchema = appSummarySchema.partial().omit({
-  projectName: true,
-  llmProvider: true,
-});
-
-/**
  * Type for validating the LLM response for a specific category
  */
 export type PartialAppSummaryRecord = Partial<z.infer<typeof appSummarySchema>>;

@@ -1,101 +1,26 @@
 import { z } from "zod";
-import {
-  createTextPromptDefinition,
-  createJsonPromptDefinition,
-} from "../../../src/app/prompts/definitions/prompt-factory";
 import { renderPrompt } from "../../../src/app/prompts/prompt-renderer";
 import { BASE_PROMPT_TEMPLATE, CODEBASE_QUERY_TEMPLATE } from "../../../src/app/prompts/templates";
 import { sourceConfigMap } from "../../../src/app/prompts/definitions/sources/sources.definitions";
 import { LLMOutputFormat } from "../../../src/common/llm/types/llm.types";
-import { createReduceInsightsPrompt } from "../../../src/app/prompts/prompt-registry";
 import type {
   PromptDefinition,
   BasePromptConfigEntry,
 } from "../../../src/app/prompts/prompt.types";
 
 describe("Prompt Refactoring Improvements", () => {
-  describe("createJsonPromptDefinition", () => {
-    const testSchema = z.object({
-      name: z.string(),
-      value: z.number(),
-    });
-
-    it("should create a JSON-mode prompt definition with correct defaults", () => {
-      const result = createJsonPromptDefinition({
-        label: "Test Prompt",
-        contentDesc: "test content",
-        instructions: ["instruction 1"],
-        responseSchema: testSchema,
-        template: BASE_PROMPT_TEMPLATE,
-        dataBlockHeader: "CODE",
-      });
-
-      expect(result.outputFormat).toBe(LLMOutputFormat.JSON);
-      expect(result.wrapInCodeBlock).toBe(false);
-      expect(result.hasComplexSchema).toBe(false);
-      expect(result.label).toBe("Test Prompt");
-      expect(result.contentDesc).toBe("test content");
-      expect(result.responseSchema).toBe(testSchema);
-    });
-
-    it("should allow overriding default values", () => {
-      const result = createJsonPromptDefinition({
-        label: "Test Prompt",
-        contentDesc: "test content",
-        instructions: [],
-        responseSchema: testSchema,
-        template: BASE_PROMPT_TEMPLATE,
-        dataBlockHeader: "CODE",
-        wrapInCodeBlock: true,
-        hasComplexSchema: true,
-      });
-
-      expect(result.wrapInCodeBlock).toBe(true);
-      expect(result.hasComplexSchema).toBe(true);
-    });
-
-    it("should preserve responseSchema type", () => {
-      const result = createJsonPromptDefinition({
-        label: "Test",
-        contentDesc: "test",
-        instructions: [],
-        responseSchema: testSchema,
-        template: BASE_PROMPT_TEMPLATE,
-        dataBlockHeader: "CODE",
-      });
-
-      // Verify schema works for parsing
-      const parseResult = result.responseSchema.safeParse({ name: "test", value: 42 });
-      expect(parseResult.success).toBe(true);
-    });
-  });
-
-  describe("createReduceInsightsPrompt uses createJsonPromptDefinition", () => {
-    it("should have outputFormat set to JSON", () => {
-      const schema = z.object({ technologies: z.array(z.string()) });
-      const result = createReduceInsightsPrompt("technologies", "technologies", schema);
-
-      expect(result.outputFormat).toBe(LLMOutputFormat.JSON);
-    });
-
-    it("should have default values from createJsonPromptDefinition", () => {
-      const schema = z.object({ technologies: z.array(z.string()) });
-      const result = createReduceInsightsPrompt("technologies", "technologies", schema);
-
-      expect(result.wrapInCodeBlock).toBe(false);
-      expect(result.hasComplexSchema).toBe(false);
-    });
-  });
-
   describe("TEXT-mode Rendering", () => {
     it("should not include JSON schema section for TEXT-mode prompts", () => {
-      const textPrompt = createTextPromptDefinition({
+      const textPrompt: PromptDefinition<z.ZodString> = {
         label: "Text Query",
         contentDesc: "source code files",
         instructions: [],
         template: CODEBASE_QUERY_TEMPLATE,
         dataBlockHeader: "CODE",
-      });
+        wrapInCodeBlock: false,
+        responseSchema: z.string(),
+        outputFormat: LLMOutputFormat.TEXT,
+      };
 
       const result = renderPrompt(textPrompt, {
         content: "sample code",
@@ -113,14 +38,17 @@ describe("Prompt Refactoring Improvements", () => {
     });
 
     it("should include JSON schema section for JSON-mode prompts", () => {
-      const jsonPrompt = createJsonPromptDefinition({
+      const jsonPrompt: PromptDefinition = {
         label: "JSON Test",
         contentDesc: "test content",
         instructions: ["test instruction"],
         responseSchema: z.object({ name: z.string() }),
         template: BASE_PROMPT_TEMPLATE,
         dataBlockHeader: "CODE",
-      });
+        wrapInCodeBlock: false,
+        hasComplexSchema: false,
+        outputFormat: LLMOutputFormat.JSON,
+      };
 
       const result = renderPrompt(jsonPrompt, { content: "sample code" });
 

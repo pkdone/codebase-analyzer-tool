@@ -1,5 +1,5 @@
 import { Sanitizer, SanitizerResult } from "./sanitizers-types";
-import { logOneLineWarning } from "../../../utils/logging";
+import { logWarn } from "../../../utils/logging";
 import {
   SANITIZATION_STEP_TEMPLATE,
   SANITIZATION_STEP,
@@ -643,7 +643,7 @@ function fixMissingArrayObjectBracesInternal(input: string): SanitizerResult {
     };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    logOneLineWarning(`fixMissingArrayObjectBracesInternal failed: ${errorMessage}`);
+    logWarn(`fixMissingArrayObjectBracesInternal failed: ${errorMessage}`);
     return {
       content: input,
       changed: false,
@@ -764,7 +764,7 @@ export const fixJsonSyntax: Sanitizer = (input: string): SanitizerResult => {
       diagnostics: diagnostics.length > 0 ? diagnostics : undefined,
     };
   } catch (error) {
-    logOneLineWarning(`fixJsonSyntax sanitizer failed: ${String(error)}`);
+    logWarn(`fixJsonSyntax sanitizer failed: ${String(error)}`);
     return {
       content: input,
       changed: false,

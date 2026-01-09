@@ -27,7 +27,7 @@ describe("Python prompt metadata schema", () => {
     expect(actualKeys.sort()).toEqual(expectedKeys.sort());
   });
 
-  it("should mark hasComplexSchema as true", () => {
-    expect(fileTypePromptMetadata.python.hasComplexSchema).toBe(true);
+  it("should mark hasComplexSchema as false", () => {
+    expect(fileTypePromptMetadata.python.hasComplexSchema).toBe(false);
   });
 });

@@ -12,7 +12,7 @@ import {
 // Mock the logging module to avoid actual logging during tests
 jest.mock("../../../src/common/utils/logging", () => ({
   logError: jest.fn(),
-  logOneLineError: jest.fn(),
+  logErr: jest.fn(),
 }));
 
 describe("File System Utilities", () => {

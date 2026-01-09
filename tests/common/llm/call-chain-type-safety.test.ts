@@ -12,7 +12,7 @@ import {
 
 // Mock dependencies
 jest.mock("../../../src/common/utils/logging", () => ({
-  logOneLineWarning: jest.fn(),
+  logWarn: jest.fn(),
   logError: jest.fn(),
   logErrorMsg: jest.fn(),
 }));

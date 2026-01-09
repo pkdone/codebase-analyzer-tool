@@ -8,7 +8,6 @@ import {
 } from "../../../schemas/app-summaries.schema";
 import { CATEGORY_LABELS } from "../../../config/category-labels.config";
 import { APP_SUMMARY_PROMPT_FRAGMENTS } from "./app-summaries.fragments";
-import { buildInstructionBlock, INSTRUCTION_SECTION_TITLES } from "../instruction-utils";
 import { z } from "zod";
 import type { StrictPromptConfigEntry } from "../../prompt.types";
 
@@ -50,10 +49,7 @@ export const appSummaryConfigMap = {
     label: CATEGORY_LABELS.appDescription,
     contentDesc: "a set of source file summaries",
     instructions: [
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.INSTRUCTIONS,
-        "a detailed description of the application's purpose and implementation",
-      ),
+      "a detailed description of the application's purpose and implementation",
     ] as const,
     responseSchema: appDescriptionSchema,
   },
@@ -61,10 +57,7 @@ export const appSummaryConfigMap = {
     label: CATEGORY_LABELS.technologies,
     contentDesc: "a set of source file summaries",
     instructions: [
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.INSTRUCTIONS,
-        `${APP_SUMMARY_PROMPT_FRAGMENTS.COMPREHENSIVE_LIST} of key external and host platform technologies (including the names of programming languages used) depended on by the application`,
-      ),
+      `${APP_SUMMARY_PROMPT_FRAGMENTS.COMPREHENSIVE_LIST} of key external and host platform technologies (including the names of programming languages used) depended on by the application`,
     ] as const,
     responseSchema: technologiesSchema,
   },
@@ -72,10 +65,7 @@ export const appSummaryConfigMap = {
     label: CATEGORY_LABELS.businessProcesses,
     contentDesc: "a set of source file summaries",
     instructions: [
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.INSTRUCTIONS,
-        `${APP_SUMMARY_PROMPT_FRAGMENTS.CONCISE_LIST} of the application's main business processes with their key business activity steps that are linearly conducted by each process`,
-      ),
+      `${APP_SUMMARY_PROMPT_FRAGMENTS.CONCISE_LIST} of the application's main business processes with their key business activity steps that are linearly conducted by each process`,
     ] as const,
     responseSchema: businessProcessesSchema,
   },
@@ -83,16 +73,13 @@ export const appSummaryConfigMap = {
     label: CATEGORY_LABELS.boundedContexts,
     contentDesc: "a set of source file summaries",
     instructions: [
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.INSTRUCTIONS,
-        `${APP_SUMMARY_PROMPT_FRAGMENTS.CONCISE_LIST} of Domain-Driven Design Bounded Contexts that define explicit boundaries around related business capabilities. For each bounded context, include:
+      `${APP_SUMMARY_PROMPT_FRAGMENTS.CONCISE_LIST} of Domain-Driven Design Bounded Contexts that define explicit boundaries around related business capabilities. For each bounded context, include:
 1. Its aggregates that enforce business rules and maintain consistency
 2. For each aggregate, include:
    - A repository that provides persistence for that aggregate
    - The domain entities it manages with their descriptions and relationships
 
 This hierarchical structure ensures consistent naming across all domain elements within each bounded context`,
-      ),
     ] as const,
     responseSchema: boundedContextsSchema,
   },
@@ -100,10 +87,7 @@ This hierarchical structure ensures consistent naming across all domain elements
     label: CATEGORY_LABELS.potentialMicroservices,
     contentDesc: "a set of source file summaries",
     instructions: [
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.INSTRUCTIONS,
-        `${APP_SUMMARY_PROMPT_FRAGMENTS.CONCISE_LIST} of recommended microservices to modernize the monolithic application architecture, each following the Single Responsibility Principle with detailed domain entities, defined CRUD operations, and REST API endpoints`,
-      ),
+      `${APP_SUMMARY_PROMPT_FRAGMENTS.CONCISE_LIST} of recommended microservices to modernize the monolithic application architecture, each following the Single Responsibility Principle with detailed domain entities, defined CRUD operations, and REST API endpoints`,
     ] as const,
     responseSchema: potentialMicroservicesSchema,
   },
@@ -111,9 +95,7 @@ This hierarchical structure ensures consistent naming across all domain elements
     label: CATEGORY_LABELS.inferredArchitecture,
     contentDesc: "a set of source file summaries",
     instructions: [
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.INSTRUCTIONS,
-        `${APP_SUMMARY_PROMPT_FRAGMENTS.CONCISE_LIST} of BUSINESS DOMAIN components inferred from the codebase.
+      `${APP_SUMMARY_PROMPT_FRAGMENTS.CONCISE_LIST} of BUSINESS DOMAIN components inferred from the codebase.
 
 IMPORTANT: Identify components by their BUSINESS CAPABILITY, not by their technical layer.
 
@@ -138,7 +120,6 @@ For each business component, describe its domain responsibilities and what busin
 Also identify:
 1. External systems that internal components actively depend on (databases, message queues, external APIs, caches). ONLY include external systems that have at least one dependency relationship with an internal component.
 2. Directed dependency relationships between all business components and external systems. Every external dependency listed MUST have at least one "from" relationship from an internal component.`,
-      ),
     ] as const,
     responseSchema: inferredArchitectureSchema,
   },

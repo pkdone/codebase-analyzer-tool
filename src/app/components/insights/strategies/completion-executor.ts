@@ -2,7 +2,7 @@ import { z } from "zod";
 import LLMRouter from "../../../../common/llm/llm-router";
 import { LLMOutputFormat } from "../../../../common/llm/types/llm.types";
 import { promptManager } from "../../../prompts/prompt-registry";
-import { logOneLineWarning } from "../../../../common/utils/logging";
+import { logWarn } from "../../../../common/utils/logging";
 import { joinArrayWithSeparators } from "../../../../common/utils/text-utils";
 import { renderPrompt } from "../../../prompts/prompt-renderer";
 import {
@@ -12,9 +12,7 @@ import {
 } from "../insights.types";
 import { getLlmArtifactCorrections } from "../../../config/llm-artifact-corrections";
 import { isOk } from "../../../../common/types/result.types";
-
-// Individual category schemas are simple and compatible with all LLM providers including VertexAI
-const CATEGORY_SCHEMA_IS_VERTEXAI_COMPATIBLE = true;
+import { hasComplexSchema } from "../insights.config";
 
 /**
  * Options for executing insight completion.
@@ -83,20 +81,18 @@ export async function executeInsightCompletion<C extends AppSummaryCategoryEnum>
     const result = await llmRouter.executeCompletion(taskCategory, renderedPrompt, {
       outputFormat: LLMOutputFormat.JSON,
       jsonSchema: schema,
-      hasComplexSchema: !CATEGORY_SCHEMA_IS_VERTEXAI_COMPATIBLE,
+      hasComplexSchema: hasComplexSchema.INDIVIDUAL_CATEGORY,
       sanitizerConfig: getLlmArtifactCorrections(),
     });
 
     if (!isOk(result)) {
-      logOneLineWarning(`LLM completion failed for ${categoryLabel}: ${result.error.message}`);
+      logWarn(`LLM completion failed for ${categoryLabel}: ${result.error.message}`);
       return null;
     }
 
     return result.value as z.infer<AppSummaryCategorySchemas[C]>;
   } catch (error: unknown) {
-    logOneLineWarning(
-      `${error instanceof Error ? error.message : "Unknown error"} for ${categoryLabel}`,
-    );
+    logWarn(`${error instanceof Error ? error.message : "Unknown error"} for ${categoryLabel}`);
     return null;
   }
 }

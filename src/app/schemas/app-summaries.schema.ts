@@ -39,7 +39,7 @@ const businessActivitySchema = z
  * Schema for business processes with key activities
  */
 export const businessProcessSchema = createNameDescSchema(
-  "The name of the 'logical'business process that reflects how part of the applicaiton operates.",
+  "The name of the 'logical'business process that reflects how part of the application operates.",
   "A detailed description of the business process in at least 5 sentences.",
 )
   .extend({
@@ -209,7 +209,7 @@ const microserviceEntitySchema = z
     description: z
       .string()
       .describe(
-        "A detailed description of the potntial  domain-driven design entity and its purpose.",
+        "A detailed description of the potential domain-driven design entity and its purpose.",
       ),
     attributes: z
       .array(z.string())

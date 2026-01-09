@@ -4,8 +4,8 @@ import LLMRouter from "../../../../common/llm/llm-router";
 import { LLMOutputFormat } from "../../../../common/llm/types/llm.types";
 import { insightsTuningConfig } from "../insights.config";
 import { llmConcurrencyLimiter } from "../../../config/concurrency.config";
-import { promptManager, createReduceInsightsPrompt } from "../../../prompts/prompt-registry";
-import { logOneLineWarning } from "../../../../common/utils/logging";
+import { promptManager } from "../../../prompts/prompt-registry";
+import { logWarn } from "../../../../common/utils/logging";
 import { renderPrompt } from "../../../prompts/prompt-renderer";
 import { llmTokens } from "../../../di/tokens";
 import { IInsightGenerationStrategy } from "./completion-strategy.interface";
@@ -18,9 +18,10 @@ import { getLlmArtifactCorrections } from "../../../config/llm-artifact-correcti
 import { executeInsightCompletion } from "./completion-executor";
 import { chunkTextByTokenLimit } from "../../../../common/llm/utils/text-chunking";
 import { isOk } from "../../../../common/types/result.types";
-
-// Individual category schemas are simple and compatible with all LLM providers including VertexAI
-const CATEGORY_SCHEMA_IS_VERTEXAI_COMPATIBLE = true;
+import { buildReduceInsightsContentDesc } from "../../../prompts/definitions/app-summaries/app-summaries.fragments";
+import { BASE_PROMPT_TEMPLATE } from "../../../prompts/templates";
+import { DATA_BLOCK_HEADERS, type PromptDefinition } from "../../../prompts/prompt.types";
+import { hasComplexSchema } from "../insights.config";
 
 /**
  * Map-reduce insight generation strategy for large codebases.
@@ -81,7 +82,7 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
       const partialResults = results.filter((r) => r !== null) as CategoryInsightResult<C>[];
 
       if (partialResults.length === 0) {
-        logOneLineWarning(
+        logWarn(
           `No partial insights were generated for ${categoryLabel}. Skipping final consolidation.`,
         );
         return null;
@@ -95,15 +96,13 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
       const finalSummaryData = await this.reducePartialInsights(category, partialResults);
 
       if (!finalSummaryData) {
-        logOneLineWarning(`Failed to generate final consolidated summary for ${categoryLabel}.`);
+        logWarn(`Failed to generate final consolidated summary for ${categoryLabel}.`);
         return null;
       }
 
       return finalSummaryData;
     } catch (error: unknown) {
-      logOneLineWarning(
-        `${error instanceof Error ? error.message : "Unknown error"} for ${categoryLabel}`,
-      );
+      logWarn(`${error instanceof Error ? error.message : "Unknown error"} for ${categoryLabel}`);
       return null;
     }
   }
@@ -138,39 +137,39 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
     partialResults: CategoryInsightResult<C>[],
   ): Promise<CategoryInsightResult<C> | null> {
     const config = promptManager.appSummaries[category];
-
-    // Use strongly-typed schema for type inference
     const schema = appSummaryCategorySchemas[category];
-
-    // Get the key name for this category (e.g., "entities", "boundedContexts")
     const schemaShape = (schema as z.ZodObject<z.ZodRawShape>).shape;
     // Assert that the dynamically retrieved key is a valid key of the result type.
     // This enables TypeScript to correctly infer the type of result[categoryKey] without unsafe casts.
     const categoryKey = Object.keys(schemaShape)[0] as keyof CategoryInsightResult<C>;
-
     // Flatten the arrays from all partial results into a single combined list
     const combinedData = partialResults.flatMap((result) => {
       const categoryData = result[categoryKey];
       if (Array.isArray(categoryData)) return categoryData;
       return [];
     });
-
     const content = JSON.stringify({ [categoryKey]: combinedData }, null, 2);
-
-    // Create a fully-typed prompt definition using the factory function
-    const reducePromptDef = createReduceInsightsPrompt(category, categoryKey as string, schema);
+    const reducePromptDef: PromptDefinition = {
+      contentDesc: buildReduceInsightsContentDesc(categoryKey as string),
+      instructions: [`a consolidated list of '${String(categoryKey)}'`],
+      responseSchema: schema,
+      template: BASE_PROMPT_TEMPLATE,
+      dataBlockHeader: DATA_BLOCK_HEADERS.FRAGMENTED_DATA,
+      wrapInCodeBlock: false,
+      outputFormat: LLMOutputFormat.JSON,
+    };
     const renderedPrompt = renderPrompt(reducePromptDef, { content });
 
     try {
-      // Use strongly-typed schema lookup - enables correct return type inference.
       const result = await this.llmRouter.executeCompletion(`${category}-reduce`, renderedPrompt, {
         outputFormat: LLMOutputFormat.JSON,
         jsonSchema: schema,
-        hasComplexSchema: !CATEGORY_SCHEMA_IS_VERTEXAI_COMPATIBLE,
+        hasComplexSchema: hasComplexSchema.INDIVIDUAL_CATEGORY,
         sanitizerConfig: getLlmArtifactCorrections(),
       });
+
       if (!isOk(result)) {
-        logOneLineWarning(
+        logWarn(
           `LLM completion failed for ${config.label ?? category} reduce: ${result.error.message}`,
         );
         return null;
@@ -191,7 +190,7 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
        */
       return result.value as CategoryInsightResult<C>;
     } catch (error: unknown) {
-      logOneLineWarning(
+      logWarn(
         `Failed to consolidate partial insights for ${config.label ?? category}: ${error instanceof Error ? error.message : "Unknown error"}`,
       );
       return null;

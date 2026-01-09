@@ -36,23 +36,29 @@ export const specialFileDefinitions: Record<string, SourceConfigEntry> = {
       },
     ],
   ),
-  markdown: createSimpleConfig(
-    "the Markdown documentation",
-    ["purpose", "implementation", "databaseIntegration"],
-    [
-      {
-        title: INSTRUCTION_SECTION_TITLES.BASIC_INFO,
-        fragments: [
-          SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
-          SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
-        ],
-      },
-      {
-        title: INSTRUCTION_SECTION_TITLES.DATABASE_INTEGRATION_ANALYSIS,
-        fragments: [COMPOSITES.DB_INTEGRATION, SOURCES_PROMPT_FRAGMENTS.COMMON.DB_IN_DOCUMENTATION],
-      },
-    ],
-  ),
+  markdown: {
+    ...createSimpleConfig(
+      "the Markdown documentation",
+      ["purpose", "implementation", "databaseIntegration"],
+      [
+        {
+          title: INSTRUCTION_SECTION_TITLES.BASIC_INFO,
+          fragments: [
+            SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
+            SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
+          ],
+        },
+        {
+          title: INSTRUCTION_SECTION_TITLES.DATABASE_INTEGRATION_ANALYSIS,
+          fragments: [
+            COMPOSITES.DB_INTEGRATION,
+            SOURCES_PROMPT_FRAGMENTS.COMMON.DB_IN_DOCUMENTATION,
+          ],
+        },
+      ],
+    ),
+    hasComplexSchema: false,
+  },
   xml: createSimpleConfig(
     "the XML configuration",
     ["purpose", "implementation", "uiFramework"],
@@ -115,6 +121,7 @@ export const specialFileDefinitions: Record<string, SourceConfigEntry> = {
         SOURCES_PROMPT_FRAGMENTS.SHELL_SCRIPT_SPECIFIC.EXTERNAL_API_CALLS,
       ),
     ] as const,
+    hasComplexSchema: false,
   },
   "batch-script": {
     contentDesc: "the Windows batch script (.bat/.cmd)",
@@ -135,6 +142,7 @@ export const specialFileDefinitions: Record<string, SourceConfigEntry> = {
         SOURCES_PROMPT_FRAGMENTS.BATCH_SCRIPT_SPECIFIC.SERVICE_OPS,
       ),
     ] as const,
+    hasComplexSchema: false,
   },
   jcl: {
     contentDesc: "the Mainframe JCL (Job Control Language)",
@@ -155,22 +163,26 @@ export const specialFileDefinitions: Record<string, SourceConfigEntry> = {
         SOURCES_PROMPT_FRAGMENTS.JCL_SPECIFIC.SORT_UTILITIES,
       ),
     ] as const,
+    hasComplexSchema: false,
   },
-  default: createSimpleConfig(
-    "the source files",
-    ["purpose", "implementation", "databaseIntegration"],
-    [
-      {
-        title: INSTRUCTION_SECTION_TITLES.BASIC_INFO,
-        fragments: [
-          SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
-          SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
-        ],
-      },
-      {
-        title: INSTRUCTION_SECTION_TITLES.DATABASE_INTEGRATION_ANALYSIS,
-        fragments: [COMPOSITES.DB_INTEGRATION, SOURCES_PROMPT_FRAGMENTS.COMMON.DB_IN_FILE],
-      },
-    ],
-  ),
+  default: {
+    ...createSimpleConfig(
+      "the source files",
+      ["purpose", "implementation", "databaseIntegration"],
+      [
+        {
+          title: INSTRUCTION_SECTION_TITLES.BASIC_INFO,
+          fragments: [
+            SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
+            SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
+          ],
+        },
+        {
+          title: INSTRUCTION_SECTION_TITLES.DATABASE_INTEGRATION_ANALYSIS,
+          fragments: [COMPOSITES.DB_INTEGRATION, SOURCES_PROMPT_FRAGMENTS.COMMON.DB_IN_FILE],
+        },
+      ],
+    ),
+    hasComplexSchema: false,
+  },
 };

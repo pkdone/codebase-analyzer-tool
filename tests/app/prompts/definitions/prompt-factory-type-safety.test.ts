@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { createPromptMetadata } from "../../../../src/app/prompts/definitions/prompt-factory";
+import { createPromptMetadata } from "../../../../src/app/prompts/prompt-registry";
 import type { PromptDefinition } from "../../../../src/app/prompts/prompt.types";
 import { DATA_BLOCK_HEADERS } from "../../../../src/app/prompts/prompt.types";
 
@@ -223,7 +223,7 @@ describe("createPromptMetadata Type Safety", () => {
           contentDesc: "default content",
           responseSchema: schema,
           instructions: [] as const,
-          // No hasComplexSchema - should be undefined
+          // No hasComplexSchema - defaults to true
         },
       } as const;
 
@@ -231,7 +231,7 @@ describe("createPromptMetadata Type Safety", () => {
 
       expect(result.complex.hasComplexSchema).toBe(true);
       expect(result.simple.hasComplexSchema).toBe(false);
-      expect(result.default.hasComplexSchema).toBeUndefined();
+      expect(result.default.hasComplexSchema).toBe(true); // Defaults to true
     });
   });
 

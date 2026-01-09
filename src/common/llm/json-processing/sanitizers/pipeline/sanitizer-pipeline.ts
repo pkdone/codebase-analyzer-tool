@@ -4,7 +4,7 @@
  */
 
 import type { LLMSanitizerConfig } from "../../../config/llm-module-config.types";
-import { logOneLineWarning } from "../../../../utils/logging";
+import { logWarn } from "../../../../utils/logging";
 import type {
   SanitizerStrategy,
   PipelineConfig,
@@ -75,7 +75,7 @@ export function executePipeline(
       }
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : String(error);
-      logOneLineWarning(`Sanitizer strategy '${strategy.name}' failed: ${errorMsg}`);
+      logWarn(`Sanitizer strategy '${strategy.name}' failed: ${errorMsg}`);
 
       if (!opts.continueOnError) {
         throw error;

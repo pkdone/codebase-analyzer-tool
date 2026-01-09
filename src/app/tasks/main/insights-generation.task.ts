@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import { injectable, inject } from "tsyringe";
-import type { InsightsProcessorSelector } from "../../components/insights/generators/insights-processor-selector";
+import type InsightsFromDBGenerator from "../../components/insights/generators/db-insights-generator";
 import type LLMTelemetryTracker from "../../../common/llm/tracking/llm-telemetry-tracker";
 import { llmTokens, coreTokens, insightsTokens } from "../../di/tokens";
 import { BaseLLMTrackedTask } from "../base-llm-tracked-task";
@@ -17,8 +17,8 @@ export class InsightsGenerationTask extends BaseLLMTrackedTask {
   constructor(
     @inject(llmTokens.LLMTelemetryTracker) llmStats: LLMTelemetryTracker,
     @inject(coreTokens.ProjectName) projectName: string,
-    @inject(insightsTokens.InsightsProcessorSelector)
-    private readonly insightsProcessorSelector: InsightsProcessorSelector,
+    @inject(insightsTokens.InsightsFromDBGenerator)
+    private readonly insightsGenerator: InsightsFromDBGenerator,
   ) {
     super(llmStats, projectName);
   }
@@ -32,7 +32,6 @@ export class InsightsGenerationTask extends BaseLLMTrackedTask {
   }
 
   protected async runTask(): Promise<void> {
-    const selectedProcessor = await this.insightsProcessorSelector.selectInsightsProcessor();
-    await selectedProcessor.generateAndStoreInsights();
+    await this.insightsGenerator.generateAndStoreInsights();
   }
 }

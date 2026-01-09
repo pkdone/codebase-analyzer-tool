@@ -8,7 +8,7 @@ import {
 } from "@aws-sdk/client-bedrock-runtime";
 import { llmConfig } from "../../../config/llm.config";
 import { formatError } from "../../../../utils/error-formatters";
-import { logOneLineError } from "../../../../utils/logging";
+import { logErr } from "../../../../utils/logging";
 import BaseLLMProvider from "../../base-llm-provider";
 import { z } from "zod";
 import { LLMError, LLMErrorCode } from "../../../types/llm-errors.types";
@@ -86,7 +86,7 @@ export default abstract class BaseBedrockLLM extends BaseLLMProvider {
     try {
       this.client.destroy();
     } catch (error: unknown) {
-      logOneLineError("Error when calling destroy on AWSBedrock LLM", error);
+      logErr("Error when calling destroy on AWSBedrock LLM", error);
     }
     // Implementation of async interface - destroy() is synchronous but base class requires Promise
     await Promise.resolve();

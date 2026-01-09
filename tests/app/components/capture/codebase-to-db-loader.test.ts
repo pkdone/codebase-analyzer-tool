@@ -18,8 +18,8 @@ jest.mock("../../../../src/common/fs/path-utils");
 jest.mock("../../../../src/common/utils/text-utils");
 jest.mock("../../../../src/common/utils/logging", () => ({
   logError: jest.fn(),
-  logOneLineWarning: jest.fn(),
-  logOneLineError: jest.fn(),
+  logWarn: jest.fn(),
+  logErr: jest.fn(),
 }));
 
 jest.mock("../../../../src/app/config/file-handling", () => {

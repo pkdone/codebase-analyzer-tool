@@ -11,7 +11,7 @@ import { describe, test, expect, jest } from "@jest/globals";
 
 // Mock the logging module
 jest.mock("../../../../../src/common/utils/logging", () => ({
-  logOneLineWarning: jest.fn(),
+  logWarn: jest.fn(),
 }));
 
 describe("determineNextAction", () => {

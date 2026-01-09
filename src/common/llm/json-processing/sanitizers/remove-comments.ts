@@ -1,5 +1,5 @@
 import { Sanitizer, SanitizerResult } from "./sanitizers-types";
-import { logOneLineWarning } from "../../../utils/logging";
+import { logWarn } from "../../../utils/logging";
 import { isInStringAt } from "../utils/parser-context-utils";
 
 /**
@@ -84,7 +84,7 @@ export const removeComments: Sanitizer = (input: string): SanitizerResult => {
       diagnostics: diagnostics.length > 0 ? diagnostics : undefined,
     };
   } catch (error) {
-    logOneLineWarning(`removeComments sanitizer failed: ${String(error)}`);
+    logWarn(`removeComments sanitizer failed: ${String(error)}`);
     return {
       content: input,
       changed: false,

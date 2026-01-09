@@ -1,6 +1,6 @@
 import { Sanitizer, SanitizerResult } from "./sanitizers-types";
 import { SANITIZATION_STEP } from "../constants/sanitization-steps.config";
-import { logOneLineWarning } from "../../../utils/logging";
+import { logWarn } from "../../../utils/logging";
 
 /**
  * Replacement pattern tuple: [RegExp, replacement string, description]
@@ -454,7 +454,7 @@ export const normalizeCharacters: Sanitizer = (input: string): SanitizerResult =
     };
   } catch (error) {
     // If sanitization fails, return the original string
-    logOneLineWarning(`normalizeCharacters sanitizer failed: ${String(error)}`);
+    logWarn(`normalizeCharacters sanitizer failed: ${String(error)}`);
     return {
       content: input,
       changed: false,

@@ -1,7 +1,7 @@
 import { promises as fs, Dirent } from "fs";
 import path from "path";
 import glob from "fast-glob";
-import { logOneLineError } from "../utils/logging";
+import { logErr } from "../utils/logging";
 
 /**
  * Get the handle of the files in a directory
@@ -32,7 +32,7 @@ export async function clearDirectory(
 
       const filePath = path.join(dirPath, file);
       const promise = fs.rm(filePath, { recursive: true, force: true }).catch((error: unknown) => {
-        logOneLineError(
+        logErr(
           `When clearing directory '${dirPath}', unable to remove the item: ${filePath}`,
           error,
         );
@@ -42,13 +42,13 @@ export async function clearDirectory(
 
     await Promise.allSettled(removalPromises);
   } catch (error: unknown) {
-    logOneLineError(`Unable to read directory for clearing: ${dirPath}`, error);
+    logErr(`Unable to read directory for clearing: ${dirPath}`, error);
   }
 
   try {
     await fs.mkdir(dirPath, { recursive: true });
   } catch (mkdirError: unknown) {
-    logOneLineError(`Failed to ensure directory exists after clearing: ${dirPath}`, mkdirError);
+    logErr(`Failed to ensure directory exists after clearing: ${dirPath}`, mkdirError);
   }
 }
 
@@ -95,7 +95,7 @@ export async function sortFilesBySize(filepaths: string[]): Promise<string[]> {
     if (result.status === "fulfilled") {
       return { filepath, size: result.value.size };
     }
-    logOneLineError(`Unable to get file size for: ${filepath}`, result.reason);
+    logErr(`Unable to get file size for: ${filepath}`, result.reason);
     return { filepath, size: 0 };
   });
 
@@ -110,7 +110,7 @@ export async function ensureDirectoryExists(dirPath: string): Promise<void> {
   try {
     await fs.mkdir(dirPath, { recursive: true });
   } catch (error: unknown) {
-    logOneLineError(`Failed to create directory: ${dirPath}`, error);
+    logErr(`Failed to create directory: ${dirPath}`, error);
     throw error;
   }
 }

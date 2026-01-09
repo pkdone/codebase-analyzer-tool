@@ -59,7 +59,6 @@ export const DEPENDENCY_EXTRACTION_FRAGMENTS = {
   * scope ('compile' for dependencies, 'test' for dev-dependencies)
   * groupId (use 'pypi' as standard groupId)`,
   MAKEFILE: `A comprehensive list of dependencies from this C/C++ build configuration file. Handle CMake, Makefile, and Autotools syntax:
-
   FOR CMAKE (CMakeLists.txt):
   * find_package(PackageName VERSION) - extract package name, version, and REQUIRED/OPTIONAL
   * target_link_libraries(target PRIVATE|PUBLIC lib1 lib2) - extract linked library names
@@ -67,13 +66,11 @@ export const DEPENDENCY_EXTRACTION_FRAGMENTS = {
   * ExternalProject_Add() - extract external project dependencies
   * pkg_check_modules(PREFIX REQUIRED pkg1 pkg2) - extract pkg-config package names
   * find_library(VAR NAMES libname) - extract library being searched
-
   FOR MAKEFILE (Makefile, GNUmakefile, Makefile.am):
   * LIBS or LDLIBS variables - extract library names (strip -l prefix, e.g., -lpthread -> pthread)
   * LDFLAGS with -l flags - extract library dependencies
   * pkg-config calls in shell commands - extract package names
   * Direct .a or .so references - extract library names
-
   FOR AUTOTOOLS (configure.ac, configure.in):
   * PKG_CHECK_MODULES(PREFIX, package >= version) - extract package name and version constraint
   * AC_CHECK_LIB(library, function) - extract library name
@@ -81,7 +78,6 @@ export const DEPENDENCY_EXTRACTION_FRAGMENTS = {
   * AC_SEARCH_LIBS(function, libraries) - extract library names from the list
   * AM_PATH_* macros (e.g., AM_PATH_PYTHON) - extract package requirements
   * AX_* macros from autoconf-archive - extract relevant dependencies
-
   For each dependency provide:
   * name: library or package name
   * version: version if specified (or null if not available)

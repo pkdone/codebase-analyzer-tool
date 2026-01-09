@@ -5,10 +5,7 @@ import {
   type PromptDefinition,
 } from "../../../src/app/prompts/prompt.types";
 import { buildSchemaSection, renderPrompt } from "../../../src/app/prompts/prompt-renderer";
-import {
-  promptManager,
-  createReduceInsightsPrompt,
-} from "../../../src/app/prompts/prompt-registry";
+import { promptManager } from "../../../src/app/prompts/prompt-registry";
 import { sourceConfigMap } from "../../../src/app/prompts/definitions/sources/sources.definitions";
 import { appSummaryConfigMap } from "../../../src/app/prompts/definitions/app-summaries/app-summaries.definitions";
 
@@ -176,13 +173,6 @@ describe("Prompt Refactoring", () => {
     it("should use CODE header for codebase query prompt", () => {
       expect(promptManager.codebaseQuery.dataBlockHeader).toBe(DATA_BLOCK_HEADERS.CODE);
     });
-
-    it("should use FRAGMENTED_DATA header for reduce insights prompts", () => {
-      const testSchema = z.object({ items: z.array(z.string()) });
-      const reducePrompt = createReduceInsightsPrompt("technologies", "technologies", testSchema);
-
-      expect(reducePrompt.dataBlockHeader).toBe(DATA_BLOCK_HEADERS.FRAGMENTED_DATA);
-    });
   });
 
   describe("Rendered prompts maintain correct output", () => {
@@ -215,23 +205,6 @@ describe("Prompt Refactoring", () => {
 
       // Should contain the actual content
       expect(result).toContain("test file summaries");
-    });
-
-    it("should render reduce insights prompt with correct structure", () => {
-      const testSchema = z.object({ technologies: z.array(z.string()) });
-      const reducePrompt = createReduceInsightsPrompt("technologies", "technologies", testSchema);
-      const result = renderPrompt(reducePrompt, {
-        content: JSON.stringify({ technologies: ["TypeScript"] }),
-      });
-
-      // Should contain FRAGMENTED_DATA header
-      expect(result).toContain("FRAGMENTED_DATA:");
-
-      // Should contain consolidation instructions
-      expect(result).toContain("technologies");
-
-      // Should contain the actual content
-      expect(result).toContain("TypeScript");
     });
   });
 

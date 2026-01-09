@@ -13,8 +13,8 @@ import { ok, err, isOk, isErr } from "../../../../src/common/types/result.types"
 
 // Mock dependencies
 jest.mock("../../../../src/common/utils/logging", () => ({
-  logOneLineError: jest.fn(),
-  logOneLineWarning: jest.fn(),
+  logErr: jest.fn(),
+  logWarn: jest.fn(),
 }));
 
 jest.mock("../../../../src/app/config/file-handling", () => ({

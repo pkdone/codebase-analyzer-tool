@@ -1,6 +1,6 @@
 import { injectable, inject } from "tsyringe";
 import { z } from "zod";
-import { logOneLineError } from "../../../common/utils/logging";
+import { logErr } from "../../../common/utils/logging";
 import type LLMRouter from "../../../common/llm/llm-router";
 import { LLMOutputFormat } from "../../../common/llm/types/llm.types";
 import { renderPrompt } from "../../prompts/prompt-renderer";
@@ -103,7 +103,7 @@ export class FileSummarizerService {
 
       if (!isOk(result)) {
         const errorMsg = `Failed to generate summary for '${filepath}'`;
-        logOneLineError(errorMsg, result.error);
+        logErr(errorMsg, result.error);
         return err(result.error);
       }
 
@@ -112,7 +112,7 @@ export class FileSummarizerService {
       return ok(result.value as PartialSourceSummaryType);
     } catch (error: unknown) {
       const errorMsg = `Failed to generate summary for '${filepath}'`;
-      logOneLineError(errorMsg, error);
+      logErr(errorMsg, error);
       return err(error instanceof Error ? error : new Error(String(error)));
     }
   }

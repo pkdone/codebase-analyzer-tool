@@ -17,7 +17,7 @@ import {
   ShutdownBehavior,
   createTokenUsageRecord,
 } from "../../../types/llm.types";
-import { logOneLineWarning, logOneLineError } from "../../../../utils/logging";
+import { logWarn, logErr } from "../../../../utils/logging";
 import { formatError } from "../../../../utils/error-formatters";
 import BaseLLMProvider from "../../base-llm-provider";
 import { LLMError, LLMErrorCode } from "../../../types/llm-errors.types";
@@ -96,7 +96,7 @@ export default class VertexAIGeminiLLM extends BaseLLMProvider {
       // Use timeout-based cleanup as the recommended workaround at the end of the program to allow
       // the process to terminate.
     } catch (error: unknown) {
-      logOneLineError("Error when closing Vertex AI Gemini LLM clients", error);
+      logErr("Error when closing Vertex AI Gemini LLM clients", error);
     }
   }
 
@@ -266,7 +266,7 @@ export default class VertexAIGeminiLLM extends BaseLLMProvider {
         if (isVertexAICompatibleSchema(sanitizedSchema)) {
           generationConfig.responseSchema = sanitizedSchema;
         } else {
-          logOneLineWarning(
+          logWarn(
             "Generated JSON schema is not compatible with VertexAI SDK's Schema type. " +
               "Proceeding without schema enforcement to avoid runtime errors.",
           );
@@ -340,7 +340,7 @@ export default class VertexAIGeminiLLM extends BaseLLMProvider {
         return valuesField.listValue.values;
       }
     }
-    
+
     // Fall back to direct list structure
     if (value.listValue?.values) {
       return value.listValue.values;

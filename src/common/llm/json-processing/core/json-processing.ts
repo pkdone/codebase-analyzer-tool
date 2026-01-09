@@ -2,7 +2,7 @@ import { z } from "zod";
 import { LLMGeneratedContent, LLMCompletionOptions, LLMContext } from "../../types/llm.types";
 import { JsonProcessingError, JsonProcessingErrorType } from "../types/json-processing.errors";
 import { JsonProcessorResult } from "../types/json-processing-result.types";
-import { logOneLineWarning } from "../../../utils/logging";
+import { logWarn } from "../../../utils/logging";
 import { hasSignificantSanitizationSteps } from "../sanitizers";
 import { parseJsonWithSanitizers } from "./json-parsing";
 import { validateJsonWithTransforms } from "./json-validating";
@@ -52,7 +52,7 @@ function logProblem(
   loggingEnabled: boolean,
 ): void {
   if (loggingEnabled) {
-    logOneLineWarning(message, context);
+    logWarn(message, context);
   }
 }
 
@@ -82,7 +82,7 @@ function logProcessingSteps(
     );
   }
 
-  if (messages.length > 0) logOneLineWarning(messages.join(" | "), context);
+  if (messages.length > 0) logWarn(messages.join(" | "), context);
 }
 
 /**

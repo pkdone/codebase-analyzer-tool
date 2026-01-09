@@ -1,7 +1,4 @@
-import {
-  promptManager,
-  createReduceInsightsPrompt,
-} from "../../../src/app/prompts/prompt-registry";
+import { promptManager } from "../../../src/app/prompts/prompt-registry";
 import { AppSummaryCategories } from "../../../src/app/schemas/app-summaries.schema";
 import { z } from "zod";
 
@@ -11,8 +8,6 @@ describe("Prompt Registry", () => {
       expect(promptManager).toHaveProperty("appSummaries");
       expect(promptManager).toHaveProperty("sources");
       expect(promptManager).toHaveProperty("codebaseQuery");
-      // reduceInsights is now a factory function exported separately
-      expect(typeof createReduceInsightsPrompt).toBe("function");
     });
 
     it("should have app summary prompts for all categories", () => {
@@ -131,10 +126,10 @@ describe("Prompt Registry", () => {
       expect(promptManager.sources.python.wrapInCodeBlock).toBe(true);
     });
 
-    it("should have hasComplexSchema set to true for source prompts", () => {
-      expect(promptManager.sources.java.hasComplexSchema).toBe(true);
-      expect(promptManager.sources.javascript.hasComplexSchema).toBe(true);
-      expect(promptManager.sources.python.hasComplexSchema).toBe(true);
+    it("should have hasComplexSchema set to false for source prompts", () => {
+      expect(promptManager.sources.java.hasComplexSchema).toBe(false);
+      expect(promptManager.sources.javascript.hasComplexSchema).toBe(false);
+      expect(promptManager.sources.python.hasComplexSchema).toBe(false);
     });
 
     it("should have non-empty instructions for code file types", () => {
@@ -162,48 +157,6 @@ describe("Prompt Registry", () => {
       const prompt = promptManager.codebaseQuery;
       expect(prompt.template).toContain("QUESTION");
       expect(prompt.template).toContain("{{question}}");
-    });
-  });
-
-  describe("Reduce Insights Prompt Factory", () => {
-    it("should create a valid prompt definition", () => {
-      const schema = z.object({ technologies: z.array(z.string()) });
-      const prompt = createReduceInsightsPrompt("technologies", "technologies", schema);
-
-      expect(prompt.label).toBe("Reduce Insights");
-      expect(prompt.contentDesc).toContain("technologies");
-      expect(prompt.instructions.length).toBeGreaterThan(0);
-      expect(prompt.responseSchema).toBe(schema);
-      expect(prompt.dataBlockHeader).toBe("FRAGMENTED_DATA");
-      expect(prompt.wrapInCodeBlock).toBe(false);
-    });
-
-    it("should include the categoryKey in contentDesc", () => {
-      const schema = z.object({ technologies: z.array(z.string()) });
-      const prompt = createReduceInsightsPrompt("technologies", "technologies", schema);
-      expect(prompt.contentDesc).toContain("technologies");
-    });
-
-    it("should include the categoryKey in instructions", () => {
-      const schema = z.object({ technologies: z.array(z.string()) });
-      const prompt = createReduceInsightsPrompt("technologies", "technologies", schema);
-      const hasKey = prompt.instructions.some((inst) => inst.includes("technologies"));
-      expect(hasKey).toBe(true);
-    });
-
-    it("should use the provided schema directly (not z.unknown())", () => {
-      const schema = z.object({
-        technologies: z.array(z.object({ name: z.string() })),
-      });
-      const prompt = createReduceInsightsPrompt("technologies", "technologies", schema);
-
-      // Verify it's the actual schema, not z.unknown()
-      expect(prompt.responseSchema).toBe(schema);
-
-      // Verify it can be used for parsing
-      const testData = { technologies: [{ name: "Test" }] };
-      const result = prompt.responseSchema.safeParse(testData);
-      expect(result.success).toBe(true);
     });
   });
 

@@ -20,7 +20,7 @@ import * as manifestLoader from "../../../../src/common/llm/utils/manifest-loade
 import { isOk, isErr } from "../../../../src/common/types/result.types";
 
 jest.mock("../../../../src/common/utils/logging", () => ({
-  logOneLineWarning: jest.fn(),
+  logWarn: jest.fn(),
   logError: jest.fn(),
   logErrorMsg: jest.fn(),
 }));

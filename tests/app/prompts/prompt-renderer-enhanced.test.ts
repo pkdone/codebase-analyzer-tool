@@ -1,8 +1,9 @@
 import { z } from "zod";
 import { renderPrompt } from "../../../src/app/prompts/prompt-renderer";
-import { createReduceInsightsPrompt } from "../../../src/app/prompts/prompt-registry";
+import { buildReduceInsightsContentDesc } from "../../../src/app/prompts/definitions/app-summaries/app-summaries.fragments";
 import { BASE_PROMPT_TEMPLATE } from "../../../src/app/prompts/templates";
-import { type PromptDefinition } from "../../../src/app/prompts/prompt.types";
+import { DATA_BLOCK_HEADERS, type PromptDefinition } from "../../../src/app/prompts/prompt.types";
+import { LLMOutputFormat } from "../../../src/common/llm/types/llm.types";
 
 describe("Prompt Renderer", () => {
   const baseSchema = z.object({
@@ -161,8 +162,8 @@ describe("Prompt Renderer", () => {
     });
   });
 
-  describe("Reduce Insights Use Case with Factory", () => {
-    it("should properly render reduce insights prompt created via factory", () => {
+  describe("Reduce Insights Use Case", () => {
+    it("should properly render reduce insights prompt", () => {
       const categorySchema = z.object({
         technologies: z.array(
           z.object({
@@ -172,12 +173,18 @@ describe("Prompt Renderer", () => {
         ),
       });
 
-      // Use the factory to create a typed prompt definition
-      const reducePrompt = createReduceInsightsPrompt(
-        "technologies",
-        "technologies",
-        categorySchema,
-      );
+      // Create a typed prompt definition
+      const reducePrompt: PromptDefinition = {
+        label: "Reduce Insights",
+        contentDesc: buildReduceInsightsContentDesc("technologies"),
+        instructions: [`a consolidated list of 'technologies'`],
+        responseSchema: categorySchema,
+        template: BASE_PROMPT_TEMPLATE,
+        dataBlockHeader: DATA_BLOCK_HEADERS.FRAGMENTED_DATA,
+        wrapInCodeBlock: false,
+        hasComplexSchema: false,
+        outputFormat: LLMOutputFormat.JSON,
+      };
 
       const partialData = {
         technologies: [{ name: "TypeScript", description: "Typed JavaScript" }],
@@ -198,12 +205,22 @@ describe("Prompt Renderer", () => {
       expect(result).toContain("TypeScript");
     });
 
-    it("should work with different category keys via factory", () => {
+    it("should work with different category keys", () => {
       const techSchema = z.object({
         technologies: z.array(z.object({ name: z.string(), version: z.string() })),
       });
 
-      const reducePrompt = createReduceInsightsPrompt("technologies", "technologies", techSchema);
+      const reducePrompt: PromptDefinition = {
+        label: "Reduce Insights",
+        contentDesc: buildReduceInsightsContentDesc("technologies"),
+        instructions: [`a consolidated list of 'technologies'`],
+        responseSchema: techSchema,
+        template: BASE_PROMPT_TEMPLATE,
+        dataBlockHeader: DATA_BLOCK_HEADERS.FRAGMENTED_DATA,
+        wrapInCodeBlock: false,
+        hasComplexSchema: false,
+        outputFormat: LLMOutputFormat.JSON,
+      };
 
       const result = renderPrompt(reducePrompt, {
         content: JSON.stringify({ technologies: [{ name: "TypeScript", version: "5.7" }] }),

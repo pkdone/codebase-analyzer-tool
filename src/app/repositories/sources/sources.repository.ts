@@ -17,7 +17,7 @@ import {
   ProjectedCodeQualityStatistics,
 } from "./sources.model";
 import { databaseConfig } from "../../components/database/database.config";
-import { logOneLineError } from "../../../common/utils/logging";
+import { logErr } from "../../../common/utils/logging";
 import { BaseRepository } from "../base/base-repository";
 import { coreTokens } from "../../di/tokens";
 import { inject, injectable } from "tsyringe";
@@ -217,7 +217,7 @@ export default class SourcesRepositoryImpl
         .aggregate<ProjectedSourceMetataContentAndSummary>(pipeline)
         .toArray();
     } catch (error: unknown) {
-      logOneLineError(
+      logErr(
         `Problem performing Atlas Vector Search aggregation - ensure the vector index is defined for the '${databaseConfig.SOURCES_COLLECTION_NAME}' collection`,
         error,
       );

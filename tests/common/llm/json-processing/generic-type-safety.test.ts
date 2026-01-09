@@ -6,7 +6,7 @@ import { processJson } from "../../../../src/common/llm/json-processing/core/jso
 
 // Mock dependencies
 jest.mock("../../../../src/common/utils/logging", () => ({
-  logOneLineWarning: jest.fn(),
+  logWarn: jest.fn(),
   logError: jest.fn(),
   logErrorMsg: jest.fn(),
 }));

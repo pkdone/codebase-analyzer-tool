@@ -15,7 +15,7 @@ import LLMTelemetryTracker from "./tracking/llm-telemetry-tracker";
 import { hasSignificantSanitizationSteps } from "./json-processing/sanitizers";
 import type { LLMExecutionResult } from "./types/llm-execution-result.types";
 import { LLMExecutionError } from "./types/llm-execution-result.types";
-import { logOneLineWarning } from "../utils/logging";
+import { logWarn } from "../utils/logging";
 
 /**
  * Parameters for executing LLM functions with the execution pipeline.
@@ -95,7 +95,7 @@ export class LLMExecutionPipeline {
         }
 
         if (!result.generated) {
-          logOneLineWarning(
+          logWarn(
             `LLM response has COMPLETED status but generated no content for resource: '${resourceName}'`,
             context,
           );
@@ -115,7 +115,7 @@ export class LLMExecutionPipeline {
         };
       }
 
-      logOneLineWarning(
+      logWarn(
         `Given-up on trying to fulfill the current prompt with an LLM for the following resource: '${resourceName}'`,
         context,
       );
@@ -130,7 +130,7 @@ export class LLMExecutionPipeline {
         ),
       };
     } catch (error: unknown) {
-      logOneLineWarning(
+      logWarn(
         `Unable to process the following resource with an LLM due to a non-recoverable error for the following resource: '${resourceName}'`,
         { ...context, error },
       );
@@ -186,7 +186,7 @@ export class LLMExecutionPipeline {
         this.llmStats.recordSuccess();
         return llmResponse;
       } else if (llmResponse?.status === LLMResponseStatus.ERRORED) {
-        logOneLineWarning("LLM Error for resource", { ...context, error: llmResponse.error });
+        logWarn("LLM Error for resource", { ...context, error: llmResponse.error });
         break;
       }
 
@@ -204,7 +204,7 @@ export class LLMExecutionPipeline {
         this.llmStats.recordCrop();
 
         if (currentContent.trim() === "") {
-          logOneLineWarning(
+          logWarn(
             `Prompt became empty after cropping for resource '${resourceName}', terminating attempts.`,
             context,
           );

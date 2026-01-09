@@ -5,8 +5,8 @@
  * for all LLM interactions in the application.
  */
 
-// Registry and factories
-export { promptManager, createReduceInsightsPrompt, type PromptManager } from "./prompt-registry";
+// Registry
+export { promptManager, type PromptManager } from "./prompt-registry";
 
 // Renderer
 export { renderPrompt, buildSchemaSection } from "./prompt-renderer";

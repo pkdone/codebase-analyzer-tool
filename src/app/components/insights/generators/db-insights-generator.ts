@@ -2,7 +2,7 @@ import { injectable, inject } from "tsyringe";
 import LLMRouter from "../../../../common/llm/llm-router";
 import { fileProcessingRules as fileProcessingConfig } from "../../../config/file-handling";
 import { llmConcurrencyLimiter } from "../../../config/concurrency.config";
-import { logOneLineError } from "../../../../common/utils/logging";
+import { logErr } from "../../../../common/utils/logging";
 import type { AppSummariesRepository } from "../../../repositories/app-summaries/app-summaries.repository.interface";
 import type { SourcesRepository } from "../../../repositories/sources/sources.repository.interface";
 import { repositoryTokens } from "../../../di/tokens";
@@ -11,7 +11,6 @@ import { coreTokens } from "../../../di/tokens";
 import { insightsTuningConfig } from "../insights.config";
 import { promptManager } from "../../../prompts/prompt-registry";
 import { AppSummaryCategories } from "../../../schemas/app-summaries.schema";
-import type { IInsightsProcessor } from "./insights-processor.interface";
 import { AppSummaryCategoryEnum } from "../insights.types";
 import type { IInsightGenerationStrategy } from "../strategies/completion-strategy.interface";
 import { chunkTextByTokenLimit } from "../../../../common/llm/utils/text-chunking";
@@ -23,7 +22,7 @@ import { insightsTokens } from "../../../di/tokens";
  * Uses strategy pattern to select between single-pass and map-reduce approaches.
  */
 @injectable()
-export default class InsightsFromDBGenerator implements IInsightsProcessor {
+export default class InsightsFromDBGenerator {
   private readonly llmProviderDescription: string;
   private readonly maxTokens: number;
 
@@ -81,10 +80,7 @@ export default class InsightsFromDBGenerator implements IInsightsProcessor {
     );
     results.forEach((result, index) => {
       if (result.status === "rejected") {
-        logOneLineError(
-          `Failed to generate data for category: ${categories[index]}`,
-          result.reason,
-        );
+        logErr(`Failed to generate data for category: ${categories[index]}`, result.reason);
       }
     });
   }
@@ -147,7 +143,7 @@ export default class InsightsFromDBGenerator implements IInsightsProcessor {
       await this.appSummariesRepository.updateAppSummary(this.projectName, categorySummaryData);
       console.log(`Captured main ${categoryLabel} summary details into database`);
     } catch (error: unknown) {
-      logOneLineError(`Unable to generate ${categoryLabel} details into database`, error);
+      logErr(`Unable to generate ${categoryLabel} details into database`, error);
     }
   }
 }

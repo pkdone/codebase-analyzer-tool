@@ -11,7 +11,9 @@ export function calculate(x: number) { return x * 2; }"
 `;
 
 exports[`renderPrompt Snapshot Tests rendered prompts should match snapshots C# prompt should match snapshot 1`] = `
-"Act as a senior developer analyzing the code in a legacy application. Based on the the C# code shown below in the section marked 'CODE', return a JSON response that contains __Basic Information__
+"Act as a senior developer analyzing the code in a legacy application. Based on the the C# code shown below in the section marked 'CODE', return a JSON response that contains:
+
+__Basic Information__
 The name of the main public class/interface of the file
 Its kind ('class' or 'interface')
 Its namespace (classpath)
@@ -100,7 +102,7 @@ For file-level codeQualityMetrics, provide:
     - 'FEATURE ENVY' - functions/methods heavily use data from other classes
     - 'DATA CLASS' - class only contains fields and getters/setters
     - 'LARGE FILE' - class file exceeds 500 lines of code
-    - 'OTHER' - some other file-level smell.
+    - 'OTHER' - some other file-level smell
 
 The JSON response must follow this JSON schema:
 \`\`\`json
@@ -668,7 +670,9 @@ public class TestClass {
 `;
 
 exports[`renderPrompt Snapshot Tests rendered prompts should match snapshots Default prompt should match snapshot 1`] = `
-"Act as a senior developer analyzing the code in a legacy application. Based on the the source files shown below in the section marked 'CODE', return a JSON response that contains __Basic Information__
+"Act as a senior developer analyzing the code in a legacy application. Based on the the source files shown below in the section marked 'CODE', return a JSON response that contains:
+
+__Basic Information__
 A detailed definition of its purpose
 A detailed definition of its implementation
 
@@ -688,7 +692,7 @@ For files that interact with a database, you MUST extract and provide ALL of the
     - transactionHandling: How transactions are managed (e.g., 'Spring @Transactional', 'manual tx.commit()', 'JPA EntityTransaction', 'auto-commit', 'none', 'unknown')
     - protocol: Database type and version (e.g., 'PostgreSQL 15', 'MySQL 8.0', 'MongoDB 6.0', 'Oracle 19c', 'H2', 'SQL Server 2019')
     - connectionInfo: JDBC URL or connection string - MUST REDACT passwords/secrets (e.g., 'jdbc:postgresql://localhost:5432/mydb', 'mongodb://localhost:27017/appdb')
-Look for database operations, queries, or connections in the file.
+Look for database operations, queries, or connections in the file
 
 The JSON response must follow this JSON schema:
 \`\`\`json
@@ -922,7 +926,9 @@ public class TestClass {
 `;
 
 exports[`renderPrompt Snapshot Tests rendered prompts should match snapshots JSP prompt should match snapshot 1`] = `
-"Act as a senior developer analyzing the code in a legacy application. Based on the the JSP code shown below in the section marked 'CODE', return a JSON response that contains __Basic Information__
+"Act as a senior developer analyzing the code in a legacy application. Based on the the JSP code shown below in the section marked 'CODE', return a JSON response that contains:
+
+__Basic Information__
 A detailed definition of its purpose
 A detailed definition of its implementation
 
@@ -946,7 +952,7 @@ You MUST analyze and provide the following JSP metrics in the jspMetrics object:
     - <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %> => { prefix: "c", uri: "http://java.sun.com/jsp/jstl/core" }
     - <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %> => { prefix: "fmt", uri: "http://java.sun.com/jsp/jstl/fmt" }
     - <%@ taglib prefix="custom" uri="/WEB-INF/custom.tld" %> => { prefix: "custom", uri: "/WEB-INF/custom.tld" }
-   Note: Do NOT count directive tags (<%@ ... %>) or action tags (<jsp:... />) as scriptlets. Only count code blocks with <% %>, <%= %>, and <%! %>..
+   Note: Do NOT count directive tags (<%@ ... %>) or action tags (<jsp:... />) as scriptlets. Only count code blocks with <% %>, <%= %>, and <%! %>.
 
 The JSON response must follow this JSON schema:
 \`\`\`json
@@ -1083,7 +1089,9 @@ CODE:
 `;
 
 exports[`renderPrompt Snapshot Tests rendered prompts should match snapshots Java prompt should match snapshot 1`] = `
-"Act as a senior developer analyzing the code in a legacy application. Based on the the JVM code shown below in the section marked 'CODE', return a JSON response that contains __Basic Information__
+"Act as a senior developer analyzing the code in a legacy application. Based on the the JVM code shown below in the section marked 'CODE', return a JSON response that contains:
+
+__Basic Information__
 The name of the main public class/interface of the file
 Its kind ('class' or 'interface')
 Its namespace (classpath)
@@ -1191,7 +1199,7 @@ For file-level codeQualityMetrics, provide:
     - 'FEATURE ENVY' - functions/methods heavily use data from other classes
     - 'DATA CLASS' - class only contains fields and getters/setters
     - 'LARGE FILE' - class file exceeds 500 lines of code
-    - 'OTHER' - some other file-level smell.
+    - 'OTHER' - some other file-level smell
 
 The JSON response must follow this JSON schema:
 \`\`\`json
@@ -1759,7 +1767,9 @@ public class TestClass {
 `;
 
 exports[`renderPrompt Snapshot Tests rendered prompts should match snapshots JavaScript prompt should match snapshot 1`] = `
-"Act as a senior developer analyzing the code in a legacy application. Based on the the JavaScript/TypeScript code shown below in the section marked 'CODE', return a JSON response that contains __Basic Information__
+"Act as a senior developer analyzing the code in a legacy application. Based on the the JavaScript/TypeScript code shown below in the section marked 'CODE', return a JSON response that contains:
+
+__Basic Information__
 The name of the main public class/interface of the file
 Its kind ('class' or 'interface')
 Its namespace (classpath)
@@ -1859,7 +1869,7 @@ For file-level codeQualityMetrics, provide:
     - 'FEATURE ENVY' - functions/methods heavily use data from other classes
     - 'DATA CLASS' - class only contains fields and getters/setters
     - 'LARGE FILE' - class file exceeds 500 lines of code
-    - 'OTHER' - some other file-level smell.
+    - 'OTHER' - some other file-level smell
 
 The JSON response must follow this JSON schema:
 \`\`\`json
@@ -2427,7 +2437,9 @@ public class TestClass {
 `;
 
 exports[`renderPrompt Snapshot Tests rendered prompts should match snapshots Markdown prompt should match snapshot 1`] = `
-"Act as a senior developer analyzing the code in a legacy application. Based on the the Markdown documentation shown below in the section marked 'CODE', return a JSON response that contains __Basic Information__
+"Act as a senior developer analyzing the code in a legacy application. Based on the the Markdown documentation shown below in the section marked 'CODE', return a JSON response that contains:
+
+__Basic Information__
 A detailed definition of its purpose
 A detailed definition of its implementation
 
@@ -2447,7 +2459,7 @@ For files that interact with a database, you MUST extract and provide ALL of the
     - transactionHandling: How transactions are managed (e.g., 'Spring @Transactional', 'manual tx.commit()', 'JPA EntityTransaction', 'auto-commit', 'none', 'unknown')
     - protocol: Database type and version (e.g., 'PostgreSQL 15', 'MySQL 8.0', 'MongoDB 6.0', 'Oracle 19c', 'H2', 'SQL Server 2019')
     - connectionInfo: JDBC URL or connection string - MUST REDACT passwords/secrets (e.g., 'jdbc:postgresql://localhost:5432/mydb', 'mongodb://localhost:27017/appdb')
-Look for database schemas, queries, or data models mentioned in the documentation.
+Look for database schemas, queries, or data models mentioned in the documentation
 
 The JSON response must follow this JSON schema:
 \`\`\`json
@@ -2681,7 +2693,9 @@ Content here\`\`\`
 `;
 
 exports[`renderPrompt Snapshot Tests rendered prompts should match snapshots Python prompt should match snapshot 1`] = `
-"Act as a senior developer analyzing the code in a legacy application. Based on the the Python code shown below in the section marked 'CODE', return a JSON response that contains __Basic Information__
+"Act as a senior developer analyzing the code in a legacy application. Based on the the Python code shown below in the section marked 'CODE', return a JSON response that contains:
+
+__Basic Information__
 The name of the main public class/interface of the file
 Its kind ('class' or 'interface')
 Its namespace (classpath)
@@ -2765,7 +2779,7 @@ Cyclomatic complexity (Python):
 - Start at 1; +1 for each if / elif / for / while / except / finally / with (when it controls resource flow) / comprehension 'for' / ternary / logical operator (and/or) in a condition / match case arm
 - +1 for each additional 'if' inside a comprehension
 For each public function/method capture: cyclomaticComplexity, linesOfCode, and codeSmells
-File-level metrics: totalFunctions, averageComplexity, maxComplexity, averageFunctionLength, fileSmells (e.g. 'LARGE FILE', 'TOO MANY METHODS', 'GOD CLASS', 'FEATURE ENVY').
+File-level metrics: totalFunctions, averageComplexity, maxComplexity, averageFunctionLength, fileSmells (e.g. 'LARGE FILE', 'TOO MANY METHODS', 'GOD CLASS', 'FEATURE ENVY')
 
 The JSON response must follow this JSON schema:
 \`\`\`json
@@ -3333,7 +3347,9 @@ public class TestClass {
 `;
 
 exports[`renderPrompt Snapshot Tests rendered prompts should match snapshots Ruby prompt should match snapshot 1`] = `
-"Act as a senior developer analyzing the code in a legacy application. Based on the the Ruby code shown below in the section marked 'CODE', return a JSON response that contains __Basic Information__
+"Act as a senior developer analyzing the code in a legacy application. Based on the the Ruby code shown below in the section marked 'CODE', return a JSON response that contains:
+
+__Basic Information__
 The name of the main public class/interface of the file
 Its kind ('class' or 'interface')
 Its namespace (classpath)
@@ -3423,7 +3439,7 @@ For file-level codeQualityMetrics, provide:
     - 'FEATURE ENVY' - functions/methods heavily use data from other classes
     - 'DATA CLASS' - class only contains fields and getters/setters
     - 'LARGE FILE' - class file exceeds 500 lines of code
-    - 'OTHER' - some other file-level smell.
+    - 'OTHER' - some other file-level smell
 
 The JSON response must follow this JSON schema:
 \`\`\`json
@@ -3991,7 +4007,9 @@ public class TestClass {
 `;
 
 exports[`renderPrompt Snapshot Tests rendered prompts should match snapshots SQL prompt should match snapshot 1`] = `
-"Act as a senior developer analyzing the code in a legacy application. Based on the the database DDL/DML/SQL code shown below in the section marked 'CODE', return a JSON response that contains __Basic Information__
+"Act as a senior developer analyzing the code in a legacy application. Based on the the database DDL/DML/SQL code shown below in the section marked 'CODE', return a JSON response that contains:
+
+__Basic Information__
 A detailed definition of its purpose
 A detailed definition of its implementation
 
@@ -4008,9 +4026,8 @@ IMPORTANT: databaseIntegration must be a SINGLE OBJECT (not an array). If multip
   - codeExample: Include examples from all relevant mechanisms
   - tablesAccessed: Merge all tables accessed across all mechanisms
   - operationType: Merge all operation types across mechanisms
-
 REQUIRED: mechanism (must be 'NONE', 'DDL', 'DML', 'SQL', 'STORED-PROCEDURE', or 'TRIGGER'), description (detailed explanation covering all mechanisms if multiple exist), codeExample (max 6 lines, can include examples from multiple mechanisms)
-STRONGLY RECOMMENDED (extract whenever possible): databaseName (specific database/schema name if mentioned), tablesAccessed (array of table names from queries or DDL), operationType (array: ['READ'], ['WRITE'], ['READ', 'WRITE'], ['DDL'], ['ADMIN']), queryPatterns (e.g., 'CREATE TABLE statements', 'INSERT/UPDATE operations', 'complex joins', 'stored procedures'), transactionHandling (e.g., 'explicit BEGIN/COMMIT', 'auto-commit', 'none'), protocol (database type and version if identifiable, e.g., 'PostgreSQL 14', 'MySQL 8.0', 'SQL Server 2019', 'Oracle 19c'), connectionInfo ('not applicable for SQL files' or specific connection details if present).
+STRONGLY RECOMMENDED (extract whenever possible): databaseName (specific database/schema name if mentioned), tablesAccessed (array of table names from queries or DDL), operationType (array: ['READ'], ['WRITE'], ['READ', 'WRITE'], ['DDL'], ['ADMIN']), queryPatterns (e.g., 'CREATE TABLE statements', 'INSERT/UPDATE operations', 'complex joins', 'stored procedures'), transactionHandling (e.g., 'explicit BEGIN/COMMIT', 'auto-commit', 'none'), protocol (database type and version if identifiable, e.g., 'PostgreSQL 14', 'MySQL 8.0', 'SQL Server 2019', 'Oracle 19c'), connectionInfo ('not applicable for SQL files' or specific connection details if present)
 
 The JSON response must follow this JSON schema:
 \`\`\`json
@@ -4321,7 +4338,9 @@ CREATE TABLE test (id INT);\`\`\`
 `;
 
 exports[`renderPrompt Snapshot Tests rendered prompts should match snapshots XML prompt should match snapshot 1`] = `
-"Act as a senior developer analyzing the code in a legacy application. Based on the the XML configuration shown below in the section marked 'CODE', return a JSON response that contains __Basic Information__
+"Act as a senior developer analyzing the code in a legacy application. Based on the the XML configuration shown below in the section marked 'CODE', return a JSON response that contains:
+
+__Basic Information__
 A detailed definition of its purpose
 A detailed definition of its implementation
 
@@ -4344,7 +4363,7 @@ If this XML file is a web application configuration file, you MUST analyze and i
     - Check for root element containing "http://www.springframework.org/schema/mvc"
     - Look for annotations like @Controller, @RequestMapping in servlet definitions
     - If detected, provide: { name: "Spring MVC", version: <if identifiable>, configFile: <current file path> }
-If a UI framework is detected, populate the uiFramework field. Otherwise, omit the field entirely from the JSON response..
+If a UI framework is detected, populate the uiFramework field. Otherwise, omit the field entirely from the JSON response.
 
 The JSON response must follow this JSON schema:
 \`\`\`json

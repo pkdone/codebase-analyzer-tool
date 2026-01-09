@@ -4,7 +4,7 @@ import { MongoClient, Db, Collection, MongoServerError, type IndexSpecification 
 import type { JsonSchema7Type } from "zod-to-json-schema";
 import { coreTokens } from "../../di/tokens";
 import { databaseConfig, STANDARD_INDEX_CONFIGS, type CollectionType } from "./database.config";
-import { logOneLineError } from "../../../common/utils/logging";
+import { logErr } from "../../../common/utils/logging";
 import { getJSONSchema as getSourcesJSONSchema } from "../../repositories/sources/sources.model";
 import { SOURCE_FIELDS } from "../../schemas/sources.constants";
 import { getJSONSchema as getAppSummariesJSONSchema } from "../../repositories/app-summaries/app-summaries.model";
@@ -105,14 +105,14 @@ export class DatabaseInitializer {
             `Updated JSON schema validator for collection '${this.db.databaseName}.${collectionName}'`,
           );
         } catch (updateError: unknown) {
-          logOneLineError(
+          logErr(
             `Failed to update validator for existing collection '${collectionName}'`,
             updateError,
           );
         }
       } else {
         // Handle other errors (permissions, invalid schema, etc.)
-        logOneLineError(`Failed to create collection '${collectionName}' with validator`, error);
+        logErr(`Failed to create collection '${collectionName}' with validator`, error);
       }
     }
   }
@@ -137,7 +137,7 @@ export class DatabaseInitializer {
         // Expected duplicate error - indexes already exist, which is fine
       } else {
         // Unexpected error - log it for investigation
-        logOneLineError(
+        logErr(
           `Issue when creating Vector Search indexes for the MongoDB database collection: '${this.sourcesCollection.dbName}.${this.sourcesCollection.collectionName}'`,
           error,
         );

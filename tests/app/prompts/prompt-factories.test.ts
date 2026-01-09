@@ -73,9 +73,8 @@ describe("Prompt Constructor and Templates", () => {
       expect(BASE_PROMPT_TEMPLATE).toContain("{{partialAnalysisNote}}");
     });
 
-    it("should handle reduce template with category key via factory", () => {
-      // With the factory pattern, categoryKey is directly embedded in contentDesc
-      // by createReduceInsightsPrompt, rather than being a placeholder
+    it("should handle reduce template with category key via inline definition", () => {
+      // categoryKey is directly embedded in contentDesc, rather than being a placeholder
       const categoryKey = "technologies";
       const reduceDefinition = {
         ...sourceDefinition,

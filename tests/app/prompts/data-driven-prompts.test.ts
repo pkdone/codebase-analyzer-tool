@@ -55,13 +55,13 @@ describe("Data-driven Prompt System", () => {
     });
 
     it("should handle different complexity levels correctly", () => {
-      // Complex schemas
-      expect(fileTypePromptMetadata.java.hasComplexSchema).toBe(true);
-      expect(fileTypePromptMetadata.javascript.hasComplexSchema).toBe(true);
-      expect(fileTypePromptMetadata.python.hasComplexSchema).toBe(true);
+      // Source prompts with explicit hasComplexSchema: false
+      expect(fileTypePromptMetadata.java.hasComplexSchema).toBe(false);
+      expect(fileTypePromptMetadata.javascript.hasComplexSchema).toBe(false);
+      expect(fileTypePromptMetadata.python.hasComplexSchema).toBe(false);
+      expect(fileTypePromptMetadata.markdown.hasComplexSchema).toBe(false);
 
-      // Simple schemas (default to true when undefined)
-      expect(fileTypePromptMetadata.markdown.hasComplexSchema).toBe(true);
+      // Source prompts without explicit hasComplexSchema default to true
       expect(fileTypePromptMetadata.maven.hasComplexSchema).toBe(true);
     });
   });

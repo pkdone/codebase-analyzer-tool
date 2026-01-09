@@ -1,6 +1,6 @@
 import type { LLMFunctionResponse, LLMContext } from "../types/llm.types";
 import { LLMResponseStatus } from "../types/llm.types";
-import { logOneLineWarning } from "../../utils/logging";
+import { logWarn } from "../../utils/logging";
 
 /**
  * Represents the outcome decision for an unsuccessful LLM call.
@@ -34,7 +34,7 @@ export function determineNextAction(
 
   // Handle null response explicitly
   if (llmResponse === null) {
-    logOneLineWarning(
+    logWarn(
       `LLM problem processing prompt with current LLM model - null response received, possibly due to overload or timeout even after retries`,
       context,
     );
@@ -47,7 +47,7 @@ export function determineNextAction(
 
   switch (llmResponse.status) {
     case LLMResponseStatus.INVALID:
-      logOneLineWarning(
+      logWarn(
         `Unable to extract a valid response from the current LLM model - invalid JSON being received even after retries `,
         context,
       );
@@ -58,7 +58,7 @@ export function determineNextAction(
       };
 
     case LLMResponseStatus.OVERLOADED:
-      logOneLineWarning(
+      logWarn(
         `LLM problem processing prompt with current LLM model because it is overloaded, or timing out, even after retries `,
         context,
       );
@@ -69,7 +69,7 @@ export function determineNextAction(
       };
 
     case LLMResponseStatus.EXCEEDED:
-      logOneLineWarning(
+      logWarn(
         `LLM prompt tokens used ${llmResponse.tokensUsage?.promptTokens ?? 0} plus completion tokens used ${llmResponse.tokensUsage?.completionTokens ?? 0} exceeded EITHER: 1) the model's total token limit of ${llmResponse.tokensUsage?.maxTotalTokens ?? 0}, or: 2) the model's completion tokens limit`,
         context,
       );
@@ -80,7 +80,7 @@ export function determineNextAction(
       };
 
     case LLMResponseStatus.ERRORED:
-      logOneLineWarning(
+      logWarn(
         `LLM encountered an error while processing the request for resource '${resourceName}'`,
         context,
       );
@@ -92,7 +92,7 @@ export function determineNextAction(
 
     case LLMResponseStatus.COMPLETED:
       // This shouldn't typically reach fallback strategy, but handle gracefully
-      logOneLineWarning(
+      logWarn(
         `Unexpected COMPLETED status in fallback strategy for resource '${resourceName}' - terminating`,
         context,
       );
@@ -104,7 +104,7 @@ export function determineNextAction(
 
     case LLMResponseStatus.UNKNOWN:
     default:
-      logOneLineWarning(
+      logWarn(
         `An unknown error occurred while LLMRouter attempted to process the LLM invocation and response for resource '${resourceName}' - terminating response processing - response status received: '${llmResponse.status}'`,
         context,
       );

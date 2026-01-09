@@ -11,7 +11,7 @@ const toSingleLine = (str: string) => str.replace(/(\r\n|\n|\r|\\n|\\r|\\r\\n)/g
  * @param message The main error message.
  * @param error The error to log.
  */
-export function logOneLineError(message: string, error: unknown): void {
+export function logErr(message: string, error: unknown): void {
   let logMessage = toSingleLine(message);
   const errorString = formatError(error);
   logMessage += ` | Error: ${toSingleLine(errorString)}`;
@@ -25,7 +25,7 @@ export function logOneLineError(message: string, error: unknown): void {
  * @param message The main warning message.
  * @param context Optional additional data to log, will be stringified.
  */
-export function logOneLineWarning(message: string, context?: unknown): void {
+export function logWarn(message: string, context?: unknown): void {
   let logMessage = toSingleLine(message);
 
   if (context) {

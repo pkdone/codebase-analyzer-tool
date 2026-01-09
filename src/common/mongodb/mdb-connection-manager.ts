@@ -1,5 +1,5 @@
 import { MongoClient, MongoClientOptions } from "mongodb";
-import { logOneLineError, logOneLineWarning } from "../utils/logging";
+import { logErr, logWarn } from "../utils/logging";
 import { redactUrl } from "../security/url-redactor";
 import { DatabaseConnectionError } from "./mdb-errors";
 
@@ -22,7 +22,7 @@ export class MongoDBConnectionManager {
     const existingClient = this.clients.get(id);
 
     if (existingClient) {
-      logOneLineWarning(`MongoDB client with id '${id}' is already connected.`);
+      logWarn(`MongoDB client with id '${id}' is already connected.`);
       return existingClient;
     }
 
@@ -42,7 +42,7 @@ export class MongoDBConnectionManager {
       this.clients.set(id, newClient);
       return newClient;
     } catch (error: unknown) {
-      logOneLineError("Failed to connect to MongoDB", error);
+      logErr("Failed to connect to MongoDB", error);
       const cause = error instanceof Error ? error : undefined;
       throw new DatabaseConnectionError(`Failed to connect to MongoDB with id '${id}'.`, cause);
     }
@@ -82,7 +82,7 @@ export class MongoDBConnectionManager {
         console.log(`Closed MongoDB connection for id '${id}'.`);
         return { status: "fulfilled", id };
       } catch (error: unknown) {
-        logOneLineError(`Error closing MongoDB client '${id}'`, error);
+        logErr(`Error closing MongoDB client '${id}'`, error);
         return { status: "rejected", id, reason: error };
       }
     });
