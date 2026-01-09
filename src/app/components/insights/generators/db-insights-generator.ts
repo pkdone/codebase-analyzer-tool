@@ -2,7 +2,7 @@ import { injectable, inject } from "tsyringe";
 import LLMRouter from "../../../../common/llm/llm-router";
 import { fileProcessingRules as fileProcessingConfig } from "../../../config/file-handling";
 import { llmConcurrencyLimiter } from "../../../config/concurrency.config";
-import { logErr } from "../../../../common/utils/logging";
+import { logErr, logWarn } from "../../../../common/utils/logging";
 import type { AppSummariesRepository } from "../../../repositories/app-summaries/app-summaries.repository.interface";
 import type { SourcesRepository } from "../../../repositories/sources/sources.repository.interface";
 import { repositoryTokens } from "../../../di/tokens";
@@ -138,7 +138,13 @@ export default class InsightsFromDBGenerator {
       // The strategy returns a strongly-typed result (CategoryInsightResult<typeof category>)
       // which is assignable to PartialAppSummaryRecord for repository storage
       const categorySummaryData = await strategy.generateInsights(category, sourceFileSummaries);
-      if (!categorySummaryData) return;
+
+      if (!categorySummaryData) {
+        logWarn(
+          `No summary data generated and inserted in the database for category: ${categoryLabel}`,
+        );
+        return;
+      }
       // Store the result - the category-specific type is compatible with PartialAppSummaryRecord
       await this.appSummariesRepository.updateAppSummary(this.projectName, categorySummaryData);
       console.log(`Captured main ${categoryLabel} summary details into database`);
