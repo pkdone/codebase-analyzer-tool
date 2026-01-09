@@ -2,9 +2,9 @@ import { injectable, inject } from "tsyringe";
 import { z } from "zod";
 import LLMRouter from "../../../../common/llm/llm-router";
 import { LLMOutputFormat } from "../../../../common/llm/types/llm.types";
-import { insightsTuningConfig } from "../insights.config";
+import { insightsConfig } from "../insights.config";
 import { llmConcurrencyLimiter } from "../../../config/concurrency.config";
-import { promptManager } from "../../../prompts/prompt-registry";
+import { getCategoryLabel } from "../../../config/category-labels.config";
 import { logWarn } from "../../../../common/utils/logging";
 import { renderPrompt } from "../../../prompts/prompt-renderer";
 import { llmTokens } from "../../../di/tokens";
@@ -15,13 +15,12 @@ import {
   appSummaryCategorySchemas,
 } from "../insights.types";
 import { getLlmArtifactCorrections } from "../../../config/llm-artifact-corrections";
-import { executeInsightCompletion } from "./completion-executor";
+import { executeInsightCompletion } from "./insights-completion-executor";
 import { chunkTextByTokenLimit } from "../../../../common/llm/utils/text-chunking";
 import { isOk } from "../../../../common/types/result.types";
 import { buildReduceInsightsContentDesc } from "../../../prompts/definitions/app-summaries/app-summaries.fragments";
 import { BASE_PROMPT_TEMPLATE } from "../../../prompts/templates";
 import { DATA_BLOCK_HEADERS, type PromptDefinition } from "../../../prompts/prompt.types";
-import { hasComplexSchema } from "../insights.config";
 
 /**
  * Map-reduce insight generation strategy for large codebases.
@@ -49,7 +48,7 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
     category: C,
     sourceFileSummaries: readonly string[],
   ): Promise<CategoryInsightResult<C> | null> {
-    const categoryLabel = promptManager.appSummaries[category].label ?? category;
+    const categoryLabel = getCategoryLabel(category);
 
     try {
       console.log(`  - Using map-reduce strategy for ${categoryLabel}`);
@@ -57,7 +56,7 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
       // 1. Chunk the summaries into token-appropriate sizes
       const summaryChunks = chunkTextByTokenLimit(sourceFileSummaries, {
         maxTokens: this.maxTokens,
-        chunkTokenLimitRatio: insightsTuningConfig.CHUNK_TOKEN_LIMIT_RATIO,
+        chunkTokenLimitRatio: insightsConfig.CHUNK_TOKEN_LIMIT_RATIO,
       });
 
       console.log(
@@ -136,7 +135,6 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
     category: C,
     partialResults: CategoryInsightResult<C>[],
   ): Promise<CategoryInsightResult<C> | null> {
-    const config = promptManager.appSummaries[category];
     const schema = appSummaryCategorySchemas[category];
     const schemaShape = (schema as z.ZodObject<z.ZodRawShape>).shape;
     // Assert that the dynamically retrieved key is a valid key of the result type.
@@ -164,13 +162,13 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
       const result = await this.llmRouter.executeCompletion(`${category}-reduce`, renderedPrompt, {
         outputFormat: LLMOutputFormat.JSON,
         jsonSchema: schema,
-        hasComplexSchema: hasComplexSchema.INDIVIDUAL_CATEGORY,
+        hasComplexSchema: insightsConfig.IS_COMPLEX_SCHEMA,
         sanitizerConfig: getLlmArtifactCorrections(),
       });
 
       if (!isOk(result)) {
         logWarn(
-          `LLM completion failed for ${config.label ?? category} reduce: ${result.error.message}`,
+          `LLM completion failed for ${getCategoryLabel(category)} reduce: ${result.error.message}`,
         );
         return null;
       }
@@ -191,7 +189,7 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
       return result.value as CategoryInsightResult<C>;
     } catch (error: unknown) {
       logWarn(
-        `Failed to consolidate partial insights for ${config.label ?? category}: ${error instanceof Error ? error.message : "Unknown error"}`,
+        `Failed to consolidate partial insights for ${getCategoryLabel(category)}: ${error instanceof Error ? error.message : "Unknown error"}`,
       );
       return null;
     }

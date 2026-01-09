@@ -112,21 +112,6 @@ describe("createPromptMetadata Type Safety", () => {
 
       expect(testDef.responseSchema).toBe(schema);
     });
-
-    it("should default to z.unknown() when schema is not provided", () => {
-      const configMap = {
-        noSchema: {
-          label: "No Schema",
-          contentDesc: "no schema content",
-          // No responseSchema provided
-        },
-      } as const;
-
-      const result = createPromptMetadata(configMap, testTemplate);
-
-      // Should default to z.unknown() when no schema is provided
-      expect(result.noSchema.responseSchema).toBeInstanceOf(z.ZodType);
-    });
   });
 
   describe("Simplified Options", () => {
@@ -196,42 +181,6 @@ describe("createPromptMetadata Type Safety", () => {
     it("should return empty object for empty config map", () => {
       const result = createPromptMetadata({}, testTemplate);
       expect(result).toEqual({});
-    });
-  });
-
-  describe("hasComplexSchema Preservation", () => {
-    it("should preserve hasComplexSchema from config entries", () => {
-      const schema = z.object({ field: z.string() });
-
-      const configMap = {
-        complex: {
-          label: "Complex",
-          contentDesc: "complex content",
-          responseSchema: schema,
-          hasComplexSchema: true,
-          instructions: [] as const,
-        },
-        simple: {
-          label: "Simple",
-          contentDesc: "simple content",
-          responseSchema: schema,
-          hasComplexSchema: false,
-          instructions: [] as const,
-        },
-        default: {
-          label: "Default",
-          contentDesc: "default content",
-          responseSchema: schema,
-          instructions: [] as const,
-          // No hasComplexSchema - defaults to true
-        },
-      } as const;
-
-      const result = createPromptMetadata(configMap, testTemplate);
-
-      expect(result.complex.hasComplexSchema).toBe(true);
-      expect(result.simple.hasComplexSchema).toBe(false);
-      expect(result.default.hasComplexSchema).toBe(true); // Defaults to true
     });
   });
 

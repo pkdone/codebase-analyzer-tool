@@ -266,16 +266,12 @@ export default class VertexAIGeminiLLM extends BaseLLMProvider {
 
         if (isVertexAICompatibleSchema(sanitizedSchema)) {
           generationConfig.responseSchema = sanitizedSchema;
-          // TODO: remove
-          console.log("GO JSON");
         } else {
           logWarn(
             "Generated JSON schema is not compatible with VertexAI SDK's Schema type. " +
               "Proceeding without schema enforcement to avoid runtime errors.",
           );
         }
-      } else { // TODO: remove
-        console.log("AVOID JSON");
       }
     }
 

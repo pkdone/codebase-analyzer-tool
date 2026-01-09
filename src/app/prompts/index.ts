@@ -16,8 +16,7 @@ export {
   DATA_BLOCK_HEADERS,
   type PromptDefinition,
   type DataBlockHeader,
-  type BasePromptConfigEntry,
-  type StrictPromptConfigEntry,
+  type PromptConfigEntry,
 } from "./prompt.types";
 
 // Templates

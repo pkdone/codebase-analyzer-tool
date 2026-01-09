@@ -1,8 +1,4 @@
-import {
-  PromptDefinition,
-  BasePromptConfigEntry,
-  StrictPromptConfigEntry,
-} from "../../../src/app/prompts/prompt.types";
+import { PromptDefinition, PromptConfigEntry } from "../../../src/app/prompts/prompt.types";
 import {
   CANONICAL_FILE_TYPES,
   canonicalFileTypeSchema,
@@ -12,67 +8,23 @@ import type { AppSummaryCategoryType } from "../../../src/app/components/insight
 import { z } from "zod";
 
 describe("Prompt Types", () => {
-  describe("BasePromptConfigEntry", () => {
-    it("should allow all fields to be optional", () => {
-      // BasePromptConfigEntry has all optional fields
-      const emptyConfig: BasePromptConfigEntry = {};
-      expect(emptyConfig).toEqual({});
-    });
-
-    it("should support optional label", () => {
-      const config: BasePromptConfigEntry = {
-        label: "Test Label",
-      };
-      expect(config.label).toBe("Test Label");
-    });
-
-    it("should support optional contentDesc", () => {
-      const config: BasePromptConfigEntry = {
-        contentDesc: "Test description",
-      };
-      expect(config.contentDesc).toBe("Test description");
-    });
-
-    it("should support optional instructions", () => {
-      const config: BasePromptConfigEntry = {
-        instructions: ["instruction 1", "instruction 2"],
-      };
-      expect(config.instructions).toEqual(["instruction 1", "instruction 2"]);
-    });
-
-    it("should support optional responseSchema", () => {
-      const schema = z.object({ name: z.string() });
-      const config: BasePromptConfigEntry<typeof schema> = {
-        responseSchema: schema,
-      };
-      expect(config.responseSchema).toBe(schema);
-    });
-
-    it("should support optional hasComplexSchema", () => {
-      const config: BasePromptConfigEntry = {
-        hasComplexSchema: true,
-      };
-      expect(config.hasComplexSchema).toBe(true);
-    });
-  });
-
-  describe("StrictPromptConfigEntry", () => {
+  describe("PromptConfigEntry", () => {
     it("should require contentDesc, instructions, and responseSchema", () => {
       const schema = z.object({ result: z.string() });
-      const strictConfig: StrictPromptConfigEntry<typeof schema> = {
+      const config: PromptConfigEntry<typeof schema> = {
         contentDesc: "Required description",
         instructions: ["Required instruction"],
         responseSchema: schema,
       };
 
-      expect(strictConfig.contentDesc).toBe("Required description");
-      expect(strictConfig.instructions).toEqual(["Required instruction"]);
-      expect(strictConfig.responseSchema).toBe(schema);
+      expect(config.contentDesc).toBe("Required description");
+      expect(config.instructions).toEqual(["Required instruction"]);
+      expect(config.responseSchema).toBe(schema);
     });
 
     it("should allow optional label", () => {
       const schema = z.object({ result: z.string() });
-      const configWithLabel: StrictPromptConfigEntry<typeof schema> = {
+      const configWithLabel: PromptConfigEntry<typeof schema> = {
         contentDesc: "Description",
         instructions: ["Instruction"],
         responseSchema: schema,
@@ -84,7 +36,7 @@ describe("Prompt Types", () => {
 
     it("should allow optional hasComplexSchema", () => {
       const schema = z.object({ result: z.string() });
-      const configWithComplexSchema: StrictPromptConfigEntry<typeof schema> = {
+      const configWithComplexSchema: PromptConfigEntry<typeof schema> = {
         contentDesc: "Description",
         instructions: ["Instruction"],
         responseSchema: schema,
@@ -100,7 +52,7 @@ describe("Prompt Types", () => {
         count: z.number(),
       });
 
-      const config: StrictPromptConfigEntry<typeof specificSchema> = {
+      const config: PromptConfigEntry<typeof specificSchema> = {
         contentDesc: "Description",
         instructions: ["Instruction"],
         responseSchema: specificSchema,
@@ -118,7 +70,6 @@ describe("Prompt Types", () => {
       contentDesc: "Test intro text template with {{placeholder}}",
       instructions: ["instruction 1", "instruction 2"],
       responseSchema: z.string(),
-      hasComplexSchema: false,
       template: "Test template",
       dataBlockHeader: "CODE",
       wrapInCodeBlock: false,
@@ -143,11 +94,9 @@ describe("Prompt Types", () => {
 
     it("should support optional fields", () => {
       const definitionWithOptional = createMockPromptDefinition({
-        hasComplexSchema: true,
         label: "Test Label",
       });
 
-      expect(definitionWithOptional.hasComplexSchema).toBe(true);
       expect(definitionWithOptional.label).toBe("Test Label");
     });
 

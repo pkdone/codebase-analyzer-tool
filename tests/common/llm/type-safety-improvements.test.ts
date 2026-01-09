@@ -204,7 +204,7 @@ describe("Type Safety Improvements", () => {
   // Note: Full runtime validation tests for file-summarizer are in
   // tests/features/capture/file-summarizer-schema-validation.test.ts
 
-  // Note: Full runtime tests for completion-executor type inference are covered
+  // Note: Full runtime tests for insights-completion-executor type inference are covered
   // by integration tests and existing component tests
 
   describe("End-to-End Type Safety", () => {

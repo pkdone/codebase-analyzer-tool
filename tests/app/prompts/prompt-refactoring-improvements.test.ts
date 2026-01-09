@@ -3,10 +3,7 @@ import { renderPrompt } from "../../../src/app/prompts/prompt-renderer";
 import { BASE_PROMPT_TEMPLATE, CODEBASE_QUERY_TEMPLATE } from "../../../src/app/prompts/templates";
 import { sourceConfigMap } from "../../../src/app/prompts/definitions/sources/sources.definitions";
 import { LLMOutputFormat } from "../../../src/common/llm/types/llm.types";
-import type {
-  PromptDefinition,
-  BasePromptConfigEntry,
-} from "../../../src/app/prompts/prompt.types";
+import type { PromptDefinition, PromptConfigEntry } from "../../../src/app/prompts/prompt.types";
 
 describe("Prompt Refactoring Improvements", () => {
   describe("TEXT-mode Rendering", () => {
@@ -46,7 +43,6 @@ describe("Prompt Refactoring Improvements", () => {
         template: BASE_PROMPT_TEMPLATE,
         dataBlockHeader: "CODE",
         wrapInCodeBlock: false,
-        hasComplexSchema: false,
         outputFormat: LLMOutputFormat.JSON,
       };
 
@@ -172,28 +168,40 @@ describe("Prompt Refactoring Improvements", () => {
     });
   });
 
-  describe("BasePromptConfigEntry interface compatibility", () => {
+  describe("PromptConfigEntry interface compatibility", () => {
     it("should be compatible with SourceConfigEntry", () => {
       // TypeScript compilation test - if this compiles, the interfaces are compatible
       const sourceConfig = sourceConfigMap.java;
-      const baseCompatible: BasePromptConfigEntry = {
+      const configEntry: PromptConfigEntry = {
         instructions: sourceConfig.instructions,
         responseSchema: sourceConfig.responseSchema,
         contentDesc: sourceConfig.contentDesc,
       };
 
-      expect(baseCompatible.instructions).toBe(sourceConfig.instructions);
+      expect(configEntry.instructions).toBe(sourceConfig.instructions);
     });
 
-    it("should allow optional fields", () => {
-      const minimalConfig: BasePromptConfigEntry = {
+    it("should require core fields and allow optional label and hasComplexSchema", () => {
+      const config: PromptConfigEntry = {
+        contentDesc: "test content",
         instructions: ["test instruction"],
+        responseSchema: z.string(),
+        // label and hasComplexSchema are optional
       };
 
-      expect(minimalConfig.label).toBeUndefined();
-      expect(minimalConfig.contentDesc).toBeUndefined();
-      expect(minimalConfig.responseSchema).toBeUndefined();
-      expect(minimalConfig.hasComplexSchema).toBeUndefined();
+      expect(config.label).toBeUndefined();
+      expect(config.hasComplexSchema).toBeUndefined();
+    });
+
+    it("should support optional hasComplexSchema field", () => {
+      const config: PromptConfigEntry = {
+        contentDesc: "test content",
+        instructions: ["test instruction"],
+        responseSchema: z.string(),
+        hasComplexSchema: true,
+      };
+
+      expect(config.hasComplexSchema).toBe(true);
     });
   });
 

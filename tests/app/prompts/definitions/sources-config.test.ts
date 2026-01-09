@@ -61,9 +61,6 @@ describe("File Handler Configuration", () => {
         expect(typeof config.contentDesc).toBe("string");
         expect(typeof config.instructions).toBe("object");
         expect(Array.isArray(config.instructions)).toBe(true);
-        expect(
-          config.hasComplexSchema === undefined || typeof config.hasComplexSchema === "boolean",
-        ).toBe(true);
       }
     });
   });
@@ -74,7 +71,6 @@ describe("File Handler Configuration", () => {
         contentDesc: "test content",
         instructions: ["test instructions"],
         responseSchema: sourceSummarySchema,
-        hasComplexSchema: false,
         template: "Test template",
         dataBlockHeader: "CODE",
         wrapInCodeBlock: true,
@@ -83,7 +79,6 @@ describe("File Handler Configuration", () => {
       expect(testConfig).toHaveProperty("contentDesc");
       expect(testConfig).toHaveProperty("instructions");
       expect(testConfig).toHaveProperty("responseSchema");
-      expect(testConfig).toHaveProperty("hasComplexSchema");
       expect(typeof testConfig.contentDesc).toBe("string");
       expect(typeof testConfig.instructions).toBe("object");
       expect(Array.isArray(testConfig.instructions)).toBe(true);
@@ -95,7 +90,6 @@ describe("File Handler Configuration", () => {
         contentDesc: "test content",
         instructions: ["test instructions"],
         responseSchema: sourceSummarySchema.pick({ purpose: true, implementation: true }),
-        hasComplexSchema: false,
         template: "Test template",
         dataBlockHeader: "CODE",
         wrapInCodeBlock: true,

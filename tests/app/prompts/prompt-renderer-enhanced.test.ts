@@ -182,7 +182,6 @@ describe("Prompt Renderer", () => {
         template: BASE_PROMPT_TEMPLATE,
         dataBlockHeader: DATA_BLOCK_HEADERS.FRAGMENTED_DATA,
         wrapInCodeBlock: false,
-        hasComplexSchema: false,
         outputFormat: LLMOutputFormat.JSON,
       };
 
@@ -218,7 +217,6 @@ describe("Prompt Renderer", () => {
         template: BASE_PROMPT_TEMPLATE,
         dataBlockHeader: DATA_BLOCK_HEADERS.FRAGMENTED_DATA,
         wrapInCodeBlock: false,
-        hasComplexSchema: false,
         outputFormat: LLMOutputFormat.JSON,
       };
 

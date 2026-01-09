@@ -9,37 +9,21 @@ import {
 
 /**
  * Source prompt definitions for special file types (SQL, Markdown, XML, JSP, scripts, etc.).
+ *
+ * Note: hasComplexSchema defaults to false, so it's only explicitly set when true.
  */
 export const specialFileDefinitions: Record<string, SourceConfigEntry> = {
-  sql: createSimpleConfig(
-    "the database DDL/DML/SQL code",
-    ["purpose", "implementation", "tables", "storedProcedures", "triggers", "databaseIntegration"],
-    [
-      {
-        title: INSTRUCTION_SECTION_TITLES.BASIC_INFO,
-        fragments: [
-          SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
-          SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
-        ],
-      },
-      {
-        title: INSTRUCTION_SECTION_TITLES.DATABASE_OBJECTS,
-        fragments: [
-          SOURCES_PROMPT_FRAGMENTS.SQL_SPECIFIC.TABLE_LIST,
-          SOURCES_PROMPT_FRAGMENTS.SQL_SPECIFIC.STORED_PROCEDURE_LIST,
-          SOURCES_PROMPT_FRAGMENTS.SQL_SPECIFIC.TRIGGER_LIST,
-        ],
-      },
-      {
-        title: INSTRUCTION_SECTION_TITLES.DATABASE_INTEGRATION_ANALYSIS,
-        fragments: [SOURCES_PROMPT_FRAGMENTS.SQL_SPECIFIC.DB_INTEGRATION_ANALYSIS],
-      },
-    ],
-  ),
-  markdown: {
+  sql: {
     ...createSimpleConfig(
-      "the Markdown documentation",
-      ["purpose", "implementation", "databaseIntegration"],
+      "the database DDL/DML/SQL code",
+      [
+        "purpose",
+        "implementation",
+        "tables",
+        "storedProcedures",
+        "triggers",
+        "databaseIntegration",
+      ],
       [
         {
           title: INSTRUCTION_SECTION_TITLES.BASIC_INFO,
@@ -49,16 +33,38 @@ export const specialFileDefinitions: Record<string, SourceConfigEntry> = {
           ],
         },
         {
-          title: INSTRUCTION_SECTION_TITLES.DATABASE_INTEGRATION_ANALYSIS,
+          title: INSTRUCTION_SECTION_TITLES.DATABASE_OBJECTS,
           fragments: [
-            COMPOSITES.DB_INTEGRATION,
-            SOURCES_PROMPT_FRAGMENTS.COMMON.DB_IN_DOCUMENTATION,
+            SOURCES_PROMPT_FRAGMENTS.SQL_SPECIFIC.TABLE_LIST,
+            SOURCES_PROMPT_FRAGMENTS.SQL_SPECIFIC.STORED_PROCEDURE_LIST,
+            SOURCES_PROMPT_FRAGMENTS.SQL_SPECIFIC.TRIGGER_LIST,
           ],
+        },
+        {
+          title: INSTRUCTION_SECTION_TITLES.DATABASE_INTEGRATION_ANALYSIS,
+          fragments: [SOURCES_PROMPT_FRAGMENTS.SQL_SPECIFIC.DB_INTEGRATION_ANALYSIS],
         },
       ],
     ),
-    hasComplexSchema: false,
+    hasComplexSchema: true,
   },
+  markdown: createSimpleConfig(
+    "the Markdown documentation",
+    ["purpose", "implementation", "databaseIntegration"],
+    [
+      {
+        title: INSTRUCTION_SECTION_TITLES.BASIC_INFO,
+        fragments: [
+          SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
+          SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
+        ],
+      },
+      {
+        title: INSTRUCTION_SECTION_TITLES.DATABASE_INTEGRATION_ANALYSIS,
+        fragments: [COMPOSITES.DB_INTEGRATION, SOURCES_PROMPT_FRAGMENTS.COMMON.DB_IN_DOCUMENTATION],
+      },
+    ],
+  ),
   xml: createSimpleConfig(
     "the XML configuration",
     ["purpose", "implementation", "uiFramework"],
@@ -121,7 +127,6 @@ export const specialFileDefinitions: Record<string, SourceConfigEntry> = {
         SOURCES_PROMPT_FRAGMENTS.SHELL_SCRIPT_SPECIFIC.EXTERNAL_API_CALLS,
       ),
     ] as const,
-    hasComplexSchema: false,
   },
   "batch-script": {
     contentDesc: "the Windows batch script (.bat/.cmd)",
@@ -142,7 +147,6 @@ export const specialFileDefinitions: Record<string, SourceConfigEntry> = {
         SOURCES_PROMPT_FRAGMENTS.BATCH_SCRIPT_SPECIFIC.SERVICE_OPS,
       ),
     ] as const,
-    hasComplexSchema: false,
   },
   jcl: {
     contentDesc: "the Mainframe JCL (Job Control Language)",
@@ -163,26 +167,22 @@ export const specialFileDefinitions: Record<string, SourceConfigEntry> = {
         SOURCES_PROMPT_FRAGMENTS.JCL_SPECIFIC.SORT_UTILITIES,
       ),
     ] as const,
-    hasComplexSchema: false,
   },
-  default: {
-    ...createSimpleConfig(
-      "the source files",
-      ["purpose", "implementation", "databaseIntegration"],
-      [
-        {
-          title: INSTRUCTION_SECTION_TITLES.BASIC_INFO,
-          fragments: [
-            SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
-            SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
-          ],
-        },
-        {
-          title: INSTRUCTION_SECTION_TITLES.DATABASE_INTEGRATION_ANALYSIS,
-          fragments: [COMPOSITES.DB_INTEGRATION, SOURCES_PROMPT_FRAGMENTS.COMMON.DB_IN_FILE],
-        },
-      ],
-    ),
-    hasComplexSchema: false,
-  },
+  default: createSimpleConfig(
+    "the source files",
+    ["purpose", "implementation", "databaseIntegration"],
+    [
+      {
+        title: INSTRUCTION_SECTION_TITLES.BASIC_INFO,
+        fragments: [
+          SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
+          SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
+        ],
+      },
+      {
+        title: INSTRUCTION_SECTION_TITLES.DATABASE_INTEGRATION_ANALYSIS,
+        fragments: [COMPOSITES.DB_INTEGRATION, SOURCES_PROMPT_FRAGMENTS.COMMON.DB_IN_FILE],
+      },
+    ],
+  ),
 };

@@ -111,7 +111,6 @@ describe("Prompt Registry", () => {
       expect(prompt).toHaveProperty("template");
       expect(prompt).toHaveProperty("dataBlockHeader");
       expect(prompt).toHaveProperty("wrapInCodeBlock");
-      expect(prompt).toHaveProperty("hasComplexSchema");
     });
 
     it("should use CODE as dataBlockHeader for source prompts", () => {
@@ -124,12 +123,6 @@ describe("Prompt Registry", () => {
       expect(promptManager.sources.java.wrapInCodeBlock).toBe(true);
       expect(promptManager.sources.javascript.wrapInCodeBlock).toBe(true);
       expect(promptManager.sources.python.wrapInCodeBlock).toBe(true);
-    });
-
-    it("should have hasComplexSchema set to false for source prompts", () => {
-      expect(promptManager.sources.java.hasComplexSchema).toBe(false);
-      expect(promptManager.sources.javascript.hasComplexSchema).toBe(false);
-      expect(promptManager.sources.python.hasComplexSchema).toBe(false);
     });
 
     it("should have non-empty instructions for code file types", () => {

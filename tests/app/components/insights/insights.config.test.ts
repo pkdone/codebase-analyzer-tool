@@ -1,29 +1,29 @@
-import { insightsTuningConfig } from "../../../../src/app/components/insights/insights.config";
+import { insightsConfig } from "../../../../src/app/components/insights/insights.config";
 import { promptManager } from "../../../../src/app/prompts/prompt-registry";
 const summaryCategoriesConfig = promptManager.appSummaries;
 import { AppSummaryCategoryEnum } from "../../../../src/app/components/insights/insights.types";
 
 describe("insightsTuningConfig", () => {
   it("should have CHUNK_TOKEN_LIMIT_RATIO defined", () => {
-    expect(insightsTuningConfig.CHUNK_TOKEN_LIMIT_RATIO).toBeDefined();
-    expect(insightsTuningConfig.CHUNK_TOKEN_LIMIT_RATIO).toBe(0.7);
+    expect(insightsConfig.CHUNK_TOKEN_LIMIT_RATIO).toBeDefined();
+    expect(insightsConfig.CHUNK_TOKEN_LIMIT_RATIO).toBe(0.7);
   });
 
   it("should have CHUNK_TOKEN_LIMIT_RATIO as a number between 0 and 1", () => {
-    expect(typeof insightsTuningConfig.CHUNK_TOKEN_LIMIT_RATIO).toBe("number");
-    expect(insightsTuningConfig.CHUNK_TOKEN_LIMIT_RATIO).toBeGreaterThan(0);
-    expect(insightsTuningConfig.CHUNK_TOKEN_LIMIT_RATIO).toBeLessThan(1);
+    expect(typeof insightsConfig.CHUNK_TOKEN_LIMIT_RATIO).toBe("number");
+    expect(insightsConfig.CHUNK_TOKEN_LIMIT_RATIO).toBeGreaterThan(0);
+    expect(insightsConfig.CHUNK_TOKEN_LIMIT_RATIO).toBeLessThan(1);
   });
 
   it("should be a readonly object", () => {
-    const config = insightsTuningConfig;
+    const config = insightsConfig;
     expect(config).toHaveProperty("CHUNK_TOKEN_LIMIT_RATIO");
   });
 
   it("should be typed as const", () => {
     // This test verifies that TypeScript treats the config as readonly
     // The 'as const' assertion should make all properties readonly
-    const ratio: 0.7 = insightsTuningConfig.CHUNK_TOKEN_LIMIT_RATIO;
+    const ratio: 0.7 = insightsConfig.CHUNK_TOKEN_LIMIT_RATIO;
     expect(ratio).toBe(0.7);
   });
 });

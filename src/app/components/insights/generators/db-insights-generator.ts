@@ -8,8 +8,8 @@ import type { SourcesRepository } from "../../../repositories/sources/sources.re
 import { repositoryTokens } from "../../../di/tokens";
 import { llmTokens } from "../../../di/tokens";
 import { coreTokens } from "../../../di/tokens";
-import { insightsTuningConfig } from "../insights.config";
-import { promptManager } from "../../../prompts/prompt-registry";
+import { insightsConfig } from "../insights.config";
+import { getCategoryLabel } from "../../../config/category-labels.config";
 import { AppSummaryCategories } from "../../../schemas/app-summaries.schema";
 import { AppSummaryCategoryEnum } from "../insights.types";
 import type { IInsightGenerationStrategy } from "../strategies/completion-strategy.interface";
@@ -121,13 +121,13 @@ export default class InsightsFromDBGenerator {
     category: AppSummaryCategoryEnum,
     sourceFileSummaries: readonly string[],
   ): Promise<void> {
-    const categoryLabel = promptManager.appSummaries[category].label ?? category;
+    const categoryLabel = getCategoryLabel(category);
 
     try {
       // Determine which strategy to use based on codebase size
       const summaryChunks = chunkTextByTokenLimit(sourceFileSummaries, {
         maxTokens: this.maxTokens,
-        chunkTokenLimitRatio: insightsTuningConfig.CHUNK_TOKEN_LIMIT_RATIO,
+        chunkTokenLimitRatio: insightsConfig.CHUNK_TOKEN_LIMIT_RATIO,
       });
       const strategy =
         summaryChunks.length === 1 ? this.singlePassStrategy : this.mapReduceStrategy;

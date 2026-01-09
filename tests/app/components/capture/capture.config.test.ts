@@ -32,7 +32,6 @@ describe("fileTypeMetadataConfig", () => {
         expect(fileTypePromptMetadata[type]).toHaveProperty("contentDesc");
         expect(fileTypePromptMetadata[type]).toHaveProperty("instructions");
         expect(fileTypePromptMetadata[type]).toHaveProperty("responseSchema");
-        expect(fileTypePromptMetadata[type]).toHaveProperty("hasComplexSchema");
       }
     });
 
@@ -43,10 +42,6 @@ describe("fileTypeMetadataConfig", () => {
       expect(typeof defaultConfig.instructions).toBe("object");
       expect(Array.isArray(defaultConfig.instructions)).toBe(true);
       expect(defaultConfig.responseSchema).toBeDefined();
-      expect(
-        defaultConfig.hasComplexSchema === undefined ||
-          typeof defaultConfig.hasComplexSchema === "boolean",
-      ).toBe(true);
     });
   });
 
@@ -55,8 +50,9 @@ describe("fileTypeMetadataConfig", () => {
       expect(fileTypePromptMetadata.java.contentDesc).toContain("JVM code");
     });
 
-    it("should be marked as simple schema", () => {
-      expect(fileTypePromptMetadata.java.hasComplexSchema).toBe(false);
+    it("should use default hasComplexSchema (undefined = false)", () => {
+      // Standard code configs don't explicitly set hasComplexSchema, so it defaults to false at usage site
+      expect(sourceConfigMap.java.hasComplexSchema).toBeUndefined();
     });
 
     it("should include expected instructions", () => {
@@ -81,8 +77,9 @@ describe("fileTypeMetadataConfig", () => {
       expect(fileTypePromptMetadata.javascript.contentDesc).toContain("JavaScript/TypeScript code");
     });
 
-    it("should be marked as simple schema", () => {
-      expect(fileTypePromptMetadata.javascript.hasComplexSchema).toBe(false);
+    it("should use default hasComplexSchema (undefined = false)", () => {
+      // Standard code configs don't explicitly set hasComplexSchema, so it defaults to false at usage site
+      expect(sourceConfigMap.javascript.hasComplexSchema).toBeUndefined();
     });
 
     it("should include expected instructions", () => {
@@ -100,8 +97,9 @@ describe("fileTypeMetadataConfig", () => {
       expect(fileTypePromptMetadata.sql.contentDesc).toContain("database DDL/DML/SQL code");
     });
 
-    it("should be marked as complex schema", () => {
-      expect(fileTypePromptMetadata.sql.hasComplexSchema).toBe(true);
+    it("should have hasComplexSchema explicitly set to true", () => {
+      // SQL config has complex schema due to database object definitions
+      expect(sourceConfigMap.sql.hasComplexSchema).toBe(true);
     });
 
     it("should include SQL-specific instructions", () => {
@@ -124,8 +122,9 @@ describe("fileTypeMetadataConfig", () => {
       expect(fileTypePromptMetadata.csharp.contentDesc).toContain("C# code");
     });
 
-    it("should be marked as simple schema", () => {
-      expect(fileTypePromptMetadata.csharp.hasComplexSchema).toBe(false);
+    it("should use default hasComplexSchema (undefined = false)", () => {
+      // Standard code configs don't explicitly set hasComplexSchema, so it defaults to false at usage site
+      expect(sourceConfigMap.csharp.hasComplexSchema).toBeUndefined();
     });
 
     it("should include C#-specific instructions", () => {
@@ -143,8 +142,9 @@ describe("fileTypeMetadataConfig", () => {
       expect(fileTypePromptMetadata.ruby.contentDesc).toContain("Ruby code");
     });
 
-    it("should be marked as simple schema", () => {
-      expect(fileTypePromptMetadata.ruby.hasComplexSchema).toBe(false);
+    it("should use default hasComplexSchema (undefined = false)", () => {
+      // Standard code configs don't explicitly set hasComplexSchema, so it defaults to false at usage site
+      expect(sourceConfigMap.ruby.hasComplexSchema).toBeUndefined();
     });
 
     it("should include Ruby-specific instructions", () => {
@@ -268,9 +268,6 @@ describe("fileTypeMetadataConfig", () => {
         expect(typeof config.instructions).toBe("object");
         expect(Array.isArray(config.instructions)).toBe(true);
         expect(config.responseSchema).toBeDefined();
-        expect(
-          config.hasComplexSchema === undefined || typeof config.hasComplexSchema === "boolean",
-        ).toBe(true);
       }
     });
 
@@ -293,7 +290,8 @@ describe("fileTypeMetadataConfig", () => {
       // Verify configurations maintain their expected values
       expect(fileTypePromptMetadata.java.contentDesc).toContain("JVM code");
       expect(fileTypePromptMetadata.default.contentDesc).toContain("source files");
-      expect(fileTypePromptMetadata.sql.hasComplexSchema).toBe(true);
+      // hasComplexSchema defaults to false (undefined in config, default at usage site)
+      expect(sourceConfigMap.java.hasComplexSchema).toBeUndefined();
     });
   });
 });

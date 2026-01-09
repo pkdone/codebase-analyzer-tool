@@ -57,24 +57,15 @@ interface BasePromptTemplateVariables {
  * @returns The fully rendered prompt string
  */
 export function renderPrompt(definition: PromptDefinition, data: Record<string, unknown>): string {
-  // Determine if this is a JSON-mode prompt (default) or TEXT-mode
   const isJsonMode = definition.outputFormat !== LLMOutputFormat.TEXT;
-
-  // Build the schema section conditionally - empty for TEXT-mode to avoid rendering empty JSON code block
   const schemaSection = isJsonMode ? buildSchemaSection(definition.responseSchema) : "";
-
   const wrapInCodeBlock = definition.wrapInCodeBlock ?? false;
   const contentWrapper = wrapInCodeBlock ? "```\n" : "";
-
-  // Join instructions - placeholders are now resolved at prompt definition creation time
   const instructionsText = definition.instructions.join("\n\n");
-
   // Handle partialAnalysisNote - convert to string or use empty string if undefined/null
   const partialAnalysisNote =
     typeof data.partialAnalysisNote === "string" ? data.partialAnalysisNote : "";
-
   // Build template data with all required variables for BASE_PROMPT_TEMPLATE.
-  // Also spread original data for templates that use different variables (e.g., CODEBASE_QUERY_TEMPLATE uses 'question').
   const baseTemplateVars: BasePromptTemplateVariables = {
     content: data.content,
     contentDesc: definition.contentDesc,
@@ -84,12 +75,10 @@ export function renderPrompt(definition: PromptDefinition, data: Record<string, 
     contentWrapper,
     partialAnalysisNote,
   };
-
   // Merge data (for other templates' variables) with base template variables
   const templateData = {
     ...data,
     ...baseTemplateVars,
   };
-
   return fillPrompt(definition.template, templateData);
 }

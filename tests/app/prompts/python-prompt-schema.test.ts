@@ -1,6 +1,7 @@
 import { promptManager } from "../../../src/app/prompts/prompt-registry";
 const fileTypePromptMetadata = promptManager.sources;
 import { sourceSummarySchema } from "../../../src/app/schemas/sources.schema";
+import { sourceConfigMap } from "../../../src/app/prompts/definitions/sources/sources.definitions";
 
 describe("Python prompt metadata schema", () => {
   it("should define python entry with expected response schema fields", () => {
@@ -27,7 +28,8 @@ describe("Python prompt metadata schema", () => {
     expect(actualKeys.sort()).toEqual(expectedKeys.sort());
   });
 
-  it("should mark hasComplexSchema as false", () => {
-    expect(fileTypePromptMetadata.python.hasComplexSchema).toBe(false);
+  it("should use default hasComplexSchema (undefined = false)", () => {
+    // Standard code configs don't explicitly set hasComplexSchema, so it defaults to false at usage site
+    expect(sourceConfigMap.python.hasComplexSchema).toBeUndefined();
   });
 });

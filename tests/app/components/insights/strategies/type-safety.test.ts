@@ -2,7 +2,7 @@ import "reflect-metadata";
 import { IInsightGenerationStrategy } from "../../../../../src/app/components/insights/strategies/completion-strategy.interface";
 import { SinglePassInsightStrategy } from "../../../../../src/app/components/insights/strategies/single-pass-completion-strategy";
 import { MapReduceInsightStrategy } from "../../../../../src/app/components/insights/strategies/map-reduce-completion-strategy";
-import { executeInsightCompletion } from "../../../../../src/app/components/insights/strategies/completion-executor";
+import { executeInsightCompletion } from "../../../../../src/app/components/insights/strategies/insights-completion-executor";
 import {
   PartialAppSummaryRecord,
   AppSummaryCategoryEnum,

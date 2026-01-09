@@ -9,11 +9,11 @@ import {
 import { CATEGORY_LABELS } from "../../../config/category-labels.config";
 import { APP_SUMMARY_PROMPT_FRAGMENTS } from "./app-summaries.fragments";
 import { z } from "zod";
-import type { StrictPromptConfigEntry } from "../../prompt.types";
+import type { PromptConfigEntry } from "../../prompt.types";
 
 /**
  * Configuration entry for an app summary prompt definition.
- * Extends StrictPromptConfigEntry with an additional required `label` field.
+ * Extends PromptConfigEntry with an additional required `label` field.
  *
  * App summaries require a label for UI display and logging purposes,
  * which distinguishes them from source configs where labels are optional.
@@ -25,7 +25,7 @@ import type { StrictPromptConfigEntry } from "../../prompt.types";
  */
 export interface AppSummaryConfigEntry<
   S extends z.ZodType = z.ZodType,
-> extends StrictPromptConfigEntry<S> {
+> extends PromptConfigEntry<S> {
   /** Label for UI display and logging (required for app summary configs) */
   label: string;
 }

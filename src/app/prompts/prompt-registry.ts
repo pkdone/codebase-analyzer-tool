@@ -6,7 +6,7 @@ import {
   DATA_BLOCK_HEADERS,
   type DataBlockHeader,
   type PromptDefinition,
-  type BasePromptConfigEntry,
+  type PromptConfigEntry,
 } from "./prompt.types";
 import { LLMOutputFormat } from "../../common/llm/types/llm.types";
 
@@ -20,7 +20,7 @@ type ExtractSchemaType<T> = T extends { responseSchema: infer S extends z.ZodTyp
  * Mapped type that transforms a config map into a record of PromptDefinitions
  * while preserving the specific schema type for each key.
  */
-type PromptMetadataResult<TConfigMap extends Record<string, BasePromptConfigEntry>> = {
+type PromptMetadataResult<TConfigMap extends Record<string, PromptConfigEntry>> = {
   [K in keyof TConfigMap]: PromptDefinition<ExtractSchemaType<TConfigMap[K]>>;
 };
 
@@ -50,38 +50,32 @@ interface CreatePromptMetadataOptions {
  * schema type for each key in the config map. This enables better type inference
  * for downstream consumers when accessing prompt definitions by key.
  *
- * Reads contentDesc and instructions directly from the config entries, which contain
- * these fields explicitly. The factory is a pure data mapper that transforms config
- * entries into PromptDefinition objects.
+ * Reads contentDesc, instructions, and responseSchema directly from the config entries.
+ * The factory is a pure data mapper that transforms config entries into PromptDefinition objects.
  *
  * @param configMap - The configuration map (e.g., sourceConfigMap, appSummaryConfigMap)
  * @param template - The template string to use for all prompts
  * @param options - Optional settings for dataBlockHeader and wrapInCodeBlock
  * @returns A record mapping keys to PromptDefinition objects with preserved schema types
  */
-export function createPromptMetadata<TConfigMap extends Record<string, BasePromptConfigEntry>>(
+export function createPromptMetadata<TConfigMap extends Record<string, PromptConfigEntry>>(
   configMap: TConfigMap,
   template: string,
   options: CreatePromptMetadataOptions = {},
 ): PromptMetadataResult<TConfigMap> {
   const { dataBlockHeader = DATA_BLOCK_HEADERS.FILE_SUMMARIES, wrapInCodeBlock = false } = options;
-
   return Object.fromEntries(
     Object.entries(configMap).map(([key, config]) => {
       const typedConfig = config as TConfigMap[keyof TConfigMap];
-      const configWithHasComplexSchema = typedConfig as { hasComplexSchema?: boolean };
       const definition: PromptDefinition = {
         label: typedConfig.label,
-        contentDesc: typedConfig.contentDesc ?? "content",
-        responseSchema: typedConfig.responseSchema ?? z.unknown(),
+        contentDesc: typedConfig.contentDesc,
+        responseSchema: typedConfig.responseSchema,
         template,
-        instructions: typedConfig.instructions ?? [],
+        instructions: typedConfig.instructions,
         dataBlockHeader,
         wrapInCodeBlock,
-        // Always set hasComplexSchema, defaulting to true
-        hasComplexSchema: configWithHasComplexSchema.hasComplexSchema ?? true,
       };
-
       return [key, definition];
     }),
   ) as PromptMetadataResult<TConfigMap>;

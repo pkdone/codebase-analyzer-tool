@@ -26,32 +26,10 @@ export const DATA_BLOCK_HEADERS = {
 export type DataBlockHeader = (typeof DATA_BLOCK_HEADERS)[keyof typeof DATA_BLOCK_HEADERS];
 
 /**
- * Base configuration entry interface for prompt configurations.
+ * Configuration entry interface for prompt configurations.
  * This interface defines the common structure shared by all prompt config types
  * (SourceConfigEntry, AppSummaryConfigEntry) to ensure consistency and enable
  * generic processing.
- *
- * All fields are optional at this base level, allowing flexibility for different
- * config types to make specific fields required as needed.
- *
- * @template S - The Zod schema type for validating the LLM response. Defaults to z.ZodType.
- */
-export interface BasePromptConfigEntry<S extends z.ZodType = z.ZodType> {
-  /** Optional label for UI display and logging */
-  label?: string;
-  /** Optional description of the content being analyzed */
-  contentDesc?: string;
-  /** Optional array of instruction strings for the LLM (defaults to empty array in factory) */
-  instructions?: readonly string[];
-  /** Optional Zod schema for validating the LLM response */
-  responseSchema?: S;
-  /** Whether the schema is complex and incompatible with some LLM providers */
-  hasComplexSchema?: boolean;
-}
-
-/**
- * Strict configuration entry interface where core fields are required.
- * Used for concrete prompt definitions (Sources, App Summaries) to ensure completeness.
  *
  * This type enforces that all essential fields for prompt generation are provided,
  * reducing the need for defensive checks at runtime and improving type safety
@@ -62,15 +40,17 @@ export interface BasePromptConfigEntry<S extends z.ZodType = z.ZodType> {
  *
  * @template S - The Zod schema type for validating the LLM response. Defaults to z.ZodType.
  */
-export interface StrictPromptConfigEntry<
-  S extends z.ZodType = z.ZodType,
-> extends BasePromptConfigEntry<S> {
+export interface PromptConfigEntry<S extends z.ZodType = z.ZodType> {
+  /** Optional label for UI display and logging */
+  label?: string;
   /** Description of the content being analyzed (required) */
   contentDesc: string;
   /** Array of instruction strings for the LLM (required) */
   instructions: readonly string[];
   /** Zod schema for validating the LLM response (required) */
   responseSchema: S;
+  /** Whether the schema is complex and incompatible with some LLM providers */
+  hasComplexSchema?: boolean;
 }
 
 /**
@@ -87,8 +67,6 @@ export interface PromptDefinition<S extends z.ZodType = z.ZodType> {
   instructions: readonly string[];
   /** Zod schema for validating the LLM response */
   responseSchema: S;
-  /** Whether the schema is complex and incompatible with some LLM providers */
-  hasComplexSchema?: boolean;
   /** Optional label for UI display and logging (e.g., "Aggregates", "Java Source") */
   label?: string;
   /** Template string for rendering the prompt */

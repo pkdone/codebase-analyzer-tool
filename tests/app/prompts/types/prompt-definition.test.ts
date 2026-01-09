@@ -6,7 +6,6 @@ describe("PromptDefinition", () => {
     contentDesc: "Test intro text template with {{placeholder}}",
     instructions: ["instruction 1", "instruction 2"],
     responseSchema: z.string(),
-    hasComplexSchema: false,
     template: "Test template",
     dataBlockHeader: "CODE",
     wrapInCodeBlock: false,
@@ -29,16 +28,14 @@ describe("PromptDefinition", () => {
       expect(definition.responseSchema).toBeDefined();
     });
 
-    it("should have optional hasComplexSchema field", () => {
-      const definitionWithoutFlag = createMockPromptDefinition({
-        hasComplexSchema: undefined,
-      });
-      expect(definitionWithoutFlag.hasComplexSchema).toBeUndefined();
+    it("should have optional label field", () => {
+      const definitionWithoutLabel = createMockPromptDefinition();
+      expect(definitionWithoutLabel.label).toBeUndefined();
 
-      const definitionWithFlag = createMockPromptDefinition({
-        hasComplexSchema: true,
+      const definitionWithLabel = createMockPromptDefinition({
+        label: "Test Label",
       });
-      expect(definitionWithFlag.hasComplexSchema).toBe(true);
+      expect(definitionWithLabel.label).toBe("Test Label");
     });
   });
 
@@ -86,7 +83,6 @@ describe("PromptDefinition", () => {
           purpose: z.string(),
           implementation: z.string(),
         }),
-        hasComplexSchema: true,
         template: "Test template",
         dataBlockHeader: "CODE",
         wrapInCodeBlock: true,
@@ -94,7 +90,6 @@ describe("PromptDefinition", () => {
 
       expect(sourceFileDefinition.contentDesc).toContain("JVM code");
       expect(sourceFileDefinition.instructions).toHaveLength(3);
-      expect(sourceFileDefinition.hasComplexSchema).toBe(true);
     });
 
     it("should work with app summary prompting", () => {
@@ -106,7 +101,6 @@ describe("PromptDefinition", () => {
           entities: z.array(z.string()),
           boundedContexts: z.array(z.string()),
         }),
-        hasComplexSchema: false,
         template: "Test template",
         dataBlockHeader: "FILE_SUMMARIES",
         wrapInCodeBlock: false,
@@ -116,7 +110,6 @@ describe("PromptDefinition", () => {
       expect(appSummaryDefinition.instructions).toHaveLength(2);
       expect(appSummaryDefinition.instructions[0]).toBe("Extract entities");
       expect(appSummaryDefinition.instructions[1]).toBe("Extract bounded contexts");
-      expect(appSummaryDefinition.hasComplexSchema).toBe(false);
     });
   });
 

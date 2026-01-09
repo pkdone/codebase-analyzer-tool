@@ -60,23 +60,18 @@ export class FileSummarizerService {
     content: string,
   ): Promise<Result<PartialSourceSummaryType>> {
     try {
-      if (content.trim().length === 0) {
-        return err(new Error("File is empty"));
-      }
+      if (content.trim().length === 0) return err(new Error("File is empty"));
       const canonicalFileType = getCanonicalFileType(filepath, type);
       const promptMetadata = this.promptManager.sources[canonicalFileType];
-      const schema = this.sourceConfigMap[canonicalFileType].responseSchema;
       const renderedPrompt = renderPrompt(promptMetadata, { content });
-
-      // Use schema from sourceConfigMap.responseSchema directly.
-      // Each file type uses .pick() to request only relevant fields (improves token efficiency).
+      const sourceConfig = this.sourceConfigMap[canonicalFileType];
+      const schema = this.sourceConfigMap[canonicalFileType].responseSchema;
       const completionOptions = {
         outputFormat: LLMOutputFormat.JSON,
         jsonSchema: schema,
-        hasComplexSchema: promptMetadata.hasComplexSchema,
+        hasComplexSchema: sourceConfig.hasComplexSchema ?? false,
         sanitizerConfig: getLlmArtifactCorrections(),
       } as const;
-
       /**
        * Execute completion with the file-type-specific schema.
        *

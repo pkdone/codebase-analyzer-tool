@@ -30,10 +30,8 @@ describe("Data-driven Prompt System", () => {
     it("should have consistent structure between config and generated metadata", () => {
       Object.entries(sourceConfigMap).forEach(([fileType, config]) => {
         const metadata = fileTypePromptMetadata[fileType as keyof typeof fileTypePromptMetadata];
-        const configWithOptionals = config as { hasComplexSchema?: boolean };
 
         expect(metadata.contentDesc).toContain(config.contentDesc); // Check that contentDesc is used in intro template
-        expect(metadata.hasComplexSchema).toBe(configWithOptionals.hasComplexSchema ?? true);
         expect(metadata.template).toBeDefined(); // Template is assigned in generatePromptMetadata
         expect(metadata.instructions).toEqual(config.instructions);
       });
@@ -54,15 +52,18 @@ describe("Data-driven Prompt System", () => {
       expect(schemaFields).toContain("databaseIntegration");
     });
 
-    it("should handle different complexity levels correctly", () => {
-      // Source prompts with explicit hasComplexSchema: false
-      expect(fileTypePromptMetadata.java.hasComplexSchema).toBe(false);
-      expect(fileTypePromptMetadata.javascript.hasComplexSchema).toBe(false);
-      expect(fileTypePromptMetadata.python.hasComplexSchema).toBe(false);
-      expect(fileTypePromptMetadata.markdown.hasComplexSchema).toBe(false);
+    it("should have hasComplexSchema in source config entries", () => {
+      // Standard code configs don't explicitly set hasComplexSchema (defaults to false at usage site)
+      expect(sourceConfigMap.java.hasComplexSchema).toBeUndefined();
+      expect(sourceConfigMap.javascript.hasComplexSchema).toBeUndefined();
+      expect(sourceConfigMap.python.hasComplexSchema).toBeUndefined();
+      expect(sourceConfigMap.markdown.hasComplexSchema).toBeUndefined();
 
-      // Source prompts without explicit hasComplexSchema default to true
-      expect(fileTypePromptMetadata.maven.hasComplexSchema).toBe(true);
+      // Dependency configs have hasComplexSchema: true (set by createDependencyConfig)
+      expect(sourceConfigMap.maven.hasComplexSchema).toBe(true);
+
+      // SQL has hasComplexSchema: true (complex database object schema)
+      expect(sourceConfigMap.sql.hasComplexSchema).toBe(true);
     });
   });
 

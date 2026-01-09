@@ -3,7 +3,7 @@ import LLMRouter from "../../../../common/llm/llm-router";
 import { llmTokens } from "../../../di/tokens";
 import { IInsightGenerationStrategy } from "./completion-strategy.interface";
 import { AppSummaryCategoryEnum, CategoryInsightResult } from "../insights.types";
-import { executeInsightCompletion } from "./completion-executor";
+import { executeInsightCompletion } from "./insights-completion-executor";
 
 /**
  * Single-pass insight generation strategy for small to medium codebases.

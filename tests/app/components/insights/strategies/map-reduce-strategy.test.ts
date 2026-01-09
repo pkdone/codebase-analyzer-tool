@@ -23,7 +23,6 @@ describe("MapReduceInsightStrategy - categoryKey parameter handling", () => {
       template: BASE_PROMPT_TEMPLATE,
       dataBlockHeader: DATA_BLOCK_HEADERS.FRAGMENTED_DATA,
       wrapInCodeBlock: false,
-      hasComplexSchema: false,
       outputFormat: LLMOutputFormat.JSON,
     };
 
@@ -51,7 +50,6 @@ describe("MapReduceInsightStrategy - categoryKey parameter handling", () => {
       template: BASE_PROMPT_TEMPLATE,
       dataBlockHeader: DATA_BLOCK_HEADERS.FRAGMENTED_DATA,
       wrapInCodeBlock: false,
-      hasComplexSchema: false,
       outputFormat: LLMOutputFormat.JSON,
     };
 

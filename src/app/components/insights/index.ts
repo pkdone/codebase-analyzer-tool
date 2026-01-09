@@ -23,6 +23,6 @@ export type { IInsightGenerationStrategy } from "./strategies/completion-strateg
 export {
   executeInsightCompletion,
   type InsightCompletionOptions,
-} from "./strategies/completion-executor";
+} from "./strategies/insights-completion-executor";
 export { MapReduceInsightStrategy } from "./strategies/map-reduce-completion-strategy";
 export { SinglePassInsightStrategy } from "./strategies/single-pass-completion-strategy";

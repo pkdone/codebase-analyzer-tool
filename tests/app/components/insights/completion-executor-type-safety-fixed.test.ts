@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import { describe, test, expect, jest, beforeEach } from "@jest/globals";
 import { z } from "zod";
-import { executeInsightCompletion } from "../../../../src/app/components/insights/strategies/completion-executor";
+import { executeInsightCompletion } from "../../../../src/app/components/insights/strategies/insights-completion-executor";
 import { appSummaryCategorySchemas } from "../../../../src/app/components/insights/insights.types";
 import { AppSummaryCategories } from "../../../../src/app/schemas/app-summaries.schema";
 import LLMRouter from "../../../../src/common/llm/llm-router";

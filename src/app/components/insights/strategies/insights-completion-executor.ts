@@ -2,6 +2,7 @@ import { z } from "zod";
 import LLMRouter from "../../../../common/llm/llm-router";
 import { LLMOutputFormat } from "../../../../common/llm/types/llm.types";
 import { promptManager } from "../../../prompts/prompt-registry";
+import { getCategoryLabel } from "../../../config/category-labels.config";
 import { logWarn } from "../../../../common/utils/logging";
 import { joinArrayWithSeparators } from "../../../../common/utils/text-utils";
 import { renderPrompt } from "../../../prompts/prompt-renderer";
@@ -12,7 +13,7 @@ import {
 } from "../insights.types";
 import { getLlmArtifactCorrections } from "../../../config/llm-artifact-corrections";
 import { isOk } from "../../../../common/types/result.types";
-import { hasComplexSchema } from "../insights.config";
+import { insightsConfig } from "../insights.config";
 
 /**
  * Options for executing insight completion.
@@ -45,10 +46,10 @@ export async function executeInsightCompletion<C extends AppSummaryCategoryEnum>
   sourceFileSummaries: readonly string[],
   options: InsightCompletionOptions = {},
 ): Promise<z.infer<AppSummaryCategorySchemas[C]> | null> {
-  const categoryLabel = promptManager.appSummaries[category].label ?? category;
-  const taskCategory: string = options.taskCategory ?? category;
+  const categoryLabel = getCategoryLabel(category);
 
   try {
+    const taskCategory: string = options.taskCategory ?? category;
     const config = promptManager.appSummaries[category];
     const codeContent = joinArrayWithSeparators(sourceFileSummaries);
     const renderParams: Record<string, unknown> = {
@@ -56,7 +57,6 @@ export async function executeInsightCompletion<C extends AppSummaryCategoryEnum>
     };
     if (options.partialAnalysisNote) renderParams.partialAnalysisNote = options.partialAnalysisNote;
     const renderedPrompt = renderPrompt(config, renderParams);
-
     /**
      * Schema lookup uses the category type to get the correct schema.
      *
@@ -81,7 +81,7 @@ export async function executeInsightCompletion<C extends AppSummaryCategoryEnum>
     const result = await llmRouter.executeCompletion(taskCategory, renderedPrompt, {
       outputFormat: LLMOutputFormat.JSON,
       jsonSchema: schema,
-      hasComplexSchema: hasComplexSchema.INDIVIDUAL_CATEGORY,
+      hasComplexSchema: insightsConfig.IS_COMPLEX_SCHEMA,
       sanitizerConfig: getLlmArtifactCorrections(),
     });
 

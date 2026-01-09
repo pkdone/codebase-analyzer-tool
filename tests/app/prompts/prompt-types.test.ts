@@ -72,13 +72,11 @@ describe("PromptDefinition Generic Type", () => {
       responseSchema: userSchema,
       template: "User template",
       dataBlockHeader: "CODE",
-      hasComplexSchema: true,
       label: "User Schema",
     };
 
     // Verify the schema is preserved at runtime
     expect(userPromptDef.responseSchema).toBe(userSchema);
-    expect(userPromptDef.hasComplexSchema).toBe(true);
     expect(userPromptDef.label).toBe("User Schema");
 
     // Type-level test: responseSchema should be typed as the specific user schema
@@ -110,12 +108,10 @@ describe("PromptDefinition Generic Type", () => {
       template: "Template",
       dataBlockHeader: "CODE",
       // Optional fields
-      hasComplexSchema: false,
       label: "Test Label",
       wrapInCodeBlock: true,
     };
 
-    expect(promptDef.hasComplexSchema).toBe(false);
     expect(promptDef.label).toBe("Test Label");
     expect(promptDef.wrapInCodeBlock).toBe(true);
   });
