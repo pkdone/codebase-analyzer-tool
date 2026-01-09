@@ -260,17 +260,22 @@ export default class VertexAIGeminiLLM extends BaseLLMProvider {
       // schema definiton elements that the Vertex AI API chokes on - otherwise VertexAI throws
       // ClientError - INVALID_ARGUMENT - fieldViolations errors
       if (options.jsonSchema && !options.hasComplexSchema) {
+        // TODO: see if these can now be dropped
         const jsonSchema = zodToJsonSchemaWithoutMeta(options.jsonSchema);
         const sanitizedSchema = sanitizeSchemaForProvider(jsonSchema, ["const"]);
 
         if (isVertexAICompatibleSchema(sanitizedSchema)) {
           generationConfig.responseSchema = sanitizedSchema;
+          // TODO: remove
+          console.log("GO JSON");
         } else {
           logWarn(
             "Generated JSON schema is not compatible with VertexAI SDK's Schema type. " +
               "Proceeding without schema enforcement to avoid runtime errors.",
           );
         }
+      } else { // TODO: remove
+        console.log("AVOID JSON");
       }
     }
 

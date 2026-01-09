@@ -15,7 +15,7 @@ import { inject } from "tsyringe";
 import { llmTokens } from "../../../di/tokens";
 import LLMRouter from "../../../../common/llm/llm-router";
 import { LLMOutputFormat } from "../../../../common/llm/types/llm.types";
-import { formatSourceFilesAsMarkdown } from "../../../utils/codebase-formatting";
+import { formatSourceFilesAsMarkdown } from "./codebase-formatting";
 import { formatDateForFilename } from "../../../../common/utils/date-utils";
 import { inputConfig } from "../../../prompts/config/input.config";
 import { isOk } from "../../../../common/types/result.types";

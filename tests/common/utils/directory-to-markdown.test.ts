@@ -1,4 +1,4 @@
-import { formatSourceFilesAsMarkdown } from "../../../src/app/utils/codebase-formatting";
+import { formatSourceFilesAsMarkdown } from "../../../src/app/components/insights/generators/codebase-formatting";
 import { findFilesRecursively } from "../../../src/common/fs/directory-operations";
 import { getFileExtension } from "../../../src/common/fs/path-utils";
 import { readFile } from "../../../src/common/fs/file-operations";

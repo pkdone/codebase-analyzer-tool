@@ -6,13 +6,13 @@
  * src/common/utils/, this module is specifically designed for the codebase
  * analysis domain.
  */
-import { findFilesRecursively } from "../../common/fs/directory-operations";
-import { getFileExtension } from "../../common/fs/path-utils";
-import { readFile } from "../../common/fs/file-operations";
+import { findFilesRecursively } from "../../../../common/fs/directory-operations";
+import { getFileExtension } from "../../../../common/fs/path-utils";
+import { readFile } from "../../../../common/fs/file-operations";
 import {
   formatFilesAsMarkdownCodeBlocksWithPath,
   type SourceFileContent,
-} from "../../common/utils/markdown-formatter";
+} from "../../../../common/utils/markdown-formatter";
 
 /**
  * Regex pattern to match trailing slash at end of string
