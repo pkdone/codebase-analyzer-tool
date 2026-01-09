@@ -260,7 +260,6 @@ export default class VertexAIGeminiLLM extends BaseLLMProvider {
       // schema definiton elements that the Vertex AI API chokes on - otherwise VertexAI throws
       // ClientError - INVALID_ARGUMENT - fieldViolations errors
       if (options.jsonSchema && !options.hasComplexSchema) {
-        // TODO: see if these can now be dropped
         const jsonSchema = zodToJsonSchemaWithoutMeta(options.jsonSchema);
         const sanitizedSchema = sanitizeSchemaForProvider(jsonSchema, ["const"]);
 
