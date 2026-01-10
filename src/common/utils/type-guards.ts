@@ -13,6 +13,23 @@ export function isDefined<T>(value: T | null | undefined): value is T {
 }
 
 /**
+ * Type guard to check if a value is not null.
+ * Useful for filtering null values from arrays while maintaining type safety.
+ *
+ * @param value - The value to check
+ * @returns true if value is not null
+ *
+ * @example
+ * ```typescript
+ * const results: (string | null)[] = ['a', null, 'b'];
+ * const filtered = results.filter(isNotNull); // string[]
+ * ```
+ */
+export function isNotNull<T>(value: T | null): value is T {
+  return value !== null;
+}
+
+/**
  * Type guard to check if a value is a valid JSON object (not null, not array).
  *
  * @param value - The value to check

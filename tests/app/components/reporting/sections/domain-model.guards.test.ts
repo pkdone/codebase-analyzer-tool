@@ -3,6 +3,8 @@
  */
 
 import { isHierarchicalBoundedContextDataArray } from "../../../../../src/app/components/reporting/sections/visualizations/domain-model.guards";
+import type { HierarchicalBoundedContextData } from "../../../../../src/app/components/reporting/sections/visualizations/domain-model.types";
+import type { AppSummaryNameDescArray } from "../../../../../src/app/repositories/app-summaries/app-summaries.model";
 
 describe("domain-model.guards", () => {
   describe("isHierarchicalBoundedContextDataArray", () => {
@@ -113,6 +115,64 @@ describe("domain-model.guards", () => {
         { name: 123, description: "Invalid name" },
       ];
       expect(isHierarchicalBoundedContextDataArray(mixedData as any)).toBe(false);
+    });
+
+    describe("type predicate behavior", () => {
+      it("should narrow type from AppSummaryNameDescArray to HierarchicalBoundedContextData[]", () => {
+        // Start with the more general type
+        const data: AppSummaryNameDescArray = [
+          {
+            name: "Order Context",
+            description: "Handles orders",
+            aggregates: [
+              {
+                name: "OrderAggregate",
+                description: "Order aggregate",
+                entities: [{ name: "Order", description: "Order entity" }],
+                repository: { name: "OrderRepository", description: "Order repo" },
+              },
+            ],
+          },
+        ];
+
+        // Before the guard, we can't access hierarchical properties without casting
+        if (isHierarchicalBoundedContextDataArray(data)) {
+          // After the guard, TypeScript knows data is HierarchicalBoundedContextData[]
+          const contexts: HierarchicalBoundedContextData[] = data;
+          expect(contexts[0].name).toBe("Order Context");
+          expect(contexts[0].aggregates).toBeDefined();
+          // Access the aggregates property without casting
+          expect(contexts[0].aggregates?.[0]?.name).toBe("OrderAggregate");
+        }
+      });
+
+      it("should allow safe property access after type narrowing", () => {
+        const data: AppSummaryNameDescArray = [
+          { name: "Test Context", description: "Test description" },
+        ];
+
+        if (isHierarchicalBoundedContextDataArray(data)) {
+          // The type guard narrows the type, allowing typed access
+          const firstContext = data[0];
+          expect(firstContext.name).toBe("Test Context");
+          expect(firstContext.description).toBe("Test description");
+          // aggregates is optional in HierarchicalBoundedContextData
+          expect(firstContext.aggregates).toBeUndefined();
+        }
+      });
+
+      it("should enable type-safe iteration after guard check", () => {
+        const data: AppSummaryNameDescArray = [
+          { name: "Context A", description: "Description A" },
+          { name: "Context B", description: "Description B" },
+        ];
+
+        if (isHierarchicalBoundedContextDataArray(data)) {
+          // Can safely iterate with proper typing
+          const names = data.map((context) => context.name);
+          expect(names).toEqual(["Context A", "Context B"]);
+        }
+      });
     });
   });
 });

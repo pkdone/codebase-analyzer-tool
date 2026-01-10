@@ -6,6 +6,7 @@ import { insightsConfig } from "../insights.config";
 import { llmConcurrencyLimiter } from "../../../config/concurrency.config";
 import { getCategoryLabel } from "../../../config/category-labels.config";
 import { logWarn } from "../../../../common/utils/logging";
+import { isNotNull } from "../../../../common/utils/type-guards";
 import { renderPrompt } from "../../../prompts/prompt-renderer";
 import { llmTokens } from "../../../di/tokens";
 import { IInsightGenerationStrategy } from "./completion-strategy.interface";
@@ -76,9 +77,8 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
       );
 
       const results = await Promise.all(partialResultsPromises);
-      // Filter null results and assert type - the filter correctly removes nulls but TypeScript
-      // can't narrow the Awaited<> wrapped generic type through the type guard
-      const partialResults = results.filter((r) => r !== null) as CategoryInsightResult<C>[];
+      // Filter null results using type guard for proper type narrowing
+      const partialResults = results.filter(isNotNull);
 
       if (partialResults.length === 0) {
         logWarn(

@@ -57,9 +57,12 @@ export interface DomainModelData {
  * Interface for hierarchical bounded context data from the new schema
  * Repository is now at the aggregate level, not bounded context level
  * Note: aggregates is optional in practice even though the schema requires it,
- * because .passthrough() allows flexibility and test data may omit it
+ * because .passthrough() allows flexibility and test data may omit it.
+ * The index signature allows compatibility with Zod's passthrough schema type.
  */
 export interface HierarchicalBoundedContextData {
+  /** Index signature for compatibility with Zod passthrough schemas */
+  [key: string]: unknown;
   name: string;
   description: string;
   aggregates?: import("../../../../schemas/app-summaries.schema").NestedAggregate[];

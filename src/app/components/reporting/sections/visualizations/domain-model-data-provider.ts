@@ -58,7 +58,7 @@ export class DomainModelDataProvider {
       };
     }
 
-    // Validate the data structure using type guard
+    // Validate the data structure using type guard - narrows type to HierarchicalBoundedContextData[]
     if (!isHierarchicalBoundedContextDataArray(boundedContextsCategory.data)) {
       // Return empty structure if data doesn't match expected structure
       return {
@@ -69,7 +69,8 @@ export class DomainModelDataProvider {
       };
     }
 
-    const hierarchicalContexts = boundedContextsCategory.data as HierarchicalBoundedContextData[];
+    // Type is now narrowed to HierarchicalBoundedContextData[] by the type guard above
+    const hierarchicalContexts = boundedContextsCategory.data;
 
     // Transform hierarchical data into flattened domain model structure
     const boundedContexts = this.transformHierarchicalContexts(hierarchicalContexts);
