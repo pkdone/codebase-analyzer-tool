@@ -1,6 +1,7 @@
 import { injectable, inject } from "tsyringe";
 import type { SourcesRepository } from "../../../../repositories/sources/sources.repository.interface";
 import { repositoryTokens } from "../../../../di/tokens";
+import { fileProcessingRules } from "../../../../config/file-handling/file-processing-rules";
 import type { ScheduledJobsSummary } from "./quality-metrics.types";
 import { extractTriggerType } from "./job-trigger-parser";
 
@@ -32,7 +33,7 @@ export class ScheduledTaskDataProvider {
     // Fetch all script files with scheduled jobs
     const scriptFiles = await this.sourcesRepository.getProjectSourcesSummariesByCanonicalType(
       projectName,
-      ["shell-script", "batch-script", "jcl"],
+      [...fileProcessingRules.SCHEDULED_JOB_CANONICAL_TYPES],
     );
 
     const jobsList: ScheduledJobItem[] = [];

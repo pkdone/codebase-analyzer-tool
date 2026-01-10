@@ -127,7 +127,7 @@ export class ArchitectureAndDomainSection implements ReportSection {
     const businessProcesses = businessProcessesCategory.data.map((item) => ({
       name: item.name,
       description: item.description,
-      keyBusinessActivities: extractKeyBusinessActivities(item) ?? [],
+      keyBusinessActivities: extractKeyBusinessActivities(item),
     }));
 
     return this.flowchartDiagramGenerator.generateMultipleFlowchartDiagrams(businessProcesses);

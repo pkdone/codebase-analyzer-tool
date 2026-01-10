@@ -1,24 +1,27 @@
 import { z } from "zod";
 import type { AppSummaryNameDescArray } from "../../../../repositories/app-summaries/app-summaries.model";
+import {
+  businessProcessSchema,
+  potentialMicroserviceSchema,
+  inferredComponentSchema as coreInferredComponentSchema,
+  externalDependencyComponentSchema,
+  componentDependencySchema as coreComponentDependencySchema,
+} from "../../../../schemas/app-summaries.schema";
 
 /**
- * Zod schema for business activity within a business process.
- * Validates the keyBusinessActivities array items.
+ * Schema derived from core businessProcessSchema for type guard validation.
+ * Picks only the fields needed for extracting keyBusinessActivities.
+ * Uses partial() to make keyBusinessActivities optional for safe extraction.
  */
-const businessActivitySchema = z.object({
-  activity: z.string(),
-  description: z.string(),
-});
-
-/**
- * Zod schema for business process data with keyBusinessActivities.
- * Extends the base name-description schema.
- */
-const businessProcessDataSchema = z.object({
-  name: z.string(),
-  description: z.string(),
-  keyBusinessActivities: z.array(businessActivitySchema).optional(),
-});
+const businessProcessDataSchema = businessProcessSchema
+  .pick({
+    name: true,
+    description: true,
+    keyBusinessActivities: true,
+  })
+  .partial({
+    keyBusinessActivities: true,
+  });
 
 /**
  * Type for business process data extracted from Zod schema.
@@ -27,54 +30,40 @@ const businessProcessDataSchema = z.object({
 type BusinessProcessData = z.infer<typeof businessProcessDataSchema>;
 
 /**
+ * Type for a single business activity.
+ * Non-undefined version for guaranteed return type.
+ */
+type BusinessActivity = NonNullable<BusinessProcessData["keyBusinessActivities"]>[number];
+
+/**
  * Safely extracts keyBusinessActivities from an item.
  * Returns the activities if valid, otherwise returns an empty array.
  */
 export function extractKeyBusinessActivities(
   item: AppSummaryNameDescArray[0],
-): BusinessProcessData["keyBusinessActivities"] {
+): BusinessActivity[] {
   const result = businessProcessDataSchema.safeParse(item);
   return result.success ? (result.data.keyBusinessActivities ?? []) : [];
 }
 
 /**
- * Zod schema for microservice entity.
+ * Schema derived from core potentialMicroserviceSchema for type guard validation.
+ * Picks only the fields needed for extracting microservice details.
+ * Uses partial() to make entities, endpoints, and operations optional for safe extraction.
  */
-const microserviceEntitySchema = z.object({
-  name: z.string(),
-  description: z.string(),
-  attributes: z.array(z.string()).optional(),
-});
-
-/**
- * Zod schema for microservice endpoint.
- */
-const microserviceEndpointSchema = z.object({
-  path: z.string(),
-  method: z.string(),
-  description: z.string(),
-});
-
-/**
- * Zod schema for microservice operation.
- */
-const microserviceOperationSchema = z.object({
-  operation: z.string(),
-  method: z.string(),
-  description: z.string(),
-});
-
-/**
- * Zod schema for microservice data.
- * Validates the full microservice structure with entities, endpoints, and operations.
- */
-const microserviceDataSchema = z.object({
-  name: z.string(),
-  description: z.string(),
-  entities: z.array(microserviceEntitySchema).optional(),
-  endpoints: z.array(microserviceEndpointSchema).optional(),
-  operations: z.array(microserviceOperationSchema).optional(),
-});
+const microserviceDataSchema = potentialMicroserviceSchema
+  .pick({
+    name: true,
+    description: true,
+    entities: true,
+    endpoints: true,
+    operations: true,
+  })
+  .partial({
+    entities: true,
+    endpoints: true,
+    operations: true,
+  });
 
 /**
  * Normalized microservice entity with required attributes field.
@@ -129,29 +118,30 @@ export function extractMicroserviceFields(item: AppSummaryNameDescArray[0]): {
 }
 
 /**
- * Zod schema for inferred internal component.
+ * Schema derived from core schemas for inferred architecture validation.
+ * Uses base component schemas without .describe() metadata for cleaner validation.
  */
-const inferredComponentSchema = z.object({
-  name: z.string(),
-  description: z.string(),
+const inferredComponentSchema = coreInferredComponentSchema.pick({
+  name: true,
+  description: true,
 });
 
 /**
- * Zod schema for external dependency component.
+ * Schema derived from core externalDependencyComponentSchema.
  */
-const externalDependencySchema = z.object({
-  name: z.string(),
-  type: z.string(),
-  description: z.string(),
+const externalDependencySchema = externalDependencyComponentSchema.pick({
+  name: true,
+  type: true,
+  description: true,
 });
 
 /**
- * Zod schema for component dependency relationship.
+ * Schema derived from core componentDependencySchema.
  */
-const componentDependencySchema = z.object({
-  from: z.string(),
-  to: z.string(),
-  description: z.string(),
+const componentDependencySchema = coreComponentDependencySchema.pick({
+  from: true,
+  to: true,
+  description: true,
 });
 
 /**

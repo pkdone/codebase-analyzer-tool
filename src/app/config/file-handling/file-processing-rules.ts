@@ -149,4 +149,29 @@ export const fileProcessingRules = {
     "hrl",
     "hs",
   ] as const satisfies readonly string[],
+  /**
+   * Canonical file types for build/dependency management files.
+   * Used by BomDataProvider for Bill of Materials aggregation.
+   */
+  BOM_DEPENDENCY_CANONICAL_TYPES: [
+    "maven",
+    "gradle",
+    "ant",
+    "npm",
+    "dotnet-proj",
+    "nuget",
+    "ruby-bundler",
+    "python-pip",
+    "python-setup",
+    "python-poetry",
+  ] as const satisfies readonly string[],
+  /**
+   * Canonical file types for scheduled job/batch process files.
+   * Used by ScheduledTaskDataProvider for job aggregation.
+   */
+  SCHEDULED_JOB_CANONICAL_TYPES: [
+    "shell-script",
+    "batch-script",
+    "jcl",
+  ] as const satisfies readonly string[],
 } as const;

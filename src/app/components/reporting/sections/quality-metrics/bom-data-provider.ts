@@ -1,6 +1,7 @@
 import { injectable, inject } from "tsyringe";
 import type { SourcesRepository } from "../../../../repositories/sources/sources.repository.interface";
 import { repositoryTokens } from "../../../../di/tokens";
+import { fileProcessingRules } from "../../../../config/file-handling/file-processing-rules";
 import type { BomDependency } from "./quality-metrics.types";
 
 interface AggregatedDependency {
@@ -39,18 +40,7 @@ export class BomDataProvider {
     // Fetch all build files with dependencies
     const buildFiles = await this.sourcesRepository.getProjectSourcesSummariesByCanonicalType(
       projectName,
-      [
-        "maven",
-        "gradle",
-        "ant",
-        "npm",
-        "dotnet-proj",
-        "nuget",
-        "ruby-bundler",
-        "python-pip",
-        "python-setup",
-        "python-poetry",
-      ],
+      [...fileProcessingRules.BOM_DEPENDENCY_CANONICAL_TYPES],
     );
 
     const dependencyMap = new Map<string, AggregatedDependency>();

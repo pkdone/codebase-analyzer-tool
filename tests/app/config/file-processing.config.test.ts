@@ -110,6 +110,57 @@ describe("file-processing.config", () => {
       expect(fileProcessingConfig.CODE_FILE_EXTENSIONS).toContain("ddl");
     });
   });
+
+  describe("BOM_DEPENDENCY_CANONICAL_TYPES", () => {
+    it("should be a non-empty array", () => {
+      expect(Array.isArray(fileProcessingConfig.BOM_DEPENDENCY_CANONICAL_TYPES)).toBe(true);
+      expect(fileProcessingConfig.BOM_DEPENDENCY_CANONICAL_TYPES.length).toBeGreaterThan(0);
+    });
+
+    it("should include Java build tool types", () => {
+      expect(fileProcessingConfig.BOM_DEPENDENCY_CANONICAL_TYPES).toContain("maven");
+      expect(fileProcessingConfig.BOM_DEPENDENCY_CANONICAL_TYPES).toContain("gradle");
+      expect(fileProcessingConfig.BOM_DEPENDENCY_CANONICAL_TYPES).toContain("ant");
+    });
+
+    it("should include JavaScript/Node.js package manager types", () => {
+      expect(fileProcessingConfig.BOM_DEPENDENCY_CANONICAL_TYPES).toContain("npm");
+    });
+
+    it("should include .NET package types", () => {
+      expect(fileProcessingConfig.BOM_DEPENDENCY_CANONICAL_TYPES).toContain("dotnet-proj");
+      expect(fileProcessingConfig.BOM_DEPENDENCY_CANONICAL_TYPES).toContain("nuget");
+    });
+
+    it("should include Ruby package manager types", () => {
+      expect(fileProcessingConfig.BOM_DEPENDENCY_CANONICAL_TYPES).toContain("ruby-bundler");
+    });
+
+    it("should include Python package manager types", () => {
+      expect(fileProcessingConfig.BOM_DEPENDENCY_CANONICAL_TYPES).toContain("python-pip");
+      expect(fileProcessingConfig.BOM_DEPENDENCY_CANONICAL_TYPES).toContain("python-setup");
+      expect(fileProcessingConfig.BOM_DEPENDENCY_CANONICAL_TYPES).toContain("python-poetry");
+    });
+  });
+
+  describe("SCHEDULED_JOB_CANONICAL_TYPES", () => {
+    it("should be a non-empty array", () => {
+      expect(Array.isArray(fileProcessingConfig.SCHEDULED_JOB_CANONICAL_TYPES)).toBe(true);
+      expect(fileProcessingConfig.SCHEDULED_JOB_CANONICAL_TYPES.length).toBeGreaterThan(0);
+    });
+
+    it("should include shell script type", () => {
+      expect(fileProcessingConfig.SCHEDULED_JOB_CANONICAL_TYPES).toContain("shell-script");
+    });
+
+    it("should include batch script type", () => {
+      expect(fileProcessingConfig.SCHEDULED_JOB_CANONICAL_TYPES).toContain("batch-script");
+    });
+
+    it("should include JCL type", () => {
+      expect(fileProcessingConfig.SCHEDULED_JOB_CANONICAL_TYPES).toContain("jcl");
+    });
+  });
 });
 
 describe("concurrency.config", () => {

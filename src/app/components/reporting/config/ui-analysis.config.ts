@@ -53,6 +53,22 @@ export function classifyTagLibrary(uri: string): TagLibraryType {
   return "Other";
 }
 
+/**
+ * Debt level thresholds based on total scriptlet blocks.
+ * Used by view helpers to determine technical debt level badges for JSP files.
+ *
+ * Thresholds:
+ * - Very High: > 20 blocks
+ * - High: > 10 blocks
+ * - Moderate: > 5 blocks
+ * - Low: <= 5 blocks
+ */
+export const DEBT_THRESHOLDS = {
+  VERY_HIGH: 20,
+  HIGH: 10,
+  MODERATE: 5,
+} as const;
+
 export const uiAnalysisConfig = {
   /**
    * Maximum number of top scriptlet files to include in the analysis

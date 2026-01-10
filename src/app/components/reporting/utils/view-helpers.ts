@@ -4,6 +4,9 @@
  * and easier testing.
  */
 
+import { COUPLING_THRESHOLDS } from "../config/module-coupling.config";
+import { DEBT_THRESHOLDS } from "../config/ui-analysis.config";
+
 /**
  * Result type for coupling level calculations.
  */
@@ -23,24 +26,6 @@ export interface DebtLevelResult {
   /** CSS class for styling the badge */
   readonly cssClass: string;
 }
-
-/**
- * Coupling level thresholds as percentages of highest coupling count.
- */
-const COUPLING_THRESHOLDS = {
-  VERY_HIGH: 0.7,
-  HIGH: 0.4,
-  MEDIUM: 0.2,
-} as const;
-
-/**
- * Debt level thresholds based on total scriptlet blocks.
- */
-const DEBT_THRESHOLDS = {
-  VERY_HIGH: 20,
-  HIGH: 10,
-  MODERATE: 5,
-} as const;
 
 /**
  * Calculates the coupling level and CSS class for a module coupling relationship.

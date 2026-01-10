@@ -3,7 +3,43 @@ import {
   TAG_LIBRARY_PATTERNS,
   TAG_LIBRARY_BADGE_CLASSES,
   classifyTagLibrary,
+  DEBT_THRESHOLDS,
 } from "../../../../../src/app/components/reporting/config/ui-analysis.config";
+
+describe("DEBT_THRESHOLDS", () => {
+  describe("threshold values", () => {
+    it("should have VERY_HIGH threshold defined", () => {
+      expect(DEBT_THRESHOLDS.VERY_HIGH).toBeDefined();
+      expect(DEBT_THRESHOLDS.VERY_HIGH).toBe(20);
+    });
+
+    it("should have HIGH threshold defined", () => {
+      expect(DEBT_THRESHOLDS.HIGH).toBeDefined();
+      expect(DEBT_THRESHOLDS.HIGH).toBe(10);
+    });
+
+    it("should have MODERATE threshold defined", () => {
+      expect(DEBT_THRESHOLDS.MODERATE).toBeDefined();
+      expect(DEBT_THRESHOLDS.MODERATE).toBe(5);
+    });
+  });
+
+  describe("threshold ordering", () => {
+    it("should have thresholds in descending order", () => {
+      expect(DEBT_THRESHOLDS.VERY_HIGH).toBeGreaterThan(DEBT_THRESHOLDS.HIGH);
+      expect(DEBT_THRESHOLDS.HIGH).toBeGreaterThan(DEBT_THRESHOLDS.MODERATE);
+    });
+
+    it("should have all thresholds as positive integers", () => {
+      expect(DEBT_THRESHOLDS.VERY_HIGH).toBeGreaterThan(0);
+      expect(Number.isInteger(DEBT_THRESHOLDS.VERY_HIGH)).toBe(true);
+      expect(DEBT_THRESHOLDS.HIGH).toBeGreaterThan(0);
+      expect(Number.isInteger(DEBT_THRESHOLDS.HIGH)).toBe(true);
+      expect(DEBT_THRESHOLDS.MODERATE).toBeGreaterThan(0);
+      expect(Number.isInteger(DEBT_THRESHOLDS.MODERATE)).toBe(true);
+    });
+  });
+});
 
 describe("uiAnalysisConfig", () => {
   describe("configuration values", () => {

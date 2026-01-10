@@ -4,22 +4,10 @@
  */
 
 import { currentArchitectureConfig } from "../generators/current-architecture.config";
+import { DIAGRAM_STYLES } from "./diagram-theme.config";
 
-/**
- * Shared styling constants for SVG diagrams.
- */
-export const DIAGRAM_STYLES = {
-  /** Background color for rendered Mermaid diagrams */
-  backgroundColor: "#F0F3F2",
-  /** Padding around the diagram content within the SVG canvas */
-  diagramPadding: 30,
-  /** Font family for empty diagram placeholders */
-  emptyDiagramFontFamily: "system-ui, sans-serif",
-  /** Font size for empty diagram placeholder text */
-  emptyDiagramFontSize: "14",
-  /** Text color for empty diagram placeholder messages */
-  emptyDiagramTextColor: "#8b95a1",
-} as const;
+// Re-export for backwards compatibility with existing imports
+export { DIAGRAM_STYLES };
 
 /**
  * Generate the Mermaid init directive for consistent diagram configuration.
