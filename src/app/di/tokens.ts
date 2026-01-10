@@ -60,10 +60,11 @@ export const insightsTokens = {
 export type InsightsToken = keyof typeof insightsTokens;
 
 // LLM module tokens
+// Note: RetryStrategy and LLMExecutionPipeline are intentionally NOT included here because
+// the LLMRouter is created via a factory pattern (llm-factory.ts) to keep the src/common/llm
+// module framework-agnostic and independent of tsyringe.
 export const llmTokens = {
   LLMTelemetryTracker: Symbol("LLMTelemetryTracker"),
-  RetryStrategy: Symbol("RetryStrategy"),
-  LLMExecutionPipeline: Symbol("LLMExecutionPipeline"),
   LLMRouter: Symbol("LLMRouter"),
   LLMModelFamily: Symbol("LLMModelFamily"),
   LLMErrorLogger: Symbol("LLMErrorLogger"),

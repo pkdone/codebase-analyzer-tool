@@ -53,10 +53,21 @@ describe("App Registration Module", () => {
       expect(consoleSpy).toHaveBeenCalledWith("Repositories registered");
       expect(consoleSpy).toHaveBeenCalledWith("Internal helper components registered");
       expect(consoleSpy).toHaveBeenCalledWith("Main executable tasks registered");
-      expect(consoleSpy).toHaveBeenCalledWith(
-        "LLM-dependent tasks registered with simplified singleton registrations",
-      );
       consoleSpy.mockRestore();
+    });
+
+    it("should NOT register LLM core components (RetryStrategy, LLMExecutionPipeline) in DI container", () => {
+      // These components are intentionally created via factory pattern to keep
+      // src/common/llm module framework-agnostic
+      registerAppDependencies();
+
+      // Verify these tokens don't exist in llmTokens anymore (compile-time check)
+      // and are not registered in the container
+      const retryStrategyToken = Symbol("RetryStrategy");
+      const executionPipelineToken = Symbol("LLMExecutionPipeline");
+
+      expect(container.isRegistered(retryStrategyToken)).toBe(false);
+      expect(container.isRegistered(executionPipelineToken)).toBe(false);
     });
   });
 });

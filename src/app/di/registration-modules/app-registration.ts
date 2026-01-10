@@ -2,7 +2,6 @@ import { container } from "tsyringe";
 import { coreTokens, captureTokens, insightsTokens } from "../tokens";
 import { repositoryTokens } from "../tokens";
 import { taskTokens } from "../tokens";
-import { llmTokens } from "../tokens";
 
 // Repository imports
 import SourcesRepositoryImpl from "../../repositories/sources/sources.repository";
@@ -34,10 +33,6 @@ import { ReportGenerationTask } from "../../tasks/main/report-generation.task";
 // Configuration imports
 import { databaseConfig } from "../../components/database/database.config";
 import { outputConfig } from "../../config/output.config";
-
-// LLM strategy and pipeline imports
-import { RetryStrategy } from "../../../common/llm/strategies/retry-strategy";
-import { LLMExecutionPipeline } from "../../../common/llm/llm-execution-pipeline";
 
 // Database component imports
 import { DatabaseInitializer } from "../../components/database/database-initializer";
@@ -81,12 +76,12 @@ function registerRepositories(): void {
  * Delegates to domain-specific registration modules for better organization.
  * Always registers all components since tsyringe uses lazy-loading - components
  * are only instantiated when actually resolved.
+ *
+ * Note: LLM core components (RetryStrategy, LLMExecutionPipeline) are NOT registered
+ * here because the LLMRouter is created via a factory pattern in llm-registration.ts
+ * to keep the src/common/llm module framework-agnostic.
  */
 function registerComponents(): void {
-  // Register LLM strategies and pipeline components (always register since they may be needed)
-  container.registerSingleton(llmTokens.RetryStrategy, RetryStrategy);
-  container.registerSingleton(llmTokens.LLMExecutionPipeline, LLMExecutionPipeline);
-
   // Register database components
   container.registerSingleton(coreTokens.DatabaseInitializer, DatabaseInitializer);
 
@@ -109,24 +104,16 @@ function registerComponents(): void {
 }
 
 /**
- * Register main executable tasks as singletons using tsyringe's built-in singleton management.
+ * Register all executable tasks as singletons using tsyringe's built-in singleton management.
  * These tasks represent the primary entry points for application functionality.
+ * The DI container automatically resolves dependencies (including LLMRouter) for each task.
  */
 function registerTasks(): void {
-  // Register tasks that don't depend on LLMRouter as regular singletons
+  // Report and utility tasks
   container.registerSingleton(taskTokens.ReportGenerationTask, ReportGenerationTask);
   container.registerSingleton(taskTokens.MongoConnectionTestTask, MongoConnectionTestTask);
-  // Register tasks that depend on LLMRouter with simplified singleton registrations
-  registerLLMDependentTasks();
-  console.log("Main executable tasks registered");
-}
 
-/**
- * Register tasks that depend on LLMRouter using simplified singleton registrations.
- * Since these classes use @injectable(), tsyringe will automatically handle dependency injection.
- */
-function registerLLMDependentTasks(): void {
-  // Simplified registrations using tsyringe's automatic dependency injection
+  // LLM-powered tasks (dependencies resolved automatically by tsyringe)
   container.registerSingleton(taskTokens.CodebaseQueryTask, CodebaseQueryTask);
   container.registerSingleton(taskTokens.CodebaseCaptureTask, CodebaseCaptureTask);
   container.registerSingleton(taskTokens.InsightsGenerationTask, InsightsGenerationTask);
@@ -135,5 +122,6 @@ function registerLLMDependentTasks(): void {
     FileBasedInsightsGenerationTask,
   );
   container.registerSingleton(taskTokens.PluggableLLMsTestTask, PluggableLLMsTestTask);
-  console.log("LLM-dependent tasks registered with simplified singleton registrations");
+
+  console.log("Main executable tasks registered");
 }
