@@ -8,13 +8,14 @@ jest.mock("../../../../../src/common/fs/directory-operations", () => ({
     // requirement00.prompt matches the typical numbered requirement prompt regex
     return [{ name: "requirement00.prompt" }, { name: "ignore.txt" }];
   }),
+  findFilesRecursively: jest.fn(async () => []),
 }));
 jest.mock("../../../../../src/common/fs/file-operations", () => ({
   readFile: jest.fn(async () => "Question?"),
   writeFile: jest.fn(async () => undefined),
 }));
-jest.mock("../../../../../src/app/components/insights/generators/codebase-formatting", () => ({
-  formatSourceFilesAsMarkdown: jest.fn(async () => "CODEBLOCK"),
+jest.mock("../../../../../src/common/fs/path-utils", () => ({
+  getFileExtension: jest.fn(() => "ts"),
 }));
 jest.mock("../../../../../src/common/llm/llm-router");
 
