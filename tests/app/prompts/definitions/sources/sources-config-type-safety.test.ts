@@ -1,9 +1,9 @@
 import { z } from "zod";
 import {
   sourceConfigMap,
-  SourceConfigEntry,
   type SourceConfigMap,
 } from "../../../../../src/app/prompts/definitions/sources/sources.definitions";
+import { type SourceConfigEntry } from "../../../../../src/app/prompts/definitions/sources/definitions";
 import { CANONICAL_FILE_TYPES } from "../../../../../src/app/schemas/canonical-file-types";
 
 /**

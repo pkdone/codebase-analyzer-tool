@@ -35,6 +35,6 @@ export {
 } from "./definitions/app-summaries/app-summaries.definitions";
 export {
   sourceConfigMap,
-  type SourceConfigEntry,
   type SourceConfigMap,
 } from "./definitions/sources/sources.definitions";
+export { type SourceConfigEntry } from "./definitions/sources/definitions";

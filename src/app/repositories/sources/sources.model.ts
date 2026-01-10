@@ -5,10 +5,6 @@ import {
   zBsonObjectId,
 } from "../../../common/schema/zod-to-mdb-json-schema";
 
-// Re-export SOURCE_FIELDS from the shared schema constants for backward compatibility
-// and convenient access from repository consumers
-export { SOURCE_FIELDS } from "../../schemas/sources.constants";
-
 /**
  * Type for source record with optional _id
  */

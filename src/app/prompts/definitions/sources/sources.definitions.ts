@@ -7,12 +7,6 @@ import {
 } from "./definitions";
 
 /**
- * Configuration entry for a source prompt definition.
- * Re-exported from shared utilities for backward compatibility.
- */
-export type { SourceConfigEntry } from "./definitions";
-
-/**
  * Centralized configuration for all source prompt definitions.
  * Each entry directly defines its responseSchema using sourceSummarySchema.pick().
  *

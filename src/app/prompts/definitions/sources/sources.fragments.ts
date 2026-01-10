@@ -71,8 +71,9 @@ import {
 
 /**
  * Centralized collection of all source prompt fragments.
- * This object maintains backward compatibility with the original structure
- * while delegating to the modular fragment files in the fragments subfolder.
+ * Provides convenient namespace-organized access to fragments from the modular
+ * fragment files in the fragments subfolder. Use this aggregation for cleaner
+ * imports when multiple fragment categories are needed.
  */
 export const SOURCES_PROMPT_FRAGMENTS = {
   COMMON: COMMON_FRAGMENTS,
