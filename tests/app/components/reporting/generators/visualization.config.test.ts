@@ -7,7 +7,7 @@ import { architectureConfig } from "../../../../../src/app/components/reporting/
 import { domainModelConfig } from "../../../../../src/app/components/reporting/diagrams/generators/domain-model.config";
 import { flowchartConfig } from "../../../../../src/app/components/reporting/diagrams/generators/flowchart.config";
 import { currentArchitectureConfig } from "../../../../../src/app/components/reporting/diagrams/generators/current-architecture.config";
-import { pieChartConfig } from "../../../../../src/app/components/reporting/sections/file-types/pie-chart.config";
+import { pieChartConfig } from "../../../../../src/app/components/reporting/view-models/pie-chart.config";
 
 describe("Visualization Configuration", () => {
   describe("architecture config", () => {

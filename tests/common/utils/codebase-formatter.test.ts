@@ -1,14 +1,14 @@
 import "reflect-metadata";
-import { formatSourceFilesAsMarkdown } from "../../../../../src/app/components/insights/generators/prompt-file-insights-generator";
-import { findFilesRecursively } from "../../../../../src/common/fs/directory-operations";
-import { getFileExtension } from "../../../../../src/common/fs/path-utils";
-import { readFile } from "../../../../../src/common/fs/file-operations";
-import { fileProcessingRules as fileProcessingConfig } from "../../../../../src/app/config/file-handling";
+import { formatSourceFilesAsMarkdown } from "../../../src/common/utils/codebase-formatter";
+import { findFilesRecursively } from "../../../src/common/fs/directory-operations";
+import { getFileExtension } from "../../../src/common/fs/path-utils";
+import { readFile } from "../../../src/common/fs/file-operations";
+import { fileProcessingRules as fileProcessingConfig } from "../../../src/app/config/file-handling";
 
 // Mock dependencies
-jest.mock("../../../../../src/common/fs/directory-operations");
-jest.mock("../../../../../src/common/fs/path-utils");
-jest.mock("../../../../../src/common/fs/file-operations");
+jest.mock("../../../src/common/fs/directory-operations");
+jest.mock("../../../src/common/fs/path-utils");
+jest.mock("../../../src/common/fs/file-operations");
 
 describe("formatSourceFilesAsMarkdown", () => {
   const mockFindFilesRecursively = findFilesRecursively as jest.MockedFunction<
