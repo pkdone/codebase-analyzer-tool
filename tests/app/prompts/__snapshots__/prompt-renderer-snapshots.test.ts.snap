@@ -10,6 +10,707 @@ CODE:
 export function calculate(x: number) { return x * 2; }"
 `;
 
+exports[`renderPrompt Snapshot Tests app summary prompts should match snapshots app summary prompt with partialAnalysisNote should match snapshot 1`] = `
+"Act as a senior developer analyzing the code in an existing application. Based on the a set of source file summaries shown below in the section marked 'FILE_SUMMARIES', return a JSON response that contains:
+
+a comprehensive list of key external and host platform technologies (including the names of programming languages used) depended on by the application
+
+Note, this is a partial analysis of a larger codebase; focus on extracting insights from this subset of file summaries only. The JSON response must follow this JSON schema:
+\`\`\`json
+{
+  "type": "object",
+  "properties": {
+    "technologies": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the item."
+          },
+          "description": {
+            "type": "string",
+            "description": "A detailed description of the item in at least 5 sentences."
+          }
+        },
+        "required": [
+          "name",
+          "description"
+        ],
+        "additionalProperties": true
+      },
+      "description": "A list of key external and host platform technologies depended on by the application."
+    }
+  },
+  "required": [
+    "technologies"
+  ],
+  "additionalProperties": true,
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}
+\`\`\`
+
+The response MUST be valid JSON and meet the following critical JSON requirements:
+- Only include JSON: start directly with { or [. No XML, markdown, explanations, or other text. Do NOT start with code fences or triple-backticks.
+- Return data values according to the schema - do NOT return the schema definition itself
+- All property names must be quoted: use "propertyName": value at ALL nesting levels (both opening and closing quotes required)
+- Property name format: every property must follow the exact pattern "propertyName": value - no unquoted names (e.g., use "name": not name:)
+- Property names must be followed by a colon: use "propertyName": value, not "propertyName" value or "propertyName" []
+- All string values must be quoted: use "value" not unquoted strings
+- No markdown formatting: do not use asterisks (*), bullet points (•), or any markdown characters before property names
+- No stray text: do not include any text, characters, or lines between or around JSON properties
+- Every property must have a name: do not omit property names (e.g., use "purpose": "value" not ": "value")
+- Use proper JSON syntax: commas, colons, matching brackets/braces, and escape quotes in strings
+- Complete and valid: ensure all property names are complete (no truncation) and JSON is parseable
+- Use only exact property names from the schema - do not add extra properties or characters before property names
+- No stray prefixes: do not add prefixes like "ar" or other characters before array elements or string values
+- ASCII only: use only ASCII characters in string values
+- No explanatory text: do not include phrases like "so many methods" or "I will stop here" in the JSON
+- Proper commas: ensure commas separate all array elements and object properties
+- Escape control characters: any control characters in string values must be properly escaped as \\uXXXX
+
+FILE_SUMMARIES:
+[{"file":"App.tsx","summary":"Main application component"},{"file":"utils.ts","summary":"Utility functions for data processing"}]"
+`;
+
+exports[`renderPrompt Snapshot Tests app summary prompts should match snapshots appDescription prompt should match snapshot 1`] = `
+"Act as a senior developer analyzing the code in an existing application. Based on the a set of source file summaries shown below in the section marked 'FILE_SUMMARIES', return a JSON response that contains:
+
+a detailed description of the application's purpose and implementation
+
+The JSON response must follow this JSON schema:
+\`\`\`json
+{
+  "type": "object",
+  "properties": {
+    "appDescription": {
+      "type": "string",
+      "description": "A detailed description of the application's purpose and implementation in at least 20 sentences)."
+    }
+  },
+  "required": [
+    "appDescription"
+  ],
+  "additionalProperties": true,
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}
+\`\`\`
+
+The response MUST be valid JSON and meet the following critical JSON requirements:
+- Only include JSON: start directly with { or [. No XML, markdown, explanations, or other text. Do NOT start with code fences or triple-backticks.
+- Return data values according to the schema - do NOT return the schema definition itself
+- All property names must be quoted: use "propertyName": value at ALL nesting levels (both opening and closing quotes required)
+- Property name format: every property must follow the exact pattern "propertyName": value - no unquoted names (e.g., use "name": not name:)
+- Property names must be followed by a colon: use "propertyName": value, not "propertyName" value or "propertyName" []
+- All string values must be quoted: use "value" not unquoted strings
+- No markdown formatting: do not use asterisks (*), bullet points (•), or any markdown characters before property names
+- No stray text: do not include any text, characters, or lines between or around JSON properties
+- Every property must have a name: do not omit property names (e.g., use "purpose": "value" not ": "value")
+- Use proper JSON syntax: commas, colons, matching brackets/braces, and escape quotes in strings
+- Complete and valid: ensure all property names are complete (no truncation) and JSON is parseable
+- Use only exact property names from the schema - do not add extra properties or characters before property names
+- No stray prefixes: do not add prefixes like "ar" or other characters before array elements or string values
+- ASCII only: use only ASCII characters in string values
+- No explanatory text: do not include phrases like "so many methods" or "I will stop here" in the JSON
+- Proper commas: ensure commas separate all array elements and object properties
+- Escape control characters: any control characters in string values must be properly escaped as \\uXXXX
+
+FILE_SUMMARIES:
+[{"file":"App.tsx","summary":"Main application component"},{"file":"utils.ts","summary":"Utility functions for data processing"}]"
+`;
+
+exports[`renderPrompt Snapshot Tests app summary prompts should match snapshots boundedContexts prompt should match snapshot 1`] = `
+"Act as a senior developer analyzing the code in an existing application. Based on the a set of source file summaries shown below in the section marked 'FILE_SUMMARIES', return a JSON response that contains:
+
+a concise list of Domain-Driven Design Bounded Contexts that define explicit boundaries around related business capabilities. For each bounded context, include:
+1. Its aggregates that enforce business rules and maintain consistency
+2. For each aggregate, include:
+   - A repository that provides persistence for that aggregate
+   - The domain entities it manages with their descriptions and relationships
+
+This hierarchical structure ensures consistent naming across all domain elements within each bounded context
+
+The JSON response must follow this JSON schema:
+\`\`\`json
+{
+  "type": "object",
+  "properties": {
+    "boundedContexts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the domain-driven design Bounded Context."
+          },
+          "description": {
+            "type": "string",
+            "description": "A detailed description of the bounded context and its business capabilities in at least 5 sentences."
+          },
+          "aggregates": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "The name of the domain-driven design aggregate."
+                },
+                "description": {
+                  "type": "string",
+                  "description": "A detailed description of the aggregate and its business rules in at least 5 sentences."
+                },
+                "repository": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "description": "The name of the repository."
+                    },
+                    "description": {
+                      "type": "string",
+                      "description": "A detailed description of the repository and its persistence responsibilities in at least 3 sentences."
+                    }
+                  },
+                  "required": [
+                    "name",
+                    "description"
+                  ],
+                  "additionalProperties": true,
+                  "description": "The repository that provides persistence for this aggregate."
+                },
+                "entities": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "description": "The name of the domain-driven design entity."
+                      },
+                      "description": {
+                        "type": "string",
+                        "description": "A detailed description of the entity and its business purpose in at least 3 sentences."
+                      }
+                    },
+                    "required": [
+                      "name",
+                      "description"
+                    ],
+                    "additionalProperties": true
+                  },
+                  "description": "The domain entities managed by this aggregate, each with full details."
+                }
+              },
+              "required": [
+                "name",
+                "description",
+                "repository",
+                "entities"
+              ],
+              "additionalProperties": true
+            },
+            "description": "The aggregates within this bounded context, each containing its repository and entities."
+          }
+        },
+        "required": [
+          "name",
+          "description",
+          "aggregates"
+        ],
+        "additionalProperties": true
+      },
+      "description": "A list of domain-driven design Bounded Contexts, where each Bounded Context contains its aggregates, with each aggregate holding it repository and entities, in a hierarchical structure."
+    }
+  },
+  "required": [
+    "boundedContexts"
+  ],
+  "additionalProperties": true,
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}
+\`\`\`
+
+The response MUST be valid JSON and meet the following critical JSON requirements:
+- Only include JSON: start directly with { or [. No XML, markdown, explanations, or other text. Do NOT start with code fences or triple-backticks.
+- Return data values according to the schema - do NOT return the schema definition itself
+- All property names must be quoted: use "propertyName": value at ALL nesting levels (both opening and closing quotes required)
+- Property name format: every property must follow the exact pattern "propertyName": value - no unquoted names (e.g., use "name": not name:)
+- Property names must be followed by a colon: use "propertyName": value, not "propertyName" value or "propertyName" []
+- All string values must be quoted: use "value" not unquoted strings
+- No markdown formatting: do not use asterisks (*), bullet points (•), or any markdown characters before property names
+- No stray text: do not include any text, characters, or lines between or around JSON properties
+- Every property must have a name: do not omit property names (e.g., use "purpose": "value" not ": "value")
+- Use proper JSON syntax: commas, colons, matching brackets/braces, and escape quotes in strings
+- Complete and valid: ensure all property names are complete (no truncation) and JSON is parseable
+- Use only exact property names from the schema - do not add extra properties or characters before property names
+- No stray prefixes: do not add prefixes like "ar" or other characters before array elements or string values
+- ASCII only: use only ASCII characters in string values
+- No explanatory text: do not include phrases like "so many methods" or "I will stop here" in the JSON
+- Proper commas: ensure commas separate all array elements and object properties
+- Escape control characters: any control characters in string values must be properly escaped as \\uXXXX
+
+FILE_SUMMARIES:
+[{"file":"App.tsx","summary":"Main application component"},{"file":"utils.ts","summary":"Utility functions for data processing"}]"
+`;
+
+exports[`renderPrompt Snapshot Tests app summary prompts should match snapshots businessProcesses prompt should match snapshot 1`] = `
+"Act as a senior developer analyzing the code in an existing application. Based on the a set of source file summaries shown below in the section marked 'FILE_SUMMARIES', return a JSON response that contains:
+
+a concise list of the application's main business processes with their key business activity steps that are linearly conducted by each process
+
+The JSON response must follow this JSON schema:
+\`\`\`json
+{
+  "type": "object",
+  "properties": {
+    "businessProcesses": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the 'logical'business process that reflects how part of the application operates."
+          },
+          "description": {
+            "type": "string",
+            "description": "A detailed description of the business process in at least 5 sentences."
+          },
+          "keyBusinessActivities": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "activity": {
+                  "type": "string",
+                  "description": "The name of the business activity step."
+                },
+                "description": {
+                  "type": "string",
+                  "description": "A detailed description of the business activity step using business language."
+                }
+              },
+              "required": [
+                "activity",
+                "description"
+              ],
+              "additionalProperties": true
+            },
+            "description": "An array of key business activity steps that are linearly conducted by this process."
+          }
+        },
+        "required": [
+          "name",
+          "description",
+          "keyBusinessActivities"
+        ],
+        "additionalProperties": true
+      },
+      "description": "A list of the application's main business processes with their key business activities."
+    }
+  },
+  "required": [
+    "businessProcesses"
+  ],
+  "additionalProperties": true,
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}
+\`\`\`
+
+The response MUST be valid JSON and meet the following critical JSON requirements:
+- Only include JSON: start directly with { or [. No XML, markdown, explanations, or other text. Do NOT start with code fences or triple-backticks.
+- Return data values according to the schema - do NOT return the schema definition itself
+- All property names must be quoted: use "propertyName": value at ALL nesting levels (both opening and closing quotes required)
+- Property name format: every property must follow the exact pattern "propertyName": value - no unquoted names (e.g., use "name": not name:)
+- Property names must be followed by a colon: use "propertyName": value, not "propertyName" value or "propertyName" []
+- All string values must be quoted: use "value" not unquoted strings
+- No markdown formatting: do not use asterisks (*), bullet points (•), or any markdown characters before property names
+- No stray text: do not include any text, characters, or lines between or around JSON properties
+- Every property must have a name: do not omit property names (e.g., use "purpose": "value" not ": "value")
+- Use proper JSON syntax: commas, colons, matching brackets/braces, and escape quotes in strings
+- Complete and valid: ensure all property names are complete (no truncation) and JSON is parseable
+- Use only exact property names from the schema - do not add extra properties or characters before property names
+- No stray prefixes: do not add prefixes like "ar" or other characters before array elements or string values
+- ASCII only: use only ASCII characters in string values
+- No explanatory text: do not include phrases like "so many methods" or "I will stop here" in the JSON
+- Proper commas: ensure commas separate all array elements and object properties
+- Escape control characters: any control characters in string values must be properly escaped as \\uXXXX
+
+FILE_SUMMARIES:
+[{"file":"App.tsx","summary":"Main application component"},{"file":"utils.ts","summary":"Utility functions for data processing"}]"
+`;
+
+exports[`renderPrompt Snapshot Tests app summary prompts should match snapshots inferredArchitecture prompt should match snapshot 1`] = `
+"Act as a senior developer analyzing the code in an existing application. Based on the a set of source file summaries shown below in the section marked 'FILE_SUMMARIES', return a JSON response that contains:
+
+a concise list of BUSINESS DOMAIN components inferred from the codebase.
+
+IMPORTANT: Identify components by their BUSINESS CAPABILITY, not by their technical layer.
+
+CORRECT examples of business components:
+- "Loan Manager" (manages loan lifecycle)
+- "Customer Service" (handles customer data and operations)
+- "Payment Processor" (processes payments and transactions)
+- "Invoice Generator" (creates and manages invoices)
+- "Account Manager" (manages user accounts)
+- "Order Fulfillment" (handles order processing)
+
+INCORRECT examples (do NOT use these technical layer names):
+- "Web Presentation Layer" ❌
+- "Service Layer" ❌
+- "Data Access Layer (DAO)" ❌
+- "Business Logic Layer" ❌
+- "Database Logic Layer" ❌
+- "Batch Processing Layer" ❌
+
+For each business component, describe its domain responsibilities and what business function it serves.
+
+Also identify:
+1. External systems that internal components actively depend on (databases, message queues, external APIs, caches). ONLY include external systems that have at least one dependency relationship with an internal component.
+2. Directed dependency relationships between all business components and external systems. Every external dependency listed MUST have at least one "from" relationship from an internal component.
+
+The JSON response must follow this JSON schema:
+\`\`\`json
+{
+  "type": "object",
+  "properties": {
+    "inferredArchitecture": {
+      "type": "object",
+      "properties": {
+        "internalComponents": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "The name of a business domain component that handles a specific business capability (e.g., 'Loan Manager', 'Customer Service', 'Invoice Processor'). Do NOT use technical layer names like 'Web Layer', 'Service Layer', 'DAO', or 'Presentation Layer'."
+              },
+              "description": {
+                "type": "string",
+                "description": "A detailed description of the business capabilities and domain responsibilities this component handles, in at least 3 sentences. Focus on WHAT business function it serves, not HOW it is technically implemented."
+              }
+            },
+            "required": [
+              "name",
+              "description"
+            ],
+            "additionalProperties": true
+          },
+          "description": "Business domain components inferred from the codebase. These should represent business capabilities (e.g., 'Loan Manager', 'Account Service', 'Payment Processor'), NOT technical architecture layers (avoid names like 'Web Layer', 'Service Layer', 'DAO Layer')."
+        },
+        "externalDependencies": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "The name of the external system or technology."
+              },
+              "type": {
+                "type": "string",
+                "description": "The type (e.g., Database, Message Queue, External API, Cache)."
+              },
+              "description": {
+                "type": "string",
+                "description": "A brief description of how it is used by the application. Only include if at least one internal component depends on it."
+              }
+            },
+            "required": [
+              "name",
+              "type",
+              "description"
+            ],
+            "additionalProperties": true
+          },
+          "description": "External systems the application depends on (databases, queues, APIs, etc.). ONLY include external systems that have at least one internal component depending on them - do not list orphaned external dependencies with no connections."
+        },
+        "dependencies": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "from": {
+                "type": "string",
+                "description": "The name of the source business component."
+              },
+              "to": {
+                "type": "string",
+                "description": "The name of the target business component or external system."
+              },
+              "description": {
+                "type": "string",
+                "description": "A brief description of the dependency relationship."
+              }
+            },
+            "required": [
+              "from",
+              "to",
+              "description"
+            ],
+            "additionalProperties": true
+          },
+          "description": "Directed relationships showing how business components depend on each other and on external systems. Every external dependency MUST appear as a 'to' target in at least one relationship."
+        }
+      },
+      "required": [
+        "internalComponents",
+        "externalDependencies",
+        "dependencies"
+      ],
+      "additionalProperties": false,
+      "description": "The inferred business architecture of the application, focusing on domain components rather than technical layers."
+    }
+  },
+  "required": [
+    "inferredArchitecture"
+  ],
+  "additionalProperties": true,
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}
+\`\`\`
+
+The response MUST be valid JSON and meet the following critical JSON requirements:
+- Only include JSON: start directly with { or [. No XML, markdown, explanations, or other text. Do NOT start with code fences or triple-backticks.
+- Return data values according to the schema - do NOT return the schema definition itself
+- All property names must be quoted: use "propertyName": value at ALL nesting levels (both opening and closing quotes required)
+- Property name format: every property must follow the exact pattern "propertyName": value - no unquoted names (e.g., use "name": not name:)
+- Property names must be followed by a colon: use "propertyName": value, not "propertyName" value or "propertyName" []
+- All string values must be quoted: use "value" not unquoted strings
+- No markdown formatting: do not use asterisks (*), bullet points (•), or any markdown characters before property names
+- No stray text: do not include any text, characters, or lines between or around JSON properties
+- Every property must have a name: do not omit property names (e.g., use "purpose": "value" not ": "value")
+- Use proper JSON syntax: commas, colons, matching brackets/braces, and escape quotes in strings
+- Complete and valid: ensure all property names are complete (no truncation) and JSON is parseable
+- Use only exact property names from the schema - do not add extra properties or characters before property names
+- No stray prefixes: do not add prefixes like "ar" or other characters before array elements or string values
+- ASCII only: use only ASCII characters in string values
+- No explanatory text: do not include phrases like "so many methods" or "I will stop here" in the JSON
+- Proper commas: ensure commas separate all array elements and object properties
+- Escape control characters: any control characters in string values must be properly escaped as \\uXXXX
+
+FILE_SUMMARIES:
+[{"file":"App.tsx","summary":"Main application component"},{"file":"utils.ts","summary":"Utility functions for data processing"}]"
+`;
+
+exports[`renderPrompt Snapshot Tests app summary prompts should match snapshots potentialMicroservices prompt should match snapshot 1`] = `
+"Act as a senior developer analyzing the code in an existing application. Based on the a set of source file summaries shown below in the section marked 'FILE_SUMMARIES', return a JSON response that contains:
+
+a concise list of recommended microservices to modernize the monolithic application architecture, each following the Single Responsibility Principle with detailed domain entities, defined CRUD operations, and REST API endpoints
+
+The JSON response must follow this JSON schema:
+\`\`\`json
+{
+  "type": "object",
+  "properties": {
+    "potentialMicroservices": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the potential microservice."
+          },
+          "description": {
+            "type": "string",
+            "description": "A detailed description of the potential microservice's purpose and responsibilities in at least 5 sentences."
+          },
+          "entities": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "The name of the 'logical'  domain-driven design entity that should exist for this microservice."
+                },
+                "description": {
+                  "type": "string",
+                  "description": "A detailed description of the potential domain-driven design entity and its purpose."
+                },
+                "attributes": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "Key attributes or properties of this potential entity."
+                }
+              },
+              "required": [
+                "name",
+                "description"
+              ],
+              "additionalProperties": true
+            },
+            "description": "A list of 'logical' domain-driven design entities that would be managed by this potential microservice."
+          },
+          "endpoints": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "path": {
+                  "type": "string",
+                  "description": "The potential REST API endpoint path that should exist for this microservice  (e.g., /api/users/{id})."
+                },
+                "method": {
+                  "type": "string",
+                  "description": "The HTTP method (GET, POST, PUT, DELETE, PATCH)."
+                },
+                "description": {
+                  "type": "string",
+                  "description": "A detailed description of what this endpoint would do."
+                }
+              },
+              "required": [
+                "path",
+                "method",
+                "description"
+              ],
+              "additionalProperties": true
+            },
+            "description": "A list of REST API endpoints that this potential microservice would expose."
+          },
+          "operations": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "operation": {
+                  "type": "string",
+                  "description": "The potential CRUD operation name that should exist for this microservice (e.g., Create User, Update Profile)."
+                },
+                "method": {
+                  "type": "string",
+                  "description": "The HTTP method (GET, POST, PUT, DELETE, PATCH)."
+                },
+                "description": {
+                  "type": "string",
+                  "description": "A detailed description of what this CRUD operation would do."
+                }
+              },
+              "required": [
+                "operation",
+                "method",
+                "description"
+              ],
+              "additionalProperties": true
+            },
+            "description": "A list of CRUD operations that this potential microservice would support."
+          }
+        },
+        "required": [
+          "name",
+          "description",
+          "entities",
+          "endpoints",
+          "operations"
+        ],
+        "additionalProperties": true
+      },
+      "description": "A list of recommended potential applicable microservices to modernize the monolithic application, each following the Single Responsibility Principle with defined CRUD operations, REST API endpoints, and domain-driven design entities."
+    }
+  },
+  "required": [
+    "potentialMicroservices"
+  ],
+  "additionalProperties": true,
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}
+\`\`\`
+
+The response MUST be valid JSON and meet the following critical JSON requirements:
+- Only include JSON: start directly with { or [. No XML, markdown, explanations, or other text. Do NOT start with code fences or triple-backticks.
+- Return data values according to the schema - do NOT return the schema definition itself
+- All property names must be quoted: use "propertyName": value at ALL nesting levels (both opening and closing quotes required)
+- Property name format: every property must follow the exact pattern "propertyName": value - no unquoted names (e.g., use "name": not name:)
+- Property names must be followed by a colon: use "propertyName": value, not "propertyName" value or "propertyName" []
+- All string values must be quoted: use "value" not unquoted strings
+- No markdown formatting: do not use asterisks (*), bullet points (•), or any markdown characters before property names
+- No stray text: do not include any text, characters, or lines between or around JSON properties
+- Every property must have a name: do not omit property names (e.g., use "purpose": "value" not ": "value")
+- Use proper JSON syntax: commas, colons, matching brackets/braces, and escape quotes in strings
+- Complete and valid: ensure all property names are complete (no truncation) and JSON is parseable
+- Use only exact property names from the schema - do not add extra properties or characters before property names
+- No stray prefixes: do not add prefixes like "ar" or other characters before array elements or string values
+- ASCII only: use only ASCII characters in string values
+- No explanatory text: do not include phrases like "so many methods" or "I will stop here" in the JSON
+- Proper commas: ensure commas separate all array elements and object properties
+- Escape control characters: any control characters in string values must be properly escaped as \\uXXXX
+
+FILE_SUMMARIES:
+[{"file":"App.tsx","summary":"Main application component"},{"file":"utils.ts","summary":"Utility functions for data processing"}]"
+`;
+
+exports[`renderPrompt Snapshot Tests app summary prompts should match snapshots technologies prompt should match snapshot 1`] = `
+"Act as a senior developer analyzing the code in an existing application. Based on the a set of source file summaries shown below in the section marked 'FILE_SUMMARIES', return a JSON response that contains:
+
+a comprehensive list of key external and host platform technologies (including the names of programming languages used) depended on by the application
+
+The JSON response must follow this JSON schema:
+\`\`\`json
+{
+  "type": "object",
+  "properties": {
+    "technologies": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the item."
+          },
+          "description": {
+            "type": "string",
+            "description": "A detailed description of the item in at least 5 sentences."
+          }
+        },
+        "required": [
+          "name",
+          "description"
+        ],
+        "additionalProperties": true
+      },
+      "description": "A list of key external and host platform technologies depended on by the application."
+    }
+  },
+  "required": [
+    "technologies"
+  ],
+  "additionalProperties": true,
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}
+\`\`\`
+
+The response MUST be valid JSON and meet the following critical JSON requirements:
+- Only include JSON: start directly with { or [. No XML, markdown, explanations, or other text. Do NOT start with code fences or triple-backticks.
+- Return data values according to the schema - do NOT return the schema definition itself
+- All property names must be quoted: use "propertyName": value at ALL nesting levels (both opening and closing quotes required)
+- Property name format: every property must follow the exact pattern "propertyName": value - no unquoted names (e.g., use "name": not name:)
+- Property names must be followed by a colon: use "propertyName": value, not "propertyName" value or "propertyName" []
+- All string values must be quoted: use "value" not unquoted strings
+- No markdown formatting: do not use asterisks (*), bullet points (•), or any markdown characters before property names
+- No stray text: do not include any text, characters, or lines between or around JSON properties
+- Every property must have a name: do not omit property names (e.g., use "purpose": "value" not ": "value")
+- Use proper JSON syntax: commas, colons, matching brackets/braces, and escape quotes in strings
+- Complete and valid: ensure all property names are complete (no truncation) and JSON is parseable
+- Use only exact property names from the schema - do not add extra properties or characters before property names
+- No stray prefixes: do not add prefixes like "ar" or other characters before array elements or string values
+- ASCII only: use only ASCII characters in string values
+- No explanatory text: do not include phrases like "so many methods" or "I will stop here" in the JSON
+- Proper commas: ensure commas separate all array elements and object properties
+- Escape control characters: any control characters in string values must be properly escaped as \\uXXXX
+
+FILE_SUMMARIES:
+[{"file":"App.tsx","summary":"Main application component"},{"file":"utils.ts","summary":"Utility functions for data processing"}]"
+`;
+
 exports[`renderPrompt Snapshot Tests rendered prompts should match snapshots C# prompt should match snapshot 1`] = `
 "Act as a senior developer analyzing the code in an existing application. Based on the the C# code shown below in the section marked 'CODE', return a JSON response that contains:
 

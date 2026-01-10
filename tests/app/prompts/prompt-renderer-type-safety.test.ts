@@ -71,9 +71,10 @@ describe("Prompt Renderer Type Safety", () => {
     });
 
     it("should handle null partialAnalysisNote", () => {
+      // Use type assertion to test runtime behavior with invalid types
       const result = renderPrompt(testDefinition, {
         content: "sample",
-        partialAnalysisNote: null,
+        partialAnalysisNote: null as unknown as string,
       });
 
       expect(result).not.toContain("null");

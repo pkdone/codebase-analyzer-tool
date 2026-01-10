@@ -27,6 +27,21 @@ ${FORCE_JSON_FORMAT}
 }
 
 /**
+ * Data required to render a prompt template.
+ * This interface provides type safety for callers of renderPrompt,
+ * ensuring the required content field is always provided while allowing
+ * additional template-specific variables.
+ */
+export interface RenderPromptData {
+  /** Allow additional properties for custom templates (e.g., question for codebase queries) */
+  readonly [key: string]: unknown;
+  /** The actual content to analyze (code, summaries, etc.) */
+  readonly content: unknown;
+  /** Optional note for partial analysis (used in map-reduce strategies) */
+  readonly partialAnalysisNote?: string;
+}
+
+/**
  * Interface defining the variables required by BASE_PROMPT_TEMPLATE.
  * This provides compile-time checking that all required template variables are provided.
  */
@@ -56,7 +71,7 @@ interface BasePromptTemplateVariables {
  * @param data - All template variables needed to fill the template, including content
  * @returns The fully rendered prompt string
  */
-export function renderPrompt(definition: PromptDefinition, data: Record<string, unknown>): string {
+export function renderPrompt(definition: PromptDefinition, data: RenderPromptData): string {
   const isJsonMode = definition.outputFormat !== LLMOutputFormat.TEXT;
   const schemaSection = isJsonMode ? buildSchemaSection(definition.responseSchema) : "";
   const wrapInCodeBlock = definition.wrapInCodeBlock ?? false;

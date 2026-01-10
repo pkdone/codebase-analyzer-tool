@@ -259,10 +259,10 @@ public abstract class AddressEJB implements EntityBean {
     it("should require content parameter", () => {
       const javaMetadata = fileTypePromptMetadata.java;
 
-      // This should work but content will be undefined in template
-      const renderedPrompt = renderPrompt(javaMetadata, {});
+      // Content is now a required field in RenderPromptData - provide empty string
+      const renderedPrompt = renderPrompt(javaMetadata, { content: "" });
 
-      // Template should still render, but content placeholder may be empty
+      // Template should still render with empty content
       expect(renderedPrompt).toContain("Act as a senior developer analyzing the code");
     });
   });

@@ -121,7 +121,8 @@ describe("renderPrompt Snapshot Tests", () => {
 
     test("prompt with null partialAnalysisNote should default to empty string", () => {
       const definition = fileTypePromptMetadata.java;
-      const data = { content: testContent, partialAnalysisNote: null };
+      // Use type assertion to test runtime behavior with invalid types
+      const data = { content: testContent, partialAnalysisNote: null as unknown as string };
 
       const rendered = renderPrompt(definition, data);
       expect(rendered).toBeTruthy();
@@ -303,6 +304,73 @@ describe("renderPrompt Snapshot Tests", () => {
           expect(rendered.length).toBeGreaterThan(0);
         }).not.toThrow();
       });
+    });
+  });
+
+  describe("app summary prompts should match snapshots", () => {
+    const testSummaryContent = JSON.stringify([
+      { file: "App.tsx", summary: "Main application component" },
+      { file: "utils.ts", summary: "Utility functions for data processing" },
+    ]);
+
+    test("appDescription prompt should match snapshot", () => {
+      const definition = promptManager.appSummaries.appDescription;
+      const data = { content: testSummaryContent };
+
+      const rendered = renderPrompt(definition, data);
+      expect(rendered).toMatchSnapshot();
+    });
+
+    test("technologies prompt should match snapshot", () => {
+      const definition = promptManager.appSummaries.technologies;
+      const data = { content: testSummaryContent };
+
+      const rendered = renderPrompt(definition, data);
+      expect(rendered).toMatchSnapshot();
+    });
+
+    test("businessProcesses prompt should match snapshot", () => {
+      const definition = promptManager.appSummaries.businessProcesses;
+      const data = { content: testSummaryContent };
+
+      const rendered = renderPrompt(definition, data);
+      expect(rendered).toMatchSnapshot();
+    });
+
+    test("boundedContexts prompt should match snapshot", () => {
+      const definition = promptManager.appSummaries.boundedContexts;
+      const data = { content: testSummaryContent };
+
+      const rendered = renderPrompt(definition, data);
+      expect(rendered).toMatchSnapshot();
+    });
+
+    test("potentialMicroservices prompt should match snapshot", () => {
+      const definition = promptManager.appSummaries.potentialMicroservices;
+      const data = { content: testSummaryContent };
+
+      const rendered = renderPrompt(definition, data);
+      expect(rendered).toMatchSnapshot();
+    });
+
+    test("inferredArchitecture prompt should match snapshot", () => {
+      const definition = promptManager.appSummaries.inferredArchitecture;
+      const data = { content: testSummaryContent };
+
+      const rendered = renderPrompt(definition, data);
+      expect(rendered).toMatchSnapshot();
+    });
+
+    test("app summary prompt with partialAnalysisNote should match snapshot", () => {
+      const definition = promptManager.appSummaries.technologies;
+      const data = {
+        content: testSummaryContent,
+        partialAnalysisNote:
+          "Note, this is a partial analysis of a larger codebase; focus on extracting insights from this subset of file summaries only. ",
+      };
+
+      const rendered = renderPrompt(definition, data);
+      expect(rendered).toMatchSnapshot();
     });
   });
 });

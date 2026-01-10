@@ -31,6 +31,33 @@ export interface AppSummaryConfigEntry<
 }
 
 /**
+ * Default content description for app summary prompts.
+ * All app summaries analyze file summaries from the codebase.
+ */
+const DEFAULT_CONTENT_DESC = "a set of source file summaries";
+
+/**
+ * Factory function to create an app summary configuration entry.
+ * This eliminates duplication of the contentDesc field across all entries
+ * and ensures consistent structure for all app summary configs.
+ *
+ * @template S - The Zod schema type for validating the LLM response
+ * @param label - Display label for UI and logging
+ * @param instructions - Array of instruction strings for the LLM
+ * @param responseSchema - Zod schema for validating the LLM response
+ * @param contentDesc - Optional content description (defaults to DEFAULT_CONTENT_DESC)
+ * @returns A fully configured AppSummaryConfigEntry
+ */
+export function createAppSummaryConfig<S extends z.ZodType>(
+  label: string,
+  instructions: readonly string[],
+  responseSchema: S,
+  contentDesc: string = DEFAULT_CONTENT_DESC,
+): AppSummaryConfigEntry<S> {
+  return { label, contentDesc, instructions, responseSchema };
+}
+
+/**
  * Centralized configuration for all app summary prompt definitions.
  *
  * Note: The `instructions` field contains the specific instruction text that will be used
@@ -45,34 +72,28 @@ export interface AppSummaryConfigEntry<
  * This enables TypeScript to infer the exact schema type for each category key.
  */
 export const appSummaryConfigMap = {
-  appDescription: {
-    label: CATEGORY_LABELS.appDescription,
-    contentDesc: "a set of source file summaries",
-    instructions: [
-      "a detailed description of the application's purpose and implementation",
-    ] as const,
-    responseSchema: appDescriptionSchema,
-  },
-  technologies: {
-    label: CATEGORY_LABELS.technologies,
-    contentDesc: "a set of source file summaries",
-    instructions: [
+  appDescription: createAppSummaryConfig(
+    CATEGORY_LABELS.appDescription,
+    ["a detailed description of the application's purpose and implementation"] as const,
+    appDescriptionSchema,
+  ),
+  technologies: createAppSummaryConfig(
+    CATEGORY_LABELS.technologies,
+    [
       `${APP_SUMMARY_PROMPT_FRAGMENTS.COMPREHENSIVE_LIST} of key external and host platform technologies (including the names of programming languages used) depended on by the application`,
     ] as const,
-    responseSchema: technologiesSchema,
-  },
-  businessProcesses: {
-    label: CATEGORY_LABELS.businessProcesses,
-    contentDesc: "a set of source file summaries",
-    instructions: [
+    technologiesSchema,
+  ),
+  businessProcesses: createAppSummaryConfig(
+    CATEGORY_LABELS.businessProcesses,
+    [
       `${APP_SUMMARY_PROMPT_FRAGMENTS.CONCISE_LIST} of the application's main business processes with their key business activity steps that are linearly conducted by each process`,
     ] as const,
-    responseSchema: businessProcessesSchema,
-  },
-  boundedContexts: {
-    label: CATEGORY_LABELS.boundedContexts,
-    contentDesc: "a set of source file summaries",
-    instructions: [
+    businessProcessesSchema,
+  ),
+  boundedContexts: createAppSummaryConfig(
+    CATEGORY_LABELS.boundedContexts,
+    [
       `${APP_SUMMARY_PROMPT_FRAGMENTS.CONCISE_LIST} of Domain-Driven Design Bounded Contexts that define explicit boundaries around related business capabilities. For each bounded context, include:
 1. Its aggregates that enforce business rules and maintain consistency
 2. For each aggregate, include:
@@ -81,20 +102,18 @@ export const appSummaryConfigMap = {
 
 This hierarchical structure ensures consistent naming across all domain elements within each bounded context`,
     ] as const,
-    responseSchema: boundedContextsSchema,
-  },
-  potentialMicroservices: {
-    label: CATEGORY_LABELS.potentialMicroservices,
-    contentDesc: "a set of source file summaries",
-    instructions: [
+    boundedContextsSchema,
+  ),
+  potentialMicroservices: createAppSummaryConfig(
+    CATEGORY_LABELS.potentialMicroservices,
+    [
       `${APP_SUMMARY_PROMPT_FRAGMENTS.CONCISE_LIST} of recommended microservices to modernize the monolithic application architecture, each following the Single Responsibility Principle with detailed domain entities, defined CRUD operations, and REST API endpoints`,
     ] as const,
-    responseSchema: potentialMicroservicesSchema,
-  },
-  inferredArchitecture: {
-    label: CATEGORY_LABELS.inferredArchitecture,
-    contentDesc: "a set of source file summaries",
-    instructions: [
+    potentialMicroservicesSchema,
+  ),
+  inferredArchitecture: createAppSummaryConfig(
+    CATEGORY_LABELS.inferredArchitecture,
+    [
       `${APP_SUMMARY_PROMPT_FRAGMENTS.CONCISE_LIST} of BUSINESS DOMAIN components inferred from the codebase.
 
 IMPORTANT: Identify components by their BUSINESS CAPABILITY, not by their technical layer.
@@ -121,8 +140,8 @@ Also identify:
 1. External systems that internal components actively depend on (databases, message queues, external APIs, caches). ONLY include external systems that have at least one dependency relationship with an internal component.
 2. Directed dependency relationships between all business components and external systems. Every external dependency listed MUST have at least one "from" relationship from an internal component.`,
     ] as const,
-    responseSchema: inferredArchitectureSchema,
-  },
+    inferredArchitectureSchema,
+  ),
 } as const satisfies Record<string, AppSummaryConfigEntry>;
 
 /**

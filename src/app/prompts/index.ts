@@ -9,7 +9,7 @@
 export { promptManager, type PromptManager } from "./prompt-registry";
 
 // Renderer
-export { renderPrompt, buildSchemaSection } from "./prompt-renderer";
+export { renderPrompt, buildSchemaSection, type RenderPromptData } from "./prompt-renderer";
 
 // Types and constants
 export {
@@ -30,6 +30,7 @@ export {
 // Definitions - only export high-level config maps, not internal fragments
 export {
   appSummaryConfigMap,
+  createAppSummaryConfig,
   type AppSummaryConfigEntry,
 } from "./definitions/app-summaries/app-summaries.definitions";
 export {

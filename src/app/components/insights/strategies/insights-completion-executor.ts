@@ -5,7 +5,7 @@ import { promptManager } from "../../../prompts/prompt-registry";
 import { getCategoryLabel } from "../../../config/category-labels.config";
 import { logWarn } from "../../../../common/utils/logging";
 import { joinArrayWithSeparators } from "../../../../common/utils/text-utils";
-import { renderPrompt } from "../../../prompts/prompt-renderer";
+import { renderPrompt, type RenderPromptData } from "../../../prompts/prompt-renderer";
 import {
   AppSummaryCategoryEnum,
   appSummaryCategorySchemas,
@@ -52,10 +52,10 @@ export async function executeInsightCompletion<C extends AppSummaryCategoryEnum>
     const taskCategory: string = options.taskCategory ?? category;
     const config = promptManager.appSummaries[category];
     const codeContent = joinArrayWithSeparators(sourceFileSummaries);
-    const renderParams: Record<string, unknown> = {
+    const renderParams: RenderPromptData = {
       content: codeContent,
+      partialAnalysisNote: options.partialAnalysisNote,
     };
-    if (options.partialAnalysisNote) renderParams.partialAnalysisNote = options.partialAnalysisNote;
     const renderedPrompt = renderPrompt(config, renderParams);
     /**
      * Schema lookup uses the category type to get the correct schema.

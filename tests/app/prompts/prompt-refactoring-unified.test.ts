@@ -121,7 +121,7 @@ describe("Prompt Refactoring - Unified Configuration", () => {
         wrapInCodeBlock: false,
       };
 
-      const rendered = renderPrompt(testDefinition, {});
+      const rendered = renderPrompt(testDefinition, { content: "test" });
 
       // Instructions are joined with double newlines
       expect(rendered).toContain("Instruction 1\n\nInstruction 2\n\nInstruction 3");
@@ -137,7 +137,7 @@ describe("Prompt Refactoring - Unified Configuration", () => {
         wrapInCodeBlock: false,
       };
 
-      const rendered = renderPrompt(testDefinition, {});
+      const rendered = renderPrompt(testDefinition, { content: "test" });
 
       expect(rendered).toContain("Single instruction");
     });
