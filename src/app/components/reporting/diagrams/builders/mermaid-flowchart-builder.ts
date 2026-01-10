@@ -27,8 +27,6 @@ import {
   AbstractGraphBuilder,
   type NodeShape,
   type EdgeType,
-  type NodeConfig,
-  type EdgeConfig,
   type MermaidNode,
   type MermaidEdge,
   type StyleApplication,
@@ -44,8 +42,8 @@ export type FlowchartDirection = "TB" | "BT" | "LR" | "RL";
  */
 export type InitDirectiveType = "standard" | "architecture";
 
-// Re-export types for backwards compatibility
-export type { NodeShape, EdgeType, NodeConfig, EdgeConfig };
+// Re-export types
+export type { NodeShape, EdgeType };
 
 /**
  * Internal representation of a subgraph.
@@ -146,19 +144,6 @@ export class MermaidFlowchartBuilder extends AbstractGraphBuilder {
    */
   override applyStyle(nodeId: string, className: string): this {
     super.applyStyle(nodeId, className);
-    return this;
-  }
-
-  /**
-   * Applies styles to multiple nodes.
-   *
-   * @param styles - Array of style applications
-   * @returns this for chaining
-   */
-  applyStyles(styles: readonly { nodeId: string; className: string }[]): this {
-    for (const style of styles) {
-      this.applyStyle(style.nodeId, style.className);
-    }
     return this;
   }
 

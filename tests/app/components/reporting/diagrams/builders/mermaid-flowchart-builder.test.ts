@@ -68,21 +68,6 @@ describe("MermaidFlowchartBuilder", () => {
       expect(result).toContain('rhomb{"Rhombus"}');
     });
 
-    it("should add multiple nodes via addNodes", () => {
-      const builder = new MermaidFlowchartBuilder();
-      builder.addNodes([
-        { id: "a", label: "Node A" },
-        { id: "b", label: "Node B", shape: "rounded" },
-        { id: "c", label: "Node C", shape: "circle" },
-      ]);
-
-      const result = builder.render();
-
-      expect(result).toContain('a["Node A"]');
-      expect(result).toContain('b("Node B")');
-      expect(result).toContain('c(("Node C"))');
-    });
-
     it("should escape special characters in node labels", () => {
       const builder = new MermaidFlowchartBuilder();
       builder.addNode("special", 'Label with <html> & "quotes"');
@@ -143,22 +128,6 @@ describe("MermaidFlowchartBuilder", () => {
       expect(result).toContain("#lt;with#gt;");
     });
 
-    it("should add multiple edges via addEdges", () => {
-      const builder = new MermaidFlowchartBuilder();
-      builder
-        .addNode("a", "A")
-        .addNode("b", "B")
-        .addNode("c", "C")
-        .addEdges([
-          { from: "a", to: "b" },
-          { from: "b", to: "c", label: "next", type: "dotted" },
-        ]);
-
-      const result = builder.render();
-
-      expect(result).toContain("a --> b");
-      expect(result).toContain('b -.->|"next"| c');
-    });
   });
 
   describe("style application", () => {
@@ -171,21 +140,6 @@ describe("MermaidFlowchartBuilder", () => {
       expect(result).toContain("class svc service");
     });
 
-    it("should apply multiple styles", () => {
-      const builder = new MermaidFlowchartBuilder();
-      builder
-        .addNode("a", "A")
-        .addNode("b", "B")
-        .applyStyles([
-          { nodeId: "a", className: "entity" },
-          { nodeId: "b", className: "aggregate" },
-        ]);
-
-      const result = builder.render();
-
-      expect(result).toContain("class a entity");
-      expect(result).toContain("class b aggregate");
-    });
   });
 
   describe("subgraph creation", () => {
@@ -346,32 +300,6 @@ describe("MermaidFlowchartBuilder", () => {
 });
 
 describe("SubgraphBuilder", () => {
-  it("should support addNodes method", () => {
-    const subBuilder = new SubgraphBuilder();
-    subBuilder.addNodes([
-      { id: "x", label: "X" },
-      { id: "y", label: "Y", shape: "rounded" },
-    ]);
-
-    const nodes = subBuilder.getNodes();
-    expect(nodes).toHaveLength(2);
-    expect(nodes[0]).toEqual({ id: "x", label: "X", shape: "rectangle" });
-    expect(nodes[1]).toEqual({ id: "y", label: "Y", shape: "rounded" });
-  });
-
-  it("should support addEdges method", () => {
-    const subBuilder = new SubgraphBuilder();
-    subBuilder.addEdges([
-      { from: "a", to: "b" },
-      { from: "b", to: "c", label: "next", type: "dotted" },
-    ]);
-
-    const edges = subBuilder.getEdges();
-    expect(edges).toHaveLength(2);
-    expect(edges[0]).toEqual({ from: "a", to: "b", label: undefined, type: "solid" });
-    expect(edges[1]).toEqual({ from: "b", to: "c", label: "next", type: "dotted" });
-  });
-
   it("should support method chaining", () => {
     const subBuilder = new SubgraphBuilder();
     subBuilder.addNode("a", "A").addNode("b", "B").addEdge("a", "b").applyStyle("a", "entity");

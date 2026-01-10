@@ -6,11 +6,6 @@ import type { ScheduledJobsSummary } from "./quality-metrics.types";
 import { extractTriggerType } from "./job-trigger-parser";
 
 /**
- * Type for the scheduled jobs aggregation result
- */
-export type ScheduledJobsAggregationResult = ScheduledJobsSummary;
-
-/**
  * Type for a single job item
  */
 type ScheduledJobItem = ScheduledJobsSummary["jobs"][0];
@@ -29,7 +24,7 @@ export class ScheduledTaskDataProvider {
   /**
    * Aggregates all scheduled jobs from script files for a project
    */
-  async getScheduledJobsSummary(projectName: string): Promise<ScheduledJobsAggregationResult> {
+  async getScheduledJobsSummary(projectName: string): Promise<ScheduledJobsSummary> {
     // Fetch all script files with scheduled jobs
     const scriptFiles = await this.sourcesRepository.getProjectSourcesSummariesByCanonicalType(
       projectName,

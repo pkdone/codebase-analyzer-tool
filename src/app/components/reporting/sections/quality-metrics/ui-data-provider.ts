@@ -11,11 +11,6 @@ import { UNKNOWN_VALUE_PLACEHOLDER } from "../../../../../common/constants/appli
 import { calculateDebtLevel } from "../../utils/view-helpers";
 
 /**
- * Type for UI analysis summary
- */
-export type UiAnalysisSummary = UiTechnologyAnalysis;
-
-/**
  * Type aliases for internal use
  */
 type UiFrameworkItem = UiTechnologyAnalysis["frameworks"][0];
@@ -47,7 +42,7 @@ export class ServerSideUiDataProvider {
   /**
    * Aggregates UI technology analysis for a project
    */
-  async getUiTechnologyAnalysis(projectName: string): Promise<UiAnalysisSummary> {
+  async getUiTechnologyAnalysis(projectName: string): Promise<UiTechnologyAnalysis> {
     // Fetch all source files from the project
     const sourceFiles = await this.sourcesRepository.getProjectSourcesSummariesByFileType(
       projectName,

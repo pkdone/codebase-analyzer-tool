@@ -9,25 +9,6 @@ export type NodeShape = "rectangle" | "rounded" | "stadium" | "hexagon" | "circl
 export type EdgeType = "solid" | "dotted" | "dashed" | "invisible";
 
 /**
- * Configuration for creating a node.
- */
-export interface NodeConfig {
-  readonly id: string;
-  readonly label: string;
-  readonly shape?: NodeShape;
-}
-
-/**
- * Configuration for creating an edge.
- */
-export interface EdgeConfig {
-  readonly from: string;
-  readonly to: string;
-  readonly label?: string;
-  readonly type?: EdgeType;
-}
-
-/**
  * Internal representation of a node.
  */
 export interface MermaidNode {
@@ -77,19 +58,6 @@ export abstract class AbstractGraphBuilder {
   }
 
   /**
-   * Adds multiple nodes to the graph.
-   *
-   * @param nodes - Array of node configurations
-   * @returns this for chaining
-   */
-  addNodes(nodes: readonly NodeConfig[]): this {
-    for (const node of nodes) {
-      this.addNode(node.id, node.label, node.shape ?? "rectangle");
-    }
-    return this;
-  }
-
-  /**
    * Adds an edge between two nodes.
    *
    * @param from - Source node ID
@@ -100,19 +68,6 @@ export abstract class AbstractGraphBuilder {
    */
   addEdge(from: string, to: string, label?: string, type: EdgeType = "solid"): this {
     this.edges.push({ from, to, label, type });
-    return this;
-  }
-
-  /**
-   * Adds multiple edges to the graph.
-   *
-   * @param edges - Array of edge configurations
-   * @returns this for chaining
-   */
-  addEdges(edges: readonly EdgeConfig[]): this {
-    for (const edge of edges) {
-      this.addEdge(edge.from, edge.to, edge.label, edge.type ?? "solid");
-    }
     return this;
   }
 

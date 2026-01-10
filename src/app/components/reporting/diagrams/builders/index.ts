@@ -9,6 +9,4 @@ export {
   type NodeShape,
   type EdgeType,
   type InitDirectiveType,
-  type NodeConfig,
-  type EdgeConfig,
 } from "./mermaid-flowchart-builder";

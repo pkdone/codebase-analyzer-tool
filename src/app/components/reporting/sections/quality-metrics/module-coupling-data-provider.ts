@@ -8,11 +8,6 @@ import { calculateCouplingLevel } from "../../utils/view-helpers";
 type ModuleCouplingMap = Record<string, Record<string, number>>;
 
 /**
- * Type for the module coupling aggregation result
- */
-export type ModuleCouplingAggregationResult = ModuleCoupling;
-
-/**
  * Data provider responsible for aggregating internal references between modules to build a coupling matrix.
  * Analyzes module dependencies to identify highly coupled and loosely coupled components.
  */
@@ -29,7 +24,7 @@ export class ModuleCouplingDataProvider {
   async getModuleCoupling(
     projectName: string,
     moduleDepth: number = moduleCouplingConfig.DEFAULT_MODULE_DEPTH,
-  ): Promise<ModuleCouplingAggregationResult> {
+  ): Promise<ModuleCoupling> {
     // Fetch all source files from the project
     const sourceFiles = await this.sourcesRepository.getProjectSourcesSummariesByFileType(
       projectName,

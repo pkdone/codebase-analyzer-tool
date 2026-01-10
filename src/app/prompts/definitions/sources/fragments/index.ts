@@ -32,4 +32,3 @@ export { JSP_SPECIFIC_FRAGMENTS } from "./jsp.fragments";
 export { SHELL_SCRIPT_SPECIFIC_FRAGMENTS } from "./shell-script.fragments";
 export { BATCH_SCRIPT_SPECIFIC_FRAGMENTS } from "./batch-script.fragments";
 export { JCL_SPECIFIC_FRAGMENTS } from "./jcl.fragments";
-export { MAKEFILE_SPECIFIC_FRAGMENTS } from "./makefile.fragments";
