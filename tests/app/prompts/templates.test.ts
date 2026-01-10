@@ -2,7 +2,6 @@ import {
   BASE_PROMPT_TEMPLATE,
   CODEBASE_QUERY_TEMPLATE,
   DEFAULT_SYSTEM_ROLE,
-  QUERY_SYSTEM_ROLE,
   FORCE_JSON_FORMAT,
 } from "../../../src/app/prompts/templates";
 
@@ -10,20 +9,16 @@ describe("prompts/templates", () => {
   describe("System Role Constants", () => {
     it("should define DEFAULT_SYSTEM_ROLE for code analysis", () => {
       expect(DEFAULT_SYSTEM_ROLE).toBe(
-        "Act as a senior developer analyzing the code in a legacy application.",
+        "Act as a senior developer analyzing the code in an existing application.",
       );
-    });
-
-    it("should define QUERY_SYSTEM_ROLE for codebase queries", () => {
-      expect(QUERY_SYSTEM_ROLE).toBe("Act as a senior developer.");
     });
 
     it("should use DEFAULT_SYSTEM_ROLE in BASE_PROMPT_TEMPLATE", () => {
       expect(BASE_PROMPT_TEMPLATE).toContain(DEFAULT_SYSTEM_ROLE);
     });
 
-    it("should use QUERY_SYSTEM_ROLE in CODEBASE_QUERY_TEMPLATE", () => {
-      expect(CODEBASE_QUERY_TEMPLATE).toContain(QUERY_SYSTEM_ROLE);
+    it("should use DEFAULT_SYSTEM_ROLE in CODEBASE_QUERY_TEMPLATE", () => {
+      expect(CODEBASE_QUERY_TEMPLATE).toContain(DEFAULT_SYSTEM_ROLE);
     });
   });
 
@@ -61,8 +56,8 @@ describe("prompts/templates", () => {
       expect(CODEBASE_QUERY_TEMPLATE).toContain("{{content}}");
     });
 
-    it("should start with the query system role", () => {
-      expect(CODEBASE_QUERY_TEMPLATE.startsWith(QUERY_SYSTEM_ROLE)).toBe(true);
+    it("should start with the default system role", () => {
+      expect(CODEBASE_QUERY_TEMPLATE.startsWith(DEFAULT_SYSTEM_ROLE)).toBe(true);
     });
 
     it("should reference CODE and QUESTION sections", () => {

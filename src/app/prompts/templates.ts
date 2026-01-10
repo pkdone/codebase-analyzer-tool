@@ -8,16 +8,10 @@
 /**
  * Default system role for source code analysis prompts.
  * Used for detailed code analysis where the LLM acts as a senior developer
- * analyzing legacy applications.
+ * analyzing existing applications.
  */
 export const DEFAULT_SYSTEM_ROLE =
-  "Act as a senior developer analyzing the code in a legacy application.";
-
-/**
- * System role for codebase query prompts.
- * Used for answering questions about code where the LLM acts as a senior developer.
- */
-export const QUERY_SYSTEM_ROLE = "Act as a senior developer.";
+  "Act as a senior developer analyzing the code in an existing application.";
 
 /**
  * JSON format enforcement instruction used across all prompt templates.
@@ -65,7 +59,7 @@ export const BASE_PROMPT_TEMPLATE = `${DEFAULT_SYSTEM_ROLE} Based on the {{conte
  * Used for RAG (Retrieval-Augmented Generation) workflows where vector search results
  * are provided as context for answering developer questions about the codebase.
  */
-export const CODEBASE_QUERY_TEMPLATE = `${QUERY_SYSTEM_ROLE} I've provided the content of some source code files below in the section marked 'CODE'. Using all that code for context, answer the question a developer has asked about the code, where their question is shown in the section marked 'QUESTION' below. Provide your answer in a few paragraphs, referring to specific evidence in the provided code.
+export const CODEBASE_QUERY_TEMPLATE = `${DEFAULT_SYSTEM_ROLE} I've provided the content of some source code files below in the section marked 'CODE'. Using all that code for context, answer the question a developer has asked about the code, where their question is shown in the section marked 'QUESTION' below. Provide your answer in a few paragraphs, referring to specific evidence in the provided code.
 
 QUESTION:
 {{question}}

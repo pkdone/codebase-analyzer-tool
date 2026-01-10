@@ -44,11 +44,6 @@ describe("prompts module barrel exports", () => {
       expect(PromptsModule.DEFAULT_SYSTEM_ROLE).toBeDefined();
       expect(typeof PromptsModule.DEFAULT_SYSTEM_ROLE).toBe("string");
     });
-
-    it("should export QUERY_SYSTEM_ROLE", () => {
-      expect(PromptsModule.QUERY_SYSTEM_ROLE).toBeDefined();
-      expect(typeof PromptsModule.QUERY_SYSTEM_ROLE).toBe("string");
-    });
   });
 
   describe("definitions exports", () => {

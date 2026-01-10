@@ -72,7 +72,7 @@ describe("PromptDefinition", () => {
     it("should work with source file prompting", () => {
       const sourceFileDefinition: PromptDefinition = {
         contentDesc:
-          "Act as a senior developer analyzing the code in a legacy application. Based on the JVM code shown below...",
+          "Act as a senior developer analyzing the code in an existing application. Based on the JVM code shown below...",
         instructions: [
           "Extract the class name",
           "Extract the purpose",
@@ -95,7 +95,7 @@ describe("PromptDefinition", () => {
     it("should work with app summary prompting", () => {
       const appSummaryDefinition: PromptDefinition = {
         contentDesc:
-          "Act as a senior developer analyzing the code in a legacy application. Based on the source files shown below...",
+          "Act as a senior developer analyzing the code in an existing application. Based on the source files shown below...",
         instructions: ["Extract entities", "Extract bounded contexts"],
         responseSchema: z.object({
           entities: z.array(z.string()),

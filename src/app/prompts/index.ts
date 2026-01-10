@@ -25,7 +25,6 @@ export {
   CODEBASE_QUERY_TEMPLATE,
   FORCE_JSON_FORMAT,
   DEFAULT_SYSTEM_ROLE,
-  QUERY_SYSTEM_ROLE,
 } from "./templates";
 
 // Definitions - only export high-level config maps, not internal fragments

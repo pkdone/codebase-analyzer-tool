@@ -7,7 +7,7 @@ describe("Prompt Refactoring", () => {
   const testDefinition: PromptDefinition = {
     label: "Test",
     contentDesc:
-      "Act as a senior developer analyzing the code in a legacy application. Based on test content shown below, return:\n\n{{instructionsText}}.",
+      "Act as a senior developer analyzing the code in an existing application. Based on test content shown below, return:\n\n{{instructionsText}}.",
     instructions: ["instruction 1", "instruction 2"],
     responseSchema: z.string(),
     template: BASE_PROMPT_TEMPLATE,

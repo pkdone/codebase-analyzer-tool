@@ -117,11 +117,81 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
   ): Promise<CategoryInsightResult<C> | null> {
     const partialAnalysisNote =
       "Note, this is a partial analysis of a larger codebase; focus on extracting insights from this subset of file summaries only. ";
-
     return executeInsightCompletion(this.llmRouter, category, summaryChunk, {
       partialAnalysisNote,
       taskCategory: `${category}-chunk`,
     });
+  }
+
+  /**
+   * Combines partial results from the map phase based on schema structure.
+   * Handles three schema shapes:
+   * - Flat array: `{ categoryKey: [...] }` → flatMap all arrays
+   * - Nested object: `{ categoryKey: { prop1: [], prop2: [] } }` → merge each nested array
+   * - String value: `{ categoryKey: "..." }` → collect strings into array
+   *
+   * @returns An object with the combined data structure, ready for JSON serialization
+   */
+  private combinePartialResultsData<C extends AppSummaryCategoryEnum>(
+    category: C,
+    partialResults: CategoryInsightResult<C>[],
+  ): Record<string, unknown> {
+    const schema = appSummaryCategorySchemas[category];
+    const schemaShape = (schema as z.ZodObject<z.ZodRawShape>).shape;
+    const categoryKey = Object.keys(schemaShape)[0] as keyof CategoryInsightResult<C>;
+    const valueSchema = schemaShape[categoryKey as string];
+
+    // Case 1: Flat array shape (e.g., technologies, businessProcesses)
+    if (valueSchema instanceof z.ZodArray) {
+      const combinedArray = partialResults.flatMap((result) => {
+        const data = result[categoryKey];
+        return Array.isArray(data) ? data : [];
+      });
+      return { [categoryKey]: combinedArray };
+    }
+
+    // Case 2: Nested object shape (e.g., inferredArchitecture)
+    if (valueSchema instanceof z.ZodObject) {
+      const nestedShape = valueSchema.shape as z.ZodRawShape;
+      const mergedObject: Record<string, unknown[]> = {};
+
+      // Initialize arrays for each nested property that is an array
+      for (const nestedKey of Object.keys(nestedShape)) {
+        const nestedValueSchema = nestedShape[nestedKey];
+        if (nestedValueSchema instanceof z.ZodArray) {
+          mergedObject[nestedKey] = [];
+        }
+      }
+
+      // Merge data from each partial result
+      for (const result of partialResults) {
+        const nestedData = result[categoryKey] as Record<string, unknown> | undefined;
+        if (!nestedData) continue;
+
+        for (const nestedKey of Object.keys(mergedObject)) {
+          const nestedArray = nestedData[nestedKey];
+          if (Array.isArray(nestedArray)) {
+            mergedObject[nestedKey].push(...(nestedArray as unknown[]));
+          }
+        }
+      }
+
+      return { [categoryKey]: mergedObject };
+    }
+
+    // Case 3: String value shape (e.g., appDescription)
+    if (valueSchema instanceof z.ZodString) {
+      const collectedStrings = partialResults
+        .map((result) => {
+          const data = result[categoryKey];
+          return typeof data === "string" ? data : "";
+        })
+        .filter((s) => s.length > 0);
+      return { [categoryKey]: collectedStrings };
+    }
+
+    // Fallback: return empty object (shouldn't reach here with current schemas)
+    return { [categoryKey]: [] };
   }
 
   /**
@@ -137,16 +207,9 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
   ): Promise<CategoryInsightResult<C> | null> {
     const schema = appSummaryCategorySchemas[category];
     const schemaShape = (schema as z.ZodObject<z.ZodRawShape>).shape;
-    // Assert that the dynamically retrieved key is a valid key of the result type.
-    // This enables TypeScript to correctly infer the type of result[categoryKey] without unsafe casts.
     const categoryKey = Object.keys(schemaShape)[0] as keyof CategoryInsightResult<C>;
-    // Flatten the arrays from all partial results into a single combined list
-    const combinedData = partialResults.flatMap((result) => {
-      const categoryData = result[categoryKey];
-      if (Array.isArray(categoryData)) return categoryData;
-      return [];
-    });
-    const content = JSON.stringify({ [categoryKey]: combinedData }, null, 2);
+    const combinedData = this.combinePartialResultsData(category, partialResults);
+    const content = JSON.stringify(combinedData, null, 2);
     const reducePromptDef: PromptDefinition = {
       contentDesc: buildReduceInsightsContentDesc(categoryKey as string),
       instructions: [`a consolidated list of '${String(categoryKey)}'`],

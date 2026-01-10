@@ -3,7 +3,12 @@ import { injectable, inject } from "tsyringe";
 import { MongoClient, Db, Collection, MongoServerError, type IndexSpecification } from "mongodb";
 import type { JsonSchema7Type } from "zod-to-json-schema";
 import { coreTokens } from "../../di/tokens";
-import { databaseConfig, STANDARD_INDEX_CONFIGS, type CollectionType } from "./database.config";
+import {
+  databaseConfig,
+  STANDARD_INDEX_CONFIGS,
+  COLLECTION_TYPES,
+  type CollectionType,
+} from "./database.config";
 import { logErr } from "../../../common/utils/logging";
 import { getJSONSchema as getSourcesJSONSchema } from "../../repositories/sources/sources.model";
 import { SOURCE_FIELDS } from "../../schemas/sources.constants";
@@ -70,9 +75,9 @@ export class DatabaseInitializer {
    */
   private getCollectionByType(collectionType: CollectionType): Collection {
     switch (collectionType) {
-      case "sources":
+      case COLLECTION_TYPES.SOURCES:
         return this.sourcesCollection;
-      case "summaries":
+      case COLLECTION_TYPES.SUMMARIES:
         return this.appSummariesCollection;
     }
   }
@@ -184,7 +189,6 @@ export class DatabaseInitializer {
         path: SOURCE_FIELDS.TYPE,
       },
     ];
-
     return createVectorSearchIndexDefinition(
       indexName,
       fieldToIndex,

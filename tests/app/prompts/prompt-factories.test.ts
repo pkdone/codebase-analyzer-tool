@@ -7,7 +7,7 @@ describe("Prompt Constructor and Templates", () => {
   const sourceDefinition: PromptDefinition = {
     label: "Test",
     contentDesc:
-      "Act as a senior developer analyzing the code in a legacy application. Based on test content shown below...",
+      "Act as a senior developer analyzing the code in an existing application. Based on test content shown below...",
     instructions: ["instruction 1"],
     responseSchema: z.string(),
     template: BASE_PROMPT_TEMPLATE,
@@ -18,7 +18,7 @@ describe("Prompt Constructor and Templates", () => {
   const appSummaryDefinition: PromptDefinition = {
     label: "Test",
     contentDesc:
-      "Act as a senior developer analyzing the code in a legacy application. Based on test content shown below...",
+      "Act as a senior developer analyzing the code in an existing application. Based on test content shown below...",
     instructions: ["instruction 1"],
     responseSchema: z.string(),
     template: BASE_PROMPT_TEMPLATE,

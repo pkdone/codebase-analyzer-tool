@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`renderPrompt Snapshot Tests TEXT mode prompts (codebaseQuery) codebaseQuery prompt should match snapshot 1`] = `
-"Act as a senior developer. I've provided the content of some source code files below in the section marked 'CODE'. Using all that code for context, answer the question a developer has asked about the code, where their question is shown in the section marked 'QUESTION' below. Provide your answer in a few paragraphs, referring to specific evidence in the provided code.
+"Act as a senior developer analyzing the code in an existing application. I've provided the content of some source code files below in the section marked 'CODE'. Using all that code for context, answer the question a developer has asked about the code, where their question is shown in the section marked 'QUESTION' below. Provide your answer in a few paragraphs, referring to specific evidence in the provided code.
 
 QUESTION:
 What is the purpose of this code?
@@ -11,7 +11,7 @@ export function calculate(x: number) { return x * 2; }"
 `;
 
 exports[`renderPrompt Snapshot Tests rendered prompts should match snapshots C# prompt should match snapshot 1`] = `
-"Act as a senior developer analyzing the code in a legacy application. Based on the the C# code shown below in the section marked 'CODE', return a JSON response that contains:
+"Act as a senior developer analyzing the code in an existing application. Based on the the C# code shown below in the section marked 'CODE', return a JSON response that contains:
 
 __Basic Information__
 The name of the main public class/interface of the file
@@ -670,7 +670,7 @@ public class TestClass {
 `;
 
 exports[`renderPrompt Snapshot Tests rendered prompts should match snapshots Default prompt should match snapshot 1`] = `
-"Act as a senior developer analyzing the code in a legacy application. Based on the the source files shown below in the section marked 'CODE', return a JSON response that contains:
+"Act as a senior developer analyzing the code in an existing application. Based on the the source files shown below in the section marked 'CODE', return a JSON response that contains:
 
 __Basic Information__
 A detailed definition of its purpose
@@ -926,7 +926,7 @@ public class TestClass {
 `;
 
 exports[`renderPrompt Snapshot Tests rendered prompts should match snapshots JSP prompt should match snapshot 1`] = `
-"Act as a senior developer analyzing the code in a legacy application. Based on the the JSP code shown below in the section marked 'CODE', return a JSON response that contains:
+"Act as a senior developer analyzing the code in an existing application. Based on the the JSP code shown below in the section marked 'CODE', return a JSON response that contains:
 
 __Basic Information__
 A detailed definition of its purpose
@@ -1089,7 +1089,7 @@ CODE:
 `;
 
 exports[`renderPrompt Snapshot Tests rendered prompts should match snapshots Java prompt should match snapshot 1`] = `
-"Act as a senior developer analyzing the code in a legacy application. Based on the the JVM code shown below in the section marked 'CODE', return a JSON response that contains:
+"Act as a senior developer analyzing the code in an existing application. Based on the the JVM code shown below in the section marked 'CODE', return a JSON response that contains:
 
 __Basic Information__
 The name of the main public class/interface of the file
@@ -1767,7 +1767,7 @@ public class TestClass {
 `;
 
 exports[`renderPrompt Snapshot Tests rendered prompts should match snapshots JavaScript prompt should match snapshot 1`] = `
-"Act as a senior developer analyzing the code in a legacy application. Based on the the JavaScript/TypeScript code shown below in the section marked 'CODE', return a JSON response that contains:
+"Act as a senior developer analyzing the code in an existing application. Based on the the JavaScript/TypeScript code shown below in the section marked 'CODE', return a JSON response that contains:
 
 __Basic Information__
 The name of the main public class/interface of the file
@@ -2437,7 +2437,7 @@ public class TestClass {
 `;
 
 exports[`renderPrompt Snapshot Tests rendered prompts should match snapshots Markdown prompt should match snapshot 1`] = `
-"Act as a senior developer analyzing the code in a legacy application. Based on the the Markdown documentation shown below in the section marked 'CODE', return a JSON response that contains:
+"Act as a senior developer analyzing the code in an existing application. Based on the the Markdown documentation shown below in the section marked 'CODE', return a JSON response that contains:
 
 __Basic Information__
 A detailed definition of its purpose
@@ -2693,7 +2693,7 @@ Content here\`\`\`
 `;
 
 exports[`renderPrompt Snapshot Tests rendered prompts should match snapshots Python prompt should match snapshot 1`] = `
-"Act as a senior developer analyzing the code in a legacy application. Based on the the Python code shown below in the section marked 'CODE', return a JSON response that contains:
+"Act as a senior developer analyzing the code in an existing application. Based on the the Python code shown below in the section marked 'CODE', return a JSON response that contains:
 
 __Basic Information__
 The name of the main public class/interface of the file
@@ -3347,7 +3347,7 @@ public class TestClass {
 `;
 
 exports[`renderPrompt Snapshot Tests rendered prompts should match snapshots Ruby prompt should match snapshot 1`] = `
-"Act as a senior developer analyzing the code in a legacy application. Based on the the Ruby code shown below in the section marked 'CODE', return a JSON response that contains:
+"Act as a senior developer analyzing the code in an existing application. Based on the the Ruby code shown below in the section marked 'CODE', return a JSON response that contains:
 
 __Basic Information__
 The name of the main public class/interface of the file
@@ -4007,7 +4007,7 @@ public class TestClass {
 `;
 
 exports[`renderPrompt Snapshot Tests rendered prompts should match snapshots SQL prompt should match snapshot 1`] = `
-"Act as a senior developer analyzing the code in a legacy application. Based on the the database DDL/DML/SQL code shown below in the section marked 'CODE', return a JSON response that contains:
+"Act as a senior developer analyzing the code in an existing application. Based on the the database DDL/DML/SQL code shown below in the section marked 'CODE', return a JSON response that contains:
 
 __Basic Information__
 A detailed definition of its purpose
@@ -4338,7 +4338,7 @@ CREATE TABLE test (id INT);\`\`\`
 `;
 
 exports[`renderPrompt Snapshot Tests rendered prompts should match snapshots XML prompt should match snapshot 1`] = `
-"Act as a senior developer analyzing the code in a legacy application. Based on the the XML configuration shown below in the section marked 'CODE', return a JSON response that contains:
+"Act as a senior developer analyzing the code in an existing application. Based on the the XML configuration shown below in the section marked 'CODE', return a JSON response that contains:
 
 __Basic Information__
 A detailed definition of its purpose

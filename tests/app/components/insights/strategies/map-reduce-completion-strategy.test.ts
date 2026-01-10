@@ -912,4 +912,320 @@ describe("MapReduceInsightStrategy", () => {
       }
     });
   });
+
+  describe("combinePartialResultsData schema shape handling", () => {
+    it("should combine flat array results for technologies category", async () => {
+      // Use a smaller token limit to force chunking
+      mockLLMRouter.getLLMManifest = jest.fn().mockReturnValue({
+        models: { primaryCompletion: { maxTotalTokens: 100 } },
+      });
+      strategy = new MapReduceInsightStrategy(mockLLMRouter);
+
+      const longSummary1 = "* file1.ts: " + "implementation ".repeat(50);
+      const longSummary2 = "* file2.ts: " + "implementation ".repeat(50);
+
+      const partialResult1 = {
+        technologies: [{ name: "TypeScript", description: "TypeScript language" }],
+      };
+      const partialResult2 = {
+        technologies: [{ name: "Node.js", description: "Node.js runtime" }],
+      };
+      const consolidatedResult = {
+        technologies: [
+          { name: "TypeScript", description: "TypeScript language" },
+          { name: "Node.js", description: "Node.js runtime" },
+        ],
+      };
+
+      mockLLMRouter.executeCompletion = jest
+        .fn()
+        .mockResolvedValueOnce(ok(partialResult1))
+        .mockResolvedValueOnce(ok(partialResult2))
+        .mockResolvedValueOnce(ok(consolidatedResult));
+
+      const result = await strategy.generateInsights("technologies", [longSummary1, longSummary2]);
+
+      expect(result).toEqual(consolidatedResult);
+      // Verify the reduce phase was called with combined data
+      const reduceCall = mockLLMRouter.executeCompletion.mock.calls[2];
+      const reducePrompt = reduceCall[1];
+      expect(reducePrompt).toContain("TypeScript");
+      expect(reducePrompt).toContain("Node.js");
+    });
+
+    it("should combine nested object results for inferredArchitecture category", async () => {
+      // Use a smaller token limit to force chunking
+      mockLLMRouter.getLLMManifest = jest.fn().mockReturnValue({
+        models: { primaryCompletion: { maxTotalTokens: 100 } },
+      });
+      strategy = new MapReduceInsightStrategy(mockLLMRouter);
+
+      const longSummary1 = "* file1.ts: " + "implementation ".repeat(50);
+      const longSummary2 = "* file2.ts: " + "implementation ".repeat(50);
+
+      const partialResult1 = {
+        inferredArchitecture: {
+          internalComponents: [{ name: "UserManager", description: "Manages users" }],
+          externalDependencies: [{ name: "PostgreSQL", type: "Database", description: "Main DB" }],
+          dependencies: [{ from: "UserManager", to: "PostgreSQL", description: "Stores users" }],
+        },
+      };
+      const partialResult2 = {
+        inferredArchitecture: {
+          internalComponents: [{ name: "OrderManager", description: "Manages orders" }],
+          externalDependencies: [{ name: "Redis", type: "Cache", description: "Cache layer" }],
+          dependencies: [{ from: "OrderManager", to: "Redis", description: "Caches orders" }],
+        },
+      };
+      const consolidatedResult = {
+        inferredArchitecture: {
+          internalComponents: [
+            { name: "UserManager", description: "Manages users" },
+            { name: "OrderManager", description: "Manages orders" },
+          ],
+          externalDependencies: [
+            { name: "PostgreSQL", type: "Database", description: "Main DB" },
+            { name: "Redis", type: "Cache", description: "Cache layer" },
+          ],
+          dependencies: [
+            { from: "UserManager", to: "PostgreSQL", description: "Stores users" },
+            { from: "OrderManager", to: "Redis", description: "Caches orders" },
+          ],
+        },
+      };
+
+      mockLLMRouter.executeCompletion = jest
+        .fn()
+        .mockResolvedValueOnce(ok(partialResult1))
+        .mockResolvedValueOnce(ok(partialResult2))
+        .mockResolvedValueOnce(ok(consolidatedResult));
+
+      const result = await strategy.generateInsights("inferredArchitecture", [
+        longSummary1,
+        longSummary2,
+      ]);
+
+      expect(result).toEqual(consolidatedResult);
+      // Verify the reduce phase was called with all nested arrays merged
+      const reduceCall = mockLLMRouter.executeCompletion.mock.calls[2];
+      const reducePrompt = reduceCall[1];
+      // All components from both partial results should be in the combined data
+      expect(reducePrompt).toContain("UserManager");
+      expect(reducePrompt).toContain("OrderManager");
+      expect(reducePrompt).toContain("PostgreSQL");
+      expect(reducePrompt).toContain("Redis");
+    });
+
+    it("should collect string values into array for appDescription category", async () => {
+      // Use a smaller token limit to force chunking
+      mockLLMRouter.getLLMManifest = jest.fn().mockReturnValue({
+        models: { primaryCompletion: { maxTotalTokens: 100 } },
+      });
+      strategy = new MapReduceInsightStrategy(mockLLMRouter);
+
+      const longSummary1 = "* file1.ts: " + "implementation ".repeat(50);
+      const longSummary2 = "* file2.ts: " + "implementation ".repeat(50);
+
+      const partialResult1 = {
+        appDescription: "This application handles user management and authentication.",
+      };
+      const partialResult2 = {
+        appDescription: "The system also processes orders and payments.",
+      };
+      const consolidatedResult = {
+        appDescription:
+          "This is a comprehensive application that handles user management, authentication, order processing, and payments.",
+      };
+
+      mockLLMRouter.executeCompletion = jest
+        .fn()
+        .mockResolvedValueOnce(ok(partialResult1))
+        .mockResolvedValueOnce(ok(partialResult2))
+        .mockResolvedValueOnce(ok(consolidatedResult));
+
+      const result = await strategy.generateInsights("appDescription", [
+        longSummary1,
+        longSummary2,
+      ]);
+
+      expect(result).toEqual(consolidatedResult);
+      // Verify the reduce phase was called with both descriptions as an array
+      const reduceCall = mockLLMRouter.executeCompletion.mock.calls[2];
+      const reducePrompt = reduceCall[1];
+      expect(reducePrompt).toContain("user management");
+      expect(reducePrompt).toContain("orders and payments");
+    });
+
+    it("should handle empty nested arrays in inferredArchitecture", async () => {
+      // Use a smaller token limit to force chunking
+      mockLLMRouter.getLLMManifest = jest.fn().mockReturnValue({
+        models: { primaryCompletion: { maxTotalTokens: 100 } },
+      });
+      strategy = new MapReduceInsightStrategy(mockLLMRouter);
+
+      const longSummary1 = "* file1.ts: " + "implementation ".repeat(50);
+      const longSummary2 = "* file2.ts: " + "implementation ".repeat(50);
+
+      const partialResult1 = {
+        inferredArchitecture: {
+          internalComponents: [{ name: "UserManager", description: "Manages users" }],
+          externalDependencies: [],
+          dependencies: [],
+        },
+      };
+      const partialResult2 = {
+        inferredArchitecture: {
+          internalComponents: [],
+          externalDependencies: [{ name: "PostgreSQL", type: "Database", description: "Main DB" }],
+          dependencies: [{ from: "UserManager", to: "PostgreSQL", description: "Stores users" }],
+        },
+      };
+      const consolidatedResult = {
+        inferredArchitecture: {
+          internalComponents: [{ name: "UserManager", description: "Manages users" }],
+          externalDependencies: [{ name: "PostgreSQL", type: "Database", description: "Main DB" }],
+          dependencies: [{ from: "UserManager", to: "PostgreSQL", description: "Stores users" }],
+        },
+      };
+
+      mockLLMRouter.executeCompletion = jest
+        .fn()
+        .mockResolvedValueOnce(ok(partialResult1))
+        .mockResolvedValueOnce(ok(partialResult2))
+        .mockResolvedValueOnce(ok(consolidatedResult));
+
+      const result = await strategy.generateInsights("inferredArchitecture", [
+        longSummary1,
+        longSummary2,
+      ]);
+
+      expect(result).toEqual(consolidatedResult);
+      // Verify the reduce phase still received all non-empty arrays
+      const reduceCall = mockLLMRouter.executeCompletion.mock.calls[2];
+      const reducePrompt = reduceCall[1];
+      expect(reducePrompt).toContain("UserManager");
+      expect(reducePrompt).toContain("PostgreSQL");
+    });
+
+    it("should handle multiple chunks for inferredArchitecture with many components", async () => {
+      // Use a smaller token limit to force chunking
+      mockLLMRouter.getLLMManifest = jest.fn().mockReturnValue({
+        models: { primaryCompletion: { maxTotalTokens: 100 } },
+      });
+      strategy = new MapReduceInsightStrategy(mockLLMRouter);
+
+      const longSummary1 = "* file1.ts: " + "implementation ".repeat(50);
+      const longSummary2 = "* file2.ts: " + "implementation ".repeat(50);
+      const longSummary3 = "* file3.ts: " + "implementation ".repeat(50);
+
+      const partialResult1 = {
+        inferredArchitecture: {
+          internalComponents: [{ name: "Component1", description: "Desc1" }],
+          externalDependencies: [{ name: "Dep1", type: "Type1", description: "Desc1" }],
+          dependencies: [{ from: "Component1", to: "Dep1", description: "Uses" }],
+        },
+      };
+      const partialResult2 = {
+        inferredArchitecture: {
+          internalComponents: [{ name: "Component2", description: "Desc2" }],
+          externalDependencies: [{ name: "Dep2", type: "Type2", description: "Desc2" }],
+          dependencies: [{ from: "Component2", to: "Dep2", description: "Uses" }],
+        },
+      };
+      const partialResult3 = {
+        inferredArchitecture: {
+          internalComponents: [{ name: "Component3", description: "Desc3" }],
+          externalDependencies: [{ name: "Dep3", type: "Type3", description: "Desc3" }],
+          dependencies: [{ from: "Component3", to: "Dep3", description: "Uses" }],
+        },
+      };
+      const consolidatedResult = {
+        inferredArchitecture: {
+          internalComponents: [
+            { name: "Component1", description: "Desc1" },
+            { name: "Component2", description: "Desc2" },
+            { name: "Component3", description: "Desc3" },
+          ],
+          externalDependencies: [
+            { name: "Dep1", type: "Type1", description: "Desc1" },
+            { name: "Dep2", type: "Type2", description: "Desc2" },
+            { name: "Dep3", type: "Type3", description: "Desc3" },
+          ],
+          dependencies: [
+            { from: "Component1", to: "Dep1", description: "Uses" },
+            { from: "Component2", to: "Dep2", description: "Uses" },
+            { from: "Component3", to: "Dep3", description: "Uses" },
+          ],
+        },
+      };
+
+      mockLLMRouter.executeCompletion = jest
+        .fn()
+        .mockResolvedValueOnce(ok(partialResult1))
+        .mockResolvedValueOnce(ok(partialResult2))
+        .mockResolvedValueOnce(ok(partialResult3))
+        .mockResolvedValueOnce(ok(consolidatedResult));
+
+      const result = await strategy.generateInsights("inferredArchitecture", [
+        longSummary1,
+        longSummary2,
+        longSummary3,
+      ]);
+
+      expect(result).toEqual(consolidatedResult);
+      // Verify all 3 chunks were processed
+      expect(mockLLMRouter.executeCompletion).toHaveBeenCalledTimes(4);
+      // Verify the reduce phase received all merged data
+      const reduceCall = mockLLMRouter.executeCompletion.mock.calls[3];
+      const reducePrompt = reduceCall[1];
+      expect(reducePrompt).toContain("Component1");
+      expect(reducePrompt).toContain("Component2");
+      expect(reducePrompt).toContain("Component3");
+    });
+
+    it("should filter out empty strings when combining appDescription", async () => {
+      // Use a smaller token limit to force chunking
+      mockLLMRouter.getLLMManifest = jest.fn().mockReturnValue({
+        models: { primaryCompletion: { maxTotalTokens: 100 } },
+      });
+      strategy = new MapReduceInsightStrategy(mockLLMRouter);
+
+      const longSummary1 = "* file1.ts: " + "implementation ".repeat(50);
+      const longSummary2 = "* file2.ts: " + "implementation ".repeat(50);
+      const longSummary3 = "* file3.ts: " + "implementation ".repeat(50);
+
+      const partialResult1 = {
+        appDescription: "This is a user management application.",
+      };
+      const partialResult2 = {
+        appDescription: "", // Empty description
+      };
+      const partialResult3 = {
+        appDescription: "It also handles order processing.",
+      };
+      const consolidatedResult = {
+        appDescription: "A comprehensive user management and order processing application.",
+      };
+
+      mockLLMRouter.executeCompletion = jest
+        .fn()
+        .mockResolvedValueOnce(ok(partialResult1))
+        .mockResolvedValueOnce(ok(partialResult2))
+        .mockResolvedValueOnce(ok(partialResult3))
+        .mockResolvedValueOnce(ok(consolidatedResult));
+
+      const result = await strategy.generateInsights("appDescription", [
+        longSummary1,
+        longSummary2,
+        longSummary3,
+      ]);
+
+      expect(result).toEqual(consolidatedResult);
+      // Verify the reduce phase only received non-empty descriptions
+      const reduceCall = mockLLMRouter.executeCompletion.mock.calls[3];
+      const reducePrompt = reduceCall[1];
+      expect(reducePrompt).toContain("user management");
+      expect(reducePrompt).toContain("order processing");
+    });
+  });
 });

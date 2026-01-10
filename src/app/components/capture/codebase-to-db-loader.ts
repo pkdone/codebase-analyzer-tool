@@ -107,7 +107,6 @@ export default class CodebaseToDBLoader {
       });
     });
     await Promise.allSettled(tasks);
-
     console.log(
       `Processed ${filepaths.length} files. Succeeded: ${successes}, Failed: ${failures}`,
     );
@@ -183,7 +182,6 @@ export default class CodebaseToDBLoader {
     let summary: PartialSourceSummaryType | undefined;
     let summaryError: string | undefined;
     let summaryVector: number[] | undefined;
-
     const summaryResult = await this.fileSummarizer.summarize(filepath, type, content);
 
     if (isOk(summaryResult)) {

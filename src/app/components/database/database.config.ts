@@ -10,10 +10,19 @@ const CONTENT_VECTOR_INDEX_NAME = "contentVector_vector_index";
 const SUMMARY_VECTOR_INDEX_NAME = "summaryVector_vector_index";
 
 /**
+ * Collection type identifiers for index configurations.
+ * Use these constants instead of hardcoded strings.
+ */
+export const COLLECTION_TYPES = {
+  SOURCES: "sources",
+  SUMMARIES: "summaries",
+} as const;
+
+/**
  * Collection type identifier for index configurations.
  * Used to determine which collection an index should be created on.
  */
-export type CollectionType = "sources" | "summaries";
+export type CollectionType = (typeof COLLECTION_TYPES)[keyof typeof COLLECTION_TYPES];
 
 /**
  * Configuration for a standard MongoDB index.
@@ -32,38 +41,38 @@ export interface StandardIndexConfig {
  */
 export const STANDARD_INDEX_CONFIGS: readonly StandardIndexConfig[] = [
   {
-    collection: "sources",
+    collection: COLLECTION_TYPES.SOURCES,
     spec: { [SOURCE_FIELDS.PROJECT_NAME]: 1, [SOURCE_FIELDS.FILEPATH]: 1 },
   },
   {
-    collection: "sources",
+    collection: COLLECTION_TYPES.SOURCES,
     spec: { [SOURCE_FIELDS.PROJECT_NAME]: 1, [SOURCE_FIELDS.TYPE]: 1 },
   },
   {
-    collection: "sources",
+    collection: COLLECTION_TYPES.SOURCES,
     spec: { [SOURCE_FIELDS.PROJECT_NAME]: 1, [SOURCE_FIELDS.CANONICAL_TYPE]: 1 },
   },
   {
-    collection: "sources",
+    collection: COLLECTION_TYPES.SOURCES,
     spec: { [SOURCE_FIELDS.PROJECT_NAME]: 1, [SOURCE_FIELDS.SUMMARY_NAMESPACE]: 1 },
   },
   {
-    collection: "sources",
+    collection: COLLECTION_TYPES.SOURCES,
     spec: { [SOURCE_FIELDS.PROJECT_NAME]: 1, [SOURCE_FIELDS.SUMMARY_PUBLIC_FUNCTIONS]: 1 },
   },
   {
-    collection: "sources",
+    collection: COLLECTION_TYPES.SOURCES,
     spec: { [SOURCE_FIELDS.PROJECT_NAME]: 1, [SOURCE_FIELDS.SUMMARY_INTEGRATION_POINTS]: 1 },
   },
   {
-    collection: "sources",
+    collection: COLLECTION_TYPES.SOURCES,
     spec: {
       [SOURCE_FIELDS.PROJECT_NAME]: 1,
       [SOURCE_FIELDS.SUMMARY_CODE_QUALITY_FILE_SMELLS]: 1,
     },
   },
   {
-    collection: "sources",
+    collection: COLLECTION_TYPES.SOURCES,
     spec: {
       [SOURCE_FIELDS.PROJECT_NAME]: 1,
       [SOURCE_FIELDS.SUMMARY_DB_INTEGRATION]: 1,
@@ -71,7 +80,7 @@ export const STANDARD_INDEX_CONFIGS: readonly StandardIndexConfig[] = [
     },
   },
   {
-    collection: "summaries",
+    collection: COLLECTION_TYPES.SUMMARIES,
     spec: { [SOURCE_FIELDS.PROJECT_NAME]: 1 },
   },
 ] as const;

@@ -19,7 +19,7 @@ describe("Prompt Rendering Refactoring Tests", () => {
 
       // Should contain the intro text directly from the template
       expect(rendered).toContain(
-        "Act as a senior developer analyzing the code in a legacy application",
+        "Act as a senior developer analyzing the code in an existing application",
       );
       // Should contain the contentDesc
       expect(rendered).toContain("the JVM code");

@@ -25,7 +25,7 @@ describe("Template Consolidation", () => {
     it("should render correctly with sources configuration", () => {
       const definition = {
         contentDesc:
-          "Act as a senior developer analyzing the code in a legacy application. Based on JVM code shown below...",
+          "Act as a senior developer analyzing the code in an existing application. Based on JVM code shown below...",
         instructions: ["Extract class name"] as const,
         responseSchema: z.string(),
         template: BASE_PROMPT_TEMPLATE,
@@ -41,7 +41,7 @@ describe("Template Consolidation", () => {
     it("should render correctly with app summary configuration", () => {
       const definition = {
         contentDesc:
-          "Act as a senior developer analyzing the code in a legacy application. Based on source file summaries shown below...",
+          "Act as a senior developer analyzing the code in an existing application. Based on source file summaries shown below...",
         instructions: ["Extract entities"] as const,
         responseSchema: z.string(),
         template: BASE_PROMPT_TEMPLATE,
