@@ -2,8 +2,8 @@ import { z } from "zod";
 import {
   createAppSummaryConfig,
   appSummaryConfigMap,
-  type AppSummaryConfigEntry,
 } from "../../../../../src/app/prompts/definitions/app-summaries/app-summaries.definitions";
+import type { AppSummaryConfigEntry } from "../../../../../src/app/prompts/prompt.types";
 
 /**
  * Unit tests for the createAppSummaryConfig factory function.

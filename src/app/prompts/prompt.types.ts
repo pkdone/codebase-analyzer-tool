@@ -51,6 +51,35 @@ export interface PromptConfigEntry<S extends z.ZodType = z.ZodType> {
   responseSchema: S;
   /** Whether the schema is complex and incompatible with some LLM providers */
   hasComplexSchema?: boolean;
+  /**
+   * Optional override for the data block header.
+   * If not provided, the registry default will be used.
+   */
+  dataBlockHeader?: DataBlockHeader;
+  /**
+   * Optional override for wrapping content in code blocks.
+   * If not provided, the registry default will be used.
+   */
+  wrapInCodeBlock?: boolean;
+}
+
+/**
+ * Configuration entry for an app summary prompt definition.
+ * Extends PromptConfigEntry with an additional required `label` field.
+ *
+ * App summaries require a label for UI display and logging purposes,
+ * which distinguishes them from source configs where labels are optional.
+ *
+ * This interface is generic over the schema type S to preserve specific Zod schema types
+ * through the type system, enabling better type inference for downstream consumers.
+ *
+ * @template S - The Zod schema type for validating the LLM response. Defaults to z.ZodType.
+ */
+export interface AppSummaryConfigEntry<
+  S extends z.ZodType = z.ZodType,
+> extends PromptConfigEntry<S> {
+  /** Label for UI display and logging (required for app summary configs) */
+  label: string;
 }
 
 /**

@@ -9,26 +9,7 @@ import {
 import { CATEGORY_LABELS } from "../../../config/category-labels.config";
 import { APP_SUMMARY_PROMPT_FRAGMENTS } from "./app-summaries.fragments";
 import { z } from "zod";
-import type { PromptConfigEntry } from "../../prompt.types";
-
-/**
- * Configuration entry for an app summary prompt definition.
- * Extends PromptConfigEntry with an additional required `label` field.
- *
- * App summaries require a label for UI display and logging purposes,
- * which distinguishes them from source configs where labels are optional.
- *
- * This interface is generic over the schema type S to preserve specific Zod schema types
- * through the type system, enabling better type inference for downstream consumers.
- *
- * @template S - The Zod schema type for validating the LLM response. Defaults to z.ZodType for backward compatibility.
- */
-export interface AppSummaryConfigEntry<
-  S extends z.ZodType = z.ZodType,
-> extends PromptConfigEntry<S> {
-  /** Label for UI display and logging (required for app summary configs) */
-  label: string;
-}
+import type { AppSummaryConfigEntry } from "../../prompt.types";
 
 /**
  * Default content description for app summary prompts.

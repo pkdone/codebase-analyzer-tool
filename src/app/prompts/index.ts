@@ -17,6 +17,7 @@ export {
   type PromptDefinition,
   type DataBlockHeader,
   type PromptConfigEntry,
+  type AppSummaryConfigEntry,
 } from "./prompt.types";
 
 // Templates
@@ -31,7 +32,6 @@ export {
 export {
   appSummaryConfigMap,
   createAppSummaryConfig,
-  type AppSummaryConfigEntry,
 } from "./definitions/app-summaries/app-summaries.definitions";
 export {
   sourceConfigMap,

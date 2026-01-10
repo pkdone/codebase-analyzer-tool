@@ -53,9 +53,13 @@ interface CreatePromptMetadataOptions {
  * Reads contentDesc, instructions, and responseSchema directly from the config entries.
  * The factory is a pure data mapper that transforms config entries into PromptDefinition objects.
  *
+ * Config-level values for dataBlockHeader and wrapInCodeBlock take precedence over
+ * the options-level defaults, enabling per-prompt customization while maintaining
+ * group-level defaults.
+ *
  * @param configMap - The configuration map (e.g., sourceConfigMap, appSummaryConfigMap)
  * @param template - The template string to use for all prompts
- * @param options - Optional settings for dataBlockHeader and wrapInCodeBlock
+ * @param options - Optional settings for default dataBlockHeader and wrapInCodeBlock
  * @returns A record mapping keys to PromptDefinition objects with preserved schema types
  */
 export function createPromptMetadata<TConfigMap extends Record<string, PromptConfigEntry>>(
@@ -63,10 +67,14 @@ export function createPromptMetadata<TConfigMap extends Record<string, PromptCon
   template: string,
   options: CreatePromptMetadataOptions = {},
 ): PromptMetadataResult<TConfigMap> {
-  const { dataBlockHeader = DATA_BLOCK_HEADERS.FILE_SUMMARIES, wrapInCodeBlock = false } = options;
+  const defaultHeader = options.dataBlockHeader ?? DATA_BLOCK_HEADERS.FILE_SUMMARIES;
+  const defaultWrap = options.wrapInCodeBlock ?? false;
   return Object.fromEntries(
     Object.entries(configMap).map(([key, config]) => {
       const typedConfig = config as TConfigMap[keyof TConfigMap];
+      // Config-level values take precedence over options-level defaults
+      const dataBlockHeader = typedConfig.dataBlockHeader ?? defaultHeader;
+      const wrapInCodeBlock = typedConfig.wrapInCodeBlock ?? defaultWrap;
       const definition: PromptDefinition = {
         label: typedConfig.label,
         contentDesc: typedConfig.contentDesc,
