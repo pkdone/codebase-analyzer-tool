@@ -5,21 +5,11 @@
 import {
   executePipeline,
   createPipeline,
-  createEmptyResult,
   toSanitizerResult,
   type SanitizerStrategy,
 } from "../../../../../../src/common/llm/json-processing/sanitizers/pipeline";
 
 describe("sanitizer-pipeline", () => {
-  describe("createEmptyResult", () => {
-    it("should create a result with unchanged content", () => {
-      const result = createEmptyResult("test content");
-      expect(result.content).toBe("test content");
-      expect(result.changed).toBe(false);
-      expect(result.diagnostics).toEqual([]);
-    });
-  });
-
   describe("executePipeline", () => {
     it("should return unchanged result for empty input", () => {
       const mockStrategy: SanitizerStrategy = {

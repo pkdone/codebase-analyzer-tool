@@ -5,24 +5,8 @@
 
 import type { LLMSanitizerConfig } from "../../../config/llm-module-config.types";
 import { logWarn } from "../../../../utils/logging";
-import type {
-  SanitizerStrategy,
-  PipelineConfig,
-  PipelineResult,
-  StrategyResult,
-} from "./sanitizer-pipeline.types";
+import type { SanitizerStrategy, PipelineConfig, PipelineResult } from "./sanitizer-pipeline.types";
 import { DEFAULT_PIPELINE_CONFIG } from "./sanitizer-pipeline.types";
-
-/**
- * Creates an empty strategy result for use as an initial value or error fallback.
- */
-export function createEmptyResult(content: string): StrategyResult {
-  return {
-    content,
-    changed: false,
-    diagnostics: [],
-  };
-}
 
 /**
  * Executes a pipeline of sanitizer strategies in sequence.

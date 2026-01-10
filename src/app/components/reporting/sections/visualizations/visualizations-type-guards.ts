@@ -39,9 +39,7 @@ type BusinessActivity = NonNullable<BusinessProcessData["keyBusinessActivities"]
  * Safely extracts keyBusinessActivities from an item.
  * Returns the activities if valid, otherwise returns an empty array.
  */
-export function extractKeyBusinessActivities(
-  item: AppSummaryNameDescArray[0],
-): BusinessActivity[] {
+export function extractKeyBusinessActivities(item: AppSummaryNameDescArray[0]): BusinessActivity[] {
   const result = businessProcessDataSchema.safeParse(item);
   return result.success ? (result.data.keyBusinessActivities ?? []) : [];
 }

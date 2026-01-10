@@ -19,4 +19,3 @@ export const DIAGRAM_STYLES = {
   /** Text color for empty diagram placeholder messages */
   emptyDiagramTextColor: "#8b95a1",
 } as const;
-
