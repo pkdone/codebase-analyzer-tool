@@ -82,7 +82,7 @@ describe("IErrorLogger Interface", () => {
       const context: LLMContext = {
         resource: "test.ts",
         purpose: "completions" as const,
-        modelQuality: "primary" as const,
+        modelTier: "primary" as const,
       };
 
       await mockLogger.recordJsonProcessingError(error, content, context);

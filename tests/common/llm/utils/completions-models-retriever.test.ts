@@ -6,7 +6,7 @@ import {
 } from "../../../../src/common/llm/utils/completions-models-retriever";
 import {
   LLMProvider,
-  LLMModelQuality,
+  LLMModelTier,
   LLMCandidateFunction,
   LLMFunction,
   LLMEmbeddingFunction,
@@ -32,9 +32,9 @@ describe("completions-models-retriever", () => {
           primaryCompletion: "test-primary",
           secondaryCompletion: "test-secondary",
         })),
-        getAvailableCompletionModelQualities: jest.fn(() => [
-          LLMModelQuality.PRIMARY,
-          LLMModelQuality.SECONDARY,
+        getAvailableCompletionModelTiers: jest.fn(() => [
+          LLMModelTier.PRIMARY,
+          LLMModelTier.SECONDARY,
         ]),
         getEmbeddingModelDimensions: jest.fn(() => 1536),
         getModelFamily: jest.fn(() => "test-family"),
@@ -46,9 +46,9 @@ describe("completions-models-retriever", () => {
       const candidates = buildCompletionCandidates(mockLLM);
 
       expect(candidates).toHaveLength(2);
-      expect(candidates[0].modelQuality).toBe(LLMModelQuality.PRIMARY);
+      expect(candidates[0].modelTier).toBe(LLMModelTier.PRIMARY);
       expect(candidates[0].description).toBe("Primary completion model");
-      expect(candidates[1].modelQuality).toBe(LLMModelQuality.SECONDARY);
+      expect(candidates[1].modelTier).toBe(LLMModelTier.SECONDARY);
       expect(candidates[1].description).toBe("Secondary completion model (fallback)");
 
       // Verify that the functions are bound methods (not wrapped async functions)
@@ -66,7 +66,7 @@ describe("completions-models-retriever", () => {
           embeddings: "test-embeddings",
           primaryCompletion: "test-primary",
         })),
-        getAvailableCompletionModelQualities: jest.fn(() => [LLMModelQuality.PRIMARY]),
+        getAvailableCompletionModelTiers: jest.fn(() => [LLMModelTier.PRIMARY]),
         getEmbeddingModelDimensions: jest.fn(() => 1536),
         getModelFamily: jest.fn(() => "test-family"),
         getModelsMetadata: jest.fn(() => ({})),
@@ -77,7 +77,7 @@ describe("completions-models-retriever", () => {
       const candidates = buildCompletionCandidates(mockLLM);
 
       expect(candidates).toHaveLength(1);
-      expect(candidates[0].modelQuality).toBe(LLMModelQuality.PRIMARY);
+      expect(candidates[0].modelTier).toBe(LLMModelTier.PRIMARY);
     });
 
     test("should preserve type information in bound methods", async () => {
@@ -104,7 +104,7 @@ describe("completions-models-retriever", () => {
           embeddings: "test-embeddings",
           primaryCompletion: "test-primary",
         })),
-        getAvailableCompletionModelQualities: jest.fn(() => [LLMModelQuality.PRIMARY]),
+        getAvailableCompletionModelTiers: jest.fn(() => [LLMModelTier.PRIMARY]),
         getEmbeddingModelDimensions: jest.fn(() => 1536),
         getModelFamily: jest.fn(() => "test-family"),
         getModelsMetadata: jest.fn(() => ({})),
@@ -131,24 +131,24 @@ describe("completions-models-retriever", () => {
   });
 
   describe("getOverriddenCompletionCandidates", () => {
-    test("should filter candidates by model quality override", () => {
+    test("should filter candidates by model tier override", () => {
       const candidates: LLMCandidateFunction[] = [
         {
           func: jest.fn() as LLMFunction,
-          modelQuality: LLMModelQuality.PRIMARY,
+          modelTier: LLMModelTier.PRIMARY,
           description: "Primary",
         },
         {
           func: jest.fn() as LLMFunction,
-          modelQuality: LLMModelQuality.SECONDARY,
+          modelTier: LLMModelTier.SECONDARY,
           description: "Secondary",
         },
       ];
 
-      const result = getOverriddenCompletionCandidates(candidates, LLMModelQuality.SECONDARY);
+      const result = getOverriddenCompletionCandidates(candidates, LLMModelTier.SECONDARY);
 
       expect(result.candidatesToUse).toHaveLength(1);
-      expect(result.candidatesToUse[0].modelQuality).toBe(LLMModelQuality.SECONDARY);
+      expect(result.candidatesToUse[0].modelTier).toBe(LLMModelTier.SECONDARY);
       expect(result.candidateFunctions).toHaveLength(1);
     });
 
@@ -156,12 +156,12 @@ describe("completions-models-retriever", () => {
       const candidates: LLMCandidateFunction[] = [
         {
           func: jest.fn() as LLMFunction,
-          modelQuality: LLMModelQuality.PRIMARY,
+          modelTier: LLMModelTier.PRIMARY,
           description: "Primary",
         },
         {
           func: jest.fn() as LLMFunction,
-          modelQuality: LLMModelQuality.SECONDARY,
+          modelTier: LLMModelTier.SECONDARY,
           description: "Secondary",
         },
       ];
@@ -176,14 +176,14 @@ describe("completions-models-retriever", () => {
       const candidates: LLMCandidateFunction[] = [
         {
           func: jest.fn() as LLMFunction,
-          modelQuality: LLMModelQuality.PRIMARY,
+          modelTier: LLMModelTier.PRIMARY,
           description: "Primary",
         },
       ];
 
       expect(() => {
-        getOverriddenCompletionCandidates(candidates, LLMModelQuality.SECONDARY);
-      }).toThrow("No completion candidates found for model quality: secondary");
+        getOverriddenCompletionCandidates(candidates, LLMModelTier.SECONDARY);
+      }).toThrow("No completion candidates found for model tier: secondary");
     });
 
     test("should throw error when no candidates available", () => {
@@ -200,12 +200,12 @@ describe("completions-models-retriever", () => {
       const candidates: LLMCandidateFunction[] = [
         {
           func: func1,
-          modelQuality: LLMModelQuality.PRIMARY,
+          modelTier: LLMModelTier.PRIMARY,
           description: "Primary",
         },
         {
           func: func2,
-          modelQuality: LLMModelQuality.SECONDARY,
+          modelTier: LLMModelTier.SECONDARY,
           description: "Secondary",
         },
       ];

@@ -4,7 +4,7 @@ import { repositoryTokens } from "../../../../src/app/di/tokens";
 import { reportingTokens } from "../../../../src/app/di/tokens";
 import { SourcesRepository } from "../../../../src/app/repositories/sources/sources.repository.interface";
 import { AppSummariesRepository } from "../../../../src/app/repositories/app-summaries/app-summaries.repository.interface";
-import { ServerSideUiDataProvider } from "../../../../src/app/components/reporting/sections/quality-metrics/ui-data-provider";
+import { ServerSideUiDataProvider } from "../../../../src/app/components/reporting/sections/quality-metrics/server-side-ui-data-provider";
 import { SourceRecord } from "../../../../src/app/repositories/sources/sources.model";
 import {
   setupTestDatabase,

@@ -2,7 +2,7 @@ import {
   LLMPurpose,
   LLMResponseStatus,
   LLMProvider,
-  LLMModelQuality,
+  LLMModelTier,
   ResolvedLLMModelMetadata,
   LLMResponseTokensUsage,
   LLMOutputFormat,
@@ -119,9 +119,9 @@ describe("LLM Router tests", () => {
         primaryCompletion: "GPT-4",
         secondaryCompletion: "GPT-3.5 Turbo",
       })),
-      getAvailableCompletionModelQualities: jest.fn(() => [
-        LLMModelQuality.PRIMARY,
-        LLMModelQuality.SECONDARY,
+      getAvailableCompletionModelTiers: jest.fn(() => [
+        LLMModelTier.PRIMARY,
+        LLMModelTier.SECONDARY,
       ]),
       getEmbeddingModelDimensions: jest.fn(() => 1536),
       getModelFamily: jest.fn(() => "OpenAI GPT"),
@@ -611,7 +611,7 @@ describe("LLM Router tests", () => {
       );
     });
 
-    test("should use model quality override", async () => {
+    test("should use model tier override", async () => {
       const { router, mockProvider } = createLLMRouter();
       const mockCompletion = "This is a test completion";
       (mockProvider.executeCompletionSecondary as any).mockResolvedValue({
@@ -629,7 +629,7 @@ describe("LLM Router tests", () => {
           outputFormat: LLMOutputFormat.JSON,
           jsonSchema: z.record(z.unknown()),
         },
-        LLMModelQuality.SECONDARY,
+        LLMModelTier.SECONDARY,
       );
 
       expect(isOk(result)).toBe(true);

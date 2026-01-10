@@ -9,7 +9,7 @@ import {
   LLMPurpose,
   LLMResponseStatus,
   LLMProvider,
-  LLMModelQuality,
+  LLMModelTier,
   ResolvedLLMModelMetadata,
   LLMOutputFormat,
   ShutdownBehavior,
@@ -84,9 +84,9 @@ describe("LLMRouter Type Preservation Tests", () => {
         primaryCompletion: "GPT-4",
         secondaryCompletion: "GPT-3.5 Turbo",
       })),
-      getAvailableCompletionModelQualities: jest.fn(() => [
-        LLMModelQuality.PRIMARY,
-        LLMModelQuality.SECONDARY,
+      getAvailableCompletionModelTiers: jest.fn(() => [
+        LLMModelTier.PRIMARY,
+        LLMModelTier.SECONDARY,
       ]),
       getEmbeddingModelDimensions: jest.fn(() => 1536),
       getModelFamily: jest.fn(() => "OpenAI GPT"),

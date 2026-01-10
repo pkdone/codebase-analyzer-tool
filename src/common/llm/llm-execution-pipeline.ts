@@ -9,7 +9,7 @@ import type {
 import { LLMResponseStatus } from "./types/llm.types";
 import type { LLMRetryConfig } from "./providers/llm-provider.types";
 import { RetryStrategy } from "./strategies/retry-strategy";
-import { determineNextAction } from "./strategies/fallback-strategy";
+import { determineNextAction } from "./strategies/fallback-decision";
 import { adaptPromptFromResponse } from "./strategies/prompt-adaptation-strategy";
 import LLMTelemetryTracker from "./tracking/llm-telemetry-tracker";
 import { hasSignificantSanitizationSteps } from "./json-processing/sanitizers";
@@ -78,7 +78,7 @@ export class LLMExecutionPipeline {
     } = params;
 
     try {
-      const result = await this.iterateOverLLMFunctions(
+      const result = await this.tryFallbackChain(
         resourceName,
         content,
         context,
@@ -149,8 +149,7 @@ export class LLMExecutionPipeline {
   }
 
   /**
-   * Iterates through available LLM functions, attempting each until successful completion
-   * or all options are exhausted.
+   * Tries each LLM function in the fallback chain until one succeeds or all are exhausted.
    *
    * This unified method works for both completions and embeddings:
    * - Completions with multiple functions: Full fallback support
@@ -158,7 +157,7 @@ export class LLMExecutionPipeline {
    *
    * Generic over the response data type T.
    */
-  private async iterateOverLLMFunctions<T extends LLMGeneratedContent>(
+  private async tryFallbackChain<T extends LLMGeneratedContent>(
     resourceName: string,
     initialContent: string,
     context: LLMContext,
@@ -216,7 +215,7 @@ export class LLMExecutionPipeline {
 
       if (nextAction.shouldSwitchToNextLLM) {
         if (candidateModels && llmFunctionIndex + 1 < candidateModels.length) {
-          context.modelQuality = candidateModels[llmFunctionIndex + 1].modelQuality;
+          context.modelTier = candidateModels[llmFunctionIndex + 1].modelTier;
         }
 
         this.llmStats.recordSwitch();

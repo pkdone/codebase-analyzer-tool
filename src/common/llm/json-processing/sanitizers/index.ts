@@ -10,7 +10,7 @@ export { normalizeCharacters } from "./normalize-characters.js";
 export { removeComments } from "./remove-comments.js";
 export { fixJsonStructure } from "./fix-json-structure.js";
 export { unifiedSyntaxSanitizer } from "./unified-syntax-sanitizer.js";
-export { fixLlmTokenArtifacts } from "./fix-binary-corruption-patterns.js";
+export { fixLlmTokenArtifacts } from "./fix-llm-token-artifacts.js";
 export { fixHeuristicJsonErrors } from "./fix-heuristic-json-errors.js";
 export { fixMalformedJsonPatterns } from "./fix-malformed-json-patterns.js";
 

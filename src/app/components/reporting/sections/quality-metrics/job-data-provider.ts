@@ -11,11 +11,11 @@ import { extractTriggerType } from "./job-trigger-parser";
 type ScheduledJobItem = ScheduledJobsSummary["jobs"][0];
 
 /**
- * Data provider responsible for aggregating scheduled tasks and batch processes from script files.
- * Identifies scheduled tasks (cron, task scheduler), shell scripts, JCL, and other automated processes.
+ * Data provider responsible for aggregating scheduled jobs and batch processes from script files.
+ * Identifies scheduled jobs (cron, task scheduler), shell scripts, JCL, and other automated processes.
  */
 @injectable()
-export class ScheduledTaskDataProvider {
+export class ScheduledJobDataProvider {
   constructor(
     @inject(repositoryTokens.SourcesRepository)
     private readonly sourcesRepository: SourcesRepository,

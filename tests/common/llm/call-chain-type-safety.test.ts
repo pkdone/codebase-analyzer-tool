@@ -5,7 +5,7 @@ import {
   LLMOutputFormat,
   LLMPurpose,
   LLMResponseStatus,
-  LLMModelQuality,
+  LLMModelTier,
   type LLMFunctionResponse,
   type LLMContext,
 } from "../../../src/common/llm/types/llm.types";
@@ -28,7 +28,7 @@ describe("LLM Call Chain Type Safety", () => {
   const mockContext: LLMContext = {
     resource: "test-resource",
     purpose: LLMPurpose.COMPLETIONS,
-    modelQuality: LLMModelQuality.PRIMARY,
+    modelTier: LLMModelTier.PRIMARY,
     outputFormat: LLMOutputFormat.JSON,
   };
 

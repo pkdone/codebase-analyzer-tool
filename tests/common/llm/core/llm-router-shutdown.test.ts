@@ -54,7 +54,7 @@ describe("LLMRouter Shutdown Behavior", () => {
         maxRetryDelayMillis: 5000,
       },
       implementation: class MockProvider {
-        getAvailableCompletionModelQualities() {
+        getAvailableCompletionModelTiers() {
           return ["primary"];
         }
         getModelsNames() {
@@ -137,7 +137,7 @@ describe("LLMRouter Shutdown Behavior", () => {
         maxRetryDelayMillis: 5000,
       },
       implementation: class MockProviderForced {
-        getAvailableCompletionModelQualities() {
+        getAvailableCompletionModelTiers() {
           return ["primary"];
         }
         getModelsNames() {
@@ -222,7 +222,7 @@ describe("LLMRouter Shutdown Behavior", () => {
         maxRetryDelayMillis: 5000,
       },
       implementation: class MockProviderNoForced {
-        getAvailableCompletionModelQualities() {
+        getAvailableCompletionModelTiers() {
           return ["primary"];
         }
         getModelsNames() {

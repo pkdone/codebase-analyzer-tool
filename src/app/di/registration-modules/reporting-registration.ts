@@ -17,14 +17,14 @@ import { CategorizedSectionDataBuilder } from "../../components/reporting/sectio
 import { DomainModelDataProvider } from "../../components/reporting/sections/visualizations/domain-model-data-provider";
 import { BomDataProvider } from "../../components/reporting/sections/quality-metrics/bom-data-provider";
 import { CodeQualityDataProvider } from "../../components/reporting/sections/quality-metrics/code-quality-data-provider";
-import { ScheduledTaskDataProvider } from "../../components/reporting/sections/quality-metrics/job-data-provider";
+import { ScheduledJobDataProvider } from "../../components/reporting/sections/quality-metrics/job-data-provider";
 import { ModuleCouplingDataProvider } from "../../components/reporting/sections/quality-metrics/module-coupling-data-provider";
-import { ServerSideUiDataProvider } from "../../components/reporting/sections/quality-metrics/ui-data-provider";
+import { ServerSideUiDataProvider } from "../../components/reporting/sections/quality-metrics/server-side-ui-data-provider";
 import AppReportGenerator from "../../components/reporting/app-report-generator";
 import { FileTypesSection } from "../../components/reporting/sections/file-types/file-types-section";
 import { DatabaseSection } from "../../components/reporting/sections/database/database-section";
 import { IntegrationPointsSection } from "../../components/reporting/sections/integration-points/integration-points-section";
-import { ArchitectureAndDomainSection } from "../../components/reporting/sections/visualizations/visualizations-section";
+import { ArchitectureAndDomainSection } from "../../components/reporting/sections/visualizations/architecture-and-domain-section";
 import { QualityMetricsSection } from "../../components/reporting/sections/quality-metrics/quality-metrics-section";
 
 /**
@@ -69,7 +69,7 @@ export function registerReportingComponents(): void {
   container.registerSingleton(reportingTokens.AppReportGenerator, AppReportGenerator);
   container.registerSingleton(reportingTokens.BomDataProvider, BomDataProvider);
   container.registerSingleton(reportingTokens.CodeQualityDataProvider, CodeQualityDataProvider);
-  container.registerSingleton(reportingTokens.ScheduledTaskDataProvider, ScheduledTaskDataProvider);
+  container.registerSingleton(reportingTokens.ScheduledJobDataProvider, ScheduledJobDataProvider);
   container.registerSingleton(
     reportingTokens.ModuleCouplingDataProvider,
     ModuleCouplingDataProvider,

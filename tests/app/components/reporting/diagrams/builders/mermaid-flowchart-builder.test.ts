@@ -127,7 +127,6 @@ describe("MermaidFlowchartBuilder", () => {
 
       expect(result).toContain("#lt;with#gt;");
     });
-
   });
 
   describe("style application", () => {
@@ -139,7 +138,6 @@ describe("MermaidFlowchartBuilder", () => {
 
       expect(result).toContain("class svc service");
     });
-
   });
 
   describe("subgraph creation", () => {

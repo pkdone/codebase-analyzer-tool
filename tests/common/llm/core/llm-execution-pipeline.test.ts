@@ -10,7 +10,7 @@ import {
   LLMOutputFormat,
   LLMFunctionResponse,
   BoundLLMFunction,
-  LLMModelQuality,
+  LLMModelTier,
   LLMGeneratedContent,
 } from "../../../../src/common/llm/types/llm.types";
 import { SANITIZATION_STEP } from "../../../../src/common/llm/json-processing/sanitizers";
@@ -306,7 +306,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
       const context: LLMContext = {
         resource: "test-resource",
         purpose: LLMPurpose.COMPLETIONS,
-        modelQuality: LLMModelQuality.PRIMARY,
+        modelTier: LLMModelTier.PRIMARY,
         outputFormat: LLMOutputFormat.JSON,
       };
 
@@ -331,7 +331,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         expect(result.error.context).toEqual(context);
         expect(result.error.context?.resource).toBe("test-resource");
         expect(result.error.context?.purpose).toBe(LLMPurpose.COMPLETIONS);
-        expect(result.error.context?.modelQuality).toBe(LLMModelQuality.PRIMARY);
+        expect(result.error.context?.modelTier).toBe(LLMModelTier.PRIMARY);
         expect(result.error.context?.outputFormat).toBe(LLMOutputFormat.JSON);
       }
     });
@@ -347,7 +347,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
       const context: LLMContext = {
         resource: "failed-resource",
         purpose: LLMPurpose.COMPLETIONS,
-        modelQuality: LLMModelQuality.SECONDARY,
+        modelTier: LLMModelTier.SECONDARY,
       };
 
       const result = await pipeline.execute({
@@ -371,7 +371,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         expect(result.error.context).toEqual(context);
         expect(result.error.context?.resource).toBe("failed-resource");
         expect(result.error.context?.purpose).toBe(LLMPurpose.COMPLETIONS);
-        expect(result.error.context?.modelQuality).toBe(LLMModelQuality.SECONDARY);
+        expect(result.error.context?.modelTier).toBe(LLMModelTier.SECONDARY);
       }
     });
 
@@ -414,7 +414,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
       }
     });
 
-    test("should return LLMExecutionError with typed context and cause when iterateOverLLMFunctions throws", async () => {
+    test("should return LLMExecutionError with typed context and cause when tryFallbackChain throws", async () => {
       const context: LLMContext = {
         resource: "direct-exception-resource",
         purpose: LLMPurpose.COMPLETIONS,

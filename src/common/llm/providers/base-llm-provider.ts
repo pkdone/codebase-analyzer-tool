@@ -1,6 +1,6 @@
 import { z } from "zod";
 import {
-  LLMModelQuality,
+  LLMModelTier,
   LLMContext,
   LLMPurpose,
   LLMProvider,
@@ -74,12 +74,12 @@ export default abstract class BaseLLMProvider implements LLMProvider {
   }
 
   /**
-   * Get the model key for the embeddings model.
+   * Get the available model tiers for completions.
    */
-  getAvailableCompletionModelQualities(): LLMModelQuality[] {
+  getAvailableCompletionModelTiers(): LLMModelTier[] {
     return [
-      LLMModelQuality.PRIMARY,
-      ...(this.modelsKeys.secondaryCompletionModelKey ? [LLMModelQuality.SECONDARY] : []),
+      LLMModelTier.PRIMARY,
+      ...(this.modelsKeys.secondaryCompletionModelKey ? [LLMModelTier.SECONDARY] : []),
     ];
   }
 

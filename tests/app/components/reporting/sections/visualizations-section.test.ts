@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import { ArchitectureAndDomainSection } from "../../../../../src/app/components/reporting/sections/visualizations/visualizations-section";
+import { ArchitectureAndDomainSection } from "../../../../../src/app/components/reporting/sections/visualizations/architecture-and-domain-section";
 import { DomainModelDataProvider } from "../../../../../src/app/components/reporting/sections/visualizations/domain-model-data-provider";
 import {
   FlowchartDiagramGenerator,

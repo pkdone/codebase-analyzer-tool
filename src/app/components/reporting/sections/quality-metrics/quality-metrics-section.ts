@@ -3,9 +3,9 @@ import type { ReportSection } from "../report-section.interface";
 import { reportingTokens } from "../../../../di/tokens";
 import { BomDataProvider } from "./bom-data-provider";
 import { CodeQualityDataProvider } from "./code-quality-data-provider";
-import { ScheduledTaskDataProvider } from "./job-data-provider";
+import { ScheduledJobDataProvider } from "./job-data-provider";
 import { ModuleCouplingDataProvider } from "./module-coupling-data-provider";
-import { ServerSideUiDataProvider } from "./ui-data-provider";
+import { ServerSideUiDataProvider } from "./server-side-ui-data-provider";
 import type { PreparedHtmlReportData } from "../../html-report-writer";
 import type { PreparedJsonData } from "../../json-report-writer";
 import type { ReportData } from "../../report-data.types";
@@ -20,8 +20,8 @@ export class QualityMetricsSection implements ReportSection {
     @inject(reportingTokens.BomDataProvider) private readonly bomDataProvider: BomDataProvider,
     @inject(reportingTokens.CodeQualityDataProvider)
     private readonly codeQualityDataProvider: CodeQualityDataProvider,
-    @inject(reportingTokens.ScheduledTaskDataProvider)
-    private readonly scheduledTaskDataProvider: ScheduledTaskDataProvider,
+    @inject(reportingTokens.ScheduledJobDataProvider)
+    private readonly scheduledJobDataProvider: ScheduledJobDataProvider,
     @inject(reportingTokens.ModuleCouplingDataProvider)
     private readonly moduleCouplingDataProvider: ModuleCouplingDataProvider,
     @inject(reportingTokens.ServerSideUiDataProvider)
@@ -42,7 +42,7 @@ export class QualityMetricsSection implements ReportSection {
     ] = await Promise.all([
       this.bomDataProvider.getBillOfMaterials(projectName),
       this.codeQualityDataProvider.getCodeQualitySummary(projectName),
-      this.scheduledTaskDataProvider.getScheduledJobsSummary(projectName),
+      this.scheduledJobDataProvider.getScheduledJobsSummary(projectName),
       this.moduleCouplingDataProvider.getModuleCoupling(projectName),
       this.serverSideUiDataProvider.getUiTechnologyAnalysis(projectName),
     ]);

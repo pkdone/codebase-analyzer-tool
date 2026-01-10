@@ -30,7 +30,7 @@ export interface LLMProvider {
     primaryCompletion: string;
     secondaryCompletion?: string;
   };
-  getAvailableCompletionModelQualities(): LLMModelQuality[];
+  getAvailableCompletionModelTiers(): LLMModelTier[];
   getEmbeddingModelDimensions(): number | undefined;
   getModelFamily(): string;
   getModelsMetadata(): Readonly<Record<string, ResolvedLLMModelMetadata>>;
@@ -43,13 +43,13 @@ export interface LLMProvider {
 }
 
 /**
- * Enum to define the model quality required (primary, secondary)
+ * Enum to define the model tier (primary or secondary) for fallback chain positioning
  */
-export const LLMModelQuality = {
+export const LLMModelTier = {
   PRIMARY: "primary",
   SECONDARY: "secondary",
 } as const;
-export type LLMModelQuality = (typeof LLMModelQuality)[keyof typeof LLMModelQuality];
+export type LLMModelTier = (typeof LLMModelTier)[keyof typeof LLMModelTier];
 
 /**
  * Enum to define the shutdown behavior required by an LLM provider.
@@ -168,8 +168,8 @@ export interface LLMContext {
   resource: string;
   /** The LLM purpose (embeddings or completions) */
   purpose: LLMPurpose;
-  /** The model quality being used (primary or secondary) */
-  modelQuality?: LLMModelQuality;
+  /** The model tier being used (primary or secondary) */
+  modelTier?: LLMModelTier;
   /** The desired output format */
   outputFormat?: LLMOutputFormat;
   /** Error text when JSON parsing / validating fails during response processing */
@@ -403,7 +403,7 @@ export type BoundLLMFunction<T> = (
  */
 export interface LLMCandidateFunction {
   readonly func: LLMFunction;
-  readonly modelQuality: LLMModelQuality;
+  readonly modelTier: LLMModelTier;
   readonly description: string;
 }
 

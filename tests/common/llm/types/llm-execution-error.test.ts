@@ -3,7 +3,7 @@ import { LLMExecutionError } from "../../../../src/common/llm/types/llm-executio
 import {
   LLMContext,
   LLMPurpose,
-  LLMModelQuality,
+  LLMModelTier,
   LLMOutputFormat,
 } from "../../../../src/common/llm/types/llm.types";
 
@@ -13,7 +13,7 @@ describe("LLMExecutionError", () => {
       const context: LLMContext = {
         resource: "test-resource",
         purpose: LLMPurpose.COMPLETIONS,
-        modelQuality: LLMModelQuality.PRIMARY,
+        modelTier: LLMModelTier.PRIMARY,
         outputFormat: LLMOutputFormat.JSON,
       };
       const cause = new Error("Original error");
@@ -55,7 +55,7 @@ describe("LLMExecutionError", () => {
       const context: LLMContext = {
         resource: "test-resource",
         purpose: LLMPurpose.COMPLETIONS,
-        modelQuality: LLMModelQuality.SECONDARY,
+        modelTier: LLMModelTier.SECONDARY,
         outputFormat: LLMOutputFormat.TEXT,
         responseContentParseError: "Failed to parse JSON",
       };
@@ -65,7 +65,7 @@ describe("LLMExecutionError", () => {
       expect(error.context).toEqual(context);
       expect(error.context?.resource).toBe("test-resource");
       expect(error.context?.purpose).toBe(LLMPurpose.COMPLETIONS);
-      expect(error.context?.modelQuality).toBe(LLMModelQuality.SECONDARY);
+      expect(error.context?.modelTier).toBe(LLMModelTier.SECONDARY);
       expect(error.context?.outputFormat).toBe(LLMOutputFormat.TEXT);
       expect(error.context?.responseContentParseError).toBe("Failed to parse JSON");
     });
@@ -76,7 +76,7 @@ describe("LLMExecutionError", () => {
       const context: LLMContext = {
         resource: "test-resource",
         purpose: LLMPurpose.COMPLETIONS,
-        modelQuality: LLMModelQuality.PRIMARY,
+        modelTier: LLMModelTier.PRIMARY,
       };
 
       const error = new LLMExecutionError("Test error message", "test-resource", context);
@@ -85,11 +85,11 @@ describe("LLMExecutionError", () => {
       if (error.context) {
         const resource: string = error.context.resource;
         const purpose: LLMPurpose = error.context.purpose;
-        const modelQuality: LLMModelQuality | undefined = error.context.modelQuality;
+        const modelTier: LLMModelTier | undefined = error.context.modelTier;
 
         expect(resource).toBe("test-resource");
         expect(purpose).toBe(LLMPurpose.COMPLETIONS);
-        expect(modelQuality).toBe(LLMModelQuality.PRIMARY);
+        expect(modelTier).toBe(LLMModelTier.PRIMARY);
       }
     });
 
@@ -103,7 +103,7 @@ describe("LLMExecutionError", () => {
 
       expect(error.context?.resource).toBe("minimal-resource");
       expect(error.context?.purpose).toBe(LLMPurpose.EMBEDDINGS);
-      expect(error.context?.modelQuality).toBeUndefined();
+      expect(error.context?.modelTier).toBeUndefined();
       expect(error.context?.outputFormat).toBeUndefined();
       expect(error.context?.responseContentParseError).toBeUndefined();
     });
@@ -177,7 +177,7 @@ describe("LLMExecutionError", () => {
       const context: LLMContext = {
         resource: "test-resource",
         purpose: LLMPurpose.COMPLETIONS,
-        modelQuality: LLMModelQuality.PRIMARY,
+        modelTier: LLMModelTier.PRIMARY,
       };
 
       const error = new LLMExecutionError("Execution failed", "test-resource", context);

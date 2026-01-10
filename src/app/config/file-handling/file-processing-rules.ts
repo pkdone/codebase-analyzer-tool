@@ -167,7 +167,7 @@ export const fileProcessingRules = {
   ] as const satisfies readonly string[],
   /**
    * Canonical file types for scheduled job/batch process files.
-   * Used by ScheduledTaskDataProvider for job aggregation.
+   * Used by ScheduledJobDataProvider for job aggregation.
    */
   SCHEDULED_JOB_CANONICAL_TYPES: [
     "shell-script",

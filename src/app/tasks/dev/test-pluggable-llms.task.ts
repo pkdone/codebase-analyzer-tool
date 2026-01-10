@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import { injectable, inject } from "tsyringe";
 import { readFile } from "../../../common/fs/file-operations";
-import { LLMModelQuality, LLMOutputFormat } from "../../../common/llm/types/llm.types";
+import { LLMModelTier, LLMOutputFormat } from "../../../common/llm/types/llm.types";
 import LLMRouter from "../../../common/llm/llm-router";
 import { Task } from "../task.types";
 import { llmTokens } from "../../di/tokens";
@@ -53,7 +53,7 @@ export class PluggableLLMsTestTask implements Task {
       {
         outputFormat: LLMOutputFormat.TEXT,
       },
-      LLMModelQuality.PRIMARY,
+      LLMModelTier.PRIMARY,
     );
     console.log(isOk(completionPrimaryResult) ? completionPrimaryResult.value : "<error>");
 
@@ -65,7 +65,7 @@ export class PluggableLLMsTestTask implements Task {
       {
         outputFormat: LLMOutputFormat.TEXT,
       },
-      LLMModelQuality.SECONDARY,
+      LLMModelTier.SECONDARY,
     );
     console.log(isOk(completionSecondaryResult) ? completionSecondaryResult.value : "<error>");
   }

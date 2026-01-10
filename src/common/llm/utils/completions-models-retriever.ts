@@ -1,9 +1,4 @@
-import {
-  LLMModelQuality,
-  LLMCandidateFunction,
-  LLMFunction,
-  LLMProvider,
-} from "../types/llm.types";
+import { LLMModelTier, LLMCandidateFunction, LLMFunction, LLMProvider } from "../types/llm.types";
 import { LLMError, LLMErrorCode } from "../types/llm-errors.types";
 
 /**
@@ -17,16 +12,16 @@ export function buildCompletionCandidates(llm: LLMProvider): LLMCandidateFunctio
   // Add primary completion model as first candidate
   candidates.push({
     func: llm.executeCompletionPrimary,
-    modelQuality: LLMModelQuality.PRIMARY,
+    modelTier: LLMModelTier.PRIMARY,
     description: "Primary completion model",
   });
 
   // Add secondary completion model as fallback if available
-  const availableQualities = llm.getAvailableCompletionModelQualities();
-  if (availableQualities.includes(LLMModelQuality.SECONDARY)) {
+  const availableTiers = llm.getAvailableCompletionModelTiers();
+  if (availableTiers.includes(LLMModelTier.SECONDARY)) {
     candidates.push({
       func: llm.executeCompletionSecondary,
-      modelQuality: LLMModelQuality.SECONDARY,
+      modelTier: LLMModelTier.SECONDARY,
       description: "Secondary completion model (fallback)",
     });
   }
@@ -35,25 +30,25 @@ export function buildCompletionCandidates(llm: LLMProvider): LLMCandidateFunctio
 }
 
 /**
- * Get completion candidates based on model quality override.
+ * Get completion candidates based on model tier override.
  */
 export function getOverriddenCompletionCandidates(
   completionCandidates: LLMCandidateFunction[],
-  modelQualityOverride: LLMModelQuality | null,
+  modelTierOverride: LLMModelTier | null,
 ): {
   candidatesToUse: LLMCandidateFunction[];
   candidateFunctions: LLMFunction[];
 } {
-  // Filter candidates based on model quality override if specified
-  const candidatesToUse = modelQualityOverride
-    ? completionCandidates.filter((candidate) => candidate.modelQuality === modelQualityOverride)
+  // Filter candidates based on model tier override if specified
+  const candidatesToUse = modelTierOverride
+    ? completionCandidates.filter((candidate) => candidate.modelTier === modelTierOverride)
     : completionCandidates;
 
   if (candidatesToUse.length === 0) {
     throw new LLMError(
       LLMErrorCode.BAD_CONFIGURATION,
-      modelQualityOverride
-        ? `No completion candidates found for model quality: ${modelQualityOverride}`
+      modelTierOverride
+        ? `No completion candidates found for model tier: ${modelTierOverride}`
         : "No completion candidates available",
     );
   }

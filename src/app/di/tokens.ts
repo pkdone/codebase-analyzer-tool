@@ -87,7 +87,7 @@ export const reportingTokens = {
   AppReportGenerator: Symbol("AppReportGenerator"),
   BomDataProvider: Symbol("BomDataProvider"),
   CodeQualityDataProvider: Symbol("CodeQualityDataProvider"),
-  ScheduledTaskDataProvider: Symbol("ScheduledTaskDataProvider"),
+  ScheduledJobDataProvider: Symbol("ScheduledJobDataProvider"),
   ModuleCouplingDataProvider: Symbol("ModuleCouplingDataProvider"),
   ServerSideUiDataProvider: Symbol("ServerSideUiDataProvider"),
   IntegrationPointsDataProvider: Symbol("IntegrationPointsDataProvider"),

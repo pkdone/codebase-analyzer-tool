@@ -8,7 +8,7 @@ import {
   LLMOutputFormat,
   LLMPurpose,
   LLMResponseStatus,
-  LLMModelQuality,
+  LLMModelTier,
   InferResponseType,
   ResolvedLLMModelMetadata,
 } from "../../../src/common/llm/types/llm.types";
@@ -22,7 +22,7 @@ import LLMTelemetryTracker from "../../../src/common/llm/tracking/llm-telemetry-
  * These tests verify that generic schema types propagate correctly through:
  * - LLMFunction type definition
  * - RetryStrategy.executeWithRetries
- * - LLMExecutionPipeline.iterateOverLLMFunctions
+ * - LLMExecutionPipeline.tryFallbackChain
  *
  * The refactoring enables better type safety through the call chain using
  * z.infer<S> for schema-based type inference.
@@ -31,7 +31,7 @@ describe("Type Safety Refactoring Validation", () => {
   const mockContext: LLMContext = {
     resource: "test-resource",
     purpose: LLMPurpose.COMPLETIONS,
-    modelQuality: LLMModelQuality.PRIMARY,
+    modelTier: LLMModelTier.PRIMARY,
     outputFormat: LLMOutputFormat.JSON,
   };
 

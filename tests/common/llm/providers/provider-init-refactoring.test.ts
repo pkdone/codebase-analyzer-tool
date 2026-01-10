@@ -187,14 +187,14 @@ describe("Provider Init Refactoring", () => {
     expect(metadata["test-primary"].urn).toBe("test-primary-urn");
   });
 
-  it("should provide access to available completion qualities", () => {
+  it("should provide access to available completion tiers", () => {
     const init = createTestInit(true);
     const provider = new TestProvider(init);
 
-    const qualities = provider.getAvailableCompletionModelQualities();
+    const tiers = provider.getAvailableCompletionModelTiers();
 
-    expect(qualities).toContain("primary");
-    expect(qualities).toContain("secondary");
+    expect(tiers).toContain("primary");
+    expect(tiers).toContain("secondary");
   });
 
   it("should handle manifest without features array", () => {

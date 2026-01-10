@@ -1,7 +1,7 @@
 import { z } from "zod";
 import {
   LLMContext,
-  LLMModelQuality,
+  LLMModelTier,
   LLMPurpose,
   ResolvedLLMModelMetadata,
   LLMCompletionOptions,
@@ -220,7 +220,7 @@ export default class LLMRouter {
     resourceName: string,
     prompt: string,
     options: LLMCompletionOptions<S> & { jsonSchema: S },
-    modelQualityOverride?: LLMModelQuality | null,
+    modelTierOverride?: LLMModelTier | null,
   ): Promise<Result<z.infer<S>, LLMError>>;
 
   // Overload for plain TEXT (without jsonSchema)
@@ -228,7 +228,7 @@ export default class LLMRouter {
     resourceName: string,
     prompt: string,
     options: Omit<LLMCompletionOptions, "jsonSchema">,
-    modelQualityOverride?: LLMModelQuality | null,
+    modelTierOverride?: LLMModelTier | null,
   ): Promise<Result<string, LLMError>>;
 
   // Implementation signature preserves the generic type S for cleaner internal typing.
@@ -237,16 +237,16 @@ export default class LLMRouter {
     resourceName: string,
     prompt: string,
     options: LLMCompletionOptions<S>,
-    modelQualityOverride: LLMModelQuality | null = null,
+    modelTierOverride: LLMModelTier | null = null,
   ): Promise<Result<z.infer<S>, LLMError>> {
     const { candidatesToUse, candidateFunctions } = getOverriddenCompletionCandidates(
       this.completionCandidates,
-      modelQualityOverride,
+      modelTierOverride,
     );
     const context: LLMContext = {
       resource: resourceName,
       purpose: LLMPurpose.COMPLETIONS,
-      modelQuality: candidatesToUse[0].modelQuality,
+      modelTier: candidatesToUse[0].modelTier,
       outputFormat: options.outputFormat,
     };
 
