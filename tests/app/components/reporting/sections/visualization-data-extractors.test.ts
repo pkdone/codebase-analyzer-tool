@@ -2,9 +2,9 @@ import {
   extractKeyBusinessActivities,
   extractMicroserviceFields,
   isInferredArchitectureCategoryData,
-} from "../../../../../src/app/components/reporting/sections/visualizations/visualizations-type-guards";
+} from "../../../../../src/app/components/reporting/sections/visualizations/visualization-data-extractors";
 
-describe("visualizations-type-guards", () => {
+describe("visualization-data-extractors", () => {
   describe("extractKeyBusinessActivities", () => {
     it("should extract activities from valid business process data", () => {
       const data = {

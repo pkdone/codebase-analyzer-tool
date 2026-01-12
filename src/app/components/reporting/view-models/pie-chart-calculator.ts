@@ -4,7 +4,7 @@
  */
 
 import { pieChartConfig } from "./pie-chart.config";
-import type { PieChartData, PieChartSlice } from "../html-report-writer";
+import type { PieChartData, PieChartSlice } from "./pie-chart.types";
 
 /**
  * File type data structure expected as input.

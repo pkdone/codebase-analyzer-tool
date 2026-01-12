@@ -17,7 +17,7 @@ import {
   extractKeyBusinessActivities,
   extractMicroserviceFields,
   isInferredArchitectureCategoryData,
-} from "./visualizations-type-guards";
+} from "./visualization-data-extractors";
 import {
   isCategorizedDataNameDescArray,
   isCategorizedDataInferredArchitecture,

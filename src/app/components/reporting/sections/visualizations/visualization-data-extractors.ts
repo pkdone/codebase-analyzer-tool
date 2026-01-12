@@ -1,3 +1,15 @@
+/**
+ * Data extraction utilities for visualization components.
+ *
+ * This module provides functions for safely extracting and normalizing data from
+ * app summary records for use in visualization components like flowcharts,
+ * domain model diagrams, and architecture diagrams.
+ *
+ * Functions include:
+ * - extractKeyBusinessActivities: Extracts business activities from process data
+ * - extractMicroserviceFields: Extracts and normalizes microservice-specific fields
+ * - isInferredArchitectureCategoryData: Type guard for inferred architecture validation
+ */
 import { z } from "zod";
 import type { AppSummaryNameDescArray } from "../../../../repositories/app-summaries/app-summaries.model";
 import {
@@ -9,7 +21,7 @@ import {
 } from "../../../../schemas/app-summaries.schema";
 
 /**
- * Schema derived from core businessProcessSchema for type guard validation.
+ * Schema derived from core businessProcessSchema for data extraction.
  * Picks only the fields needed for extracting keyBusinessActivities.
  * Uses partial() to make keyBusinessActivities optional for safe extraction.
  */
@@ -45,7 +57,7 @@ export function extractKeyBusinessActivities(item: AppSummaryNameDescArray[0]): 
 }
 
 /**
- * Schema derived from core potentialMicroserviceSchema for type guard validation.
+ * Schema derived from core potentialMicroserviceSchema for data extraction.
  * Picks only the fields needed for extracting microservice details.
  * Uses partial() to make entities, endpoints, and operations optional for safe extraction.
  */

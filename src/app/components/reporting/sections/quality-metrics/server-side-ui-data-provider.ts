@@ -14,6 +14,7 @@ import {
   getFilesWithHighScriptletCountCssClass,
   shouldShowHighDebtAlert,
 } from "../../utils/view-helpers";
+import type { ProjectedSourceSummaryFields } from "../../../../repositories/sources/sources.model";
 
 /**
  * Type aliases for internal use
@@ -34,6 +35,18 @@ type RawJspFileMetrics = Omit<JspFileMetrics, "debtLevel" | "debtLevelClass">;
 type RawCustomTagLibrary = Omit<CustomTagLibrary, "tagType" | "tagTypeClass">;
 
 /**
+ * Result of JSP file analysis containing metrics and tag library data.
+ */
+interface JspAnalysisResult {
+  totalScriptlets: number;
+  totalExpressions: number;
+  totalDeclarations: number;
+  filesWithHighScriptletCount: number;
+  jspFileMetrics: RawJspFileMetrics[];
+  tagLibraryMap: Map<string, RawCustomTagLibrary>;
+}
+
+/**
  * Data provider responsible for aggregating server-side UI technology data including framework detection, JSP metrics, and tag library usage.
  * Analyzes server-side UI technologies (JSP, Struts, JSF, Spring MVC) for scriptlets and custom tags to measure technical debt.
  */
@@ -45,7 +58,8 @@ export class ServerSideUiDataProvider {
   ) {}
 
   /**
-   * Aggregates UI technology analysis for a project
+   * Aggregates UI technology analysis for a project.
+   * Orchestrates the analysis of frameworks, JSP metrics, and tag libraries.
    */
   async getUiTechnologyAnalysis(projectName: string): Promise<UiTechnologyAnalysis> {
     // Fetch all source files from the project
@@ -54,27 +68,55 @@ export class ServerSideUiDataProvider {
       [],
     );
 
-    // Data structures for aggregation
+    // Analyze frameworks from XML configuration files
+    const frameworks = this.analyzeFrameworks(sourceFiles);
+
+    // Analyze JSP files for metrics and tag libraries
+    const jspAnalysis = this.analyzeJspMetrics(sourceFiles);
+
+    // Process and sort the results
+    const topScriptletFiles = this.computeTopScriptletFiles(jspAnalysis.jspFileMetrics);
+    const customTagLibraries = this.computeTagLibraries(jspAnalysis.tagLibraryMap);
+
+    // Calculate aggregate statistics
+    const totalJspFiles = jspAnalysis.jspFileMetrics.length;
+    const averageScriptletsPerFile =
+      totalJspFiles > 0 ? jspAnalysis.totalScriptlets / totalJspFiles : 0;
+
+    return {
+      frameworks,
+      totalJspFiles,
+      totalScriptlets: jspAnalysis.totalScriptlets,
+      totalExpressions: jspAnalysis.totalExpressions,
+      totalDeclarations: jspAnalysis.totalDeclarations,
+      averageScriptletsPerFile,
+      filesWithHighScriptletCount: jspAnalysis.filesWithHighScriptletCount,
+      customTagLibraries,
+      topScriptletFiles,
+      // Pre-computed presentation values
+      totalScriptletsCssClass: getTotalScriptletsCssClass(jspAnalysis.totalScriptlets),
+      filesWithHighScriptletCountCssClass: getFilesWithHighScriptletCountCssClass(
+        jspAnalysis.filesWithHighScriptletCount,
+      ),
+      showHighDebtAlert: shouldShowHighDebtAlert(jspAnalysis.filesWithHighScriptletCount),
+    };
+  }
+
+  /**
+   * Analyzes UI framework detection from source files (typically XML configuration files).
+   * Aggregates frameworks by name and version, collecting configuration file paths.
+   */
+  private analyzeFrameworks(sourceFiles: ProjectedSourceSummaryFields[]): UiFrameworkItem[] {
     const frameworkMap = new Map<string, UiFrameworkItem>();
-    const tagLibraryMap = new Map<string, RawCustomTagLibrary>();
-    const jspFileMetrics: RawJspFileMetrics[] = [];
-
-    let totalScriptlets = 0;
-    let totalExpressions = 0;
-    let totalDeclarations = 0;
-    let filesWithHighScriptletCount = 0;
-
-    // Filter source files by type for clearer separation of concerns
     const frameworkFiles = sourceFiles.filter((f) => f.summary?.uiFramework);
-    const jspFiles = sourceFiles.filter((f) => f.summary?.jspMetrics);
 
-    // Process UI framework detection (typically from XML files)
     for (const file of frameworkFiles) {
       const framework = file.summary?.uiFramework;
       if (!framework) continue;
-      const key = `${framework.name}:${framework.version ?? UNKNOWN_VALUE_PLACEHOLDER}`;
 
+      const key = `${framework.name}:${framework.version ?? UNKNOWN_VALUE_PLACEHOLDER}`;
       const existing = frameworkMap.get(key);
+
       if (existing) {
         frameworkMap.set(key, {
           name: existing.name,
@@ -90,7 +132,23 @@ export class ServerSideUiDataProvider {
       }
     }
 
-    // Process JSP metrics
+    return Array.from(frameworkMap.values()).toSorted((a, b) => a.name.localeCompare(b.name));
+  }
+
+  /**
+   * Analyzes JSP files for scriptlet metrics and custom tag library usage.
+   * Returns aggregated totals, per-file metrics, and tag library data.
+   */
+  private analyzeJspMetrics(sourceFiles: ProjectedSourceSummaryFields[]): JspAnalysisResult {
+    const tagLibraryMap = new Map<string, RawCustomTagLibrary>();
+    const jspFileMetrics: RawJspFileMetrics[] = [];
+    const jspFiles = sourceFiles.filter((f) => f.summary?.jspMetrics);
+
+    let totalScriptlets = 0;
+    let totalExpressions = 0;
+    let totalDeclarations = 0;
+    let filesWithHighScriptletCount = 0;
+
     for (const file of jspFiles) {
       const metrics = file.summary?.jspMetrics;
       if (!metrics) continue;
@@ -106,7 +164,7 @@ export class ServerSideUiDataProvider {
         filesWithHighScriptletCount++;
       }
 
-      // Track individual JSP file metrics for top files
+      // Track individual JSP file metrics
       jspFileMetrics.push({
         filePath: file.filepath,
         scriptletCount: metrics.scriptletCount,
@@ -115,31 +173,54 @@ export class ServerSideUiDataProvider {
         totalScriptletBlocks: totalBlocks,
       });
 
-      // Process custom tag libraries
-      if (metrics.customTags && metrics.customTags.length > 0) {
-        for (const tag of metrics.customTags) {
-          const key = `${tag.prefix}:${tag.uri}`;
-
-          const existing = tagLibraryMap.get(key);
-          if (existing) {
-            tagLibraryMap.set(key, {
-              ...existing,
-              usageCount: existing.usageCount + 1,
-            });
-          } else {
-            tagLibraryMap.set(key, {
-              prefix: tag.prefix,
-              uri: tag.uri,
-              usageCount: 1,
-            });
-          }
-        }
-      }
+      // Aggregate custom tag libraries
+      this.aggregateTagLibraries(metrics.customTags, tagLibraryMap);
     }
 
-    // Sort JSP files by total scriptlet blocks (descending) and take top N
-    // Add pre-computed debt levels for each file
-    const topScriptletFiles = jspFileMetrics
+    return {
+      totalScriptlets,
+      totalExpressions,
+      totalDeclarations,
+      filesWithHighScriptletCount,
+      jspFileMetrics,
+      tagLibraryMap,
+    };
+  }
+
+  /**
+   * Aggregates custom tag library usage from JSP metrics into the tag library map.
+   */
+  private aggregateTagLibraries(
+    customTags: { prefix: string; uri: string }[] | undefined,
+    tagLibraryMap: Map<string, RawCustomTagLibrary>,
+  ): void {
+    if (!customTags || customTags.length === 0) return;
+
+    for (const tag of customTags) {
+      const key = `${tag.prefix}:${tag.uri}`;
+      const existing = tagLibraryMap.get(key);
+
+      if (existing) {
+        tagLibraryMap.set(key, {
+          ...existing,
+          usageCount: existing.usageCount + 1,
+        });
+      } else {
+        tagLibraryMap.set(key, {
+          prefix: tag.prefix,
+          uri: tag.uri,
+          usageCount: 1,
+        });
+      }
+    }
+  }
+
+  /**
+   * Computes the top scriptlet files with debt levels.
+   * Sorts by total scriptlet blocks (descending) and adds debt level classification.
+   */
+  private computeTopScriptletFiles(jspFileMetrics: RawJspFileMetrics[]): JspFileMetrics[] {
+    return jspFileMetrics
       .toSorted((a, b) => b.totalScriptletBlocks - a.totalScriptletBlocks)
       .slice(0, uiAnalysisConfig.TOP_FILES_LIMIT)
       .map((file) => {
@@ -150,18 +231,14 @@ export class ServerSideUiDataProvider {
           debtLevelClass: cssClass,
         };
       });
+  }
 
-    // Calculate average scriptlets per file
-    const totalJspFiles = jspFileMetrics.length;
-    const averageScriptletsPerFile = totalJspFiles > 0 ? totalScriptlets / totalJspFiles : 0;
-
-    // Convert maps to arrays and sort
-    const frameworks = Array.from(frameworkMap.values()).toSorted((a, b) =>
-      a.name.localeCompare(b.name),
-    );
-
-    // Convert tag libraries map to array, compute types, and sort
-    const customTagLibraries = Array.from(tagLibraryMap.values())
+  /**
+   * Computes final tag library list with type classification and sorting.
+   * Classifies each library by type and sorts by usage count (descending).
+   */
+  private computeTagLibraries(tagLibraryMap: Map<string, RawCustomTagLibrary>): CustomTagLibrary[] {
+    return Array.from(tagLibraryMap.values())
       .map((tagLib) => {
         const tagType = classifyTagLibrary(tagLib.uri);
         return {
@@ -177,23 +254,5 @@ export class ServerSideUiDataProvider {
         }
         return a.prefix.localeCompare(b.prefix);
       });
-
-    return {
-      frameworks,
-      totalJspFiles,
-      totalScriptlets,
-      totalExpressions,
-      totalDeclarations,
-      averageScriptletsPerFile,
-      filesWithHighScriptletCount,
-      customTagLibraries,
-      topScriptletFiles,
-      // Pre-computed presentation values
-      totalScriptletsCssClass: getTotalScriptletsCssClass(totalScriptlets),
-      filesWithHighScriptletCountCssClass: getFilesWithHighScriptletCountCssClass(
-        filesWithHighScriptletCount,
-      ),
-      showHighDebtAlert: shouldShowHighDebtAlert(filesWithHighScriptletCount),
-    };
   }
 }

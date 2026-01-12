@@ -1,95 +1,21 @@
 import { injectable } from "tsyringe";
-import { z } from "zod";
 import { getCategoryLabel } from "../../../../config/category-labels.config";
-import {
-  AppSummaryCategories,
-  nameDescSchema,
-  inferredArchitectureSchema,
-} from "../../../../schemas/app-summaries.schema";
+import { AppSummaryCategories } from "../../../../schemas/app-summaries.schema";
 import type { AppSummaryCategoryType } from "../../../insights/insights.types";
-import type {
-  AppSummaryNameDescArray,
-  AppSummaryRecordWithId,
-} from "../../../../repositories/app-summaries/app-summaries.model";
+import type { AppSummaryRecordWithId } from "../../../../repositories/app-summaries/app-summaries.model";
+import {
+  type CategorizedDataItem,
+  isAppSummaryNameDescArray,
+  parseInferredArchitectureData,
+  wrapInferredArchitectureAsArray,
+} from "./category-data-type-guards";
 
-// Zod schema for validating AppSummaryNameDescArray
-const appSummaryNameDescArraySchema = z.array(nameDescSchema);
-
-// Schema for the inner inferredArchitecture object (unwrapped from the wrapper)
-const inferredArchitectureInnerSchema = inferredArchitectureSchema.shape.inferredArchitecture;
-
-/**
- * Type for the inferred architecture data extracted from Zod schema.
- */
-type InferredArchitectureInner = z.infer<typeof inferredArchitectureInnerSchema>;
-
-/**
- * Union type for categorized data that accommodates both standard name-description arrays
- * and inferred architecture data structures.
- */
-export type CategorizedDataItem = AppSummaryNameDescArray | InferredArchitectureInner[];
-
-/**
- * Type guard to check if a value is an AppSummaryNameDescArray
- * Uses Zod schema validation for robust type checking.
- */
-function isAppSummaryNameDescArray(data: unknown): data is AppSummaryNameDescArray {
-  return appSummaryNameDescArraySchema.safeParse(data).success;
-}
-
-/**
- * Type guard to check if a value is InferredArchitectureInner[]
- */
-function isInferredArchitectureInnerArray(data: unknown): data is InferredArchitectureInner[] {
-  if (!Array.isArray(data)) {
-    return false;
-  }
-  if (data.length === 0) {
-    return true; // Empty array is valid
-  }
-  // Check if the first element matches the inferred architecture schema
-  return inferredArchitectureInnerSchema.safeParse(data[0]).success;
-}
-
-/**
- * Type guard to check if categorized data item is AppSummaryNameDescArray
- */
-export function isCategorizedDataNameDescArray(
-  data: CategorizedDataItem,
-): data is AppSummaryNameDescArray {
-  return isAppSummaryNameDescArray(data);
-}
-
-/**
- * Type guard to check if categorized data item is InferredArchitectureInner[]
- */
-export function isCategorizedDataInferredArchitecture(
-  data: CategorizedDataItem,
-): data is InferredArchitectureInner[] {
-  return isInferredArchitectureInnerArray(data);
-}
-
-/**
- * Type guard to check if a value is a valid inferred architecture object.
- * Returns the parsed data if valid, or null if invalid.
- */
-function parseInferredArchitectureData(data: unknown): InferredArchitectureInner | null {
-  const result = inferredArchitectureInnerSchema.safeParse(data);
-  return result.success ? result.data : null;
-}
-
-/**
- * Wraps the validated inferred architecture data in an array for compatibility with
- * the categorizedData interface. The ArchitectureAndDomainSection will use its own type guard
- * to validate the structure when extracting the data.
- */
-function wrapInferredArchitectureAsArray(
-  validatedData: InferredArchitectureInner,
-): InferredArchitectureInner[] {
-  // The data is validated by Zod schema; we wrap it in an array for interface compatibility
-  // The consuming code (ArchitectureAndDomainSection) validates this structure with its own type guard
-  return [validatedData];
-}
+// Re-export types and type guards that consumers may need
+export type { CategorizedDataItem } from "./category-data-type-guards";
+export {
+  isCategorizedDataNameDescArray,
+  isCategorizedDataInferredArchitecture,
+} from "./category-data-type-guards";
 
 /**
  * Builds categorized section data from app summary records for report generation.
