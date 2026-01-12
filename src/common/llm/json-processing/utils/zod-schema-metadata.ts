@@ -59,23 +59,52 @@ const EMPTY_METADATA: SchemaMetadata = {
 };
 
 /**
+ * Interface representing the internal _def structure of a Zod schema.
+ * This captures the minimal shape needed for type detection and unwrapping.
+ */
+interface ZodLikeDef {
+  readonly typeName?: string;
+  readonly innerType?: unknown;
+  readonly schema?: unknown;
+  readonly out?: unknown;
+}
+
+/**
+ * Interface representing a Zod-like schema with a _def property.
+ * Used for type-safe access to Zod internals without relying on type assertions.
+ */
+interface ZodLike {
+  readonly _def: ZodLikeDef;
+}
+
+/**
+ * Type guard to check if a value has a Zod-like structure with a valid _def property.
+ * This isolates the type narrowing logic to a single location, eliminating
+ * scattered type assertions throughout the metadata extraction code.
+ *
+ * @param schema - The value to check
+ * @returns true if the value has a Zod-like structure
+ */
+function isZodLike(schema: unknown): schema is ZodLike {
+  if (typeof schema !== "object" || schema === null) {
+    return false;
+  }
+  const candidate = schema as { _def?: unknown };
+  return "_def" in schema && typeof candidate._def === "object" && candidate._def !== null;
+}
+
+/**
  * Safely gets the typeName from a schema's _def property.
  * Returns undefined if the schema doesn't have the expected structure.
  */
 function getTypeName(schema: unknown): string | undefined {
-  if (
-    typeof schema !== "object" ||
-    schema === null ||
-    !("_def" in schema) ||
-    typeof (schema as Record<string, unknown>)._def !== "object" ||
-    (schema as Record<string, unknown>)._def === null
-  ) {
+  if (!isZodLike(schema)) {
     return undefined;
   }
 
-  const def = (schema as Record<string, unknown>)._def as Record<string, unknown>;
-  if (typeof def.typeName === "string") {
-    return def.typeName;
+  const typeName = schema._def.typeName;
+  if (typeof typeName === "string") {
+    return typeName;
   }
   return undefined;
 }
@@ -106,24 +135,21 @@ function isZodNumber(schema: unknown): schema is z.ZodNumber {
  * Handles: ZodOptional, ZodNullable, ZodDefault, ZodEffects (preprocess/transform)
  */
 function unwrapZodType(schema: unknown): unknown {
-  if (typeof schema !== "object" || schema === null || !("_def" in schema)) {
+  if (!isZodLike(schema)) {
     return schema;
   }
 
-  const def = (schema as Record<string, unknown>)._def as Record<string, unknown>;
-  const typeName = def.typeName as string | undefined;
+  const { typeName, innerType, schema: innerSchema, out: outSchema } = schema._def;
 
   // Unwrap common wrappers
   if (typeName === "ZodOptional" || typeName === "ZodNullable" || typeName === "ZodDefault") {
-    const innerSchema = def.innerType;
-    if (innerSchema !== undefined) {
-      return unwrapZodType(innerSchema);
+    if (innerType !== undefined) {
+      return unwrapZodType(innerType);
     }
   }
 
   // Unwrap ZodEffects (preprocess, transform, refine)
   if (typeName === "ZodEffects") {
-    const innerSchema = def.schema;
     if (innerSchema !== undefined) {
       return unwrapZodType(innerSchema);
     }
@@ -131,7 +157,6 @@ function unwrapZodType(schema: unknown): unknown {
 
   // Unwrap ZodPipeline (pipe)
   if (typeName === "ZodPipeline") {
-    const outSchema = def.out;
     if (outSchema !== undefined) {
       return unwrapZodType(outSchema);
     }

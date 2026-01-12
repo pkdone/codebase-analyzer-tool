@@ -38,3 +38,23 @@ export function isNotNull<T>(value: T | null): value is T {
 export function isJsonObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
+
+/**
+ * Type guard to check if a value is indexable (can be accessed by string keys).
+ * This includes both plain objects and arrays (since arrays are indexable by numeric string keys).
+ * Useful for safe property access without type assertions.
+ *
+ * @param value - The value to check
+ * @returns true if value is a non-null object (including arrays)
+ *
+ * @example
+ * ```typescript
+ * const data: unknown = { name: "test" };
+ * if (isIndexable(data)) {
+ *   const name = data["name"]; // Safe access, no assertion needed
+ * }
+ * ```
+ */
+export function isIndexable(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}

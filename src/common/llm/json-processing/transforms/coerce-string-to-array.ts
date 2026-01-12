@@ -32,7 +32,7 @@
  * - Skips transformation if no arrayPropertyNames are configured
  */
 
-import { deepMap } from "../utils/object-traversal";
+import { deepMap, isPlainObject } from "../utils/object-traversal";
 
 /**
  * Attempts to parse a string value as a list and convert it to an array.
@@ -147,12 +147,12 @@ export function coerceStringToArray(
       }
 
       // Handle plain objects - transform string values for configured properties
-      if (val.constructor === Object) {
-        const obj = val as Record<string | symbol, unknown>;
+      // Use isPlainObject type guard to narrow val to Record<string | symbol, unknown>
+      if (isPlainObject(val)) {
         const result: Record<string | symbol, unknown> = {};
 
         // Process string keys
-        for (const [key, propVal] of Object.entries(obj)) {
+        for (const [key, propVal] of Object.entries(val)) {
           // Convert string values to arrays for configured property names
           // Check the original value before it's processed recursively
           if (arrayPropertyNames.includes(key) && typeof propVal === "string") {
@@ -165,11 +165,9 @@ export function coerceStringToArray(
         }
 
         // Handle symbol keys (preserve them as-is, they'll be processed by deepMap)
-        const symbols = Object.getOwnPropertySymbols(obj);
+        const symbols = Object.getOwnPropertySymbols(val);
         for (const sym of symbols) {
-          const symObj = obj as Record<symbol, unknown>;
-          const resultSym = result as Record<symbol, unknown>;
-          resultSym[sym] = symObj[sym];
+          result[sym] = val[sym];
         }
 
         // Return the object structure, deepMap will recursively process the values

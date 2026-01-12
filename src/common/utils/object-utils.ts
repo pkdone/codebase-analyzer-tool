@@ -1,3 +1,5 @@
+import { isIndexable } from "./type-guards";
+
 /**
  * Helper function to safely get a nested property value from an object using a dot-notation path.
  * Returns unknown to force callers to validate the type with a type guard.
@@ -9,7 +11,7 @@ export function getNestedValue(obj: unknown, path: string): unknown {
   if (path === "") return undefined;
 
   // Validate that obj is an object type that can have nested properties
-  if (obj === null || obj === undefined || typeof obj !== "object") {
+  if (!isIndexable(obj)) {
     return undefined;
   }
 
@@ -18,10 +20,11 @@ export function getNestedValue(obj: unknown, path: string): unknown {
   let current: unknown = obj;
 
   for (const key of keys) {
-    if (current === null || typeof current !== "object") {
+    // Use type guard to safely check if current is indexable (object or array)
+    if (!isIndexable(current)) {
       return undefined;
     }
-    current = (current as Record<string, unknown>)[key];
+    current = current[key];
   }
 
   return current;

@@ -97,8 +97,9 @@ export class DomainModelDataProvider {
     return hierarchicalContexts.map((context) => {
       // The Zod schema requires aggregates, but the type guard allows missing aggregates
       // for flexibility with runtime data (legacy data, passthrough properties).
-      // Cast to handle the runtime edge case where aggregates might be missing.
-      const contextAggregates = (context.aggregates as NestedAggregate[] | undefined) ?? [];
+      // Use property check to safely handle the runtime edge case where aggregates might be missing.
+      const contextAggregates =
+        "aggregates" in context && Array.isArray(context.aggregates) ? context.aggregates : [];
       const aggregates = this.transformAggregates(contextAggregates);
       const entities = this.extractEntitiesFromAggregates(contextAggregates);
       const repositories = this.extractRepositoriesFromAggregates(contextAggregates);

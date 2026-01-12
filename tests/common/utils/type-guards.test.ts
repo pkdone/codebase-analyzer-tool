@@ -1,4 +1,9 @@
-import { isDefined, isNotNull, isJsonObject } from "../../../src/common/utils/type-guards";
+import {
+  isDefined,
+  isNotNull,
+  isJsonObject,
+  isIndexable,
+} from "../../../src/common/utils/type-guards";
 
 describe("type-guards", () => {
   describe("isDefined", () => {
@@ -146,6 +151,111 @@ describe("type-guards", () => {
         expect(value.name).toBe("test");
         expect(value.count).toBe(42);
       }
+    });
+  });
+
+  describe("isIndexable", () => {
+    it("should return true for plain objects", () => {
+      expect(isIndexable({})).toBe(true);
+      expect(isIndexable({ key: "value" })).toBe(true);
+      expect(isIndexable({ nested: { object: true } })).toBe(true);
+    });
+
+    it("should return true for arrays (arrays are indexable by string keys)", () => {
+      expect(isIndexable([])).toBe(true);
+      expect(isIndexable([1, 2, 3])).toBe(true);
+      expect(isIndexable([{ key: "value" }])).toBe(true);
+    });
+
+    it("should return false for null", () => {
+      expect(isIndexable(null)).toBe(false);
+    });
+
+    it("should return false for undefined", () => {
+      expect(isIndexable(undefined)).toBe(false);
+    });
+
+    it("should return false for primitives", () => {
+      expect(isIndexable("string")).toBe(false);
+      expect(isIndexable(123)).toBe(false);
+      expect(isIndexable(true)).toBe(false);
+    });
+
+    it("should allow property access after type narrowing", () => {
+      const value: unknown = { name: "test", count: 42 };
+      if (isIndexable(value)) {
+        // TypeScript should allow property access after narrowing
+        expect(value.name).toBe("test");
+        expect(value.count).toBe(42);
+      }
+    });
+
+    it("should allow array index access after type narrowing", () => {
+      const value: unknown = ["first", "second", "third"];
+      if (isIndexable(value)) {
+        // Arrays can be accessed by numeric index (converted to string key internally)
+        const firstElement = value[0];
+        const secondElement = value[1];
+        expect(firstElement).toBe("first");
+        expect(secondElement).toBe("second");
+      }
+    });
+
+    it("should work with nested path traversal", () => {
+      const obj: unknown = {
+        user: {
+          profile: {
+            name: "John",
+          },
+        },
+      };
+
+      // Simulate getNestedValue pattern
+      let current: unknown = obj;
+      const keys = ["user", "profile", "name"];
+
+      for (const key of keys) {
+        if (!isIndexable(current)) {
+          break;
+        }
+        current = current[key];
+      }
+
+      expect(current).toBe("John");
+    });
+
+    it("should handle mixed object/array traversal", () => {
+      const obj: unknown = {
+        choices: [{ message: { content: "Hello" } }],
+      };
+
+      // Simulate traversing choices[0].message.content
+      let current: unknown = obj;
+      const keys = ["choices", "0", "message", "content"];
+
+      for (const key of keys) {
+        if (!isIndexable(current)) {
+          break;
+        }
+        current = current[key];
+      }
+
+      expect(current).toBe("Hello");
+    });
+
+    it("should return false and stop traversal at primitive values", () => {
+      const obj: unknown = {
+        value: "primitive",
+      };
+
+      let current: unknown = obj;
+
+      if (isIndexable(current)) {
+        current = current.value;
+      }
+
+      // "primitive" is a string, not indexable
+      expect(isIndexable(current)).toBe(false);
     });
   });
 });

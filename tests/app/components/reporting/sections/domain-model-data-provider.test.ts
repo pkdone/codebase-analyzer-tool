@@ -247,5 +247,85 @@ describe("DomainModelDataProvider", () => {
       expect(result.aggregates[0].description).toBe("First description");
       expect(result.repositories[0].description).toBe("First repo description");
     });
+
+    it("should handle bounded contexts with missing aggregates property gracefully", () => {
+      // Simulate runtime data where aggregates might be missing due to passthrough or legacy data
+      // The type guard allows missing aggregates but requires them to be an array if present
+      const hierarchicalData = [
+        {
+          name: "ContextWithAggregates",
+          description: "Context with aggregates",
+          aggregates: [
+            {
+              name: "Aggregate1",
+              description: "Aggregate 1",
+              entities: [{ name: "Entity1", description: "Entity 1" }],
+              repository: { name: "Repo1", description: "Repository 1" },
+            },
+          ],
+        },
+        {
+          name: "ContextWithoutAggregates",
+          description: "Context without aggregates property",
+          // aggregates property intentionally missing - allowed by type guard
+        },
+      ] as unknown as HierarchicalBoundedContextData[];
+
+      const categorizedData: { category: string; label: string; data: CategorizedDataItem }[] = [
+        {
+          category: "boundedContexts",
+          label: "Bounded Contexts",
+          data: hierarchicalData as unknown as CategorizedDataItem,
+        },
+      ];
+
+      const result = provider.getDomainModelData(categorizedData);
+
+      // Should have both bounded contexts
+      expect(result.boundedContexts).toHaveLength(2);
+
+      // Context without aggregates should have empty aggregates array
+      expect(result.boundedContexts[1].name).toBe("ContextWithoutAggregates");
+      expect(result.boundedContexts[1].aggregates).toEqual([]);
+
+      // Should only have aggregates from the first context
+      expect(result.aggregates).toHaveLength(1);
+      expect(result.aggregates[0].name).toBe("Aggregate1");
+
+      // Should only have entities from the first context
+      expect(result.entities).toHaveLength(1);
+      expect(result.entities[0].name).toBe("Entity1");
+
+      // Should only have repositories from the first context
+      expect(result.repositories).toHaveLength(1);
+      expect(result.repositories[0].name).toBe("Repo1");
+    });
+
+    it("should handle bounded context with empty aggregates array", () => {
+      const hierarchicalData: HierarchicalBoundedContextData[] = [
+        {
+          name: "EmptyContext",
+          description: "Context with empty aggregates",
+          aggregates: [],
+        },
+      ];
+
+      const categorizedData: { category: string; label: string; data: CategorizedDataItem }[] = [
+        {
+          category: "boundedContexts",
+          label: "Bounded Contexts",
+          data: hierarchicalData as unknown as CategorizedDataItem,
+        },
+      ];
+
+      const result = provider.getDomainModelData(categorizedData);
+
+      expect(result.boundedContexts).toHaveLength(1);
+      expect(result.boundedContexts[0].name).toBe("EmptyContext");
+      expect(result.boundedContexts[0].aggregates).toEqual([]);
+      expect(result.aggregates).toEqual([]);
+      expect(result.entities).toEqual([]);
+      expect(result.repositories).toEqual([]);
+    });
   });
 });
