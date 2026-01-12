@@ -13,31 +13,6 @@ export function isDefined<T>(value: T | null | undefined): value is T {
 }
 
 /**
- * Assertion function that throws if value is null or undefined.
- * Use when you want to fail fast if a value is missing.
- *
- * @param value - The value to check
- * @param message - Optional custom error message
- * @throws Error if value is null or undefined
- *
- * @example
- * ```typescript
- * const user = await findUser(id);
- * assertIsDefined(user, `User ${id} not found`);
- * // TypeScript now knows user is not null/undefined
- * console.log(user.name);
- * ```
- */
-export function assertIsDefined<T>(
-  value: T | null | undefined,
-  message?: string,
-): asserts value is T {
-  if (value === null || value === undefined) {
-    throw new Error(message ?? "Expected value to be defined but received null or undefined");
-  }
-}
-
-/**
  * Type guard to check if a value is not null.
  * Useful for filtering null values from arrays while maintaining type safety.
  *
@@ -52,28 +27,6 @@ export function assertIsDefined<T>(
  */
 export function isNotNull<T>(value: T | null): value is T {
   return value !== null;
-}
-
-/**
- * Assertion function that throws if value is null.
- * Use when you want to fail fast if a value is null (but undefined is acceptable).
- *
- * @param value - The value to check
- * @param message - Optional custom error message
- * @throws Error if value is null
- *
- * @example
- * ```typescript
- * const result = await fetchData();
- * assertIsNotNull(result, "Fetch returned null");
- * // TypeScript now knows result is not null
- * console.log(result.data);
- * ```
- */
-export function assertIsNotNull<T>(value: T | null, message?: string): asserts value is T {
-  if (value === null) {
-    throw new Error(message ?? "Expected value to not be null");
-  }
 }
 
 /**

@@ -28,12 +28,6 @@ describe("Visualization Configuration", () => {
       expect(typeof architectureConfig.SERVICES_PER_ROW).toBe("number");
       expect(architectureConfig.SERVICES_PER_ROW).toBeGreaterThan(0);
     });
-
-    it("should have valid layout constants", () => {
-      expect(architectureConfig.WIDTH_PADDING).toBeGreaterThanOrEqual(0);
-      expect(architectureConfig.HEIGHT_PER_ROW).toBeGreaterThan(0);
-      expect(architectureConfig.HEIGHT_PADDING).toBeGreaterThanOrEqual(0);
-    });
   });
 
   describe("domainModel config", () => {
@@ -48,18 +42,6 @@ describe("Visualization Configuration", () => {
       expect(typeof domainModelConfig.DEFAULT_HEIGHT).toBe("number");
       expect(domainModelConfig.DEFAULT_HEIGHT).toBeGreaterThan(0);
     });
-
-    it("should have WIDTH_PER_NODE defined", () => {
-      expect(domainModelConfig.WIDTH_PER_NODE).toBeDefined();
-      expect(typeof domainModelConfig.WIDTH_PER_NODE).toBe("number");
-      expect(domainModelConfig.WIDTH_PER_NODE).toBeGreaterThan(0);
-    });
-
-    it("should have MIN_HEIGHT defined", () => {
-      expect(domainModelConfig.MIN_HEIGHT).toBeDefined();
-      expect(typeof domainModelConfig.MIN_HEIGHT).toBe("number");
-      expect(domainModelConfig.MIN_HEIGHT).toBeGreaterThan(0);
-    });
   });
 
   describe("flowchart config", () => {
@@ -73,12 +55,6 @@ describe("Visualization Configuration", () => {
       expect(flowchartConfig.DEFAULT_HEIGHT).toBeDefined();
       expect(typeof flowchartConfig.DEFAULT_HEIGHT).toBe("number");
       expect(flowchartConfig.DEFAULT_HEIGHT).toBeGreaterThan(0);
-    });
-
-    it("should have WIDTH_PER_ACTIVITY defined", () => {
-      expect(flowchartConfig.WIDTH_PER_ACTIVITY).toBeDefined();
-      expect(typeof flowchartConfig.WIDTH_PER_ACTIVITY).toBe("number");
-      expect(flowchartConfig.WIDTH_PER_ACTIVITY).toBeGreaterThan(0);
     });
   });
 

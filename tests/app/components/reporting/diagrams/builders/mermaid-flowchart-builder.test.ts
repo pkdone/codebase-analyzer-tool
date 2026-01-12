@@ -329,51 +329,6 @@ describe("AbstractGraphBuilder validation", () => {
     });
   });
 
-  describe("hasNode method", () => {
-    it("should return true for existing node", () => {
-      const builder = new MermaidFlowchartBuilder();
-      builder.addNode("myNode", "My Node");
-
-      expect(builder.hasNode("myNode")).toBe(true);
-    });
-
-    it("should return false for non-existing node", () => {
-      const builder = new MermaidFlowchartBuilder();
-
-      expect(builder.hasNode("nonExistent")).toBe(false);
-    });
-
-    it("should work with multiple nodes", () => {
-      const builder = new MermaidFlowchartBuilder();
-      builder.addNode("a", "A").addNode("b", "B").addNode("c", "C");
-
-      expect(builder.hasNode("a")).toBe(true);
-      expect(builder.hasNode("b")).toBe(true);
-      expect(builder.hasNode("c")).toBe(true);
-      expect(builder.hasNode("d")).toBe(false);
-    });
-  });
-
-  describe("getNode method", () => {
-    it("should return node for existing ID", () => {
-      const builder = new MermaidFlowchartBuilder();
-      builder.addNode("myNode", "My Label", "stadium");
-
-      const node = builder.getNode("myNode");
-
-      expect(node).toBeDefined();
-      expect(node?.id).toBe("myNode");
-      expect(node?.label).toBe("My Label");
-      expect(node?.shape).toBe("stadium");
-    });
-
-    it("should return undefined for non-existing node", () => {
-      const builder = new MermaidFlowchartBuilder();
-
-      expect(builder.getNode("nonExistent")).toBeUndefined();
-    });
-  });
-
   describe("strict validation mode", () => {
     it("should not validate edge endpoints by default", () => {
       const builder = new MermaidFlowchartBuilder();
@@ -431,77 +386,12 @@ describe("AbstractGraphBuilder validation", () => {
     });
   });
 
-  describe("validateEdges method", () => {
-    it("should return empty array when all edges are valid", () => {
-      const builder = new MermaidFlowchartBuilder();
-      builder
-        .addNode("a", "A")
-        .addNode("b", "B")
-        .addNode("c", "C")
-        .addEdge("a", "b")
-        .addEdge("b", "c");
-
-      const errors = builder.validateEdges();
-
-      expect(errors).toEqual([]);
-    });
-
-    it("should return errors for missing from node", () => {
-      const builder = new MermaidFlowchartBuilder();
-      builder.addNode("target", "Target").addEdge("missing", "target");
-
-      const errors = builder.validateEdges();
-
-      expect(errors).toHaveLength(1);
-      expect(errors[0]).toContain('"from" node');
-      expect(errors[0]).toContain("missing");
-    });
-
-    it("should return errors for missing to node", () => {
-      const builder = new MermaidFlowchartBuilder();
-      builder.addNode("source", "Source").addEdge("source", "missing");
-
-      const errors = builder.validateEdges();
-
-      expect(errors).toHaveLength(1);
-      expect(errors[0]).toContain('"to" node');
-      expect(errors[0]).toContain("missing");
-    });
-
-    it("should return multiple errors for multiple invalid edges", () => {
-      const builder = new MermaidFlowchartBuilder();
-      builder
-        .addNode("a", "A")
-        .addEdge("missing1", "a")
-        .addEdge("a", "missing2")
-        .addEdge("missing3", "missing4");
-
-      const errors = builder.validateEdges();
-
-      expect(errors).toHaveLength(4);
-    });
-
-    it("should work with empty graph", () => {
-      const builder = new MermaidFlowchartBuilder();
-
-      expect(builder.validateEdges()).toEqual([]);
-    });
-  });
-
   describe("SubgraphBuilder validation", () => {
     it("should throw on duplicate node in subgraph", () => {
       const subBuilder = new SubgraphBuilder();
       subBuilder.addNode("inner1", "Inner 1");
 
       expect(() => subBuilder.addNode("inner1", "Duplicate")).toThrow(GraphValidationError);
-    });
-
-    it("should support hasNode in subgraph", () => {
-      const subBuilder = new SubgraphBuilder();
-      subBuilder.addNode("inner1", "Inner 1");
-
-      expect(subBuilder.hasNode("inner1")).toBe(true);
-      expect(subBuilder.hasNode("nonExistent")).toBe(false);
     });
 
     it("should support strict validation in subgraph", () => {

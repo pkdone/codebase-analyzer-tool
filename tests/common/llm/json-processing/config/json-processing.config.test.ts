@@ -1,6 +1,5 @@
 import {
   DELIMITERS,
-  JSON_KEYWORDS,
   concatenationConfig,
   processingConfig,
   sanitizationConfig,
@@ -26,18 +25,6 @@ describe("json-processing.config", () => {
     it("should be frozen to prevent mutations", () => {
       expect(() => {
         (DELIMITERS as any).OPEN_BRACE = "X";
-      }).toThrow();
-    });
-  });
-
-  describe("JSON_KEYWORDS", () => {
-    it("should contain the three JSON keywords", () => {
-      expect(JSON_KEYWORDS).toEqual(["true", "false", "null"]);
-    });
-
-    it("should be readonly", () => {
-      expect(() => {
-        (JSON_KEYWORDS as any).push("undefined");
       }).toThrow();
     });
   });

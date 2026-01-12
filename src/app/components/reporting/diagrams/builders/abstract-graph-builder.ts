@@ -96,26 +96,6 @@ export abstract class AbstractGraphBuilder {
   }
 
   /**
-   * Checks if a node with the given ID exists in the graph.
-   *
-   * @param id - The node ID to check
-   * @returns true if the node exists, false otherwise
-   */
-  hasNode(id: string): boolean {
-    return this.nodeMap.has(id);
-  }
-
-  /**
-   * Gets a node by its ID.
-   *
-   * @param id - The node ID to retrieve
-   * @returns The node if found, undefined otherwise
-   */
-  getNode(id: string): MermaidNode | undefined {
-    return this.nodeMap.get(id);
-  }
-
-  /**
    * Adds an edge between two nodes.
    * In strict validation mode, throws an error if either node doesn't exist.
    *
@@ -145,27 +125,6 @@ export abstract class AbstractGraphBuilder {
   applyStyle(nodeId: string, className: string): this {
     this.styles.push({ nodeId, className });
     return this;
-  }
-
-  /**
-   * Validates that all edges reference existing nodes.
-   * Call this before rendering to ensure diagram integrity.
-   *
-   * @returns An array of validation error messages, empty if all valid
-   */
-  validateEdges(): string[] {
-    const errors: string[] = [];
-
-    for (const edge of this.edges) {
-      if (!this.nodeMap.has(edge.from)) {
-        errors.push(`Edge references non-existent "from" node: "${edge.from}"`);
-      }
-      if (!this.nodeMap.has(edge.to)) {
-        errors.push(`Edge references non-existent "to" node: "${edge.to}"`);
-      }
-    }
-
-    return errors;
   }
 
   /**

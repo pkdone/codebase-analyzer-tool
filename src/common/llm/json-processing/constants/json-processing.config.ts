@@ -26,11 +26,6 @@ export const DELIMITERS = Object.freeze({
 export type DelimiterKey = keyof typeof DELIMITERS;
 
 /**
- * JSON keywords for validation and processing.
- */
-export const JSON_KEYWORDS = Object.freeze(["true", "false", "null"] as const);
-
-/**
  * JSON keywords as a Set for O(1) lookup performance.
  * Includes 'undefined' for compatibility with some LLM outputs.
  */

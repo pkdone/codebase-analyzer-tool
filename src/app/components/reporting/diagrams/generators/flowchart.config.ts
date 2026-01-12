@@ -7,6 +7,4 @@ export const flowchartConfig = {
   DEFAULT_WIDTH: 800,
   /** Default diagram height. */
   DEFAULT_HEIGHT: 200,
-  /** Width per activity node for dynamic sizing. */
-  WIDTH_PER_ACTIVITY: 200,
 } as const;
