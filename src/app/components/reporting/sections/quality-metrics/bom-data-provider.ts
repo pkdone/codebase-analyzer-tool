@@ -85,9 +85,9 @@ export class BomDataProvider {
     const dependencies = Array.from(dependencyMap.values()).map((dep) => ({
       name: dep.name,
       groupId: dep.groupId,
-      versions: Array.from(dep.versions).sort(),
+      versions: Array.from(dep.versions).toSorted(),
       hasConflict: dep.versions.size > 1,
-      scopes: Array.from(dep.scopes).sort(),
+      scopes: Array.from(dep.scopes).toSorted(),
       locations: dep.locations,
     }));
 

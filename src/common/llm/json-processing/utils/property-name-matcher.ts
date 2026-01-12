@@ -157,9 +157,9 @@ export function matchPropertyName(
 
     // Return the shortest matching property (most specific match)
     if (prefixMatches.length > 0) {
-      prefixMatches.sort((a, b) => a.length - b.length);
-      const confidence = Math.min(0.9, fragment.length / prefixMatches[0].length + 0.3);
-      return { matched: prefixMatches[0].prop, matchType: "prefix", confidence };
+      const sortedMatches = prefixMatches.toSorted((a, b) => a.length - b.length);
+      const confidence = Math.min(0.9, fragment.length / sortedMatches[0].length + 0.3);
+      return { matched: sortedMatches[0].prop, matchType: "prefix", confidence };
     }
   }
 
@@ -175,9 +175,9 @@ export function matchPropertyName(
     }
 
     if (suffixMatches.length > 0) {
-      suffixMatches.sort((a, b) => a.length - b.length);
-      const confidence = Math.min(0.85, fragment.length / suffixMatches[0].length + 0.2);
-      return { matched: suffixMatches[0].prop, matchType: "prefix", confidence };
+      const sortedMatches = suffixMatches.toSorted((a, b) => a.length - b.length);
+      const confidence = Math.min(0.85, fragment.length / sortedMatches[0].length + 0.2);
+      return { matched: sortedMatches[0].prop, matchType: "prefix", confidence };
     }
   }
 
@@ -209,14 +209,12 @@ export function matchPropertyName(
     }
 
     if (normalizedPrefixMatches.length > 0) {
-      normalizedPrefixMatches.sort((a, b) => a.length - b.length);
+      const sortedMatches = normalizedPrefixMatches.toSorted((a, b) => a.length - b.length);
       const confidence = Math.min(
         0.85,
-        normalizedSearchFragment.length /
-          normalizeIdentifier(normalizedPrefixMatches[0].prop).length +
-          0.2,
+        normalizedSearchFragment.length / normalizeIdentifier(sortedMatches[0].prop).length + 0.2,
       );
-      return { matched: normalizedPrefixMatches[0].prop, matchType: "prefix", confidence };
+      return { matched: sortedMatches[0].prop, matchType: "prefix", confidence };
     }
   }
 

@@ -440,12 +440,12 @@ function extractLargestJsonSpanInternal(input: string): string {
     searchPos = minPos + 1;
   }
 
-  candidates.sort((a, b) => a.position - b.position);
+  const sortedCandidates = candidates.toSorted((a, b) => a.position - b.position);
 
   const trimmedInput = input.trim();
   const trimmedStart = input.indexOf(trimmedInput);
   let firstCandidate: { position: number; char: string } | null = null;
-  for (const candidate of candidates) {
+  for (const candidate of sortedCandidates) {
     if (candidate.position === trimmedStart || (candidate.position < 10 && trimmedStart === 0)) {
       firstCandidate = candidate;
       break;
@@ -453,8 +453,8 @@ function extractLargestJsonSpanInternal(input: string): string {
   }
 
   const candidatesToTry = firstCandidate
-    ? [firstCandidate, ...candidates.filter((c) => c !== firstCandidate)]
-    : candidates;
+    ? [firstCandidate, ...sortedCandidates.filter((c) => c !== firstCandidate)]
+    : sortedCandidates;
 
   for (const candidate of candidatesToTry) {
     const { position: start, char: startChar } = candidate;

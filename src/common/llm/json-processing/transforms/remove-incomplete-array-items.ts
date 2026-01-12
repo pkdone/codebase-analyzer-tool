@@ -85,7 +85,8 @@ function isLastItemIncomplete(items: Record<string, unknown>[]): boolean {
     return false;
   }
 
-  const lastItem = items[items.length - 1];
+  const lastItem = items.at(-1);
+  if (!lastItem) return false; // Type guard - should never happen after length check
   const lastItemPropCount = getPropertyCount(lastItem);
   const avgPropCount = calculateAveragePropertyCount(items);
 

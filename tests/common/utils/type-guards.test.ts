@@ -1,4 +1,10 @@
-import { isDefined, isNotNull, isJsonObject } from "../../../src/common/utils/type-guards";
+import {
+  isDefined,
+  isNotNull,
+  isJsonObject,
+  assertIsDefined,
+  assertIsNotNull,
+} from "../../../src/common/utils/type-guards";
 
 describe("type-guards", () => {
   describe("isDefined", () => {
@@ -146,6 +152,121 @@ describe("type-guards", () => {
         expect(value.name).toBe("test");
         expect(value.count).toBe(42);
       }
+    });
+  });
+
+  describe("assertIsDefined", () => {
+    it("should not throw for defined values", () => {
+      expect(() => {
+        assertIsDefined("string");
+      }).not.toThrow();
+      expect(() => {
+        assertIsDefined(0);
+      }).not.toThrow();
+      expect(() => {
+        assertIsDefined(false);
+      }).not.toThrow();
+      expect(() => {
+        assertIsDefined("");
+      }).not.toThrow();
+      expect(() => {
+        assertIsDefined({});
+      }).not.toThrow();
+      expect(() => {
+        assertIsDefined([]);
+      }).not.toThrow();
+    });
+
+    it("should throw for null", () => {
+      expect(() => {
+        assertIsDefined(null);
+      }).toThrow("Expected value to be defined but received null or undefined");
+    });
+
+    it("should throw for undefined", () => {
+      expect(() => {
+        assertIsDefined(undefined);
+      }).toThrow("Expected value to be defined but received null or undefined");
+    });
+
+    it("should throw with custom message", () => {
+      expect(() => {
+        assertIsDefined(null, "Custom error message");
+      }).toThrow("Custom error message");
+      expect(() => {
+        assertIsDefined(undefined, "Value is missing");
+      }).toThrow("Value is missing");
+    });
+
+    it("should narrow type after assertion", () => {
+      const value: string | null | undefined = "test";
+      assertIsDefined(value);
+      // TypeScript should now know value is string
+      const length: number = value.length;
+      expect(length).toBe(4);
+    });
+
+    it("should work with complex types", () => {
+      interface User {
+        id: number;
+        name: string;
+      }
+      const user: User | null | undefined = { id: 1, name: "Alice" };
+      assertIsDefined(user);
+      // TypeScript should now know user is User
+      expect(user.id).toBe(1);
+      expect(user.name).toBe("Alice");
+    });
+  });
+
+  describe("assertIsNotNull", () => {
+    it("should not throw for non-null values", () => {
+      expect(() => {
+        assertIsNotNull("string");
+      }).not.toThrow();
+      expect(() => {
+        assertIsNotNull(0);
+      }).not.toThrow();
+      expect(() => {
+        assertIsNotNull(false);
+      }).not.toThrow();
+      expect(() => {
+        assertIsNotNull("");
+      }).not.toThrow();
+      expect(() => {
+        assertIsNotNull({});
+      }).not.toThrow();
+      expect(() => {
+        assertIsNotNull(undefined);
+      }).not.toThrow(); // undefined is NOT null
+    });
+
+    it("should throw for null", () => {
+      expect(() => {
+        assertIsNotNull(null);
+      }).toThrow("Expected value to not be null");
+    });
+
+    it("should throw with custom message", () => {
+      expect(() => {
+        assertIsNotNull(null, "Value was null");
+      }).toThrow("Value was null");
+    });
+
+    it("should narrow type after assertion", () => {
+      const value: string | null = "test";
+      assertIsNotNull(value);
+      // TypeScript should now know value is string
+      const length: number = value.length;
+      expect(length).toBe(4);
+    });
+
+    it("should preserve undefined in union types", () => {
+      // assertIsNotNull only removes null from the type, not undefined
+      const value: string | null | undefined = undefined;
+      assertIsNotNull(value); // Should NOT throw
+      // value is now string | undefined (null removed from union)
+      expect(value).toBeUndefined();
     });
   });
 });

@@ -240,8 +240,8 @@ export const extraPropertiesRemover: SanitizerStrategy = {
         });
       }
 
-      for (let i = matches.length - 1; i >= 0; i--) {
-        const m = matches[i];
+      // Process matches in reverse order to preserve string positions
+      for (const m of matches.toReversed()) {
         const before = sanitized.substring(0, m.start);
         let after = sanitized.substring(m.end);
 
@@ -366,8 +366,8 @@ export const extraPropertiesRemover: SanitizerStrategy = {
         });
       }
 
-      for (let i = matches.length - 1; i >= 0; i--) {
-        const m = matches[i];
+      // Process matches in reverse order to preserve string positions
+      for (const m of matches.toReversed()) {
         const before = sanitized.substring(0, m.start);
         let after = sanitized.substring(m.end);
 

@@ -66,7 +66,7 @@ export class ScheduledJobDataProvider {
     return {
       jobs: sortedJobs,
       totalJobs: jobsList.length,
-      triggerTypes: Array.from(triggerTypesSet).sort(),
+      triggerTypes: Array.from(triggerTypesSet).toSorted(),
       jobFiles: jobFilePaths,
     };
   }
