@@ -1,176 +1,128 @@
 # Coding Standards and Architectural Conventions
 
-This document outlines the inferred coding standards, architectural patterns, and formatting conventions for the project. It is intended to help new developers contribute to the project with a consistent style and understanding of its structure.
+This document outlines the inferred coding standards, architectural patterns, and formatting conventions for the **Codebase Analyzer Tools (CAT)** project. It is intended to guide new developers in contributing to the project with a consistent style and understanding of its structure.
 
 ## 1. Language(s) and Framework(s) Identification
 
-*   **Primary Language:** TypeScript (`^5.7.3` or higher, as per `package.json` and `tsconfig.json`)
-*   **Runtime Environment:** Node.js (`>=20.0.0`, as per `package.json` `engines` field)
-*   **Package Manager:** npm
-*   **Major Libraries & Frameworks:**
-    *   **LLM Interaction:**
-        *   `openai` (for OpenAI and Azure OpenAI SDKs)
-        *   `@google-cloud/aiplatform`, `@google-cloud/vertexai` (for Google Cloud Vertex AI)
-        *   `@aws-sdk/client-bedrock-runtime` (for AWS Bedrock)
-    *   **Database:** `mongodb` (MongoDB Node.js Driver)
-    *   **Configuration & Validation:** `dotenv` (for `.env` file loading), `zod` (for environment variable and data schema validation)
-    *   **Dependency Injection:** `tsyringe`, `reflect-metadata`
-    *   **Testing:** `jest`, `ts-jest`
-    *   **Linting & Formatting:** `eslint`, `@typescript-eslint/eslint-plugin`, `prettier`
-    *   **Asynchronous Utilities:** `p-limit` (for concurrency control), `p-retry` (for resilient operations)
-    *   **Templating:** `ejs` (for HTML report templating)
+*   **Primary Language:** TypeScript (Targeting ES2023, NodeNext module resolution).
+*   **Runtime Environment:** Node.js (>=20.0.0).
+*   **Package Manager:** npm.
+*   **Core Frameworks & Libraries:**
+    *   **Dependency Injection:** `tsyringe` (used strictly within `src/app/`, avoided in `src/common/`).
+    *   **Validation:** `zod` (used for Environment variables, LLM JSON response validation, and internal data structures).
+    *   **Database:** `mongodb` (Native Node.js driver).
+    *   **LLM SDKs:** `openai`, `@google-cloud/vertexai`, `@aws-sdk/client-bedrock-runtime`.
+    *   **Templating:** `ejs` (for HTML report generation).
+    *   **Testing:** `jest` with `ts-jest`.
+    *   **Linting/Formatting:** `eslint` (with strict type-checking rules) and `prettier`.
 
 ## 2. Formatting and Style Conventions
 
-The project uses a combination of Prettier for automated formatting and ESLint for stylistic and quality rules, ensuring a highly consistent code style.
+The project enforces strict formatting via Prettier and code quality via ESLint.
 
-*   **Indentation:**
-    *   **2 spaces** are used for indentation. This is consistent across all TypeScript, JavaScript, and configuration files (`tsconfig.json`, `eslint.config.mjs`).
-*   **Line Endings & Spacing:**
-    *   **Line Endings:** LF (Unix-style) is the standard.
-    *   **Blank Lines:** A single blank line is used to separate top-level constructs (imports, functions, classes) and methods within classes. Blank lines are also used sparingly within functions to group related blocks of logic.
-    *   **Line Length:** While not strictly enforced by a linter rule, the code style aims for a line length of approximately **100-120 characters** to maintain readability.
-    *   **Trailing Commas:** Trailing commas are preferred in multi-line object literals, array literals, and import/export lists, as is common practice with Prettier.
-*   **Braces and Parentheses:**
-    *   **Braces:** The opening brace (`{`) is placed on the **same line** as the corresponding statement or declaration (e.g., `class MyClass {`, `if (condition) {`). This is a variant of the K&R style.
-        ```typescript
-        // From: src/app/lifecycle/application-runner.ts
-        export async function runApplication(taskToken: symbol): Promise<void> {
-            // ...
-        }
-        ```
-    *   **Parentheses:** Standard use for function calls and control structures. Spaces are used around operators inside parentheses for readability (e.g., `(a + b)`).
-*   **Import/Module Ordering:**
-    *   Imports are ordered logically, not alphabetically. The standard pattern is:
-        1.  Node.js built-in modules (e.g., `path`).
-        2.  Third-party libraries (e.g., `tsyringe`, `mongodb`).
-        3.  Local project modules, using relative paths (`../`, `./`). These are often further grouped by their layer or feature (e.g., config, types, utils, components).
+*   **Indentation:** 2 spaces.
+*   **Line Endings:** LF (Unix-style).
+*   **Quotes:** Double quotes (`"`) are preferred for strings and imports.
+*   **Braces:** Opening braces (`{`) are placed on the same line as the control statement or function declaration (K&R style).
+*   **Semicolons:** Always used at the end of statements.
+*   **Import Ordering:**
+    1.  Node.js built-in modules (e.g., `path`, `fs`).
+    2.  Third-party libraries (e.g., `tsyringe`, `zod`).
+    3.  Internal modules (relative paths).
 *   **Commenting:**
-    *   **JSDoc (`/** ... */`):** Used for documenting exported classes, methods, functions, and types. This format is preferred for anything that forms a public API for a module.
-    *   **Single-line (`//`):** Used for brief, single-line explanations or to clarify a specific line of code.
-    *   **ESLint Directives (`/* eslint-disable ... */`):** While present for prototyping purposes (as noted in `NOTES.txt`), the project standard is to avoid using these to bypass linting rules. **For any reported linting errors, fix the problem properly, rather than cheating with an added `eslint….` comment.**
+    *   **JSDoc (`/** ... */`):** Mandatory for classes, interfaces, and public methods. Must describe the purpose and parameters.
+    *   **Inline (`//`):** Used sparingly for complex logic clarification.
+*   **Linting Rules:**
+    *   **Strictness:** The project uses `@typescript-eslint/strict-type-checked`.
+    *   **Fixing Errors:** **For any reported linting errors, fix the problem properly, rather than cheating with an added `eslint-disable` comment.**
+    *   **Visibility:** Explicit access modifiers (e.g., `public`) are generally avoided in favor of TypeScript defaults, but `private` and `protected` are used.
 
 ## 3. Naming Conventions
 
-*   **Variables & Parameters:** `camelCase` (e.g., `mongoClient`, `llmRouter`, `projectName`).
-*   **Functions/Methods:** `camelCase` (e.g., `runApplication`, `generateAndStoreInsights`).
-*   **Classes, Interfaces, Type Aliases:** `PascalCase` (e.g., `CodebaseToDBLoader`, `Task`, `EnvVars`, `LLMProvider`).
-*   **Constants:** `UPPER_SNAKE_CASE` for module-level constants and configuration values (e.g., `CODEBASE_DB_NAME`, `MAX_CONCURRENCY`). Environment variable keys also follow this convention.
-*   **Enums:** `PascalCase` for the enum name and `UPPER_SNAKE_CASE` for its members (e.g., `LLMResponseStatus.COMPLETED`).
-*   **Files and Directories:**
-    *   **TypeScript Files:** `kebab-case.ts` (e.g., `application-runner.ts`, `llm-router.ts`).
-    *   **Specialized Files:** Suffixes are used to denote purpose, such as `*.config.ts`, `*.types.ts`, `*.test.ts`, and `*.int.test.ts`.
-    *   **Prompt Files:** `kebab-case.prompt` or `questions.prompts`.
-    *   **Directories:** `kebab-case` is used for directories containing multiple files (e.g., `src/app/components/reporting/data-providers`), while standard names (`src`, `tests`, `input`) are used for top-level folders.
+*   **Variables & Functions:** `camelCase` (e.g., `runApplication`, `mongoClient`).
+*   **Classes & Interfaces:** `PascalCase` (e.g., `CodebaseToDBLoader`, `LLMRouter`).
+*   **Constants:** `UPPER_SNAKE_CASE` for global constants and configuration values (e.g., `DEFAULT_VECTOR_DIMENSIONS`).
+*   **Filenames:** `kebab-case` (e.g., `application-runner.ts`, `llm-router.ts`).
+*   **Directories:** `kebab-case` (e.g., `data-providers`, `quality-metrics`).
+*   **Specific Suffixes:**
+    *   Interfaces often do *not* use an `I` prefix (e.g., `Task`, not `ITask`), though some repository interfaces do.
+    *   Implementations often use `Impl` suffix (e.g., `SourcesRepositoryImpl`).
 
 ## 4. Architectural Patterns and Code Structure
 
-*   **Overall Architecture:**
-    *   The project is a **CLI toolkit** for code analysis, built on a **Layered Architecture**. This is evident from the clear separation of concerns into `repositories` (Data Access), `components` (Business Logic/Services), `llm` (External Service Abstraction), and entry points (`src/app/*.ts`).
-    *   **Dependency Injection (DI)** is a fundamental principle, implemented with `tsyringe`. This promotes loose coupling and testability by allowing components to declare their dependencies rather than creating them.
-    *   A **Manifest-Driven** approach is used for LLM providers. Each provider is defined by a manifest file (`.manifest.ts`) that declaratively specifies its configuration, models, and factory function, making the system highly pluggable and extensible.
-    *   **Refactoring Philosophy:** **When refactoring, don’t try to support backwards compatibility - change all dependent code that needs changing to support the newly refactored code.** This ensures the codebase remains clean and modern without the burden of legacy support.
-*   **Directory Structure:**
-    *   `src/`: Contains all TypeScript source code.
-        *   `app/`: Contains the core application-specific logic.
-            *   `capture-codebase.ts`, `generate-insights-from-db.ts`, etc.: Entry points for each command-line tool.
-            *   `components/`: The core business logic, organized by feature (e.g., `capture`, `insights`, `reporting`).
-            *   `config/`: Application-wide, static configuration constants.
-            *   `di/`: Dependency Injection setup, including tokens and registration modules.
-            *   `env/`: Environment variable loading, validation (with Zod), and bootstrapping.
-            *   `lifecycle/`: Manages the application's execution flow, including startup and graceful shutdown.
-            *   `prompts/`: Contains prompt definitions, templates, and related configuration.
-            *   `repositories/`: The Data Access Layer, abstracting MongoDB interactions.
-            *   `schemas/`: Centralized Zod schemas for data validation.
-            *   `tasks/`: High-level, injectable classes that orchestrate the work for each CLI command.
-            *   `tools/`: Optional, undocumented tools for developers.
-        *   `common/`: Contains shared, reusable, and framework-agnostic utilities.
-            *   `errors/`, `fs/`, `security/`, `utils/`: General-purpose utilities.
-            *   `llm/`: The generic LLM abstraction layer, containing the `LLMRouter`, provider implementations, and strategies for retry/fallback.
-            *   `mongodb/`: Reusable MongoDB utilities like the connection manager.
-    *   `input/`: Contains input files like prompt templates (`.prompt`, `.prompts`).
-    *   `dist/`: Output directory for compiled JavaScript.
-    *   `docs/`: Contains example output files and documentation assets.
-    *   `tests/`: Contains all unit (`.test.ts`) and integration (`.int.test.ts`) tests.
-*   **Database Use:**
-    *   **Database:** MongoDB, specifically leveraging MongoDB Atlas for its Vector Search capabilities.
-    *   **Interaction Pattern:**
-        *   The native `mongodb` driver is used.
-        *   A `MongoDBConnectionManager` is managed via DI to handle connections.
-        *   The **Repository Pattern** is strictly followed to abstract data access logic (e.g., `SourcesRepository`, `AppSummariesRepository`).
-        *   The `DatabaseInitializer` task is responsible for setting up collections and indexes, including vector search indexes on `contentVector` and `summaryVector` fields.
-        *   Queries consist of standard MongoDB operations and `$vectorSearch` aggregation pipelines for semantic search.
-*   **Data Fetching & API Interaction:**
-    *   **LLM APIs:** All interactions with external LLM APIs are centralized and abstracted through the `LLMRouter`. Specific provider implementations in `src/common/llm/providers/` use the official SDKs for each service (e.g., `openai`, `@aws-sdk/client-bedrock-runtime`).
+### Overall Architecture
+The project follows a **Layered Architecture** combined with **Dependency Injection (DI)** and a **Command Pattern** for CLI tasks.
 
-## 5. Language-Specific Idioms and Best Practices (TypeScript)
+*   **Refactoring Philosophy:** **When refactoring, don’t try to support backwards compatibility - change all dependent code that needs changing to support the newly refactored code.**
 
-*   **Functions:**
-    *   **`async function`** is the standard for any function involving I/O, API calls, or other asynchronous operations.
-    *   Arrow functions (`=>`) are used for callbacks and where a concise function expression is suitable.
-    *   **Type Hints:** TypeScript's static typing is used extensively. All function parameters, variables, and return types for public methods are explicitly typed to ensure code quality and clarity.
-*   **Object-Oriented vs. Functional:**
-    *   The project follows a **hybrid approach**, leveraging the strengths of both paradigms.
-    *   **Object-Oriented:** The core architecture is built on classes, interfaces, and dependency injection (`tsyringe`). This is seen in services (`LLMRouter`), repositories (`SourcesRepositoryImpl`), and tasks (`CodebaseCaptureTask`).
-    *   **Functional:** Utility modules (`src/common/utils/`) favor pure or near-pure functions. Immutability is encouraged through `readonly` properties and `as const` assertions, especially in configuration files.
-*   **Error Handling:**
-    *   **`try...catch` blocks** are used for handling synchronous and asynchronous errors, particularly around I/O and API calls.
-    *   **Custom Error Classes** (e.g., `ConfigurationError`, `DatabaseConnectionError`) are defined to provide specific, typed error information.
-    *   The `LLMRouter` and its associated strategies (`RetryStrategy`, `fallback-strategy.ts`) implement a sophisticated, resilient error-handling mechanism for LLM API calls, including retries with backoff and model failover.
+### Directory Structure & Responsibilities
+
+*   **`src/common/` (The Portable Layer):**
+    *   Contains generic utilities, file system operations, and the core LLM abstraction layer.
+    *   **Crucial Rule:** Code in this directory **must not use `tsyringe`** or any other dependency injection framework. It is designed to be portable to other projects. Dependencies are injected manually via constructor injection or factory functions (e.g., `llm-factory.ts`).
+*   **`src/app/` (The Application Layer):**
+    *   Contains application-specific business logic, DI configuration, and database repositories.
+    *   **`di/`:** Handles `tsyringe` container registration.
+    *   **`repositories/`:** Implements the **Repository Pattern** for MongoDB access.
+    *   **`components/`:** Domain logic (e.g., `capture`, `insights`, `reporting`).
+    *   **`tasks/`:** Implements the **Command Pattern**. Each CLI tool maps to a specific Task class (e.g., `CodebaseCaptureTask`).
+*   **`input/`:** Contains prompt templates and configuration files.
+*   **`tests/`:** Contains Unit and Integration tests.
+
+### Database Use
+*   **Database:** MongoDB (Atlas).
+*   **Pattern:** Repository Pattern. Data access logic is encapsulated in `src/app/repositories`.
+*   **Vector Search:** The application heavily utilizes MongoDB Atlas Vector Search. Index definitions are managed in code (`database-initializer.ts`).
+*   **Schema:** Data validation is enforced via `zod` schemas which are converted to MongoDB JSON Schema validators.
+
+### Data Fetching & API Interaction
+*   **LLM Interaction:** Centralized through the `LLMRouter` in `src/common/llm`.
+*   **Manifest Pattern:** LLM providers are configured via "Manifests" (e.g., `openai.manifest.ts`), allowing pluggable support for OpenAI, Vertex AI, Bedrock, etc., without changing core logic.
+*   **Resilience:** Uses `p-retry` for API calls and `p-limit` for concurrency control.
+
+## 5. Language-Specific Idioms and Best Practices
+
 *   **Asynchronous Programming:**
-    *   **`async/await`** is the exclusive and preferred idiom for managing asynchronous code, making it clean and readable.
-    *   **`p-limit`** is used to manage concurrency and prevent overwhelming external APIs with too many parallel requests (e.g., in `CodebaseToDBLoader`).
-    *   **`p-retry`** is used within the `RetryStrategy` to automatically retry failed LLM calls with exponential backoff.
-*   **Language Standards Versions:**
-    *   **TypeScript:** The project is configured for a modern version of TypeScript (`^5.7.3`), as seen in `package.json`.
-    *   **ECMAScript:** The `tsconfig.json` `target` is `ES2023`, and `module` is `NodeNext`, indicating the use of modern JavaScript features and the Node.js ES module system.
-    *   **Strict Mode:** `strict: true` is enabled in `tsconfig.json`, enforcing a high level of type safety.
-    *   **Modern Features Used:** `readonly` properties, `as const` assertions, optional chaining (`?.`), nullish coalescing (`??`), ES Modules (`import`/`export`), and decorators (`@injectable`, `@inject`) for DI.
+    *   **`async/await`** is used exclusively.
+    *   **Concurrency:** `Promise.all` or `Promise.allSettled` combined with `p-limit` is the preferred idiom for processing collections of files or LLM requests to avoid rate limiting.
+*   **Error Handling:**
+    *   Custom error classes (e.g., `AppError`, `LLMError`) are used.
+    *   Errors are caught at the top-level task execution (`application-runner.ts`) or within specific strategies (e.g., `RetryStrategy`).
+    *   `unknown` is used in catch blocks (e.g., `catch (error: unknown)`), requiring type narrowing or utility functions like `formatError` to handle.
+*   **Object-Oriented vs. Functional:**
+    *   **Hybrid approach.** Core architecture uses OOP (Classes) for DI and state management (Repositories, Services).
+    *   Data transformations and utilities often use functional patterns (pure functions).
+*   **Type Safety:**
+    *   `zod` is the standard for runtime validation.
+    *   `as const` assertions are used frequently for configuration objects to narrow types.
 
 ## 6. Dependency and Configuration Management
 
-*   **Dependencies:**
-    *   Managed via `npm` with `package.json` and `package-lock.json`.
-    *   The project favors focused, single-purpose libraries (e.g., `p-limit`, `zod`) over large, general-purpose utility libraries like `lodash`.
-    *   The `overrides` field in `package.json` is used to enforce specific versions of transitive dependencies, indicating a proactive approach to dependency management.
+*   **Dependencies:** Managed via `package.json`. The project prefers specific, smaller libraries (e.g., `p-limit`, `fast-glob`) over monolithic utility belts where possible.
 *   **Configuration:**
-    *   **Environment Variables:** Configuration is primarily managed through a `.env` file, loaded by `dotenv`. `EXAMPLE.env` serves as a template.
-    *   **Schema Validation:** Environment variables are validated at runtime using `zod`. The base schema is extended dynamically by LLM provider manifests, ensuring that only the necessary variables for the selected provider are required and validated.
-    *   **Static Configuration:** Immutable, static configuration is defined in `*.config.ts` files within `src/app/config/`.
-    *   **LLM Provider Manifests:** A key pattern where each LLM provider defines its models, required environment variables, and factory function in a `.manifest.ts` file, making the system highly pluggable.
+    *   **Environment Variables:** Managed via `.env` and `dotenv`.
+    *   **Validation:** All environment variables are validated using `zod` schemas in `src/app/env/`.
+    *   **Manifests:** LLM-specific configuration is decoupled into provider manifests.
 
 ## 7. Testing and Documentation
 
 *   **Testing Philosophy:**
-    *   The project has a robust testing strategy with both **unit tests** and **integration tests**.
-    *   **Unit Tests:** Files ending in `.test.ts` focus on individual components in isolation.
-    *   **Integration Tests:** Files ending in `.int.test.ts` test the interaction between multiple components or with external systems like a real database connection.
-    *   **Testing Framework:** Jest is used, configured via `jest.config.js` and `ts-jest`.
-    *   **Test Execution:**
-        *   `npm test`: Runs all unit tests.
-        *   `npm test:int`: Runs all integration tests.
-        *   `npm test:verbose`: Runs unit tests with detailed output.
+    *   **Unit Tests (`*.test.ts`):** Test individual components/functions in isolation.
+    *   **Integration Tests (`*.int.test.ts`):** Test interactions with the database or external services.
     *   **Guidance:** **For each significant application feature change / addition you make, add appropriate new unit tests for this change.**
-*   **Documentation Style:**
-    *   **Code Comments:** JSDoc (`/** ... */`) is used to document the public API of classes, methods, and functions.
-    *   **Project Documentation:** `README.md` provides a comprehensive guide to setup, usage, and architecture.
-    *   **Developer Notes:** `NOTES.txt` contains informal notes, future ideas, and troubleshooting tips.
-    *   **Configuration Template:** `EXAMPLE.env` clearly documents all required environment variables.
+*   **Running Tests:**
+    *   `npm test`: Runs unit tests.
+    *   `npm test:int`: Runs integration tests.
+*   **Documentation:**
+    *   Code is self-documenting via descriptive naming.
+    *   Complex logic requires JSDoc.
+    *   `README.md` covers setup and architecture.
 
-## 8. Validation
+## 8. Validation and Build Process
 
-*   **Compiling/Building:**
-    *   **Command:** `npm run build`
-    *   **Process:** The TypeScript Compiler (`tsc`) compiles `.ts` files into JavaScript, placing them in the `dist/` directory as configured in `tsconfig.json`. The `copy-templates` script is also run to move `ejs` templates.
-*   **Linting:**
-    *   **Command:** `npm run lint`
-    *   **Tool:** ESLint, configured via `eslint.config.mjs`.
-    *   **Rules:** Enforces strict, type-checked rules, including `prefer-readonly` and member ordering, to maintain high code quality.
-    *   **Guidance:** **For any reported linting errors, fix the problem properly, rather than cheating with an added `eslint….` comment.**
-*   **Formatting:**
-    *   **Command:** `npm run format`
-    *   **Tool:** Prettier is used to automatically format the code, ensuring a consistent style.
-*   **Comprehensive Validation:**
-    *   **Command:** `npm run validate`
-    *   **Action:** This is the primary pre-commit/pre-push script. It runs a full sequence of `build`, `lint`, `test`, and `test:int` to ensure the codebase is in a healthy state.
+*   **Compiling:** `npm run build` (Compiles TS to `dist/` and copies templates).
+*   **Linting:** `npm run lint` (Runs ESLint).
+*   **Full Validation Workflow:**
+    *   The project enforces a strict validation cycle.
     *   **Guidance:** **When you have completed application refactoring work, to validate the changes, ensure you execute `npm run validate`, and then fix any reported errors, before running the command again repeatedly, with you fixing reported errors each time, until no more errors are reported.**
+    *   The `npm run validate` command executes: Build -> Lint -> Unit Tests -> Integration Tests.
