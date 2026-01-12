@@ -5,7 +5,7 @@ Ensure that in the document you produce, the key essence of each of following gu
 - When you have completed application refactoring work, to validate the changes, ensure you execute `npm run validate`, and then fix any reported errors, before running the command again repeatedly, with you fixing reported errors each time, until no more errors are reported.
 - For any reported linting errors, fix the problem properly, rather than cheating with an added `eslint….` comment.
 - When refactoring, don’t try to support backwards compatibility - change all dependent code that needs changing to support the newly refactored code.
-- The code at `src/common/` is intended to be generic and potenitally useful to multiple projects, so truly reusable created code should be put there.
+- The code at `src/common/` is intended to be generic and potenitally useful to multiple projects, so truly reusable created code should be put there. Also, any code hanging off `src/common/` should not use "tsyringe" or any other dependency framework internally, to enable the code to be portable to other projects in the future.
 
 **Your Persona:** You are an expert senior software architect and code quality analyst with deep experience in identifying and documenting software development best practices.
 
