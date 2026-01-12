@@ -13,6 +13,7 @@ import BaseLLMProvider from "../../base-llm-provider";
 import { z } from "zod";
 import { LLMError, LLMErrorCode } from "../../../types/llm-errors.types";
 import { createTokenUsageRecord } from "../../../types/llm.types";
+import type { JsonObject } from "../../../types/json-value.types";
 import {
   extractGenericCompletionResponse,
   type ResponsePathConfig,
@@ -178,7 +179,7 @@ export default abstract class BaseBedrockLLM extends BaseLLMProvider {
    * Build common Bedrock API parameters structure.
    * Extracts the common pattern of modelId, contentType, accept, and body.
    */
-  private buildBedrockParameters(modelKey: string, bodyObj: Record<string, unknown>) {
+  private buildBedrockParameters(modelKey: string, bodyObj: JsonObject) {
     return {
       modelId: this.llmModelsMetadata[modelKey].urn,
       contentType: llmConfig.MIME_TYPE_JSON,
@@ -206,11 +207,9 @@ export default abstract class BaseBedrockLLM extends BaseLLMProvider {
   /**
    * Build the request body object for completions.
    * Each concrete Bedrock provider must implement this to match their specific API format.
+   * Returns a JsonObject to ensure the request body is JSON-serializable.
    */
-  protected abstract buildCompletionRequestBody(
-    modelKey: string,
-    prompt: string,
-  ): Record<string, unknown>;
+  protected abstract buildCompletionRequestBody(modelKey: string, prompt: string): JsonObject;
 
   /**
    * Abstract method to get the provider-specific response extraction configuration.

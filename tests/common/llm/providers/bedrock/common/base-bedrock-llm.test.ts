@@ -10,6 +10,7 @@ import {
   LLMProviderManifest,
   LLMImplSpecificResponseSummary,
 } from "../../../../../../src/common/llm/providers/llm-provider.types";
+import type { JsonObject } from "../../../../../../src/common/llm/types/json-value.types";
 import { z } from "zod";
 import { ValidationException } from "@aws-sdk/client-bedrock-runtime";
 import { createMockErrorLogger } from "../../../../helpers/llm/mock-error-logger";
@@ -69,13 +70,10 @@ function createTestProviderInit(
  * is centralized in the base class.
  */
 class TestBedrockLLM extends BaseBedrockLLM {
-  lastBuiltBody: Record<string, unknown> | null = null;
+  lastBuiltBody: JsonObject | null = null;
 
-  protected override buildCompletionRequestBody(
-    modelKey: string,
-    prompt: string,
-  ): Record<string, unknown> {
-    const body = {
+  protected override buildCompletionRequestBody(modelKey: string, prompt: string): JsonObject {
+    const body: JsonObject = {
       messages: [
         {
           role: "user",

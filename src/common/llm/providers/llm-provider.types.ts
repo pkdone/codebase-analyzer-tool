@@ -8,6 +8,7 @@ import {
 } from "../types/llm.types";
 import type { ResolvedModels } from "../config/llm-module-config.types";
 import type { IErrorLogger } from "../tracking/llm-error-logger.interface";
+import type { JsonValue } from "../types/json-value.types";
 
 /**
  * Interface for retry and timeout configuration used by LLMRouter
@@ -26,10 +27,12 @@ export interface LLMRetryConfig {
 /**
  * Interface for provider-specific operational parameters that can be configured
  * without code changes in the core LLM logic files.
+ * Uses JsonValue constraint for the index signature to ensure all config
+ * values are JSON-serializable, while still allowing provider flexibility.
  */
 export interface LLMProviderSpecificConfig extends LLMRetryConfig {
-  /** Any other provider-specific configuration */
-  [key: string]: unknown;
+  /** Any other provider-specific configuration (must be JSON-serializable) */
+  [key: string]: JsonValue | undefined;
   /** API version or similar version identifiers */
   apiVersion?: string;
   /** Default temperature for completions */
@@ -39,7 +42,7 @@ export interface LLMProviderSpecificConfig extends LLMRetryConfig {
   /** Default topK for completions */
   topK?: number;
   /** Safety settings for providers that support them */
-  safetySettings?: Record<string, unknown>;
+  safetySettings?: Record<string, JsonValue>;
 }
 
 /**

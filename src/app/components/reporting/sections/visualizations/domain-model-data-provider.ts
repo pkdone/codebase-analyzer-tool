@@ -95,9 +95,13 @@ export class DomainModelDataProvider {
     hierarchicalContexts: HierarchicalBoundedContextData[],
   ): DomainBoundedContext[] {
     return hierarchicalContexts.map((context) => {
-      const aggregates = this.transformAggregates(context.aggregates ?? []);
-      const entities = this.extractEntitiesFromAggregates(context.aggregates ?? []);
-      const repositories = this.extractRepositoriesFromAggregates(context.aggregates ?? []);
+      // The Zod schema requires aggregates, but the type guard allows missing aggregates
+      // for flexibility with runtime data (legacy data, passthrough properties).
+      // Cast to handle the runtime edge case where aggregates might be missing.
+      const contextAggregates = (context.aggregates as NestedAggregate[] | undefined) ?? [];
+      const aggregates = this.transformAggregates(contextAggregates);
+      const entities = this.extractEntitiesFromAggregates(contextAggregates);
+      const repositories = this.extractRepositoriesFromAggregates(contextAggregates);
 
       return {
         name: context.name,

@@ -1,5 +1,6 @@
 import { llmConfig } from "../../../config/llm.config";
 import type { ResolvedLLMModelMetadata } from "../../../types/llm.types";
+import type { JsonObject } from "../../../types/json-value.types";
 
 /**
  * Builds a standard messages array for Bedrock completion requests.
@@ -16,12 +17,7 @@ export function buildStandardMessagesArray(
   prompt: string,
   modelKey: string,
   modelsMetadata: Record<string, ResolvedLLMModelMetadata>,
-): {
-  messages: { role: string; content: string }[];
-  max_tokens: number;
-  temperature: number;
-  top_p: number;
-} {
+): JsonObject {
   const maxCompletionTokens = modelsMetadata[modelKey].maxCompletionTokens;
   if (maxCompletionTokens === undefined) {
     throw new Error(`maxCompletionTokens is undefined for model key: ${modelKey}`);

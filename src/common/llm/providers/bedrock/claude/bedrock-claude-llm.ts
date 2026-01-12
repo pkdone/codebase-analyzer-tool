@@ -10,6 +10,7 @@ import {
   type BedrockClaudeProviderConfig,
 } from "./bedrock-claude.types";
 import { LLMError, LLMErrorCode } from "../../../types/llm-errors.types";
+import type { JsonObject } from "../../../types/json-value.types";
 
 /**
  * Zod schema for Claude completion response validation
@@ -32,7 +33,7 @@ export default class BedrockClaudeLLM extends BaseBedrockLLM {
   /**
    * Build the request body object for Claude completions.
    */
-  protected override buildCompletionRequestBody(modelKey: string, prompt: string) {
+  protected override buildCompletionRequestBody(modelKey: string, prompt: string): JsonObject {
     // Bedrock providers don't support JSON mode options
     // Use type guard to validate configuration at runtime
     if (!isBedrockClaudeProviderConfig(this.providerSpecificConfig)) {
@@ -43,6 +44,13 @@ export default class BedrockClaudeLLM extends BaseBedrockLLM {
     }
 
     const config: BedrockClaudeProviderConfig = this.providerSpecificConfig;
+    const maxCompletionTokens = this.llmModelsMetadata[modelKey].maxCompletionTokens;
+    if (maxCompletionTokens === undefined) {
+      throw new LLMError(
+        LLMErrorCode.BAD_CONFIGURATION,
+        `maxCompletionTokens is undefined for model key: ${modelKey}`,
+      );
+    }
 
     const baseParams = {
       anthropic_version: config.apiVersion,
@@ -59,7 +67,7 @@ export default class BedrockClaudeLLM extends BaseBedrockLLM {
       ],
       temperature: config.temperature ?? llmConfig.DEFAULT_ZERO_TEMP,
       top_k: config.topK ?? llmConfig.DEFAULT_TOP_K_LOWEST,
-      max_tokens: this.llmModelsMetadata[modelKey].maxCompletionTokens,
+      max_tokens: maxCompletionTokens,
     };
 
     // Add anthropic_beta flags for Claude models (1M-token context beta) if configured

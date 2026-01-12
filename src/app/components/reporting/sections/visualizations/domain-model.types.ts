@@ -1,3 +1,5 @@
+import type { HierarchicalBoundedContext } from "../../../../schemas/app-summaries.schema";
+
 /**
  * Domain model types for reporting and visualization.
  * These interfaces define the flattened data structures used for
@@ -54,16 +56,10 @@ export interface DomainModelData {
 }
 
 /**
- * Interface for hierarchical bounded context data from the new schema
- * Repository is now at the aggregate level, not bounded context level
- * Note: aggregates is optional in practice even though the schema requires it,
- * because .passthrough() allows flexibility and test data may omit it.
- * The index signature allows compatibility with Zod's passthrough schema type.
+ * Type alias for hierarchical bounded context data from the Zod schema.
+ * Uses the inferred type from hierarchicalBoundedContextSchema which includes
+ * .passthrough() for additional properties from LLM responses.
+ * The aggregates property is required by the schema but may be missing in
+ * practice due to .passthrough() flexibility - use optional access when consuming.
  */
-export interface HierarchicalBoundedContextData {
-  /** Index signature for compatibility with Zod passthrough schemas */
-  [key: string]: unknown;
-  name: string;
-  description: string;
-  aggregates?: import("../../../../schemas/app-summaries.schema").NestedAggregate[];
-}
+export type HierarchicalBoundedContextData = HierarchicalBoundedContext;

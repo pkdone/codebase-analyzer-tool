@@ -141,8 +141,8 @@ describe("domain-model.guards", () => {
           const contexts: HierarchicalBoundedContextData[] = data;
           expect(contexts[0].name).toBe("Order Context");
           expect(contexts[0].aggregates).toBeDefined();
-          // Access the aggregates property without casting
-          expect(contexts[0].aggregates?.[0]?.name).toBe("OrderAggregate");
+          // Access the aggregates property - required by the Zod schema
+          expect(contexts[0].aggregates[0].name).toBe("OrderAggregate");
         }
       });
 

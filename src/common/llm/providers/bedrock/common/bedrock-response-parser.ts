@@ -4,6 +4,7 @@ import { isDefined } from "../../../../utils/type-guards";
 import { LLMError, LLMErrorCode } from "../../../types/llm-errors.types";
 import { LLMGeneratedContent, createTokenUsageRecord } from "../../../types/llm.types";
 import { LLMImplSpecificResponseSummary } from "../../llm-provider.types";
+import type { JsonObject } from "../../../types/json-value.types";
 
 /**
  * Parses a value as a number, returning undefined if the value is not a number.
@@ -56,7 +57,8 @@ export function extractGenericCompletionResponse(
       `Invalid ${providerName} response structure`,
       llmResponse,
     );
-  const response = validation.data as Record<string, unknown>;
+  // Cast to JsonObject for type-safe property access - validation.data is validated JSON
+  const response = validation.data as JsonObject;
   const contentPaths = [pathConfig.contentPath, pathConfig.alternativeContentPath].filter(
     isDefined,
   );

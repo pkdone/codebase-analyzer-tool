@@ -14,6 +14,16 @@ export const baseEnvVarsSchema = z.object({
 
 export type BaseEnvVars = z.infer<typeof baseEnvVarsSchema>;
 
-// This type represents the fully parsed environment variables, including provider-specific ones.
-// The actual shape depends on the dynamically constructed schema in bootstrap.ts.
-export type EnvVars = BaseEnvVars & Record<string, unknown>; // Allows for provider-specific properties after Zod parsing
+/**
+ * Valid types that can be produced by dotenv and Zod parsing.
+ * Environment variables are strings by default, but Zod can transform
+ * them to numbers or booleans via preprocessing.
+ */
+type EnvVarValue = string | number | boolean | undefined;
+
+/**
+ * Represents the fully parsed environment variables, including provider-specific ones.
+ * The actual shape depends on the dynamically constructed schema in bootstrap.ts.
+ * Uses EnvVarValue constraint to ensure only valid parsed types are allowed.
+ */
+export type EnvVars = BaseEnvVars & Record<string, EnvVarValue>;

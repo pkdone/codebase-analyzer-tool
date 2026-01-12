@@ -26,8 +26,11 @@ export type TableCellValue =
 /**
  * Interface for a table row that can be displayed.
  * Each row is a record of column names to cell values.
- * The constraint is intentionally permissive to allow domain-specific interfaces
- * (like DatabaseIntegrationInfo) to be used directly without index signatures.
+ *
+ * Note: Uses Record<string, unknown> rather than Record<string, TableCellValue> to maintain
+ * compatibility with Zod-inferred types that use .passthrough() (which adds [key: string]: unknown).
+ * The TableCellValue type documents what values the formatter actually handles; the formatter
+ * gracefully handles any value by serializing complex types to JSON strings.
  */
 export type DisplayableTableRow = Record<string, unknown>;
 

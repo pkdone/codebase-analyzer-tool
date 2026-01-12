@@ -1,4 +1,5 @@
 import type { LLMSanitizerConfig } from "../../config/llm-module-config.types";
+import type { JsonValue } from "../../types/json-value.types";
 
 /**
  * Generic schema fixing transformations that operate on already-parsed JSON objects.
@@ -177,11 +178,14 @@ function isJsonSchemaObjectWithDataInProperties(obj: Record<string, unknown>): b
  * Handles multiple patterns:
  * 1. Primitive fields: { "type": "string", "description": "value" } -> "value"
  * 2. Object fields with data in properties: { "type": "object", "properties": {...data...} } -> {...data...}
+ *
+ * Returns JsonValue since the output is guaranteed to be JSON-serializable data
+ * extracted from schema definitions.
  */
-function extractSchemaFieldValues(value: unknown): unknown {
-  // Handle null/undefined
+function extractSchemaFieldValues(value: unknown): JsonValue {
+  // Handle null/undefined - convert undefined to null for JsonValue compatibility
   if (value === null || value === undefined) {
-    return value;
+    return null;
   }
 
   // Handle arrays - recursively process each element
@@ -202,7 +206,8 @@ function extractSchemaFieldValues(value: unknown): unknown {
         return extractSchemaFieldValues(extractedValue);
       }
 
-      return extractedValue;
+      // Cast to JsonValue - extractedValue is a primitive (string, number, boolean, null)
+      return extractedValue as JsonValue;
     }
 
     // Case 2: Object schema with data in properties - extract from properties
@@ -213,15 +218,15 @@ function extractSchemaFieldValues(value: unknown): unknown {
     }
 
     // Not a schema field definition - recursively process all properties
-    const result: Record<string, unknown> = {};
+    const result: Record<string, JsonValue> = {};
     for (const [key, propValue] of Object.entries(obj)) {
       result[key] = extractSchemaFieldValues(propValue);
     }
     return result;
   }
 
-  // Primitives pass through unchanged
-  return value;
+  // Primitives pass through unchanged - cast since TypeScript can't narrow fully here
+  return value as JsonValue;
 }
 
 /**

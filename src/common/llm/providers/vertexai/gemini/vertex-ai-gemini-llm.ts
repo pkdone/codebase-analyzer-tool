@@ -264,7 +264,9 @@ export default class VertexAIGeminiLLM extends BaseLLMProvider {
         const sanitizedSchema = sanitizeSchemaForProvider(jsonSchema, ["const"]);
 
         if (isVertexAICompatibleSchema(sanitizedSchema)) {
-          generationConfig.responseSchema = sanitizedSchema;
+          // Cast to unknown first, then to ResponseSchema - the type guard validates compatibility
+          generationConfig.responseSchema =
+            sanitizedSchema as unknown as typeof generationConfig.responseSchema;
         } else {
           logWarn(
             "Generated JSON schema is not compatible with VertexAI SDK's Schema type. " +
@@ -350,16 +352,28 @@ export default class VertexAIGeminiLLM extends BaseLLMProvider {
 }
 
 /**
- * Type representing a JSON schema that is structurally compatible with VertexAI's Schema type.
- * Used as the narrow type for the isVertexAICompatibleSchema type guard.
+ * Interface representing a JSON schema that is structurally compatible with VertexAI's Schema type.
+ * Defines the expected shape validated by isVertexAICompatibleSchema type guard.
  *
- * Note: We use Record<string, unknown> as the narrowed type because:
- * 1. It satisfies VertexAI's ResponseSchema type requirements
- * 2. The type guard validates the structure at runtime (type property, etc.)
- * 3. Using a more specific interface would require importing SDK types that
- *    have complex constraints (SchemaType enum, etc.)
+ * This interface captures the structural requirements for VertexAI's ResponseSchema:
+ * - type: Required string that maps to SchemaType enum at runtime
+ * - description: Optional description of the schema
+ * - properties: Required for object types, maps property names to nested schemas
+ * - required: Optional array of required property names
+ * - items: Optional schema for array item types
+ * - enum: Optional array of allowed string values
+ *
+ * Note: Uses Record<string, unknown> as the base to remain compatible with the SDK's
+ * ResponseSchema type, while the type guard validates the structure at runtime.
  */
-type VertexCompatibleSchema = Record<string, unknown>;
+interface VertexCompatibleSchema extends Record<string, unknown> {
+  readonly type: string;
+  readonly description?: string;
+  readonly properties?: Readonly<Record<string, unknown>>;
+  readonly required?: readonly string[];
+  readonly items?: unknown;
+  readonly enum?: readonly string[];
+}
 
 /**
  * Type guard to check if a JSON schema is compatible with VertexAI's Schema type.
@@ -368,16 +382,14 @@ type VertexCompatibleSchema = Record<string, unknown>;
  * - It has a 'type' property that is a string (maps to SchemaType enum at runtime)
  * - For object types, it has a 'properties' object
  *
- * The narrowed type is Record<string, unknown> to be assignable to the SDK's
- * ResponseSchema type while still providing runtime validation.
- *
  * @param schema - The schema to validate
  * @returns True if the schema is compatible with VertexAI
  */
 function isVertexAICompatibleSchema(schema: unknown): schema is VertexCompatibleSchema {
   if (!schema || typeof schema !== "object") return false;
-  if (!("type" in schema) || typeof schema.type !== "string") return false;
+  const schemaObj = schema as Record<string, unknown>;
+  if (!("type" in schemaObj) || typeof schemaObj.type !== "string") return false;
   // For object types, require properties to be present
-  if (schema.type === "object" && !("properties" in schema)) return false;
+  if (schemaObj.type === "object" && !("properties" in schemaObj)) return false;
   return true;
 }

@@ -446,6 +446,38 @@ describe("schema-format-transforms", () => {
         });
       });
     });
+
+    describe("undefined handling for JsonValue compatibility", () => {
+      it("should convert undefined values to null for JsonValue compatibility", () => {
+        // Test that undefined values become null in the output (JsonValue doesn't include undefined)
+        const inputWithUndefined = {
+          defined: "value",
+          undefinedField: undefined,
+        };
+
+        const result = unwrapJsonSchemaStructure(inputWithUndefined);
+
+        // The undefined value should be converted to null
+        expect(result).toEqual({
+          defined: "value",
+          undefinedField: null,
+        });
+      });
+
+      it("should preserve null values as-is", () => {
+        const inputWithNull = {
+          defined: "value",
+          nullField: null,
+        };
+
+        const result = unwrapJsonSchemaStructure(inputWithNull);
+
+        expect(result).toEqual({
+          defined: "value",
+          nullField: null,
+        });
+      });
+    });
   });
 
   describe("coerceNumericProperties", () => {

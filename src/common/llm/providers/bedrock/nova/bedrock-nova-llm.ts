@@ -1,6 +1,8 @@
 import { llmConfig } from "../../../config/llm.config";
 import BaseBedrockLLM from "../common/base-bedrock-llm";
 import { z } from "zod";
+import type { JsonObject } from "../../../types/json-value.types";
+import { LLMError, LLMErrorCode } from "../../../types/llm-errors.types";
 
 /**
  * Zod schema for Nova completion response validation
@@ -33,11 +35,19 @@ export default class BedrockNovaLLM extends BaseBedrockLLM {
   /**
    * Build the request body object for Nova completions.
    */
-  protected override buildCompletionRequestBody(modelKey: string, prompt: string) {
+  protected override buildCompletionRequestBody(modelKey: string, prompt: string): JsonObject {
     // Bedrock providers don't support JSON mode options
+    const maxCompletionTokens = this.llmModelsMetadata[modelKey].maxCompletionTokens;
+    if (maxCompletionTokens === undefined) {
+      throw new LLMError(
+        LLMErrorCode.BAD_CONFIGURATION,
+        `maxCompletionTokens is undefined for model key: ${modelKey}`,
+      );
+    }
+
     return {
       inferenceConfig: {
-        max_new_tokens: this.llmModelsMetadata[modelKey].maxCompletionTokens,
+        max_new_tokens: maxCompletionTokens,
         temperature: llmConfig.DEFAULT_ZERO_TEMP,
         top_p: llmConfig.DEFAULT_TOP_P_LOWEST,
         top_k: llmConfig.DEFAULT_TOP_K_LOWEST,
