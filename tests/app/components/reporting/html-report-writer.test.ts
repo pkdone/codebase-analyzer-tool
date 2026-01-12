@@ -5,15 +5,18 @@ import ejs from "ejs";
 import {
   HtmlReportWriter,
   PreparedHtmlReportData,
+  PreparedHtmlReportDataWithoutAssets,
 } from "../../../../src/app/components/reporting/html-report-writer";
+import { HtmlReportAssetService } from "../../../../src/app/components/reporting/services/html-report-asset.service";
 import { outputConfig } from "../../../../src/app/config/output.config";
 import { writeFile } from "../../../../src/common/fs/file-operations";
 import { container } from "tsyringe";
-import { coreTokens } from "../../../../src/app/di/tokens";
+import { coreTokens, reportingTokens } from "../../../../src/app/di/tokens";
 
 // Mock dependencies
 jest.mock("../../../../src/common/fs/file-operations");
 jest.mock("ejs");
+jest.mock("../../../../src/app/components/reporting/services/html-report-asset.service");
 
 const mockWriteFile = writeFile as jest.MockedFunction<typeof writeFile>;
 const mockEjs = ejs as jest.Mocked<typeof ejs>;
@@ -21,8 +24,9 @@ const mockEjs = ejs as jest.Mocked<typeof ejs>;
 describe("HtmlReportWriter", () => {
   let htmlReportWriter: HtmlReportWriter;
   let mockConsoleLog: jest.SpyInstance;
+  let mockAssetService: jest.Mocked<HtmlReportAssetService>;
 
-  const mockPreparedData: PreparedHtmlReportData = {
+  const mockPreparedDataWithoutAssets: PreparedHtmlReportDataWithoutAssets = {
     appStats: {
       projectName: "test-project",
       currentDate: "2025-10-09",
@@ -142,6 +146,7 @@ describe("HtmlReportWriter", () => {
       total: 0,
       conflicts: 0,
       buildFiles: 0,
+      conflictsCssClass: "no-conflicts",
     },
     codeQualitySummary: null,
     scheduledJobsSummary: null,
@@ -165,8 +170,9 @@ describe("HtmlReportWriter", () => {
     // Current/Inferred Architecture data
     inferredArchitectureData: null,
     currentArchitectureDiagramSvg: "",
+  };
 
-    // Asset content to be embedded inline
+  const mockAssets = {
     inlineCss: "/* test css */",
     jsonIconSvg: "<svg>test</svg>",
   };
@@ -174,8 +180,15 @@ describe("HtmlReportWriter", () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    // Register outputConfig in DI container for testing
+    // Create a mock asset service
+    mockAssetService = {
+      loadAssets: jest.fn().mockResolvedValue(mockAssets),
+      clearCache: jest.fn(),
+    } as unknown as jest.Mocked<HtmlReportAssetService>;
+
+    // Register dependencies in DI container for testing
     container.registerInstance(coreTokens.OutputConfig, outputConfig);
+    container.registerInstance(reportingTokens.HtmlReportAssetService, mockAssetService);
     htmlReportWriter = container.resolve(HtmlReportWriter);
 
     // Mock console.log
@@ -192,7 +205,7 @@ describe("HtmlReportWriter", () => {
   });
 
   describe("writeHTMLReportFile", () => {
-    it("should render template and write HTML file successfully", async () => {
+    it("should load assets and render template successfully", async () => {
       const htmlFilePath = "/output/test-report.html";
       const expectedTemplatePath = path.join(
         __dirname.replace("tests/app/components/reporting", "src/app/components/reporting"),
@@ -200,10 +213,20 @@ describe("HtmlReportWriter", () => {
         outputConfig.HTML_MAIN_TEMPLATE_FILE,
       );
 
-      await htmlReportWriter.writeHTMLReportFile(mockPreparedData, htmlFilePath);
+      await htmlReportWriter.writeHTMLReportFile(mockPreparedDataWithoutAssets, htmlFilePath);
 
-      // Expect the template data to be passed as-is (asset content should already be included)
-      expect(mockEjs.renderFile).toHaveBeenCalledWith(expectedTemplatePath, mockPreparedData);
+      // Verify assets were loaded
+      expect(mockAssetService.loadAssets).toHaveBeenCalled();
+
+      // Expect the template data to include loaded assets
+      expect(mockEjs.renderFile).toHaveBeenCalledWith(
+        expectedTemplatePath,
+        expect.objectContaining({
+          ...mockPreparedDataWithoutAssets,
+          inlineCss: mockAssets.inlineCss,
+          jsonIconSvg: mockAssets.jsonIconSvg,
+        }),
+      );
       expect(mockWriteFile).toHaveBeenCalledWith(
         htmlFilePath,
         "<html><body>Test Report</body></html>",
@@ -220,7 +243,7 @@ describe("HtmlReportWriter", () => {
       mockEjs.renderFile = jest.fn().mockRejectedValue(templateError);
 
       await expect(
-        htmlReportWriter.writeHTMLReportFile(mockPreparedData, htmlFilePath),
+        htmlReportWriter.writeHTMLReportFile(mockPreparedDataWithoutAssets, htmlFilePath),
       ).rejects.toThrow("Template rendering failed");
 
       expect(mockWriteFile).not.toHaveBeenCalled();
@@ -234,17 +257,31 @@ describe("HtmlReportWriter", () => {
       mockWriteFile.mockRejectedValue(fileError);
 
       await expect(
-        htmlReportWriter.writeHTMLReportFile(mockPreparedData, htmlFilePath),
+        htmlReportWriter.writeHTMLReportFile(mockPreparedDataWithoutAssets, htmlFilePath),
       ).rejects.toThrow("File writing failed");
 
       expect(mockEjs.renderFile).toHaveBeenCalled();
       expect(mockConsoleLog).not.toHaveBeenCalled();
     });
 
+    it("should handle asset loading errors", async () => {
+      const htmlFilePath = "/output/test-report.html";
+      const assetError = new Error("Asset loading failed");
+
+      mockAssetService.loadAssets.mockRejectedValue(assetError);
+
+      await expect(
+        htmlReportWriter.writeHTMLReportFile(mockPreparedDataWithoutAssets, htmlFilePath),
+      ).rejects.toThrow("Asset loading failed");
+
+      expect(mockEjs.renderFile).not.toHaveBeenCalled();
+      expect(mockWriteFile).not.toHaveBeenCalled();
+    });
+
     it("should use correct template path", async () => {
       const htmlFilePath = "/output/custom-report.html";
 
-      await htmlReportWriter.writeHTMLReportFile(mockPreparedData, htmlFilePath);
+      await htmlReportWriter.writeHTMLReportFile(mockPreparedDataWithoutAssets, htmlFilePath);
 
       const expectedTemplatePath = path.join(
         __dirname.replace("tests/app/components/reporting", "src/app/components/reporting"),
@@ -255,36 +292,27 @@ describe("HtmlReportWriter", () => {
       expect(mockEjs.renderFile).toHaveBeenCalledWith(
         expectedTemplatePath,
         expect.objectContaining({
-          ...mockPreparedData,
           inlineCss: expect.any(String),
           jsonIconSvg: expect.any(String),
         }),
       );
     });
 
-    it("should pass through all prepared data to template", async () => {
+    it("should pass through all prepared data to template with assets", async () => {
       const htmlFilePath = "/output/test-report.html";
 
-      await htmlReportWriter.writeHTMLReportFile(mockPreparedData, htmlFilePath);
+      await htmlReportWriter.writeHTMLReportFile(mockPreparedDataWithoutAssets, htmlFilePath);
 
-      expect(mockEjs.renderFile).toHaveBeenCalledWith(
-        expect.any(String),
-        expect.objectContaining({
-          ...mockPreparedData,
-          inlineCss: expect.any(String),
-          jsonIconSvg: expect.any(String),
-        }),
-      );
+      const passedData = (mockEjs.renderFile as jest.Mock).mock
+        .calls[0][1] as PreparedHtmlReportData;
 
-      // Verify the exact data structure is passed through
-      const passedData = (mockEjs.renderFile as jest.Mock).mock.calls[0][1];
-      expect(passedData).toHaveProperty("inlineCss");
-      expect(typeof passedData.inlineCss).toBe("string");
-      expect(passedData.inlineCss).toBe("/* test css */");
-      expect(passedData).toHaveProperty("jsonIconSvg");
-      expect(passedData.jsonIconSvg).toBe("<svg>test</svg>");
-      expect(passedData).toHaveProperty("appStats");
-      expect(passedData).toHaveProperty("categorizedData");
+      // Verify assets are injected
+      expect(passedData.inlineCss).toBe(mockAssets.inlineCss);
+      expect(passedData.jsonIconSvg).toBe(mockAssets.jsonIconSvg);
+
+      // Verify original data is preserved
+      expect(passedData.appStats).toEqual(mockPreparedDataWithoutAssets.appStats);
+      expect(passedData.categorizedData).toEqual(mockPreparedDataWithoutAssets.categorizedData);
       expect(passedData).toHaveProperty("convertToDisplayName");
     });
 
@@ -297,7 +325,7 @@ describe("HtmlReportWriter", () => {
       ];
 
       for (const htmlFilePath of testCases) {
-        await htmlReportWriter.writeHTMLReportFile(mockPreparedData, htmlFilePath);
+        await htmlReportWriter.writeHTMLReportFile(mockPreparedDataWithoutAssets, htmlFilePath);
 
         expect(mockWriteFile).toHaveBeenCalledWith(htmlFilePath, expect.any(String));
         expect(mockConsoleLog).toHaveBeenCalledWith(
@@ -315,7 +343,7 @@ describe("HtmlReportWriter", () => {
       mockEjs.renderFile = jest.fn().mockResolvedValue(customTemplate);
 
       const htmlFilePath = "/output/test-report.html";
-      await htmlReportWriter.writeHTMLReportFile(mockPreparedData, htmlFilePath);
+      await htmlReportWriter.writeHTMLReportFile(mockPreparedDataWithoutAssets, htmlFilePath);
 
       expect(mockWriteFile).toHaveBeenCalledWith(htmlFilePath, customTemplate);
     });
@@ -323,15 +351,19 @@ describe("HtmlReportWriter", () => {
 
   describe("edge cases", () => {
     it("should handle empty prepared data", async () => {
-      const emptyData = {
-        inlineCss: "/* css */",
-        jsonIconSvg: "<svg></svg>",
-      } as PreparedHtmlReportData;
+      const emptyData = {} as PreparedHtmlReportDataWithoutAssets;
       const htmlFilePath = "/output/empty-report.html";
 
       await htmlReportWriter.writeHTMLReportFile(emptyData, htmlFilePath);
 
-      expect(mockEjs.renderFile).toHaveBeenCalledWith(expect.any(String), emptyData);
+      // Should still inject assets even with empty data
+      expect(mockEjs.renderFile).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          inlineCss: mockAssets.inlineCss,
+          jsonIconSvg: mockAssets.jsonIconSvg,
+        }),
+      );
       expect(mockWriteFile).toHaveBeenCalled();
     });
 
@@ -339,7 +371,7 @@ describe("HtmlReportWriter", () => {
       const longPath =
         "/very/long/path/with/many/nested/directories/and/a/very/long/filename/that/exceeds/normal/length/expectations/report.html";
 
-      await htmlReportWriter.writeHTMLReportFile(mockPreparedData, longPath);
+      await htmlReportWriter.writeHTMLReportFile(mockPreparedDataWithoutAssets, longPath);
 
       expect(mockWriteFile).toHaveBeenCalledWith(longPath, expect.any(String));
       expect(mockConsoleLog).toHaveBeenCalledWith(
@@ -350,7 +382,7 @@ describe("HtmlReportWriter", () => {
     it("should handle special characters in file paths", async () => {
       const specialCharPath = "/output/report with spaces & symbols (test).html";
 
-      await htmlReportWriter.writeHTMLReportFile(mockPreparedData, specialCharPath);
+      await htmlReportWriter.writeHTMLReportFile(mockPreparedDataWithoutAssets, specialCharPath);
 
       expect(mockWriteFile).toHaveBeenCalledWith(specialCharPath, expect.any(String));
     });
@@ -359,14 +391,13 @@ describe("HtmlReportWriter", () => {
   describe("PreparedHtmlReportData interface structure", () => {
     it("should have table view model properties defined before enhanced UI data section", () => {
       // Verify that table view model properties are correctly positioned
-      // in the interface (not orphaned after currentArchitectureDiagramSvg)
-      expect(mockPreparedData).toHaveProperty("fileTypesTableViewModel");
-      expect(mockPreparedData).toHaveProperty("dbInteractionsTableViewModel");
-      expect(mockPreparedData).toHaveProperty("procsAndTriggersTableViewModel");
-      expect(mockPreparedData).toHaveProperty("integrationPointsTableViewModel");
+      expect(mockPreparedDataWithoutAssets).toHaveProperty("fileTypesTableViewModel");
+      expect(mockPreparedDataWithoutAssets).toHaveProperty("dbInteractionsTableViewModel");
+      expect(mockPreparedDataWithoutAssets).toHaveProperty("procsAndTriggersTableViewModel");
+      expect(mockPreparedDataWithoutAssets).toHaveProperty("integrationPointsTableViewModel");
 
       // Verify these properties come before enhanced UI data
-      const dataKeys = Object.keys(mockPreparedData);
+      const dataKeys = Object.keys(mockPreparedDataWithoutAssets);
       const fileTypesIndex = dataKeys.indexOf("fileTypesTableViewModel");
       const dbInteractionsIndex = dataKeys.indexOf("dbInteractionsTableViewModel");
       const businessProcessesIndex = dataKeys.indexOf("businessProcessesFlowchartSvgs");
@@ -378,23 +409,11 @@ describe("HtmlReportWriter", () => {
       expect(dbInteractionsIndex).toBeLessThan(businessProcessesIndex);
     });
 
-    it("should not have orphaned comments in the interface structure", () => {
-      // This test verifies that the interface structure is clean
-      // by ensuring all required properties are present and properly organized
-      expect(mockPreparedData).toHaveProperty("currentArchitectureDiagramSvg");
-      expect(mockPreparedData).toHaveProperty("inlineCss");
-      expect(mockPreparedData).toHaveProperty("jsonIconSvg");
-
-      // Verify that inlineCss comes directly after currentArchitectureDiagramSvg
-      // (no orphaned comments in between)
-      const dataKeys = Object.keys(mockPreparedData);
-      const currentArchIndex = dataKeys.indexOf("currentArchitectureDiagramSvg");
-      const inlineCssIndex = dataKeys.indexOf("inlineCss");
-
-      expect(currentArchIndex).toBeGreaterThan(-1);
-      expect(inlineCssIndex).toBeGreaterThan(-1);
-      // There should be no properties between these two (or very few)
-      expect(inlineCssIndex - currentArchIndex).toBeLessThanOrEqual(1);
+    it("should ensure PreparedHtmlReportDataWithoutAssets excludes asset properties", () => {
+      // TypeScript compilation would fail if these existed
+      const keys = Object.keys(mockPreparedDataWithoutAssets);
+      expect(keys).not.toContain("inlineCss");
+      expect(keys).not.toContain("jsonIconSvg");
     });
   });
 });

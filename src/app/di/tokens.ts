@@ -75,6 +75,7 @@ export type LLMToken = keyof typeof llmTokens;
 // Reporting module tokens
 export const reportingTokens = {
   HtmlReportWriter: Symbol("HtmlReportWriter"),
+  HtmlReportAssetService: Symbol("HtmlReportAssetService"),
   JsonReportWriter: Symbol("JsonReportWriter"),
   FlowchartDiagramGenerator: Symbol("FlowchartDiagramGenerator"),
   DomainModelDiagramGenerator: Symbol("DomainModelDiagramGenerator"),

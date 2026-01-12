@@ -6,7 +6,7 @@
     </div>
     <div class="card">
       <span class="card-title">Version Conflicts</span>
-      <span class="card-value <%= bomStats.conflicts > 0 ? 'conflict-warning' : 'no-conflicts' %>"><%= bomStats.conflicts %></span>
+      <span class="card-value <%= bomStats.conflictsCssClass %>"><%= bomStats.conflicts %></span>
     </div>
     <div class="card">
       <span class="card-title">Build Files</span>

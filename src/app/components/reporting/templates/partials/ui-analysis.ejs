@@ -3,18 +3,18 @@
     <p class="stats">
       <strong>JSP Files:</strong> <%= uiData.totalJspFiles %> |
       <strong>Total Scriptlets:</strong> 
-      <span class="<%= uiData.totalScriptlets > 100 ? 'high-scriptlet-warning' : '' %>">
+      <span class="<%= uiData.totalScriptletsCssClass %>">
         <%= uiData.totalScriptlets %>
       </span> |
       <strong>Avg Scriptlets/File:</strong> <%= uiData.averageScriptletsPerFile.toFixed(1) %> |
       <strong>High Debt Files:</strong> 
-      <span class="<%= uiData.filesWithHighScriptletCount > 0 ? 'warning-text' : '' %>">
+      <span class="<%= uiData.filesWithHighScriptletCountCssClass %>">
         <%= uiData.filesWithHighScriptletCount %>
       </span>
     </p>
   </div>
 
-  <% if (uiData.filesWithHighScriptletCount > 0) { %>
+  <% if (uiData.showHighDebtAlert) { %>
     <div class="alert alert-warning">
       <strong>⚠️ High Technical Debt Detected!</strong> 
       <%= uiData.filesWithHighScriptletCount %> <%= uiData.filesWithHighScriptletCount === 1 ? 'file has' : 'files have' %> 

@@ -1,6 +1,11 @@
 import {
   calculateCouplingLevel,
   calculateDebtLevel,
+  getTotalScriptletsCssClass,
+  getFilesWithHighScriptletCountCssClass,
+  shouldShowHighDebtAlert,
+  getBomConflictsCssClass,
+  HIGH_SCRIPTLET_WARNING_THRESHOLD,
   type CouplingLevelResult,
   type DebtLevelResult,
 } from "../../../../../src/app/components/reporting/utils/view-helpers";
@@ -195,6 +200,81 @@ describe("view-helpers", () => {
           cssClass: "badge-danger",
         });
       });
+    });
+  });
+
+  describe("getTotalScriptletsCssClass", () => {
+    it("should return warning class when scriptlets exceed threshold", () => {
+      const result = getTotalScriptletsCssClass(HIGH_SCRIPTLET_WARNING_THRESHOLD + 1);
+      expect(result).toBe("high-scriptlet-warning");
+    });
+
+    it("should return empty string when scriptlets equal threshold", () => {
+      const result = getTotalScriptletsCssClass(HIGH_SCRIPTLET_WARNING_THRESHOLD);
+      expect(result).toBe("");
+    });
+
+    it("should return empty string when scriptlets below threshold", () => {
+      const result = getTotalScriptletsCssClass(50);
+      expect(result).toBe("");
+    });
+
+    it("should return empty string for zero scriptlets", () => {
+      const result = getTotalScriptletsCssClass(0);
+      expect(result).toBe("");
+    });
+
+    it("should return warning class for very high scriptlet count", () => {
+      const result = getTotalScriptletsCssClass(1000);
+      expect(result).toBe("high-scriptlet-warning");
+    });
+  });
+
+  describe("getFilesWithHighScriptletCountCssClass", () => {
+    it("should return warning class when files with high scriptlet count > 0", () => {
+      const result = getFilesWithHighScriptletCountCssClass(1);
+      expect(result).toBe("warning-text");
+    });
+
+    it("should return empty string when no files with high scriptlet count", () => {
+      const result = getFilesWithHighScriptletCountCssClass(0);
+      expect(result).toBe("");
+    });
+
+    it("should return warning class for multiple high scriptlet files", () => {
+      const result = getFilesWithHighScriptletCountCssClass(10);
+      expect(result).toBe("warning-text");
+    });
+  });
+
+  describe("shouldShowHighDebtAlert", () => {
+    it("should return true when files with high scriptlet count > 0", () => {
+      expect(shouldShowHighDebtAlert(1)).toBe(true);
+    });
+
+    it("should return false when no files with high scriptlet count", () => {
+      expect(shouldShowHighDebtAlert(0)).toBe(false);
+    });
+
+    it("should return true for multiple high scriptlet files", () => {
+      expect(shouldShowHighDebtAlert(5)).toBe(true);
+    });
+  });
+
+  describe("getBomConflictsCssClass", () => {
+    it("should return conflict-warning class when conflicts > 0", () => {
+      const result = getBomConflictsCssClass(1);
+      expect(result).toBe("conflict-warning");
+    });
+
+    it("should return no-conflicts class when no conflicts", () => {
+      const result = getBomConflictsCssClass(0);
+      expect(result).toBe("no-conflicts");
+    });
+
+    it("should return conflict-warning class for multiple conflicts", () => {
+      const result = getBomConflictsCssClass(10);
+      expect(result).toBe("conflict-warning");
     });
   });
 });

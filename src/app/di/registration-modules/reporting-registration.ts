@@ -3,6 +3,7 @@ import { reportingTokens } from "../tokens";
 
 // Reporting component imports
 import { HtmlReportWriter } from "../../components/reporting/html-report-writer";
+import { HtmlReportAssetService } from "../../components/reporting/services/html-report-asset.service";
 import { JsonReportWriter } from "../../components/reporting/json-report-writer";
 import {
   FlowchartDiagramGenerator,
@@ -36,7 +37,8 @@ import { QualityMetricsSection } from "../../components/reporting/sections/quali
  * - Report generation orchestration
  */
 export function registerReportingComponents(): void {
-  // Register report writers and generators
+  // Register report writers, asset service, and generators
+  container.registerSingleton(reportingTokens.HtmlReportAssetService, HtmlReportAssetService);
   container.registerSingleton(reportingTokens.HtmlReportWriter, HtmlReportWriter);
   container.registerSingleton(reportingTokens.JsonReportWriter, JsonReportWriter);
   container.registerSingleton(reportingTokens.FlowchartDiagramGenerator, FlowchartDiagramGenerator);

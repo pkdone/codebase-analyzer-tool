@@ -36,37 +36,101 @@ export interface StyleApplication {
 }
 
 /**
+ * Error thrown when graph validation fails.
+ */
+export class GraphValidationError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "GraphValidationError";
+  }
+}
+
+/**
  * Abstract base class for graph builders that share common node, edge, and style management.
  * This eliminates duplication between MermaidFlowchartBuilder and SubgraphBuilder.
+ *
+ * Uses a Map for node storage to enable O(1) lookups for duplicate detection and
+ * referential integrity validation.
  */
 export abstract class AbstractGraphBuilder {
-  protected readonly nodes: MermaidNode[] = [];
+  protected readonly nodeMap = new Map<string, MermaidNode>();
   protected readonly edges: MermaidEdge[] = [];
   protected readonly styles: StyleApplication[] = [];
+  private strictValidationEnabled = false;
+
+  /**
+   * Enables or disables strict validation mode.
+   * When enabled, addEdge will throw an error if either endpoint node doesn't exist.
+   *
+   * @param enabled - Whether to enable strict validation
+   * @returns this for chaining
+   */
+  setStrictValidation(enabled: boolean): this {
+    this.strictValidationEnabled = enabled;
+    return this;
+  }
+
+  /**
+   * Returns whether strict validation is currently enabled.
+   */
+  isStrictValidationEnabled(): boolean {
+    return this.strictValidationEnabled;
+  }
 
   /**
    * Adds a node to the graph.
+   * Throws an error if a node with the same ID already exists.
    *
    * @param id - Unique identifier for the node
    * @param label - Display label for the node
    * @param shape - Node shape (defaults to "rectangle")
    * @returns this for chaining
+   * @throws GraphValidationError if a node with the same ID already exists
    */
   addNode(id: string, label: string, shape: NodeShape = "rectangle"): this {
-    this.nodes.push({ id, label, shape });
+    if (this.nodeMap.has(id)) {
+      throw new GraphValidationError(`Node with id "${id}" already exists`);
+    }
+    this.nodeMap.set(id, { id, label, shape });
     return this;
   }
 
   /**
+   * Checks if a node with the given ID exists in the graph.
+   *
+   * @param id - The node ID to check
+   * @returns true if the node exists, false otherwise
+   */
+  hasNode(id: string): boolean {
+    return this.nodeMap.has(id);
+  }
+
+  /**
+   * Gets a node by its ID.
+   *
+   * @param id - The node ID to retrieve
+   * @returns The node if found, undefined otherwise
+   */
+  getNode(id: string): MermaidNode | undefined {
+    return this.nodeMap.get(id);
+  }
+
+  /**
    * Adds an edge between two nodes.
+   * In strict validation mode, throws an error if either node doesn't exist.
    *
    * @param from - Source node ID
    * @param to - Target node ID
    * @param label - Optional edge label
    * @param type - Edge type (defaults to "solid")
    * @returns this for chaining
+   * @throws GraphValidationError in strict mode if either node doesn't exist
    */
   addEdge(from: string, to: string, label?: string, type: EdgeType = "solid"): this {
+    if (this.strictValidationEnabled) {
+      this.validateNodeExists(from, "from");
+      this.validateNodeExists(to, "to");
+    }
     this.edges.push({ from, to, label, type });
     return this;
   }
@@ -84,11 +148,32 @@ export abstract class AbstractGraphBuilder {
   }
 
   /**
+   * Validates that all edges reference existing nodes.
+   * Call this before rendering to ensure diagram integrity.
+   *
+   * @returns An array of validation error messages, empty if all valid
+   */
+  validateEdges(): string[] {
+    const errors: string[] = [];
+
+    for (const edge of this.edges) {
+      if (!this.nodeMap.has(edge.from)) {
+        errors.push(`Edge references non-existent "from" node: "${edge.from}"`);
+      }
+      if (!this.nodeMap.has(edge.to)) {
+        errors.push(`Edge references non-existent "to" node: "${edge.to}"`);
+      }
+    }
+
+    return errors;
+  }
+
+  /**
    * Gets all nodes in the graph.
    * @internal
    */
   protected getNodes(): readonly MermaidNode[] {
-    return [...this.nodes];
+    return Array.from(this.nodeMap.values());
   }
 
   /**
@@ -105,5 +190,16 @@ export abstract class AbstractGraphBuilder {
    */
   protected getStyles(): readonly StyleApplication[] {
     return [...this.styles];
+  }
+
+  /**
+   * Validates node existence and throws a descriptive error if not found.
+   */
+  private validateNodeExists(nodeId: string, paramName: string): void {
+    if (!this.nodeMap.has(nodeId)) {
+      throw new GraphValidationError(
+        `Edge references non-existent "${paramName}" node: "${nodeId}"`,
+      );
+    }
   }
 }

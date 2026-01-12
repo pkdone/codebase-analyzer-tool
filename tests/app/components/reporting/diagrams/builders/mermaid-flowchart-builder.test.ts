@@ -6,6 +6,7 @@ import {
   MermaidFlowchartBuilder,
   SubgraphBuilder,
 } from "../../../../../../src/app/components/reporting/diagrams/builders/mermaid-flowchart-builder";
+import { GraphValidationError } from "../../../../../../src/app/components/reporting/diagrams/builders/abstract-graph-builder";
 
 describe("MermaidFlowchartBuilder", () => {
   describe("basic construction", () => {
@@ -305,5 +306,209 @@ describe("SubgraphBuilder", () => {
     expect(subBuilder.getNodes()).toHaveLength(2);
     expect(subBuilder.getEdges()).toHaveLength(1);
     expect(subBuilder.getStyles()).toHaveLength(1);
+  });
+});
+
+describe("AbstractGraphBuilder validation", () => {
+  describe("duplicate node detection", () => {
+    it("should throw GraphValidationError when adding duplicate node ID", () => {
+      const builder = new MermaidFlowchartBuilder();
+      builder.addNode("node1", "First Node");
+
+      expect(() => builder.addNode("node1", "Duplicate Node")).toThrow(GraphValidationError);
+      expect(() => builder.addNode("node1", "Duplicate Node")).toThrow(
+        'Node with id "node1" already exists',
+      );
+    });
+
+    it("should allow different node IDs", () => {
+      const builder = new MermaidFlowchartBuilder();
+      expect(() => {
+        builder.addNode("node1", "First Node").addNode("node2", "Second Node");
+      }).not.toThrow();
+    });
+  });
+
+  describe("hasNode method", () => {
+    it("should return true for existing node", () => {
+      const builder = new MermaidFlowchartBuilder();
+      builder.addNode("myNode", "My Node");
+
+      expect(builder.hasNode("myNode")).toBe(true);
+    });
+
+    it("should return false for non-existing node", () => {
+      const builder = new MermaidFlowchartBuilder();
+
+      expect(builder.hasNode("nonExistent")).toBe(false);
+    });
+
+    it("should work with multiple nodes", () => {
+      const builder = new MermaidFlowchartBuilder();
+      builder.addNode("a", "A").addNode("b", "B").addNode("c", "C");
+
+      expect(builder.hasNode("a")).toBe(true);
+      expect(builder.hasNode("b")).toBe(true);
+      expect(builder.hasNode("c")).toBe(true);
+      expect(builder.hasNode("d")).toBe(false);
+    });
+  });
+
+  describe("getNode method", () => {
+    it("should return node for existing ID", () => {
+      const builder = new MermaidFlowchartBuilder();
+      builder.addNode("myNode", "My Label", "stadium");
+
+      const node = builder.getNode("myNode");
+
+      expect(node).toBeDefined();
+      expect(node?.id).toBe("myNode");
+      expect(node?.label).toBe("My Label");
+      expect(node?.shape).toBe("stadium");
+    });
+
+    it("should return undefined for non-existing node", () => {
+      const builder = new MermaidFlowchartBuilder();
+
+      expect(builder.getNode("nonExistent")).toBeUndefined();
+    });
+  });
+
+  describe("strict validation mode", () => {
+    it("should not validate edge endpoints by default", () => {
+      const builder = new MermaidFlowchartBuilder();
+
+      // This should not throw even though nodes don't exist
+      expect(() => {
+        builder.addEdge("nonExistentFrom", "nonExistentTo");
+      }).not.toThrow();
+    });
+
+    it("should throw when strict validation is enabled and from node missing", () => {
+      const builder = new MermaidFlowchartBuilder();
+      builder.setStrictValidation(true).addNode("target", "Target");
+
+      expect(() => builder.addEdge("nonExistent", "target")).toThrow(GraphValidationError);
+      expect(() => builder.addEdge("nonExistent", "target")).toThrow(
+        'Edge references non-existent "from" node: "nonExistent"',
+      );
+    });
+
+    it("should throw when strict validation is enabled and to node missing", () => {
+      const builder = new MermaidFlowchartBuilder();
+      builder.setStrictValidation(true).addNode("source", "Source");
+
+      expect(() => builder.addEdge("source", "nonExistent")).toThrow(GraphValidationError);
+      expect(() => builder.addEdge("source", "nonExistent")).toThrow(
+        'Edge references non-existent "to" node: "nonExistent"',
+      );
+    });
+
+    it("should allow valid edges when strict validation is enabled", () => {
+      const builder = new MermaidFlowchartBuilder();
+      builder.setStrictValidation(true).addNode("a", "A").addNode("b", "B");
+
+      expect(() => builder.addEdge("a", "b")).not.toThrow();
+    });
+
+    it("should support chaining setStrictValidation", () => {
+      const builder = new MermaidFlowchartBuilder();
+      const result = builder.setStrictValidation(true);
+
+      expect(result).toBe(builder);
+    });
+
+    it("should report validation status correctly", () => {
+      const builder = new MermaidFlowchartBuilder();
+
+      expect(builder.isStrictValidationEnabled()).toBe(false);
+
+      builder.setStrictValidation(true);
+      expect(builder.isStrictValidationEnabled()).toBe(true);
+
+      builder.setStrictValidation(false);
+      expect(builder.isStrictValidationEnabled()).toBe(false);
+    });
+  });
+
+  describe("validateEdges method", () => {
+    it("should return empty array when all edges are valid", () => {
+      const builder = new MermaidFlowchartBuilder();
+      builder
+        .addNode("a", "A")
+        .addNode("b", "B")
+        .addNode("c", "C")
+        .addEdge("a", "b")
+        .addEdge("b", "c");
+
+      const errors = builder.validateEdges();
+
+      expect(errors).toEqual([]);
+    });
+
+    it("should return errors for missing from node", () => {
+      const builder = new MermaidFlowchartBuilder();
+      builder.addNode("target", "Target").addEdge("missing", "target");
+
+      const errors = builder.validateEdges();
+
+      expect(errors).toHaveLength(1);
+      expect(errors[0]).toContain('"from" node');
+      expect(errors[0]).toContain("missing");
+    });
+
+    it("should return errors for missing to node", () => {
+      const builder = new MermaidFlowchartBuilder();
+      builder.addNode("source", "Source").addEdge("source", "missing");
+
+      const errors = builder.validateEdges();
+
+      expect(errors).toHaveLength(1);
+      expect(errors[0]).toContain('"to" node');
+      expect(errors[0]).toContain("missing");
+    });
+
+    it("should return multiple errors for multiple invalid edges", () => {
+      const builder = new MermaidFlowchartBuilder();
+      builder
+        .addNode("a", "A")
+        .addEdge("missing1", "a")
+        .addEdge("a", "missing2")
+        .addEdge("missing3", "missing4");
+
+      const errors = builder.validateEdges();
+
+      expect(errors).toHaveLength(4);
+    });
+
+    it("should work with empty graph", () => {
+      const builder = new MermaidFlowchartBuilder();
+
+      expect(builder.validateEdges()).toEqual([]);
+    });
+  });
+
+  describe("SubgraphBuilder validation", () => {
+    it("should throw on duplicate node in subgraph", () => {
+      const subBuilder = new SubgraphBuilder();
+      subBuilder.addNode("inner1", "Inner 1");
+
+      expect(() => subBuilder.addNode("inner1", "Duplicate")).toThrow(GraphValidationError);
+    });
+
+    it("should support hasNode in subgraph", () => {
+      const subBuilder = new SubgraphBuilder();
+      subBuilder.addNode("inner1", "Inner 1");
+
+      expect(subBuilder.hasNode("inner1")).toBe(true);
+      expect(subBuilder.hasNode("nonExistent")).toBe(false);
+    });
+
+    it("should support strict validation in subgraph", () => {
+      const subBuilder = new SubgraphBuilder();
+      subBuilder.setStrictValidation(true).addNode("a", "A");
+
+      expect(() => subBuilder.addEdge("a", "nonExistent")).toThrow(GraphValidationError);
+    });
   });
 });

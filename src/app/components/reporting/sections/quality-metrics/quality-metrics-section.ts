@@ -10,6 +10,7 @@ import type { PreparedHtmlReportData } from "../../html-report-writer";
 import type { PreparedJsonData } from "../../json-report-writer";
 import type { ReportData } from "../../report-data.types";
 import { SECTION_NAMES } from "../../reporting.constants";
+import { getBomConflictsCssClass } from "../../utils/view-helpers";
 
 /**
  * Report section for quality metrics data (BOM, code quality, scheduled jobs, module coupling, UI analysis).
@@ -73,11 +74,13 @@ export class QualityMetricsSection implements ReportSection {
       return await Promise.resolve(null);
     }
 
-    // Calculate BOM statistics
+    // Calculate BOM statistics with pre-computed CSS class
+    const conflictCount = billOfMaterials.filter((d) => d.hasConflict).length;
     const bomStatistics = {
       total: billOfMaterials.length,
-      conflicts: billOfMaterials.filter((d) => d.hasConflict).length,
+      conflicts: conflictCount,
       buildFiles: new Set(billOfMaterials.flatMap((d) => d.locations)).size,
+      conflictsCssClass: getBomConflictsCssClass(conflictCount),
     };
 
     // Calculate Scheduled Jobs statistics

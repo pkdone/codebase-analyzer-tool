@@ -94,6 +94,9 @@ describe("QualityMetricsSection", () => {
         filesWithHighScriptletCount: 0,
         customTagLibraries: [],
         topScriptletFiles: [],
+        totalScriptletsCssClass: "",
+        filesWithHighScriptletCountCssClass: "",
+        showHighDebtAlert: false,
       };
 
       mockBomDataProvider.getBillOfMaterials.mockResolvedValue(mockBillOfMaterials);

@@ -1,6 +1,10 @@
 import { injectable, inject, injectAll } from "tsyringe";
 import { reportingTokens, repositoryTokens, coreTokens } from "../../di/tokens";
-import { HtmlReportWriter, type PreparedHtmlReportData } from "./html-report-writer";
+import {
+  HtmlReportWriter,
+  type PreparedHtmlReportData,
+  type PreparedHtmlReportDataWithoutAssets,
+} from "./html-report-writer";
 import { JsonReportWriter, type PreparedJsonData } from "./json-report-writer";
 import { AppStatisticsDataProvider } from "./sections/quality-metrics/app-statistics-data-provider";
 import {
@@ -118,33 +122,13 @@ export default class AppReportGenerator {
 
     const preparedJsonData = this.prepareJsonDataFromSections(reportData, sectionDataMap);
 
-    // Read asset files for HTML report
-    const templatesDir = path.join(__dirname, this.outputConfig.HTML_TEMPLATES_DIR);
-    const cssPath = path.join(templatesDir, this.outputConfig.assets.CSS_FILENAME);
-    const jsonIconPath = path.join(
-      templatesDir,
-      this.outputConfig.assets.ASSETS_SUBDIR,
-      this.outputConfig.assets.JSON_ICON_FILENAME,
-    );
-
-    const [cssContent, jsonIconContent] = await Promise.all([
-      fs.readFile(cssPath, "utf-8"),
-      fs.readFile(jsonIconPath, "utf-8"),
-    ]);
-
-    // Add asset content to prepared HTML data
-    const preparedHtmlDataWithAssets = {
-      ...preparedHtmlData,
-      inlineCss: cssContent,
-      jsonIconSvg: jsonIconContent,
-    };
-
     // Copy Mermaid.js to assets directory for offline support
     await this.copyMermaidJsToAssets(outputDir);
 
     // Generate reports using prepared data
+    // Note: HtmlReportWriter now handles asset loading internally via HtmlReportAssetService
     await this.jsonWriter.writeAllJSONFiles(preparedJsonData);
-    await this.htmlWriter.writeHTMLReportFile(preparedHtmlDataWithAssets, htmlFilePath);
+    await this.htmlWriter.writeHTMLReportFile(preparedHtmlData, htmlFilePath);
   }
 
   /**
@@ -205,13 +189,14 @@ export default class AppReportGenerator {
   }
 
   /**
-   * Prepare HTML data by delegating to each section
+   * Prepare HTML data by delegating to each section.
+   * Returns data without assets - the HtmlReportWriter will load assets separately.
    */
   private async prepareHtmlDataFromSections(
     reportData: ReportData,
     sectionDataMap: Map<string, Partial<ReportData>>,
     htmlFilePath: string,
-  ): Promise<PreparedHtmlReportData> {
+  ): Promise<PreparedHtmlReportDataWithoutAssets> {
     const htmlDir = path.dirname(htmlFilePath);
 
     // Prepare HTML data from all sections
@@ -259,7 +244,7 @@ export default class AppReportGenerator {
       jsonFilesConfig: reportSectionsConfig,
       htmlReportConstants: templateConstants,
       convertToDisplayName,
-    } as PreparedHtmlReportData;
+    } as PreparedHtmlReportDataWithoutAssets;
   }
 
   /**

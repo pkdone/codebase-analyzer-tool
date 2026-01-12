@@ -5,7 +5,13 @@
  */
 
 import { COUPLING_THRESHOLDS } from "../config/module-coupling.config";
-import { DEBT_THRESHOLDS } from "../config/ui-analysis.config";
+import { DEBT_THRESHOLDS, uiAnalysisConfig } from "../config/ui-analysis.config";
+
+/**
+ * Threshold for high scriptlet warning display.
+ * When total scriptlets exceeds this value, a warning CSS class is applied.
+ */
+const HIGH_SCRIPTLET_WARNING_THRESHOLD = 100;
 
 /**
  * Result type for coupling level calculations.
@@ -93,3 +99,51 @@ export function calculateDebtLevel(totalScriptletBlocks: number): DebtLevelResul
 
   return { level: "Low", cssClass: "badge-success" };
 }
+
+/**
+ * Computes the CSS class for total scriptlets display.
+ * Returns a warning class when scriptlet count exceeds threshold.
+ *
+ * @param totalScriptlets - Total count of scriptlets in the project
+ * @returns CSS class name for styling, or empty string if no warning needed
+ */
+export function getTotalScriptletsCssClass(totalScriptlets: number): string {
+  return totalScriptlets > HIGH_SCRIPTLET_WARNING_THRESHOLD ? "high-scriptlet-warning" : "";
+}
+
+/**
+ * Computes the CSS class for files with high scriptlet count display.
+ * Returns a warning class when there are files with high scriptlet usage.
+ *
+ * @param filesWithHighScriptletCount - Count of files exceeding the high scriptlet threshold
+ * @returns CSS class name for styling, or empty string if no warning needed
+ */
+export function getFilesWithHighScriptletCountCssClass(
+  filesWithHighScriptletCount: number,
+): string {
+  return filesWithHighScriptletCount > 0 ? "warning-text" : "";
+}
+
+/**
+ * Determines whether to show the high technical debt alert.
+ *
+ * @param filesWithHighScriptletCount - Count of files exceeding the high scriptlet threshold
+ * @returns true if the alert should be displayed
+ */
+export function shouldShowHighDebtAlert(filesWithHighScriptletCount: number): boolean {
+  return filesWithHighScriptletCount > 0;
+}
+
+/**
+ * Computes the CSS class for BOM conflicts count display.
+ * Returns a warning class when there are version conflicts.
+ *
+ * @param conflicts - Number of dependencies with version conflicts
+ * @returns CSS class name for styling
+ */
+export function getBomConflictsCssClass(conflicts: number): string {
+  return conflicts > 0 ? "conflict-warning" : "no-conflicts";
+}
+
+// Re-export threshold config for tests
+export { HIGH_SCRIPTLET_WARNING_THRESHOLD, uiAnalysisConfig };

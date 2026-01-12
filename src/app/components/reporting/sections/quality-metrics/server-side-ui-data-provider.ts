@@ -8,7 +8,12 @@ import {
   TAG_LIBRARY_BADGE_CLASSES,
 } from "../../config/ui-analysis.config";
 import { UNKNOWN_VALUE_PLACEHOLDER } from "../../../../../common/constants/application.constants";
-import { calculateDebtLevel } from "../../utils/view-helpers";
+import {
+  calculateDebtLevel,
+  getTotalScriptletsCssClass,
+  getFilesWithHighScriptletCountCssClass,
+  shouldShowHighDebtAlert,
+} from "../../utils/view-helpers";
 
 /**
  * Type aliases for internal use
@@ -183,6 +188,12 @@ export class ServerSideUiDataProvider {
       filesWithHighScriptletCount,
       customTagLibraries,
       topScriptletFiles,
+      // Pre-computed presentation values
+      totalScriptletsCssClass: getTotalScriptletsCssClass(totalScriptlets),
+      filesWithHighScriptletCountCssClass: getFilesWithHighScriptletCountCssClass(
+        filesWithHighScriptletCount,
+      ),
+      showHighDebtAlert: shouldShowHighDebtAlert(filesWithHighScriptletCount),
     };
   }
 }

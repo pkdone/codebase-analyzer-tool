@@ -36,6 +36,11 @@ export interface DeepMapObjectOptions {
 }
 
 /**
+ * Type for the visitor function used in deepMap and deepMapObject.
+ */
+export type DeepMapVisitor = (value: unknown, visited: WeakSet<object>) => unknown;
+
+/**
  * Generic deep traversal utility for JSON transformations.
  *
  * This utility provides a reusable pattern for recursively traversing JSON objects
@@ -48,7 +53,6 @@ export interface DeepMapObjectOptions {
  * The visitor function receives the current value and the visited WeakSet,
  * allowing it to perform transformations while maintaining circular reference safety.
  *
- * @template T - The expected return type
  * @param value - The value to traverse (can be any JSON-serializable type)
  * @param visitor - Function that transforms each value during traversal
  * @param visited - WeakSet to track visited objects (for circular reference detection)
@@ -59,18 +63,20 @@ export interface DeepMapObjectOptions {
  * // Convert all null values to undefined
  * const result = deepMap(data, (val) => val === null ? undefined : val);
  *
- * // Coerce string values to arrays for specific properties
- * const result = deepMap(data, (val, visited) => {
- *   if (typeof val === 'object' && val !== null && !visited.has(val)) {
- *     // Custom transformation logic
- *   }
- *   return val;
- * });
+ * // Type-preserving transformation
+ * interface MyData { items: string[]; count: number; }
+ * const data: MyData = { items: ["a", "b"], count: 2 };
+ * const result = deepMap(data, (val) => val); // result is MyData
  * ```
+ */
+export function deepMap<T>(value: T, visitor: DeepMapVisitor, visited?: WeakSet<object>): T;
+
+/**
+ * Implementation of deepMap.
  */
 export function deepMap(
   value: unknown,
-  visitor: (value: unknown, visited: WeakSet<object>) => unknown,
+  visitor: DeepMapVisitor,
   visited = new WeakSet<object>(),
 ): unknown {
   // Handle primitives and null
@@ -86,7 +92,7 @@ export function deepMap(
   // Handle arrays
   if (Array.isArray(value)) {
     visited.add(value);
-    const mapped = value.map((item) => deepMap(item, visitor, visited));
+    const mapped = value.map((item: unknown) => deepMap(item, visitor, visited));
     visited.delete(value);
     return mapped;
   }
@@ -122,16 +128,25 @@ export function deepMap(
  * This is a specialized version of deepMap that allows transforming object keys
  * and conditionally including/excluding properties during traversal.
  *
- * @template T - The expected return type
  * @param value - The value to traverse
  * @param visitor - Function that transforms each value during traversal
  * @param options - Options for object key transformation and property inclusion
  * @param visited - WeakSet to track visited objects (for circular reference detection)
  * @returns The transformed value
  */
+export function deepMapObject<T>(
+  value: T,
+  visitor: DeepMapVisitor,
+  options?: DeepMapObjectOptions,
+  visited?: WeakSet<object>,
+): T;
+
+/**
+ * Implementation of deepMapObject.
+ */
 export function deepMapObject(
   value: unknown,
-  visitor: (value: unknown, visited: WeakSet<object>) => unknown,
+  visitor: DeepMapVisitor,
   options: DeepMapObjectOptions = {},
   visited = new WeakSet<object>(),
 ): unknown {
@@ -153,7 +168,9 @@ export function deepMapObject(
     if (typeof value === "object" && value !== null) {
       visited.add(value);
     }
-    const mapped = visitedValue.map((item) => deepMapObject(item, visitor, options, visited));
+    const mapped = visitedValue.map((item: unknown) =>
+      deepMapObject(item, visitor, options, visited),
+    );
     if (typeof value === "object" && value !== null) {
       visited.delete(value);
     }

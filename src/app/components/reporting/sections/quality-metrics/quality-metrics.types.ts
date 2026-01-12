@@ -108,4 +108,25 @@ export interface UiTechnologyAnalysis {
     /** Pre-computed CSS class for the debt level badge */
     debtLevelClass: string;
   }[];
+  /** Pre-computed CSS class for total scriptlets warning display */
+  totalScriptletsCssClass: string;
+  /** Pre-computed CSS class for files with high scriptlet count warning display */
+  filesWithHighScriptletCountCssClass: string;
+  /** Pre-computed flag indicating whether to show the high debt alert */
+  showHighDebtAlert: boolean;
+}
+
+/**
+ * Interface for BOM statistics with pre-computed presentation values.
+ * Used in HTML report rendering.
+ */
+export interface BomStatistics {
+  /** Total number of dependencies */
+  total: number;
+  /** Number of dependencies with version conflicts */
+  conflicts: number;
+  /** Number of unique build files */
+  buildFiles: number;
+  /** Pre-computed CSS class for conflicts count display */
+  conflictsCssClass: string;
 }

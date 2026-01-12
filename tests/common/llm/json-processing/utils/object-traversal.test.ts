@@ -10,8 +10,15 @@ describe("deepMap", () => {
       expect(deepMap(42, (v: unknown) => v)).toBe(42);
       expect(deepMap("hello", (v: unknown) => v)).toBe("hello");
       expect(deepMap(true, (v: unknown) => v)).toBe(true);
-      expect(deepMap(null, (v: unknown) => v)).toBe(null);
-      expect(deepMap(undefined, (v: unknown) => v)).toBe(undefined);
+      expect(deepMap(null, (v: unknown) => v)).toBeNull();
+    });
+
+    it("should return undefined unchanged when visitor is identity", () => {
+      const identityVisitor = (v: unknown): unknown => v;
+      // Cast to unknown to avoid void expression issues with undefined generic
+      const input: unknown = undefined;
+      const undefinedResult = deepMap(input, identityVisitor);
+      expect(undefinedResult).toBeUndefined();
     });
 
     it("should transform primitives when visitor modifies them", () => {
@@ -81,7 +88,7 @@ describe("deepMap", () => {
       const obj: Record<string, unknown> = { a: 1 };
       obj.self = obj; // Create circular reference
 
-      const result = deepMap(obj, (v: unknown) => v) as Record<string, unknown>;
+      const result: Record<string, unknown> = deepMap(obj, (v: unknown) => v);
       expect(result).toEqual({ a: 1, self: obj });
       expect(result.self).toBe(obj); // Should reference the original object
     });
@@ -158,6 +165,85 @@ describe("deepMapObject", () => {
         transformKey: (key: string) => (key === "skip" ? null : key),
       });
       expect(result).toEqual({ keep: "value" });
+    });
+  });
+});
+
+describe("type safety", () => {
+  describe("deepMap generic type preservation", () => {
+    it("should preserve type for object input", () => {
+      interface TestData {
+        name: string;
+        count: number;
+      }
+      const input: TestData = { name: "test", count: 42 };
+      const result = deepMap(input, (v: unknown) => v);
+
+      // TypeScript should infer result as TestData
+      expect(result.name).toBe("test");
+      expect(result.count).toBe(42);
+    });
+
+    it("should preserve type for array input", () => {
+      const input: number[] = [1, 2, 3];
+      const result = deepMap(input, (v: unknown) => (typeof v === "number" ? v * 2 : v));
+
+      // TypeScript should infer result as number[]
+      expect(result).toEqual([2, 4, 6]);
+    });
+
+    it("should preserve type for nested structures", () => {
+      interface NestedData {
+        items: { value: number }[];
+        meta: { active: boolean };
+      }
+      const input: NestedData = {
+        items: [{ value: 1 }, { value: 2 }],
+        meta: { active: true },
+      };
+      const result = deepMap(input, (v: unknown) => v);
+
+      // Type should be preserved through nesting
+      expect(result.items[0].value).toBe(1);
+      expect(result.meta.active).toBe(true);
+    });
+
+    it("should preserve primitive types", () => {
+      const numResult = deepMap(42, (v: unknown) => v);
+      const strResult = deepMap("hello", (v: unknown) => v);
+      const boolResult = deepMap(true, (v: unknown) => v);
+
+      expect(numResult).toBe(42);
+      expect(strResult).toBe("hello");
+      expect(boolResult).toBe(true);
+    });
+  });
+
+  describe("deepMapObject generic type preservation", () => {
+    it("should preserve type for object input", () => {
+      interface Config {
+        enabled: boolean;
+        value: string | null;
+      }
+      const input: Config = { enabled: true, value: null };
+      const result = deepMapObject(input, (v: unknown) => (v === null ? undefined : v));
+
+      // TypeScript should infer result as Config
+      expect(result.enabled).toBe(true);
+    });
+
+    it("should preserve type with shouldInclude option", () => {
+      interface Data {
+        keep: string;
+        maybe: string | null;
+      }
+      const input: Data = { keep: "value", maybe: null };
+      const result = deepMapObject(input, (v: unknown) => (v === null ? undefined : v), {
+        shouldInclude: (_key: string, val: unknown) => val !== undefined,
+      });
+
+      // Type should be preserved
+      expect(result.keep).toBe("value");
     });
   });
 });
