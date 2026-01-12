@@ -6,6 +6,95 @@ import {
 import { llmProviderConfig } from "../config/llm.config";
 
 /**
+ * Configuration for mapping regex capture groups to token usage properties.
+ * Each property specifies which 1-based regex capture group index contains the value,
+ * or 0 to indicate the value should use a fallback.
+ */
+interface TokenExtractionConfig {
+  /** Index of capture group containing the first value */
+  firstValueIndex: number;
+  /** Index of capture group containing the second value */
+  secondValueIndex: number;
+  /** Index of capture group containing completion tokens (optional) */
+  completionTokensIndex: number;
+}
+
+/** Standard config for extracting values from regex matches */
+const STANDARD_EXTRACTION_CONFIG: TokenExtractionConfig = {
+  firstValueIndex: 1,
+  secondValueIndex: 2,
+  completionTokensIndex: 3,
+};
+
+/**
+ * Default result when no pattern matches or parsing fails.
+ */
+const DEFAULT_RESULT: LLMResponseTokensUsage = {
+  promptTokens: -1,
+  completionTokens: 0,
+  maxTotalTokens: -1,
+};
+
+/**
+ * Extracts an integer from a regex match at the given index.
+ * Returns the fallback value if the index is out of bounds.
+ */
+function extractMatchValue(matches: RegExpMatchArray, index: number, fallback: number): number {
+  return matches.length > index ? parseInt(matches[index], 10) : fallback;
+}
+
+/**
+ * Extract token values from regex matches for token-based patterns.
+ * Maps capture groups to promptTokens and maxTotalTokens based on isMaxFirst flag.
+ */
+function extractTokenValues(
+  matches: RegExpMatchArray,
+  config: TokenExtractionConfig,
+  isMaxFirst: boolean,
+  fallbackMaxTokens: number,
+): LLMResponseTokensUsage {
+  const firstValue = extractMatchValue(matches, config.firstValueIndex, -1);
+  const secondValue = extractMatchValue(matches, config.secondValueIndex, fallbackMaxTokens);
+  const completionTokens = extractMatchValue(matches, config.completionTokensIndex, 0);
+
+  return isMaxFirst
+    ? {
+        maxTotalTokens: firstValue,
+        promptTokens: secondValue === fallbackMaxTokens && matches.length <= config.secondValueIndex ? -1 : secondValue,
+        completionTokens,
+      }
+    : {
+        promptTokens: firstValue,
+        maxTotalTokens: secondValue,
+        completionTokens,
+      };
+}
+
+/**
+ * Extract char values from regex matches and convert to token estimates.
+ * Maps capture groups to charsPrompt and charsLimit based on isMaxFirst flag.
+ */
+function extractCharValues(
+  matches: RegExpMatchArray,
+  config: TokenExtractionConfig,
+  isMaxFirst: boolean,
+  modelKey: string,
+  llmModelsMetadata: Record<string, ResolvedLLMModelMetadata>,
+): LLMResponseTokensUsage {
+  if (matches.length <= config.secondValueIndex) {
+    return { ...DEFAULT_RESULT };
+  }
+
+  const firstValue = parseInt(matches[config.firstValueIndex], 10);
+  const secondValue = parseInt(matches[config.secondValueIndex], 10);
+
+  const charsLimit = isMaxFirst ? firstValue : secondValue;
+  const charsPrompt = isMaxFirst ? secondValue : firstValue;
+
+  return calculateTokensFromChars(charsPrompt, charsLimit, modelKey, llmModelsMetadata);
+}
+
+/**
  * Extract token usage information from LLM error message.
  * Internal function used by calculateTokenUsageFromError.
  */
@@ -15,93 +104,33 @@ function parseTokenUsageFromLLMError(
   llmModelsMetadata: Record<string, ResolvedLLMModelMetadata>,
   errorPatterns?: readonly LLMErrorMsgRegExPattern[],
 ): LLMResponseTokensUsage {
-  const defaultResult: LLMResponseTokensUsage = {
-    promptTokens: -1,
-    completionTokens: 0,
-    maxTotalTokens: -1,
-  };
+  if (!errorPatterns) return { ...DEFAULT_RESULT };
 
-  if (!errorPatterns) return defaultResult;
+  const fallbackMaxTokens = llmModelsMetadata[modelKey].maxTotalTokens;
 
   for (const pattern of errorPatterns) {
     const matches = errorMsg.match(pattern.pattern);
     if (!matches || matches.length <= 1) continue;
 
     if (pattern.units === "tokens") {
-      return pattern.isMaxFirst
-        ? processTokenMatchMaxFirst(matches)
-        : processTokenMatchPromptFirst(matches, modelKey, llmModelsMetadata);
+      return extractTokenValues(
+        matches,
+        STANDARD_EXTRACTION_CONFIG,
+        pattern.isMaxFirst,
+        fallbackMaxTokens,
+      );
     } else {
-      return pattern.isMaxFirst
-        ? processCharMatchMaxFirst(matches, modelKey, llmModelsMetadata)
-        : processCharMatchPromptFirst(matches, modelKey, llmModelsMetadata);
+      return extractCharValues(
+        matches,
+        STANDARD_EXTRACTION_CONFIG,
+        pattern.isMaxFirst,
+        modelKey,
+        llmModelsMetadata,
+      );
     }
   }
 
-  return defaultResult;
-}
-
-/**
- * Extract token values from a regex match when max tokens is the first capture group
- */
-function processTokenMatchMaxFirst(matches: RegExpMatchArray): LLMResponseTokensUsage {
-  return {
-    maxTotalTokens: parseInt(matches[1], 10),
-    promptTokens: matches.length > 2 ? parseInt(matches[2], 10) : -1,
-    completionTokens: matches.length > 3 ? parseInt(matches[3], 10) : 0,
-  };
-}
-
-/**
- * Extract token values from a regex match when prompt tokens is the first capture group
- */
-function processTokenMatchPromptFirst(
-  matches: RegExpMatchArray,
-  modelKey: string,
-  llmModelsMetadata: Record<string, ResolvedLLMModelMetadata>,
-): LLMResponseTokensUsage {
-  return {
-    promptTokens: parseInt(matches[1], 10),
-    maxTotalTokens:
-      matches.length > 2 ? parseInt(matches[2], 10) : llmModelsMetadata[modelKey].maxTotalTokens,
-    completionTokens: matches.length > 3 ? parseInt(matches[3], 10) : 0,
-  };
-}
-
-/**
- * Processes regex match for a char-based error pattern where max chars come first
- */
-function processCharMatchMaxFirst(
-  matches: RegExpMatchArray,
-  modelKey: string,
-  llmModelsMetadata: Record<string, ResolvedLLMModelMetadata>,
-): LLMResponseTokensUsage {
-  if (matches.length <= 2) {
-    return { maxTotalTokens: -1, promptTokens: -1, completionTokens: 0 };
-  }
-
-  const charsLimit = parseInt(matches[1], 10);
-  const charsPrompt = parseInt(matches[2], 10);
-
-  return calculateTokensFromChars(charsPrompt, charsLimit, modelKey, llmModelsMetadata);
-}
-
-/**
- * Processes regex match for a char-based error pattern where prompt chars come first
- */
-function processCharMatchPromptFirst(
-  matches: RegExpMatchArray,
-  modelKey: string,
-  llmModelsMetadata: Record<string, ResolvedLLMModelMetadata>,
-): LLMResponseTokensUsage {
-  if (matches.length <= 2) {
-    return { maxTotalTokens: -1, promptTokens: -1, completionTokens: 0 };
-  }
-
-  const charsPrompt = parseInt(matches[1], 10);
-  const charsLimit = parseInt(matches[2], 10);
-
-  return calculateTokensFromChars(charsPrompt, charsLimit, modelKey, llmModelsMetadata);
+  return { ...DEFAULT_RESULT };
 }
 
 /**

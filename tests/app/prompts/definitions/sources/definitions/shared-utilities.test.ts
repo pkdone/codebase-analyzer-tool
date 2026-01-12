@@ -2,13 +2,17 @@ import {
   createDependencyConfig,
   createSimpleConfig,
   createBasicInfoBlock,
+  createScheduledJobConfig,
+  scheduledJobFileSchema,
   type SourceSummaryField,
 } from "../../../../../../src/app/prompts/definitions/sources/definitions/shared-utilities";
 import {
   INSTRUCTION_SECTION_TITLES,
   buildInstructionBlock,
 } from "../../../../../../src/app/prompts/definitions/instruction-utils";
-import { SOURCES_PROMPT_FRAGMENTS } from "../../../../../../src/app/prompts/definitions/sources/sources.fragments";
+import {
+  SOURCES_PROMPT_FRAGMENTS,
+} from "../../../../../../src/app/prompts/definitions/sources/sources.fragments";
 import { sourceSummarySchema } from "../../../../../../src/app/schemas/sources.schema";
 
 describe("shared-utilities", () => {
@@ -234,6 +238,131 @@ describe("shared-utilities", () => {
 
         expect(config.responseSchema).toBeDefined();
       });
+    });
+  });
+
+  describe("createScheduledJobConfig", () => {
+    it("should use createBasicInfoBlock for Basic Info section", () => {
+      const config = createScheduledJobConfig(
+        "the Shell script (bash/sh)",
+        SOURCES_PROMPT_FRAGMENTS.SHELL_SCRIPT_SPECIFIC.CRON_EXPRESSIONS,
+      );
+
+      expect(config.instructions[0]).toBe(createBasicInfoBlock());
+    });
+
+    it("should produce correct structure with Basic Info and Scheduled Jobs sections", () => {
+      const config = createScheduledJobConfig(
+        "the Shell script (bash/sh)",
+        SOURCES_PROMPT_FRAGMENTS.SHELL_SCRIPT_SPECIFIC.CRON_EXPRESSIONS,
+        SOURCES_PROMPT_FRAGMENTS.SHELL_SCRIPT_SPECIFIC.DATABASE_OPS,
+      );
+
+      expect(config.instructions).toHaveLength(2);
+      expect(config.instructions[0]).toContain("__Basic Information__");
+      expect(config.instructions[1]).toContain("__Scheduled Jobs__");
+    });
+
+    it("should include common scheduled job fragments in the instruction block", () => {
+      const config = createScheduledJobConfig(
+        "test script",
+        "custom fragment",
+      );
+
+      expect(config.instructions[1]).toContain(SOURCES_PROMPT_FRAGMENTS.SCHEDULED_JOBS.INTRO);
+      expect(config.instructions[1]).toContain(SOURCES_PROMPT_FRAGMENTS.SCHEDULED_JOBS.FIELDS);
+      expect(config.instructions[1]).toContain("custom fragment");
+    });
+
+    it("should include all provided job-specific fragments", () => {
+      const config = createScheduledJobConfig(
+        "the Shell script (bash/sh)",
+        SOURCES_PROMPT_FRAGMENTS.SHELL_SCRIPT_SPECIFIC.CRON_EXPRESSIONS,
+        SOURCES_PROMPT_FRAGMENTS.SHELL_SCRIPT_SPECIFIC.DATABASE_OPS,
+        SOURCES_PROMPT_FRAGMENTS.SHELL_SCRIPT_SPECIFIC.EXTERNAL_API_CALLS,
+      );
+
+      const jobsBlock = config.instructions[1];
+      expect(jobsBlock).toContain(SOURCES_PROMPT_FRAGMENTS.SHELL_SCRIPT_SPECIFIC.CRON_EXPRESSIONS);
+      expect(jobsBlock).toContain(SOURCES_PROMPT_FRAGMENTS.SHELL_SCRIPT_SPECIFIC.DATABASE_OPS);
+      expect(jobsBlock).toContain(SOURCES_PROMPT_FRAGMENTS.SHELL_SCRIPT_SPECIFIC.EXTERNAL_API_CALLS);
+    });
+
+    it("should have correct schema fields (purpose, implementation, scheduledJobs)", () => {
+      const config = createScheduledJobConfig("test", "fragment");
+      // Type assertion matches existing patterns in this test file
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      const schemaShape = Object.keys((config.responseSchema as any).shape).sort();
+      expect(schemaShape).toEqual(["implementation", "purpose", "scheduledJobs"]);
+    });
+
+    it("should use the scheduledJobFileSchema", () => {
+      const config = createScheduledJobConfig("test", "fragment");
+      expect(config.responseSchema).toBe(scheduledJobFileSchema);
+    });
+
+    it("should set contentDesc correctly", () => {
+      const config = createScheduledJobConfig("the Windows batch script (.bat/.cmd)", "fragment");
+      expect(config.contentDesc).toBe("the Windows batch script (.bat/.cmd)");
+    });
+
+    it("should work with batch script specific fragments", () => {
+      const config = createScheduledJobConfig(
+        "the Windows batch script (.bat/.cmd)",
+        SOURCES_PROMPT_FRAGMENTS.BATCH_SCRIPT_SPECIFIC.TASK_SCHEDULER,
+        SOURCES_PROMPT_FRAGMENTS.BATCH_SCRIPT_SPECIFIC.DATABASE_OPS,
+        SOURCES_PROMPT_FRAGMENTS.BATCH_SCRIPT_SPECIFIC.NETWORK_OPS,
+        SOURCES_PROMPT_FRAGMENTS.BATCH_SCRIPT_SPECIFIC.SERVICE_OPS,
+      );
+
+      const jobsBlock = config.instructions[1];
+      expect(jobsBlock).toContain(SOURCES_PROMPT_FRAGMENTS.BATCH_SCRIPT_SPECIFIC.TASK_SCHEDULER);
+      expect(jobsBlock).toContain(SOURCES_PROMPT_FRAGMENTS.BATCH_SCRIPT_SPECIFIC.DATABASE_OPS);
+      expect(jobsBlock).toContain(SOURCES_PROMPT_FRAGMENTS.BATCH_SCRIPT_SPECIFIC.NETWORK_OPS);
+      expect(jobsBlock).toContain(SOURCES_PROMPT_FRAGMENTS.BATCH_SCRIPT_SPECIFIC.SERVICE_OPS);
+    });
+
+    it("should work with JCL specific fragments", () => {
+      const config = createScheduledJobConfig(
+        "the Mainframe JCL (Job Control Language)",
+        SOURCES_PROMPT_FRAGMENTS.JCL_SPECIFIC.EXEC_STATEMENTS,
+        SOURCES_PROMPT_FRAGMENTS.JCL_SPECIFIC.DD_STATEMENTS,
+        SOURCES_PROMPT_FRAGMENTS.JCL_SPECIFIC.COND_PARAMETERS,
+        SOURCES_PROMPT_FRAGMENTS.JCL_SPECIFIC.SORT_UTILITIES,
+      );
+
+      const jobsBlock = config.instructions[1];
+      expect(jobsBlock).toContain(SOURCES_PROMPT_FRAGMENTS.JCL_SPECIFIC.EXEC_STATEMENTS);
+      expect(jobsBlock).toContain(SOURCES_PROMPT_FRAGMENTS.JCL_SPECIFIC.DD_STATEMENTS);
+      expect(jobsBlock).toContain(SOURCES_PROMPT_FRAGMENTS.JCL_SPECIFIC.COND_PARAMETERS);
+      expect(jobsBlock).toContain(SOURCES_PROMPT_FRAGMENTS.JCL_SPECIFIC.SORT_UTILITIES);
+    });
+
+    it("should produce valid Zod schema that can parse data", () => {
+      const config = createScheduledJobConfig("test", "fragment");
+
+      const testData = {
+        purpose: "Test purpose",
+        implementation: "Test implementation",
+        scheduledJobs: [
+          {
+            jobName: "daily-backup",
+            trigger: "cron: 0 2 * * *",
+            purpose: "Backup database",
+            inputResources: ["database"],
+            outputResources: ["backup file"],
+            dependencies: [],
+          },
+        ],
+      };
+
+      const parseResult = config.responseSchema.safeParse(testData);
+      expect(parseResult.success).toBe(true);
+    });
+
+    it("should not set hasComplexSchema property", () => {
+      const config = createScheduledJobConfig("test", "fragment");
+      expect(config.hasComplexSchema).toBeUndefined();
     });
   });
 });

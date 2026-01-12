@@ -49,6 +49,13 @@ export const dependencyFileSchema = sourceSummarySchema.pick({
   dependencies: true,
 });
 
+/** Schema type for scheduled job file configurations (shell scripts, batch files, JCL) */
+export const scheduledJobFileSchema = sourceSummarySchema.pick({
+  purpose: true,
+  implementation: true,
+  scheduledJobs: true,
+});
+
 /**
  * Creates the standard Basic Info instruction block used by most file types.
  * This block includes Purpose and Implementation fragments.
@@ -86,6 +93,36 @@ export function createDependencyConfig(
       buildInstructionBlock(INSTRUCTION_SECTION_TITLES.REFERENCES_AND_DEPS, dependencyFragment),
     ],
     hasComplexSchema: true,
+  };
+}
+
+/**
+ * Factory function to create a scheduled job source configuration.
+ * This function eliminates duplication for script files (shell, batch, JCL) by generating
+ * a consistent 2-block instruction pattern:
+ * 1. Basic Info (purpose and implementation)
+ * 2. Scheduled Jobs (with file-type-specific job detection instructions)
+ *
+ * @param contentDesc - Description of the content being analyzed (e.g., "the Shell script (bash/sh)")
+ * @param jobFragments - The file-type-specific scheduled job extraction fragments
+ * @returns A SourceConfigEntry with the standard scheduled job instruction blocks
+ */
+export function createScheduledJobConfig(
+  contentDesc: string,
+  ...jobFragments: readonly string[]
+): SourceConfigEntry<typeof scheduledJobFileSchema> {
+  return {
+    contentDesc,
+    responseSchema: scheduledJobFileSchema,
+    instructions: [
+      createBasicInfoBlock(),
+      buildInstructionBlock(
+        INSTRUCTION_SECTION_TITLES.SCHEDULED_JOBS,
+        SOURCES_PROMPT_FRAGMENTS.SCHEDULED_JOBS.INTRO,
+        SOURCES_PROMPT_FRAGMENTS.SCHEDULED_JOBS.FIELDS,
+        ...jobFragments,
+      ),
+    ],
   };
 }
 

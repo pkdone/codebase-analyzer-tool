@@ -4,6 +4,7 @@ import { sourceSummarySchema } from "../../../../schemas/sources.schema";
 import {
   createSimpleConfig,
   createBasicInfoBlock,
+  createScheduledJobConfig,
   type SourceConfigEntry,
 } from "./shared-utilities";
 
@@ -109,65 +110,26 @@ export const specialFileDefinitions: Record<string, SourceConfigEntry> = {
       ),
     ] as const,
   },
-  "shell-script": {
-    contentDesc: "the Shell script (bash/sh)",
-    responseSchema: sourceSummarySchema.pick({
-      purpose: true,
-      implementation: true,
-      scheduledJobs: true,
-    }),
-    instructions: [
-      createBasicInfoBlock(),
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.SCHEDULED_JOBS,
-        SOURCES_PROMPT_FRAGMENTS.SCHEDULED_JOBS.INTRO,
-        SOURCES_PROMPT_FRAGMENTS.SCHEDULED_JOBS.FIELDS,
-        SOURCES_PROMPT_FRAGMENTS.SHELL_SCRIPT_SPECIFIC.CRON_EXPRESSIONS,
-        SOURCES_PROMPT_FRAGMENTS.SHELL_SCRIPT_SPECIFIC.DATABASE_OPS,
-        SOURCES_PROMPT_FRAGMENTS.SHELL_SCRIPT_SPECIFIC.EXTERNAL_API_CALLS,
-      ),
-    ] as const,
-  },
-  "batch-script": {
-    contentDesc: "the Windows batch script (.bat/.cmd)",
-    responseSchema: sourceSummarySchema.pick({
-      purpose: true,
-      implementation: true,
-      scheduledJobs: true,
-    }),
-    instructions: [
-      createBasicInfoBlock(),
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.SCHEDULED_JOBS,
-        SOURCES_PROMPT_FRAGMENTS.SCHEDULED_JOBS.INTRO,
-        SOURCES_PROMPT_FRAGMENTS.SCHEDULED_JOBS.FIELDS,
-        SOURCES_PROMPT_FRAGMENTS.BATCH_SCRIPT_SPECIFIC.TASK_SCHEDULER,
-        SOURCES_PROMPT_FRAGMENTS.BATCH_SCRIPT_SPECIFIC.DATABASE_OPS,
-        SOURCES_PROMPT_FRAGMENTS.BATCH_SCRIPT_SPECIFIC.NETWORK_OPS,
-        SOURCES_PROMPT_FRAGMENTS.BATCH_SCRIPT_SPECIFIC.SERVICE_OPS,
-      ),
-    ] as const,
-  },
-  jcl: {
-    contentDesc: "the Mainframe JCL (Job Control Language)",
-    responseSchema: sourceSummarySchema.pick({
-      purpose: true,
-      implementation: true,
-      scheduledJobs: true,
-    }),
-    instructions: [
-      createBasicInfoBlock(),
-      buildInstructionBlock(
-        INSTRUCTION_SECTION_TITLES.SCHEDULED_JOBS,
-        SOURCES_PROMPT_FRAGMENTS.SCHEDULED_JOBS.INTRO,
-        SOURCES_PROMPT_FRAGMENTS.SCHEDULED_JOBS.FIELDS,
-        SOURCES_PROMPT_FRAGMENTS.JCL_SPECIFIC.EXEC_STATEMENTS,
-        SOURCES_PROMPT_FRAGMENTS.JCL_SPECIFIC.DD_STATEMENTS,
-        SOURCES_PROMPT_FRAGMENTS.JCL_SPECIFIC.COND_PARAMETERS,
-        SOURCES_PROMPT_FRAGMENTS.JCL_SPECIFIC.SORT_UTILITIES,
-      ),
-    ] as const,
-  },
+  "shell-script": createScheduledJobConfig(
+    "the Shell script (bash/sh)",
+    SOURCES_PROMPT_FRAGMENTS.SHELL_SCRIPT_SPECIFIC.CRON_EXPRESSIONS,
+    SOURCES_PROMPT_FRAGMENTS.SHELL_SCRIPT_SPECIFIC.DATABASE_OPS,
+    SOURCES_PROMPT_FRAGMENTS.SHELL_SCRIPT_SPECIFIC.EXTERNAL_API_CALLS,
+  ),
+  "batch-script": createScheduledJobConfig(
+    "the Windows batch script (.bat/.cmd)",
+    SOURCES_PROMPT_FRAGMENTS.BATCH_SCRIPT_SPECIFIC.TASK_SCHEDULER,
+    SOURCES_PROMPT_FRAGMENTS.BATCH_SCRIPT_SPECIFIC.DATABASE_OPS,
+    SOURCES_PROMPT_FRAGMENTS.BATCH_SCRIPT_SPECIFIC.NETWORK_OPS,
+    SOURCES_PROMPT_FRAGMENTS.BATCH_SCRIPT_SPECIFIC.SERVICE_OPS,
+  ),
+  jcl: createScheduledJobConfig(
+    "the Mainframe JCL (Job Control Language)",
+    SOURCES_PROMPT_FRAGMENTS.JCL_SPECIFIC.EXEC_STATEMENTS,
+    SOURCES_PROMPT_FRAGMENTS.JCL_SPECIFIC.DD_STATEMENTS,
+    SOURCES_PROMPT_FRAGMENTS.JCL_SPECIFIC.COND_PARAMETERS,
+    SOURCES_PROMPT_FRAGMENTS.JCL_SPECIFIC.SORT_UTILITIES,
+  ),
   default: createSimpleConfig(
     "the source files",
     ["purpose", "implementation", "databaseIntegration"],

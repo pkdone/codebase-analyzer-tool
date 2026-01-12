@@ -412,4 +412,201 @@ describe("calculateTokenUsageFromError - error pattern parsing", () => {
       expect(result.completionTokens).toBe(0);
     });
   });
+
+  // Tests for config-driven extraction logic
+  describe("Config-driven extraction", () => {
+    test("should correctly extract values with isMaxFirst=true pattern", () => {
+      const errorMsg = "Maximum context: 8192 tokens, used: 9500 tokens, completion: 100 tokens";
+      const customPattern = [
+        {
+          pattern: /Maximum context: (\d+) tokens, used: (\d+) tokens, completion: (\d+) tokens/,
+          units: "tokens",
+          isMaxFirst: true,
+        },
+      ];
+
+      const result = calculateTokenUsageFromError(
+        "GPT_COMPLETIONS_GPT4",
+        TEST_PROMPT,
+        errorMsg,
+        testMetadata,
+        customPattern,
+      );
+
+      expect(result.maxTotalTokens).toBe(8192);
+      expect(result.promptTokens).toBe(9500);
+      expect(result.completionTokens).toBe(100);
+    });
+
+    test("should correctly extract values with isMaxFirst=false pattern", () => {
+      const errorMsg = "Used: 9500 tokens, Maximum: 8192 tokens, completion: 100 tokens";
+      const customPattern = [
+        {
+          pattern: /Used: (\d+) tokens, Maximum: (\d+) tokens, completion: (\d+) tokens/,
+          units: "tokens",
+          isMaxFirst: false,
+        },
+      ];
+
+      const result = calculateTokenUsageFromError(
+        "GPT_COMPLETIONS_GPT4",
+        TEST_PROMPT,
+        errorMsg,
+        testMetadata,
+        customPattern,
+      );
+
+      expect(result.maxTotalTokens).toBe(8192);
+      expect(result.promptTokens).toBe(9500);
+      expect(result.completionTokens).toBe(100);
+    });
+
+    test("should use fallback for maxTotalTokens when only one capture group for isMaxFirst=false", () => {
+      const errorMsg = "Prompt used 9500 tokens";
+      const customPattern = [
+        {
+          pattern: /Prompt used (\d+) tokens/,
+          units: "tokens",
+          isMaxFirst: false,
+        },
+      ];
+
+      const result = calculateTokenUsageFromError(
+        "GPT_COMPLETIONS_GPT4",
+        TEST_PROMPT,
+        errorMsg,
+        testMetadata,
+        customPattern,
+      );
+
+      expect(result.maxTotalTokens).toBe(8192); // Fallback from metadata
+      expect(result.promptTokens).toBe(9500);
+      expect(result.completionTokens).toBe(0);
+    });
+
+    test("should handle char-based extraction with isMaxFirst=true", () => {
+      const errorMsg = "Max chars: 50000, actual chars: 60000";
+      const customPattern = [
+        {
+          pattern: /Max chars: (\d+), actual chars: (\d+)/,
+          units: "chars",
+          isMaxFirst: true,
+        },
+      ];
+
+      const result = calculateTokenUsageFromError(
+        "GPT_COMPLETIONS_GPT4",
+        TEST_PROMPT,
+        errorMsg,
+        testMetadata,
+        customPattern,
+      );
+
+      expect(result.maxTotalTokens).toBe(8192);
+      // charsLimit=50000, charsPrompt=60000, derived tokens = ceil(60000/50000 * 8192) = 9831
+      // Then max(9831, 8193) = 9831
+      expect(result.promptTokens).toBe(9831);
+      expect(result.completionTokens).toBe(0);
+    });
+
+    test("should handle char-based extraction with isMaxFirst=false", () => {
+      const errorMsg = "Actual chars: 60000, max chars: 50000";
+      const customPattern = [
+        {
+          pattern: /Actual chars: (\d+), max chars: (\d+)/,
+          units: "chars",
+          isMaxFirst: false,
+        },
+      ];
+
+      const result = calculateTokenUsageFromError(
+        "GPT_COMPLETIONS_GPT4",
+        TEST_PROMPT,
+        errorMsg,
+        testMetadata,
+        customPattern,
+      );
+
+      expect(result.maxTotalTokens).toBe(8192);
+      // Same calculation as above
+      expect(result.promptTokens).toBe(9831);
+      expect(result.completionTokens).toBe(0);
+    });
+
+    test("should return default result when char pattern has insufficient matches", () => {
+      const errorMsg = "Only one number: 50000";
+      const customPattern = [
+        {
+          pattern: /Only one number: (\d+)/,
+          units: "chars",
+          isMaxFirst: true,
+        },
+      ];
+
+      const result = calculateTokenUsageFromError(
+        "GPT_COMPLETIONS_GPT4",
+        TEST_PROMPT,
+        errorMsg,
+        testMetadata,
+        customPattern,
+      );
+
+      // Falls back to model metadata
+      expect(result.maxTotalTokens).toBe(8192);
+      expect(result.promptTokens).toBeGreaterThanOrEqual(8192);
+      expect(result.completionTokens).toBe(0);
+    });
+
+    test("should correctly set promptTokens to -1 when only maxTotalTokens captured with isMaxFirst=true", () => {
+      const errorMsg = "Context length is 8192 tokens";
+      const customPattern = [
+        {
+          pattern: /Context length is (\d+) tokens/,
+          units: "tokens",
+          isMaxFirst: true,
+        },
+      ];
+
+      const result = calculateTokenUsageFromError(
+        "GPT_COMPLETIONS_GPT4",
+        TEST_PROMPT,
+        errorMsg,
+        testMetadata,
+        customPattern,
+      );
+
+      expect(result.maxTotalTokens).toBe(8192);
+      // promptTokens derived since not in pattern
+      expect(result.promptTokens).toBeGreaterThanOrEqual(8192);
+      expect(result.completionTokens).toBe(0);
+    });
+
+    test("should iterate through multiple patterns and use first match", () => {
+      const errorMsg = "Request failed: used 9500 tokens";
+      const customPatterns = [
+        {
+          pattern: /Context length is (\d+) tokens/,
+          units: "tokens",
+          isMaxFirst: true,
+        },
+        {
+          pattern: /used (\d+) tokens/,
+          units: "tokens",
+          isMaxFirst: false,
+        },
+      ];
+
+      const result = calculateTokenUsageFromError(
+        "GPT_COMPLETIONS_GPT4",
+        TEST_PROMPT,
+        errorMsg,
+        testMetadata,
+        customPatterns,
+      );
+
+      expect(result.promptTokens).toBe(9500);
+      expect(result.maxTotalTokens).toBe(8192); // Fallback
+      expect(result.completionTokens).toBe(0);
+    });
+  });
 });
