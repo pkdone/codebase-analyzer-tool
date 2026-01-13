@@ -1,5 +1,5 @@
 import { normalizeCharacters } from "../../../../../src/common/llm/json-processing/sanitizers/index";
-import { SANITIZATION_STEP } from "../../../../../src/common/llm/json-processing/constants/sanitization-steps.config";
+import { MUTATION_STEP } from "../../../../../src/common/llm/json-processing/constants/mutation-steps.config";
 
 describe("normalizeCharacters", () => {
   describe("converts curly quotes to ASCII quotes", () => {
@@ -9,7 +9,7 @@ describe("normalizeCharacters", () => {
 
       expect(result.changed).toBe(true);
       expect(result.content).toBe('{"name": "value"}');
-      expect(result.description).toBe(SANITIZATION_STEP.NORMALIZED_ESCAPE_SEQUENCES);
+      expect(result.description).toBe(MUTATION_STEP.NORMALIZED_ESCAPE_SEQUENCES);
       expect(result.diagnostics).toBeDefined();
       expect(result.diagnostics?.length).toBeGreaterThan(0);
     });

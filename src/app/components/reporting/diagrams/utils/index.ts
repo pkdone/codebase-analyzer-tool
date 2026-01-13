@@ -1,8 +1,9 @@
 /**
  * Mermaid diagram utilities - public API
  */
+export { DIAGRAM_STYLES } from "./diagram-theme.config";
+
 export {
-  DIAGRAM_STYLES,
   buildMermaidInitDirective,
   buildArchitectureInitDirective,
   generateEmptyDiagramSvg,

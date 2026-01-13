@@ -16,13 +16,12 @@ export { fixMalformedJsonPatterns } from "./fix-malformed-json-patterns.js";
 
 export type { Sanitizer, SanitizerResult, SchemaFixingTransform } from "./sanitizers-types.js";
 
-// Export sanitization step constants
+// Export mutation step constants (sanitization + transform steps)
 export {
-  SANITIZATION_STEP,
-  SANITIZATION_STEP_TEMPLATE,
-  INSIGNIFICANT_SANITIZATION_STEPS,
-  type SanitizationStepDescription,
-} from "../constants/sanitization-steps.config.js";
+  MUTATION_STEP,
+  MUTATION_STEP_TEMPLATE,
+  INSIGNIFICANT_MUTATION_STEPS,
+} from "../constants/mutation-steps.config.js";
 
-// Export sanitization analysis utilities
-export { hasSignificantSanitizationSteps } from "../utils/sanitization-analysis.js";
+// Export mutation analysis utilities
+export { hasSignificantMutationSteps } from "../utils/mutation-analysis.js";

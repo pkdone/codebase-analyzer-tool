@@ -3,7 +3,7 @@ import { LLMGeneratedContent, LLMCompletionOptions, LLMContext } from "../../typ
 import { JsonProcessingError, JsonProcessingErrorType } from "../types/json-processing.errors";
 import { JsonProcessorResult } from "../types/json-processing-result.types";
 import { logWarn } from "../../../utils/logging";
-import { hasSignificantSanitizationSteps } from "../sanitizers";
+import { hasSignificantMutationSteps } from "../sanitizers";
 import { parseJsonWithSanitizers } from "./json-parsing";
 import { validateJsonWithTransforms } from "./json-validating";
 import {
@@ -70,7 +70,7 @@ function logProcessingSteps(
 
   const messages: string[] = [];
 
-  if (hasSignificantSanitizationSteps(sanitizationSteps)) {
+  if (hasSignificantMutationSteps(sanitizationSteps)) {
     let sanitizerMessage = `Applied ${sanitizationSteps.length} sanitization step(s): ${sanitizationSteps.join(" -> ")}`;
     if (sanitizationDiagnostics) sanitizerMessage += ` | Diagnostics: ${sanitizationDiagnostics}`;
     messages.push(sanitizerMessage);

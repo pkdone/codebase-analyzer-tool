@@ -6,9 +6,6 @@
 import { currentArchitectureConfig } from "../generators/current-architecture.config";
 import { DIAGRAM_STYLES } from "./diagram-theme.config";
 
-// Re-export for backwards compatibility with existing imports
-export { DIAGRAM_STYLES };
-
 /**
  * Generate the Mermaid init directive for consistent diagram configuration.
  * This adds padding around the diagram content.

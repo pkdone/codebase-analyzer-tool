@@ -12,7 +12,7 @@ import { RetryStrategy } from "./strategies/retry-strategy";
 import { determineNextAction } from "./strategies/fallback-decision";
 import { adaptPromptFromResponse } from "./strategies/prompt-adaptation-strategy";
 import LLMExecutionStats from "./tracking/llm-execution-stats";
-import { hasSignificantSanitizationSteps } from "./json-processing/sanitizers";
+import { hasSignificantMutationSteps } from "./json-processing/sanitizers";
 import type { LLMExecutionResult } from "./types/llm-execution-result.types";
 import { LLMExecutionError } from "./types/llm-execution-result.types";
 import { logWarn } from "../utils/logging";
@@ -90,7 +90,7 @@ export class LLMExecutionPipeline {
       );
 
       if (result) {
-        if (trackJsonMutations && hasSignificantSanitizationSteps(result.mutationSteps)) {
+        if (trackJsonMutations && hasSignificantMutationSteps(result.mutationSteps)) {
           this.llmStats.recordJsonMutated();
         }
 

@@ -1,5 +1,6 @@
 import { parseAndValidateLLMJson } from "../../../../src/common/llm/json-processing/core/json-processing";
 import { LLMOutputFormat, LLMPurpose } from "../../../../src/common/llm/types/llm.types";
+import { MUTATION_STEP } from "../../../../src/common/llm/json-processing/constants/mutation-steps.config";
 
 jest.mock("../../../../src/common/utils/logging", () => ({
   logErrorMsg: jest.fn(),
@@ -84,7 +85,9 @@ describe("JsonProcessor.parseAndValidate (declarative sanitization pipeline)", (
     // Should include at least code fence removal or JSON structure fixes
     const logMsg = calls.find((c: string) => c.includes("Applied"));
     expect(logMsg).toMatch(
-      /Fixed JSON structure and noise|Removed markdown code fences|Fixed JSON structure/,
+      new RegExp(
+        `Fixed JSON structure and noise|${MUTATION_STEP.REMOVED_CODE_FENCES}|Fixed JSON structure`,
+      ),
     );
   });
 });

@@ -1,5 +1,5 @@
 import { Sanitizer, SanitizerResult } from "./sanitizers-types";
-import { SANITIZATION_STEP } from "../constants/sanitization-steps.config";
+import { MUTATION_STEP } from "../constants/mutation-steps.config";
 import { isInStringAt, isInArrayContext } from "../utils/parser-context-utils";
 
 /**
@@ -98,7 +98,7 @@ export const fixJsonStructure: Sanitizer = (input: string): SanitizerResult => {
   });
   if (finalContent !== beforeDanglingProperties) {
     hasChanges = true;
-    diagnostics.push(SANITIZATION_STEP.FIXED_DANGLING_PROPERTIES);
+    diagnostics.push(MUTATION_STEP.FIXED_DANGLING_PROPERTIES);
   }
 
   // Post-processing pass 2: Fix missing opening quotes in array strings
@@ -133,7 +133,7 @@ export const fixJsonStructure: Sanitizer = (input: string): SanitizerResult => {
     );
   }
   if (finalContent !== beforeMissingQuotes) {
-    diagnostics.push("Fixed missing opening quotes in array string values");
+    diagnostics.push(MUTATION_STEP.FIXED_MISSING_OPENING_QUOTES_IN_ARRAY_STRINGS);
   }
 
   // Post-processing pass 3: Fix stray characters after property values
@@ -171,7 +171,7 @@ export const fixJsonStructure: Sanitizer = (input: string): SanitizerResult => {
   );
   if (finalContent !== beforeStrayChars) {
     hasChanges = true;
-    diagnostics.push(SANITIZATION_STEP.FIXED_STRAY_CHARS_AFTER_PROPERTY_VALUES);
+    diagnostics.push(MUTATION_STEP.FIXED_STRAY_CHARS_AFTER_PROPERTY_VALUES);
   }
 
   // Post-processing pass 4: Fix corrupted property/value pairs
@@ -234,7 +234,7 @@ export const fixJsonStructure: Sanitizer = (input: string): SanitizerResult => {
   );
   if (finalContent !== beforeCorruptedPairs) {
     hasChanges = true;
-    diagnostics.push("Fixed corrupted property/value pairs");
+    diagnostics.push(MUTATION_STEP.FIXED_CORRUPTED_PROPERTY_VALUE_PAIRS);
   }
 
   // Post-processing pass 5: Fix truncated values in array elements
@@ -274,7 +274,7 @@ export const fixJsonStructure: Sanitizer = (input: string): SanitizerResult => {
   }
   if (finalContent !== beforeTruncatedValues) {
     hasChanges = true;
-    diagnostics.push("Fixed truncated property values in array elements");
+    diagnostics.push(MUTATION_STEP.FIXED_TRUNCATED_PROPERTY_VALUES_IN_ARRAYS);
   }
 
   if (!hasChanges) {

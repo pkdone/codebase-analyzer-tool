@@ -6,7 +6,7 @@ import {
   LLMOutputFormat,
   LLMResponseStatus,
 } from "../../../../src/common/llm/types/llm.types";
-import { SANITIZATION_STEP } from "../../../../src/common/llm/json-processing/sanitizers";
+import { MUTATION_STEP } from "../../../../src/common/llm/json-processing/sanitizers";
 import {
   LLMImplSpecificResponseSummary,
   LLMProviderManifest,
@@ -421,9 +421,7 @@ describe("Abstract LLM Sanitization Steps Propagation", () => {
       expect(
         result.mutationSteps?.some(
           (s: string) =>
-            s.includes("Fixed JSON structure and noise") ||
-            s.includes("Removed markdown code fences") ||
-            s === SANITIZATION_STEP.REMOVED_CODE_FENCES,
+            s.includes("Fixed JSON structure and noise") || s === MUTATION_STEP.REMOVED_CODE_FENCES,
         ),
       ).toBe(true);
     });

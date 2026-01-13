@@ -1,5 +1,5 @@
 import { Sanitizer, SanitizerResult } from "./sanitizers-types";
-import { SANITIZATION_STEP } from "../constants/sanitization-steps.config";
+import { MUTATION_STEP } from "../constants/mutation-steps.config";
 import { logWarn } from "../../../utils/logging";
 
 /**
@@ -442,14 +442,14 @@ export const normalizeCharacters: Sanitizer = (input: string): SanitizerResult =
         );
       }
       if (overEscapesFixed) {
-        diagnostics.push("Fixed over-escaped sequences");
+        diagnostics.push(MUTATION_STEP.FIXED_OVER_ESCAPED_SEQUENCES);
       }
     }
 
     return {
       content: result,
       changed: hasChanges,
-      description: hasChanges ? SANITIZATION_STEP.NORMALIZED_ESCAPE_SEQUENCES : undefined,
+      description: hasChanges ? MUTATION_STEP.NORMALIZED_ESCAPE_SEQUENCES : undefined,
       diagnostics: hasChanges && diagnostics.length > 0 ? diagnostics : undefined,
     };
   } catch (error) {

@@ -1,9 +1,6 @@
 import { Sanitizer, SanitizerResult } from "./sanitizers-types";
 import { logWarn } from "../../../utils/logging";
-import {
-  SANITIZATION_STEP_TEMPLATE,
-  SANITIZATION_STEP,
-} from "../constants/sanitization-steps.config";
+import { MUTATION_STEP_TEMPLATE, MUTATION_STEP } from "../constants/mutation-steps.config";
 import { DELIMITERS, parsingHeuristics } from "../constants/json-processing.config";
 import { isInArrayContext } from "../utils/parser-context-utils";
 
@@ -217,7 +214,7 @@ function addMissingCommasInternal(input: string): SanitizerResult {
   );
 
   if (commaCount > 0) {
-    const description = SANITIZATION_STEP_TEMPLATE.addedMissingCommas(commaCount);
+    const description = MUTATION_STEP_TEMPLATE.addedMissingCommas(commaCount);
     return {
       content: sanitized,
       changed: true,
@@ -284,9 +281,9 @@ function removeTrailingCommasInternal(input: string): SanitizerResult {
     return {
       content: sanitized,
       changed: true,
-      description: SANITIZATION_STEP.REMOVED_TRAILING_COMMAS,
+      description: MUTATION_STEP.REMOVED_TRAILING_COMMAS,
       diagnostics: [
-        SANITIZATION_STEP.REMOVED_TRAILING_COMMAS,
+        MUTATION_STEP.REMOVED_TRAILING_COMMAS,
         `Removed ${commaCount} trailing comma${commaCount !== 1 ? "s" : ""}`,
       ],
     };
@@ -438,10 +435,8 @@ function fixMismatchedDelimitersInternal(input: string): SanitizerResult {
   return {
     content: workingContent,
     changed: true,
-    description: SANITIZATION_STEP_TEMPLATE.fixedMismatchedDelimiters(delimiterCorrections.length),
-    diagnostics: [
-      SANITIZATION_STEP_TEMPLATE.fixedMismatchedDelimiters(delimiterCorrections.length),
-    ],
+    description: MUTATION_STEP_TEMPLATE.fixedMismatchedDelimiters(delimiterCorrections.length),
+    diagnostics: [MUTATION_STEP_TEMPLATE.fixedMismatchedDelimiters(delimiterCorrections.length)],
   };
 }
 
@@ -508,9 +503,9 @@ function completeTruncatedStructuresInternal(input: string): SanitizerResult {
     return {
       content: finalContent,
       changed: true,
-      description: SANITIZATION_STEP.COMPLETED_TRUNCATED_STRUCTURES,
+      description: MUTATION_STEP.COMPLETED_TRUNCATED_STRUCTURES,
       diagnostics: [
-        SANITIZATION_STEP.COMPLETED_TRUNCATED_STRUCTURES,
+        MUTATION_STEP.COMPLETED_TRUNCATED_STRUCTURES,
         `Added ${addedDelimiters.length} closing delimiter${addedDelimiters.length !== 1 ? "s" : ""}${inString ? " and closed incomplete string" : ""}`,
       ],
     };

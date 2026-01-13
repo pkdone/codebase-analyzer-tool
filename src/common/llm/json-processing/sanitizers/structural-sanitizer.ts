@@ -5,6 +5,7 @@ import {
   parsingHeuristics,
 } from "../constants/json-processing.config";
 import { CODE_FENCE_REGEXES } from "../constants/regex.constants";
+import { MUTATION_STEP } from "../constants/mutation-steps.config";
 import { logWarn } from "../../../utils/logging";
 import { isInStringAt } from "../utils/parser-context-utils";
 
@@ -52,7 +53,7 @@ export const fixJsonStructureAndNoise: Sanitizer = (input: string): SanitizerRes
     if (trimmed !== sanitized) {
       sanitized = trimmed;
       hasChanges = true;
-      diagnostics.push("Trimmed leading/trailing whitespace");
+      diagnostics.push(MUTATION_STEP.TRIMMED_WHITESPACE);
     }
 
     // Remove code fences
@@ -63,7 +64,7 @@ export const fixJsonStructureAndNoise: Sanitizer = (input: string): SanitizerRes
       }
       if (sanitized !== beforeFences) {
         hasChanges = true;
-        diagnostics.push("Removed markdown code fences");
+        diagnostics.push(MUTATION_STEP.REMOVED_CODE_FENCES);
       }
     }
 
@@ -88,7 +89,7 @@ export const fixJsonStructureAndNoise: Sanitizer = (input: string): SanitizerRes
     sanitized = extractLargestJsonSpanInternal(sanitized);
     if (sanitized !== beforeExtract) {
       hasChanges = true;
-      diagnostics.push("Extracted largest JSON span from surrounding text");
+      diagnostics.push(MUTATION_STEP.EXTRACTED_LARGEST_JSON_SPAN);
     }
 
     // Collapse duplicate JSON objects
@@ -96,7 +97,7 @@ export const fixJsonStructureAndNoise: Sanitizer = (input: string): SanitizerRes
     sanitized = collapseDuplicateJsonObjectInternal(sanitized);
     if (sanitized !== beforeCollapse) {
       hasChanges = true;
-      diagnostics.push("Collapsed duplicate JSON object");
+      diagnostics.push(MUTATION_STEP.COLLAPSED_DUPLICATE_JSON);
     }
 
     // Remove truncation markers
@@ -137,7 +138,7 @@ function removeInvalidPrefixesInternal(jsonString: string, diagnostics: string[]
   const ctrlThoughtPattern = /<ctrl\d+>\s*thought\s*\n/i;
   sanitized = sanitized.replace(ctrlThoughtPattern, () => {
     if (diagnostics.length < 10) {
-      diagnostics.push("Removed control-style thought marker");
+      diagnostics.push(MUTATION_STEP.REMOVED_CONTROL_THOUGHT_MARKER);
     }
     return "";
   });
@@ -145,7 +146,7 @@ function removeInvalidPrefixesInternal(jsonString: string, diagnostics: string[]
   const thoughtMarkerPattern = /^thought\s*:?\s*\n/i;
   sanitized = sanitized.replace(thoughtMarkerPattern, () => {
     if (diagnostics.length < 10) {
-      diagnostics.push("Removed thought marker");
+      diagnostics.push(MUTATION_STEP.REMOVED_THOUGHT_MARKERS);
     }
     return "";
   });
@@ -404,7 +405,7 @@ function fixUnclosedArraysBeforePropertiesInternal(
       }
 
       if (diagnostics.length < 10) {
-        diagnostics.push("Fixed unclosed array before property name");
+        diagnostics.push(MUTATION_STEP.FIXED_UNCLOSED_ARRAY);
       }
 
       return `${closingBraceStr}],\n${whitespaceStr}${propertyNameStr}`;
@@ -709,7 +710,7 @@ function removeTruncationMarkersInternal(jsonString: string, diagnostics: string
       const delimiterStr = typeof delimiter === "string" ? delimiter : "";
 
       if (diagnostics.length < 10) {
-        diagnostics.push("Removed LLM instruction text appended after JSON");
+        diagnostics.push(MUTATION_STEP.REMOVED_LLM_INSTRUCTION_TEXT);
       }
 
       return delimiterStr;
@@ -732,7 +733,7 @@ function removeTruncationMarkersInternal(jsonString: string, diagnostics: string
       const delimiterStr = delimiter1Str !== "" ? delimiter1Str : delimiter2Str;
       if (delimiterStr !== "") {
         if (diagnostics.length < 10) {
-          diagnostics.push("Removed extra JSON/schema after main structure");
+          diagnostics.push(MUTATION_STEP.REMOVED_EXTRA_JSON_AFTER_MAIN);
         }
         return delimiterStr;
       }

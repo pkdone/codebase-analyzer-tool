@@ -1,5 +1,5 @@
 import { Sanitizer, SanitizerResult } from "./sanitizers-types";
-import { SANITIZATION_STEP } from "../constants/sanitization-steps.config";
+import { MUTATION_STEP } from "../constants/mutation-steps.config";
 import { LLM_TOKEN_ARTIFACT_REGEX } from "../constants/regex.constants";
 import { logWarn } from "../../../utils/logging";
 import { isInStringAt } from "../utils/parser-context-utils";
@@ -56,7 +56,7 @@ export const fixLlmTokenArtifacts: Sanitizer = (jsonString: string): SanitizerRe
     return {
       content: sanitized,
       changed: hasChanges,
-      description: hasChanges ? SANITIZATION_STEP.FIXED_LLM_TOKEN_ARTIFACTS : undefined,
+      description: hasChanges ? MUTATION_STEP.FIXED_LLM_TOKEN_ARTIFACTS : undefined,
       diagnostics: hasChanges && diagnostics.length > 0 ? diagnostics : undefined,
     };
   } catch (error) {

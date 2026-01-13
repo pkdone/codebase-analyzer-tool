@@ -6,6 +6,7 @@
 import type { LLMSanitizerConfig } from "../../../config/llm-module-config.types";
 import type { SanitizerStrategy, StrategyResult } from "../pipeline/sanitizer-pipeline.types";
 import { isInStringAt } from "../../utils/parser-context-utils";
+import { MUTATION_STEP } from "../../constants/mutation-steps.config";
 
 /**
  * Strategy that fixes invalid literal values in JSON.
@@ -28,7 +29,7 @@ export const invalidLiteralFixer: SanitizerStrategy = {
       undefinedValuePattern,
       (_match, beforeColon, afterUndefined, terminator) => {
         hasChanges = true;
-        diagnostics.push("Converted undefined to null");
+        diagnostics.push(MUTATION_STEP.CONVERTED_UNDEFINED_TO_NULL);
         return `${beforeColon}null${afterUndefined}${terminator}`;
       },
     );

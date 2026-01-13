@@ -11,4 +11,4 @@ export type {
 
 export { DEFAULT_PIPELINE_CONFIG } from "./sanitizer-pipeline.types";
 
-export { executePipeline, createPipeline, toSanitizerResult } from "./sanitizer-pipeline";
+export { executePipeline, createPipeline } from "./sanitizer-pipeline";

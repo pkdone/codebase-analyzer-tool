@@ -21,7 +21,7 @@
  */
 
 import type { Sanitizer, SanitizerResult } from "./sanitizers-types";
-import { createPipeline, toSanitizerResult } from "./pipeline";
+import { createPipeline } from "./pipeline";
 import {
   duplicateEntryRemover,
   textOutsideJsonRemover,
@@ -55,12 +55,10 @@ export const fixHeuristicJsonErrors: Sanitizer = (input, config): SanitizerResul
 
   const pipelineResult = heuristicPipeline(input, config);
 
-  // Convert to legacy format with description
-  const result = toSanitizerResult(pipelineResult);
-
-  if (result.changed) {
-    result.description = "Fixed heuristic JSON errors";
-  }
-
-  return result;
+  return {
+    content: pipelineResult.content,
+    changed: pipelineResult.changed,
+    description: pipelineResult.changed ? "Fixed heuristic JSON errors" : undefined,
+    diagnostics: pipelineResult.diagnostics,
+  };
 };

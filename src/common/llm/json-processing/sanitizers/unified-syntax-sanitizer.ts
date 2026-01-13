@@ -21,7 +21,7 @@
  */
 
 import type { Sanitizer, SanitizerResult } from "./sanitizers-types";
-import { createPipeline, toSanitizerResult } from "./pipeline";
+import { createPipeline } from "./pipeline";
 import {
   concatenationFixer,
   propertyNameFixer,
@@ -64,12 +64,10 @@ export const unifiedSyntaxSanitizer: Sanitizer = (input, config): SanitizerResul
 
   const pipelineResult = unifiedSyntaxPipeline(input, config);
 
-  // Convert to legacy format with description
-  const result = toSanitizerResult(pipelineResult);
-
-  if (result.changed) {
-    result.description = "Fixed property and value syntax";
-  }
-
-  return result;
+  return {
+    content: pipelineResult.content,
+    changed: pipelineResult.changed,
+    description: pipelineResult.changed ? "Fixed property and value syntax" : undefined,
+    diagnostics: pipelineResult.diagnostics,
+  };
 };

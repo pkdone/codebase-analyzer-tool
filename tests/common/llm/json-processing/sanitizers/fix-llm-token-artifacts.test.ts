@@ -1,5 +1,5 @@
 import { fixLlmTokenArtifacts } from "../../../../../src/common/llm/json-processing/sanitizers/index";
-import { SANITIZATION_STEP } from "../../../../../src/common/llm/json-processing/constants/sanitization-steps.config";
+import { MUTATION_STEP } from "../../../../../src/common/llm/json-processing/constants/mutation-steps.config";
 
 describe("fixLlmTokenArtifacts", () => {
   describe("LLM token artifacts", () => {
@@ -11,7 +11,7 @@ describe("fixLlmTokenArtifacts", () => {
       const result = fixLlmTokenArtifacts(input);
 
       expect(result.changed).toBe(true);
-      expect(result.description).toBe(SANITIZATION_STEP.FIXED_LLM_TOKEN_ARTIFACTS);
+      expect(result.description).toBe(MUTATION_STEP.FIXED_LLM_TOKEN_ARTIFACTS);
       // The sanitizer now just removes the marker - property name fixing is handled by unifiedSyntaxSanitizer
       expect(result.content).toContain('OfCode": 1');
       expect(result.content).not.toContain("<y_bin_");

@@ -4,6 +4,7 @@ import {
   LLMOutputFormat,
   LLMPurpose,
 } from "../../../../../src/common/llm/types/llm.types";
+import { MUTATION_STEP } from "../../../../../src/common/llm/json-processing/constants/mutation-steps.config";
 import { z } from "zod";
 
 describe("JsonProcessor - Undefined Value Handling Integration", () => {
@@ -301,7 +302,7 @@ describe("JsonProcessor - Undefined Value Handling Integration", () => {
           result.mutationSteps.some(
             (s: string) =>
               s.includes("Fixed JSON structure and noise") ||
-              s.includes("Removed markdown code fences"),
+              s === MUTATION_STEP.REMOVED_CODE_FENCES,
           ),
         ).toBe(true);
         expect(result.mutationSteps).toContain("Fixed property and value syntax");

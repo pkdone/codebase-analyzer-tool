@@ -100,17 +100,3 @@ export function createPipeline(
   return (input: string, config?: LLMSanitizerConfig) =>
     executePipeline(strategies, input, config, pipelineConfig);
 }
-
-/**
- * Converts a PipelineResult to the legacy SanitizerResult format for backwards compatibility.
- */
-export function toSanitizerResult(
-  pipelineResult: PipelineResult,
-): import("../sanitizers-types").SanitizerResult {
-  return {
-    content: pipelineResult.content,
-    changed: pipelineResult.changed,
-    description: pipelineResult.description,
-    diagnostics: pipelineResult.diagnostics,
-  };
-}

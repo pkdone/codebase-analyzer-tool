@@ -5,7 +5,6 @@
 import {
   executePipeline,
   createPipeline,
-  toSanitizerResult,
   type SanitizerStrategy,
 } from "../../../../../../src/common/llm/json-processing/sanitizers/pipeline";
 
@@ -174,25 +173,6 @@ describe("sanitizer-pipeline", () => {
 
       expect(result1.content).toBe("HELLO");
       expect(result2.content).toBe("WORLD");
-    });
-  });
-
-  describe("toSanitizerResult", () => {
-    it("should convert pipeline result to sanitizer result format", () => {
-      const pipelineResult = {
-        content: "test",
-        changed: true,
-        description: "Test description",
-        diagnostics: ["Diag 1"],
-        appliedStrategies: ["Strategy1"],
-      };
-
-      const sanitizerResult = toSanitizerResult(pipelineResult);
-
-      expect(sanitizerResult.content).toBe("test");
-      expect(sanitizerResult.changed).toBe(true);
-      expect(sanitizerResult.description).toBe("Test description");
-      expect(sanitizerResult.diagnostics).toEqual(["Diag 1"]);
     });
   });
 });
