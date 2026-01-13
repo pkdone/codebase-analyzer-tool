@@ -6,6 +6,7 @@ import { llmTokens } from "../../../../src/app/di/tokens";
 import {
   registerBaseEnvDependencies,
   registerLlmEnvDependencies,
+  resetProjectNameCache,
 } from "../../../../src/app/di/registration-modules/env-registration";
 import { loadManifestForModelFamily } from "../../../../src/common/llm/utils/manifest-loader";
 import { LLMProviderManifest } from "../../../../src/common/llm/providers/llm-provider.types";
@@ -67,6 +68,7 @@ describe("Environment Registration Module", () => {
     jest.clearAllMocks();
     container.clearInstances();
     container.reset();
+    resetProjectNameCache();
 
     // Reset process.env for each test
     delete process.env.LLM;
@@ -311,6 +313,100 @@ describe("Environment Registration Module", () => {
       const envVars = container.resolve(coreTokens.EnvVars) as Record<string, unknown>;
       expect(envVars.TEST_API_KEY).toBe("test-key");
       expect(envVars.TEST_ENDPOINT).toBe("https://api.test.com");
+    });
+  });
+
+  describe("registerProjectName with useFactory", () => {
+    it("should defer project name derivation until resolution (lazy evaluation)", () => {
+      // Register base env vars
+      container.registerInstance(coreTokens.EnvVars, mockBaseEnvVars);
+
+      // Clear any calls from beforeEach setup
+      (getBaseNameFromPath as jest.Mock).mockClear();
+
+      // Now call registration which will register the factory (but NOT call it yet)
+      registerBaseEnvDependencies();
+
+      // Verify factory registration happened
+      expect(container.isRegistered(coreTokens.ProjectName)).toBe(true);
+
+      // getBaseNameFromPath should NOT have been called during registration
+      // (this is the key improvement - deferred resolution)
+      expect(getBaseNameFromPath).not.toHaveBeenCalled();
+
+      // Now resolve - this should trigger the factory
+      const projectName = container.resolve(coreTokens.ProjectName);
+
+      // Factory should have been called during resolution
+      expect(getBaseNameFromPath).toHaveBeenCalledWith("/test/project");
+      expect(projectName).toBe("test-project");
+    });
+
+    it("should maintain singleton behavior - factory called only once across multiple resolutions", () => {
+      registerBaseEnvDependencies();
+
+      // Clear mock to count only calls during resolution
+      (getBaseNameFromPath as jest.Mock).mockClear();
+
+      // First resolution - triggers the factory
+      const projectName1 = container.resolve(coreTokens.ProjectName);
+      expect(getBaseNameFromPath).toHaveBeenCalledTimes(1);
+
+      // Subsequent resolutions should return cached value (manual singleton implementation)
+      const projectName2 = container.resolve(coreTokens.ProjectName);
+      const projectName3 = container.resolve(coreTokens.ProjectName);
+
+      // Factory should still only have been called once (singleton behavior via caching)
+      expect(getBaseNameFromPath).toHaveBeenCalledTimes(1);
+
+      // All resolutions should return the same value
+      expect(projectName1).toBe(projectName2);
+      expect(projectName2).toBe(projectName3);
+    });
+
+    it("should resolve EnvVars dependency through container during factory execution", () => {
+      // This test verifies that the factory correctly uses the container to resolve EnvVars
+      const customEnvVars = {
+        ...mockBaseEnvVars,
+        CODEBASE_DIR_PATH: "/custom/path",
+      };
+      container.registerInstance(coreTokens.EnvVars, customEnvVars);
+
+      registerBaseEnvDependencies();
+
+      // Clear mock to verify it's called during resolution
+      (getBaseNameFromPath as jest.Mock).mockClear();
+
+      // Resolve project name - this triggers the factory which resolves EnvVars from container
+      container.resolve(coreTokens.ProjectName);
+
+      // Verify getBaseNameFromPath was called with the custom path from EnvVars
+      expect(getBaseNameFromPath).toHaveBeenCalledWith("/custom/path");
+    });
+
+    it("should reset cache correctly for test isolation", () => {
+      registerBaseEnvDependencies();
+
+      // First resolution
+      const projectName1 = container.resolve(coreTokens.ProjectName);
+      expect(projectName1).toBe("test-project");
+
+      // Simulate test cleanup
+      container.clearInstances();
+      container.reset();
+      resetProjectNameCache();
+
+      // Update mock to return different value
+      (getBaseNameFromPath as jest.Mock).mockReturnValue("different-project");
+
+      // Re-register with new env vars
+      const newEnvVars = { ...mockBaseEnvVars, CODEBASE_DIR_PATH: "/different/path" };
+      container.registerInstance(coreTokens.EnvVars, newEnvVars);
+      registerBaseEnvDependencies();
+
+      // Should get the new value after cache reset
+      const projectName2 = container.resolve(coreTokens.ProjectName);
+      expect(projectName2).toBe("different-project");
     });
   });
 

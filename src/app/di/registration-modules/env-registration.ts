@@ -1,4 +1,4 @@
-import { container } from "tsyringe";
+import { container, DependencyContainer } from "tsyringe";
 import { coreTokens } from "../tokens";
 import { llmTokens } from "../tokens";
 import { EnvVars, baseEnvVarsSchema } from "../../env/env.types";
@@ -29,7 +29,12 @@ export function registerLlmEnvDependencies(): void {
       const envVars = loadEnvIncludingLLMVars();
       container.registerInstance(coreTokens.EnvVars, envVars);
       console.log("LLM environment variables loaded and registered.");
-      registerLlmModelFamily();
+
+      // Register LLM model family if configured (inlined to avoid Service Locator pattern)
+      if (envVars.LLM && !container.isRegistered(llmTokens.LLMModelFamily)) {
+        container.registerInstance(llmTokens.LLMModelFamily, envVars.LLM);
+        console.log(`LLM model family '${envVars.LLM}' registered.`);
+      }
     } catch {
       // If LLM env vars aren't available, fall back to base env vars
       // This allows the container to be bootstrapped even when LLM isn't configured
@@ -41,21 +46,44 @@ export function registerLlmEnvDependencies(): void {
   registerProjectName();
 }
 
+/**
+ * Cached project name value for singleton behavior with factory provider.
+ * tsyringe's FactoryProvider doesn't support lifecycle options, so we implement
+ * singleton caching manually.
+ */
+let cachedProjectName: string | null = null;
+
+/**
+ * Register the project name using useFactory to defer resolution.
+ * This follows DI best practices by letting the container manage resolution order
+ * rather than explicitly resolving dependencies during registration.
+ *
+ * Note: We implement singleton behavior manually since tsyringe's FactoryProvider
+ * doesn't support lifecycle options.
+ */
 function registerProjectName(): void {
   if (!container.isRegistered(coreTokens.ProjectName)) {
-    const envVars = container.resolve<EnvVars>(coreTokens.EnvVars);
-    const projectName = getBaseNameFromPath(envVars.CODEBASE_DIR_PATH);
-    container.registerInstance(coreTokens.ProjectName, projectName);
-    console.log(`Project name '${projectName}' derived and registered.`);
+    container.register<string>(coreTokens.ProjectName, {
+      useFactory: (c: DependencyContainer): string => {
+        if (cachedProjectName !== null) {
+          return cachedProjectName;
+        }
+        const envVars = c.resolve<EnvVars>(coreTokens.EnvVars);
+        const projectName = getBaseNameFromPath(envVars.CODEBASE_DIR_PATH);
+        console.log(`Project name '${projectName}' derived and registered.`);
+        cachedProjectName = projectName;
+        return projectName;
+      },
+    });
   }
 }
 
-function registerLlmModelFamily(): void {
-  const envVars = container.resolve<EnvVars>(coreTokens.EnvVars);
-  if (envVars.LLM && !container.isRegistered(llmTokens.LLMModelFamily)) {
-    container.registerInstance(llmTokens.LLMModelFamily, envVars.LLM);
-    console.log(`LLM model family '${envVars.LLM}' registered.`);
-  }
+/**
+ * Reset the cached project name. This is intended for testing purposes only
+ * to ensure clean state between test runs.
+ */
+export function resetProjectNameCache(): void {
+  cachedProjectName = null;
 }
 
 /**
