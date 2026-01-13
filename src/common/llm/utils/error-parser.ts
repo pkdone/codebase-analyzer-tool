@@ -60,7 +60,10 @@ function extractTokenValues(
   return isMaxFirst
     ? {
         maxTotalTokens: firstValue,
-        promptTokens: secondValue === fallbackMaxTokens && matches.length <= config.secondValueIndex ? -1 : secondValue,
+        promptTokens:
+          secondValue === fallbackMaxTokens && matches.length <= config.secondValueIndex
+            ? -1
+            : secondValue,
         completionTokens,
       }
     : {

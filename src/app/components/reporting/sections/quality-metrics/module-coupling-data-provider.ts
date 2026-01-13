@@ -1,4 +1,5 @@
 import { injectable, inject } from "tsyringe";
+import path from "path";
 import type { SourcesRepository } from "../../../../repositories/sources/sources.repository.interface";
 import { repositoryTokens } from "../../../../di/tokens";
 import type { ModuleCoupling } from "./quality-metrics.types";
@@ -49,7 +50,7 @@ export class ModuleCouplingDataProvider {
 
       // Process each internal reference
       for (const reference of file.summary.internalReferences) {
-        const toModule = this.extractModuleNameFromReference(reference, moduleDepth);
+        const toModule = this.extractModuleNameFromReference(reference, file.filepath, moduleDepth);
         if (!toModule || toModule === fromModule) {
           // Skip self-references
           continue;
@@ -150,9 +151,21 @@ export class ModuleCouplingDataProvider {
    * - File path: "../../services/user-service"
    * - Class name: "UserService"
    */
-  private extractModuleNameFromReference(reference: string, depth: number): string | null {
+  private extractModuleNameFromReference(
+    reference: string,
+    sourceFilepath: string,
+    depth: number,
+  ): string | null {
     // If reference looks like a file path (contains / or \), treat it as a path
     if (reference.includes("/") || reference.includes("\\")) {
+      // Resolve relative paths against the source file's directory
+      if (reference.startsWith(".")) {
+        const sourceDir = path.dirname(sourceFilepath);
+        // Use path.join to resolve the relative path within the project structure
+        // This handles ../ and ./ correctly relative to the source file
+        const resolvedPath = path.join(sourceDir, reference);
+        return this.extractModuleName(resolvedPath, depth);
+      }
       return this.extractModuleName(reference, depth);
     }
 

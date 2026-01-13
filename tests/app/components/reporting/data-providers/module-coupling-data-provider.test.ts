@@ -178,5 +178,90 @@ describe("ModuleCouplingDataProvider", () => {
         result1.couplings[1]?.referenceCount ?? 0,
       );
     });
+
+    it("should resolve relative imports using parent directory reference", async () => {
+      const sourcesWithRelativeRefs = [
+        createMockSource("src/components/Button.tsx", ["../utils/helpers"]),
+      ];
+      mockSourcesRepository.getProjectSourcesSummariesByFileType.mockResolvedValue(
+        sourcesWithRelativeRefs,
+      );
+
+      const result = await moduleCouplingDataProvider.getModuleCoupling("test-project", 2);
+
+      // ../utils/helpers from src/components should resolve to src/utils
+      expect(result.couplings.length).toBe(1);
+      expect(result.couplings[0].fromModule).toBe("src/components");
+      expect(result.couplings[0].toModule).toBe("src/utils");
+    });
+
+    it("should resolve current directory relative imports as self-reference", async () => {
+      const sourcesWithCurrentDirRefs = [
+        createMockSource("src/services/user/UserService.ts", ["./UserHelper"]),
+      ];
+      mockSourcesRepository.getProjectSourcesSummariesByFileType.mockResolvedValue(
+        sourcesWithCurrentDirRefs,
+      );
+
+      const result = await moduleCouplingDataProvider.getModuleCoupling("test-project", 2);
+
+      // ./UserHelper from src/services/user should resolve to src/services (same module)
+      // This is a self-reference, so it should be skipped
+      expect(result.couplings.length).toBe(0);
+    });
+
+    it("should resolve deeply nested relative imports correctly", async () => {
+      const sourcesWithDeepRelativeRefs = [
+        createMockSource("src/features/auth/login/LoginForm.tsx", [
+          "../../../shared/components/Button",
+        ]),
+      ];
+      mockSourcesRepository.getProjectSourcesSummariesByFileType.mockResolvedValue(
+        sourcesWithDeepRelativeRefs,
+      );
+
+      const result = await moduleCouplingDataProvider.getModuleCoupling("test-project", 2);
+
+      // ../../../shared/components from src/features/auth/login should resolve to src/shared
+      expect(result.couplings.length).toBe(1);
+      expect(result.couplings[0].fromModule).toBe("src/features");
+      expect(result.couplings[0].toModule).toBe("src/shared");
+    });
+
+    it("should handle mixed relative and absolute references", async () => {
+      const sourcesWithMixedRefs = [
+        createMockSource("src/components/Form.tsx", [
+          "../utils/validation", // relative
+          "src/services/api", // absolute
+        ]),
+      ];
+      mockSourcesRepository.getProjectSourcesSummariesByFileType.mockResolvedValue(
+        sourcesWithMixedRefs,
+      );
+
+      const result = await moduleCouplingDataProvider.getModuleCoupling("test-project", 2);
+
+      expect(result.couplings.length).toBe(2);
+      const toModules = result.couplings.map((c) => c.toModule).sort();
+      expect(toModules).toEqual(["src/services", "src/utils"]);
+    });
+
+    it("should resolve relative imports with multiple parent traversals", async () => {
+      const sourcesWithMultipleParents = [
+        createMockSource("app/modules/auth/components/LoginButton.tsx", [
+          "../../../shared/utils/format", // Goes up to app/, then into shared/
+        ]),
+      ];
+      mockSourcesRepository.getProjectSourcesSummariesByFileType.mockResolvedValue(
+        sourcesWithMultipleParents,
+      );
+
+      const result = await moduleCouplingDataProvider.getModuleCoupling("test-project", 2);
+
+      // ../../../shared/utils from app/modules/auth/components should resolve to app/shared
+      expect(result.couplings.length).toBe(1);
+      expect(result.couplings[0].fromModule).toBe("app/modules");
+      expect(result.couplings[0].toModule).toBe("app/shared");
+    });
   });
 });

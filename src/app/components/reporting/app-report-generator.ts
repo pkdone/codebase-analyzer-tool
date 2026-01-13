@@ -151,15 +151,9 @@ export default class AppReportGenerator {
       }
 
       // Prefer copying from local node_modules for true offline report generation.
-      const localMermaidPath = path.join(
-        process.cwd(),
-        "node_modules",
-        "mermaid",
-        "dist",
-        "mermaid.min.js",
-      );
-
+      // Use require.resolve to find the package reliably regardless of CWD
       try {
+        const localMermaidPath = require.resolve("mermaid/dist/mermaid.min.js");
         const buffer = await fs.readFile(localMermaidPath);
         await fs.writeFile(mermaidPath, buffer);
         console.log(`Mermaid.js copied from node_modules to ${mermaidPath}`);

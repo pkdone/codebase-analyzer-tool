@@ -10,9 +10,7 @@ import {
   INSTRUCTION_SECTION_TITLES,
   buildInstructionBlock,
 } from "../../../../../../src/app/prompts/definitions/instruction-utils";
-import {
-  SOURCES_PROMPT_FRAGMENTS,
-} from "../../../../../../src/app/prompts/definitions/sources/sources.fragments";
+import { SOURCES_PROMPT_FRAGMENTS } from "../../../../../../src/app/prompts/definitions/sources/sources.fragments";
 import { sourceSummarySchema } from "../../../../../../src/app/schemas/sources.schema";
 
 describe("shared-utilities", () => {
@@ -264,10 +262,7 @@ describe("shared-utilities", () => {
     });
 
     it("should include common scheduled job fragments in the instruction block", () => {
-      const config = createScheduledJobConfig(
-        "test script",
-        "custom fragment",
-      );
+      const config = createScheduledJobConfig("test script", "custom fragment");
 
       expect(config.instructions[1]).toContain(SOURCES_PROMPT_FRAGMENTS.SCHEDULED_JOBS.INTRO);
       expect(config.instructions[1]).toContain(SOURCES_PROMPT_FRAGMENTS.SCHEDULED_JOBS.FIELDS);
@@ -285,7 +280,9 @@ describe("shared-utilities", () => {
       const jobsBlock = config.instructions[1];
       expect(jobsBlock).toContain(SOURCES_PROMPT_FRAGMENTS.SHELL_SCRIPT_SPECIFIC.CRON_EXPRESSIONS);
       expect(jobsBlock).toContain(SOURCES_PROMPT_FRAGMENTS.SHELL_SCRIPT_SPECIFIC.DATABASE_OPS);
-      expect(jobsBlock).toContain(SOURCES_PROMPT_FRAGMENTS.SHELL_SCRIPT_SPECIFIC.EXTERNAL_API_CALLS);
+      expect(jobsBlock).toContain(
+        SOURCES_PROMPT_FRAGMENTS.SHELL_SCRIPT_SPECIFIC.EXTERNAL_API_CALLS,
+      );
     });
 
     it("should have correct schema fields (purpose, implementation, scheduledJobs)", () => {
