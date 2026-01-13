@@ -123,9 +123,11 @@ describe("json-parsing", () => {
         const json = '{"key": "value" extra text}';
         const result = parseJsonWithSanitizers(json);
 
-        // Result may succeed or fail, but if it succeeds, it might have diagnostics
-        if (result.success && result.diagnostics) {
-          expect(typeof result.diagnostics).toBe("string");
+        // Result may succeed or fail, but diagnostics should always be an array
+        expect(Array.isArray(result.diagnostics)).toBe(true);
+        // If sanitizers made changes, diagnostics should contain entries
+        if (result.success && result.diagnostics.length > 0) {
+          expect(result.diagnostics.every((d) => typeof d === "string")).toBe(true);
         }
       });
     });

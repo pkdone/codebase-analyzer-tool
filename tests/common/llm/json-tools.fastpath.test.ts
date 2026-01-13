@@ -116,8 +116,8 @@ describe("json-tools enhanced fast path", () => {
       if (result.success) {
         expect(result.data).toEqual({ value: 42 });
       }
-      // Code fence removal is now considered a significant sanitization step
-      expect(logWarn).toHaveBeenCalled();
+      // Code fence removal is an INSIGNIFICANT sanitization step, so no warning is logged
+      expect(logWarn).not.toHaveBeenCalled();
     });
 
     it("falls back to progressive strategies for JSON with surrounding text", () => {

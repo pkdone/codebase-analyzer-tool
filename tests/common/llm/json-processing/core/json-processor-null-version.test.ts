@@ -199,7 +199,10 @@ describe("JsonProcessor Integration Tests", () => {
       expect(result.success).toBe(true);
       if (result.success) {
         expect(result.data).toBeDefined();
-        expect(result.mutationSteps).toContain("Fixed property and value syntax");
+        // Check high-level sanitizer was applied
+        expect(result.appliedSanitizers).toContain("Fixed property and value syntax");
+        // Check low-level mutation steps contain property name fixes
+        expect(result.mutationSteps.some((s) => s.includes("PropertyNameFixer"))).toBe(true);
       }
     });
 
@@ -228,7 +231,10 @@ describe("JsonProcessor Integration Tests", () => {
       expect(result.success).toBe(true);
       if (result.success) {
         expect(result.data).toBeDefined();
-        expect(result.mutationSteps).toContain("Fixed property and value syntax");
+        // Check high-level sanitizer was applied
+        expect(result.appliedSanitizers).toContain("Fixed property and value syntax");
+        // Check low-level mutation steps contain property name fixes
+        expect(result.mutationSteps.some((s) => s.includes("PropertyNameFixer"))).toBe(true);
       }
     });
   });

@@ -58,28 +58,36 @@ function logProblem(
 
 /**
  * Logs sanitization steps and transforms if enabled and significant.
+ *
+ * Only logs if there are significant mutations (i.e., not just trivial formatting like
+ * whitespace trimming or code fence removal). Significance is determined by checking
+ * the actual mutation steps (diagnostics + transforms), not the high-level sanitizer names.
+ *
+ * @param appliedSanitizers - High-level sanitizer descriptions (for logging context)
+ * @param mutationSteps - Low-level mutation steps (diagnostics + transforms, for significance check)
+ * @param context - LLM context for log attribution
+ * @param loggingEnabled - Whether logging is enabled
  */
 function logProcessingSteps(
-  sanitizationSteps: readonly string[],
-  sanitizationDiagnostics: string | undefined,
-  transformSteps: readonly string[],
+  appliedSanitizers: readonly string[],
+  mutationSteps: readonly string[],
   context: LLMContext,
   loggingEnabled: boolean,
 ): void {
   if (!loggingEnabled) return;
 
+  // Only log if there are significant mutations
+  if (!hasSignificantMutationSteps(mutationSteps)) return;
+
   const messages: string[] = [];
 
-  if (hasSignificantMutationSteps(sanitizationSteps)) {
-    let sanitizerMessage = `Applied ${sanitizationSteps.length} sanitization step(s): ${sanitizationSteps.join(" -> ")}`;
-    if (sanitizationDiagnostics) sanitizerMessage += ` | Diagnostics: ${sanitizationDiagnostics}`;
+  if (appliedSanitizers.length > 0) {
+    const sanitizerMessage = `Applied ${appliedSanitizers.length} sanitizer(s): ${appliedSanitizers.join(" -> ")}`;
     messages.push(sanitizerMessage);
   }
 
-  if (transformSteps.length > 0) {
-    messages.push(
-      `Applied ${transformSteps.length} schema fixing transform(s): ${transformSteps.join(", ")}`,
-    );
+  if (mutationSteps.length > 0) {
+    messages.push(`Mutations: ${mutationSteps.join(", ")}`);
   }
 
   if (messages.length > 0) logWarn(messages.join(" | "), context);
@@ -190,7 +198,7 @@ export function parseAndValidateLLMJson<S extends z.ZodType = z.ZodType<Record<s
         ...context,
         originalLength: content.length,
         lastSanitizer: parseResult.steps.at(-1),
-        diagnosticsCount: parseResult.diagnostics ? parseResult.diagnostics.split(" | ").length : 0,
+        diagnosticsCount: parseResult.diagnostics.length,
         responseContentParseError: parseResult.error.cause,
       },
       loggingEnabled,
@@ -225,13 +233,16 @@ export function parseAndValidateLLMJson<S extends z.ZodType = z.ZodType<Record<s
         ),
       };
     }
-    logProcessingSteps(parseResult.steps, parseResult.diagnostics, [], context, loggingEnabled);
+    // Build mutation steps from diagnostics (no transforms when no schema)
+    const mutationSteps = parseResult.diagnostics;
+    logProcessingSteps(parseResult.steps, mutationSteps, context, loggingEnabled);
     return {
       success: true,
       // Cast is safe for objects. Arrays pass at runtime but callers expecting arrays
       // should provide an explicit schema for compile-time type safety.
       data: parseResult.data as z.infer<S>,
-      mutationSteps: parseResult.steps,
+      mutationSteps,
+      appliedSanitizers: parseResult.steps,
     };
   }
 
@@ -249,17 +260,14 @@ export function parseAndValidateLLMJson<S extends z.ZodType = z.ZodType<Record<s
 
   // Validation succeeded.
   if (validationResult.success) {
-    logProcessingSteps(
-      parseResult.steps,
-      parseResult.diagnostics,
-      validationResult.transformSteps,
-      context,
-      loggingEnabled,
-    );
+    // Build mutation steps from diagnostics + transform steps
+    const mutationSteps = [...parseResult.diagnostics, ...validationResult.transformSteps];
+    logProcessingSteps(parseResult.steps, mutationSteps, context, loggingEnabled);
     return {
       success: true,
       data: validationResult.data,
-      mutationSteps: [...parseResult.steps, ...validationResult.transformSteps],
+      mutationSteps,
+      appliedSanitizers: parseResult.steps,
     };
   }
 

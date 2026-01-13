@@ -15,10 +15,18 @@ import {
 /**
  * Result type for JSON parsing operations.
  * Uses a discriminated union to distinguish between success and parse errors.
+ *
+ * @property steps - High-level sanitizer descriptions (e.g., "Fixed JSON structure and noise")
+ * @property diagnostics - Low-level mutation steps as individual entries (e.g., ["Removed code fences", "Trimmed whitespace"])
  */
 export type ParseResult =
-  | { success: true; data: unknown; steps: readonly string[]; diagnostics?: string }
-  | { success: false; error: JsonProcessingError; steps: readonly string[]; diagnostics?: string };
+  | { success: true; data: unknown; steps: readonly string[]; diagnostics: readonly string[] }
+  | {
+      success: false;
+      error: JsonProcessingError;
+      steps: readonly string[];
+      diagnostics: readonly string[];
+    };
 
 /**
  * Unified, ordered pipeline of sanitizers organized into logical phases.
@@ -83,25 +91,18 @@ const SANITIZATION_PIPELINE_PHASES = [
 ] as const satisfies readonly (readonly Sanitizer[])[];
 
 /**
- * Formats diagnostics array into a single string, or returns undefined if empty.
- */
-function formatDiagnostics(diagnostics: string[]): string | undefined {
-  return diagnostics.length > 0 ? diagnostics.join(" | ") : undefined;
-}
-
-/**
  * Builds a success ParseResult with the given data, steps, and diagnostics.
  */
 function buildSuccessResult(
   data: unknown,
   steps: readonly string[],
-  diagnostics: string[],
+  diagnostics: readonly string[],
 ): ParseResult {
   return {
     success: true,
     data,
     steps,
-    diagnostics: formatDiagnostics(diagnostics),
+    diagnostics,
   };
 }
 
@@ -111,7 +112,7 @@ function buildSuccessResult(
 function buildFailureResult(
   error: Error,
   steps: readonly string[],
-  diagnostics: string[],
+  diagnostics: readonly string[],
 ): ParseResult {
   return {
     success: false,
@@ -121,7 +122,7 @@ function buildFailureResult(
       error,
     ),
     steps,
-    diagnostics: formatDiagnostics(diagnostics),
+    diagnostics,
   };
 }
 

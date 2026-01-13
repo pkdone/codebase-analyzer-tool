@@ -4,7 +4,6 @@ import {
   LLMOutputFormat,
   LLMPurpose,
 } from "../../../../../src/common/llm/types/llm.types";
-import { MUTATION_STEP } from "../../../../../src/common/llm/json-processing/constants/mutation-steps.config";
 import { z } from "zod";
 
 describe("JsonProcessor - Undefined Value Handling Integration", () => {
@@ -297,15 +296,11 @@ describe("JsonProcessor - Undefined Value Handling Integration", () => {
           expect("extraField" in data).toBe(false);
         }
 
-        // Verify that sanitization steps were applied
-        expect(
-          result.mutationSteps.some(
-            (s: string) =>
-              s.includes("Fixed JSON structure and noise") ||
-              s === MUTATION_STEP.REMOVED_CODE_FENCES,
-          ),
-        ).toBe(true);
-        expect(result.mutationSteps).toContain("Fixed property and value syntax");
+        // Verify that sanitizers were applied (high-level descriptions)
+        expect(result.appliedSanitizers).toContain("Fixed JSON structure and noise");
+        expect(result.appliedSanitizers).toContain("Fixed property and value syntax");
+        // Verify that mutation steps contain low-level diagnostics
+        expect(result.mutationSteps.some((s: string) => s.includes("undefined"))).toBe(true);
       }
     });
 
