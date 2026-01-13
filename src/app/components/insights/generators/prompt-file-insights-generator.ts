@@ -14,7 +14,7 @@ import { formatError } from "../../../../common/utils/error-formatters";
 import { llmTokens } from "../../../di/tokens";
 import LLMRouter from "../../../../common/llm/llm-router";
 import { LLMOutputFormat } from "../../../../common/llm/types/llm.types";
-import { formatSourceFilesAsMarkdown } from "../../../../common/utils/codebase-formatter";
+import { aggregateFilesToMarkdown } from "../../../../common/utils/file-content-aggregator";
 import { formatDateForFilename } from "../../../../common/utils/date-utils";
 import { inputConfig } from "../../../prompts/config/input.config";
 import { isOk } from "../../../../common/types/result.types";
@@ -44,7 +44,7 @@ export class PromptFileInsightsGenerator {
    */
   async generateInsightsToFiles(srcDirPath: string, llmName: string): Promise<string[]> {
     const prompts = await this.loadPrompts();
-    const codeBlocksContent = await formatSourceFilesAsMarkdown(
+    const codeBlocksContent = await aggregateFilesToMarkdown(
       srcDirPath,
       fileProcessingConfig.FOLDER_IGNORE_LIST,
       fileProcessingConfig.FILENAME_PREFIX_IGNORE,

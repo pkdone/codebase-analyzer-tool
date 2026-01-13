@@ -1,7 +1,7 @@
 /**
- * Utility functions for formatting codebase files as markdown.
+ * Utility functions for aggregating file contents into markdown format.
  * Combines filesystem traversal with markdown formatting for common use cases
- * like preparing source code for LLM prompts.
+ * like preparing text files for LLM prompts in RAG (Retrieval Augmented Generation) applications.
  */
 
 import { findFilesRecursively } from "../fs/directory-operations";
@@ -18,18 +18,18 @@ import {
 const TRAILING_SLASH_PATTERN = /\/$/;
 
 /**
- * Format source files in a directory as markdown code blocks.
+ * Aggregate files in a directory into markdown code blocks.
  * Recursively finds all files, reads their contents, and formats them as markdown code blocks
  * with file path headers.
  *
- * @param dirPath - The path to the directory containing source files
+ * @param dirPath - The path to the directory containing files to aggregate
  * @param folderIgnoreList - List of folder names to ignore during traversal
  * @param filenameIgnorePrefix - Prefix for filenames to ignore
  * @param binaryFileExtensionIgnoreList - List of binary file extensions to skip
  * @param filenameIgnoreList - List of specific filenames to ignore
- * @returns Promise resolving to formatted content containing all source files as markdown code blocks
+ * @returns Promise resolving to formatted content containing all files as markdown code blocks
  */
-export async function formatSourceFilesAsMarkdown(
+export async function aggregateFilesToMarkdown(
   dirPath: string,
   folderIgnoreList: readonly string[],
   filenameIgnorePrefix: string,
@@ -37,20 +37,20 @@ export async function formatSourceFilesAsMarkdown(
   filenameIgnoreList: readonly string[] = [],
 ): Promise<string> {
   // Remove trailing slashes from the directory path
-  const srcDirPath = dirPath.replace(TRAILING_SLASH_PATTERN, "");
+  const baseDirPath = dirPath.replace(TRAILING_SLASH_PATTERN, "");
 
-  // Find all source files recursively with ignore rules applied
-  const srcFilepaths = await findFilesRecursively(
-    srcDirPath,
+  // Find all files recursively with ignore rules applied
+  const filepaths = await findFilesRecursively(
+    baseDirPath,
     folderIgnoreList,
     filenameIgnorePrefix,
     filenameIgnoreList,
   );
 
-  // Merge all source files into markdown code blocks
-  const codeBlocksContent = await mergeSourceFilesIntoMarkdownCodeblock(
-    srcFilepaths,
-    srcDirPath,
+  // Merge all files into markdown code blocks
+  const codeBlocksContent = await mergeFilesIntoMarkdownCodeblock(
+    filepaths,
+    baseDirPath,
     binaryFileExtensionIgnoreList,
   );
 
@@ -58,16 +58,16 @@ export async function formatSourceFilesAsMarkdown(
 }
 
 /**
- * Merge the content of all source files into markdown code blocks.
+ * Merge the content of all files into markdown code blocks.
  *
  * @param filepaths - Array of file paths to process
- * @param srcDirPath - Base directory path for calculating relative paths
+ * @param baseDirPath - Base directory path for calculating relative paths
  * @param ignoreList - List of file extensions to ignore (binary files)
  * @returns Promise resolving to markdown content with code blocks
  */
-async function mergeSourceFilesIntoMarkdownCodeblock(
+async function mergeFilesIntoMarkdownCodeblock(
   filepaths: string[],
-  srcDirPath: string,
+  baseDirPath: string,
   ignoreList: readonly string[],
 ): Promise<string> {
   const filePromises = filepaths.map(async (filepath): Promise<SourceFileContent | null> => {
@@ -83,5 +83,5 @@ async function mergeSourceFilesIntoMarkdownCodeblock(
   const files = (await Promise.all(filePromises)).filter(
     (file): file is SourceFileContent => file !== null,
   );
-  return formatFilesAsMarkdownCodeBlocksWithPath(files, srcDirPath).trim();
+  return formatFilesAsMarkdownCodeBlocksWithPath(files, baseDirPath).trim();
 }

@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import { formatSourceFilesAsMarkdown } from "../../../src/common/utils/codebase-formatter";
+import { aggregateFilesToMarkdown } from "../../../src/common/utils/file-content-aggregator";
 import { findFilesRecursively } from "../../../src/common/fs/directory-operations";
 import { getFileExtension } from "../../../src/common/fs/path-utils";
 import { readFile } from "../../../src/common/fs/file-operations";
@@ -10,7 +10,7 @@ jest.mock("../../../src/common/fs/directory-operations");
 jest.mock("../../../src/common/fs/path-utils");
 jest.mock("../../../src/common/fs/file-operations");
 
-describe("formatSourceFilesAsMarkdown", () => {
+describe("aggregateFilesToMarkdown", () => {
   const mockFindFilesRecursively = findFilesRecursively as jest.MockedFunction<
     typeof findFilesRecursively
   >;
@@ -35,7 +35,7 @@ describe("formatSourceFilesAsMarkdown", () => {
     mockGetFileExtension.mockReturnValueOnce("ts").mockReturnValueOnce("ts");
     mockReadFile.mockResolvedValueOnce("const x = 1;").mockResolvedValueOnce("var y = 2;");
 
-    const result = await formatSourceFilesAsMarkdown(
+    const result = await aggregateFilesToMarkdown(
       dirPath,
       folderIgnoreList,
       filenameIgnorePrefix,
@@ -60,7 +60,7 @@ describe("formatSourceFilesAsMarkdown", () => {
     const dirPath = "/test/project/";
     mockFindFilesRecursively.mockResolvedValue([]);
 
-    await formatSourceFilesAsMarkdown(
+    await aggregateFilesToMarkdown(
       dirPath,
       folderIgnoreList,
       filenameIgnorePrefix,
@@ -84,7 +84,7 @@ describe("formatSourceFilesAsMarkdown", () => {
     mockGetFileExtension.mockReturnValueOnce("png").mockReturnValueOnce("ts");
     mockReadFile.mockResolvedValueOnce("const x = 1;"); // Only called for .ts file
 
-    const result = await formatSourceFilesAsMarkdown(
+    const result = await aggregateFilesToMarkdown(
       dirPath,
       folderIgnoreList,
       filenameIgnorePrefix,
@@ -104,7 +104,7 @@ describe("formatSourceFilesAsMarkdown", () => {
     mockFindFilesRecursively.mockResolvedValue(mockFiles);
     mockGetFileExtension.mockReturnValueOnce("PNG");
 
-    const result = await formatSourceFilesAsMarkdown(
+    const result = await aggregateFilesToMarkdown(
       dirPath,
       folderIgnoreList,
       filenameIgnorePrefix,
@@ -124,7 +124,7 @@ describe("formatSourceFilesAsMarkdown", () => {
     mockGetFileExtension.mockReturnValueOnce("ts");
     mockReadFile.mockResolvedValueOnce("  \n\nconst x = 1;\n\n  ");
 
-    const result = await formatSourceFilesAsMarkdown(
+    const result = await aggregateFilesToMarkdown(
       dirPath,
       folderIgnoreList,
       filenameIgnorePrefix,
@@ -145,7 +145,7 @@ describe("formatSourceFilesAsMarkdown", () => {
     mockGetFileExtension.mockReturnValueOnce("ts");
     mockReadFile.mockResolvedValueOnce("export function helper() {}");
 
-    const result = await formatSourceFilesAsMarkdown(
+    const result = await aggregateFilesToMarkdown(
       dirPath,
       folderIgnoreList,
       filenameIgnorePrefix,
@@ -161,7 +161,7 @@ describe("formatSourceFilesAsMarkdown", () => {
     const dirPath = "/test/empty-project";
     mockFindFilesRecursively.mockResolvedValue([]);
 
-    const result = await formatSourceFilesAsMarkdown(
+    const result = await aggregateFilesToMarkdown(
       dirPath,
       folderIgnoreList,
       filenameIgnorePrefix,
@@ -188,7 +188,7 @@ describe("formatSourceFilesAsMarkdown", () => {
       .mockResolvedValueOnce("content2")
       .mockResolvedValueOnce("content3");
 
-    await formatSourceFilesAsMarkdown(
+    await aggregateFilesToMarkdown(
       dirPath,
       folderIgnoreList,
       filenameIgnorePrefix,
@@ -211,7 +211,7 @@ describe("formatSourceFilesAsMarkdown", () => {
       .mockReturnValueOnce("pdf");
     mockReadFile.mockResolvedValueOnce("const x = 1;");
 
-    const result = await formatSourceFilesAsMarkdown(
+    const result = await aggregateFilesToMarkdown(
       dirPath,
       folderIgnoreList,
       filenameIgnorePrefix,
@@ -232,7 +232,7 @@ describe("formatSourceFilesAsMarkdown", () => {
     mockGetFileExtension.mockReturnValueOnce("");
     mockReadFile.mockResolvedValueOnce("all: build");
 
-    const result = await formatSourceFilesAsMarkdown(
+    const result = await aggregateFilesToMarkdown(
       dirPath,
       folderIgnoreList,
       filenameIgnorePrefix,
@@ -252,7 +252,7 @@ describe("formatSourceFilesAsMarkdown", () => {
     mockGetFileExtension.mockReturnValueOnce("ts");
     mockReadFile.mockResolvedValueOnce("line1\n\n\nline2");
 
-    const result = await formatSourceFilesAsMarkdown(
+    const result = await aggregateFilesToMarkdown(
       dirPath,
       folderIgnoreList,
       filenameIgnorePrefix,
@@ -271,7 +271,7 @@ describe("formatSourceFilesAsMarkdown", () => {
     const customFilenameIgnoreList = ["custom-file.lock"] as readonly string[];
     mockFindFilesRecursively.mockResolvedValue([]);
 
-    await formatSourceFilesAsMarkdown(
+    await aggregateFilesToMarkdown(
       dirPath,
       customFolderIgnoreList,
       customFilenameIgnorePrefix,

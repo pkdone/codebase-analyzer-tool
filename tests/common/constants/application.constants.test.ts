@@ -1,7 +1,6 @@
 import {
   UNKNOWN_VALUE_PLACEHOLDER,
   NOT_AVAILABLE_PLACEHOLDER,
-  DEFAULT_COMPLEXITY,
 } from "../../../src/common/constants/application.constants";
 
 describe("Application Constants", () => {
@@ -48,25 +47,6 @@ describe("Application Constants", () => {
       const getValue = (): string | undefined => undefined;
       const result = getValue() ?? NOT_AVAILABLE_PLACEHOLDER;
       expect(result).toBe("N/A");
-    });
-  });
-
-  describe("DEFAULT_COMPLEXITY", () => {
-    it("should be defined", () => {
-      expect(DEFAULT_COMPLEXITY).toBeDefined();
-    });
-
-    it("should be the string 'LOW'", () => {
-      expect(DEFAULT_COMPLEXITY).toBe("LOW");
-    });
-
-    it("should be a string type", () => {
-      expect(typeof DEFAULT_COMPLEXITY).toBe("string");
-    });
-
-    it("should be a valid complexity level", () => {
-      const validComplexityLevels = ["LOW", "MEDIUM", "HIGH"];
-      expect(validComplexityLevels).toContain(DEFAULT_COMPLEXITY);
     });
   });
 });
