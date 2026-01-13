@@ -80,4 +80,11 @@ export const uiAnalysisConfig = {
    * Files exceeding this threshold are flagged as having high scriptlet usage.
    */
   HIGH_SCRIPTLET_THRESHOLD: 10,
+
+  /**
+   * Threshold for displaying high scriptlet warning in totals.
+   * When total scriptlets across all files exceeds this value,
+   * a warning CSS class is applied to highlight potential issues.
+   */
+  HIGH_SCRIPTLET_WARNING_THRESHOLD: 100,
 } as const;

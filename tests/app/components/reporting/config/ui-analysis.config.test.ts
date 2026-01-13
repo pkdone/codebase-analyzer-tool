@@ -53,9 +53,21 @@ describe("uiAnalysisConfig", () => {
       expect(uiAnalysisConfig.HIGH_SCRIPTLET_THRESHOLD).toBe(10);
     });
 
+    it("should have HIGH_SCRIPTLET_WARNING_THRESHOLD defined", () => {
+      expect(uiAnalysisConfig.HIGH_SCRIPTLET_WARNING_THRESHOLD).toBeDefined();
+      expect(uiAnalysisConfig.HIGH_SCRIPTLET_WARNING_THRESHOLD).toBe(100);
+    });
+
     it("should have positive values", () => {
       expect(uiAnalysisConfig.TOP_FILES_LIMIT).toBeGreaterThan(0);
       expect(uiAnalysisConfig.HIGH_SCRIPTLET_THRESHOLD).toBeGreaterThan(0);
+      expect(uiAnalysisConfig.HIGH_SCRIPTLET_WARNING_THRESHOLD).toBeGreaterThan(0);
+    });
+
+    it("should have HIGH_SCRIPTLET_WARNING_THRESHOLD greater than HIGH_SCRIPTLET_THRESHOLD", () => {
+      expect(uiAnalysisConfig.HIGH_SCRIPTLET_WARNING_THRESHOLD).toBeGreaterThan(
+        uiAnalysisConfig.HIGH_SCRIPTLET_THRESHOLD,
+      );
     });
   });
 
@@ -64,6 +76,7 @@ describe("uiAnalysisConfig", () => {
       const config = uiAnalysisConfig;
       expect(config).toHaveProperty("TOP_FILES_LIMIT");
       expect(config).toHaveProperty("HIGH_SCRIPTLET_THRESHOLD");
+      expect(config).toHaveProperty("HIGH_SCRIPTLET_WARNING_THRESHOLD");
     });
   });
 });

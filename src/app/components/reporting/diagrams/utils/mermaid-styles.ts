@@ -4,22 +4,40 @@
  * visual styling to domain model elements like bounded contexts, entities, etc.
  */
 
+import { BRAND_COLORS, DIAGRAM_ELEMENT_COLORS } from "../../../../config/theme.config";
+
 /**
  * Build Mermaid classDef style definitions for domain model visualization.
  * Uses Mermaid's classDef syntax for consistent styling across diagrams.
+ * Colors are sourced from the central theme configuration.
  */
 export function buildStyleDefinitions(): string {
+  const { greenDark, black, white } = BRAND_COLORS;
+  const {
+    boundedContextFill,
+    aggregateFill,
+    aggregateStroke,
+    entityFill,
+    entityStroke,
+    repositoryFill,
+    repositoryStroke,
+    externalComponentFill,
+    externalComponentStroke,
+    dependencyFill,
+    dependencyStroke,
+  } = DIAGRAM_ELEMENT_COLORS;
+
   return `
-    classDef boundedContext fill:#e8f5e8,stroke:#00684A,stroke-width:3px,color:#001e2b
-    classDef aggregate fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#001e2b
-    classDef entity fill:#f3e5f5,stroke:#7b1fa2,stroke-width:1.5px,color:#001e2b
-    classDef repository fill:#fff5f0,stroke:#d2691e,stroke-width:1.5px,color:#001e2b
-    classDef service fill:#ffffff,stroke:#00684A,stroke-width:2px,color:#001e2b
-    classDef process fill:#ffffff,stroke:#00684A,stroke-width:2px,color:#001e2b
-    classDef dependency fill:#f8f9fa,stroke:#6c757d,stroke-width:1px,color:#001e2b
-    classDef rootDependency fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#001e2b
-    classDef internalComponent fill:#e8f5e8,stroke:#00684A,stroke-width:2px,color:#001e2b
-    classDef externalComponent fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#001e2b`;
+    classDef boundedContext fill:${boundedContextFill},stroke:${greenDark},stroke-width:3px,color:${black}
+    classDef aggregate fill:${aggregateFill},stroke:${aggregateStroke},stroke-width:2px,color:${black}
+    classDef entity fill:${entityFill},stroke:${entityStroke},stroke-width:1.5px,color:${black}
+    classDef repository fill:${repositoryFill},stroke:${repositoryStroke},stroke-width:1.5px,color:${black}
+    classDef service fill:${white},stroke:${greenDark},stroke-width:2px,color:${black}
+    classDef process fill:${white},stroke:${greenDark},stroke-width:2px,color:${black}
+    classDef dependency fill:${dependencyFill},stroke:${dependencyStroke},stroke-width:1px,color:${black}
+    classDef rootDependency fill:${aggregateFill},stroke:${aggregateStroke},stroke-width:2px,color:${black}
+    classDef internalComponent fill:${boundedContextFill},stroke:${greenDark},stroke-width:2px,color:${black}
+    classDef externalComponent fill:${externalComponentFill},stroke:${externalComponentStroke},stroke-width:2px,color:${black}`;
 }
 
 /**

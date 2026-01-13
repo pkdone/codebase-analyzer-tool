@@ -8,12 +8,6 @@ import { COUPLING_THRESHOLDS } from "../config/module-coupling.config";
 import { DEBT_THRESHOLDS, uiAnalysisConfig } from "../config/ui-analysis.config";
 
 /**
- * Threshold for high scriptlet warning display.
- * When total scriptlets exceeds this value, a warning CSS class is applied.
- */
-const HIGH_SCRIPTLET_WARNING_THRESHOLD = 100;
-
-/**
  * Result type for coupling level calculations.
  */
 export interface CouplingLevelResult {
@@ -108,7 +102,9 @@ export function calculateDebtLevel(totalScriptletBlocks: number): DebtLevelResul
  * @returns CSS class name for styling, or empty string if no warning needed
  */
 export function getTotalScriptletsCssClass(totalScriptlets: number): string {
-  return totalScriptlets > HIGH_SCRIPTLET_WARNING_THRESHOLD ? "high-scriptlet-warning" : "";
+  return totalScriptlets > uiAnalysisConfig.HIGH_SCRIPTLET_WARNING_THRESHOLD
+    ? "high-scriptlet-warning"
+    : "";
 }
 
 /**
@@ -145,5 +141,5 @@ export function getBomConflictsCssClass(conflicts: number): string {
   return conflicts > 0 ? "conflict-warning" : "no-conflicts";
 }
 
-// Re-export threshold config for tests
-export { HIGH_SCRIPTLET_WARNING_THRESHOLD, uiAnalysisConfig };
+// Re-export config for tests
+export { uiAnalysisConfig };

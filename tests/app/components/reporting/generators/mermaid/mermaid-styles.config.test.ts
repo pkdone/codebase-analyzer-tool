@@ -2,6 +2,7 @@ import {
   buildStyleDefinitions,
   applyStyle,
 } from "../../../../../../src/app/components/reporting/diagrams/utils/mermaid-styles";
+import { BRAND_COLORS } from "../../../../../../src/app/config/theme.config";
 
 describe("mermaid-styles.config", () => {
   describe("buildStyleDefinitions", () => {
@@ -52,11 +53,11 @@ describe("mermaid-styles.config", () => {
       expect(result).toContain("color:");
     });
 
-    it("should use consistent text color", () => {
+    it("should use consistent text color from theme config", () => {
       const result = buildStyleDefinitions();
 
-      // All classes should use the MongoDB dark color
-      expect(result).toContain("color:#001e2b");
+      // All classes should use the MongoDB dark color from the central theme config
+      expect(result).toContain(`color:${BRAND_COLORS.black}`);
     });
 
     it("should have valid Mermaid classDef syntax", () => {

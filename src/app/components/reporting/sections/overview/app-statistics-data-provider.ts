@@ -4,6 +4,7 @@ import type { AppSummaryRecordWithId } from "../../../../repositories/app-summar
 import { repositoryTokens } from "../../../../di/tokens";
 import type { AppStatistics } from "./overview.types";
 import { formatDateForDisplay } from "../../../../../common/utils/date-utils";
+import { NO_DESCRIPTION_PLACEHOLDER } from "../../../../../common/constants/application.constants";
 
 /**
  * Data provider responsible for aggregating app statistics information for reports.
@@ -36,7 +37,7 @@ export class AppStatisticsDataProvider {
       llmProvider: appSummaryData.llmProvider,
       fileCount,
       linesOfCode,
-      appDescription: appSummaryData.appDescription ?? "No description available",
+      appDescription: appSummaryData.appDescription ?? NO_DESCRIPTION_PLACEHOLDER,
     };
   }
 }

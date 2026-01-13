@@ -5,10 +5,13 @@ import {
   getFilesWithHighScriptletCountCssClass,
   shouldShowHighDebtAlert,
   getBomConflictsCssClass,
-  HIGH_SCRIPTLET_WARNING_THRESHOLD,
+  uiAnalysisConfig,
   type CouplingLevelResult,
   type DebtLevelResult,
 } from "../../../../../src/app/components/reporting/utils/view-helpers";
+
+// Extract constant from config for test readability
+const HIGH_SCRIPTLET_WARNING_THRESHOLD = uiAnalysisConfig.HIGH_SCRIPTLET_WARNING_THRESHOLD;
 
 describe("view-helpers", () => {
   describe("calculateCouplingLevel", () => {
