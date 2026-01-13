@@ -22,7 +22,7 @@ import { logWarn } from "../utils/logging";
  * Generic over the response data type T, enabling unified handling of both
  * completions (T = z.infer<S>) and embeddings (T = number[]).
  */
-export interface LLMExecutionParams<T extends LLMGeneratedContent> {
+interface LLMExecutionParams<T extends LLMGeneratedContent> {
   readonly resourceName: string;
   readonly content: string;
   readonly context: LLMContext;

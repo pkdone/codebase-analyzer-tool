@@ -27,7 +27,7 @@ export type CollectionType = (typeof COLLECTION_TYPES)[keyof typeof COLLECTION_T
 /**
  * Configuration for a standard MongoDB index.
  */
-export interface StandardIndexConfig {
+interface StandardIndexConfig {
   /** Which collection this index belongs to */
   collection: CollectionType;
   /** The index specification (field(s) and direction) */

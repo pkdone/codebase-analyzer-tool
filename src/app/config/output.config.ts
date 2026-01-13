@@ -2,7 +2,7 @@
  * Output configuration interface for type validation.
  * Ensures the configuration conforms to the expected structure at compile time.
  */
-export interface OutputConfig {
+interface OutputConfig {
   readonly OUTPUT_DIR: string;
   readonly OUTPUT_SUMMARY_FILENAME: string;
   readonly OUTPUT_SUMMARY_HTML_FILE: string;

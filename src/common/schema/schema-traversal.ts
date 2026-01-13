@@ -3,7 +3,7 @@ import { isJsonObject } from "../utils/type-guards";
 /**
  * Rules for schema transformation during traversal.
  */
-export interface SchemaTraversalRules {
+interface SchemaTraversalRules {
   /**
    * Keys to remove from the schema.
    */

@@ -7,14 +7,6 @@ export interface VectorSearchFilter {
 }
 
 /**
- * Configuration for vector search indexes
- */
-export interface VectorIndexConfig {
-  field: string;
-  name: string;
-}
-
-/**
  * Creates a vector search index definition for MongoDB Atlas Vector Search.
  *
  * @param indexName The name of the index
