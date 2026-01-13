@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import { CategorizedSectionDataBuilder } from "../../../../../../src/app/components/reporting/sections/shared/categorized-section-data-builder";
+import { CategorizedSectionDataBuilder } from "../../../../../../src/app/components/reporting/sections/overview/categorized-section-data-builder";
 import { AppSummaryCategories } from "../../../../../../src/app/schemas/app-summaries.schema";
 import type { AppSummaryRecordWithId } from "../../../../../../src/app/repositories/app-summaries/app-summaries.model";
 
@@ -61,7 +61,7 @@ describe("CategorizedSectionDataBuilder", () => {
       expect(result).toHaveLength(5);
 
       // Verify that appDescription is not included (it has a dedicated section)
-      const categoryNames = result.map((r) => r.category);
+      const categoryNames = result.map((r: { category: string }) => r.category);
       expect(categoryNames).not.toContain("appDescription");
 
       // Verify that all standard categories are included
@@ -93,7 +93,9 @@ describe("CategorizedSectionDataBuilder", () => {
       );
 
       // Assert
-      const technologiesResult = result.find((r) => r.category === "technologies");
+      const technologiesResult = result.find(
+        (r: { category: string }) => r.category === "technologies",
+      );
       expect(technologiesResult).toBeDefined();
       expect(technologiesResult?.data).toEqual(mockTechnologies);
       expect(technologiesResult?.label).toBe("Technologies");
@@ -114,7 +116,7 @@ describe("CategorizedSectionDataBuilder", () => {
       );
 
       // Assert - All categories should return empty arrays
-      result.forEach((category) => {
+      result.forEach((category: { data: unknown[] }) => {
         expect(category.data).toEqual([]);
       });
     });
@@ -132,7 +134,7 @@ describe("CategorizedSectionDataBuilder", () => {
       const result = categorizedDataBuilder.getStandardSectionData(mockAppSummaryData);
 
       // Assert - All invalid data should be converted to empty arrays
-      result.forEach((category) => {
+      result.forEach((category: { data: unknown[] }) => {
         expect(category.data).toEqual([]);
       });
     });
@@ -152,7 +154,7 @@ describe("CategorizedSectionDataBuilder", () => {
       );
 
       // Assert - Check structure of each result
-      result.forEach((category) => {
+      result.forEach((category: { category: unknown; label: unknown; data: unknown }) => {
         expect(category).toHaveProperty("category");
         expect(category).toHaveProperty("label");
         expect(category).toHaveProperty("data");
@@ -182,7 +184,7 @@ describe("CategorizedSectionDataBuilder", () => {
 
       // Assert - only appDescription should not be in results (it has a dedicated overview section)
       // boundedContexts IS included because DomainModelDataProvider needs it
-      const categoryNames = result.map((r) => r.category);
+      const categoryNames = result.map((r: { category: string }) => r.category);
       expect(categoryNames).not.toContain("appDescription");
       expect(categoryNames).toContain("boundedContexts");
       // Should have all categories minus appDescription only

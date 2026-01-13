@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import { ModuleCouplingDataProvider } from "../../../../../src/app/components/reporting/sections/quality-metrics/module-coupling-data-provider";
+import { ModuleCouplingDataProvider } from "../../../../../src/app/components/reporting/sections/architecture-analysis/module-coupling-data-provider";
 import type { SourcesRepository } from "../../../../../src/app/repositories/sources/sources.repository.interface";
 import type { ProjectedSourceSummaryFields } from "../../../../../src/app/repositories/sources/sources.model";
 

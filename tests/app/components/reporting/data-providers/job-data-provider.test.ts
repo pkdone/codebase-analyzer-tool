@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import { extractTriggerType } from "../../../../../src/app/components/reporting/sections/quality-metrics/job-trigger-parser";
+import { extractTriggerType } from "../../../../../src/app/components/reporting/sections/background-processes/job-trigger-parser";
 
 describe("job-data-provider", () => {
   describe("extractTriggerType", () => {

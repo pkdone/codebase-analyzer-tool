@@ -2,7 +2,7 @@ import { injectable, inject } from "tsyringe";
 import type { SourcesRepository } from "../../../../repositories/sources/sources.repository.interface";
 import type { AppSummaryRecordWithId } from "../../../../repositories/app-summaries/app-summaries.model";
 import { repositoryTokens } from "../../../../di/tokens";
-import type { AppStatistics } from "./quality-metrics.types";
+import type { AppStatistics } from "./overview.types";
 import { formatDateForDisplay } from "../../../../../common/utils/date-utils";
 
 /**

@@ -5,8 +5,8 @@
 import {
   calculatePieChartData,
   type FileTypeData,
-} from "../../../../../src/app/components/reporting/view-models/pie-chart-calculator";
-import { pieChartConfig } from "../../../../../src/app/components/reporting/view-models/pie-chart.config";
+} from "../../../../../src/app/components/reporting/sections/file-types/pie-chart-calculator";
+import { pieChartConfig } from "../../../../../src/app/components/reporting/sections/file-types/pie-chart.config";
 
 describe("pie-chart-calculator", () => {
   describe("calculatePieChartData", () => {

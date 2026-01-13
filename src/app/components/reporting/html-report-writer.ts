@@ -5,20 +5,18 @@ import { coreTokens, reportingTokens } from "../../di/tokens";
 import type { OutputConfigType } from "../../config/output.config";
 import { writeFile } from "../../../common/fs/file-operations";
 import { HtmlReportAssetService } from "./services/html-report-asset.service";
-import type {
-  AppStatistics,
-  CodeQualitySummary,
-  ScheduledJobsSummary,
-  ModuleCoupling,
-  UiTechnologyAnalysis,
-  BomStatistics,
-} from "./sections/quality-metrics/quality-metrics.types";
+import type { AppStatistics } from "./sections/overview/overview.types";
+import type { CodeQualitySummary } from "./sections/code-quality/code-quality.types";
+import type { ScheduledJobsSummary } from "./sections/background-processes/background-processes.types";
+import type { ModuleCoupling } from "./sections/architecture-analysis/architecture-analysis.types";
+import type { UiTechnologyAnalysis } from "./sections/ui-analysis/ui-analysis.types";
+import type { BomStatistics } from "./sections/dependencies/dependencies.types";
 import type { ProcsAndTriggers, DatabaseIntegrationInfo } from "./sections/database/database.types";
 import type { IntegrationPointInfo } from "./sections/integration-points/integration-points.types";
 import type { ProjectedFileTypesCountAndLines } from "../../repositories/sources/sources.model";
 import type { TableViewModel } from "./view-models/table-view-model";
-import type { CategorizedDataItem } from "./sections/shared/categorized-section-data-builder";
-import type { PieChartData } from "./view-models/pie-chart.types";
+import type { CategorizedDataItem } from "./sections/overview/categorized-section-data-builder";
+import type { PieChartData } from "./sections/file-types/pie-chart.types";
 
 export interface PreparedHtmlReportData {
   appStats: AppStatistics;

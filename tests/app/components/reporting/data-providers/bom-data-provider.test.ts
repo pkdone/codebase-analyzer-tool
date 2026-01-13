@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import { BomDataProvider } from "../../../../../src/app/components/reporting/sections/quality-metrics/bom-data-provider";
+import { BomDataProvider } from "../../../../../src/app/components/reporting/sections/dependencies/bom-data-provider";
 import type { SourcesRepository } from "../../../../../src/app/repositories/sources/sources.repository.interface";
 import type { ProjectedSourceSummaryFields } from "../../../../../src/app/repositories/sources/sources.model";
 import { fileProcessingRules } from "../../../../../src/app/config/file-handling/file-processing-rules";

@@ -3,7 +3,6 @@ import type { ReportSection } from "../report-section.interface";
 import { reportingTokens } from "../../../../di/tokens";
 import { DomainModelDataProvider } from "./domain-model-data-provider";
 import {
-  FlowchartDiagramGenerator,
   DomainModelDiagramGenerator,
   ArchitectureDiagramGenerator,
   CurrentArchitectureDiagramGenerator,
@@ -14,7 +13,6 @@ import type { PreparedJsonData } from "../../json-report-writer";
 import type { ReportData } from "../../report-data.types";
 import { SECTION_NAMES } from "../../reporting.constants";
 import {
-  extractKeyBusinessActivities,
   extractMicroserviceFields,
   isInferredArchitectureCategoryData,
 } from "./visualization-data-extractors";
@@ -22,20 +20,20 @@ import {
   isCategorizedDataNameDescArray,
   isCategorizedDataInferredArchitecture,
   type CategorizedDataItem,
-} from "../shared/categorized-section-data-builder";
+} from "../overview/categorized-section-data-builder";
 import { AppSummaryCategories } from "../../../../schemas/app-summaries.schema";
 
 /**
  * Report section for architecture and domain visualizations (domain models, microservices architecture, current architecture diagrams).
  * Diagrams are generated as Mermaid definitions and rendered client-side.
+ *
+ * Note: Business process flowcharts are handled by the separate BusinessProcessesSection.
  */
 @injectable()
 export class ArchitectureAndDomainSection implements ReportSection {
   constructor(
     @inject(reportingTokens.DomainModelDataProvider)
     private readonly domainModelDataProvider: DomainModelDataProvider,
-    @inject(reportingTokens.FlowchartDiagramGenerator)
-    private readonly flowchartDiagramGenerator: FlowchartDiagramGenerator,
     @inject(reportingTokens.DomainModelDiagramGenerator)
     private readonly domainModelDiagramGenerator: DomainModelDiagramGenerator,
     @inject(reportingTokens.ArchitectureDiagramGenerator)
@@ -59,11 +57,6 @@ export class ArchitectureAndDomainSection implements ReportSection {
     _sectionData: Partial<ReportData>,
     _htmlDir: string,
   ): Promise<Partial<PreparedHtmlReportData> | null> {
-    // Generate business processes flowcharts (synchronous - client-side rendering)
-    const businessProcessesFlowchartSvgs = this.generateBusinessProcessesFlowcharts(
-      baseData.categorizedData,
-    );
-
     // Generate domain model data and diagrams (synchronous - client-side rendering)
     const domainModelData = this.domainModelDataProvider.getDomainModelData(
       baseData.categorizedData,
@@ -86,7 +79,6 @@ export class ArchitectureAndDomainSection implements ReportSection {
 
     // Implementation of async interface - computation is synchronous but interface requires Promise
     return await Promise.resolve({
-      businessProcessesFlowchartSvgs,
       domainModelData,
       contextDiagramSvgs,
       microservicesData,
@@ -99,38 +91,6 @@ export class ArchitectureAndDomainSection implements ReportSection {
   prepareJsonData(_baseData: ReportData, _sectionData: Partial<ReportData>): PreparedJsonData[] {
     // This section doesn't generate separate JSON files
     return [];
-  }
-
-  /**
-   * Generate flowchart HTML for business processes (Mermaid definitions for client-side rendering)
-   */
-  private generateBusinessProcessesFlowcharts(
-    categorizedData: {
-      category: string;
-      label: string;
-      data: CategorizedDataItem;
-    }[],
-  ): string[] {
-    const businessProcessesCategory = categorizedData.find(
-      (category) => category.category === AppSummaryCategories.enum.businessProcesses,
-    );
-
-    if (
-      !businessProcessesCategory ||
-      !isCategorizedDataNameDescArray(businessProcessesCategory.data) ||
-      businessProcessesCategory.data.length === 0
-    ) {
-      return [];
-    }
-
-    // Convert AppSummaryNameDescArray to BusinessProcess format using type guard
-    const businessProcesses = businessProcessesCategory.data.map((item) => ({
-      name: item.name,
-      description: item.description,
-      keyBusinessActivities: extractKeyBusinessActivities(item),
-    }));
-
-    return this.flowchartDiagramGenerator.generateMultipleFlowchartDiagrams(businessProcesses);
   }
 
   /**

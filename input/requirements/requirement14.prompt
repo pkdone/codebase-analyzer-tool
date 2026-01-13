@@ -1,5 +1,7 @@
 Poor Dependency Injection: Act as a senior programmer analyzing the code in a TypeScript application where the content of each file in the application's codebase is shown below in a code block. Identify any places in the code where dependency injection is not being used consistently, is not following best pracctice or is too complex/over-engineered. Provide references to the specific part(s) of the code that needs these improvements with suggestions on how to improve. Include the list or relative file paths of each source file affected.
 
+Note: Any code hanging off `src/common/` should not use "tsyringe" or any other dependency framework internally, to enable the code to be portable to other projects in the future.
+
 Do NOT inlude any of the following topics in your recommendations:
 
  * Using the asyncFactory feature to encapsulate the asynchronous initialization logic

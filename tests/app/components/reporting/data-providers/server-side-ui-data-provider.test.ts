@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import { ServerSideUiDataProvider } from "../../../../../src/app/components/reporting/sections/quality-metrics/server-side-ui-data-provider";
+import { ServerSideUiDataProvider } from "../../../../../src/app/components/reporting/sections/ui-analysis/server-side-ui-data-provider";
 import type { SourcesRepository } from "../../../../../src/app/repositories/sources/sources.repository.interface";
 import type { ProjectedSourceSummaryFields } from "../../../../../src/app/repositories/sources/sources.model";
 

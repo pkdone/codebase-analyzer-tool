@@ -20,14 +20,14 @@ export {
   type DatabaseIntegrationInfo,
 } from "./sections/database/database.types";
 export { type IntegrationPointInfo } from "./sections/integration-points/integration-points.types";
-export {
-  type AppStatistics,
-  type BomDependency,
-  type CodeQualitySummary,
-  type ScheduledJobsSummary,
-  type ModuleCoupling,
-  type UiTechnologyAnalysis,
-} from "./sections/quality-metrics/quality-metrics.types";
+
+// Types from focused sections
+export { type AppStatistics } from "./sections/overview/overview.types";
+export { type BomDependency } from "./sections/dependencies/dependencies.types";
+export { type CodeQualitySummary } from "./sections/code-quality/code-quality.types";
+export { type ScheduledJobsSummary } from "./sections/background-processes/background-processes.types";
+export { type ModuleCoupling } from "./sections/architecture-analysis/architecture-analysis.types";
+export { type UiTechnologyAnalysis } from "./sections/ui-analysis/ui-analysis.types";
 
 // Section interface
 export type { ReportSection } from "./sections/report-section.interface";

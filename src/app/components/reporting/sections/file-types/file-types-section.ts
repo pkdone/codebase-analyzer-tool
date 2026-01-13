@@ -10,7 +10,7 @@ import type { PreparedJsonData } from "../../json-report-writer";
 import type { ReportData } from "../../report-data.types";
 import { SECTION_NAMES } from "../../reporting.constants";
 import { UNKNOWN_VALUE_PLACEHOLDER } from "../../../../../common/constants/application.constants";
-import { calculatePieChartData } from "../../view-models/pie-chart-calculator";
+import { calculatePieChartData } from "./pie-chart-calculator";
 
 /**
  * Report section for file types data.

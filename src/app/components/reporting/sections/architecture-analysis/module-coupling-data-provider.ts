@@ -2,7 +2,7 @@ import { injectable, inject } from "tsyringe";
 import path from "path";
 import type { SourcesRepository } from "../../../../repositories/sources/sources.repository.interface";
 import { repositoryTokens } from "../../../../di/tokens";
-import type { ModuleCoupling } from "./quality-metrics.types";
+import type { ModuleCoupling } from "./architecture-analysis.types";
 import { moduleCouplingConfig } from "../../config/module-coupling.config";
 import { calculateCouplingLevel } from "../../utils/view-helpers";
 

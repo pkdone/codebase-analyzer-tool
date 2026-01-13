@@ -4,11 +4,16 @@
  * Domain-specific types are co-located with their respective data providers:
  * - Database types: sections/database/database.types.ts
  * - Integration point types: sections/integration-points/integration-points.types.ts
- * - Quality metrics types: sections/quality-metrics/quality-metrics.types.ts
+ * - Dependencies types: sections/dependencies/dependencies.types.ts
+ * - Background processes types: sections/background-processes/background-processes.types.ts
+ * - Architecture analysis types: sections/architecture-analysis/architecture-analysis.types.ts
+ * - UI analysis types: sections/ui-analysis/ui-analysis.types.ts
+ * - Code quality types: sections/code-quality/code-quality.types.ts
+ * - Overview types: sections/overview/overview.types.ts
  */
 
 import type { ProjectedFileTypesCountAndLines } from "../../repositories/sources/sources.model";
-import type { CategorizedDataItem } from "./sections/shared/categorized-section-data-builder";
+import type { CategorizedDataItem } from "./sections/overview/categorized-section-data-builder";
 
 /**
  * Unified data model for report generation.
@@ -19,21 +24,23 @@ import type { CategorizedDataItem } from "./sections/shared/categorized-section-
  * section type files.
  */
 export interface ReportData {
-  appStats: import("./sections/quality-metrics/quality-metrics.types").AppStatistics;
+  appStats: import("./sections/overview/overview.types").AppStatistics;
   fileTypesData: ProjectedFileTypesCountAndLines[];
   categorizedData: { category: string; label: string; data: CategorizedDataItem }[];
   integrationPoints: import("./sections/integration-points/integration-points.types").IntegrationPointInfo[];
   dbInteractions: import("./sections/database/database.types").DatabaseIntegrationInfo[];
   procsAndTriggers: import("./sections/database/database.types").ProcsAndTriggers;
-  billOfMaterials: import("./sections/quality-metrics/quality-metrics.types").BomDependency[];
+  billOfMaterials: import("./sections/dependencies/dependencies.types").BomDependency[];
   codeQualitySummary:
-    | import("./sections/quality-metrics/quality-metrics.types").CodeQualitySummary
+    | import("./sections/code-quality/code-quality.types").CodeQualitySummary
     | null;
   scheduledJobsSummary:
-    | import("./sections/quality-metrics/quality-metrics.types").ScheduledJobsSummary
+    | import("./sections/background-processes/background-processes.types").ScheduledJobsSummary
     | null;
-  moduleCoupling: import("./sections/quality-metrics/quality-metrics.types").ModuleCoupling | null;
+  moduleCoupling:
+    | import("./sections/architecture-analysis/architecture-analysis.types").ModuleCoupling
+    | null;
   uiTechnologyAnalysis:
-    | import("./sections/quality-metrics/quality-metrics.types").UiTechnologyAnalysis
+    | import("./sections/ui-analysis/ui-analysis.types").UiTechnologyAnalysis
     | null;
 }

@@ -3,8 +3,8 @@ import AppReportGenerator from "../../../../src/app/components/reporting/app-rep
 import { AppSummariesRepository } from "../../../../src/app/repositories/app-summaries/app-summaries.repository.interface";
 import { HtmlReportWriter } from "../../../../src/app/components/reporting/html-report-writer";
 import { JsonReportWriter } from "../../../../src/app/components/reporting/json-report-writer";
-import { AppStatisticsDataProvider } from "../../../../src/app/components/reporting/sections/quality-metrics/app-statistics-data-provider";
-import { CategorizedSectionDataBuilder } from "../../../../src/app/components/reporting/sections/shared/categorized-section-data-builder";
+import { AppStatisticsDataProvider } from "../../../../src/app/components/reporting/sections/overview/app-statistics-data-provider";
+import { CategorizedSectionDataBuilder } from "../../../../src/app/components/reporting/sections/overview/categorized-section-data-builder";
 import type { ReportSection } from "../../../../src/app/components/reporting/sections/report-section.interface";
 // Import types for type checking only
 import type { ReportData } from "../../../../src/app/components/reporting/report-data.types";

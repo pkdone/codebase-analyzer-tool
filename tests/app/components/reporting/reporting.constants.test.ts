@@ -17,19 +17,42 @@ describe("reporting.constants", () => {
       expect(SECTION_NAMES.DATABASE).toBe("database");
     });
 
-    it("should have QUALITY_METRICS", () => {
-      expect(SECTION_NAMES.QUALITY_METRICS).toBe("quality-metrics");
+    it("should have DEPENDENCIES", () => {
+      expect(SECTION_NAMES.DEPENDENCIES).toBe("dependencies");
+    });
+
+    it("should have BACKGROUND_PROCESSES", () => {
+      expect(SECTION_NAMES.BACKGROUND_PROCESSES).toBe("background-processes");
+    });
+
+    it("should have ARCHITECTURE_ANALYSIS", () => {
+      expect(SECTION_NAMES.ARCHITECTURE_ANALYSIS).toBe("architecture-analysis");
+    });
+
+    it("should have UI_ANALYSIS", () => {
+      expect(SECTION_NAMES.UI_ANALYSIS).toBe("ui-analysis");
+    });
+
+    it("should have CODE_QUALITY", () => {
+      expect(SECTION_NAMES.CODE_QUALITY).toBe("code-quality");
+    });
+
+    it("should have BUSINESS_PROCESSES", () => {
+      expect(SECTION_NAMES.BUSINESS_PROCESSES).toBe("business-processes");
     });
 
     it("should have VISUALIZATIONS", () => {
       expect(SECTION_NAMES.VISUALIZATIONS).toBe("visualizations");
+    });
+
+    it("should have INTEGRATION_POINTS", () => {
+      expect(SECTION_NAMES.INTEGRATION_POINTS).toBe("integration-points");
     });
   });
 
   describe("module exports", () => {
     it("should export SECTION_NAMES as the primary constant", () => {
       // This test verifies that SECTION_NAMES is properly exported
-      // Note: ReportDataKeys and ReportDataByKey were removed as unused code
       expect(SECTION_NAMES).toBeDefined();
       expect(typeof SECTION_NAMES).toBe("object");
     });

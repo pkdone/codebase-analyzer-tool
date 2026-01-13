@@ -1,7 +1,7 @@
 import { injectable, inject } from "tsyringe";
 import type { SourcesRepository } from "../../../../repositories/sources/sources.repository.interface";
 import { repositoryTokens } from "../../../../di/tokens";
-import type { CodeQualitySummary } from "./quality-metrics.types";
+import type { CodeQualitySummary } from "./code-quality.types";
 
 /**
  * Data provider responsible for aggregating code quality metrics.

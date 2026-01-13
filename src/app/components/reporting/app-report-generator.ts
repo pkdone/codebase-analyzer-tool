@@ -6,11 +6,11 @@ import {
   type PreparedHtmlReportDataWithoutAssets,
 } from "./html-report-writer";
 import { JsonReportWriter, type PreparedJsonData } from "./json-report-writer";
-import { AppStatisticsDataProvider } from "./sections/quality-metrics/app-statistics-data-provider";
+import { AppStatisticsDataProvider } from "./sections/overview/app-statistics-data-provider";
 import {
   CategorizedSectionDataBuilder,
   isCategorizedDataNameDescArray,
-} from "./sections/shared/categorized-section-data-builder";
+} from "./sections/overview/categorized-section-data-builder";
 import type { AppSummariesRepository } from "../../repositories/app-summaries/app-summaries.repository.interface";
 import type { ReportData } from "./report-data.types";
 import { TableViewModel, type DisplayableTableRow } from "./view-models/table-view-model";

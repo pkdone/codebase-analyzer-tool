@@ -4,7 +4,12 @@
 export const SECTION_NAMES = {
   FILE_TYPES: "file-types",
   DATABASE: "database",
-  QUALITY_METRICS: "quality-metrics",
+  DEPENDENCIES: "dependencies",
+  BACKGROUND_PROCESSES: "background-processes",
+  ARCHITECTURE_ANALYSIS: "architecture-analysis",
+  UI_ANALYSIS: "ui-analysis",
+  CODE_QUALITY: "code-quality",
+  BUSINESS_PROCESSES: "business-processes",
   VISUALIZATIONS: "visualizations",
   INTEGRATION_POINTS: "integration-points",
 } as const;

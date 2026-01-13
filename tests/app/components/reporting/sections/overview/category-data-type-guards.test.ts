@@ -5,7 +5,7 @@ import {
   parseInferredArchitectureData,
   wrapInferredArchitectureAsArray,
   type CategorizedDataItem,
-} from "../../../../../../src/app/components/reporting/sections/shared/category-data-type-guards";
+} from "../../../../../../src/app/components/reporting/sections/overview/category-data-type-guards";
 
 describe("category-data-type-guards", () => {
   describe("isAppSummaryNameDescArray", () => {

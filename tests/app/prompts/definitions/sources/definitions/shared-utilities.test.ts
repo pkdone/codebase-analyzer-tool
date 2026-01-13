@@ -288,8 +288,9 @@ describe("shared-utilities", () => {
     it("should have correct schema fields (purpose, implementation, scheduledJobs)", () => {
       const config = createScheduledJobConfig("test", "fragment");
       // Type assertion matches existing patterns in this test file
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      const schemaShape = Object.keys((config.responseSchema as any).shape).sort();
+      const schemaShape = Object.keys(
+        (config.responseSchema as { shape: Record<string, unknown> }).shape,
+      ).sort();
       expect(schemaShape).toEqual(["implementation", "purpose", "scheduledJobs"]);
     });
 

@@ -2,7 +2,6 @@ import "reflect-metadata";
 import { ArchitectureAndDomainSection } from "../../../../../src/app/components/reporting/sections/visualizations/architecture-and-domain-section";
 import { DomainModelDataProvider } from "../../../../../src/app/components/reporting/sections/visualizations/domain-model-data-provider";
 import {
-  FlowchartDiagramGenerator,
   DomainModelDiagramGenerator,
   ArchitectureDiagramGenerator,
   CurrentArchitectureDiagramGenerator,
@@ -14,7 +13,6 @@ import { AppSummaryCategories } from "../../../../../src/app/schemas/app-summari
 describe("ArchitectureAndDomainSection", () => {
   let section: ArchitectureAndDomainSection;
   let mockDomainModelDataProvider: jest.Mocked<DomainModelDataProvider>;
-  let mockFlowchartDiagramGenerator: jest.Mocked<FlowchartDiagramGenerator>;
   let mockDomainModelDiagramGenerator: jest.Mocked<DomainModelDiagramGenerator>;
   let mockArchitectureDiagramGenerator: jest.Mocked<ArchitectureDiagramGenerator>;
   let mockCurrentArchitectureDiagramGenerator: jest.Mocked<CurrentArchitectureDiagramGenerator>;
@@ -28,10 +26,6 @@ describe("ArchitectureAndDomainSection", () => {
         repositories: [],
       }),
     } as unknown as jest.Mocked<DomainModelDataProvider>;
-
-    mockFlowchartDiagramGenerator = {
-      generateMultipleFlowchartDiagrams: jest.fn().mockResolvedValue([]),
-    } as unknown as jest.Mocked<FlowchartDiagramGenerator>;
 
     mockDomainModelDiagramGenerator = {
       generateMultipleContextDiagrams: jest.fn().mockResolvedValue([]),
@@ -49,7 +43,6 @@ describe("ArchitectureAndDomainSection", () => {
 
     section = new ArchitectureAndDomainSection(
       mockDomainModelDataProvider,
-      mockFlowchartDiagramGenerator,
       mockDomainModelDiagramGenerator,
       mockArchitectureDiagramGenerator,
       mockCurrentArchitectureDiagramGenerator,
@@ -97,7 +90,7 @@ describe("ArchitectureAndDomainSection", () => {
 
       const result = await section.prepareHtmlData(baseData, {}, "/output");
 
-      expect(result).toHaveProperty("businessProcessesFlowchartSvgs");
+      // Business processes flowcharts are now handled by BusinessProcessesSection
       expect(result).toHaveProperty("domainModelData");
       expect(result).toHaveProperty("contextDiagramSvgs");
       expect(result).toHaveProperty("microservicesData");
@@ -279,50 +272,6 @@ describe("ArchitectureAndDomainSection", () => {
   });
 
   describe("category lookups using AppSummaryCategories enum", () => {
-    it("should find business processes using enum value", async () => {
-      const businessProcesses = [
-        {
-          name: "Order Processing",
-          description: "Handles order creation",
-          keyBusinessActivities: [{ activity: "Create Order", description: "Creates new order" }],
-        },
-      ];
-
-      const baseData: ReportData = {
-        appStats: {
-          projectName: "test",
-          currentDate: "2024-01-01",
-          llmProvider: "test",
-          fileCount: 100,
-          linesOfCode: 5000,
-          appDescription: "Test app",
-        },
-        fileTypesData: [],
-        categorizedData: [
-          {
-            category: AppSummaryCategories.enum.businessProcesses,
-            label: "Business Processes",
-            data: businessProcesses as AppSummaryNameDescArray,
-          },
-        ],
-        integrationPoints: [],
-        dbInteractions: [],
-        procsAndTriggers: {
-          procs: { total: 0, low: 0, medium: 0, high: 0, list: [] },
-          trigs: { total: 0, low: 0, medium: 0, high: 0, list: [] },
-        },
-        billOfMaterials: [],
-        codeQualitySummary: null,
-        scheduledJobsSummary: null,
-        moduleCoupling: null,
-        uiTechnologyAnalysis: null,
-      };
-
-      await section.prepareHtmlData(baseData, {}, "/output");
-
-      expect(mockFlowchartDiagramGenerator.generateMultipleFlowchartDiagrams).toHaveBeenCalled();
-    });
-
     it("should find potential microservices using enum value", async () => {
       const microservices = [
         {
