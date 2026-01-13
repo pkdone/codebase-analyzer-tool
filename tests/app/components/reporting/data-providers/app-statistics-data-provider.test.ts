@@ -2,7 +2,7 @@ import "reflect-metadata";
 import { AppStatisticsDataProvider } from "../../../../../src/app/components/reporting/sections/overview/app-statistics-data-provider";
 import { SourcesRepository } from "../../../../../src/app/repositories/sources/sources.repository.interface";
 import type { AppSummaryRecordWithId } from "../../../../../src/app/repositories/app-summaries/app-summaries.model";
-import { NO_DESCRIPTION_PLACEHOLDER } from "../../../../../src/common/constants/application.constants";
+import { NO_DESCRIPTION_PLACEHOLDER } from "../../../../../src/app/components/reporting/config/placeholders.config";
 
 describe("AppStatisticsDataProvider", () => {
   let dataProvider: AppStatisticsDataProvider;

@@ -7,7 +7,7 @@ import {
   classifyTagLibrary,
   TAG_LIBRARY_BADGE_CLASSES,
 } from "../../config/ui-analysis.config";
-import { UNKNOWN_VALUE_PLACEHOLDER } from "../../../../../common/constants/application.constants";
+import { UNKNOWN_VALUE_PLACEHOLDER } from "../../config/placeholders.config";
 import {
   calculateDebtLevel,
   getTotalScriptletsCssClass,

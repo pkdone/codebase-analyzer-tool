@@ -1,6 +1,6 @@
 /**
- * Shared application-wide constants.
- * Contains placeholder values and common strings used across multiple modules.
+ * Placeholder values for reporting and display.
+ * Contains common placeholder strings used across multiple modules.
  */
 
 /**

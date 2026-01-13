@@ -9,7 +9,7 @@ import type { PreparedHtmlReportData } from "../../html-report-writer";
 import type { PreparedJsonData } from "../../json-report-writer";
 import type { ReportData } from "../../report-data.types";
 import { SECTION_NAMES } from "../../reporting.constants";
-import { UNKNOWN_VALUE_PLACEHOLDER } from "../../../../../common/constants/application.constants";
+import { UNKNOWN_VALUE_PLACEHOLDER } from "../../config/placeholders.config";
 import { calculatePieChartData } from "./pie-chart-calculator";
 
 /**

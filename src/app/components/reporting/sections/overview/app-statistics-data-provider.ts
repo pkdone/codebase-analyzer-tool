@@ -4,7 +4,7 @@ import type { AppSummaryRecordWithId } from "../../../../repositories/app-summar
 import { repositoryTokens } from "../../../../di/tokens";
 import type { AppStatistics } from "./overview.types";
 import { formatDateForDisplay } from "../../../../../common/utils/date-utils";
-import { NO_DESCRIPTION_PLACEHOLDER } from "../../../../../common/constants/application.constants";
+import { NO_DESCRIPTION_PLACEHOLDER } from "../../config/placeholders.config";
 
 /**
  * Data provider responsible for aggregating app statistics information for reports.

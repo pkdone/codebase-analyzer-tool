@@ -1,9 +1,9 @@
 import {
   UNKNOWN_VALUE_PLACEHOLDER,
   NOT_AVAILABLE_PLACEHOLDER,
-} from "../../../src/common/constants/application.constants";
+} from "../../../../../src/app/components/reporting/config/placeholders.config";
 
-describe("Application Constants", () => {
+describe("Placeholders Config", () => {
   describe("UNKNOWN_VALUE_PLACEHOLDER", () => {
     it("should be defined", () => {
       expect(UNKNOWN_VALUE_PLACEHOLDER).toBeDefined();

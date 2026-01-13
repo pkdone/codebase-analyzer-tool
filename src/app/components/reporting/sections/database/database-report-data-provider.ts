@@ -12,7 +12,7 @@ import { procedureTriggerSchema } from "../../../../schemas/sources.schema";
 import type { z } from "zod";
 import { logWarn } from "../../../../../common/utils/logging";
 import { DATABASE_OBJECT_TYPE_LABELS } from "../../reporting.constants";
-import { NOT_AVAILABLE_PLACEHOLDER } from "../../../../../common/constants/application.constants";
+import { NOT_AVAILABLE_PLACEHOLDER } from "../../config/placeholders.config";
 
 /**
  * Default complexity level for database objects when complexity cannot be determined.
