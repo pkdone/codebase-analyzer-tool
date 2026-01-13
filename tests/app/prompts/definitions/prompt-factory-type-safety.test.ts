@@ -24,18 +24,24 @@ describe("createPromptMetadata Type Safety", () => {
           contentDesc: "string content",
           responseSchema: stringSchema,
           instructions: ["test"] as const,
+          dataBlockHeader: DATA_BLOCK_HEADERS.CODE,
+          wrapInCodeBlock: true,
         },
         numberType: {
           label: "Number Type",
           contentDesc: "number content",
           responseSchema: numberSchema,
           instructions: ["test"] as const,
+          dataBlockHeader: DATA_BLOCK_HEADERS.CODE,
+          wrapInCodeBlock: true,
         },
         arrayType: {
           label: "Array Type",
           contentDesc: "array content",
           responseSchema: arraySchema,
           instructions: ["test"] as const,
+          dataBlockHeader: DATA_BLOCK_HEADERS.CODE,
+          wrapInCodeBlock: true,
         },
       } as const;
 
@@ -64,12 +70,16 @@ describe("createPromptMetadata Type Safety", () => {
           contentDesc: "user data",
           responseSchema: userSchema,
           instructions: [] as const,
+          dataBlockHeader: DATA_BLOCK_HEADERS.FILE_SUMMARIES,
+          wrapInCodeBlock: false,
         },
         product: {
           label: "Product",
           contentDesc: "product data",
           responseSchema: productSchema,
           instructions: [] as const,
+          dataBlockHeader: DATA_BLOCK_HEADERS.FILE_SUMMARIES,
+          wrapInCodeBlock: false,
         },
       } as const;
 
@@ -101,6 +111,8 @@ describe("createPromptMetadata Type Safety", () => {
           contentDesc: "test content",
           responseSchema: schema,
           instructions: [] as const,
+          dataBlockHeader: DATA_BLOCK_HEADERS.CODE,
+          wrapInCodeBlock: true,
         },
       } as const;
 
@@ -114,8 +126,8 @@ describe("createPromptMetadata Type Safety", () => {
     });
   });
 
-  describe("Simplified Options", () => {
-    it("should use dataBlockHeader option for all entries", () => {
+  describe("DataBlockHeader and WrapInCodeBlock from Config", () => {
+    it("should use dataBlockHeader and wrapInCodeBlock from config entries", () => {
       const schema = z.object({ data: z.string() });
 
       const configMap = {
@@ -124,40 +136,25 @@ describe("createPromptMetadata Type Safety", () => {
           contentDesc: "first content",
           responseSchema: schema,
           instructions: ["Instruction 1"] as const,
+          dataBlockHeader: DATA_BLOCK_HEADERS.CODE,
+          wrapInCodeBlock: true,
         },
         second: {
           label: "Second Entry",
           contentDesc: "second content",
           responseSchema: schema,
           instructions: ["Instruction 2"] as const,
-        },
-      } as const;
-
-      const result = createPromptMetadata(configMap, testTemplate, {
-        dataBlockHeader: DATA_BLOCK_HEADERS.CODE,
-        wrapInCodeBlock: true,
-      });
-
-      expect(result.first.dataBlockHeader).toBe(DATA_BLOCK_HEADERS.CODE);
-      expect(result.second.dataBlockHeader).toBe(DATA_BLOCK_HEADERS.CODE);
-      expect(result.first.wrapInCodeBlock).toBe(true);
-      expect(result.second.wrapInCodeBlock).toBe(true);
-    });
-
-    it("should use default FILE_SUMMARIES when dataBlockHeader not specified", () => {
-      const configMap = {
-        test: {
-          label: "Test",
-          contentDesc: "test content",
-          responseSchema: z.string(),
-          instructions: [] as const,
+          dataBlockHeader: DATA_BLOCK_HEADERS.FILE_SUMMARIES,
+          wrapInCodeBlock: false,
         },
       } as const;
 
       const result = createPromptMetadata(configMap, testTemplate);
 
-      expect(result.test.dataBlockHeader).toBe(DATA_BLOCK_HEADERS.FILE_SUMMARIES);
-      expect(result.test.wrapInCodeBlock).toBe(false);
+      expect(result.first.dataBlockHeader).toBe(DATA_BLOCK_HEADERS.CODE);
+      expect(result.second.dataBlockHeader).toBe(DATA_BLOCK_HEADERS.FILE_SUMMARIES);
+      expect(result.first.wrapInCodeBlock).toBe(true);
+      expect(result.second.wrapInCodeBlock).toBe(false);
     });
 
     it("should read contentDesc and instructions directly from config entries", () => {
@@ -167,6 +164,8 @@ describe("createPromptMetadata Type Safety", () => {
           contentDesc: "custom description from config",
           responseSchema: z.string(),
           instructions: ["Step 1", "Step 2"] as const,
+          dataBlockHeader: DATA_BLOCK_HEADERS.CODE,
+          wrapInCodeBlock: true,
         },
       } as const;
 
@@ -191,6 +190,8 @@ describe("createPromptMetadata Type Safety", () => {
         contentDesc: string;
         responseSchema: S;
         instructions: readonly string[];
+        dataBlockHeader: "CODE" | "FILE_SUMMARIES" | "FRAGMENTED_DATA";
+        wrapInCodeBlock: boolean;
       }
 
       const testConfigMap = {
@@ -199,12 +200,16 @@ describe("createPromptMetadata Type Safety", () => {
           contentDesc: "type A content",
           responseSchema: z.object({ a: z.string() }),
           instructions: ["A instruction"] as const,
+          dataBlockHeader: DATA_BLOCK_HEADERS.CODE,
+          wrapInCodeBlock: true,
         },
         typeB: {
           label: "Type B",
           contentDesc: "type B content",
           responseSchema: z.object({ b: z.number() }),
           instructions: ["B instruction"] as const,
+          dataBlockHeader: DATA_BLOCK_HEADERS.FILE_SUMMARIES,
+          wrapInCodeBlock: false,
         },
       } as const satisfies Record<string, TestConfigEntry>;
 
@@ -217,6 +222,10 @@ describe("createPromptMetadata Type Safety", () => {
       // ContentDesc should be read from config
       expect(result.typeA.contentDesc).toBe("type A content");
       expect(result.typeB.contentDesc).toBe("type B content");
+
+      // DataBlockHeader should be preserved from config
+      expect(result.typeA.dataBlockHeader).toBe(DATA_BLOCK_HEADERS.CODE);
+      expect(result.typeB.dataBlockHeader).toBe(DATA_BLOCK_HEADERS.FILE_SUMMARIES);
 
       // Validate that schemas are distinct
       const typeAShape = (result.typeA.responseSchema as z.ZodObject<z.ZodRawShape>).shape;

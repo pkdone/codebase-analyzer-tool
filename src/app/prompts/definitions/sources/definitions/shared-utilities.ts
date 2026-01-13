@@ -13,7 +13,7 @@ import {
   sourceSummarySchema,
   commonSourceAnalysisSchema,
 } from "../../../../schemas/sources.schema";
-import type { PromptConfigEntry } from "../../../prompt.types";
+import { DATA_BLOCK_HEADERS, type PromptConfigEntry } from "../../../prompt.types";
 
 /**
  * Configuration entry for a source prompt definition.
@@ -93,6 +93,8 @@ export function createDependencyConfig(
       buildInstructionBlock(INSTRUCTION_SECTION_TITLES.REFERENCES_AND_DEPS, dependencyFragment),
     ],
     hasComplexSchema: true,
+    dataBlockHeader: DATA_BLOCK_HEADERS.CODE,
+    wrapInCodeBlock: true,
   };
 }
 
@@ -123,6 +125,8 @@ export function createScheduledJobConfig(
         ...jobFragments,
       ),
     ],
+    dataBlockHeader: DATA_BLOCK_HEADERS.CODE,
+    wrapInCodeBlock: true,
   };
 }
 
@@ -174,6 +178,8 @@ export function createSimpleConfig(
       pickMask as Parameters<typeof sourceSummarySchema.pick>[0],
     ),
     instructions,
+    dataBlockHeader: DATA_BLOCK_HEADERS.CODE,
+    wrapInCodeBlock: true,
   };
 }
 
@@ -242,5 +248,7 @@ export function createStandardCodeConfig(
       ),
       buildInstructionBlock(INSTRUCTION_SECTION_TITLES.CODE_QUALITY_METRICS, ...codeQualityParts),
     ],
+    dataBlockHeader: DATA_BLOCK_HEADERS.CODE,
+    wrapInCodeBlock: true,
   };
 }

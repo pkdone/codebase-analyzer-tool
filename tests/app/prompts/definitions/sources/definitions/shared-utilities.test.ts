@@ -3,6 +3,7 @@ import {
   createSimpleConfig,
   createBasicInfoBlock,
   createScheduledJobConfig,
+  createStandardCodeConfig,
   scheduledJobFileSchema,
   type SourceSummaryField,
 } from "../../../../../../src/app/prompts/definitions/sources/definitions/shared-utilities";
@@ -12,6 +13,7 @@ import {
 } from "../../../../../../src/app/prompts/definitions/instruction-utils";
 import { SOURCES_PROMPT_FRAGMENTS } from "../../../../../../src/app/prompts/definitions/sources/sources.fragments";
 import { sourceSummarySchema } from "../../../../../../src/app/schemas/sources.schema";
+import { DATA_BLOCK_HEADERS } from "../../../../../../src/app/prompts/prompt.types";
 
 describe("shared-utilities", () => {
   describe("createBasicInfoBlock", () => {
@@ -361,6 +363,110 @@ describe("shared-utilities", () => {
     it("should not set hasComplexSchema property", () => {
       const config = createScheduledJobConfig("test", "fragment");
       expect(config.hasComplexSchema).toBeUndefined();
+    });
+  });
+
+  describe("createStandardCodeConfig", () => {
+    it("should explicitly set dataBlockHeader to CODE", () => {
+      const config = createStandardCodeConfig(
+        "the JVM code",
+        SOURCES_PROMPT_FRAGMENTS.JAVA_SPECIFIC,
+      );
+
+      expect(config.dataBlockHeader).toBe(DATA_BLOCK_HEADERS.CODE);
+    });
+
+    it("should explicitly set wrapInCodeBlock to true", () => {
+      const config = createStandardCodeConfig(
+        "the JVM code",
+        SOURCES_PROMPT_FRAGMENTS.JAVA_SPECIFIC,
+      );
+
+      expect(config.wrapInCodeBlock).toBe(true);
+    });
+  });
+
+  describe("explicit presentation values", () => {
+    describe("createDependencyConfig", () => {
+      it("should explicitly set dataBlockHeader to CODE", () => {
+        const config = createDependencyConfig("test content", "dependency fragment");
+        expect(config.dataBlockHeader).toBe(DATA_BLOCK_HEADERS.CODE);
+      });
+
+      it("should explicitly set wrapInCodeBlock to true", () => {
+        const config = createDependencyConfig("test content", "dependency fragment");
+        expect(config.wrapInCodeBlock).toBe(true);
+      });
+    });
+
+    describe("createScheduledJobConfig", () => {
+      it("should explicitly set dataBlockHeader to CODE", () => {
+        const config = createScheduledJobConfig("test script", "fragment");
+        expect(config.dataBlockHeader).toBe(DATA_BLOCK_HEADERS.CODE);
+      });
+
+      it("should explicitly set wrapInCodeBlock to true", () => {
+        const config = createScheduledJobConfig("test script", "fragment");
+        expect(config.wrapInCodeBlock).toBe(true);
+      });
+    });
+
+    describe("createSimpleConfig", () => {
+      it("should explicitly set dataBlockHeader to CODE", () => {
+        const config = createSimpleConfig(
+          "test content",
+          ["purpose", "implementation"],
+          [
+            {
+              title: INSTRUCTION_SECTION_TITLES.BASIC_INFO,
+              fragments: [
+                SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
+                SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
+              ],
+            },
+          ],
+        );
+
+        expect(config.dataBlockHeader).toBe(DATA_BLOCK_HEADERS.CODE);
+      });
+
+      it("should explicitly set wrapInCodeBlock to true", () => {
+        const config = createSimpleConfig(
+          "test content",
+          ["purpose", "implementation"],
+          [
+            {
+              title: INSTRUCTION_SECTION_TITLES.BASIC_INFO,
+              fragments: [
+                SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
+                SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
+              ],
+            },
+          ],
+        );
+
+        expect(config.wrapInCodeBlock).toBe(true);
+      });
+    });
+
+    describe("createStandardCodeConfig", () => {
+      it("should explicitly set dataBlockHeader to CODE", () => {
+        const config = createStandardCodeConfig(
+          "the JVM code",
+          SOURCES_PROMPT_FRAGMENTS.JAVA_SPECIFIC,
+        );
+
+        expect(config.dataBlockHeader).toBe(DATA_BLOCK_HEADERS.CODE);
+      });
+
+      it("should explicitly set wrapInCodeBlock to true", () => {
+        const config = createStandardCodeConfig(
+          "the JVM code",
+          SOURCES_PROMPT_FRAGMENTS.JAVA_SPECIFIC,
+        );
+
+        expect(config.wrapInCodeBlock).toBe(true);
+      });
     });
   });
 });

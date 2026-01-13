@@ -17,6 +17,7 @@ describe("PromptDefinition Generic Type", () => {
       responseSchema: stringSchema,
       template: "Test template",
       dataBlockHeader: "CODE",
+      wrapInCodeBlock: true,
     };
 
     const numberPromptDef: PromptDefinition<typeof numberSchema> = {
@@ -25,6 +26,7 @@ describe("PromptDefinition Generic Type", () => {
       responseSchema: numberSchema,
       template: "Test template",
       dataBlockHeader: "FILE_SUMMARIES",
+      wrapInCodeBlock: false,
     };
 
     const objectPromptDef: PromptDefinition<typeof objectSchema> = {
@@ -33,6 +35,7 @@ describe("PromptDefinition Generic Type", () => {
       responseSchema: objectSchema,
       template: "Test template",
       dataBlockHeader: "FRAGMENTED_DATA",
+      wrapInCodeBlock: false,
     };
 
     // Runtime assertions
@@ -51,6 +54,7 @@ describe("PromptDefinition Generic Type", () => {
       responseSchema: genericSchema,
       template: "Test template",
       dataBlockHeader: "CODE",
+      wrapInCodeBlock: true,
     };
 
     expect(genericPromptDef.responseSchema).toBe(genericSchema);
@@ -72,6 +76,7 @@ describe("PromptDefinition Generic Type", () => {
       responseSchema: userSchema,
       template: "User template",
       dataBlockHeader: "CODE",
+      wrapInCodeBlock: true,
       label: "User Schema",
     };
 

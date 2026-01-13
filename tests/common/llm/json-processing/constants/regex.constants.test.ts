@@ -171,9 +171,9 @@ describe("regex.constants", () => {
       });
 
       it("should match C# namespaces", () => {
-        expect(STRUCTURAL_PATTERNS.DOT_SEPARATED_IDENTIFIER.test("System.Collections.Generic")).toBe(
-          true,
-        );
+        expect(
+          STRUCTURAL_PATTERNS.DOT_SEPARATED_IDENTIFIER.test("System.Collections.Generic"),
+        ).toBe(true);
       });
 
       it("should not match single identifiers", () => {
@@ -192,7 +192,9 @@ describe("regex.constants", () => {
       });
 
       it("should match C#-style using statements", () => {
-        expect(STRUCTURAL_PATTERNS.CODE_STATEMENT_LINE.test("using System.Collections;")).toBe(true);
+        expect(STRUCTURAL_PATTERNS.CODE_STATEMENT_LINE.test("using System.Collections;")).toBe(
+          true,
+        );
       });
 
       it("should not match text without semicolon", () => {

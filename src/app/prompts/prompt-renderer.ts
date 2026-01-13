@@ -74,7 +74,7 @@ interface BasePromptTemplateVariables {
 export function renderPrompt(definition: PromptDefinition, data: RenderPromptData): string {
   const isJsonMode = definition.outputFormat !== LLMOutputFormat.TEXT;
   const schemaSection = isJsonMode ? buildSchemaSection(definition.responseSchema) : "";
-  const wrapInCodeBlock = definition.wrapInCodeBlock ?? false;
+  const wrapInCodeBlock = definition.wrapInCodeBlock;
   const contentWrapper = wrapInCodeBlock ? "```\n" : "";
   const instructionsText = definition.instructions.join("\n\n");
   // Handle partialAnalysisNote - convert to string or use empty string if undefined/null

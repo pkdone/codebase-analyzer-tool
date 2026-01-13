@@ -176,21 +176,27 @@ describe("Prompt Refactoring Improvements", () => {
         instructions: sourceConfig.instructions,
         responseSchema: sourceConfig.responseSchema,
         contentDesc: sourceConfig.contentDesc,
+        dataBlockHeader: sourceConfig.dataBlockHeader,
+        wrapInCodeBlock: sourceConfig.wrapInCodeBlock,
       };
 
       expect(configEntry.instructions).toBe(sourceConfig.instructions);
     });
 
-    it("should require core fields and allow optional label and hasComplexSchema", () => {
+    it("should require core fields including dataBlockHeader and wrapInCodeBlock", () => {
       const config: PromptConfigEntry = {
         contentDesc: "test content",
         instructions: ["test instruction"],
         responseSchema: z.string(),
+        dataBlockHeader: "CODE",
+        wrapInCodeBlock: true,
         // label and hasComplexSchema are optional
       };
 
       expect(config.label).toBeUndefined();
       expect(config.hasComplexSchema).toBeUndefined();
+      expect(config.dataBlockHeader).toBe("CODE");
+      expect(config.wrapInCodeBlock).toBe(true);
     });
 
     it("should support optional hasComplexSchema field", () => {
@@ -198,6 +204,8 @@ describe("Prompt Refactoring Improvements", () => {
         contentDesc: "test content",
         instructions: ["test instruction"],
         responseSchema: z.string(),
+        dataBlockHeader: "CODE",
+        wrapInCodeBlock: true,
         hasComplexSchema: true,
       };
 

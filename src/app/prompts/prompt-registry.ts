@@ -2,12 +2,7 @@ import { z } from "zod";
 import { appSummaryConfigMap } from "./definitions/app-summaries/app-summaries.definitions";
 import { fileTypePromptRegistry } from "./definitions/sources/sources.definitions";
 import { BASE_PROMPT_TEMPLATE, CODEBASE_QUERY_TEMPLATE } from "./templates";
-import {
-  DATA_BLOCK_HEADERS,
-  type DataBlockHeader,
-  type PromptDefinition,
-  type PromptConfigEntry,
-} from "./prompt.types";
+import { DATA_BLOCK_HEADERS, type PromptDefinition, type PromptConfigEntry } from "./prompt.types";
 import { LLMOutputFormat } from "../../common/llm/types/llm.types";
 
 /**
@@ -25,24 +20,6 @@ type PromptMetadataResult<TConfigMap extends Record<string, PromptConfigEntry>> 
 };
 
 /**
- * Options for creating prompt metadata from a configuration map.
- * Simplified to use direct values instead of builder callbacks since
- * configs now contain all necessary data (contentDesc, instructions).
- */
-interface CreatePromptMetadataOptions {
-  /**
-   * The header text for the data block section.
-   * Defaults to FILE_SUMMARIES if not provided.
-   */
-  dataBlockHeader?: DataBlockHeader;
-  /**
-   * Whether to wrap content in code blocks.
-   * Defaults to false if not provided.
-   */
-  wrapInCodeBlock?: boolean;
-}
-
-/**
  * Generic factory function to create prompt metadata from a configuration map.
  * This eliminates duplication between sources and app-summaries prompt generation.
  *
@@ -50,39 +27,28 @@ interface CreatePromptMetadataOptions {
  * schema type for each key in the config map. This enables better type inference
  * for downstream consumers when accessing prompt definitions by key.
  *
- * Reads contentDesc, instructions, and responseSchema directly from the config entries.
- * The factory is a pure data mapper that transforms config entries into PromptDefinition objects.
- *
- * Config-level values for dataBlockHeader and wrapInCodeBlock take precedence over
- * the options-level defaults, enabling per-prompt customization while maintaining
- * group-level defaults.
+ * This factory is a pure data mapper that transforms config entries into PromptDefinition
+ * objects. All config entries must provide dataBlockHeader and wrapInCodeBlock values.
  *
  * @param configMap - The configuration map (e.g., fileTypePromptRegistry, appSummaryConfigMap)
  * @param template - The template string to use for all prompts
- * @param options - Optional settings for default dataBlockHeader and wrapInCodeBlock
  * @returns A record mapping keys to PromptDefinition objects with preserved schema types
  */
 export function createPromptMetadata<TConfigMap extends Record<string, PromptConfigEntry>>(
   configMap: TConfigMap,
   template: string,
-  options: CreatePromptMetadataOptions = {},
 ): PromptMetadataResult<TConfigMap> {
-  const defaultHeader = options.dataBlockHeader ?? DATA_BLOCK_HEADERS.FILE_SUMMARIES;
-  const defaultWrap = options.wrapInCodeBlock ?? false;
   return Object.fromEntries(
     Object.entries(configMap).map(([key, config]) => {
       const typedConfig = config as TConfigMap[keyof TConfigMap];
-      // Config-level values take precedence over options-level defaults
-      const dataBlockHeader = typedConfig.dataBlockHeader ?? defaultHeader;
-      const wrapInCodeBlock = typedConfig.wrapInCodeBlock ?? defaultWrap;
       const definition: PromptDefinition = {
         label: typedConfig.label,
         contentDesc: typedConfig.contentDesc,
         responseSchema: typedConfig.responseSchema,
         template,
         instructions: typedConfig.instructions,
-        dataBlockHeader,
-        wrapInCodeBlock,
+        dataBlockHeader: typedConfig.dataBlockHeader,
+        wrapInCodeBlock: typedConfig.wrapInCodeBlock,
       };
       return [key, definition];
     }),
@@ -92,24 +58,14 @@ export function createPromptMetadata<TConfigMap extends Record<string, PromptCon
 /**
  * App summary prompt definitions generated from centralized configuration.
  * These prompts are used to extract high-level insights from file summaries.
- *
- * Note: contentDesc and instructions are read directly from the config entries.
  */
-const appSummaryPrompts = createPromptMetadata(appSummaryConfigMap, BASE_PROMPT_TEMPLATE, {
-  dataBlockHeader: DATA_BLOCK_HEADERS.FILE_SUMMARIES,
-  wrapInCodeBlock: false,
-});
+const appSummaryPrompts = createPromptMetadata(appSummaryConfigMap, BASE_PROMPT_TEMPLATE);
 
 /**
  * Source file type prompt definitions generated from centralized configuration.
  * These prompts are used to summarize individual source files based on their type.
- *
- * Note: contentDesc (with "the " prefix) and instructions are read directly from config entries.
  */
-const sourcePrompts = createPromptMetadata(fileTypePromptRegistry, BASE_PROMPT_TEMPLATE, {
-  dataBlockHeader: DATA_BLOCK_HEADERS.CODE,
-  wrapInCodeBlock: true,
-});
+const sourcePrompts = createPromptMetadata(fileTypePromptRegistry, BASE_PROMPT_TEMPLATE);
 
 /**
  * Prompt definition for codebase queries.

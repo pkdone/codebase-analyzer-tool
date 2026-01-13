@@ -111,19 +111,6 @@ describe("Prompt Renderer Type Safety", () => {
       const result = renderPrompt(wrappedDefinition, { content: "wrapped content" });
       expect(result).toContain("```\nwrapped content```");
     });
-
-    it("should handle wrapInCodeBlock undefined as false", () => {
-      const undefinedWrapDefinition: PromptDefinition = {
-        ...testDefinition,
-        wrapInCodeBlock: undefined,
-      };
-
-      const result = renderPrompt(undefinedWrapDefinition, { content: "content" });
-
-      // Should not have wrapping backticks
-      const contentSection = result.split("CODE:")[1];
-      expect(contentSection).not.toMatch(/^```\n/);
-    });
   });
 
   describe("DataBlockHeader Variants", () => {

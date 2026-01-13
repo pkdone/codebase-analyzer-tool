@@ -10,6 +10,7 @@ import {
   type SourceConfigEntry,
 } from "../../../../../src/app/prompts/definitions/sources/definitions";
 import { CANONICAL_FILE_TYPES } from "../../../../../src/app/schemas/canonical-file-types";
+import { DATA_BLOCK_HEADERS } from "../../../../../src/app/prompts/prompt.types";
 
 /**
  * Type safety tests for fileTypePromptRegistry.
@@ -123,6 +124,8 @@ describe("fileTypePromptRegistry Type Safety", () => {
         contentDesc: "Test content",
         responseSchema: testSchema,
         instructions: ["Test instruction"],
+        dataBlockHeader: DATA_BLOCK_HEADERS.CODE,
+        wrapInCodeBlock: true,
       };
 
       expect(testEntry.responseSchema).toBe(testSchema);
@@ -135,6 +138,8 @@ describe("fileTypePromptRegistry Type Safety", () => {
         contentDesc: "Generic content",
         responseSchema: z.string(),
         instructions: [],
+        dataBlockHeader: DATA_BLOCK_HEADERS.CODE,
+        wrapInCodeBlock: true,
       };
 
       expect(genericEntry.responseSchema).toBeInstanceOf(z.ZodType);

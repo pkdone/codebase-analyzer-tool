@@ -84,7 +84,8 @@ export const STRUCTURAL_PATTERNS = Object.freeze({
    * Matches generic truncation indicators that LLMs insert when cutting off content.
    * Covers: ..., (truncated), (continued), [truncated], etc., and more
    */
-  TRUNCATION_INDICATOR: /(?:\.{3,}|\((?:truncated|continued|more|etc)\)|\[(?:truncated|continued|more)\]|etc\.?$)/i,
+  TRUNCATION_INDICATOR:
+    /(?:\.{3,}|\((?:truncated|continued|more|etc)\)|\[(?:truncated|continued|more)\]|etc\.?$)/i,
 
   /**
    * Matches first-person LLM commentary structure.

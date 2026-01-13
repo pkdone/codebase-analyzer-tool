@@ -9,17 +9,21 @@ import { z } from "zod";
 
 describe("Prompt Types", () => {
   describe("PromptConfigEntry", () => {
-    it("should require contentDesc, instructions, and responseSchema", () => {
+    it("should require contentDesc, instructions, responseSchema, dataBlockHeader, and wrapInCodeBlock", () => {
       const schema = z.object({ result: z.string() });
       const config: PromptConfigEntry<typeof schema> = {
         contentDesc: "Required description",
         instructions: ["Required instruction"],
         responseSchema: schema,
+        dataBlockHeader: "CODE",
+        wrapInCodeBlock: true,
       };
 
       expect(config.contentDesc).toBe("Required description");
       expect(config.instructions).toEqual(["Required instruction"]);
       expect(config.responseSchema).toBe(schema);
+      expect(config.dataBlockHeader).toBe("CODE");
+      expect(config.wrapInCodeBlock).toBe(true);
     });
 
     it("should allow optional label", () => {
@@ -28,6 +32,8 @@ describe("Prompt Types", () => {
         contentDesc: "Description",
         instructions: ["Instruction"],
         responseSchema: schema,
+        dataBlockHeader: "CODE",
+        wrapInCodeBlock: true,
         label: "Optional Label",
       };
 
@@ -40,6 +46,8 @@ describe("Prompt Types", () => {
         contentDesc: "Description",
         instructions: ["Instruction"],
         responseSchema: schema,
+        dataBlockHeader: "CODE",
+        wrapInCodeBlock: true,
         hasComplexSchema: true,
       };
 
@@ -56,6 +64,8 @@ describe("Prompt Types", () => {
         contentDesc: "Description",
         instructions: ["Instruction"],
         responseSchema: specificSchema,
+        dataBlockHeader: "FILE_SUMMARIES",
+        wrapInCodeBlock: false,
       };
 
       // Type system ensures responseSchema is exactly the specified type

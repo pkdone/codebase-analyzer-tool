@@ -3,7 +3,10 @@ import {
   appSummaryConfigMap,
   type AppSummaryConfigMap,
 } from "../../../../../src/app/prompts/definitions/app-summaries/app-summaries.definitions";
-import type { AppSummaryConfigEntry } from "../../../../../src/app/prompts/prompt.types";
+import {
+  DATA_BLOCK_HEADERS,
+  type AppSummaryConfigEntry,
+} from "../../../../../src/app/prompts/prompt.types";
 import { AppSummaryCategories } from "../../../../../src/app/schemas/app-summaries.schema";
 
 /**
@@ -99,6 +102,8 @@ describe("appSummaryConfigMap Type Safety", () => {
         contentDesc: "test content",
         responseSchema: testSchema,
         instructions: ["Generate a test list"],
+        dataBlockHeader: DATA_BLOCK_HEADERS.FILE_SUMMARIES,
+        wrapInCodeBlock: false,
       };
 
       expect(testEntry.responseSchema).toBe(testSchema);
@@ -112,6 +117,8 @@ describe("appSummaryConfigMap Type Safety", () => {
         contentDesc: "test content",
         responseSchema: z.string(),
         instructions: [],
+        dataBlockHeader: DATA_BLOCK_HEADERS.FILE_SUMMARIES,
+        wrapInCodeBlock: false,
       };
 
       expect(genericEntry.responseSchema).toBeInstanceOf(z.ZodType);

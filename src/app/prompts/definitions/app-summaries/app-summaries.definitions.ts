@@ -9,7 +9,7 @@ import {
 import { CATEGORY_LABELS } from "../../../config/category-labels.config";
 import { APP_SUMMARY_PROMPT_FRAGMENTS } from "./app-summaries.fragments";
 import { z } from "zod";
-import type { AppSummaryConfigEntry } from "../../prompt.types";
+import { DATA_BLOCK_HEADERS, type AppSummaryConfigEntry } from "../../prompt.types";
 
 /**
  * Default content description for app summary prompts.
@@ -35,7 +35,14 @@ export function createAppSummaryConfig<S extends z.ZodType>(
   responseSchema: S,
   contentDesc: string = DEFAULT_CONTENT_DESC,
 ): AppSummaryConfigEntry<S> {
-  return { label, contentDesc, instructions, responseSchema };
+  return {
+    label,
+    contentDesc,
+    instructions,
+    responseSchema,
+    dataBlockHeader: DATA_BLOCK_HEADERS.FILE_SUMMARIES,
+    wrapInCodeBlock: false,
+  };
 }
 
 /**

@@ -31,9 +31,9 @@ export type DataBlockHeader = (typeof DATA_BLOCK_HEADERS)[keyof typeof DATA_BLOC
  * (SourceConfigEntry, AppSummaryConfigEntry) to ensure consistency and enable
  * generic processing.
  *
- * This type enforces that all essential fields for prompt generation are provided,
- * reducing the need for defensive checks at runtime and improving type safety
- * for downstream consumers.
+ * All essential fields for prompt generation are required, eliminating the need
+ * for defensive checks at runtime and improving type safety for downstream consumers.
+ * Factories must explicitly define presentation values (dataBlockHeader, wrapInCodeBlock).
  *
  * Note: `label` remains optional as it's often derived from the category key
  * or not strictly needed for the prompt itself.
@@ -52,15 +52,15 @@ export interface PromptConfigEntry<S extends z.ZodType = z.ZodType> {
   /** Whether the schema is complex and incompatible with some LLM providers */
   hasComplexSchema?: boolean;
   /**
-   * Optional override for the data block header.
-   * If not provided, the registry default will be used.
+   * The data block header to use in the template (required).
+   * Factories must explicitly define their presentation.
    */
-  dataBlockHeader?: DataBlockHeader;
+  dataBlockHeader: DataBlockHeader;
   /**
-   * Optional override for wrapping content in code blocks.
-   * If not provided, the registry default will be used.
+   * Whether to wrap content in code blocks (required).
+   * Factories must explicitly define their presentation.
    */
-  wrapInCodeBlock?: boolean;
+  wrapInCodeBlock: boolean;
 }
 
 /**
@@ -83,10 +83,10 @@ export interface AppSummaryConfigEntry<
 }
 
 /**
- * Formal prompt definition interface for consistent structure
+ * Formal prompt definition interface for consistent structure.
  * This enforces a standard shape for prompt configurations across the application.
  *
- * @template S - The Zod schema type for validating the LLM response. Defaults to z.ZodType for backward compatibility.
+ * @template S - The Zod schema type for validating the LLM response. Defaults to z.ZodType.
  */
 export interface PromptDefinition<S extends z.ZodType = z.ZodType> {
   /** Description of the content being analyzed (e.g., "JVM code", "a set of source file summaries") */
@@ -102,8 +102,8 @@ export interface PromptDefinition<S extends z.ZodType = z.ZodType> {
   template: string;
   /** Header text for the data block section (e.g., "CODE", "FILE_SUMMARIES", "FRAGMENTED_DATA") */
   dataBlockHeader: DataBlockHeader;
-  /** Whether to wrap the content in code block markers (```). Defaults to false. */
-  wrapInCodeBlock?: boolean;
+  /** Whether to wrap the content in code block markers (```) */
+  wrapInCodeBlock: boolean;
   /** Output format for the LLM response. Defaults to JSON when undefined. */
   outputFormat?: LLMOutputFormat;
 }

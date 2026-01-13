@@ -3,7 +3,10 @@ import {
   createAppSummaryConfig,
   appSummaryConfigMap,
 } from "../../../../../src/app/prompts/definitions/app-summaries/app-summaries.definitions";
-import type { AppSummaryConfigEntry } from "../../../../../src/app/prompts/prompt.types";
+import {
+  DATA_BLOCK_HEADERS,
+  type AppSummaryConfigEntry,
+} from "../../../../../src/app/prompts/prompt.types";
 
 /**
  * Unit tests for the createAppSummaryConfig factory function.
@@ -171,6 +174,30 @@ describe("createAppSummaryConfig Factory", () => {
       const config = createAppSummaryConfig("Empty Content", ["test"], testSchema, "");
 
       expect(config.contentDesc).toBe("");
+    });
+  });
+
+  describe("explicit presentation values", () => {
+    it("should explicitly set dataBlockHeader to FILE_SUMMARIES", () => {
+      const config = createAppSummaryConfig("Test Label", ["instruction"], testSchema);
+
+      expect(config.dataBlockHeader).toBe(DATA_BLOCK_HEADERS.FILE_SUMMARIES);
+    });
+
+    it("should explicitly set wrapInCodeBlock to false", () => {
+      const config = createAppSummaryConfig("Test Label", ["instruction"], testSchema);
+
+      expect(config.wrapInCodeBlock).toBe(false);
+    });
+
+    it("should set consistent presentation values for all appSummaryConfigMap entries", () => {
+      const categories = Object.keys(appSummaryConfigMap) as (keyof typeof appSummaryConfigMap)[];
+
+      categories.forEach((category) => {
+        const config = appSummaryConfigMap[category];
+        expect(config.dataBlockHeader).toBe(DATA_BLOCK_HEADERS.FILE_SUMMARIES);
+        expect(config.wrapInCodeBlock).toBe(false);
+      });
     });
   });
 });
