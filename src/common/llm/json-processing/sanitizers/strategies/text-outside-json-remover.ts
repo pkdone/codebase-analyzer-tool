@@ -10,6 +10,8 @@ import { isInStringAt } from "../../utils/parser-context-utils";
 import {
   looksLikeStrayPropertyPrefix,
   looksLikeDescriptiveText,
+  looksLikeFirstPersonStatement,
+  looksLikeSentenceStructure,
 } from "../../utils/stray-text-detection";
 import { DiagnosticCollector } from "../../utils/diagnostic-collector";
 import { processingConfig } from "../../constants/json-processing.config";
@@ -144,13 +146,24 @@ export const textOutsideJsonRemover: SanitizerStrategy = {
       return closingBraceStr;
     });
 
-    // Pattern 5: LLM mid-JSON commentary
-    const llmMidJsonCommentaryPattern =
-      /([,}\]])\s*\n\s*(Next,?\s+I\s+will|Let\s+me\s+(?:analyze|continue|proceed|now)|I\s+(?:will|shall)\s+(?:now|next)|Now\s+(?:let|I)|Moving\s+on)[^"]*?\n(\s*")/gi;
+    // Pattern 5: LLM mid-JSON commentary using structural detection
+    // Uses first-person statement detection instead of hardcoded phrases
+    const llmMidJsonCommentaryPattern = /([,}\]])\s*\n\s*([a-zA-Z][^"]{5,150}?)\n(\s*")/gi;
     sanitized = sanitized.replace(
       llmMidJsonCommentaryPattern,
-      (match, delimiter, _commentary, nextQuote, offset: number) => {
+      (match, delimiter, commentary, nextQuote, offset: number) => {
         if (isInStringAt(offset, sanitized)) {
+          return match;
+        }
+
+        const commentaryStr = typeof commentary === "string" ? commentary.trim() : "";
+
+        // Use structural detection: check if it looks like first-person LLM commentary
+        // or sentence-like content that doesn't belong in JSON
+        if (
+          !looksLikeFirstPersonStatement(commentaryStr) &&
+          !looksLikeSentenceStructure(commentaryStr)
+        ) {
           return match;
         }
 

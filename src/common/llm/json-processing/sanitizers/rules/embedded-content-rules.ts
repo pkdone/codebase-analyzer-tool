@@ -10,6 +10,11 @@
 
 import type { ReplacementRule, ContextInfo } from "./replacement-rule.types";
 import { parsingHeuristics } from "../../constants/json-processing.config";
+import {
+  looksLikeSentenceStructure,
+  looksLikeTruncationMarker,
+  looksLikeFirstPersonStatement,
+} from "../../utils/stray-text-detection";
 
 /**
  * Checks if a context is valid for embedded content removal.
@@ -294,18 +299,26 @@ export const EMBEDDED_CONTENT_RULES: readonly ReplacementRule[] = [
     },
   },
 
-  // Rule: Remove stray text/comments from JSON (common English words)
-  // Pattern: `],\nthis is some text but...\n  {` -> `],\n  {`
+  // Rule: Remove stray text/comments from JSON using structural sentence detection
+  // Pattern: `],\nthis is some text...\n  {` -> `],\n  {`
+  // Uses structural detection (word count, punctuation) instead of hardcoded word lists
   {
     name: "strayEnglishText",
-    pattern:
-      /([}\],])\s*\n\s*([a-z][a-z\s,]+(?:but|and|or|the|a|an|is|are|was|were|will|would|should|could|can|may|might|this|that|these|those|here|there)[a-z\s,]*?)\s*\n\s*([{[]|")/gi,
+    pattern: /([}\],])\s*\n\s*([a-z][a-z\s,.'!?-]{5,100}?)\s*\n\s*([{[]|")/gi,
     replacement: (_match, groups, context) => {
       const { beforeMatch } = context;
       const isAfterDelimiter = /[}\],]\s*\n\s*$/.test(beforeMatch);
       if (!isAfterDelimiter && context.offset > parsingHeuristics.PROPERTY_CONTEXT_OFFSET_LIMIT) {
         return null;
       }
+
+      const strayText = (groups[1] ?? "").trim();
+
+      // Use structural detection: check if it looks like sentence-like content
+      if (!looksLikeSentenceStructure(strayText)) {
+        return null;
+      }
+
       const [delimiter, , nextChar] = groups;
       const delimiterStr = delimiter ?? "";
       const nextCharStr = nextChar ?? "";
@@ -317,13 +330,25 @@ export const EMBEDDED_CONTENT_RULES: readonly ReplacementRule[] = [
     },
   },
 
-  // Rule: Remove truncated/explanatory text in arrays
-  // Pattern: `[]\n    },\nso many me"` -> `[]\n    },\n`
+  // Rule: Remove truncated/explanatory text in arrays using structural detection
+  // Pattern: `[]\n    },\nsome explanatory text"` -> `[]\n    },\n`
+  // Uses structural detection (truncation markers, first-person statements) instead of hardcoded phrases
   {
     name: "truncatedExplanatoryTextInArray",
-    pattern:
-      /(\[\s*\]\s*\n\s*}\s*,\s*\n)\s*(so many|I will|stop here|for brevity|methods|I'll|truncated|there are|but the response)[^"]*"/gi,
+    pattern: /(\[\s*\]\s*\n\s*}\s*,\s*\n)\s*([a-zA-Z][^"]{3,100}?)"/gi,
     replacement: (_match, groups) => {
+      const explanatoryText = (groups[1] ?? "").trim();
+
+      // Use structural detection: check if it looks like truncation/explanation
+      const isTruncation = looksLikeTruncationMarker(explanatoryText);
+      const isFirstPerson = looksLikeFirstPersonStatement(explanatoryText);
+      const isSentence = looksLikeSentenceStructure(explanatoryText);
+
+      // Only remove if it matches our structural patterns
+      if (!isTruncation && !isFirstPerson && !isSentence) {
+        return null;
+      }
+
       const prefix = groups[0] ?? "";
       return prefix;
     },

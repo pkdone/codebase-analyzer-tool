@@ -338,4 +338,57 @@ Let me continue with the analysis`;
       expect(result.changed).toBe(false);
     });
   });
+
+  describe("Structural detection (generic patterns)", () => {
+    it("should remove first-person statements using structural detection", () => {
+      // These patterns are detected by structural first-person detection
+      const firstPersonPatterns = [
+        "I am going to continue",
+        "I have analyzed this",
+        "We should proceed",
+        "We need to analyze",
+      ];
+
+      for (const pattern of firstPersonPatterns) {
+        const input = `{
+  "name": "TestClass"
+},
+${pattern} with the code
+  "otherProperty": "value"`;
+        const result = textOutsideJsonRemover.apply(input);
+        expect(result.changed).toBe(true);
+        expect(result.content).not.toContain(pattern);
+      }
+    });
+
+    it("should remove sentence-like commentary using structural detection", () => {
+      // These are sentence-like patterns (3+ words)
+      const sentencePatterns = [
+        "this is some commentary",
+        "here are more details",
+        "the following shows results",
+      ];
+
+      for (const pattern of sentencePatterns) {
+        const input = `{
+  "name": "TestClass"
+},
+${pattern}
+  "otherProperty": "value"`;
+        const result = textOutsideJsonRemover.apply(input);
+        expect(result.changed).toBe(true);
+        expect(result.content).not.toContain(pattern);
+      }
+    });
+
+    it("should not remove short non-sentence text", () => {
+      // Very short text that doesn't look like sentences should be preserved
+      // (if it doesn't match other patterns)
+      const input = `{
+  "name": "TestClass"
+}`;
+      const result = textOutsideJsonRemover.apply(input);
+      expect(result.changed).toBe(false);
+    });
+  });
 });

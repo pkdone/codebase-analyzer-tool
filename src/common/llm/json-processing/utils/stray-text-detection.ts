@@ -7,6 +7,7 @@
  */
 
 import { JSON_KEYWORDS_SET } from "../constants/json-processing.config";
+import { STRUCTURAL_PATTERNS } from "../constants/regex.constants";
 
 /**
  * Configuration options for stray text detection.
@@ -190,6 +191,154 @@ export function looksLikeDescriptiveText(text: string): boolean {
 
   // Text that is primarily lowercase letters and spaces (prose-like)
   if (/^[a-z][a-z\s]{10,}$/i.test(trimmed)) {
+    return true;
+  }
+
+  return false;
+}
+
+/**
+ * Checks if text looks like a first-person LLM commentary statement.
+ * Detects patterns like "I will", "Let me", "We should", etc. using structural patterns
+ * rather than hardcoded phrases.
+ *
+ * @param text - The text to check
+ * @returns True if the text looks like first-person LLM commentary
+ */
+export function looksLikeFirstPersonStatement(text: string): boolean {
+  const trimmed = text.trim();
+
+  if (trimmed.length === 0) {
+    return false;
+  }
+
+  // Must not contain JSON structural characters
+  if (/["{}[\]]/.test(trimmed)) {
+    return false;
+  }
+
+  // Use the structural pattern for first-person statements
+  if (STRUCTURAL_PATTERNS.FIRST_PERSON_STATEMENT.test(trimmed)) {
+    return true;
+  }
+
+  // Additional structural detection: check for common LLM self-reference patterns
+  // "I" or "We" followed by any verb-like word (lowercase letters after space)
+  if (/^(?:I|We)\s+[a-z]{2,}/i.test(trimmed)) {
+    return true;
+  }
+
+  // "Let me/us" pattern
+  if (/^Let\s+(?:me|us)\s+/i.test(trimmed)) {
+    return true;
+  }
+
+  // "Now I/we" pattern
+  if (/^Now\s+(?:I|we)\s+/i.test(trimmed)) {
+    return true;
+  }
+
+  // "Here I/we" pattern
+  if (/^Here\s+(?:I|we)\s+/i.test(trimmed)) {
+    return true;
+  }
+
+  // "Moving on" pattern (common LLM transition phrase)
+  if (/^Moving\s+on\b/i.test(trimmed)) {
+    return true;
+  }
+
+  // "Next" at start followed by comma or "I/we"
+  if (/^Next[,]?\s+(?:I|we)\s+/i.test(trimmed)) {
+    return true;
+  }
+
+  return false;
+}
+
+/**
+ * Checks if text contains truncation indicators.
+ * Detects patterns like "...", "(truncated)", "etc.", "[more]", etc.
+ * Uses structural patterns rather than specific phrases.
+ *
+ * @param text - The text to check
+ * @returns True if the text contains truncation indicators
+ */
+export function looksLikeTruncationMarker(text: string): boolean {
+  const trimmed = text.trim();
+
+  if (trimmed.length === 0) {
+    return false;
+  }
+
+  // Use the structural pattern for truncation indicators
+  if (STRUCTURAL_PATTERNS.TRUNCATION_INDICATOR.test(trimmed)) {
+    return true;
+  }
+
+  // Additional structural detection for common truncation patterns
+
+  // Ellipsis at end (2+ dots)
+  if (/\.{2,}\s*$/.test(trimmed)) {
+    return true;
+  }
+
+  // Parenthetical truncation markers: (more), (continues), (omitted), etc.
+  if (/\((?:more|continues?|omitted|cut|skipped|remaining)\)/i.test(trimmed)) {
+    return true;
+  }
+
+  // Bracket truncation markers: [more], [continues], etc.
+  if (/\[(?:more|continues?|omitted|cut|skipped|remaining)\]/i.test(trimmed)) {
+    return true;
+  }
+
+  // "for brevity" or "brevity" patterns
+  if (/\bfor\s+brevity\b/i.test(trimmed) || /\bbrevity\b/i.test(trimmed)) {
+    return true;
+  }
+
+  // "stop here" or "stopping here" patterns
+  if (/\bstop(?:ping)?\s+here\b/i.test(trimmed)) {
+    return true;
+  }
+
+  return false;
+}
+
+/**
+ * Checks if text looks like sentence-like content using purely structural detection.
+ * This is a more permissive version that catches various sentence structures.
+ *
+ * @param text - The text to check
+ * @returns True if the text has sentence-like structure
+ */
+export function looksLikeSentenceStructure(text: string): boolean {
+  const trimmed = text.trim();
+
+  if (trimmed.length < 5) {
+    return false;
+  }
+
+  // Must not contain JSON structural characters
+  if (/["{}[\]]/.test(trimmed)) {
+    return false;
+  }
+
+  // Count words (space-separated tokens)
+  const words = trimmed.split(/\s+/).filter((w) => w.length > 0);
+
+  // Sentence structure: 3+ words
+  if (words.length >= 3) {
+    // Check if it's alphabetic content (not just numbers/symbols)
+    const alphabeticContent = trimmed.replace(/[^a-zA-Z]/g, "");
+    if (alphabeticContent.length > trimmed.length * 0.5) {
+      return true;
+    }
+  }
+
+  // Two words with sentence punctuation
+  if (words.length >= 2 && /[.!?]$/.test(trimmed)) {
     return true;
   }
 

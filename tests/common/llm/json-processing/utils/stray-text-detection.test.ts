@@ -4,6 +4,9 @@ import {
   looksLikeStrayArrayPrefix,
   looksLikeStrayPropertyPrefix,
   looksLikeDescriptiveText,
+  looksLikeFirstPersonStatement,
+  looksLikeTruncationMarker,
+  looksLikeSentenceStructure,
 } from "../../../../../src/common/llm/json-processing/utils/stray-text-detection";
 
 describe("stray-text-detection", () => {
@@ -144,6 +147,148 @@ describe("stray-text-detection", () => {
 
     it("should return false for short text without punctuation", () => {
       expect(looksLikeDescriptiveText("ab")).toBe(false);
+    });
+  });
+
+  describe("looksLikeFirstPersonStatement", () => {
+    it("should return false for empty text", () => {
+      expect(looksLikeFirstPersonStatement("")).toBe(false);
+      expect(looksLikeFirstPersonStatement("   ")).toBe(false);
+    });
+
+    it("should return false for text with JSON structural characters", () => {
+      expect(looksLikeFirstPersonStatement('I will {"key": "value"}')).toBe(false);
+    });
+
+    it("should detect 'I will' statements", () => {
+      expect(looksLikeFirstPersonStatement("I will analyze this")).toBe(true);
+      expect(looksLikeFirstPersonStatement("I will continue")).toBe(true);
+    });
+
+    it("should detect 'I shall' statements", () => {
+      expect(looksLikeFirstPersonStatement("I shall proceed")).toBe(true);
+    });
+
+    it("should detect 'Let me' statements", () => {
+      expect(looksLikeFirstPersonStatement("Let me analyze")).toBe(true);
+      expect(looksLikeFirstPersonStatement("Let me continue")).toBe(true);
+    });
+
+    it("should detect 'Let us' statements", () => {
+      expect(looksLikeFirstPersonStatement("Let us proceed")).toBe(true);
+    });
+
+    it("should detect 'We' statements", () => {
+      expect(looksLikeFirstPersonStatement("We will continue")).toBe(true);
+      expect(looksLikeFirstPersonStatement("We can proceed")).toBe(true);
+    });
+
+    it("should detect 'Now I/we' statements", () => {
+      expect(looksLikeFirstPersonStatement("Now I will analyze")).toBe(true);
+      expect(looksLikeFirstPersonStatement("Now we proceed")).toBe(true);
+    });
+
+    it("should detect 'Here I/we' statements", () => {
+      expect(looksLikeFirstPersonStatement("Here I present")).toBe(true);
+      expect(looksLikeFirstPersonStatement("Here we go")).toBe(true);
+    });
+
+    it("should detect 'Moving on' statements", () => {
+      expect(looksLikeFirstPersonStatement("Moving on to next")).toBe(true);
+    });
+
+    it("should detect 'Next, I' statements", () => {
+      expect(looksLikeFirstPersonStatement("Next, I will analyze")).toBe(true);
+      expect(looksLikeFirstPersonStatement("Next I continue")).toBe(true);
+    });
+
+    it("should not detect non-first-person text", () => {
+      expect(looksLikeFirstPersonStatement("The code is")).toBe(false);
+      expect(looksLikeFirstPersonStatement("normal text")).toBe(false);
+      expect(looksLikeFirstPersonStatement("they will")).toBe(false);
+    });
+  });
+
+  describe("looksLikeTruncationMarker", () => {
+    it("should return false for empty text", () => {
+      expect(looksLikeTruncationMarker("")).toBe(false);
+      expect(looksLikeTruncationMarker("   ")).toBe(false);
+    });
+
+    it("should detect ellipsis", () => {
+      expect(looksLikeTruncationMarker("some text...")).toBe(true);
+      expect(looksLikeTruncationMarker("...")).toBe(true);
+      expect(looksLikeTruncationMarker("text....")).toBe(true);
+    });
+
+    it("should detect (truncated) marker", () => {
+      expect(looksLikeTruncationMarker("(truncated)")).toBe(true);
+      expect(looksLikeTruncationMarker("data (truncated)")).toBe(true);
+    });
+
+    it("should detect [truncated] marker", () => {
+      expect(looksLikeTruncationMarker("[truncated]")).toBe(true);
+      expect(looksLikeTruncationMarker("data [truncated]")).toBe(true);
+    });
+
+    it("should detect (continued) and [continued] markers", () => {
+      expect(looksLikeTruncationMarker("(continued)")).toBe(true);
+      expect(looksLikeTruncationMarker("[continued]")).toBe(true);
+    });
+
+    it("should detect (more) and [more] markers", () => {
+      expect(looksLikeTruncationMarker("(more)")).toBe(true);
+      expect(looksLikeTruncationMarker("[more]")).toBe(true);
+    });
+
+    it("should detect etc. marker", () => {
+      expect(looksLikeTruncationMarker("etc.")).toBe(true);
+      expect(looksLikeTruncationMarker("and more etc")).toBe(true);
+    });
+
+    it("should detect 'for brevity' phrase", () => {
+      expect(looksLikeTruncationMarker("for brevity")).toBe(true);
+      expect(looksLikeTruncationMarker("omitted for brevity")).toBe(true);
+    });
+
+    it("should detect 'stop here' phrase", () => {
+      expect(looksLikeTruncationMarker("I will stop here")).toBe(true);
+      expect(looksLikeTruncationMarker("stopping here")).toBe(true);
+    });
+
+    it("should not detect normal text", () => {
+      expect(looksLikeTruncationMarker("normal text")).toBe(false);
+      expect(looksLikeTruncationMarker("some value")).toBe(false);
+    });
+  });
+
+  describe("looksLikeSentenceStructure", () => {
+    it("should return false for short text", () => {
+      expect(looksLikeSentenceStructure("ab")).toBe(false);
+      expect(looksLikeSentenceStructure("word")).toBe(false);
+    });
+
+    it("should return false for text with JSON structural characters", () => {
+      expect(looksLikeSentenceStructure('{"key": "value"}')).toBe(false);
+      expect(looksLikeSentenceStructure("array: []")).toBe(false);
+    });
+
+    it("should return true for text with 3+ words", () => {
+      expect(looksLikeSentenceStructure("this is a sentence")).toBe(true);
+      expect(looksLikeSentenceStructure("some longer sentence here")).toBe(true);
+    });
+
+    it("should return true for two words with punctuation", () => {
+      expect(looksLikeSentenceStructure("hello world.")).toBe(true);
+      expect(looksLikeSentenceStructure("something else!")).toBe(true);
+      expect(looksLikeSentenceStructure("is this?")).toBe(true);
+    });
+
+    it("should check alphabetic content ratio", () => {
+      // Mostly alphabetic content
+      expect(looksLikeSentenceStructure("this is text")).toBe(true);
+      // Pure numbers - should fail
+      expect(looksLikeSentenceStructure("123 456 789")).toBe(false);
     });
   });
 });
