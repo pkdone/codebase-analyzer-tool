@@ -5,9 +5,12 @@ import { createStandardCodeConfig, type SourceConfigEntry } from "./shared-utili
  * Source prompt definitions for standard programming languages.
  * These use the createStandardCodeConfig factory to ensure consistent instruction patterns.
  *
+ * The `satisfies` pattern validates that the object conforms to the Record structure
+ * while preserving the literal key types for each entry.
+ *
  * Note: hasComplexSchema defaults to false, so it's not explicitly set here.
  */
-export const standardCodeDefinitions: Record<string, SourceConfigEntry> = {
+export const standardCodeDefinitions = {
   java: createStandardCodeConfig("the JVM code", SOURCES_PROMPT_FRAGMENTS.JAVA_SPECIFIC),
   javascript: createStandardCodeConfig(
     "the JavaScript/TypeScript code",
@@ -22,4 +25,4 @@ export const standardCodeDefinitions: Record<string, SourceConfigEntry> = {
     useModuleBase: true,
   }),
   cpp: createStandardCodeConfig("the C++ source code", SOURCES_PROMPT_FRAGMENTS.CPP_SPECIFIC),
-};
+} satisfies Record<string, SourceConfigEntry>;

@@ -13,7 +13,7 @@
  */
 
 import type { ProjectedFileTypesCountAndLines } from "../../repositories/sources/sources.model";
-import type { CategorizedDataItem } from "./sections/overview/categorized-section-data-builder";
+import type { CategorizedSectionItem } from "./sections/overview/categorized-section-data-builder";
 
 /**
  * Unified data model for report generation.
@@ -22,11 +22,14 @@ import type { CategorizedDataItem } from "./sections/overview/categorized-sectio
  * This is the high-level orchestration interface that aggregates data from
  * all report sections. Domain-specific types are defined in their respective
  * section type files.
+ *
+ * The categorizedData property uses a discriminated union (CategorizedSectionItem)
+ * for type-safe access to category-specific data structures.
  */
 export interface ReportData {
   appStats: import("./sections/overview/overview.types").AppStatistics;
   fileTypesData: ProjectedFileTypesCountAndLines[];
-  categorizedData: { category: string; label: string; data: CategorizedDataItem }[];
+  categorizedData: CategorizedSectionItem[];
   integrationPoints: import("./sections/integration-points/integration-points.types").IntegrationPointInfo[];
   dbInteractions: import("./sections/database/database.types").DatabaseIntegrationInfo[];
   procsAndTriggers: import("./sections/database/database.types").ProcsAndTriggers;

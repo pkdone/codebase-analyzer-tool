@@ -12,16 +12,8 @@ import type { PreparedHtmlReportData } from "../../html-report-writer";
 import type { PreparedJsonData } from "../../json-report-writer";
 import type { ReportData } from "../../report-data.types";
 import { SECTION_NAMES } from "../../reporting.constants";
-import {
-  extractMicroserviceFields,
-  isInferredArchitectureCategoryData,
-} from "./visualization-data-extractors";
-import {
-  isCategorizedDataNameDescArray,
-  isCategorizedDataInferredArchitecture,
-  type CategorizedDataItem,
-} from "../overview/categorized-section-data-builder";
-import { AppSummaryCategories } from "../../../../schemas/app-summaries.schema";
+import { isInferredArchitectureCategoryData } from "./visualization-data-extractors";
+import { type CategorizedSectionItem } from "../overview/categorized-section-data-builder";
 
 /**
  * Report section for architecture and domain visualizations (domain models, microservices architecture, current architecture diagrams).
@@ -94,15 +86,10 @@ export class ArchitectureAndDomainSection implements ReportSection {
   }
 
   /**
-   * Extract microservices data from categorized data
+   * Extract microservices data from categorized data.
+   * Uses the discriminated union to automatically narrow the data type.
    */
-  private extractMicroservicesData(
-    categorizedData: {
-      category: string;
-      label: string;
-      data: CategorizedDataItem;
-    }[],
-  ): {
+  private extractMicroservicesData(categorizedData: CategorizedSectionItem[]): {
     name: string;
     description: string;
     entities: {
@@ -121,50 +108,44 @@ export class ArchitectureAndDomainSection implements ReportSection {
       description: string;
     }[];
   }[] {
+    // Find the potentialMicroservices category - type is automatically narrowed
     const microservicesCategory = categorizedData.find(
-      (category) => category.category === AppSummaryCategories.enum.potentialMicroservices,
+      (item): item is Extract<CategorizedSectionItem, { category: "potentialMicroservices" }> =>
+        item.category === "potentialMicroservices",
     );
 
-    if (
-      !microservicesCategory ||
-      !isCategorizedDataNameDescArray(microservicesCategory.data) ||
-      microservicesCategory.data.length === 0
-    ) {
+    if (!microservicesCategory || microservicesCategory.data.length === 0) {
       return [];
     }
 
-    return microservicesCategory.data.map((item) => {
-      // Use type guard to safely extract microservice-specific fields
-      const microserviceFields = extractMicroserviceFields(item);
-      return {
-        name: item.name,
-        description: item.description,
-        entities: microserviceFields.entities,
-        endpoints: microserviceFields.endpoints,
-        operations: microserviceFields.operations,
-      };
-    });
+    // Data is now typed as PotentialMicroservicesArray - fields are guaranteed by schema
+    return microservicesCategory.data.map((item) => ({
+      name: item.name,
+      description: item.description,
+      entities: item.entities.map((entity) => ({
+        name: entity.name,
+        description: entity.description,
+        attributes: entity.attributes ?? [], // attributes is optional in the schema
+      })),
+      endpoints: item.endpoints,
+      operations: item.operations,
+    }));
   }
 
   /**
-   * Extract inferred architecture data from categorized data
+   * Extract inferred architecture data from categorized data.
+   * Uses the discriminated union to automatically narrow the data type.
    */
   private extractInferredArchitectureData(
-    categorizedData: {
-      category: string;
-      label: string;
-      data: CategorizedDataItem;
-    }[],
+    categorizedData: CategorizedSectionItem[],
   ): InferredArchitectureData | null {
+    // Find the inferredArchitecture category - type is automatically narrowed
     const inferredArchitectureCategory = categorizedData.find(
-      (category) => category.category === AppSummaryCategories.enum.inferredArchitecture,
+      (item): item is Extract<CategorizedSectionItem, { category: "inferredArchitecture" }> =>
+        item.category === "inferredArchitecture",
     );
 
-    if (
-      !inferredArchitectureCategory ||
-      !isCategorizedDataInferredArchitecture(inferredArchitectureCategory.data) ||
-      inferredArchitectureCategory.data.length === 0
-    ) {
+    if (!inferredArchitectureCategory || inferredArchitectureCategory.data.length === 0) {
       return null;
     }
 
@@ -175,6 +156,7 @@ export class ArchitectureAndDomainSection implements ReportSection {
       return null;
     }
 
+    // Fields are guaranteed by the Zod schema
     return {
       internalComponents: rawData.internalComponents.map((c) => ({
         name: c.name,

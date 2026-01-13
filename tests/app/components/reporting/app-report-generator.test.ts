@@ -105,7 +105,7 @@ describe("AppReportGenerator", () => {
         appDescription: "Test app",
       };
 
-      const mockCategorizedData = [
+      const mockCategorizedData: ReportData["categorizedData"] = [
         {
           category: "technologies",
           label: "Entities",

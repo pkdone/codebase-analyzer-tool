@@ -14,14 +14,14 @@ import {
  * createStandardCodeConfig factory to ensure consistent instruction patterns.
  *
  * The `satisfies` pattern validates that the object conforms to the Record structure
- * while preserving the literal types of each entry (including specific Zod schema types).
- * This enables TypeScript to infer the exact schema type for each file type key.
+ * while preserving the inferred literal types of each entry. This enables TypeScript
+ * to provide better type inference when accessing specific file type keys.
  */
-export const fileTypePromptRegistry: Record<CanonicalFileType, SourceConfigEntry> = {
+export const fileTypePromptRegistry = {
   ...standardCodeDefinitions,
   ...dependencyFileDefinitions,
   ...specialFileDefinitions,
-} as Record<CanonicalFileType, SourceConfigEntry>;
+} satisfies Record<CanonicalFileType, SourceConfigEntry>;
 
 /**
  * Type alias for the fileTypePromptRegistry that preserves specific schema types for each file type.

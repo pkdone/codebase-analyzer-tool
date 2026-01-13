@@ -11,9 +11,12 @@ import {
 /**
  * Source prompt definitions for special file types (SQL, Markdown, XML, JSP, scripts, etc.).
  *
+ * The `satisfies` pattern validates that the object conforms to the Record structure
+ * while preserving the literal key types for each entry.
+ *
  * Note: hasComplexSchema defaults to false, so it's only explicitly set when true.
  */
-export const specialFileDefinitions: Record<string, SourceConfigEntry> = {
+export const specialFileDefinitions = {
   sql: {
     ...createSimpleConfig(
       "the database DDL/DML/SQL code",
@@ -147,4 +150,4 @@ export const specialFileDefinitions: Record<string, SourceConfigEntry> = {
       },
     ],
   ),
-};
+} satisfies Record<string, SourceConfigEntry>;

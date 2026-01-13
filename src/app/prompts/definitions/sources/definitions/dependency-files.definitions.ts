@@ -4,8 +4,11 @@ import { createDependencyConfig, type SourceConfigEntry } from "./shared-utiliti
 /**
  * Source prompt definitions for dependency management files.
  * These use the createDependencyConfig factory to ensure consistent instruction patterns.
+ *
+ * The `satisfies` pattern validates that the object conforms to the Record structure
+ * while preserving the literal key types for each entry.
  */
-export const dependencyFileDefinitions: Record<string, SourceConfigEntry> = {
+export const dependencyFileDefinitions = {
   maven: createDependencyConfig(
     "the Maven POM (Project Object Model) build file",
     SOURCES_PROMPT_FRAGMENTS.DEPENDENCY_EXTRACTION.MAVEN,
@@ -50,4 +53,4 @@ export const dependencyFileDefinitions: Record<string, SourceConfigEntry> = {
     "the C/C++ build configuration (CMake or Makefile)",
     SOURCES_PROMPT_FRAGMENTS.DEPENDENCY_EXTRACTION.MAKEFILE,
   ),
-};
+} satisfies Record<string, SourceConfigEntry>;

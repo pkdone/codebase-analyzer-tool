@@ -15,20 +15,22 @@ import type { ProcsAndTriggers, DatabaseIntegrationInfo } from "./sections/datab
 import type { IntegrationPointInfo } from "./sections/integration-points/integration-points.types";
 import type { ProjectedFileTypesCountAndLines } from "../../repositories/sources/sources.model";
 import type { TableViewModel } from "./view-models/table-view-model";
-import type { CategorizedDataItem } from "./sections/overview/categorized-section-data-builder";
+import type { CategorizedSectionItem } from "./sections/overview/categorized-section-data-builder";
 import type { PieChartData } from "./sections/file-types/pie-chart.types";
+
+/**
+ * Extended categorized section item with table view model for HTML rendering.
+ */
+type CategorizedSectionItemWithViewModel = CategorizedSectionItem & {
+  tableViewModel: TableViewModel;
+};
 
 export interface PreparedHtmlReportData {
   appStats: AppStatistics;
   fileTypesData: ProjectedFileTypesCountAndLines[];
   /** Pre-computed pie chart data for rendering */
   pieChartData: PieChartData;
-  categorizedData: {
-    category: string;
-    label: string;
-    data: CategorizedDataItem;
-    tableViewModel: TableViewModel;
-  }[];
+  categorizedData: CategorizedSectionItemWithViewModel[];
   integrationPoints: IntegrationPointInfo[];
   dbInteractions: DatabaseIntegrationInfo[];
   procsAndTriggers: ProcsAndTriggers;

@@ -1,6 +1,9 @@
 import "reflect-metadata";
 import { DomainModelDataProvider } from "../../../../../src/app/components/reporting/sections/visualizations/domain-model-data-provider";
-import type { AppSummaryNameDescArray } from "../../../../../src/app/repositories/app-summaries/app-summaries.model";
+import type {
+  CategorizedSectionItem,
+  BoundedContextsArray,
+} from "../../../../../src/app/components/reporting/sections/overview/categorized-section-data-builder";
 
 describe("DomainModelDataProvider", () => {
   let provider: DomainModelDataProvider;
@@ -11,7 +14,7 @@ describe("DomainModelDataProvider", () => {
 
   describe("getDomainModelData with hierarchical bounded contexts", () => {
     it("should correctly extract hierarchical bounded context data with repository at aggregate level", () => {
-      const categorizedData = [
+      const categorizedData: CategorizedSectionItem[] = [
         {
           category: "boundedContexts",
           label: "Domain Model",
@@ -61,7 +64,7 @@ describe("DomainModelDataProvider", () => {
                 },
               ],
             },
-          ] as AppSummaryNameDescArray,
+          ] as BoundedContextsArray,
         },
       ];
 
@@ -103,7 +106,7 @@ describe("DomainModelDataProvider", () => {
     });
 
     it("should flatten aggregates with entity names as string array and repository as object", () => {
-      const categorizedData = [
+      const categorizedData: CategorizedSectionItem[] = [
         {
           category: "boundedContexts",
           label: "Domain Model",
@@ -127,7 +130,7 @@ describe("DomainModelDataProvider", () => {
                 },
               ],
             },
-          ] as AppSummaryNameDescArray,
+          ] as BoundedContextsArray,
         },
       ];
 
@@ -161,7 +164,7 @@ describe("DomainModelDataProvider", () => {
     });
 
     it("should handle bounded context with empty aggregates array", () => {
-      const categorizedData = [
+      const categorizedData: CategorizedSectionItem[] = [
         {
           category: "boundedContexts",
           label: "Domain Model",
@@ -171,7 +174,7 @@ describe("DomainModelDataProvider", () => {
               description: "A context with no aggregates",
               aggregates: [],
             },
-          ] as AppSummaryNameDescArray,
+          ] as BoundedContextsArray,
         },
       ];
 
@@ -184,11 +187,11 @@ describe("DomainModelDataProvider", () => {
     });
 
     it("should handle missing bounded contexts data gracefully", () => {
-      const categorizedData = [
+      const categorizedData: CategorizedSectionItem[] = [
         {
           category: "technologies",
           label: "Technologies",
-          data: [{ name: "Java", description: "Java language" }] as AppSummaryNameDescArray,
+          data: [{ name: "Java", description: "Java language" }],
         },
       ];
 
@@ -201,7 +204,7 @@ describe("DomainModelDataProvider", () => {
     });
 
     it("should flatten all aggregates, entities, and repositories from multiple bounded contexts", () => {
-      const categorizedData = [
+      const categorizedData: CategorizedSectionItem[] = [
         {
           category: "boundedContexts",
           label: "Domain Model",
@@ -245,7 +248,7 @@ describe("DomainModelDataProvider", () => {
                 },
               ],
             },
-          ] as AppSummaryNameDescArray,
+          ] as BoundedContextsArray,
         },
       ];
 
@@ -269,7 +272,7 @@ describe("DomainModelDataProvider", () => {
     });
 
     it("should deduplicate entities that appear in multiple aggregates", () => {
-      const categorizedData = [
+      const categorizedData: CategorizedSectionItem[] = [
         {
           category: "boundedContexts",
           label: "Domain Model",
@@ -304,7 +307,7 @@ describe("DomainModelDataProvider", () => {
                 },
               ],
             },
-          ] as AppSummaryNameDescArray,
+          ] as BoundedContextsArray,
         },
       ];
 
@@ -321,7 +324,7 @@ describe("DomainModelDataProvider", () => {
     });
 
     it("should handle aggregates with empty entities array", () => {
-      const categorizedData = [
+      const categorizedData: CategorizedSectionItem[] = [
         {
           category: "boundedContexts",
           label: "Domain Model",
@@ -341,7 +344,7 @@ describe("DomainModelDataProvider", () => {
                 },
               ],
             },
-          ] as AppSummaryNameDescArray,
+          ] as BoundedContextsArray,
         },
       ];
 
@@ -359,7 +362,7 @@ describe("DomainModelDataProvider", () => {
     });
 
     it("should handle bounded context without aggregates property", () => {
-      const categorizedData = [
+      const categorizedData: CategorizedSectionItem[] = [
         {
           category: "boundedContexts",
           label: "Domain Model",
@@ -369,7 +372,7 @@ describe("DomainModelDataProvider", () => {
               description: "A context without aggregates property",
               // No aggregates property at all
             },
-          ] as AppSummaryNameDescArray,
+          ] as BoundedContextsArray,
         },
       ];
 

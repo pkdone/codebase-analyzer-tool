@@ -3,7 +3,12 @@ import {
   fileTypePromptRegistry,
   type FileTypePromptRegistry,
 } from "../../../../../src/app/prompts/definitions/sources/sources.definitions";
-import { type SourceConfigEntry } from "../../../../../src/app/prompts/definitions/sources/definitions";
+import {
+  standardCodeDefinitions,
+  dependencyFileDefinitions,
+  specialFileDefinitions,
+  type SourceConfigEntry,
+} from "../../../../../src/app/prompts/definitions/sources/definitions";
 import { CANONICAL_FILE_TYPES } from "../../../../../src/app/schemas/canonical-file-types";
 
 /**
@@ -180,6 +185,114 @@ describe("fileTypePromptRegistry Type Safety", () => {
         const schema = fileTypePromptRegistry[fileType].responseSchema;
         // All schemas should be ZodObject instances (from .pick())
         expect(schema).toBeInstanceOf(z.ZodObject);
+      }
+    });
+  });
+
+  describe("Sub-Definition Files with satisfies Pattern", () => {
+    it("should have standardCodeDefinitions with correct keys", () => {
+      // Verify that standardCodeDefinitions preserves literal key types
+      const expectedKeys = ["java", "javascript", "csharp", "python", "ruby", "c", "cpp"];
+      const actualKeys = Object.keys(standardCodeDefinitions);
+
+      for (const key of expectedKeys) {
+        expect(actualKeys).toContain(key);
+        expect(standardCodeDefinitions[key as keyof typeof standardCodeDefinitions]).toBeDefined();
+      }
+    });
+
+    it("should have dependencyFileDefinitions with correct keys", () => {
+      // Verify that dependencyFileDefinitions preserves literal key types
+      const expectedKeys = [
+        "maven",
+        "gradle",
+        "ant",
+        "npm",
+        "dotnet-proj",
+        "nuget",
+        "ruby-bundler",
+        "python-pip",
+        "python-setup",
+        "python-poetry",
+        "makefile",
+      ];
+      const actualKeys = Object.keys(dependencyFileDefinitions);
+
+      for (const key of expectedKeys) {
+        expect(actualKeys).toContain(key);
+        expect(
+          dependencyFileDefinitions[key as keyof typeof dependencyFileDefinitions],
+        ).toBeDefined();
+      }
+    });
+
+    it("should have specialFileDefinitions with correct keys", () => {
+      // Verify that specialFileDefinitions preserves literal key types
+      const expectedKeys = [
+        "sql",
+        "markdown",
+        "xml",
+        "jsp",
+        "shell-script",
+        "batch-script",
+        "jcl",
+        "default",
+      ];
+      const actualKeys = Object.keys(specialFileDefinitions);
+
+      for (const key of expectedKeys) {
+        expect(actualKeys).toContain(key);
+        expect(specialFileDefinitions[key as keyof typeof specialFileDefinitions]).toBeDefined();
+      }
+    });
+
+    it("should have each sub-definition entry satisfy SourceConfigEntry interface", () => {
+      // Test standardCodeDefinitions
+      for (const key of Object.keys(standardCodeDefinitions)) {
+        const entry = standardCodeDefinitions[key as keyof typeof standardCodeDefinitions];
+        expect(typeof entry.contentDesc).toBe("string");
+        expect(entry.responseSchema).toBeInstanceOf(z.ZodType);
+        expect(Array.isArray(entry.instructions)).toBe(true);
+      }
+
+      // Test dependencyFileDefinitions
+      for (const key of Object.keys(dependencyFileDefinitions)) {
+        const entry = dependencyFileDefinitions[key as keyof typeof dependencyFileDefinitions];
+        expect(typeof entry.contentDesc).toBe("string");
+        expect(entry.responseSchema).toBeInstanceOf(z.ZodType);
+        expect(Array.isArray(entry.instructions)).toBe(true);
+      }
+
+      // Test specialFileDefinitions
+      for (const key of Object.keys(specialFileDefinitions)) {
+        const entry = specialFileDefinitions[key as keyof typeof specialFileDefinitions];
+        expect(typeof entry.contentDesc).toBe("string");
+        expect(entry.responseSchema).toBeInstanceOf(z.ZodType);
+        expect(Array.isArray(entry.instructions)).toBe(true);
+      }
+    });
+
+    it("should preserve schema types from factory functions", () => {
+      // Verify that factory functions return consistent schema types
+      // Standard code definitions should all have the same schema (commonSourceAnalysisSchema)
+      const standardSchemas = Object.values(standardCodeDefinitions).map((def) =>
+        Object.keys((def.responseSchema as z.ZodObject<z.ZodRawShape>).shape).sort(),
+      );
+
+      // All standard code schemas should have the same keys
+      const firstSchemaKeys = standardSchemas[0];
+      for (const schemaKeys of standardSchemas) {
+        expect(schemaKeys).toEqual(firstSchemaKeys);
+      }
+
+      // Dependency file definitions should all have the same schema (dependencyFileSchema)
+      const depSchemas = Object.values(dependencyFileDefinitions).map((def) =>
+        Object.keys((def.responseSchema as z.ZodObject<z.ZodRawShape>).shape).sort(),
+      );
+
+      const firstDepSchemaKeys = depSchemas[0];
+      for (const schemaKeys of depSchemas) {
+        expect(schemaKeys).toEqual(firstDepSchemaKeys);
       }
     });
   });

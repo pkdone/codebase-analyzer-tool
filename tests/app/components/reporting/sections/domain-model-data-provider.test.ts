@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import { DomainModelDataProvider } from "../../../../../src/app/components/reporting/sections/visualizations/domain-model-data-provider";
 import type { HierarchicalBoundedContextData } from "../../../../../src/app/components/reporting/sections/visualizations/domain-model.types";
-import type { CategorizedDataItem } from "../../../../../src/app/components/reporting/sections/overview/categorized-section-data-builder";
+import type { CategorizedSectionItem } from "../../../../../src/app/components/reporting/sections/overview/categorized-section-data-builder";
 
 describe("DomainModelDataProvider", () => {
   let provider: DomainModelDataProvider;
@@ -12,7 +12,7 @@ describe("DomainModelDataProvider", () => {
 
   describe("getDomainModelData", () => {
     it("should return empty structure when no boundedContexts category exists", () => {
-      const categorizedData: { category: string; label: string; data: CategorizedDataItem }[] = [
+      const categorizedData: CategorizedSectionItem[] = [
         { category: "technologies", label: "Technologies", data: [] },
       ];
 
@@ -54,11 +54,11 @@ describe("DomainModelDataProvider", () => {
         },
       ];
 
-      const categorizedData: { category: string; label: string; data: CategorizedDataItem }[] = [
+      const categorizedData: CategorizedSectionItem[] = [
         {
           category: "boundedContexts",
           label: "Bounded Contexts",
-          data: hierarchicalData as unknown as CategorizedDataItem,
+          data: hierarchicalData,
         },
       ];
 
@@ -97,11 +97,11 @@ describe("DomainModelDataProvider", () => {
         },
       ];
 
-      const categorizedData: { category: string; label: string; data: CategorizedDataItem }[] = [
+      const categorizedData: CategorizedSectionItem[] = [
         {
           category: "boundedContexts",
           label: "Bounded Contexts",
-          data: hierarchicalData as unknown as CategorizedDataItem,
+          data: hierarchicalData,
         },
       ];
 
@@ -146,11 +146,11 @@ describe("DomainModelDataProvider", () => {
         },
       ];
 
-      const categorizedData: { category: string; label: string; data: CategorizedDataItem }[] = [
+      const categorizedData: CategorizedSectionItem[] = [
         {
           category: "boundedContexts",
           label: "Bounded Contexts",
-          data: hierarchicalData as unknown as CategorizedDataItem,
+          data: hierarchicalData,
         },
       ];
 
@@ -190,11 +190,11 @@ describe("DomainModelDataProvider", () => {
         },
       ];
 
-      const categorizedData: { category: string; label: string; data: CategorizedDataItem }[] = [
+      const categorizedData: CategorizedSectionItem[] = [
         {
           category: "boundedContexts",
           label: "Bounded Contexts",
-          data: hierarchicalData as unknown as CategorizedDataItem,
+          data: hierarchicalData,
         },
       ];
 
@@ -233,11 +233,11 @@ describe("DomainModelDataProvider", () => {
         },
       ];
 
-      const categorizedData: { category: string; label: string; data: CategorizedDataItem }[] = [
+      const categorizedData: CategorizedSectionItem[] = [
         {
           category: "boundedContexts",
           label: "Bounded Contexts",
-          data: hierarchicalData as unknown as CategorizedDataItem,
+          data: hierarchicalData,
         },
       ];
 
@@ -271,11 +271,11 @@ describe("DomainModelDataProvider", () => {
         },
       ] as unknown as HierarchicalBoundedContextData[];
 
-      const categorizedData: { category: string; label: string; data: CategorizedDataItem }[] = [
+      const categorizedData: CategorizedSectionItem[] = [
         {
           category: "boundedContexts",
           label: "Bounded Contexts",
-          data: hierarchicalData as unknown as CategorizedDataItem,
+          data: hierarchicalData as unknown as HierarchicalBoundedContextData[],
         },
       ];
 
@@ -310,11 +310,11 @@ describe("DomainModelDataProvider", () => {
         },
       ];
 
-      const categorizedData: { category: string; label: string; data: CategorizedDataItem }[] = [
+      const categorizedData: CategorizedSectionItem[] = [
         {
           category: "boundedContexts",
           label: "Bounded Contexts",
-          data: hierarchicalData as unknown as CategorizedDataItem,
+          data: hierarchicalData,
         },
       ];
 

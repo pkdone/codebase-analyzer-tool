@@ -6,12 +6,7 @@ import type { PreparedHtmlReportData } from "../../html-report-writer";
 import type { PreparedJsonData } from "../../json-report-writer";
 import type { ReportData } from "../../report-data.types";
 import { SECTION_NAMES } from "../../reporting.constants";
-import { extractKeyBusinessActivities } from "../visualizations/visualization-data-extractors";
-import {
-  isCategorizedDataNameDescArray,
-  type CategorizedDataItem,
-} from "../overview/categorized-section-data-builder";
-import { AppSummaryCategories } from "../../../../schemas/app-summaries.schema";
+import { type CategorizedSectionItem } from "../overview/categorized-section-data-builder";
 
 /**
  * Report section for business process flowcharts.
@@ -56,32 +51,25 @@ export class BusinessProcessesSection implements ReportSection {
   }
 
   /**
-   * Generate flowchart HTML for business processes (Mermaid definitions for client-side rendering)
+   * Generate flowchart HTML for business processes (Mermaid definitions for client-side rendering).
+   * Uses the discriminated union to automatically narrow the data type.
    */
-  private generateBusinessProcessesFlowcharts(
-    categorizedData: {
-      category: string;
-      label: string;
-      data: CategorizedDataItem;
-    }[],
-  ): string[] {
+  private generateBusinessProcessesFlowcharts(categorizedData: CategorizedSectionItem[]): string[] {
+    // Find the businessProcesses category - type is automatically narrowed
     const businessProcessesCategory = categorizedData.find(
-      (category) => category.category === AppSummaryCategories.enum.businessProcesses,
+      (item): item is Extract<CategorizedSectionItem, { category: "businessProcesses" }> =>
+        item.category === "businessProcesses",
     );
 
-    if (
-      !businessProcessesCategory ||
-      !isCategorizedDataNameDescArray(businessProcessesCategory.data) ||
-      businessProcessesCategory.data.length === 0
-    ) {
+    if (!businessProcessesCategory || businessProcessesCategory.data.length === 0) {
       return [];
     }
 
-    // Convert AppSummaryNameDescArray to BusinessProcess format using type guard
+    // Data is now typed as BusinessProcessesArray - fields are guaranteed by schema
     const businessProcesses = businessProcessesCategory.data.map((item) => ({
       name: item.name,
       description: item.description,
-      keyBusinessActivities: extractKeyBusinessActivities(item),
+      keyBusinessActivities: item.keyBusinessActivities,
     }));
 
     return this.flowchartDiagramGenerator.generateMultipleFlowchartDiagrams(businessProcesses);

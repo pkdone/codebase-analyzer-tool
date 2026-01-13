@@ -1,12 +1,13 @@
 import { injectable } from "tsyringe";
 import type {
+  HierarchicalBoundedContext,
   NestedAggregate,
   NestedEntity,
   NestedRepository,
 } from "../../../../schemas/app-summaries.schema";
 import {
-  isCategorizedDataNameDescArray,
-  type CategorizedDataItem,
+  type CategorizedSectionItem,
+  type BoundedContextsArray,
 } from "../overview/categorized-section-data-builder";
 import type {
   DomainEntity,
@@ -14,9 +15,7 @@ import type {
   DomainAggregate,
   DomainBoundedContext,
   DomainModelData,
-  HierarchicalBoundedContextData,
 } from "./domain-model.types";
-import { isHierarchicalBoundedContextDataArray } from "./domain-model.guards";
 
 // Re-export types for consumers
 export type {
@@ -38,18 +37,18 @@ export class DomainModelDataProvider {
    * Extract and transform domain model data from categorized app summary data.
    * The boundedContexts category contains the full hierarchical structure
    * with embedded aggregates, each containing its repository and entities.
+   *
+   * Uses the discriminated union to automatically narrow the data type.
    */
-  getDomainModelData(
-    categorizedData: {
-      category: string;
-      label: string;
-      data: CategorizedDataItem;
-    }[],
-  ): DomainModelData {
-    // Find the boundedContexts category data
-    const boundedContextsCategory = categorizedData.find((c) => c.category === "boundedContexts");
-    if (!boundedContextsCategory || !isCategorizedDataNameDescArray(boundedContextsCategory.data)) {
-      // Return empty structure if boundedContexts data is not available or wrong type
+  getDomainModelData(categorizedData: CategorizedSectionItem[]): DomainModelData {
+    // Find the boundedContexts category - type is automatically narrowed via discriminator
+    const boundedContextsCategory = categorizedData.find(
+      (item): item is Extract<CategorizedSectionItem, { category: "boundedContexts" }> =>
+        item.category === "boundedContexts",
+    );
+
+    if (!boundedContextsCategory || boundedContextsCategory.data.length === 0) {
+      // Return empty structure if boundedContexts data is not available
       return {
         boundedContexts: [],
         aggregates: [],
@@ -58,18 +57,7 @@ export class DomainModelDataProvider {
       };
     }
 
-    // Validate the data structure using type guard - narrows type to HierarchicalBoundedContextData[]
-    if (!isHierarchicalBoundedContextDataArray(boundedContextsCategory.data)) {
-      // Return empty structure if data doesn't match expected structure
-      return {
-        boundedContexts: [],
-        aggregates: [],
-        entities: [],
-        repositories: [],
-      };
-    }
-
-    // Type is now narrowed to HierarchicalBoundedContextData[] by the type guard above
+    // Data is now typed as BoundedContextsArray (hierarchical bounded context structure)
     const hierarchicalContexts = boundedContextsCategory.data;
 
     // Transform hierarchical data into flattened domain model structure
@@ -89,17 +77,16 @@ export class DomainModelDataProvider {
   }
 
   /**
-   * Transform hierarchical bounded context data into the reporting format
+   * Transform hierarchical bounded context data into the reporting format.
+   * Accepts BoundedContextsArray from the discriminated union.
    */
   private transformHierarchicalContexts(
-    hierarchicalContexts: HierarchicalBoundedContextData[],
+    hierarchicalContexts: BoundedContextsArray,
   ): DomainBoundedContext[] {
-    return hierarchicalContexts.map((context) => {
-      // The Zod schema requires aggregates, but the type guard allows missing aggregates
-      // for flexibility with runtime data (legacy data, passthrough properties).
-      // Use property check to safely handle the runtime edge case where aggregates might be missing.
-      const contextAggregates =
-        "aggregates" in context && Array.isArray(context.aggregates) ? context.aggregates : [];
+    return hierarchicalContexts.map((context: HierarchicalBoundedContext) => {
+      // aggregates is required by schema but may be missing in runtime data (passthrough)
+      // Using Array.isArray check to handle edge cases with legacy data
+      const contextAggregates = Array.isArray(context.aggregates) ? context.aggregates : [];
       const aggregates = this.transformAggregates(contextAggregates);
       const entities = this.extractEntitiesFromAggregates(contextAggregates);
       const repositories = this.extractRepositoriesFromAggregates(contextAggregates);

@@ -66,11 +66,16 @@ export class FileSummarizerService {
       const promptMetadata = this.promptManager.sources[canonicalFileType];
       const renderedPrompt = renderPrompt(promptMetadata, { content });
       const fileTypePromptConfig = this.fileTypePromptRegistry[canonicalFileType];
-      const schema = this.fileTypePromptRegistry[canonicalFileType].responseSchema;
+      const schema = fileTypePromptConfig.responseSchema;
+      // hasComplexSchema is optional and may not exist on some entries
+      // Use Boolean() to handle undefined safely
+      const hasComplexSchema = Boolean(
+        "hasComplexSchema" in fileTypePromptConfig && fileTypePromptConfig.hasComplexSchema,
+      );
       const completionOptions = {
         outputFormat: LLMOutputFormat.JSON,
         jsonSchema: schema,
-        hasComplexSchema: fileTypePromptConfig.hasComplexSchema ?? false,
+        hasComplexSchema,
         sanitizerConfig: getLlmArtifactCorrections(),
       } as const;
       /**

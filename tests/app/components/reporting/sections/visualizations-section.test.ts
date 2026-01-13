@@ -7,7 +7,11 @@ import {
   CurrentArchitectureDiagramGenerator,
 } from "../../../../../src/app/components/reporting/diagrams";
 import type { ReportData } from "../../../../../src/app/components/reporting/report-data.types";
-import type { AppSummaryNameDescArray } from "../../../../../src/app/repositories/app-summaries/app-summaries.model";
+import type {
+  CategorizedSectionItem,
+  InferredArchitectureInner,
+  PotentialMicroservicesArray,
+} from "../../../../../src/app/components/reporting/sections/overview/category-data-type-guards";
 import { AppSummaryCategories } from "../../../../../src/app/schemas/app-summaries.schema";
 
 describe("ArchitectureAndDomainSection", () => {
@@ -120,9 +124,9 @@ describe("ArchitectureAndDomainSection", () => {
           {
             category: "inferredArchitecture",
             label: "Inferred Architecture",
-            data: [inferredArchData] as unknown as AppSummaryNameDescArray,
+            data: [inferredArchData] as InferredArchitectureInner[],
           },
-        ],
+        ] satisfies CategorizedSectionItem[],
         integrationPoints: [],
         dbInteractions: [],
         procsAndTriggers: {
@@ -176,11 +180,9 @@ describe("ArchitectureAndDomainSection", () => {
           {
             category: "technologies",
             label: "Technologies",
-            data: [
-              { name: "Java", description: "Programming language" },
-            ] as AppSummaryNameDescArray,
+            data: [{ name: "Java", description: "Programming language" }],
           },
-        ],
+        ] satisfies CategorizedSectionItem[],
         integrationPoints: [],
         dbInteractions: [],
         procsAndTriggers: {
@@ -217,9 +219,9 @@ describe("ArchitectureAndDomainSection", () => {
           {
             category: "inferredArchitecture",
             label: "Inferred Architecture",
-            data: [] as AppSummaryNameDescArray,
+            data: [] as InferredArchitectureInner[],
           },
-        ],
+        ] satisfies CategorizedSectionItem[],
         integrationPoints: [],
         dbInteractions: [],
         procsAndTriggers: {
@@ -295,11 +297,11 @@ describe("ArchitectureAndDomainSection", () => {
         fileTypesData: [],
         categorizedData: [
           {
-            category: AppSummaryCategories.enum.potentialMicroservices,
+            category: "potentialMicroservices",
             label: "Potential Microservices",
-            data: microservices as AppSummaryNameDescArray,
+            data: microservices as PotentialMicroservicesArray,
           },
-        ],
+        ] satisfies CategorizedSectionItem[],
         integrationPoints: [],
         dbInteractions: [],
         procsAndTriggers: {
@@ -342,11 +344,11 @@ describe("ArchitectureAndDomainSection", () => {
         fileTypesData: [],
         categorizedData: [
           {
-            category: AppSummaryCategories.enum.inferredArchitecture,
+            category: "inferredArchitecture",
             label: "Inferred Architecture",
-            data: [inferredArchData] as unknown as AppSummaryNameDescArray,
+            data: [inferredArchData] as InferredArchitectureInner[],
           },
-        ],
+        ] satisfies CategorizedSectionItem[],
         integrationPoints: [],
         dbInteractions: [],
         procsAndTriggers: {
