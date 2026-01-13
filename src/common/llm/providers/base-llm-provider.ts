@@ -23,7 +23,7 @@ import {
   ProviderInit,
 } from "./llm-provider.types";
 import { formatError } from "../../utils/error-formatters";
-import { processJson } from "../json-processing/core/json-processing";
+import { parseAndValidateLLMJson } from "../json-processing/core/json-processing";
 import { calculateTokenUsageFromError } from "../utils/error-parser";
 import { LLMError, LLMErrorCode } from "../types/llm-errors.types";
 import { llmProviderConfig } from "../config/llm.config";
@@ -363,7 +363,7 @@ export default abstract class BaseLLMProvider implements LLMProvider {
     // Process JSON with schema-aware type inference.
     // The jsonSchema from completionOptions carries the type information through the chain.
     // With the simplified generic approach using S directly, type inference should work correctly.
-    const jsonProcessingResult = processJson(
+    const jsonProcessingResult = parseAndValidateLLMJson(
       responseContent,
       context,
       completionOptions,

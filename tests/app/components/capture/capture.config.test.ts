@@ -1,13 +1,15 @@
 import { z } from "zod";
 import { promptManager } from "../../../../src/app/prompts/prompt-registry";
 const fileTypePromptMetadata = promptManager.sources;
-import { sourceConfigMap } from "../../../../src/app/prompts/definitions/sources/sources.definitions";
+import { fileTypePromptRegistry } from "../../../../src/app/prompts/definitions/sources/sources.definitions";
 
 /**
  * Helper function to get schema field names from a config entry.
  * Since responseSchema is now a ZodObject, we can extract field names from its shape.
  */
-function getSchemaFields(config: (typeof sourceConfigMap)[keyof typeof sourceConfigMap]): string[] {
+function getSchemaFields(
+  config: (typeof fileTypePromptRegistry)[keyof typeof fileTypePromptRegistry],
+): string[] {
   const schema = config.responseSchema as z.ZodObject<z.ZodRawShape>;
   return Object.keys(schema.shape);
 }
@@ -52,7 +54,7 @@ describe("fileTypeMetadataConfig", () => {
 
     it("should use default hasComplexSchema (undefined = false)", () => {
       // Standard code configs don't explicitly set hasComplexSchema, so it defaults to false at usage site
-      expect(sourceConfigMap.java.hasComplexSchema).toBeUndefined();
+      expect(fileTypePromptRegistry.java.hasComplexSchema).toBeUndefined();
     });
 
     it("should include expected instructions", () => {
@@ -79,7 +81,7 @@ describe("fileTypeMetadataConfig", () => {
 
     it("should use default hasComplexSchema (undefined = false)", () => {
       // Standard code configs don't explicitly set hasComplexSchema, so it defaults to false at usage site
-      expect(sourceConfigMap.javascript.hasComplexSchema).toBeUndefined();
+      expect(fileTypePromptRegistry.javascript.hasComplexSchema).toBeUndefined();
     });
 
     it("should include expected instructions", () => {
@@ -99,7 +101,7 @@ describe("fileTypeMetadataConfig", () => {
 
     it("should have hasComplexSchema explicitly set to true", () => {
       // SQL config has complex schema due to database object definitions
-      expect(sourceConfigMap.sql.hasComplexSchema).toBe(true);
+      expect(fileTypePromptRegistry.sql.hasComplexSchema).toBe(true);
     });
 
     it("should include SQL-specific instructions", () => {
@@ -124,7 +126,7 @@ describe("fileTypeMetadataConfig", () => {
 
     it("should use default hasComplexSchema (undefined = false)", () => {
       // Standard code configs don't explicitly set hasComplexSchema, so it defaults to false at usage site
-      expect(sourceConfigMap.csharp.hasComplexSchema).toBeUndefined();
+      expect(fileTypePromptRegistry.csharp.hasComplexSchema).toBeUndefined();
     });
 
     it("should include C#-specific instructions", () => {
@@ -144,7 +146,7 @@ describe("fileTypeMetadataConfig", () => {
 
     it("should use default hasComplexSchema (undefined = false)", () => {
       // Standard code configs don't explicitly set hasComplexSchema, so it defaults to false at usage site
-      expect(sourceConfigMap.ruby.hasComplexSchema).toBeUndefined();
+      expect(fileTypePromptRegistry.ruby.hasComplexSchema).toBeUndefined();
     });
 
     it("should include Ruby-specific instructions", () => {
@@ -164,7 +166,7 @@ describe("fileTypeMetadataConfig", () => {
     });
 
     it("should include dependencies in schema fields", () => {
-      const config = sourceConfigMap.maven;
+      const config = fileTypePromptRegistry.maven;
       const schemaFields = getSchemaFields(config);
       expect(schemaFields).toContain("dependencies");
       expect(schemaFields).not.toContain("internalReferences");
@@ -195,7 +197,7 @@ describe("fileTypeMetadataConfig", () => {
     });
 
     it("should include dependencies in schema fields", () => {
-      const config = sourceConfigMap.gradle;
+      const config = fileTypePromptRegistry.gradle;
       const schemaFields = getSchemaFields(config);
       expect(schemaFields).toContain("dependencies");
       expect(schemaFields).not.toContain("internalReferences");
@@ -218,7 +220,7 @@ describe("fileTypeMetadataConfig", () => {
     });
 
     it("should include dependencies in schema fields", () => {
-      const config = sourceConfigMap.npm;
+      const config = fileTypePromptRegistry.npm;
       const schemaFields = getSchemaFields(config);
       expect(schemaFields).toContain("dependencies");
       expect(schemaFields).not.toContain("internalReferences");
@@ -243,7 +245,7 @@ describe("fileTypeMetadataConfig", () => {
     });
 
     it("should include dependencies in schema fields", () => {
-      const config = sourceConfigMap["python-pip"];
+      const config = fileTypePromptRegistry["python-pip"];
       const schemaFields = getSchemaFields(config);
       expect(schemaFields).toContain("dependencies");
       expect(schemaFields).not.toContain("internalReferences");
@@ -291,7 +293,7 @@ describe("fileTypeMetadataConfig", () => {
       expect(fileTypePromptMetadata.java.contentDesc).toContain("JVM code");
       expect(fileTypePromptMetadata.default.contentDesc).toContain("source files");
       // hasComplexSchema defaults to false (undefined in config, default at usage site)
-      expect(sourceConfigMap.java.hasComplexSchema).toBeUndefined();
+      expect(fileTypePromptRegistry.java.hasComplexSchema).toBeUndefined();
     });
   });
 });

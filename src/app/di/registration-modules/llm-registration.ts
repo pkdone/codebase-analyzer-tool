@@ -30,9 +30,9 @@ export function initializeAndRegisterLLMComponents(): void {
   // Create LLM router using factory
   const { router, stats } = createLLMRouter(llmConfig);
 
-  // Register LLMRouter and LLMTelemetryTracker instances in DI container for application use
+  // Register LLMRouter and LLMExecutionStats instances in DI container for application use
   container.registerInstance(llmTokens.LLMRouter, router);
-  container.registerInstance(llmTokens.LLMTelemetryTracker, stats);
+  container.registerInstance(llmTokens.LLMExecutionStats, stats);
 
   console.log("LLMRouter registered as singleton");
 }

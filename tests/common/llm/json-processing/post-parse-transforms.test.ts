@@ -1,4 +1,4 @@
-import { processJson } from "../../../../src/common/llm/json-processing/core/json-processing";
+import { parseAndValidateLLMJson } from "../../../../src/common/llm/json-processing/core/json-processing";
 import {
   LLMCompletionOptions,
   LLMOutputFormat,
@@ -34,7 +34,7 @@ describe("Schema Fixing Transforms", () => {
         version: z.string(),
       });
 
-      const result = (processJson as any)(
+      const result = (parseAndValidateLLMJson as any)(
         schemaResponse,
         { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
         { ...defaultOptions, jsonSchema: schema },
@@ -55,7 +55,7 @@ describe("Schema Fixing Transforms", () => {
         version: "1.0.0",
       });
 
-      const result = (processJson as any)(
+      const result = (parseAndValidateLLMJson as any)(
         normalJson,
         { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
         defaultOptions,
@@ -90,7 +90,7 @@ describe("Schema Fixing Transforms", () => {
         enabled: z.boolean(),
       });
 
-      const result = (processJson as any)(
+      const result = (parseAndValidateLLMJson as any)(
         schemaResponse,
         { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
         { ...defaultOptions, jsonSchema: schema },
@@ -114,7 +114,7 @@ describe("Schema Fixing Transforms", () => {
         properties: {},
       });
 
-      const result = (processJson as any)(
+      const result = (parseAndValidateLLMJson as any)(
         schemaResponse,
         { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
         defaultOptions,
@@ -138,7 +138,7 @@ describe("Schema Fixing Transforms", () => {
         },
       });
 
-      const result = (processJson as any)(
+      const result = (parseAndValidateLLMJson as any)(
         schemaResponse,
         { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
         defaultOptions,
@@ -161,7 +161,7 @@ describe("Schema Fixing Transforms", () => {
     it("applies transforms only after successful parse", () => {
       const invalidJson = "{ this is not valid json";
 
-      const result = (processJson as any)(
+      const result = (parseAndValidateLLMJson as any)(
         invalidJson,
         { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
         defaultOptions,
@@ -187,7 +187,7 @@ describe("Schema Fixing Transforms", () => {
         validField: z.string(),
       });
 
-      const result = (processJson as any)(
+      const result = (parseAndValidateLLMJson as any)(
         schemaResponse,
         { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
         { ...defaultOptions, jsonSchema: schema },
@@ -221,7 +221,7 @@ describe("Schema Fixing Transforms", () => {
         dependencies: z.array(z.string()),
       });
 
-      const result = (processJson as any)(
+      const result = (parseAndValidateLLMJson as any)(
         response,
         { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
         { ...defaultOptions, jsonSchema: schema },
@@ -264,7 +264,7 @@ describe("Schema Fixing Transforms", () => {
         }),
       });
 
-      const result = (processJson as any)(
+      const result = (parseAndValidateLLMJson as any)(
         schemaResponse,
         { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
         { ...defaultOptions, jsonSchema: schema },
@@ -332,7 +332,7 @@ describe("Schema Fixing Transforms", () => {
         ),
       });
 
-      const result = (processJson as any)(
+      const result = (parseAndValidateLLMJson as any)(
         response,
         { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
         { ...defaultOptions, jsonSchema: schema },
@@ -382,7 +382,7 @@ describe("Schema Fixing Transforms", () => {
         ),
       });
 
-      const result = (processJson as any)(
+      const result = (parseAndValidateLLMJson as any)(
         response,
         { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
         { ...defaultOptions, jsonSchema: schema },
@@ -428,7 +428,7 @@ describe("Schema Fixing Transforms", () => {
         ),
       });
 
-      const result = (processJson as any)(
+      const result = (parseAndValidateLLMJson as any)(
         response,
         { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
         { ...defaultOptions, jsonSchema: schema },
@@ -456,7 +456,7 @@ describe("Schema Fixing Transforms", () => {
         ],
       });
 
-      const result = (processJson as any)(
+      const result = (parseAndValidateLLMJson as any)(
         response,
         { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
         defaultOptions,
@@ -497,7 +497,7 @@ describe("Schema Fixing Transforms", () => {
         }),
       });
 
-      const result = (processJson as any)(
+      const result = (parseAndValidateLLMJson as any)(
         response,
         { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
         { ...defaultOptions, jsonSchema: schema },
@@ -552,7 +552,7 @@ describe("Schema Fixing Transforms", () => {
         ),
       });
 
-      const result = (processJson as any)(
+      const result = (parseAndValidateLLMJson as any)(
         response,
         { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
         { ...defaultOptions, jsonSchema: schema },
@@ -579,7 +579,7 @@ describe("Schema Fixing Transforms", () => {
         ],
       });
 
-      const result = (processJson as any)(
+      const result = (parseAndValidateLLMJson as any)(
         response,
         { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
         defaultOptions,
@@ -599,7 +599,7 @@ describe("Schema Fixing Transforms", () => {
         empty: {},
       });
 
-      const result = (processJson as any)(
+      const result = (parseAndValidateLLMJson as any)(
         response,
         { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
         defaultOptions,
@@ -620,7 +620,7 @@ describe("Schema Fixing Transforms", () => {
         nullValue: null,
       });
 
-      const result = (processJson as any)(
+      const result = (parseAndValidateLLMJson as any)(
         response,
         { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
         defaultOptions,
@@ -667,7 +667,7 @@ describe("Schema Fixing Transforms", () => {
         ),
       });
 
-      const result = (processJson as any)(
+      const result = (parseAndValidateLLMJson as any)(
         response,
         { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
         { ...defaultOptions, jsonSchema: schema },
@@ -700,7 +700,7 @@ describe("Schema Fixing Transforms", () => {
         ],
       });
 
-      const result = (processJson as any)(
+      const result = (parseAndValidateLLMJson as any)(
         response,
         { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
         defaultOptions,
@@ -726,7 +726,7 @@ describe("Schema Fixing Transforms", () => {
         ],
       });
 
-      const result = (processJson as any)(
+      const result = (parseAndValidateLLMJson as any)(
         response,
         { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
         defaultOptions,

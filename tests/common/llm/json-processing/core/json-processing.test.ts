@@ -1,4 +1,4 @@
-import { processJson } from "../../../../../src/common/llm/json-processing/core/json-processing";
+import { parseAndValidateLLMJson } from "../../../../../src/common/llm/json-processing/core/json-processing";
 import { LLMOutputFormat, LLMPurpose } from "../../../../../src/common/llm/types/llm.types";
 import {
   JsonProcessingError,
@@ -9,12 +9,12 @@ import { z } from "zod";
 describe("json-processing", () => {
   const context = { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS };
 
-  describe("processJson", () => {
+  describe("parseAndValidateLLMJson", () => {
     describe("successful parse and validation flow", () => {
       it("should parse and validate valid JSON string", () => {
         const json = '{"key": "value", "number": 42}';
         const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-        const result = processJson(json, context, completionOptions);
+        const result = parseAndValidateLLMJson(json, context, completionOptions);
 
         expect(result.success).toBe(true);
         if (result.success) {
@@ -30,7 +30,7 @@ describe("json-processing", () => {
           outputFormat: LLMOutputFormat.JSON,
           jsonSchema: schema,
         };
-        const result = processJson(json, context, completionOptions);
+        const result = parseAndValidateLLMJson(json, context, completionOptions);
 
         expect(result.success).toBe(true);
         if (result.success) {
@@ -41,7 +41,7 @@ describe("json-processing", () => {
       it("should include sanitization steps in success result", () => {
         const json = '```json\n{"key": "value"}\n```';
         const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-        const result = processJson(json, context, completionOptions);
+        const result = parseAndValidateLLMJson(json, context, completionOptions);
 
         expect(result.success).toBe(true);
         if (result.success) {
@@ -54,7 +54,7 @@ describe("json-processing", () => {
       it("should return failure result for non-string content", () => {
         const nonString = 12345 as any;
         const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-        const result = processJson(nonString, context, completionOptions);
+        const result = parseAndValidateLLMJson(nonString, context, completionOptions);
 
         expect(result.success).toBe(false);
         if (!result.success) {
@@ -66,7 +66,7 @@ describe("json-processing", () => {
       it("should return parse error for completely invalid JSON", () => {
         const invalid = "not valid json at all";
         const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-        const result = processJson(invalid, context, completionOptions);
+        const result = parseAndValidateLLMJson(invalid, context, completionOptions);
 
         expect(result.success).toBe(false);
         if (!result.success) {
@@ -78,7 +78,7 @@ describe("json-processing", () => {
       it("should detect non-JSON responses without braces or brackets", () => {
         const plainText = "This is plain text";
         const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-        const result = processJson(plainText, context, completionOptions);
+        const result = parseAndValidateLLMJson(plainText, context, completionOptions);
 
         expect(result.success).toBe(false);
         if (!result.success) {
@@ -91,7 +91,7 @@ describe("json-processing", () => {
         const invalid = "not valid json";
         const completionOptions = { outputFormat: LLMOutputFormat.JSON };
         const customContext = { resource: "my-resource", purpose: LLMPurpose.COMPLETIONS };
-        const result = processJson(invalid, customContext, completionOptions);
+        const result = parseAndValidateLLMJson(invalid, customContext, completionOptions);
 
         expect(result.success).toBe(false);
         if (!result.success) {
@@ -108,7 +108,7 @@ describe("json-processing", () => {
           outputFormat: LLMOutputFormat.JSON,
           jsonSchema: schema,
         };
-        const result = processJson(json, context, completionOptions);
+        const result = parseAndValidateLLMJson(json, context, completionOptions);
 
         expect(result.success).toBe(false);
         if (!result.success) {
@@ -125,7 +125,7 @@ describe("json-processing", () => {
           jsonSchema: schema,
         };
         const customContext = { resource: "validation-resource", purpose: LLMPurpose.COMPLETIONS };
-        const result = processJson(json, customContext, completionOptions);
+        const result = parseAndValidateLLMJson(json, customContext, completionOptions);
 
         expect(result.success).toBe(false);
         if (!result.success) {
@@ -139,7 +139,7 @@ describe("json-processing", () => {
       it("should log sanitization steps when loggingEnabled is true and steps are significant", () => {
         const json = '```json\n{"key": "value"}\n```';
         const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-        const result = processJson(json, context, completionOptions, true);
+        const result = parseAndValidateLLMJson(json, context, completionOptions, true);
 
         expect(result.success).toBe(true);
         // Logging is tested indirectly - if it throws, the test would fail
@@ -148,7 +148,7 @@ describe("json-processing", () => {
       it("should work when loggingEnabled is false", () => {
         const json = '{"key": "value"}';
         const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-        const result = processJson(json, context, completionOptions, false);
+        const result = parseAndValidateLLMJson(json, context, completionOptions, false);
 
         expect(result.success).toBe(true);
         if (result.success) {
@@ -162,7 +162,7 @@ describe("json-processing", () => {
         const invalid = "not valid json";
         const completionOptions = { outputFormat: LLMOutputFormat.JSON };
         const customContext = { resource: "custom-resource", purpose: LLMPurpose.COMPLETIONS };
-        const result = processJson(invalid, customContext, completionOptions);
+        const result = parseAndValidateLLMJson(invalid, customContext, completionOptions);
 
         expect(result.success).toBe(false);
         if (!result.success) {
@@ -180,7 +180,7 @@ describe("json-processing", () => {
           outputFormat: LLMOutputFormat.JSON,
           jsonSchema: schema,
         };
-        const result = processJson(json, context, completionOptions);
+        const result = parseAndValidateLLMJson(json, context, completionOptions);
 
         expect(result.success).toBe(true);
         if (result.success) {
@@ -200,7 +200,7 @@ describe("json-processing", () => {
           outputFormat: LLMOutputFormat.JSON,
           jsonSchema: schema,
         };
-        const result = processJson(json, context, completionOptions);
+        const result = parseAndValidateLLMJson(json, context, completionOptions);
 
         expect(result.success).toBe(true);
         if (result.success) {
@@ -215,7 +215,7 @@ describe("json-processing", () => {
         // JSON with null value - transforms should NOT be applied without schema
         const json = '{"name": "test", "groupId": null}';
         const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-        const result = processJson(json, context, completionOptions);
+        const result = parseAndValidateLLMJson(json, context, completionOptions);
 
         expect(result.success).toBe(true);
         if (result.success) {
@@ -238,7 +238,7 @@ describe("json-processing", () => {
           outputFormat: LLMOutputFormat.JSON,
           jsonSchema: schema,
         };
-        const result = processJson(json, context, completionOptions);
+        const result = parseAndValidateLLMJson(json, context, completionOptions);
 
         expect(result.success).toBe(true);
         if (result.success) {
@@ -255,7 +255,7 @@ describe("json-processing", () => {
       it("should handle empty string", () => {
         const empty = "";
         const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-        const result = processJson(empty, context, completionOptions);
+        const result = parseAndValidateLLMJson(empty, context, completionOptions);
 
         expect(result.success).toBe(false);
         if (!result.success) {
@@ -266,7 +266,7 @@ describe("json-processing", () => {
       it("should handle whitespace-only string", () => {
         const whitespace = "   \n\t  ";
         const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-        const result = processJson(whitespace, context, completionOptions);
+        const result = parseAndValidateLLMJson(whitespace, context, completionOptions);
 
         expect(result.success).toBe(false);
         if (!result.success) {
@@ -277,7 +277,7 @@ describe("json-processing", () => {
       it("should handle JSON with surrounding text", () => {
         const textWithJson = 'Some text before {"key": "value"} some text after';
         const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-        const result = processJson(textWithJson, context, completionOptions);
+        const result = parseAndValidateLLMJson(textWithJson, context, completionOptions);
 
         expect(result.success).toBe(true);
         if (result.success) {
@@ -298,7 +298,7 @@ describe("json-processing", () => {
           jsonSchema: personSchema,
         };
 
-        const result = processJson(json, context, completionOptions);
+        const result = parseAndValidateLLMJson(json, context, completionOptions);
 
         expect(result.success).toBe(true);
         if (result.success) {
@@ -316,7 +316,7 @@ describe("json-processing", () => {
         const json = '{"key": "value", "number": 42}';
         const completionOptions = { outputFormat: LLMOutputFormat.JSON };
 
-        const result = processJson(json, context, completionOptions);
+        const result = parseAndValidateLLMJson(json, context, completionOptions);
 
         expect(result.success).toBe(true);
         if (result.success) {
@@ -342,7 +342,7 @@ describe("json-processing", () => {
           jsonSchema: itemsSchema,
         };
 
-        const result = processJson(json, context, completionOptions);
+        const result = parseAndValidateLLMJson(json, context, completionOptions);
 
         expect(result.success).toBe(true);
         if (result.success) {
@@ -366,7 +366,7 @@ describe("json-processing", () => {
           jsonSchema: optionalSchema,
         };
 
-        const result = processJson(json, context, completionOptions);
+        const result = parseAndValidateLLMJson(json, context, completionOptions);
 
         expect(result.success).toBe(true);
         if (result.success) {
@@ -390,7 +390,7 @@ describe("json-processing", () => {
           jsonSchema: nestedSchema,
         };
 
-        const result = processJson(json, context, completionOptions);
+        const result = parseAndValidateLLMJson(json, context, completionOptions);
 
         expect(result.success).toBe(true);
         if (result.success) {
@@ -410,7 +410,7 @@ describe("json-processing", () => {
           jsonSchema: unionSchema,
         };
 
-        const result = processJson(json, context, completionOptions);
+        const result = parseAndValidateLLMJson(json, context, completionOptions);
 
         expect(result.success).toBe(true);
         if (result.success) {
@@ -430,7 +430,7 @@ describe("json-processing", () => {
           jsonSchema: schema,
         };
 
-        const result = processJson(json, context, completionOptions);
+        const result = parseAndValidateLLMJson(json, context, completionOptions);
 
         // Using the discriminated union pattern
         if (result.success) {
@@ -448,13 +448,13 @@ describe("json-processing", () => {
       it("should successfully parse array JSON even without schema", () => {
         const json = '[{"id": 1}, {"id": 2}]';
         const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-        const result = processJson(json, context, completionOptions);
+        const result = parseAndValidateLLMJson(json, context, completionOptions);
 
         expect(result.success).toBe(true);
         if (result.success) {
           // Runtime behavior: arrays are accepted and parsed correctly
           // Note: result.data is typed as Record<string, unknown> but at runtime is an array
-          // This demonstrates the type limitation documented in processJson comments
+          // This demonstrates the type limitation documented in parseAndValidateLLMJson comments
           expect(Array.isArray(result.data)).toBe(true);
           expect((result.data as unknown as unknown[]).length).toBe(2);
         }
@@ -467,7 +467,7 @@ describe("json-processing", () => {
           outputFormat: LLMOutputFormat.JSON,
           jsonSchema: arraySchema,
         };
-        const result = processJson(json, context, completionOptions);
+        const result = parseAndValidateLLMJson(json, context, completionOptions);
 
         expect(result.success).toBe(true);
         if (result.success) {
@@ -484,7 +484,7 @@ describe("json-processing", () => {
         // since they don't contain { or [
         const json = '"just a string"';
         const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-        const result = processJson(json, context, completionOptions);
+        const result = parseAndValidateLLMJson(json, context, completionOptions);
 
         expect(result.success).toBe(false);
         if (!result.success) {
@@ -496,7 +496,7 @@ describe("json-processing", () => {
         // Primitive JSON values are rejected early by hasJsonLikeStructure check
         const json = "42";
         const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-        const result = processJson(json, context, completionOptions);
+        const result = parseAndValidateLLMJson(json, context, completionOptions);
 
         expect(result.success).toBe(false);
         if (!result.success) {
@@ -508,7 +508,7 @@ describe("json-processing", () => {
         // Primitive JSON values are rejected early by hasJsonLikeStructure check
         const json = "true";
         const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-        const result = processJson(json, context, completionOptions);
+        const result = parseAndValidateLLMJson(json, context, completionOptions);
 
         expect(result.success).toBe(false);
         if (!result.success) {
@@ -520,7 +520,7 @@ describe("json-processing", () => {
         // Primitive JSON values are rejected early by hasJsonLikeStructure check
         const json = "null";
         const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-        const result = processJson(json, context, completionOptions);
+        const result = parseAndValidateLLMJson(json, context, completionOptions);
 
         expect(result.success).toBe(false);
         if (!result.success) {

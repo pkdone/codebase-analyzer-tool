@@ -2,23 +2,23 @@ import "reflect-metadata";
 import { injectable, inject } from "tsyringe";
 import { outputConfig } from "../../config/output.config";
 import { PromptFileInsightsGenerator } from "../../components/insights/generators/prompt-file-insights-generator";
-import type LLMTelemetryTracker from "../../../common/llm/tracking/llm-telemetry-tracker";
+import type LLMExecutionStats from "../../../common/llm/tracking/llm-execution-stats";
 import type { EnvVars } from "../../env/env.types";
 import { llmTokens, insightsTokens, coreTokens } from "../../di/tokens";
-import { BaseLLMTrackedTask } from "../base-llm-tracked-task";
+import { BaseAnalysisTask } from "../base-analysis-task";
 
 /**
  * Task to generate file-based insights from prompt files in the input/requirements directory.
  * This task uses a file-driven workflow that bypasses the database-centric approach.
- * Extends BaseLLMTrackedTask to share the common lifecycle pattern with LLM stats tracking.
+ * Extends BaseAnalysisTask to share the common lifecycle pattern with LLM stats tracking.
  */
 @injectable()
-export class FileBasedInsightsGenerationTask extends BaseLLMTrackedTask {
+export class FileBasedInsightsGenerationTask extends BaseAnalysisTask {
   /**
    * Constructor with dependency injection.
    */
   constructor(
-    @inject(llmTokens.LLMTelemetryTracker) llmStats: LLMTelemetryTracker,
+    @inject(llmTokens.LLMExecutionStats) llmStats: LLMExecutionStats,
     @inject(coreTokens.ProjectName) projectName: string,
     @inject(coreTokens.EnvVars) private readonly env: EnvVars,
     @inject(insightsTokens.PromptFileInsightsGenerator)

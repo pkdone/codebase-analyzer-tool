@@ -2,7 +2,7 @@ import "reflect-metadata";
 import { describe, test, expect } from "@jest/globals";
 import { z } from "zod";
 import { LLMOutputFormat, LLMPurpose } from "../../../../src/common/llm/types/llm.types";
-import { processJson } from "../../../../src/common/llm/json-processing/core/json-processing";
+import { parseAndValidateLLMJson } from "../../../../src/common/llm/json-processing/core/json-processing";
 
 // Mock dependencies
 jest.mock("../../../../src/common/utils/logging", () => ({
@@ -12,10 +12,10 @@ jest.mock("../../../../src/common/utils/logging", () => ({
 }));
 
 /**
- * Test suite for generic type safety in processJson.
+ * Test suite for generic type safety in parseAndValidateLLMJson.
  * Validates that schema types flow correctly through the JSON processing pipeline.
  */
-describe("Generic Type Safety in processJson", () => {
+describe("Generic Type Safety in parseAndValidateLLMJson", () => {
   const mockContext = {
     resource: "test-resource",
     purpose: LLMPurpose.COMPLETIONS,
@@ -30,7 +30,7 @@ describe("Generic Type Safety in processJson", () => {
 
       const jsonContent = '{"name": "Alice", "age": 30}';
 
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         jsonContent,
         mockContext,
         {
@@ -82,7 +82,7 @@ describe("Generic Type Safety in processJson", () => {
         },
       });
 
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         jsonContent,
         mockContext,
         {
@@ -113,7 +113,7 @@ describe("Generic Type Safety in processJson", () => {
         { id: "b", value: 2 },
       ]);
 
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         jsonContent,
         mockContext,
         {
@@ -138,7 +138,7 @@ describe("Generic Type Safety in processJson", () => {
       ]);
 
       const jsonContent1 = '{"type": "text", "content": "hello"}';
-      const result1 = processJson(
+      const result1 = parseAndValidateLLMJson(
         jsonContent1,
         mockContext,
         {
@@ -157,7 +157,7 @@ describe("Generic Type Safety in processJson", () => {
       }
 
       const jsonContent2 = '{"type": "number", "value": 42}';
-      const result2 = processJson(
+      const result2 = parseAndValidateLLMJson(
         jsonContent2,
         mockContext,
         {
@@ -189,7 +189,7 @@ describe("Generic Type Safety in processJson", () => {
         nullable: null,
       });
 
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         jsonContent,
         mockContext,
         {
@@ -218,7 +218,7 @@ describe("Generic Type Safety in processJson", () => {
 
       const invalidJson = '{"name": "Bob", "age": "not a number"}';
 
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         invalidJson,
         mockContext,
         {
@@ -239,7 +239,7 @@ describe("Generic Type Safety in processJson", () => {
 
       const missingFieldJson = '{"id": 1}';
 
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         missingFieldJson,
         mockContext,
         {
@@ -261,7 +261,7 @@ describe("Generic Type Safety in processJson", () => {
       // Test with a transform scenario (e.g., coercion)
       const jsonWithTypos = '{"count": 5, "items": []}';
 
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         jsonWithTypos,
         mockContext,
         {
@@ -283,7 +283,7 @@ describe("Generic Type Safety in processJson", () => {
     test("should handle no schema provided - defaults to Record<string, unknown>", () => {
       const jsonContent = '{"arbitrary": "data", "nested": {"value": 123}}';
 
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         jsonContent,
         mockContext,
         {
@@ -302,7 +302,7 @@ describe("Generic Type Safety in processJson", () => {
     test("should fail on non-JSON string content", () => {
       const notJson = "This is not JSON";
 
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         notJson,
         mockContext,
         {
@@ -325,7 +325,7 @@ describe("Generic Type Safety in processJson", () => {
       // So we test with at least one field present
       const jsonContent = '{"optionalField": "value"}';
 
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         jsonContent,
         mockContext,
         {
@@ -363,7 +363,7 @@ describe("Generic Type Safety in processJson", () => {
         objectField: { nested: "value" },
       });
 
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         jsonContent,
         mockContext,
         {

@@ -2,7 +2,7 @@ import { z } from "zod";
 import { describe, test, expect, jest, beforeEach, afterEach } from "@jest/globals";
 import LLMRouter from "../../../../src/common/llm/llm-router";
 import { LLMExecutionPipeline } from "../../../../src/common/llm/llm-execution-pipeline";
-import LLMTelemetryTracker from "../../../../src/common/llm/tracking/llm-telemetry-tracker";
+import LLMExecutionStats from "../../../../src/common/llm/tracking/llm-execution-stats";
 import { RetryStrategy } from "../../../../src/common/llm/strategies/retry-strategy";
 import { createMockErrorLogger } from "../../helpers/llm/mock-error-logger";
 import {
@@ -25,7 +25,7 @@ jest.mock("../../../../src/common/utils/logging", () => ({
   logErrorMsg: jest.fn(),
 }));
 
-jest.mock("../../../../src/common/llm/tracking/llm-telemetry-tracker", () => {
+jest.mock("../../../../src/common/llm/tracking/llm-execution-stats", () => {
   return jest.fn().mockImplementation(() => ({
     recordSuccess: jest.fn(),
     recordFailure: jest.fn(),
@@ -149,11 +149,11 @@ describe("LLMRouter Function Overloads - Type Safety Tests", () => {
 
     jest.spyOn(manifestLoader, "loadManifestForModelFamily").mockReturnValue(mockManifest);
 
-    const mockLLMTelemetryTracker = new LLMTelemetryTracker();
-    const mockRetryStrategy = new RetryStrategy(mockLLMTelemetryTracker);
+    const mockLLMExecutionStats = new LLMExecutionStats();
+    const mockRetryStrategy = new RetryStrategy(mockLLMExecutionStats);
     const mockExecutionPipeline = new LLMExecutionPipeline(
       mockRetryStrategy,
-      mockLLMTelemetryTracker,
+      mockLLMExecutionStats,
     );
     const mockErrorLogger = createMockErrorLogger();
 

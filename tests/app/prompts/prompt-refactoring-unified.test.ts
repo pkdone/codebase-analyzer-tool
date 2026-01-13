@@ -3,7 +3,7 @@ import { promptManager } from "../../../src/app/prompts/prompt-registry";
 import { SOURCES_PROMPT_FRAGMENTS } from "../../../src/app/prompts/definitions/sources/sources.fragments";
 import { APP_SUMMARY_PROMPT_FRAGMENTS } from "../../../src/app/prompts/definitions/app-summaries/app-summaries.fragments";
 import { INSTRUCTION_SECTION_TITLES } from "../../../src/app/prompts/definitions/instruction-utils";
-import { sourceConfigMap } from "../../../src/app/prompts/definitions/sources/sources.definitions";
+import { fileTypePromptRegistry } from "../../../src/app/prompts/definitions/sources/sources.definitions";
 import { appSummaryConfigMap } from "../../../src/app/prompts/definitions/app-summaries/app-summaries.definitions";
 import { z } from "zod";
 
@@ -13,7 +13,7 @@ const appSummaryPromptMetadata = promptManager.appSummaries;
 describe("Prompt Refactoring - Unified Configuration", () => {
   describe("Sources Configuration", () => {
     it("should have instructions as readonly string[] for all file types", () => {
-      Object.entries(sourceConfigMap).forEach(([, config]) => {
+      Object.entries(fileTypePromptRegistry).forEach(([, config]) => {
         expect(config.instructions).toBeDefined();
         expect(Array.isArray(config.instructions)).toBe(true);
         expect(config.instructions.length).toBeGreaterThan(0);
@@ -25,7 +25,7 @@ describe("Prompt Refactoring - Unified Configuration", () => {
     });
 
     it("should format instruction sections with titles correctly", () => {
-      const javaConfig = sourceConfigMap.java;
+      const javaConfig = fileTypePromptRegistry.java;
       const firstInstruction = javaConfig.instructions[0];
 
       // Should contain section title

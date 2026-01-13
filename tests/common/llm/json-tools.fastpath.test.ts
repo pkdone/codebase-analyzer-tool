@@ -1,4 +1,4 @@
-import { processJson } from "../../../src/common/llm/json-processing/core/json-processing";
+import { parseAndValidateLLMJson } from "../../../src/common/llm/json-processing/core/json-processing";
 import { LLMOutputFormat, LLMPurpose } from "../../../src/common/llm/types/llm.types";
 import { JsonProcessingErrorType } from "../../../src/common/llm/json-processing/types/json-processing.errors";
 import { logWarn } from "../../../src/common/utils/logging";
@@ -20,7 +20,7 @@ describe("json-tools enhanced fast path", () => {
   describe("Fast Path Performance", () => {
     it("parses valid JSON without any sanitization steps", () => {
       const validJson = `{"purpose": "Test", "value": 42}`;
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         validJson,
         { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
         baseOptions,
@@ -36,7 +36,7 @@ describe("json-tools enhanced fast path", () => {
 
     it("parses valid JSON with leading whitespace via fast path", () => {
       const validJson = `   \n\t{"purpose": "Test", "value": 42}`;
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         validJson,
         { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
         baseOptions,
@@ -51,7 +51,7 @@ describe("json-tools enhanced fast path", () => {
 
     it("parses valid JSON with trailing whitespace via fast path", () => {
       const validJson = `{"purpose": "Test", "value": 42}\n\t   `;
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         validJson,
         { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
         baseOptions,
@@ -66,7 +66,7 @@ describe("json-tools enhanced fast path", () => {
 
     it("parses valid JSON array with whitespace via fast path", () => {
       const validJson = `  [1, 2, 3, 4, 5]  `;
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         validJson,
         { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
         baseOptions,
@@ -89,7 +89,7 @@ describe("json-tools enhanced fast path", () => {
           }
         }
       }`;
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         validJson,
         { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
         baseOptions,
@@ -106,7 +106,7 @@ describe("json-tools enhanced fast path", () => {
   describe("Fallback to Progressive Strategies", () => {
     it("falls back to progressive strategies for JSON with code fences", () => {
       const jsonWithFence = '```json\n{"value": 42}\n```';
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         jsonWithFence,
         { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
         baseOptions,
@@ -122,7 +122,7 @@ describe("json-tools enhanced fast path", () => {
 
     it("falls back to progressive strategies for JSON with surrounding text", () => {
       const jsonWithText = 'Here is the JSON: {"value": 42} and that\'s it';
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         jsonWithText,
         { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
         baseOptions,
@@ -137,7 +137,7 @@ describe("json-tools enhanced fast path", () => {
 
     it("falls back to progressive strategies for invalid JSON", () => {
       const invalidJson = `{"value": 42,}`; // trailing comma
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         invalidJson,
         { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
         baseOptions,
@@ -155,7 +155,7 @@ describe("json-tools enhanced fast path", () => {
     it("does not log sanitization steps when logging is disabled", () => {
       // Logging controlled via function parameter
       const jsonWithFence = '```json\n{"value": 42}\n```';
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         jsonWithFence,
         { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
         baseOptions,
@@ -172,7 +172,7 @@ describe("json-tools enhanced fast path", () => {
     it("logs sanitization steps when logging is enabled", () => {
       // Logging controlled via function parameter
       const jsonWithText = 'Here is the data: {"value": 42} end';
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         jsonWithText,
         { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
         baseOptions,
@@ -187,7 +187,7 @@ describe("json-tools enhanced fast path", () => {
 
     it("defaults to logging enabled when parameter is omitted", () => {
       const jsonWithText = 'Here is the data: {"value": 42} end';
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         jsonWithText,
         { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
         baseOptions,
@@ -204,7 +204,7 @@ describe("json-tools enhanced fast path", () => {
   describe("Complex Sanitization Scenarios", () => {
     it("logs detailed sanitization steps for heavily malformed JSON", () => {
       const malformedJson = '```\n\u200B{"a": 1, "b": [1,2,3,],}\u200C\n```';
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         malformedJson,
         { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
         baseOptions,
@@ -235,7 +235,7 @@ describe("json-tools enhanced fast path", () => {
       } as any;
 
       const jsonWithFence = '```json\n{"notValue": 42}\n```';
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         jsonWithFence,
         { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
         options,
@@ -255,7 +255,7 @@ describe("json-tools enhanced fast path", () => {
   describe("Edge Cases", () => {
     it("handles empty object via fast path", () => {
       const emptyObject = "{}";
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         emptyObject,
         { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
         baseOptions,
@@ -270,7 +270,7 @@ describe("json-tools enhanced fast path", () => {
 
     it("handles empty array via fast path", () => {
       const emptyArray = "[]";
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         emptyArray,
         { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
         baseOptions,
@@ -285,7 +285,7 @@ describe("json-tools enhanced fast path", () => {
 
     it("handles JSON with unicode characters via fast path", () => {
       const unicodeJson = `{"emoji": "🚀", "text": "Hello, 世界"}`;
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         unicodeJson,
         { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
         baseOptions,
@@ -301,7 +301,7 @@ describe("json-tools enhanced fast path", () => {
 
     it("handles JSON with escaped quotes via fast path", () => {
       const escapedJson = `{"text": "He said \\"Hello\\""}`;
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         escapedJson,
         { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
         baseOptions,

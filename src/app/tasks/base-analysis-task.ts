@@ -1,11 +1,11 @@
 import "reflect-metadata";
-import type LLMTelemetryTracker from "../../common/llm/tracking/llm-telemetry-tracker";
+import type LLMExecutionStats from "../../common/llm/tracking/llm-execution-stats";
 import type { Task } from "./task.types";
 import { outputConfig } from "../config/output.config";
 import { clearDirectory } from "../../common/fs/directory-operations";
 
 /**
- * Abstract base class for tasks that use LLM services and track their statistics.
+ * Abstract base class for analysis tasks that use LLM services.
  *
  * This class implements the template method pattern for tasks that:
  * 1. Log a start message
@@ -24,9 +24,9 @@ import { clearDirectory } from "../../common/fs/directory-operations";
  * - `getPostTaskMessage()`: Returns an additional message to log after stats (default: null)
  * - `shouldClearOutputDirectory()`: Whether to clear output directory before task (default: true)
  */
-export abstract class BaseLLMTrackedTask implements Task {
+export abstract class BaseAnalysisTask implements Task {
   constructor(
-    protected readonly llmStats: LLMTelemetryTracker,
+    protected readonly llmStats: LLMExecutionStats,
     protected readonly projectName: string,
   ) {}
 

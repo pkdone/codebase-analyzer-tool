@@ -1,4 +1,4 @@
-import { processJson } from "../../../../src/common/llm/json-processing/core/json-processing";
+import { parseAndValidateLLMJson } from "../../../../src/common/llm/json-processing/core/json-processing";
 import { LLMOutputFormat, LLMPurpose } from "../../../../src/common/llm/types/llm.types";
 import { JsonProcessingErrorType } from "../../../../src/common/llm/json-processing/types/json-processing.errors";
 import { z } from "zod";
@@ -30,7 +30,7 @@ describe("JsonProcessor - Refactored Methods", () => {
         items: z.array(z.number()),
       });
 
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         malformedJson,
         { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
         {
@@ -68,7 +68,7 @@ describe("JsonProcessor - Refactored Methods", () => {
         age: z.number(),
       });
 
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         wrappedJson,
         { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
         {
@@ -89,7 +89,7 @@ describe("JsonProcessor - Refactored Methods", () => {
     it("should provide detailed error information for parse failures", () => {
       const invalidJson = '{"key": invalid syntax}';
 
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         invalidJson,
         { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
         {
@@ -111,7 +111,7 @@ describe("JsonProcessor - Refactored Methods", () => {
         \`\`\`
       `;
 
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         complexInvalidJson,
         { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
         {
@@ -136,7 +136,7 @@ describe("JsonProcessor - Refactored Methods", () => {
         value: z.number(),
       });
 
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         validJson,
         { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
         {
@@ -163,7 +163,7 @@ describe("JsonProcessor - Refactored Methods", () => {
         name: z.string(),
       });
 
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         jsonWithCodeFences,
         { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
         {
@@ -204,7 +204,7 @@ describe("JsonProcessor - Refactored Methods", () => {
         extra: z.string(),
       });
 
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         complexMalformed,
         { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
         {
@@ -236,7 +236,7 @@ describe("JsonProcessor - Refactored Methods", () => {
         name: z.string(),
       });
 
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         jsonSchemaFormat,
         { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
         {
@@ -264,7 +264,7 @@ describe("JsonProcessor - Refactored Methods", () => {
         count: z.number().min(5),
       });
 
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         wrappedData,
         { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
         {
@@ -284,7 +284,7 @@ describe("JsonProcessor - Refactored Methods", () => {
     it("should handle non-string content appropriately", () => {
       const nonStringContent = { some: "object" };
 
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         nonStringContent as any,
         { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
         {
@@ -299,7 +299,7 @@ describe("JsonProcessor - Refactored Methods", () => {
     });
 
     it("should handle null content", () => {
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         null as any,
         { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
         {

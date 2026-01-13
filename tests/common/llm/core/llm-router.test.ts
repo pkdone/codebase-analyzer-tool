@@ -11,7 +11,7 @@ import {
 import { z } from "zod";
 import LLMRouter from "../../../../src/common/llm/llm-router";
 import { createMockErrorLogger } from "../../helpers/llm/mock-error-logger";
-import LLMTelemetryTracker from "../../../../src/common/llm/tracking/llm-telemetry-tracker";
+import LLMExecutionStats from "../../../../src/common/llm/tracking/llm-execution-stats";
 import { RetryStrategy } from "../../../../src/common/llm/strategies/retry-strategy";
 import { LLMExecutionPipeline } from "../../../../src/common/llm/llm-execution-pipeline";
 import type { EnvVars } from "../../../../src/app/env/env.types";
@@ -31,7 +31,7 @@ jest.mock("../../../../src/common/utils/logging", () => ({
   logErrorMsg: jest.fn(),
 }));
 
-jest.mock("../../../../src/common/llm/tracking/llm-telemetry-tracker", () => {
+jest.mock("../../../../src/common/llm/tracking/llm-execution-stats", () => {
   return jest.fn().mockImplementation(() => ({
     recordSuccess: jest.fn(),
     recordFailure: jest.fn(),
@@ -220,12 +220,12 @@ describe("LLM Router tests", () => {
     };
 
     // Create real instances for dependency injection testing
-    const mockLLMTelemetryTracker = new LLMTelemetryTracker();
-    const mockRetryStrategy = new RetryStrategy(mockLLMTelemetryTracker);
+    const mockLLMExecutionStats = new LLMExecutionStats();
+    const mockRetryStrategy = new RetryStrategy(mockLLMExecutionStats);
     // Create execution pipeline (strategies are now pure functions, not classes)
     const mockExecutionPipeline = new LLMExecutionPipeline(
       mockRetryStrategy,
-      mockLLMTelemetryTracker,
+      mockLLMExecutionStats,
     );
 
     const mockErrorLogger = createMockErrorLogger();

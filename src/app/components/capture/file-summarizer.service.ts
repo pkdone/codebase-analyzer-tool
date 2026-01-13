@@ -9,7 +9,7 @@ import { getCanonicalFileType } from "../../config/file-handling";
 import { getLlmArtifactCorrections } from "../../config/llm-artifact-corrections";
 import { llmTokens, captureTokens } from "../../di/tokens";
 import type { PromptManager } from "../../prompts/prompt-registry";
-import type { SourceConfigMap } from "../../prompts/definitions/sources/sources.definitions";
+import type { FileTypePromptRegistry } from "../../prompts/definitions/sources/sources.definitions";
 import { type Result, ok, err, isOk } from "../../../common/types/result.types";
 
 /**
@@ -37,7 +37,8 @@ export class FileSummarizerService {
   constructor(
     @inject(llmTokens.LLMRouter) private readonly llmRouter: LLMRouter,
     @inject(captureTokens.PromptManager) private readonly promptManager: PromptManager,
-    @inject(captureTokens.SourceConfigMap) private readonly sourceConfigMap: SourceConfigMap,
+    @inject(captureTokens.FileTypePromptRegistry)
+    private readonly fileTypePromptRegistry: FileTypePromptRegistry,
   ) {}
 
   /**
@@ -64,12 +65,12 @@ export class FileSummarizerService {
       const canonicalFileType = getCanonicalFileType(filepath, type);
       const promptMetadata = this.promptManager.sources[canonicalFileType];
       const renderedPrompt = renderPrompt(promptMetadata, { content });
-      const sourceConfig = this.sourceConfigMap[canonicalFileType];
-      const schema = this.sourceConfigMap[canonicalFileType].responseSchema;
+      const fileTypePromptConfig = this.fileTypePromptRegistry[canonicalFileType];
+      const schema = this.fileTypePromptRegistry[canonicalFileType].responseSchema;
       const completionOptions = {
         outputFormat: LLMOutputFormat.JSON,
         jsonSchema: schema,
-        hasComplexSchema: sourceConfig.hasComplexSchema ?? false,
+        hasComplexSchema: fileTypePromptConfig.hasComplexSchema ?? false,
         sanitizerConfig: getLlmArtifactCorrections(),
       } as const;
       /**
@@ -77,13 +78,13 @@ export class FileSummarizerService {
        *
        * TYPE ASSERTION RATIONALE:
        * The cast to `PartialSourceSummaryType` is necessary because TypeScript cannot
-       * narrow the schema type through the dynamic runtime lookup `sourceConfigMap[canonicalFileType]`.
+       * narrow the schema type through the dynamic runtime lookup `fileTypePromptRegistry[canonicalFileType]`.
        * When canonicalFileType is a runtime variable, TypeScript resolves the schema to the union
        * of all possible schemas across all file types, resulting in an inferred return type of
        * `unknown` from executeCompletion.
        *
        * This assertion is TYPE-SAFE because:
-       * 1. All schemas in sourceConfigMap are created via `sourceSummarySchema.pick(...)`,
+       * 1. All schemas in fileTypePromptRegistry are created via `sourceSummarySchema.pick(...)`,
        *    making them strict subsets of SourceSummaryType.
        * 2. PartialSourceSummaryType is `Partial<SourceSummaryType>`, which is a supertype
        *    of all possible picked schemas.

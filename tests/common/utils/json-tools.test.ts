@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { processJson } from "../../../src/common/llm/json-processing/core/json-processing";
+import { parseAndValidateLLMJson } from "../../../src/common/llm/json-processing/core/json-processing";
 import { LLMOutputFormat, LLMPurpose } from "../../../src/common/llm/types/llm.types";
 
 // Test schemas for type inference testing
@@ -17,7 +17,7 @@ const TestConfigSchema = z.object({
   }),
 });
 
-// Types are inferred from schemas automatically by processJson
+// Types are inferred from schemas automatically by parseAndValidateLLMJson
 
 describe("JSON utilities", () => {
   describe("convertTextToJSON", () => {
@@ -47,7 +47,7 @@ describe("JSON utilities", () => {
 
     test.each(validJsonTestData)("with $description", ({ input, expected }) => {
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         input,
         { resource: "content", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -61,7 +61,7 @@ describe("JSON utilities", () => {
     test("returns failure result for invalid JSON", () => {
       const text = "No JSON here";
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         text,
         { resource: "content", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -79,7 +79,7 @@ describe("JSON utilities", () => {
       const testCases = [{ input: { key: "value" } }, { input: [1, 2, 3] }, { input: null }];
 
       testCases.forEach(({ input }) => {
-        const result = processJson(
+        const result = parseAndValidateLLMJson(
           input,
           { resource: "content", purpose: LLMPurpose.COMPLETIONS },
           completionOptions,
@@ -98,7 +98,7 @@ describe("JSON utilities", () => {
         outputFormat: LLMOutputFormat.JSON,
         jsonSchema: TestUserSchema,
       };
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         userJson,
         { resource: "content", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -120,7 +120,7 @@ describe("JSON utilities", () => {
         outputFormat: LLMOutputFormat.JSON,
         jsonSchema: TestConfigSchema,
       };
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         configJson,
         { resource: "content", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -138,7 +138,7 @@ describe("JSON utilities", () => {
     test("defaults to Record<string, unknown> when no type parameter provided", () => {
       const input = 'Text {"dynamic": "content", "count": 42} more text';
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         input,
         { resource: "content", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,

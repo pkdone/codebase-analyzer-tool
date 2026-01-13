@@ -1,4 +1,4 @@
-import { processJson } from "../../../../src/common/llm/json-processing/core/json-processing";
+import { parseAndValidateLLMJson } from "../../../../src/common/llm/json-processing/core/json-processing";
 import { LLMOutputFormat, LLMPurpose } from "../../../../src/common/llm/types/llm.types";
 import { z } from "zod";
 
@@ -26,7 +26,7 @@ describe("unwrapJsonSchema integration with JsonProcessor.parseAndValidate", () 
     };
 
     // This should now succeed because the unwrapJsonSchema sanitizer will fix it
-    const result = processJson(
+    const result = parseAndValidateLLMJson(
       llmResponse,
       {
         resource: "buildSrc/src/main/resources/instructions/step13.txt.ftl",
@@ -69,7 +69,7 @@ describe("unwrapJsonSchema integration with JsonProcessor.parseAndValidate", () 
       jsonSchema: schema,
     };
 
-    const result = processJson(
+    const result = parseAndValidateLLMJson(
       llmResponse,
       { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
       completionOptions,
@@ -103,7 +103,7 @@ describe("unwrapJsonSchema integration with JsonProcessor.parseAndValidate", () 
       jsonSchema: schema,
     };
 
-    const result = processJson(
+    const result = parseAndValidateLLMJson(
       llmResponse,
       { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
       completionOptions,
@@ -139,7 +139,7 @@ describe("unwrapJsonSchema integration with JsonProcessor.parseAndValidate", () 
       jsonSchema: schema,
     };
 
-    const result = processJson(
+    const result = parseAndValidateLLMJson(
       llmResponse,
       { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
       completionOptions,

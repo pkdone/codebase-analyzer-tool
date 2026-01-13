@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { promptManager } from "../../../src/app/prompts/prompt-registry";
-import { sourceConfigMap } from "../../../src/app/prompts/definitions/sources/sources.definitions";
+import { fileTypePromptRegistry } from "../../../src/app/prompts/definitions/sources/sources.definitions";
 import { appSummaryConfigMap } from "../../../src/app/prompts/definitions/app-summaries/app-summaries.definitions";
 
 const fileTypePromptMetadata = promptManager.sources;
@@ -10,7 +10,9 @@ const appSummaryPromptMetadata = promptManager.appSummaries;
  * Helper function to get schema field names from a config entry.
  * Since responseSchema is now a ZodObject, we can extract field names from its shape.
  */
-function getSchemaFields(config: (typeof sourceConfigMap)[keyof typeof sourceConfigMap]): string[] {
+function getSchemaFields(
+  config: (typeof fileTypePromptRegistry)[keyof typeof fileTypePromptRegistry],
+): string[] {
   const schema = config.responseSchema as z.ZodObject<z.ZodRawShape>;
   return Object.keys(schema.shape);
 }
@@ -18,7 +20,7 @@ function getSchemaFields(config: (typeof sourceConfigMap)[keyof typeof sourceCon
 describe("Data-driven Prompt System", () => {
   describe("Source prompt generation", () => {
     it("should generate all file types from configuration", () => {
-      const configFileTypes = Object.keys(sourceConfigMap);
+      const configFileTypes = Object.keys(fileTypePromptRegistry);
       const generatedFileTypes = Object.keys(fileTypePromptMetadata);
 
       expect(generatedFileTypes.length).toBe(configFileTypes.length);
@@ -28,7 +30,7 @@ describe("Data-driven Prompt System", () => {
     });
 
     it("should have consistent structure between config and generated metadata", () => {
-      Object.entries(sourceConfigMap).forEach(([fileType, config]) => {
+      Object.entries(fileTypePromptRegistry).forEach(([fileType, config]) => {
         const metadata = fileTypePromptMetadata[fileType as keyof typeof fileTypePromptMetadata];
 
         expect(metadata.contentDesc).toContain(config.contentDesc); // Check that contentDesc is used in intro template
@@ -39,7 +41,7 @@ describe("Data-driven Prompt System", () => {
 
     it("should properly pick schema fields from master schema", () => {
       const javaMetadata = fileTypePromptMetadata.java;
-      const javaConfig = sourceConfigMap.java;
+      const javaConfig = fileTypePromptRegistry.java;
 
       // The schema should be a picked version with the specified fields
       expect(javaMetadata.responseSchema).toBeDefined();
@@ -54,16 +56,16 @@ describe("Data-driven Prompt System", () => {
 
     it("should have hasComplexSchema in source config entries", () => {
       // Standard code configs don't explicitly set hasComplexSchema (defaults to false at usage site)
-      expect(sourceConfigMap.java.hasComplexSchema).toBeUndefined();
-      expect(sourceConfigMap.javascript.hasComplexSchema).toBeUndefined();
-      expect(sourceConfigMap.python.hasComplexSchema).toBeUndefined();
-      expect(sourceConfigMap.markdown.hasComplexSchema).toBeUndefined();
+      expect(fileTypePromptRegistry.java.hasComplexSchema).toBeUndefined();
+      expect(fileTypePromptRegistry.javascript.hasComplexSchema).toBeUndefined();
+      expect(fileTypePromptRegistry.python.hasComplexSchema).toBeUndefined();
+      expect(fileTypePromptRegistry.markdown.hasComplexSchema).toBeUndefined();
 
       // Dependency configs have hasComplexSchema: true (set by createDependencyConfig)
-      expect(sourceConfigMap.maven.hasComplexSchema).toBe(true);
+      expect(fileTypePromptRegistry.maven.hasComplexSchema).toBe(true);
 
       // SQL has hasComplexSchema: true (complex database object schema)
-      expect(sourceConfigMap.sql.hasComplexSchema).toBe(true);
+      expect(fileTypePromptRegistry.sql.hasComplexSchema).toBe(true);
     });
   });
 
@@ -154,7 +156,7 @@ describe("Data-driven Prompt System", () => {
 
   describe("Schema field validation", () => {
     it("should include all required fields for complex file types", () => {
-      const javaConfig = sourceConfigMap.java;
+      const javaConfig = fileTypePromptRegistry.java;
       const schemaFields = getSchemaFields(javaConfig);
       const expectedFields = [
         "name",
@@ -178,12 +180,12 @@ describe("Data-driven Prompt System", () => {
 
     it("should have appropriate field sets for different file types", () => {
       // SQL should have database-specific fields
-      const sqlConfig = sourceConfigMap.sql;
+      const sqlConfig = fileTypePromptRegistry.sql;
       const sqlFields = getSchemaFields(sqlConfig);
       expect(sqlFields).toContain("databaseIntegration");
 
       // Maven should have simpler field set (build files don't have "name" field)
-      const mavenConfig = sourceConfigMap.maven;
+      const mavenConfig = fileTypePromptRegistry.maven;
       const mavenFields = getSchemaFields(mavenConfig);
       expect(mavenFields).toContain("purpose");
       expect(mavenFields).toContain("dependencies"); // Build files store dependencies directly
@@ -219,7 +221,9 @@ describe("Data-driven Prompt System", () => {
       ];
 
       expectedFileTypes.forEach((fileType) => {
-        expect(sourceConfigMap[fileType as keyof typeof sourceConfigMap]).toBeDefined();
+        expect(
+          fileTypePromptRegistry[fileType as keyof typeof fileTypePromptRegistry],
+        ).toBeDefined();
       });
     });
 

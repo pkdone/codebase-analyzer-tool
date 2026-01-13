@@ -1,5 +1,5 @@
 import { LLMOutputFormat, LLMPurpose } from "../../../../src/common/llm/types/llm.types";
-import { processJson } from "../../../../src/common/llm/json-processing/core/json-processing";
+import { parseAndValidateLLMJson } from "../../../../src/common/llm/json-processing/core/json-processing";
 import { validateJsonWithTransforms } from "../../../../src/common/llm/json-processing/core/json-validating";
 import { sourceSummarySchema } from "../../../../src/app/schemas/sources.schema";
 import { z } from "zod";
@@ -9,11 +9,11 @@ describe("json-tools", () => {
   // postProcessAsJSONIfNeededGeneratingNewResult have been moved to BaseLLMProvider
   // as protected methods and are now tested in tests/llm/core/abstract-llm.test.ts
 
-  describe("processJson", () => {
+  describe("parseAndValidateLLMJson", () => {
     test("should convert valid JSON string to object", () => {
       const jsonString = '{"key": "value", "number": 42}';
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         jsonString,
         { resource: "content", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -28,7 +28,7 @@ describe("json-tools", () => {
     test("should handle JSON with surrounding text", () => {
       const textWithJson = 'Some text before {"key": "value"} some text after';
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         textWithJson,
         { resource: "content", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -43,7 +43,7 @@ describe("json-tools", () => {
     test("should handle array JSON", () => {
       const arrayJson = '[{"item": 1}, {"item": 2}]';
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         arrayJson,
         { resource: "content", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -59,7 +59,7 @@ describe("json-tools", () => {
       const invalidJson = "not valid json";
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
 
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         invalidJson,
         { resource: "content", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -82,7 +82,7 @@ describe("json-tools", () => {
 
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
 
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         simpleJson,
         { resource: "test-simple-malformed", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -104,7 +104,7 @@ describe("json-tools", () => {
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
 
       // This should not throw an error due to the sanitization fallback
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         malformedJson,
         { resource: "test-targeted-malformed", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -131,7 +131,7 @@ describe("json-tools", () => {
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
 
       // This should not throw an error due to the enhanced sanitization
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         overEscapedJson,
         { resource: "test-over-escaped", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -159,7 +159,7 @@ describe("json-tools", () => {
 
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
 
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         complexJson,
         { resource: "test-real-complex", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -183,7 +183,7 @@ describe("json-tools", () => {
       const truncatedJson = '{"purpose": "Test script", "field": "complete value"}';
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
 
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         truncatedJson,
         { resource: "test-simple-truncation", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -202,7 +202,7 @@ describe("json-tools", () => {
       const structuralJson = '{"data": {"nested": "value"}}';
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
 
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         structuralJson,
         { resource: "test-structural-completion", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -224,7 +224,7 @@ describe("json-tools", () => {
       const excessiveBackslashJson = '{"field": "value with normal content"}';
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
 
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         excessiveBackslashJson,
         { resource: "test-excessive-backslash", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -242,7 +242,7 @@ describe("json-tools", () => {
       const markdownJson = '```json\n{"purpose": "test", "field": "value"}\n```';
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
 
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         markdownJson,
         { resource: "test-markdown-wrapped", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -262,7 +262,7 @@ describe("json-tools", () => {
         'Here is the analysis: {"result": "positive", "confidence": 0.95} Hope this helps!';
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
 
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         textWithJson,
         { resource: "test-surrounding-text", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -288,7 +288,7 @@ describe("json-tools", () => {
 
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
 
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         complexSqlJson,
         { resource: "test-complex-sql", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -312,7 +312,7 @@ describe("json-tools", () => {
         '{"sql": "SELECT name AS \\"User Name\\" FROM users WHERE id = \\\'123\\\'"}';
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
 
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         overEscapedJson,
         { resource: "test-improved-sanitization", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -337,7 +337,7 @@ describe("json-tools", () => {
 
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
 
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         sqlJson,
         { resource: "test-sql-mixed-quotes", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -361,7 +361,7 @@ describe("json-tools", () => {
       const properlyFormattedJson = '{"text": "Normal text with standard escaping"}';
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
 
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         properlyFormattedJson,
         { resource: "test-properly-formatted", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -384,7 +384,7 @@ describe("json-tools", () => {
         '{"message": "The sanitization now handles more complex over-escaped patterns"}';
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
 
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         testJson,
         { resource: "test-enhanced-sanitization", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -409,7 +409,7 @@ describe("json-tools", () => {
       }`;
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
 
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         complexSqlJson,
         { resource: "test-complex-sql-success", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -432,7 +432,7 @@ describe("json-tools", () => {
       const sqlJson = '{"sql": "INSERT INTO users VALUES (1, test, value)"}';
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
 
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         sqlJson,
         { resource: "test-sql-null-handling", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -457,7 +457,7 @@ describe("json-tools", () => {
       const jsonWithControls = `{"data": "text${controlChar1}with${controlChar2}controls"}`;
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
 
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         jsonWithControls,
         { resource: "test-control-characters", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -485,7 +485,7 @@ describe("json-tools", () => {
       }`;
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
 
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         appuserJson,
         { resource: "test-enhanced-sql-patterns", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -512,7 +512,7 @@ describe("json-tools", () => {
       }`;
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
 
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         enhancedJson,
         { resource: "test-enhanced-capabilities", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -536,7 +536,7 @@ describe("json-tools", () => {
       const truncatedJson = '{"name": "test", "command": "CREATE TABLE test (id BIGINT NOT NULL,';
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
 
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         truncatedJson,
         { resource: "test-truncated-string", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -560,7 +560,7 @@ describe("json-tools", () => {
         '{"table": {"name": "users", "command": "CREATE TABLE users (id BIGINT, name VARCHAR(50),';
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
 
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         sqlTruncatedJson,
         { resource: "test-sql-truncation", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -602,7 +602,7 @@ describe("json-tools", () => {
       }`;
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
 
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         validJsonWithIncompleteObjects,
         { resource: "test-preserve-valid-json", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -641,7 +641,7 @@ describe("json-tools", () => {
 
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
 
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         complexTruncatedJson,
         { resource: "test-complex-truncated", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -674,7 +674,7 @@ describe("json-tools", () => {
         '{"message": "This is a \\"quoted\\" word and this is a \\\'apostrophe\\\'"}';
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
 
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         validJson,
         { resource: "test-valid-escaping-preservation", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -695,7 +695,7 @@ describe("json-tools", () => {
       const invalidContent = "This is just plain text with no JSON structure at all";
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
 
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         invalidContent,
         { resource: "test-genuinely-invalid", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -713,7 +713,7 @@ describe("json-tools", () => {
       const nonStringInput = 123;
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
 
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         nonStringInput as unknown as string,
         { resource: "content", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -731,7 +731,7 @@ describe("json-tools", () => {
         ]
       }`;
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         jsonWithConcat,
         { resource: "test-concat", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -749,7 +749,7 @@ describe("json-tools", () => {
         "message": "Hel" + "lo" + " World" + "!"
       }`;
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         jsonWithLiteralConcat,
         { resource: "test-literal-concat", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -765,7 +765,7 @@ describe("json-tools", () => {
         "sql": "SELECT * " + "FROM table " + dynamicPart + " WHERE id=1"
       }`;
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         jsonWithMixedConcat,
         { resource: "test-mixed-concat", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -785,7 +785,7 @@ describe("json-tools", () => {
         ]
       }`;
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         json,
         { resource: "test-batchhelper-constants", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -805,7 +805,7 @@ describe("json-tools", () => {
         "value": SOME_CONST + "Actual Literal Value"
       }`;
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         json,
         { resource: "test-ident-leading", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -821,7 +821,7 @@ describe("json-tools", () => {
         "path": BASE_URL + "segment" + anotherVar + "ignoredTail"
       }`;
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         json,
         { resource: "test-ident-leading-mixed", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,

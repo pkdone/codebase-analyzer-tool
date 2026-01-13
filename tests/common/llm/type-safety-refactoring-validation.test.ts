@@ -14,7 +14,7 @@ import {
 } from "../../../src/common/llm/types/llm.types";
 import { RetryStrategy } from "../../../src/common/llm/strategies/retry-strategy";
 import { LLMExecutionPipeline } from "../../../src/common/llm/llm-execution-pipeline";
-import LLMTelemetryTracker from "../../../src/common/llm/tracking/llm-telemetry-tracker";
+import LLMExecutionStats from "../../../src/common/llm/tracking/llm-execution-stats";
 
 /**
  * Test suite validating the type safety refactoring for the LLM call chain.
@@ -152,10 +152,10 @@ describe("Type Safety Refactoring Validation", () => {
 
   describe("RetryStrategy Type Propagation", () => {
     let retryStrategy: RetryStrategy;
-    let llmStats: LLMTelemetryTracker;
+    let llmStats: LLMExecutionStats;
 
     beforeEach(() => {
-      llmStats = new LLMTelemetryTracker();
+      llmStats = new LLMExecutionStats();
       retryStrategy = new RetryStrategy(llmStats);
     });
 
@@ -276,10 +276,10 @@ describe("Type Safety Refactoring Validation", () => {
   describe("LLMExecutionPipeline Type Propagation", () => {
     let executionPipeline: LLMExecutionPipeline;
     let retryStrategy: RetryStrategy;
-    let llmStats: LLMTelemetryTracker;
+    let llmStats: LLMExecutionStats;
 
     beforeEach(() => {
-      llmStats = new LLMTelemetryTracker();
+      llmStats = new LLMExecutionStats();
       retryStrategy = new RetryStrategy(llmStats);
       executionPipeline = new LLMExecutionPipeline(retryStrategy, llmStats);
     });
@@ -443,10 +443,10 @@ describe("Type Safety Refactoring Validation", () => {
   describe("End-to-End Type Safety Verification", () => {
     let executionPipeline: LLMExecutionPipeline;
     let retryStrategy: RetryStrategy;
-    let llmStats: LLMTelemetryTracker;
+    let llmStats: LLMExecutionStats;
 
     beforeEach(() => {
-      llmStats = new LLMTelemetryTracker();
+      llmStats = new LLMExecutionStats();
       retryStrategy = new RetryStrategy(llmStats);
       executionPipeline = new LLMExecutionPipeline(retryStrategy, llmStats);
     });

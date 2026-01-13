@@ -184,8 +184,8 @@ describe("createPromptMetadata Type Safety", () => {
     });
   });
 
-  describe("Type Safety with sourceConfigMap and appSummaryConfigMap patterns", () => {
-    it("should work with satisfies pattern similar to sourceConfigMap", () => {
+  describe("Type Safety with fileTypePromptRegistry and appSummaryConfigMap patterns", () => {
+    it("should work with satisfies pattern similar to fileTypePromptRegistry", () => {
       interface TestConfigEntry<S extends z.ZodType = z.ZodType> {
         label: string;
         contentDesc: string;

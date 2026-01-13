@@ -6,7 +6,7 @@ import {
   LLMPurpose,
   InferResponseType,
 } from "../../../src/common/llm/types/llm.types";
-import { processJson } from "../../../src/common/llm/json-processing/core/json-processing";
+import { parseAndValidateLLMJson } from "../../../src/common/llm/json-processing/core/json-processing";
 
 // Mock dependencies
 jest.mock("../../../src/common/utils/logging", () => ({
@@ -15,7 +15,7 @@ jest.mock("../../../src/common/utils/logging", () => ({
   logErrorMsg: jest.fn(),
 }));
 
-jest.mock("../../../src/common/llm/tracking/llm-telemetry-tracker");
+jest.mock("../../../src/common/llm/tracking/llm-execution-stats");
 jest.mock("../../../src/common/llm/utils/manifest-loader");
 
 /**
@@ -117,7 +117,7 @@ describe("Type Safety Improvements", () => {
     });
   });
 
-  describe("processJson - Type Preservation", () => {
+  describe("parseAndValidateLLMJson - Type Preservation", () => {
     test("should preserve types when schema is provided", () => {
       const testSchema = z.object({
         purpose: z.string(),
@@ -131,7 +131,7 @@ describe("Type Safety Improvements", () => {
 
       const jsonContent = '{"purpose": "test purpose", "count": 5}';
 
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         jsonContent,
         context,
         {
@@ -157,7 +157,7 @@ describe("Type Safety Improvements", () => {
 
       const jsonContent = '{"anyKey": "anyValue", "number": 123}';
 
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         jsonContent,
         context,
         {
@@ -187,7 +187,7 @@ describe("Type Safety Improvements", () => {
       // Missing required field
       const jsonContent = '{"required": "test"}';
 
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         jsonContent,
         context,
         {

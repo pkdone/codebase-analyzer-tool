@@ -119,25 +119,29 @@ function buildEffectiveSanitizerConfig(
 }
 
 /**
- * Processes LLM-generated content through a multi-stage sanitization and repair pipeline,
- * then parses and validates it against a Zod schema. Returns a result object indicating success or failure.
+ * Parses and validates LLM-generated content through a multi-stage sanitization and repair pipeline,
+ * then validates it against a Zod schema. Returns a result object indicating success or failure.
  *
- * This is the high-level public API for JSON processing, orchestrating parsing and validation
- * with comprehensive logging.
+ * This is the high-level public API for LLM JSON processing, orchestrating parsing and validation
+ * with comprehensive logging. The function handles:
+ * 1. Sanitization of raw LLM text (removes markdown, comments)
+ * 2. JSON parsing with error recovery
+ * 3. Schema validation against the provided Zod schema
+ * 4. Schema-fixing transforms (coercion)
  *
  * The function is generic over the schema type, enabling type-safe validation:
  * - When a schema is provided, returns z.infer<S> where S is the schema type
  * - When no schema is provided, returns Record<string, unknown>
  *
  * @template S - The Zod schema type. When provided, the return type is inferred from the schema.
- * @param content - The LLM-generated content to process
+ * @param content - The LLM-generated content to parse and validate
  * @param context - Context information about the LLM request
  * @param completionOptions - Options including output format and optional JSON schema
  * @param loggingEnabled - Whether to enable sanitization step logging. Defaults to true.
  * @param config - Optional sanitizer configuration to pass to transforms
  * @returns A JsonProcessorResult indicating success with validated data and steps, or failure with an error
  */
-export function processJson<S extends z.ZodType = z.ZodType<Record<string, unknown>>>(
+export function parseAndValidateLLMJson<S extends z.ZodType = z.ZodType<Record<string, unknown>>>(
   content: LLMGeneratedContent,
   context: LLMContext,
   completionOptions: LLMCompletionOptions<S>,

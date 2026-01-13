@@ -1,4 +1,4 @@
-import { processJson } from "../../../../../src/common/llm/json-processing/core/json-processing";
+import { parseAndValidateLLMJson } from "../../../../../src/common/llm/json-processing/core/json-processing";
 import { LLMOutputFormat, LLMPurpose } from "../../../../../src/common/llm/types/llm.types";
 import { z } from "zod";
 
@@ -27,7 +27,7 @@ describe("Phased Pipeline", () => {
         items: z.array(z.number()),
       });
 
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         malformedJson,
         { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
         {
@@ -57,7 +57,7 @@ describe("Phased Pipeline", () => {
         name: z.string(),
       });
 
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         jsonWithNoise,
         { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
         {
@@ -83,7 +83,7 @@ describe("Phased Pipeline", () => {
         value: z.number(),
       });
 
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         jsonWithStructureIssues,
         { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
         {
@@ -110,7 +110,7 @@ describe("Phased Pipeline", () => {
         path: z.string(),
       });
 
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         jsonWithPropertyIssues,
         { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
         {
@@ -139,7 +139,7 @@ describe("Phased Pipeline", () => {
         items: z.array(z.number()),
       });
 
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         jsonWithContentIssues,
         { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
         {
@@ -178,7 +178,7 @@ describe("Phased Pipeline", () => {
       ];
 
       for (const testCase of testCases) {
-        const result = processJson(
+        const result = parseAndValidateLLMJson(
           testCase.input,
           { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
           {

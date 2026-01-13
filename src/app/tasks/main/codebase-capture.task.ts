@@ -1,26 +1,26 @@
 import "reflect-metadata";
 import { injectable, inject } from "tsyringe";
 import CodebaseToDBLoader from "../../components/capture/codebase-to-db-loader";
-import type LLMTelemetryTracker from "../../../common/llm/tracking/llm-telemetry-tracker";
+import type LLMExecutionStats from "../../../common/llm/tracking/llm-execution-stats";
 import type LLMRouter from "../../../common/llm/llm-router";
 import type { EnvVars } from "../../env/env.types";
 import { DatabaseInitializer } from "../../components/database/database-initializer";
 import { databaseConfig } from "../../components/database/database.config";
 import { llmTokens, coreTokens } from "../../di/tokens";
 import { captureTokens } from "../../di/tokens";
-import { BaseLLMTrackedTask } from "../base-llm-tracked-task";
+import { BaseAnalysisTask } from "../base-analysis-task";
 
 /**
  * Task to capture the codebase.
- * Extends BaseLLMTrackedTask to share the common lifecycle pattern with LLM stats tracking.
+ * Extends BaseAnalysisTask to share the common lifecycle pattern with LLM stats tracking.
  */
 @injectable()
-export class CodebaseCaptureTask extends BaseLLMTrackedTask {
+export class CodebaseCaptureTask extends BaseAnalysisTask {
   /**
    * Constructor with dependency injection.
    */
   constructor(
-    @inject(llmTokens.LLMTelemetryTracker) llmStats: LLMTelemetryTracker,
+    @inject(llmTokens.LLMExecutionStats) llmStats: LLMExecutionStats,
     @inject(coreTokens.ProjectName) projectName: string,
     @inject(llmTokens.LLMRouter) private readonly llmRouter: LLMRouter,
     @inject(coreTokens.DatabaseInitializer)

@@ -1,29 +1,29 @@
 import { z } from "zod";
 import {
-  sourceConfigMap,
-  type SourceConfigMap,
+  fileTypePromptRegistry,
+  type FileTypePromptRegistry,
 } from "../../../../../src/app/prompts/definitions/sources/sources.definitions";
 import { type SourceConfigEntry } from "../../../../../src/app/prompts/definitions/sources/definitions";
 import { CANONICAL_FILE_TYPES } from "../../../../../src/app/schemas/canonical-file-types";
 
 /**
- * Type safety tests for sourceConfigMap.
+ * Type safety tests for fileTypePromptRegistry.
  * These tests verify that the generic interface and satisfies pattern
  * correctly preserve specific Zod schema types through the type system.
  */
-describe("sourceConfigMap Type Safety", () => {
+describe("fileTypePromptRegistry Type Safety", () => {
   describe("satisfies Pattern Validation", () => {
-    it("should validate that sourceConfigMap satisfies Record structure", () => {
+    it("should validate that fileTypePromptRegistry satisfies Record structure", () => {
       // This is a compile-time check - if it compiles, the satisfies pattern works
       // Runtime verification that all expected keys exist
       for (const fileType of CANONICAL_FILE_TYPES) {
-        expect(sourceConfigMap[fileType]).toBeDefined();
+        expect(fileTypePromptRegistry[fileType]).toBeDefined();
       }
     });
 
     it("should have each entry satisfy SourceConfigEntry interface", () => {
       for (const fileType of CANONICAL_FILE_TYPES) {
-        const entry = sourceConfigMap[fileType];
+        const entry = fileTypePromptRegistry[fileType];
 
         // Verify required fields from SourceConfigEntry
         expect(typeof entry.contentDesc).toBe("string");
@@ -42,12 +42,12 @@ describe("sourceConfigMap Type Safety", () => {
 
   describe("Generic Interface Type Preservation", () => {
     it("should preserve specific schema types in type alias", () => {
-      // SourceConfigMap should be typeof sourceConfigMap, preserving literal types
+      // FileTypePromptRegistry should be typeof fileTypePromptRegistry, preserving literal types
       // This is primarily a compile-time verification
       // Use the types to demonstrate they exist and are distinct
-      const javaConfig: SourceConfigMap["java"] = sourceConfigMap.java;
-      const sqlConfig: SourceConfigMap["sql"] = sourceConfigMap.sql;
-      const markdownConfig: SourceConfigMap["markdown"] = sourceConfigMap.markdown;
+      const javaConfig: FileTypePromptRegistry["java"] = fileTypePromptRegistry.java;
+      const sqlConfig: FileTypePromptRegistry["sql"] = fileTypePromptRegistry.sql;
+      const markdownConfig: FileTypePromptRegistry["markdown"] = fileTypePromptRegistry.markdown;
 
       // These types should be distinct at compile time
       // At runtime, we verify the schemas are distinct objects
@@ -62,8 +62,8 @@ describe("sourceConfigMap Type Safety", () => {
 
     it("should allow specific schema types to be extracted via inference", () => {
       // Type-level test: Extract the inferred type from a specific entry's schema
-      type JavaSchemaInferred = z.infer<(typeof sourceConfigMap)["java"]["responseSchema"]>;
-      type SqlSchemaInferred = z.infer<(typeof sourceConfigMap)["sql"]["responseSchema"]>;
+      type JavaSchemaInferred = z.infer<(typeof fileTypePromptRegistry)["java"]["responseSchema"]>;
+      type SqlSchemaInferred = z.infer<(typeof fileTypePromptRegistry)["sql"]["responseSchema"]>;
 
       // Runtime test: Parse sample data against specific schemas
       const javaSample: JavaSchemaInferred = {
@@ -98,8 +98,8 @@ describe("sourceConfigMap Type Safety", () => {
         },
       };
 
-      const javaResult = sourceConfigMap.java.responseSchema.safeParse(javaSample);
-      const sqlResult = sourceConfigMap.sql.responseSchema.safeParse(sqlSample);
+      const javaResult = fileTypePromptRegistry.java.responseSchema.safeParse(javaSample);
+      const sqlResult = fileTypePromptRegistry.sql.responseSchema.safeParse(sqlSample);
 
       expect(javaResult.success).toBe(true);
       expect(sqlResult.success).toBe(true);
@@ -139,7 +139,7 @@ describe("sourceConfigMap Type Safety", () => {
   describe("as const Immutability", () => {
     it("should preserve readonly arrays for instructions", () => {
       for (const fileType of CANONICAL_FILE_TYPES) {
-        const entry = sourceConfigMap[fileType];
+        const entry = fileTypePromptRegistry[fileType];
         // Instructions should be an array (readonly at type level)
         expect(Array.isArray(entry.instructions)).toBe(true);
       }
@@ -148,7 +148,7 @@ describe("sourceConfigMap Type Safety", () => {
     it("should have immutable structure at the config map level", () => {
       // The entire config map should be frozen/immutable in terms of structure
       // This tests that as const is applied correctly
-      const keys = Object.keys(sourceConfigMap);
+      const keys = Object.keys(fileTypePromptRegistry);
       expect(keys.length).toBe(CANONICAL_FILE_TYPES.length);
     });
   });
@@ -157,13 +157,13 @@ describe("sourceConfigMap Type Safety", () => {
     it("should have different schemas for different file types", () => {
       // Get schemas from different file types
       const javaShape = Object.keys(
-        (sourceConfigMap.java.responseSchema as z.ZodObject<z.ZodRawShape>).shape,
+        (fileTypePromptRegistry.java.responseSchema as z.ZodObject<z.ZodRawShape>).shape,
       ).sort();
       const sqlShape = Object.keys(
-        (sourceConfigMap.sql.responseSchema as z.ZodObject<z.ZodRawShape>).shape,
+        (fileTypePromptRegistry.sql.responseSchema as z.ZodObject<z.ZodRawShape>).shape,
       ).sort();
       const markdownShape = Object.keys(
-        (sourceConfigMap.markdown.responseSchema as z.ZodObject<z.ZodRawShape>).shape,
+        (fileTypePromptRegistry.markdown.responseSchema as z.ZodObject<z.ZodRawShape>).shape,
       ).sort();
 
       // Java has name, kind, namespace; SQL has tables, storedProcedures
@@ -177,7 +177,7 @@ describe("sourceConfigMap Type Safety", () => {
 
     it("should validate that each file type schema is a ZodObject", () => {
       for (const fileType of CANONICAL_FILE_TYPES) {
-        const schema = sourceConfigMap[fileType].responseSchema;
+        const schema = fileTypePromptRegistry[fileType].responseSchema;
         // All schemas should be ZodObject instances (from .pick())
         expect(schema).toBeInstanceOf(z.ZodObject);
       }

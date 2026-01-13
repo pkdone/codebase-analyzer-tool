@@ -44,7 +44,7 @@ export const captureTokens = {
   CodebaseToDBLoader: Symbol("CodebaseToDBLoader"),
   FileSummarizerService: Symbol("FileSummarizerService"),
   PromptManager: Symbol("PromptManager"),
-  SourceConfigMap: Symbol("SourceConfigMap"),
+  FileTypePromptRegistry: Symbol("FileTypePromptRegistry"),
 } as const;
 
 export type CaptureToken = keyof typeof captureTokens;
@@ -64,7 +64,7 @@ export type InsightsToken = keyof typeof insightsTokens;
 // the LLMRouter is created via a factory pattern (llm-factory.ts) to keep the src/common/llm
 // module framework-agnostic and independent of tsyringe.
 export const llmTokens = {
-  LLMTelemetryTracker: Symbol("LLMTelemetryTracker"),
+  LLMExecutionStats: Symbol("LLMExecutionStats"),
   LLMRouter: Symbol("LLMRouter"),
   LLMModelFamily: Symbol("LLMModelFamily"),
   LLMErrorLogger: Symbol("LLMErrorLogger"),

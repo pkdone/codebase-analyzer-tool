@@ -11,7 +11,7 @@ import BaseLLMProvider from "../../../src/common/llm/providers/base-llm-provider
 import { createMockErrorLogger } from "../helpers/llm/mock-error-logger";
 import { RetryStrategy } from "../../../src/common/llm/strategies/retry-strategy";
 import { LLMExecutionPipeline } from "../../../src/common/llm/llm-execution-pipeline";
-import LLMTelemetryTracker from "../../../src/common/llm/tracking/llm-telemetry-tracker";
+import LLMExecutionStats from "../../../src/common/llm/tracking/llm-execution-stats";
 
 // Test-only constants
 const TEST_COMPLETIONS_MODEL = "TEST_COMPLETIONS_MODEL";
@@ -129,7 +129,7 @@ describe("Type Safety Chain - End to End", () => {
   let testContext: LLMContext;
   let retryStrategy: RetryStrategy;
   let executionPipeline: LLMExecutionPipeline;
-  let llmStats: LLMTelemetryTracker;
+  let llmStats: LLMExecutionStats;
 
   beforeEach(() => {
     testLLM = new TypeSafetyChainTestLLM();
@@ -137,7 +137,7 @@ describe("Type Safety Chain - End to End", () => {
       resource: "test-resource",
       purpose: LLMPurpose.COMPLETIONS,
     };
-    llmStats = new LLMTelemetryTracker();
+    llmStats = new LLMExecutionStats();
     retryStrategy = new RetryStrategy(llmStats);
     executionPipeline = new LLMExecutionPipeline(retryStrategy, llmStats);
   });

@@ -1,4 +1,4 @@
-import { processJson } from "../../../../src/common/llm/json-processing/core/json-processing";
+import { parseAndValidateLLMJson } from "../../../../src/common/llm/json-processing/core/json-processing";
 import { LLMOutputFormat, LLMPurpose } from "../../../../src/common/llm/types/llm.types";
 
 describe("json-tools identifier-only chain handling", () => {
@@ -8,7 +8,7 @@ describe("json-tools identifier-only chain handling", () => {
 
   it("collapses identifier-only concatenation chain to empty string literal", () => {
     const json = '{"path": SOME_CONST + OTHER_CONST + THIRD_CONST}';
-    const result = processJson(
+    const result = parseAndValidateLLMJson(
       json,
       { resource: "test-ident-only-chain", purpose: LLMPurpose.COMPLETIONS },
       completionOptions,
@@ -21,7 +21,7 @@ describe("json-tools identifier-only chain handling", () => {
 
   it("keeps surrounding structure when collapsing identifier-only chain", () => {
     const json = '{"a": 1, "b": CONST_A + CONST_B + CONST_C, "c": 3}';
-    const result = processJson(
+    const result = parseAndValidateLLMJson(
       json,
       { resource: "test-ident-only-chain-struct", purpose: LLMPurpose.COMPLETIONS },
       completionOptions,

@@ -1,4 +1,4 @@
-import { processJson } from "../../../../../src/common/llm/json-processing/core/json-processing";
+import { parseAndValidateLLMJson } from "../../../../../src/common/llm/json-processing/core/json-processing";
 import { LLMOutputFormat, LLMPurpose } from "../../../../../src/common/llm/types/llm.types";
 
 describe("JsonProcessor Integration Tests", () => {
@@ -153,7 +153,7 @@ describe("JsonProcessor Integration Tests", () => {
   }
 }`;
 
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         problematicJson,
         { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
         {
@@ -188,7 +188,7 @@ describe("JsonProcessor Integration Tests", () => {
   "publicFunctions": []
 }`;
 
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         problematicJson,
         { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
         {
@@ -217,7 +217,7 @@ describe("JsonProcessor Integration Tests", () => {
   "publicFunctions": []
 }`;
 
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         problematicJson,
         { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
         {

@@ -1,11 +1,11 @@
-import LLMTelemetryTracker from "../../../../src/common/llm/tracking/llm-telemetry-tracker";
+import LLMExecutionStats from "../../../../src/common/llm/tracking/llm-execution-stats";
 
-describe("LLMTelemetryTracker", () => {
-  let stats: LLMTelemetryTracker;
+describe("LLMExecutionStats", () => {
+  let stats: LLMExecutionStats;
   let consoleLogSpy: jest.SpyInstance;
 
   beforeEach(() => {
-    stats = new LLMTelemetryTracker();
+    stats = new LLMExecutionStats();
     consoleLogSpy = jest.spyOn(console, "log").mockImplementation();
   });
 

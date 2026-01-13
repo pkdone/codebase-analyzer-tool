@@ -6,7 +6,7 @@ import "reflect-metadata";
 import { FileSummarizerService } from "../../../../src/app/components/capture/file-summarizer.service";
 import type LLMRouter from "../../../../src/common/llm/llm-router";
 import type { PromptManager } from "../../../../src/app/prompts/prompt-registry";
-import type { SourceConfigMap } from "../../../../src/app/prompts/definitions/sources/sources.definitions";
+import type { FileTypePromptRegistry } from "../../../../src/app/prompts/definitions/sources/sources.definitions";
 import { z } from "zod";
 import { LLMError, LLMErrorCode } from "../../../../src/common/llm/types/llm-errors.types";
 import { ok, err, isOk, isErr } from "../../../../src/common/types/result.types";
@@ -33,7 +33,7 @@ describe("FileSummarizerService", () => {
   let service: FileSummarizerService;
   let mockLLMRouter: jest.Mocked<LLMRouter>;
   let mockPromptManager: PromptManager;
-  let mockSourceConfigMap: SourceConfigMap;
+  let mockFileTypePromptRegistry: FileTypePromptRegistry;
 
   const mockSchema = z.object({
     name: z.string(),
@@ -69,16 +69,20 @@ describe("FileSummarizerService", () => {
     } as unknown as PromptManager;
 
     // Create mock source config map
-    mockSourceConfigMap = {
+    mockFileTypePromptRegistry = {
       javascript: {
         contentDesc: "JavaScript code",
         responseSchema: mockSchema,
         instructions: [],
       },
-    } as unknown as SourceConfigMap;
+    } as unknown as FileTypePromptRegistry;
 
     // Create service instance
-    service = new FileSummarizerService(mockLLMRouter, mockPromptManager, mockSourceConfigMap);
+    service = new FileSummarizerService(
+      mockLLMRouter,
+      mockPromptManager,
+      mockFileTypePromptRegistry,
+    );
   });
 
   describe("summarize", () => {

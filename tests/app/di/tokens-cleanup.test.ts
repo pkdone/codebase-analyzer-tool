@@ -38,7 +38,7 @@ describe("DI Tokens Cleanup", () => {
 
     it("should contain all expected llm tokens", () => {
       // Verify that essential LLM tokens are still present
-      expect(llmTokens).toHaveProperty("LLMTelemetryTracker");
+      expect(llmTokens).toHaveProperty("LLMExecutionStats");
       expect(llmTokens).toHaveProperty("LLMRouter");
       expect(llmTokens).toHaveProperty("LLMModelFamily");
       expect(llmTokens).toHaveProperty("LLMErrorLogger");

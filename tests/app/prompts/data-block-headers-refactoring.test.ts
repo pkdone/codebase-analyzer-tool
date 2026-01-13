@@ -6,7 +6,7 @@ import {
 } from "../../../src/app/prompts/prompt.types";
 import { buildSchemaSection, renderPrompt } from "../../../src/app/prompts/prompt-renderer";
 import { promptManager } from "../../../src/app/prompts/prompt-registry";
-import { sourceConfigMap } from "../../../src/app/prompts/definitions/sources/sources.definitions";
+import { fileTypePromptRegistry } from "../../../src/app/prompts/definitions/sources/sources.definitions";
 import { appSummaryConfigMap } from "../../../src/app/prompts/definitions/app-summaries/app-summaries.definitions";
 
 /**
@@ -112,12 +112,12 @@ describe("Prompt Refactoring", () => {
     const codeFileTypes = ["java", "javascript", "csharp", "python", "ruby", "c", "cpp"] as const;
 
     it.each(codeFileTypes)("should have 'the ' prefix for %s contentDesc", (fileType) => {
-      const config = sourceConfigMap[fileType];
+      const config = fileTypePromptRegistry[fileType];
       expect(config.contentDesc).toMatch(/^the /);
     });
 
     it("should have 'the ' prefix for all source configs", () => {
-      Object.entries(sourceConfigMap).forEach(([, config]) => {
+      Object.entries(fileTypePromptRegistry).forEach(([, config]) => {
         expect(config.contentDesc).toMatch(/^the /);
       });
     });

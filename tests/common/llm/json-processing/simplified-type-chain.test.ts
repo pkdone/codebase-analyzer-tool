@@ -1,9 +1,9 @@
 import { z } from "zod";
-import { processJson } from "../../../../src/common/llm/json-processing/core/json-processing";
+import { parseAndValidateLLMJson } from "../../../../src/common/llm/json-processing/core/json-processing";
 import { LLMOutputFormat, LLMPurpose } from "../../../../src/common/llm/types/llm.types";
 import type { LLMContext, LLMCompletionOptions } from "../../../../src/common/llm/types/llm.types";
 
-describe("Simplified Type Chain - processJson", () => {
+describe("Simplified Type Chain - parseAndValidateLLMJson", () => {
   const mockContext: LLMContext = {
     resource: "test-resource",
     purpose: LLMPurpose.COMPLETIONS,
@@ -22,7 +22,7 @@ describe("Simplified Type Chain - processJson", () => {
         jsonSchema: schema,
       };
 
-      const result = processJson(content, mockContext, options);
+      const result = parseAndValidateLLMJson(content, mockContext, options);
 
       if (result.success) {
         // Type check: result.data should be inferred as { name: string; age: number }
@@ -50,7 +50,7 @@ describe("Simplified Type Chain - processJson", () => {
         jsonSchema: schema,
       };
 
-      const result = processJson(content, mockContext, options);
+      const result = parseAndValidateLLMJson(content, mockContext, options);
 
       if (result.success) {
         // Type check: nested structure should be properly typed
@@ -81,7 +81,7 @@ describe("Simplified Type Chain - processJson", () => {
         jsonSchema: schema,
       };
 
-      const result = processJson(content, mockContext, options);
+      const result = parseAndValidateLLMJson(content, mockContext, options);
 
       if (result.success) {
         // Type check: array items should be properly typed
@@ -104,7 +104,7 @@ describe("Simplified Type Chain - processJson", () => {
         jsonSchema: schema,
       };
 
-      const result = processJson(content, mockContext, options);
+      const result = parseAndValidateLLMJson(content, mockContext, options);
 
       if (result.success) {
         // Type check: optional field should be string | undefined
@@ -129,7 +129,7 @@ describe("Simplified Type Chain - processJson", () => {
         jsonSchema: schema,
       };
 
-      const result = processJson(content, mockContext, options);
+      const result = parseAndValidateLLMJson(content, mockContext, options);
 
       if (result.success) {
         // Type check: union type should be inferred
@@ -147,7 +147,7 @@ describe("Simplified Type Chain - processJson", () => {
         outputFormat: LLMOutputFormat.JSON,
       };
 
-      const result = processJson(content, mockContext, options);
+      const result = parseAndValidateLLMJson(content, mockContext, options);
 
       if (result.success) {
         // Type check: should be Record<string, unknown>
@@ -169,7 +169,7 @@ describe("Simplified Type Chain - processJson", () => {
         outputFormat: LLMOutputFormat.JSON,
       };
 
-      const result = processJson(content, mockContext, options);
+      const result = parseAndValidateLLMJson(content, mockContext, options);
 
       if (result.success) {
         // Type check: Record<string, unknown> allows any structure
@@ -193,7 +193,7 @@ describe("Simplified Type Chain - processJson", () => {
         jsonSchema: schema,
       };
 
-      const result = processJson(content, mockContext, options);
+      const result = parseAndValidateLLMJson(content, mockContext, options);
 
       // Type narrowing: if success is false, error is present
       expect(result.success).toBe(false);
@@ -216,7 +216,7 @@ describe("Simplified Type Chain - processJson", () => {
         jsonSchema: schema,
       };
 
-      const result = processJson(content, mockContext, options);
+      const result = parseAndValidateLLMJson(content, mockContext, options);
 
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -239,7 +239,7 @@ describe("Simplified Type Chain - processJson", () => {
         jsonSchema: schema,
       };
 
-      const result = processJson(content, mockContext, options);
+      const result = parseAndValidateLLMJson(content, mockContext, options);
 
       if (result.success) {
         // Should have applied transforms
@@ -260,7 +260,7 @@ describe("Simplified Type Chain - processJson", () => {
         jsonSchema: schema,
       };
 
-      const result = processJson(content, mockContext, options);
+      const result = parseAndValidateLLMJson(content, mockContext, options);
 
       if (result.success) {
         // No transforms should be needed
@@ -279,7 +279,7 @@ describe("Simplified Type Chain - processJson", () => {
         jsonSchema: schema,
       };
 
-      const result = processJson(content, mockContext, options);
+      const result = parseAndValidateLLMJson(content, mockContext, options);
 
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -295,7 +295,7 @@ describe("Simplified Type Chain - processJson", () => {
         jsonSchema: schema,
       };
 
-      const result = processJson(content, mockContext, options);
+      const result = parseAndValidateLLMJson(content, mockContext, options);
 
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -311,7 +311,7 @@ describe("Simplified Type Chain - processJson", () => {
         jsonSchema: schema,
       };
 
-      const result = processJson(content, mockContext, options);
+      const result = parseAndValidateLLMJson(content, mockContext, options);
 
       // Should either succeed (after sanitization) or fail gracefully
       if (result.success) {
@@ -343,7 +343,7 @@ describe("Simplified Type Chain - processJson", () => {
         jsonSchema: userSchema,
       };
 
-      const result = processJson(content, mockContext, options);
+      const result = parseAndValidateLLMJson(content, mockContext, options);
 
       if (result.success) {
         // This assignment should compile without type assertions

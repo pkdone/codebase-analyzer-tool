@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { renderPrompt } from "../../../src/app/prompts/prompt-renderer";
 import { BASE_PROMPT_TEMPLATE, CODEBASE_QUERY_TEMPLATE } from "../../../src/app/prompts/templates";
-import { sourceConfigMap } from "../../../src/app/prompts/definitions/sources/sources.definitions";
+import { fileTypePromptRegistry } from "../../../src/app/prompts/definitions/sources/sources.definitions";
 import { LLMOutputFormat } from "../../../src/common/llm/types/llm.types";
 import type { PromptDefinition, PromptConfigEntry } from "../../../src/app/prompts/prompt.types";
 
@@ -55,7 +55,7 @@ describe("Prompt Refactoring Improvements", () => {
     });
   });
 
-  describe("createStandardCodeConfig (via sourceConfigMap)", () => {
+  describe("createStandardCodeConfig (via fileTypePromptRegistry)", () => {
     const standardLanguages = [
       "java",
       "javascript",
@@ -67,7 +67,7 @@ describe("Prompt Refactoring Improvements", () => {
     ] as const;
 
     it.each(standardLanguages)("should create valid config for %s", (language) => {
-      const config = sourceConfigMap[language];
+      const config = fileTypePromptRegistry[language];
 
       expect(config).toBeDefined();
       expect(config.contentDesc).toBeDefined();
@@ -77,12 +77,12 @@ describe("Prompt Refactoring Improvements", () => {
     });
 
     it.each(standardLanguages)("should have 5 instruction blocks for %s", (language) => {
-      const config = sourceConfigMap[language];
+      const config = fileTypePromptRegistry[language];
       expect(config.instructions).toHaveLength(5);
     });
 
     it.each(standardLanguages)("should have correct section titles for %s", (language) => {
-      const config = sourceConfigMap[language];
+      const config = fileTypePromptRegistry[language];
       const [basicInfo, refs, integration, db, quality] = config.instructions;
 
       expect(basicInfo).toContain("__Basic Information__");
@@ -93,32 +93,32 @@ describe("Prompt Refactoring Improvements", () => {
     });
 
     it("should use MODULE base for C", () => {
-      const config = sourceConfigMap.c;
+      const config = fileTypePromptRegistry.c;
       expect(config.instructions[0]).toContain("module");
     });
 
     it("should use CLASS base for other languages", () => {
       const classBasedLanguages = ["java", "javascript", "csharp", "python", "ruby", "cpp"];
       for (const lang of classBasedLanguages) {
-        const config = sourceConfigMap[lang as keyof typeof sourceConfigMap];
+        const config = fileTypePromptRegistry[lang as keyof typeof fileTypePromptRegistry];
         expect(config.instructions[0]).toContain("class/interface");
       }
     });
 
     it("should include Python complexity metrics", () => {
-      const config = sourceConfigMap.python;
+      const config = fileTypePromptRegistry.python;
       const qualityBlock = config.instructions[4];
       expect(qualityBlock).toContain("Cyclomatic complexity (Python)");
     });
 
     it("should include kind override for C#", () => {
-      const config = sourceConfigMap.csharp;
+      const config = fileTypePromptRegistry.csharp;
       expect(config.instructions[0]).toContain("record");
       expect(config.instructions[0]).toContain("struct");
     });
 
     it("should include kind override for C++", () => {
-      const config = sourceConfigMap.cpp;
+      const config = fileTypePromptRegistry.cpp;
       expect(config.instructions[0]).toContain("namespace");
       expect(config.instructions[0]).toContain("union");
     });
@@ -126,7 +126,7 @@ describe("Prompt Refactoring Improvements", () => {
 
   describe("Prompt text preservation", () => {
     it("should preserve Java prompt text structure", () => {
-      const config = sourceConfigMap.java;
+      const config = fileTypePromptRegistry.java;
       const fullInstructions = config.instructions.join("\n\n");
 
       // Key Java-specific content should be preserved
@@ -137,7 +137,7 @@ describe("Prompt Refactoring Improvements", () => {
     });
 
     it("should preserve JavaScript prompt text structure", () => {
-      const config = sourceConfigMap.javascript;
+      const config = fileTypePromptRegistry.javascript;
       const fullInstructions = config.instructions.join("\n\n");
 
       // Key JS-specific content should be preserved
@@ -147,7 +147,7 @@ describe("Prompt Refactoring Improvements", () => {
     });
 
     it("should preserve database integration instructions", () => {
-      const config = sourceConfigMap.java;
+      const config = fileTypePromptRegistry.java;
       const dbBlock = config.instructions[3];
 
       expect(dbBlock).toContain("mechanism");
@@ -157,7 +157,7 @@ describe("Prompt Refactoring Improvements", () => {
     });
 
     it("should preserve code quality instructions", () => {
-      const config = sourceConfigMap.java;
+      const config = fileTypePromptRegistry.java;
       const qualityBlock = config.instructions[4];
 
       expect(qualityBlock).toContain("cyclomaticComplexity");
@@ -171,7 +171,7 @@ describe("Prompt Refactoring Improvements", () => {
   describe("PromptConfigEntry interface compatibility", () => {
     it("should be compatible with SourceConfigEntry", () => {
       // TypeScript compilation test - if this compiles, the interfaces are compatible
-      const sourceConfig = sourceConfigMap.java;
+      const sourceConfig = fileTypePromptRegistry.java;
       const configEntry: PromptConfigEntry = {
         instructions: sourceConfig.instructions,
         responseSchema: sourceConfig.responseSchema,
@@ -209,9 +209,9 @@ describe("Prompt Refactoring Improvements", () => {
     it("should render Java prompt with correct structure", () => {
       const testPromptDef: PromptDefinition = {
         label: "Java",
-        contentDesc: `the ${sourceConfigMap.java.contentDesc}`,
-        instructions: sourceConfigMap.java.instructions,
-        responseSchema: sourceConfigMap.java.responseSchema,
+        contentDesc: `the ${fileTypePromptRegistry.java.contentDesc}`,
+        instructions: fileTypePromptRegistry.java.instructions,
+        responseSchema: fileTypePromptRegistry.java.responseSchema,
         template: BASE_PROMPT_TEMPLATE,
         dataBlockHeader: "CODE",
         wrapInCodeBlock: true,

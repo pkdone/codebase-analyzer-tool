@@ -11,7 +11,7 @@ import type { LLMRetryConfig } from "./providers/llm-provider.types";
 import { RetryStrategy } from "./strategies/retry-strategy";
 import { determineNextAction } from "./strategies/fallback-decision";
 import { adaptPromptFromResponse } from "./strategies/prompt-adaptation-strategy";
-import LLMTelemetryTracker from "./tracking/llm-telemetry-tracker";
+import LLMExecutionStats from "./tracking/llm-execution-stats";
 import { hasSignificantSanitizationSteps } from "./json-processing/sanitizers";
 import type { LLMExecutionResult } from "./types/llm-execution-result.types";
 import { LLMExecutionError } from "./types/llm-execution-result.types";
@@ -49,7 +49,7 @@ export interface LLMExecutionParams<T extends LLMGeneratedContent> {
 export class LLMExecutionPipeline {
   constructor(
     private readonly retryStrategy: RetryStrategy,
-    private readonly llmStats: LLMTelemetryTracker,
+    private readonly llmStats: LLMExecutionStats,
   ) {}
 
   /**

@@ -1,4 +1,4 @@
-import { processJson } from "../../../../../src/common/llm/json-processing/core/json-processing";
+import { parseAndValidateLLMJson } from "../../../../../src/common/llm/json-processing/core/json-processing";
 import {
   LLMCompletionOptions,
   LLMOutputFormat,
@@ -58,7 +58,7 @@ describe("Null Handling Integration", () => {
         jsonSchema: schema,
       } as LLMCompletionOptions & { jsonSchema: typeof schema };
 
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         llmResponse,
         { resource: "billOfMaterials", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -144,7 +144,7 @@ describe("Null Handling Integration", () => {
 
       // Use type assertion to help TypeScript match the overload
 
-      const result = (processJson as any)(
+      const result = (parseAndValidateLLMJson as any)(
         llmResponse,
         { resource: "all-categories", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -204,7 +204,7 @@ describe("Null Handling Integration", () => {
 
       // Use type assertion to help TypeScript match the overload
 
-      const result = (processJson as any)(
+      const result = (parseAndValidateLLMJson as any)(
         llmResponse,
         { resource: "nested-test", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -248,7 +248,7 @@ describe("Null Handling Integration", () => {
 
       // Use type assertion to help TypeScript match the overload
 
-      const result = (processJson as any)(
+      const result = (parseAndValidateLLMJson as any)(
         problematicResponse,
         { resource: "single-dependency", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -285,7 +285,7 @@ describe("Null Handling Integration", () => {
 
       // Use type assertion to help TypeScript match the overload
 
-      const result = (processJson as any)(
+      const result = (parseAndValidateLLMJson as any)(
         response,
         { resource: "multi-null-test", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -320,7 +320,7 @@ describe("Null Handling Integration", () => {
 
       // Use type assertion to help TypeScript match the overload
 
-      const result = (processJson as any)(
+      const result = (parseAndValidateLLMJson as any)(
         response,
         { resource: "no-null-test", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -349,7 +349,7 @@ describe("Null Handling Integration", () => {
 
       // Use type assertion to help TypeScript match the overload
 
-      const result = (processJson as any)(
+      const result = (parseAndValidateLLMJson as any)(
         response,
         { resource: "omitted-test", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,

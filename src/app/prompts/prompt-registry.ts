@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { appSummaryConfigMap } from "./definitions/app-summaries/app-summaries.definitions";
-import { sourceConfigMap } from "./definitions/sources/sources.definitions";
+import { fileTypePromptRegistry } from "./definitions/sources/sources.definitions";
 import { BASE_PROMPT_TEMPLATE, CODEBASE_QUERY_TEMPLATE } from "./templates";
 import {
   DATA_BLOCK_HEADERS,
@@ -57,7 +57,7 @@ interface CreatePromptMetadataOptions {
  * the options-level defaults, enabling per-prompt customization while maintaining
  * group-level defaults.
  *
- * @param configMap - The configuration map (e.g., sourceConfigMap, appSummaryConfigMap)
+ * @param configMap - The configuration map (e.g., fileTypePromptRegistry, appSummaryConfigMap)
  * @param template - The template string to use for all prompts
  * @param options - Optional settings for default dataBlockHeader and wrapInCodeBlock
  * @returns A record mapping keys to PromptDefinition objects with preserved schema types
@@ -106,7 +106,7 @@ const appSummaryPrompts = createPromptMetadata(appSummaryConfigMap, BASE_PROMPT_
  *
  * Note: contentDesc (with "the " prefix) and instructions are read directly from config entries.
  */
-const sourcePrompts = createPromptMetadata(sourceConfigMap, BASE_PROMPT_TEMPLATE, {
+const sourcePrompts = createPromptMetadata(fileTypePromptRegistry, BASE_PROMPT_TEMPLATE, {
   dataBlockHeader: DATA_BLOCK_HEADERS.CODE,
   wrapInCodeBlock: true,
 });

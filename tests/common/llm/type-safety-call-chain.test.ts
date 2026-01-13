@@ -1,20 +1,20 @@
 import "reflect-metadata";
 import { z } from "zod";
-import { processJson } from "../../../src/common/llm/json-processing/core/json-processing";
+import { parseAndValidateLLMJson } from "../../../src/common/llm/json-processing/core/json-processing";
 import { LLMOutputFormat, LLMPurpose } from "../../../src/common/llm/types/llm.types";
 
 /**
  * Test suite to verify end-to-end type safety improvements in the JSON validation call chain.
  *
  * This test suite validates that:
- * 1. processJson correctly infers return types from provided Zod schemas
+ * 1. parseAndValidateLLMJson correctly infers return types from provided Zod schemas
  * 2. Type information flows properly through the call chain without unnecessary casts
  * 3. The improvements address the issues identified in requirement23.result
  */
 describe("Type Safety Call Chain Improvements", () => {
   const context = { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS };
 
-  describe("processJson type inference", () => {
+  describe("parseAndValidateLLMJson type inference", () => {
     it("should infer return type from simple object schema", () => {
       const schema = z.object({
         name: z.string(),
@@ -26,7 +26,7 @@ describe("Type Safety Call Chain Improvements", () => {
         jsonSchema: schema,
       };
 
-      const result = processJson(json, context, completionOptions);
+      const result = parseAndValidateLLMJson(json, context, completionOptions);
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -72,7 +72,7 @@ describe("Type Safety Call Chain Improvements", () => {
         jsonSchema: schema,
       };
 
-      const result = processJson(json, context, completionOptions);
+      const result = parseAndValidateLLMJson(json, context, completionOptions);
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -112,7 +112,7 @@ describe("Type Safety Call Chain Improvements", () => {
         jsonSchema: schema,
       };
 
-      const result = processJson(json, context, completionOptions);
+      const result = parseAndValidateLLMJson(json, context, completionOptions);
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -150,7 +150,7 @@ describe("Type Safety Call Chain Improvements", () => {
         jsonSchema: schema,
       };
 
-      const result = processJson(successJson, context, completionOptions);
+      const result = parseAndValidateLLMJson(successJson, context, completionOptions);
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -183,7 +183,7 @@ describe("Type Safety Call Chain Improvements", () => {
         jsonSchema: schema,
       };
 
-      const result = processJson(json, context, completionOptions);
+      const result = parseAndValidateLLMJson(json, context, completionOptions);
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -206,7 +206,7 @@ describe("Type Safety Call Chain Improvements", () => {
       const json = '{"key": "value", "number": 42, "nested": {"prop": true}}';
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
 
-      const result = processJson(json, context, completionOptions);
+      const result = parseAndValidateLLMJson(json, context, completionOptions);
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -231,7 +231,7 @@ describe("Type Safety Call Chain Improvements", () => {
         jsonSchema: schema,
       };
 
-      const result = processJson(json, context, completionOptions);
+      const result = parseAndValidateLLMJson(json, context, completionOptions);
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -255,7 +255,7 @@ describe("Type Safety Call Chain Improvements", () => {
         jsonSchema: schema,
       };
 
-      const result = processJson(json, context, completionOptions);
+      const result = parseAndValidateLLMJson(json, context, completionOptions);
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -289,7 +289,7 @@ describe("Type Safety Call Chain Improvements", () => {
         jsonSchema: schema,
       };
 
-      const result = processJson(json, context, completionOptions);
+      const result = parseAndValidateLLMJson(json, context, completionOptions);
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -323,7 +323,7 @@ describe("Type Safety Call Chain Improvements", () => {
         jsonSchema: treeNodeSchema,
       };
 
-      const result = processJson(json, context, completionOptions);
+      const result = parseAndValidateLLMJson(json, context, completionOptions);
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -356,7 +356,7 @@ describe("Type Safety Call Chain Improvements", () => {
         jsonSchema: schema,
       };
 
-      const result = processJson(json, context, completionOptions);
+      const result = parseAndValidateLLMJson(json, context, completionOptions);
 
       // Type guard ensures correct typing in both branches
       if (result.success) {
@@ -383,7 +383,7 @@ describe("Type Safety Call Chain Improvements", () => {
         jsonSchema: schema,
       };
 
-      const result = processJson(invalidJson, context, completionOptions);
+      const result = parseAndValidateLLMJson(invalidJson, context, completionOptions);
 
       // Type guard ensures proper handling
       if (result.success) {
@@ -442,7 +442,7 @@ describe("Type Safety Call Chain Improvements", () => {
         jsonSchema: realWorldSchema,
       };
 
-      const result = processJson(json, context, completionOptions);
+      const result = parseAndValidateLLMJson(json, context, completionOptions);
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -475,7 +475,7 @@ describe("Type Safety Call Chain Improvements", () => {
         jsonSchema: schema,
       };
 
-      const result = processJson(json, context, completionOptions);
+      const result = parseAndValidateLLMJson(json, context, completionOptions);
 
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -497,7 +497,7 @@ describe("Type Safety Call Chain Improvements", () => {
         jsonSchema: schema,
       };
 
-      const result = processJson(json, context, completionOptions);
+      const result = parseAndValidateLLMJson(json, context, completionOptions);
 
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -519,7 +519,7 @@ describe("Type Safety Call Chain Improvements", () => {
         jsonSchema: schema,
       };
 
-      const result = processJson(json, context, completionOptions);
+      const result = parseAndValidateLLMJson(json, context, completionOptions);
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -541,7 +541,7 @@ describe("Type Safety Call Chain Improvements", () => {
         jsonSchema: schema,
       };
 
-      const result = processJson(json, context, completionOptions);
+      const result = parseAndValidateLLMJson(json, context, completionOptions);
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -559,7 +559,7 @@ describe("Type Safety Call Chain Improvements", () => {
         jsonSchema: schema,
       };
 
-      const result = processJson(json, context, completionOptions);
+      const result = parseAndValidateLLMJson(json, context, completionOptions);
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -581,7 +581,7 @@ describe("Type Safety Call Chain Improvements", () => {
         jsonSchema: schema,
       };
 
-      const result = processJson(json, context, completionOptions);
+      const result = parseAndValidateLLMJson(json, context, completionOptions);
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -601,7 +601,7 @@ describe("Type Safety Call Chain Improvements", () => {
         jsonSchema: schema,
       };
 
-      const result = processJson(json, context, completionOptions);
+      const result = parseAndValidateLLMJson(json, context, completionOptions);
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -625,7 +625,7 @@ describe("Type Safety Call Chain Improvements", () => {
         jsonSchema: schema,
       };
 
-      const result = processJson(json, context, completionOptions);
+      const result = parseAndValidateLLMJson(json, context, completionOptions);
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -653,7 +653,7 @@ describe("Type Safety Call Chain Improvements", () => {
         jsonSchema: schema,
       };
 
-      const result = processJson(json, context, completionOptions);
+      const result = parseAndValidateLLMJson(json, context, completionOptions);
 
       expect(result.success).toBe(true);
       if (result.success) {

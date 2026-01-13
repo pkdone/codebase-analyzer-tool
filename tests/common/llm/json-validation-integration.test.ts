@@ -6,7 +6,7 @@ import {
   LLMPurpose,
   type LLMContext,
 } from "../../../src/common/llm/types/llm.types";
-import { processJson } from "../../../src/common/llm/json-processing/core/json-processing";
+import { parseAndValidateLLMJson } from "../../../src/common/llm/json-processing/core/json-processing";
 
 // Mock dependencies
 jest.mock("../../../src/common/utils/logging", () => ({
@@ -74,7 +74,7 @@ describe("JSON Validation Integration Tests", () => {
         },
       });
 
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         mockLLMResponse,
         mockContext,
         {
@@ -159,7 +159,7 @@ describe("JSON Validation Integration Tests", () => {
         },
       });
 
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         mockResponse,
         mockContext,
         {
@@ -206,7 +206,7 @@ describe("JSON Validation Integration Tests", () => {
         timestamp: 1704067200000,
       });
 
-      const clickResult = processJson(
+      const clickResult = parseAndValidateLLMJson(
         clickEvent,
         mockContext,
         {
@@ -231,7 +231,7 @@ describe("JSON Validation Integration Tests", () => {
         timestamp: 1704067200000,
       });
 
-      const scrollResult = processJson(
+      const scrollResult = parseAndValidateLLMJson(
         scrollEvent,
         mockContext,
         {
@@ -273,7 +273,7 @@ describe("JSON Validation Integration Tests", () => {
         complexity: 2,
       });
 
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         mockSummary,
         mockContext,
         {
@@ -335,7 +335,7 @@ describe("JSON Validation Integration Tests", () => {
         },
       });
 
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         mockInsight,
         mockContext,
         {
@@ -369,7 +369,7 @@ describe("JSON Validation Integration Tests", () => {
         active: true,
       });
 
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         invalidData,
         mockContext,
         {
@@ -391,7 +391,7 @@ describe("JSON Validation Integration Tests", () => {
       // Fundamentally broken JSON that sanitizers can't fix
       const malformedJson = "this is not json at all, just plain text";
 
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         malformedJson,
         mockContext,
         {
@@ -416,7 +416,7 @@ describe("JSON Validation Integration Tests", () => {
         items: [],
       });
 
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         dataWithIssues,
         mockContext,
         {
@@ -466,7 +466,7 @@ describe("JSON Validation Integration Tests", () => {
         },
       });
 
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         largeData,
         mockContext,
         {
@@ -497,7 +497,7 @@ describe("JSON Validation Integration Tests", () => {
 
       const largeArray = JSON.stringify(items);
 
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         largeArray,
         mockContext,
         {

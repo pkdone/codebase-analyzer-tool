@@ -1,18 +1,18 @@
 import { z } from "zod";
-import { processJson } from "../../../../src/common/llm/json-processing/core/json-processing";
+import { parseAndValidateLLMJson } from "../../../../src/common/llm/json-processing/core/json-processing";
 import { LLMOutputFormat, LLMPurpose } from "../../../../src/common/llm/types/llm.types";
 import {
   JsonProcessingError,
   JsonProcessingErrorType,
 } from "../../../../src/common/llm/json-processing/types/json-processing.errors";
 
-describe("processJson", () => {
+describe("parseAndValidateLLMJson", () => {
   const completionOptions = { outputFormat: LLMOutputFormat.JSON };
 
   describe("basic functionality", () => {
     it("should parse valid JSON string", () => {
       const json = '{"key": "value", "number": 42}';
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         json,
         { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -25,7 +25,7 @@ describe("processJson", () => {
 
     it("should parse valid JSON array", () => {
       const json = '[{"item": 1}, {"item": 2}]';
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         json,
         { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -38,7 +38,7 @@ describe("processJson", () => {
 
     it("should handle JSON with whitespace", () => {
       const json = '  \n\t  {"key": "value"}  \n\t  ';
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         json,
         { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -51,7 +51,7 @@ describe("processJson", () => {
 
     it("should parse nested JSON objects", () => {
       const json = '{"outer": {"inner": {"deep": "value"}}}';
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         json,
         { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -66,7 +66,7 @@ describe("processJson", () => {
   describe("error handling", () => {
     it("should return failure result for non-string content", () => {
       const nonString = 12345 as any;
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         nonString,
         { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -79,7 +79,7 @@ describe("processJson", () => {
 
     it("should return JsonProcessingError for invalid JSON with no recovery", () => {
       const invalid = "not valid json at all";
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         invalid,
         { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -92,7 +92,7 @@ describe("processJson", () => {
 
     it("should include resource name in error message", () => {
       const invalid = "not valid json";
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         invalid,
         { resource: "my-resource", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -105,7 +105,7 @@ describe("processJson", () => {
 
     it("should provide clear error message for completely non-JSON responses", () => {
       const plainText = "This is not JSON at all";
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         plainText,
         { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -132,7 +132,7 @@ describe("processJson", () => {
       ];
 
       for (const input of testCases) {
-        const result = processJson(
+        const result = parseAndValidateLLMJson(
           input,
           { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
           completionOptions,
@@ -155,7 +155,7 @@ describe("processJson", () => {
       ];
 
       for (const input of testCases) {
-        const result = processJson(
+        const result = parseAndValidateLLMJson(
           input,
           { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
           completionOptions,
@@ -172,7 +172,7 @@ describe("processJson", () => {
   describe("fast path optimization", () => {
     it("should use fast path for clean JSON", () => {
       const json = '{"simple": true}';
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         json,
         { resource: "test", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -194,7 +194,7 @@ describe("processJson", () => {
       ];
 
       for (const { input, expected } of testCases) {
-        const result = processJson(
+        const result = parseAndValidateLLMJson(
           input,
           { resource: "test", purpose: LLMPurpose.COMPLETIONS },
           completionOptions,
@@ -210,7 +210,7 @@ describe("processJson", () => {
   describe("progressive parsing strategies", () => {
     it("should extract JSON from surrounding text", () => {
       const text = 'Some text before {"key": "value"} some text after';
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         text,
         { resource: "test", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -223,7 +223,7 @@ describe("processJson", () => {
 
     it("should handle JSON in code fences", () => {
       const fenced = '```json\n{"key": "value"}\n```';
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         fenced,
         { resource: "test", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -236,7 +236,7 @@ describe("processJson", () => {
 
     it("should handle malformed JSON with trailing commas", () => {
       const malformed = '{"key": "value",}';
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         malformed,
         { resource: "test", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -249,7 +249,7 @@ describe("processJson", () => {
 
     it("should fix over-escaped sequences", () => {
       const overEscaped = String.raw`{"text": "Line 1\nLine 2"}`;
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         overEscaped,
         { resource: "test", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -262,7 +262,7 @@ describe("processJson", () => {
 
     it("should handle concatenated identical objects", () => {
       const duplicated = '{"a":1}{"a":1}';
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         duplicated,
         { resource: "test", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -278,7 +278,7 @@ describe("processJson", () => {
     it("should apply multiple sanitizations in pipeline", () => {
       // This JSON has multiple issues: code fence, trailing comma, whitespace
       const messy = '```json\n  {"key": "value",}  \n```';
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         messy,
         { resource: "test", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -297,7 +297,7 @@ describe("processJson", () => {
             {"name": "Item 2",}
           ],
         }`;
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         complex,
         { resource: "test", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -315,12 +315,12 @@ describe("processJson", () => {
       const json1 = '{"first": 1}';
       const json2 = '{"second": 2}';
 
-      const result1 = processJson(
+      const result1 = parseAndValidateLLMJson(
         json1,
         { resource: "test1", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
       );
-      const result2 = processJson(
+      const result2 = parseAndValidateLLMJson(
         json2,
         { resource: "test2", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -335,12 +335,12 @@ describe("processJson", () => {
     });
 
     it("should not share state between different calls", () => {
-      const result1 = processJson(
+      const result1 = parseAndValidateLLMJson(
         '{"a": 1}',
         { resource: "test", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
       );
-      const result2 = processJson(
+      const result2 = parseAndValidateLLMJson(
         '{"b": 2}',
         { resource: "test", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -367,7 +367,7 @@ describe("processJson", () => {
         ...completionOptions,
         jsonSchema: testTypeSchema,
       };
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         json,
         { resource: "test", purpose: LLMPurpose.COMPLETIONS },
         optionsWithSchema,
@@ -386,7 +386,7 @@ describe("processJson", () => {
         ...completionOptions,
         jsonSchema: arraySchema,
       };
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         json,
         { resource: "test", purpose: LLMPurpose.COMPLETIONS },
         optionsWithSchema,
@@ -403,7 +403,7 @@ describe("processJson", () => {
   describe("sanitization logging", () => {
     it("should not log when disabled", () => {
       const json = 'Some text {"key": "value"} after';
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         json,
         { resource: "test", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -413,7 +413,7 @@ describe("processJson", () => {
 
     it("should handle logging enabled", () => {
       const json = 'Prefix {"key": "value"} suffix';
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         json,
         { resource: "test", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -425,7 +425,7 @@ describe("processJson", () => {
   describe("edge cases", () => {
     it("should handle empty object", () => {
       const json = "{}";
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         json,
         { resource: "test", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -438,7 +438,7 @@ describe("processJson", () => {
 
     it("should handle empty array", () => {
       const json = "[]";
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         json,
         { resource: "test", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -451,7 +451,7 @@ describe("processJson", () => {
 
     it("should handle deeply nested structures", () => {
       const json = '{"a":{"b":{"c":{"d":{"e":"deep"}}}}}';
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         json,
         { resource: "test", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -464,7 +464,7 @@ describe("processJson", () => {
 
     it("should handle large arrays", () => {
       const largeArray = JSON.stringify(Array.from({ length: 1000 }, (_, i) => ({ id: i })));
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         largeArray,
         { resource: "test", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -478,7 +478,7 @@ describe("processJson", () => {
 
     it("should handle unicode characters", () => {
       const json = '{"emoji": "😀", "chinese": "你好", "arabic": "مرحبا"}';
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         json,
         { resource: "test", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -495,7 +495,7 @@ describe("processJson", () => {
   describe("JsonProcessingError context", () => {
     it("should return failure result with original content", () => {
       const invalid = "completely invalid json content here";
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         invalid,
         { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -509,7 +509,7 @@ describe("processJson", () => {
 
     it("should create JsonProcessingError with correct type", () => {
       const invalid = "{ this is not valid json at all }";
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         invalid,
         { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -523,7 +523,7 @@ describe("processJson", () => {
 
     it("should create JsonProcessingError after sanitization attempts", () => {
       const withCodeFence = "```json\n{invalid json}\n```";
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         withCodeFence,
         { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -537,7 +537,7 @@ describe("processJson", () => {
 
     it("should include resource name in JsonProcessingError message", () => {
       const invalid = "not valid json";
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         invalid,
         { resource: "my-custom-resource", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -551,7 +551,7 @@ describe("processJson", () => {
 
     it("should capture underlying error in JsonProcessingError", () => {
       const almostValid = '{"key": "value", but with extra text}';
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         almostValid,
         { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -566,7 +566,7 @@ describe("processJson", () => {
 
     it("should preserve error name as JsonProcessingError", () => {
       const invalid = "not valid json";
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         invalid,
         { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -582,7 +582,7 @@ describe("processJson", () => {
     it("should succeed via fast path without recording unnecessary sanitizer steps (early stop semantics)", () => {
       // Input with leading whitespace that is still valid JSON when trimmed implicitly by JSON.parse (fast path)
       const input = '   \n{"simple":true}';
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         input,
         { resource: "early-stop-resource", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -599,7 +599,7 @@ describe("processJson", () => {
       // Input engineered to trigger code fence removal and comma insertion
       const malformed = '```json\n{"a": "b"\n"c": "d"}'; // missing comma, code fence
       // Logging is controlled via function parameter
-      const result = processJson(
+      const result = parseAndValidateLLMJson(
         malformed,
         { resource: "diag-resource", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,

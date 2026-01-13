@@ -7,20 +7,20 @@ import { coreTokens, repositoryTokens, llmTokens } from "../../di/tokens";
 import { inputConfig } from "../../prompts/config/input.config";
 import type { SourcesRepository } from "../../repositories/sources/sources.repository.interface";
 import type LLMRouter from "../../../common/llm/llm-router";
-import type LLMTelemetryTracker from "../../../common/llm/tracking/llm-telemetry-tracker";
-import { BaseLLMTrackedTask } from "../base-llm-tracked-task";
+import type LLMExecutionStats from "../../../common/llm/tracking/llm-execution-stats";
+import { BaseAnalysisTask } from "../base-analysis-task";
 
 /**
  * Task to query the codebase using vector search and LLM.
- * Extends BaseLLMTrackedTask to share the common lifecycle pattern with LLM stats tracking.
+ * Extends BaseAnalysisTask to share the common lifecycle pattern with LLM stats tracking.
  */
 @injectable()
-export class CodebaseQueryTask extends BaseLLMTrackedTask {
+export class CodebaseQueryTask extends BaseAnalysisTask {
   /**
    * Constructor with dependency injection.
    */
   constructor(
-    @inject(llmTokens.LLMTelemetryTracker) llmStats: LLMTelemetryTracker,
+    @inject(llmTokens.LLMExecutionStats) llmStats: LLMExecutionStats,
     @inject(coreTokens.ProjectName) projectName: string,
     @inject(repositoryTokens.SourcesRepository)
     private readonly sourcesRepository: SourcesRepository,

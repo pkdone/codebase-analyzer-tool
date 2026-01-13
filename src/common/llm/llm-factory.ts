@@ -2,7 +2,7 @@ import { LLMModuleConfig } from "./config/llm-module-config.types";
 import LLMRouter from "./llm-router";
 import { LLMExecutionPipeline } from "./llm-execution-pipeline";
 import { RetryStrategy } from "./strategies/retry-strategy";
-import LLMTelemetryTracker from "./tracking/llm-telemetry-tracker";
+import LLMExecutionStats from "./tracking/llm-execution-stats";
 import { LLMErrorLogger } from "./tracking/llm-error-logger";
 
 /**
@@ -10,7 +10,7 @@ import { LLMErrorLogger } from "./tracking/llm-error-logger";
  */
 export interface LLMRouterComponents {
   router: LLMRouter;
-  stats: LLMTelemetryTracker;
+  stats: LLMExecutionStats;
 }
 
 /**
@@ -19,7 +19,7 @@ export interface LLMRouterComponents {
  * making the LLM module usable without a dependency injection framework.
  *
  * @param config Configuration for the LLM module
- * @returns An object containing the configured LLMRouter and LLMTelemetryTracker instances
+ * @returns An object containing the configured LLMRouter and LLMExecutionStats instances
  *
  * @example
  * ```typescript
@@ -40,7 +40,7 @@ export interface LLMRouterComponents {
 export function createLLMRouter(config: LLMModuleConfig): LLMRouterComponents {
   // Instantiate dependencies in correct order (no circular dependencies)
   const errorLogger = new LLMErrorLogger(config.errorLogging);
-  const llmStats = new LLMTelemetryTracker();
+  const llmStats = new LLMExecutionStats();
   const retryStrategy = new RetryStrategy(llmStats);
 
   const executionPipeline = new LLMExecutionPipeline(retryStrategy, llmStats);

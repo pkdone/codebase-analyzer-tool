@@ -6,7 +6,7 @@ import {
   isJsonOptionsWithSchema,
   isTextOptions,
 } from "../../../../src/common/llm/types/llm.types";
-import { processJson } from "../../../../src/common/llm/json-processing/core/json-processing";
+import { parseAndValidateLLMJson } from "../../../../src/common/llm/json-processing/core/json-processing";
 import { validateJsonWithTransforms } from "../../../../src/common/llm/json-processing/core/json-validating";
 
 /**
@@ -91,11 +91,11 @@ describe("LLMRouter Type Safety Integration Tests", () => {
         jsonSchema: schema,
       };
 
-      const result = processJson(jsonString, context, options, true);
+      const result = parseAndValidateLLMJson(jsonString, context, options, true);
 
       expect(result.success).toBe(true);
       if (result.success) {
-        // Type inference should work through processJson
+        // Type inference should work through parseAndValidateLLMJson
         expect(result.data.status).toBe("success");
         expect(result.data.data.id).toBe(42);
         expect(result.data.data.value).toBe("test");

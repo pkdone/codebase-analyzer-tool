@@ -1,4 +1,4 @@
-import { processJson } from "../../../src/common/llm/json-processing/core/json-processing";
+import { parseAndValidateLLMJson } from "../../../src/common/llm/json-processing/core/json-processing";
 import { LLMOutputFormat, LLMPurpose } from "../../../src/common/llm/types/llm.types";
 
 // Tests for handling concatenated JSON objects through the public API.
@@ -11,7 +11,7 @@ describe("json-tools concatenated objects handling", () => {
     // When multiple objects are concatenated, the parser extracts the first complete one
     const concatenated = '{"a":1}{"b":2}';
 
-    const result = processJson(
+    const result = parseAndValidateLLMJson(
       concatenated,
       { resource: "concat-resource", purpose: LLMPurpose.COMPLETIONS },
       {
@@ -30,7 +30,7 @@ describe("json-tools concatenated objects handling", () => {
     // Malformed JSON with concatenated objects triggers sanitization
     const malformedConcatenated = '{"a":1,}{"b":2,}';
 
-    const result = processJson(
+    const result = parseAndValidateLLMJson(
       malformedConcatenated,
       { resource: "malformed-concat-resource", purpose: LLMPurpose.COMPLETIONS },
       { outputFormat: LLMOutputFormat.JSON },
@@ -47,7 +47,7 @@ describe("json-tools concatenated objects handling", () => {
     // When identical objects are concatenated, parsing handles it gracefully
     const duplicateConcatenated = '{"a":1}{"a":1}';
 
-    const result = processJson(
+    const result = parseAndValidateLLMJson(
       duplicateConcatenated,
       { resource: "duplicate-concat-resource", purpose: LLMPurpose.COMPLETIONS },
       { outputFormat: LLMOutputFormat.JSON },
@@ -64,7 +64,7 @@ describe("json-tools concatenated objects handling", () => {
     // Parser should extract JSON even when surrounded by other text
     const textWithJson = 'Here is some data: {"value": 42} and more text';
 
-    const result = processJson(
+    const result = parseAndValidateLLMJson(
       textWithJson,
       { resource: "text-wrapped-resource", purpose: LLMPurpose.COMPLETIONS },
       {

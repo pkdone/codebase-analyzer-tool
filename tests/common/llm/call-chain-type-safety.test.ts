@@ -17,7 +17,7 @@ jest.mock("../../../src/common/utils/logging", () => ({
   logErrorMsg: jest.fn(),
 }));
 
-jest.mock("../../../src/common/llm/tracking/llm-telemetry-tracker");
+jest.mock("../../../src/common/llm/tracking/llm-execution-stats");
 
 /**
  * Test suite for type safety through the entire LLM call chain.

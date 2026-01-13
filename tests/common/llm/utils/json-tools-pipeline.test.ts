@@ -1,5 +1,5 @@
 import { LLMOutputFormat, LLMPurpose } from "../../../../src/common/llm/types/llm.types";
-import { processJson } from "../../../../src/common/llm/json-processing/core/json-processing";
+import { parseAndValidateLLMJson } from "../../../../src/common/llm/json-processing/core/json-processing";
 
 // We'll mock the logging utility to capture sanitation step logging
 jest.mock("../../../../src/common/utils/logging", () => {
@@ -21,7 +21,7 @@ describe("json-tools sanitation pipeline (incremental refactor wrapper)", () => 
 
   test("fast path: valid JSON returns with no sanitation steps logged", () => {
     const json = '{"a":1,"b":2}';
-    const result = processJson(
+    const result = parseAndValidateLLMJson(
       json,
       { resource: "fast-path", purpose: LLMPurpose.COMPLETIONS },
       completionOptions,
@@ -36,7 +36,7 @@ describe("json-tools sanitation pipeline (incremental refactor wrapper)", () => 
 
   test("extraction path: JSON embedded in text triggers extraction step logging", () => {
     const text = 'Intro text before JSON {"hello":"world"} trailing commentary';
-    const result = processJson(
+    const result = parseAndValidateLLMJson(
       text,
       { resource: "extract-path", purpose: LLMPurpose.COMPLETIONS },
       completionOptions,
@@ -62,7 +62,7 @@ describe("json-tools sanitation pipeline (incremental refactor wrapper)", () => 
   test("unified sanitization pipeline: deliberately malformed then recoverable JSON", () => {
     // Force multiple sanitizers: content with code fences & trailing comma
     const malformed = '```json\n{"key":"value",}\n``` Extra trailing';
-    const result = processJson(
+    const result = parseAndValidateLLMJson(
       malformed,
       { resource: "pipeline-test", purpose: LLMPurpose.COMPLETIONS },
       completionOptions,
@@ -78,7 +78,7 @@ describe("json-tools sanitation pipeline (incremental refactor wrapper)", () => 
 
   test("pre-concat strategy invoked for identifier-only concatenations", () => {
     const withConcat = '{"path": SOME_CONST + OTHER_CONST + THIRD_CONST}';
-    const result = processJson(
+    const result = parseAndValidateLLMJson(
       withConcat,
       { resource: "pre-concat", purpose: LLMPurpose.COMPLETIONS },
       completionOptions,

@@ -52,9 +52,9 @@ describe("prompts module barrel exports", () => {
       expect(typeof PromptsModule.appSummaryConfigMap).toBe("object");
     });
 
-    it("should export sourceConfigMap", () => {
-      expect(PromptsModule.sourceConfigMap).toBeDefined();
-      expect(typeof PromptsModule.sourceConfigMap).toBe("object");
+    it("should export fileTypePromptRegistry", () => {
+      expect(PromptsModule.fileTypePromptRegistry).toBeDefined();
+      expect(typeof PromptsModule.fileTypePromptRegistry).toBe("object");
     });
   });
 

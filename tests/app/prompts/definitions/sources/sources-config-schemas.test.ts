@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { sourceConfigMap } from "../../../../../src/app/prompts/definitions/sources/sources.definitions";
+import { fileTypePromptRegistry } from "../../../../../src/app/prompts/definitions/sources/sources.definitions";
 import { sourceSummarySchema } from "../../../../../src/app/schemas/sources.schema";
 import {
   CANONICAL_FILE_TYPES,
@@ -7,14 +7,14 @@ import {
 } from "../../../../../src/app/schemas/canonical-file-types";
 
 /**
- * Tests for sourceConfigMap.responseSchema schemas.
- * These tests verify that the response schemas defined directly in sourceConfigMap
+ * Tests for fileTypePromptRegistry.responseSchema schemas.
+ * These tests verify that the response schemas defined directly in fileTypePromptRegistry
  * are correctly structured and provide the expected type validation.
  */
-describe("sourceConfigMap.responseSchema", () => {
+describe("fileTypePromptRegistry.responseSchema", () => {
   describe("Schema Map Completeness", () => {
     it("should have a schema for every canonical file type", () => {
-      const configKeys = Object.keys(sourceConfigMap).sort();
+      const configKeys = Object.keys(fileTypePromptRegistry).sort();
       const expectedKeys = [...CANONICAL_FILE_TYPES].sort();
 
       expect(configKeys).toEqual(expectedKeys);
@@ -22,7 +22,7 @@ describe("sourceConfigMap.responseSchema", () => {
 
     it("should have responseSchema defined for all config entries", () => {
       for (const fileType of CANONICAL_FILE_TYPES) {
-        const config = sourceConfigMap[fileType];
+        const config = fileTypePromptRegistry[fileType];
         expect(config.responseSchema).toBeDefined();
         expect(config.responseSchema).toBeInstanceOf(z.ZodType);
       }
@@ -32,7 +32,7 @@ describe("sourceConfigMap.responseSchema", () => {
   describe("Schema Type Validation", () => {
     it("should have all schemas as ZodObject instances", () => {
       for (const fileType of CANONICAL_FILE_TYPES) {
-        const schema = sourceConfigMap[fileType].responseSchema;
+        const schema = fileTypePromptRegistry[fileType].responseSchema;
         expect(schema).toBeInstanceOf(z.ZodObject);
       }
     });
@@ -79,7 +79,7 @@ describe("sourceConfigMap.responseSchema", () => {
       ];
 
       for (const { fileType, expectedFields } of testCases) {
-        const schema = sourceConfigMap[fileType].responseSchema;
+        const schema = fileTypePromptRegistry[fileType].responseSchema;
         const shape = (schema as z.ZodObject<z.ZodRawShape>).shape;
         const actualFields = Object.keys(shape).sort();
 
@@ -93,7 +93,7 @@ describe("sourceConfigMap.responseSchema", () => {
       const fullSchemaKeys = Object.keys(sourceSummarySchema.shape);
 
       for (const fileType of CANONICAL_FILE_TYPES) {
-        const schema = sourceConfigMap[fileType].responseSchema;
+        const schema = fileTypePromptRegistry[fileType].responseSchema;
         const shape = (schema as z.ZodObject<z.ZodRawShape>).shape;
         const pickedKeys = Object.keys(shape);
 
@@ -106,7 +106,7 @@ describe("sourceConfigMap.responseSchema", () => {
 
     it("should include required fields purpose and implementation for all file types", () => {
       for (const fileType of CANONICAL_FILE_TYPES) {
-        const schema = sourceConfigMap[fileType].responseSchema;
+        const schema = fileTypePromptRegistry[fileType].responseSchema;
         const shape = (schema as z.ZodObject<z.ZodRawShape>).shape;
         const fields = Object.keys(shape);
 
@@ -140,7 +140,7 @@ describe("sourceConfigMap.responseSchema", () => {
         },
       };
 
-      const result = sourceConfigMap.java.responseSchema.safeParse(sampleJavaSummary);
+      const result = fileTypePromptRegistry.java.responseSchema.safeParse(sampleJavaSummary);
       expect(result.success).toBe(true);
     });
 
@@ -158,7 +158,7 @@ describe("sourceConfigMap.responseSchema", () => {
         },
       };
 
-      const result = sourceConfigMap.sql.responseSchema.safeParse(sampleSQLSummary);
+      const result = fileTypePromptRegistry.sql.responseSchema.safeParse(sampleSQLSummary);
       expect(result.success).toBe(true);
     });
 
@@ -173,7 +173,7 @@ describe("sourceConfigMap.responseSchema", () => {
         },
       };
 
-      const result = sourceConfigMap.default.responseSchema.safeParse(sampleDefaultSummary);
+      const result = fileTypePromptRegistry.default.responseSchema.safeParse(sampleDefaultSummary);
       expect(result.success).toBe(true);
     });
   });
@@ -185,7 +185,7 @@ describe("sourceConfigMap.responseSchema", () => {
         // Missing 'purpose' and 'implementation' which are required
       };
 
-      const result = sourceConfigMap.java.responseSchema.safeParse(invalidJavaSummary);
+      const result = fileTypePromptRegistry.java.responseSchema.safeParse(invalidJavaSummary);
       expect(result.success).toBe(false);
     });
 
@@ -196,7 +196,7 @@ describe("sourceConfigMap.responseSchema", () => {
         // All other fields are optional and can be omitted
       };
 
-      const result = sourceConfigMap.java.responseSchema.safeParse(minimalJavaSummary);
+      const result = fileTypePromptRegistry.java.responseSchema.safeParse(minimalJavaSummary);
       expect(result.success).toBe(true);
     });
 
@@ -207,7 +207,7 @@ describe("sourceConfigMap.responseSchema", () => {
         extraField: "This should be allowed due to passthrough",
       };
 
-      const result = sourceConfigMap.default.responseSchema.safeParse(summaryWithExtraField);
+      const result = fileTypePromptRegistry.default.responseSchema.safeParse(summaryWithExtraField);
       expect(result.success).toBe(true);
       if (result.success) {
         expect(result.data).toHaveProperty("extraField");
@@ -218,22 +218,22 @@ describe("sourceConfigMap.responseSchema", () => {
   describe("Config Entry Structure", () => {
     it("should have contentDesc for all file types", () => {
       for (const fileType of CANONICAL_FILE_TYPES) {
-        expect(sourceConfigMap[fileType].contentDesc).toBeDefined();
-        expect(typeof sourceConfigMap[fileType].contentDesc).toBe("string");
+        expect(fileTypePromptRegistry[fileType].contentDesc).toBeDefined();
+        expect(typeof fileTypePromptRegistry[fileType].contentDesc).toBe("string");
       }
     });
 
     it("should have instructions array for all file types", () => {
       for (const fileType of CANONICAL_FILE_TYPES) {
-        expect(sourceConfigMap[fileType].instructions).toBeDefined();
-        expect(Array.isArray(sourceConfigMap[fileType].instructions)).toBe(true);
+        expect(fileTypePromptRegistry[fileType].instructions).toBeDefined();
+        expect(Array.isArray(fileTypePromptRegistry[fileType].instructions)).toBe(true);
       }
     });
 
     it("should have non-empty instructions for code file types", () => {
       const codeFileTypes: CanonicalFileType[] = ["java", "javascript", "python", "csharp", "ruby"];
       for (const fileType of codeFileTypes) {
-        expect(sourceConfigMap[fileType].instructions.length).toBeGreaterThan(0);
+        expect(fileTypePromptRegistry[fileType].instructions.length).toBeGreaterThan(0);
       }
     });
   });
