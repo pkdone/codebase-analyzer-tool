@@ -67,7 +67,7 @@ export default class CodebaseToDBLoader {
     skipIfAlreadyCaptured: boolean,
   ) {
     console.log(
-      `Creating metadata for ${filepaths.length} files to go into the MongoDB database sources collection`,
+      `Captuing data on ${filepaths.length} files to go into the MongoDB database sources collection`,
     );
     let existingFiles: ReadonlySet<string> = new Set<string>();
 
