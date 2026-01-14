@@ -39,6 +39,10 @@ export class RetryStrategy {
    * Generic over the response data type T, enabling unified handling of both
    * completions (T = z.infer<S>) and embeddings (T = number[]).
    *
+   * When retries are exhausted due to OVERLOADED or INVALID responses, returns the last
+   * response so the caller can see the actual failure reason. Returns null only when an
+   * unexpected exception occurs and no valid response was ever received.
+   *
    * @param llmFunction - A bound function ready for execution
    * @param content - The content/prompt to send to the LLM
    * @param context - The LLM context for logging and tracking
@@ -52,10 +56,13 @@ export class RetryStrategy {
     providerRetryConfig: LLMRetryConfig,
     retryOnInvalid = true,
   ): Promise<LLMFunctionResponse<T> | null> {
+    let lastResponse: LLMFunctionResponse<T> | null = null;
+
     try {
       const result = await pRetry<LLMFunctionResponse<T>>(
         async (): Promise<LLMFunctionResponse<T>> => {
           const response: LLMFunctionResponse<T> = await llmFunction(content, context);
+          lastResponse = response; // Capture before potentially throwing
 
           if (response.status === LLMResponseStatus.OVERLOADED) {
             throw new RetryableError("LLM is overloaded", LLMResponseStatus.OVERLOADED);
@@ -79,8 +86,9 @@ export class RetryStrategy {
       );
       return result;
     } catch {
-      // p-retry throws if all attempts fail - we catch it and return null
-      return null;
+      // Return the last response if we have one (retries exhausted for OVERLOADED/INVALID).
+      // Return null only for unexpected exceptions where we never got a valid response.
+      return lastResponse;
     }
   }
 

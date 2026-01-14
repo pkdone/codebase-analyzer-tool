@@ -246,7 +246,7 @@ describe("Type Safety Refactoring Validation", () => {
       expect(data.settings.theme).toBe("dark");
     });
 
-    test("should return null when all retries exhausted", async () => {
+    test("should return last response when all retries exhausted for OVERLOADED", async () => {
       // Create a function that always returns OVERLOADED
       const failingFunction: LLMFunction = async <S extends z.ZodType>(
         _content: string,
@@ -269,7 +269,9 @@ describe("Type Safety Refactoring Validation", () => {
         true, // retryOnInvalid
       );
 
-      expect(result).toBeNull();
+      // Should return the last OVERLOADED response (not null) so caller knows why it failed
+      expect(result).not.toBeNull();
+      expect(result?.status).toBe(LLMResponseStatus.OVERLOADED);
     });
   });
 

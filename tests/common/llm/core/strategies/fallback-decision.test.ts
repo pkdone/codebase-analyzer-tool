@@ -129,7 +129,8 @@ describe("determineNextAction", () => {
         },
       },
       {
-        description: "null response (treated as overloaded) with no ability to switch",
+        description:
+          "null response (unexpected error, no LLM response received) with no ability to switch",
         llmResponse: null,
         currentLLMIndex: 1,
         totalLLMCount: 2,
@@ -137,6 +138,18 @@ describe("determineNextAction", () => {
           shouldTerminate: true,
           shouldCropPrompt: false,
           shouldSwitchToNextLLM: false,
+        },
+      },
+      {
+        description:
+          "null response (unexpected error, no LLM response received) with ability to switch",
+        llmResponse: null,
+        currentLLMIndex: 0,
+        totalLLMCount: 2,
+        expected: {
+          shouldTerminate: false,
+          shouldCropPrompt: false,
+          shouldSwitchToNextLLM: true,
         },
       },
       {

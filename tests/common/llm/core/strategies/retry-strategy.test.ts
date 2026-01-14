@@ -183,15 +183,18 @@ describe("RetryStrategy", () => {
   });
 
   describe("Error Handling", () => {
-    test("should return null when p-retry throws non-retryable errors", async () => {
-      const nonRetryableError = new Error("Non-retryable error");
+    test("should return null when LLM function throws before returning a response", async () => {
+      const networkError = new Error("Network error");
       const mockLLMFunction = jest.fn() as jest.MockedFunction<
         (content: string, context: LLMContext) => Promise<LLMFunctionResponse>
       >;
 
-      mockLLMFunction.mockRejectedValue(nonRetryableError);
+      mockLLMFunction.mockRejectedValue(networkError);
 
-      mockPRetry.mockRejectedValue(nonRetryableError);
+      // Mock p-retry to call the function (which throws) and propagate the error
+      (mockPRetry as any).mockImplementation(async (fn: any) => {
+        await fn(); // This throws before setting lastResponse
+      });
 
       const result = await retryStrategy.executeWithRetries(
         mockLLMFunction,
@@ -200,10 +203,11 @@ describe("RetryStrategy", () => {
         mockProviderRetryConfig,
       );
 
+      // Should return null because no response was ever captured
       expect(result).toBeNull();
     });
 
-    test("should return null when all retries are exhausted", async () => {
+    test("should return last response when all retries are exhausted for OVERLOADED", async () => {
       const overloadedResponse: LLMFunctionResponse = {
         ...mockSuccessResponse,
         status: LLMResponseStatus.OVERLOADED,
@@ -214,10 +218,12 @@ describe("RetryStrategy", () => {
       >;
 
       mockLLMFunction.mockResolvedValue(overloadedResponse);
-      // Mock p-retry to simulate exhausted retries
-      (mockPRetry as jest.MockedFunction<typeof mockPRetry>).mockRejectedValue(
-        new Error("All retries exhausted"),
-      );
+
+      // Mock p-retry to call the function (which captures lastResponse) then reject
+      (mockPRetry as any).mockImplementation(async (fn: any) => {
+        await fn(); // This sets lastResponse before throwing RetryableError
+        throw new Error("All retries exhausted");
+      });
 
       const result = await retryStrategy.executeWithRetries(
         mockLLMFunction,
@@ -226,7 +232,9 @@ describe("RetryStrategy", () => {
         mockProviderRetryConfig,
       );
 
-      expect(result).toBeNull();
+      // Should return the last OVERLOADED response, not null
+      expect(result).not.toBeNull();
+      expect(result?.status).toBe(LLMResponseStatus.OVERLOADED);
     });
   });
 
@@ -263,8 +271,8 @@ describe("RetryStrategy", () => {
   });
 
   describe("Invalid Response Handling", () => {
-    test("should return null when INVALID response retries are exhausted", async () => {
-      const tokenLimitResponse: LLMFunctionResponse = {
+    test("should return last response when INVALID response retries are exhausted", async () => {
+      const invalidResponse: LLMFunctionResponse = {
         ...mockSuccessResponse,
         status: LLMResponseStatus.INVALID,
       };
@@ -273,13 +281,13 @@ describe("RetryStrategy", () => {
         (content: string, context: LLMContext) => Promise<LLMFunctionResponse>
       >;
 
-      mockLLMFunction.mockResolvedValue(tokenLimitResponse);
+      mockLLMFunction.mockResolvedValue(invalidResponse);
 
-      const invalidError = Object.assign(new Error("Invalid response"), {
-        retryableStatus: LLMResponseStatus.INVALID,
+      // Mock p-retry to call the function (which captures lastResponse) then reject
+      (mockPRetry as any).mockImplementation(async (fn: any) => {
+        await fn(); // This sets lastResponse before throwing RetryableError
+        throw new Error("All retries exhausted");
       });
-
-      (mockPRetry as jest.MockedFunction<typeof mockPRetry>).mockRejectedValue(invalidError);
 
       const result = await retryStrategy.executeWithRetries(
         mockLLMFunction,
@@ -288,7 +296,9 @@ describe("RetryStrategy", () => {
         mockProviderRetryConfig,
       );
 
-      expect(result).toBeNull();
+      // Should return the last INVALID response, not null
+      expect(result).not.toBeNull();
+      expect(result?.status).toBe(LLMResponseStatus.INVALID);
     });
   });
 

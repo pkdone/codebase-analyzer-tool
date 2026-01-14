@@ -29,13 +29,15 @@ export function determineNextAction(
   totalLLMCount: number,
   context: LLMContext,
   resourceName: string,
+  doWarnNoisyOverloads = true, // TODO: flip to false?
 ): FallbackDecision {
   const canSwitchModel = currentLLMFunctionIndex + 1 < totalLLMCount;
 
-  // Handle null response explicitly
+  // Handle null response - this only occurs when an unexpected exception happened
+  // and no valid LLM response was ever received (e.g., network errors, provider issues)
   if (llmResponse === null) {
     logWarn(
-      `LLM problem processing prompt with current LLM model - null response received, possibly due to overload or timeout even after retries`,
+      `Problem processing prompt with current LLM model - no response received due to an unexpected error`,
       context,
     );
     return {
@@ -47,10 +49,12 @@ export function determineNextAction(
 
   switch (llmResponse.status) {
     case LLMResponseStatus.INVALID:
-      logWarn(
-        `Unable to extract a valid response from the current LLM model - invalid JSON being received even after retries `,
-        context,
-      );
+      if (doWarnNoisyOverloads) {
+        logWarn(
+          `Unable to extract a valid response from the current LLM model - invalid response format even after retries`,
+          context,
+        );
+      }
       return {
         shouldTerminate: !canSwitchModel,
         shouldCropPrompt: false,
@@ -58,10 +62,9 @@ export function determineNextAction(
       };
 
     case LLMResponseStatus.OVERLOADED:
-      logWarn(
-        `LLM problem processing prompt with current LLM model because it is overloaded, or timing out, even after retries `,
-        context,
-      );
+      if (doWarnNoisyOverloads) {
+        logWarn(`LLM model is overloaded or timing out even after retries`, context);
+      }
       return {
         shouldTerminate: !canSwitchModel,
         shouldCropPrompt: false,
@@ -70,7 +73,7 @@ export function determineNextAction(
 
     case LLMResponseStatus.EXCEEDED:
       logWarn(
-        `LLM prompt tokens used ${llmResponse.tokensUsage?.promptTokens ?? 0} plus completion tokens used ${llmResponse.tokensUsage?.completionTokens ?? 0} exceeded EITHER: 1) the model's total token limit of ${llmResponse.tokensUsage?.maxTotalTokens ?? 0}, or: 2) the model's completion tokens limit`,
+        `LLM model prompt tokens used ${llmResponse.tokensUsage?.promptTokens ?? 0} plus completion tokens used ${llmResponse.tokensUsage?.completionTokens ?? 0} exceeded EITHER: 1) the model's total token limit of ${llmResponse.tokensUsage?.maxTotalTokens ?? 0}, or: 2) the model's completion tokens limit`,
         context,
       );
       return {
@@ -81,7 +84,7 @@ export function determineNextAction(
 
     case LLMResponseStatus.ERRORED:
       logWarn(
-        `LLM encountered an error while processing the request for resource '${resourceName}'`,
+        `LLM model encountered an error while processing the request for resource '${resourceName}'`,
         context,
       );
       return {
@@ -93,7 +96,7 @@ export function determineNextAction(
     case LLMResponseStatus.COMPLETED:
       // This shouldn't typically reach fallback strategy, but handle gracefully
       logWarn(
-        `Unexpected COMPLETED status in fallback strategy for resource '${resourceName}' - terminating`,
+        `Unexpected LLM model COMPLETED status in fallback strategy for resource '${resourceName}' - terminating`,
         context,
       );
       return {
@@ -105,7 +108,7 @@ export function determineNextAction(
     case LLMResponseStatus.UNKNOWN:
     default:
       logWarn(
-        `An unknown error occurred while LLMRouter attempted to process the LLM invocation and response for resource '${resourceName}' - terminating response processing - response status received: '${llmResponse.status}'`,
+        `An unknown error occurred while LLMRouter attempted to process the LLM model invocation and response for resource '${resourceName}' - terminating response processing - response status received: '${llmResponse.status}'`,
         context,
       );
       return {
