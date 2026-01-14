@@ -141,7 +141,8 @@ export default abstract class BaseBedrockLLM extends BaseLLMProvider {
 
       if (
         errMsg.includes("stream timed out because of no activity") ||
-        errMsg.includes("the pending stream has been cancel")
+        errMsg.includes("system encountered an unexpected error during processing") ||
+        errMsg.includes("pending stream has been cancel")
       ) {
         return true;
       }
