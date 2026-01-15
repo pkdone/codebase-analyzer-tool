@@ -13,7 +13,7 @@ describe("sanitizer-pipeline", () => {
     it("should return unchanged result for empty input", () => {
       const mockStrategy: SanitizerStrategy = {
         name: "MockStrategy",
-        apply: jest.fn().mockReturnValue({ content: "", changed: false, diagnostics: [] }),
+        apply: jest.fn().mockReturnValue({ content: "", changed: false, repairs: [] }),
       };
 
       const result = executePipeline([mockStrategy], "");
@@ -29,7 +29,7 @@ describe("sanitizer-pipeline", () => {
         name: "Strategy1",
         apply: (input) => {
           callOrder.push("Strategy1");
-          return { content: input + "-1", changed: true, diagnostics: ["Applied 1"] };
+          return { content: input + "-1", changed: true, repairs: ["Applied 1"] };
         },
       };
 
@@ -37,7 +37,7 @@ describe("sanitizer-pipeline", () => {
         name: "Strategy2",
         apply: (input) => {
           callOrder.push("Strategy2");
-          return { content: input + "-2", changed: true, diagnostics: ["Applied 2"] };
+          return { content: input + "-2", changed: true, repairs: ["Applied 2"] };
         },
       };
 
@@ -46,7 +46,7 @@ describe("sanitizer-pipeline", () => {
       expect(callOrder).toEqual(["Strategy1", "Strategy2"]);
       expect(result.content).toBe("start-1-2");
       expect(result.changed).toBe(true);
-      expect(result.appliedStrategies).toEqual(["Strategy1", "Strategy2"]);
+      expect(result.pipelineSteps).toEqual(["Strategy1", "Strategy2"]);
     });
 
     it("should aggregate diagnostics from all strategies", () => {
@@ -55,7 +55,7 @@ describe("sanitizer-pipeline", () => {
         apply: () => ({
           content: "test",
           changed: true,
-          diagnostics: ["Diag 1", "Diag 2"],
+          repairs: ["Diag 1", "Diag 2"],
         }),
       };
 
@@ -64,13 +64,13 @@ describe("sanitizer-pipeline", () => {
         apply: () => ({
           content: "test",
           changed: true,
-          diagnostics: ["Diag 3"],
+          repairs: ["Diag 3"],
         }),
       };
 
       const result = executePipeline([strategy1, strategy2], "input");
 
-      expect(result.diagnostics).toEqual([
+      expect(result.repairs).toEqual([
         "[Strategy1] Diag 1",
         "[Strategy1] Diag 2",
         "[Strategy2] Diag 3",
@@ -80,7 +80,7 @@ describe("sanitizer-pipeline", () => {
     it("should skip strategies that make no changes", () => {
       const strategy1: SanitizerStrategy = {
         name: "Strategy1",
-        apply: (input) => ({ content: input, changed: false, diagnostics: [] }),
+        apply: (input) => ({ content: input, changed: false, repairs: [] }),
       };
 
       const strategy2: SanitizerStrategy = {
@@ -88,13 +88,13 @@ describe("sanitizer-pipeline", () => {
         apply: (input) => ({
           content: input + "-modified",
           changed: true,
-          diagnostics: ["Changed"],
+          repairs: ["Changed"],
         }),
       };
 
       const result = executePipeline([strategy1, strategy2], "test");
 
-      expect(result.appliedStrategies).toEqual(["Strategy2"]);
+      expect(result.pipelineSteps).toEqual(["Strategy2"]);
       expect(result.content).toBe("test-modified");
     });
 
@@ -111,7 +111,7 @@ describe("sanitizer-pipeline", () => {
         apply: (input) => ({
           content: input + "-fixed",
           changed: true,
-          diagnostics: ["Fixed"],
+          repairs: ["Fixed"],
         }),
       };
 
@@ -120,7 +120,7 @@ describe("sanitizer-pipeline", () => {
       });
 
       expect(result.content).toBe("test-fixed");
-      expect(result.appliedStrategies).toEqual(["WorkingStrategy"]);
+      expect(result.pipelineSteps).toEqual(["WorkingStrategy"]);
     });
 
     it("should throw on error when continueOnError is false", () => {
@@ -143,15 +143,15 @@ describe("sanitizer-pipeline", () => {
         apply: () => ({
           content: "test",
           changed: true,
-          diagnostics: manyDiagnostics,
+          repairs: manyDiagnostics,
         }),
       };
 
       const result = executePipeline([strategy], "input", undefined, {
-        maxDiagnosticsPerStrategy: 5,
+        maxRepairsPerStrategy: 5,
       });
 
-      expect(result.diagnostics?.length).toBe(5);
+      expect(result.repairs?.length).toBe(5);
     });
   });
 
@@ -162,7 +162,7 @@ describe("sanitizer-pipeline", () => {
         apply: (input) => ({
           content: input.toUpperCase(),
           changed: true,
-          diagnostics: ["Uppercased"],
+          repairs: ["Uppercased"],
         }),
       };
 

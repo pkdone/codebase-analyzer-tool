@@ -3,7 +3,7 @@ import { LLMGeneratedContent, LLMCompletionOptions, LLMContext } from "../../typ
 import { JsonProcessingError, JsonProcessingErrorType } from "../types/json-processing.errors";
 import { JsonProcessorResult } from "../types/json-processing-result.types";
 import { logWarn } from "../../../utils/logging";
-import { hasSignificantMutationSteps } from "../sanitizers";
+import { hasSignificantRepairs } from "../utils/repair-analysis";
 import { parseJsonWithSanitizers } from "./json-parsing";
 import { validateJsonWithTransforms } from "./json-validating";
 import {
@@ -57,27 +57,27 @@ function logProblem(
 }
 
 /**
- * Logs mutation steps if enabled and significant.
+ * Logs repairs if enabled and significant.
  *
- * Only logs if there are significant mutations (i.e., not just trivial formatting like
+ * Only logs if there are significant repairs (i.e., not just trivial formatting like
  * whitespace trimming or code fence removal).
  *
- * @param mutationSteps - The mutation steps that were applied (diagnostics + transforms)
+ * @param repairs - The repairs that were applied (sanitization + transform repairs)
  * @param context - LLM context for log attribution
  * @param loggingEnabled - Whether logging is enabled
  */
-function logProcessingSteps(
-  mutationSteps: readonly string[],
+function logRepairs(
+  repairs: readonly string[],
   context: LLMContext,
   loggingEnabled: boolean,
 ): void {
   if (!loggingEnabled) return;
 
-  // Only log if there are significant mutations
-  if (!hasSignificantMutationSteps(mutationSteps)) return;
+  // Only log if there are significant repairs
+  if (!hasSignificantRepairs(repairs)) return;
 
-  if (mutationSteps.length > 0) {
-    logWarn(`Applied ${mutationSteps.length} JSON fix(es): ${mutationSteps.join(", ")}`, context);
+  if (repairs.length > 0) {
+    logWarn(`Applied ${repairs.length} JSON fix(es): ${repairs.join(", ")}`, context);
   }
 }
 
@@ -135,7 +135,7 @@ function buildEffectiveSanitizerConfig(
  * @param completionOptions - Options including output format and optional JSON schema
  * @param loggingEnabled - Whether to enable sanitization step logging. Defaults to true.
  * @param config - Optional sanitizer configuration to pass to transforms
- * @returns A JsonProcessorResult indicating success with validated data and steps, or failure with an error
+ * @returns A JsonProcessorResult indicating success with validated data and repairs, or failure with an error
  */
 export function parseAndValidateLLMJson<S extends z.ZodType = z.ZodType<Record<string, unknown>>>(
   content: LLMGeneratedContent,
@@ -176,17 +176,17 @@ export function parseAndValidateLLMJson<S extends z.ZodType = z.ZodType<Record<s
 
   // If can't parse, log failure and return error
   if (!parseResult.success) {
-    const stepsMessage =
-      parseResult.steps.length > 0
-        ? `Applied sanitization steps: ${parseResult.steps.join(" -> ")}`
+    const pipelineMessage =
+      parseResult.pipelineSteps.length > 0
+        ? `Applied sanitization steps: ${parseResult.pipelineSteps.join(" -> ")}`
         : "No sanitization steps applied";
     logProblem(
-      `Cannot parse JSON after all sanitization attempts. ${stepsMessage}`,
+      `Cannot parse JSON after all sanitization attempts. ${pipelineMessage}`,
       {
         ...context,
         originalLength: content.length,
-        lastSanitizer: parseResult.steps.at(-1),
-        diagnosticsCount: parseResult.diagnostics.length,
+        lastSanitizer: parseResult.pipelineSteps.at(-1),
+        repairsCount: parseResult.repairs.length,
         responseContentParseError: parseResult.error.cause,
       },
       loggingEnabled,
@@ -221,16 +221,16 @@ export function parseAndValidateLLMJson<S extends z.ZodType = z.ZodType<Record<s
         ),
       };
     }
-    // Build mutation steps from diagnostics (no transforms when no schema)
-    const mutationSteps = parseResult.diagnostics;
-    logProcessingSteps(mutationSteps, context, loggingEnabled);
+    // Build repairs from parse repairs (no transforms when no schema)
+    const repairs = parseResult.repairs;
+    logRepairs(repairs, context, loggingEnabled);
     return {
       success: true,
       // Cast is safe for objects. Arrays pass at runtime but callers expecting arrays
       // should provide an explicit schema for compile-time type safety.
       data: parseResult.data as z.infer<S>,
-      mutationSteps,
-      appliedSanitizers: parseResult.steps,
+      repairs,
+      pipelineSteps: parseResult.pipelineSteps,
     };
   }
 
@@ -248,14 +248,14 @@ export function parseAndValidateLLMJson<S extends z.ZodType = z.ZodType<Record<s
 
   // Validation succeeded.
   if (validationResult.success) {
-    // Build mutation steps from diagnostics + transform steps
-    const mutationSteps = [...parseResult.diagnostics, ...validationResult.transformSteps];
-    logProcessingSteps(mutationSteps, context, loggingEnabled);
+    // Build repairs from parse repairs + transform repairs
+    const repairs = [...parseResult.repairs, ...validationResult.transformRepairs];
+    logRepairs(repairs, context, loggingEnabled);
     return {
       success: true,
       data: validationResult.data,
-      mutationSteps,
-      appliedSanitizers: parseResult.steps,
+      repairs,
+      pipelineSteps: parseResult.pipelineSteps,
     };
   }
 
@@ -268,7 +268,7 @@ export function parseAndValidateLLMJson<S extends z.ZodType = z.ZodType<Record<s
     {
       ...context,
       responseContentParseError: validationError,
-      appliedTransforms: validationResult.transformSteps.join(", "),
+      appliedTransforms: validationResult.transformRepairs.join(", "),
     },
     loggingEnabled,
   );

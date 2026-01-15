@@ -19,16 +19,16 @@ export const concatenationFixer: SanitizerStrategy = {
 
   apply(input: string, _config?: LLMSanitizerConfig): StrategyResult {
     if (!input || !input.includes("+") || !input.includes('"')) {
-      return { content: input, changed: false, diagnostics: [] };
+      return { content: input, changed: false, repairs: [] };
     }
 
     let sanitized = input;
-    const diagnostics: string[] = [];
+    const repairs: string[] = [];
     let changeCount = 0;
 
     // Step 1: Replace identifier-only chains with empty string
     sanitized = sanitized.replace(CONCATENATION_REGEXES.IDENTIFIER_ONLY_CHAIN, (_match, prefix) => {
-      diagnostics.push("Replaced identifier-only chain with empty string");
+      repairs.push("Replaced identifier-only chain with empty string");
       changeCount++;
       return `${prefix}""`;
     });
@@ -41,7 +41,7 @@ export const concatenationFixer: SanitizerStrategy = {
           literal.length > DIAGNOSTIC_TRUNCATION_LENGTH
             ? `${literal.substring(0, DIAGNOSTIC_TRUNCATION_LENGTH)}...`
             : literal;
-        diagnostics.push(`Kept literal "${truncatedLiteral}" from identifier chain`);
+        repairs.push(`Kept literal "${truncatedLiteral}" from identifier chain`);
         changeCount++;
         return `${prefix}"${literal}"`;
       },
@@ -55,7 +55,7 @@ export const concatenationFixer: SanitizerStrategy = {
           literal.length > DIAGNOSTIC_TRUNCATION_LENGTH
             ? `${literal.substring(0, DIAGNOSTIC_TRUNCATION_LENGTH)}...`
             : literal;
-        diagnostics.push(`Removed trailing identifiers after literal "${truncatedLiteral}"`);
+        repairs.push(`Removed trailing identifiers after literal "${truncatedLiteral}"`);
         changeCount++;
         return `${prefix}"${literal}"`;
       },
@@ -70,7 +70,7 @@ export const concatenationFixer: SanitizerStrategy = {
           return match;
         }
         const merged = literalMatches.map((lit) => lit.slice(1, -1)).join("");
-        diagnostics.push(`Merged ${literalMatches.length} consecutive string literals`);
+        repairs.push(`Merged ${literalMatches.length} consecutive string literals`);
         changeCount++;
         return `${prefix}"${merged}"`;
       },
@@ -79,7 +79,7 @@ export const concatenationFixer: SanitizerStrategy = {
     return {
       content: sanitized,
       changed: changeCount > 0,
-      diagnostics,
+      repairs,
     };
   },
 };

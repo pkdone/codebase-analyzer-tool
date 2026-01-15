@@ -13,7 +13,7 @@ import {
   LLMModelTier,
   LLMGeneratedContent,
 } from "../../../../src/common/llm/types/llm.types";
-import { MUTATION_STEP } from "../../../../src/common/llm/json-processing/sanitizers";
+import { REPAIR_STEP } from "../../../../src/common/llm/json-processing/sanitizers";
 
 /**
  * Helper to create a mock BoundLLMFunction.
@@ -61,7 +61,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         modelKey: "test-model",
         context: { resource: "test", purpose: LLMPurpose.COMPLETIONS },
         generated: { test: "value" },
-        mutationSteps: [MUTATION_STEP.TRIMMED_WHITESPACE, "Fixed trailing commas"],
+        repairs: [REPAIR_STEP.TRIMMED_WHITESPACE, "Fixed trailing commas"],
       });
 
       const context: LLMContext = {
@@ -94,7 +94,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         modelKey: "test-model",
         context: { resource: "test", purpose: LLMPurpose.COMPLETIONS },
         generated: { test: "value" },
-        mutationSteps: [MUTATION_STEP.TRIMMED_WHITESPACE],
+        repairs: [REPAIR_STEP.TRIMMED_WHITESPACE],
       });
 
       const context: LLMContext = {
@@ -127,7 +127,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         modelKey: "test-model",
         context: { resource: "test", purpose: LLMPurpose.COMPLETIONS },
         generated: { test: "value" },
-        mutationSteps: [MUTATION_STEP.REMOVED_CODE_FENCES],
+        repairs: [REPAIR_STEP.REMOVED_CODE_FENCES],
       });
 
       const context: LLMContext = {
@@ -160,7 +160,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         modelKey: "test-model",
         context: { resource: "test", purpose: LLMPurpose.COMPLETIONS },
         generated: { test: "value" },
-        mutationSteps: [MUTATION_STEP.TRIMMED_WHITESPACE, MUTATION_STEP.REMOVED_CODE_FENCES],
+        repairs: [REPAIR_STEP.TRIMMED_WHITESPACE, REPAIR_STEP.REMOVED_CODE_FENCES],
       });
 
       const context: LLMContext = {
@@ -193,7 +193,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         modelKey: "test-model",
         context: { resource: "test", purpose: LLMPurpose.COMPLETIONS },
         generated: { test: "value" },
-        mutationSteps: [],
+        repairs: [],
       });
 
       const context: LLMContext = {
@@ -258,9 +258,9 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         modelKey: "test-model",
         context: { resource: "test", purpose: LLMPurpose.COMPLETIONS },
         generated: { test: "value" },
-        mutationSteps: [
-          MUTATION_STEP.TRIMMED_WHITESPACE,
-          MUTATION_STEP.REMOVED_CODE_FENCES,
+        repairs: [
+          REPAIR_STEP.TRIMMED_WHITESPACE,
+          REPAIR_STEP.REMOVED_CODE_FENCES,
           "Fixed mismatched delimiters",
           "Added missing property commas",
         ],

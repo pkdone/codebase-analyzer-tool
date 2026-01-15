@@ -49,6 +49,6 @@ describe("concatenationFixer", () => {
   it("should add diagnostics for changes", () => {
     const input = '{"path": "a" + "b"}';
     const result = concatenationFixer.apply(input);
-    expect(result.diagnostics.length).toBeGreaterThan(0);
+    expect(result.repairs.length).toBeGreaterThan(0);
   });
 });

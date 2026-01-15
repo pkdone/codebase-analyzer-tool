@@ -17,7 +17,7 @@ export const assignmentSyntaxFixer: SanitizerStrategy = {
 
   apply(input: string, _config?: LLMSanitizerConfig): StrategyResult {
     if (!input) {
-      return { content: input, changed: false, diagnostics: [] };
+      return { content: input, changed: false, repairs: [] };
     }
 
     let sanitized = input;
@@ -273,7 +273,7 @@ export const assignmentSyntaxFixer: SanitizerStrategy = {
     return {
       content: sanitized,
       changed: hasChanges,
-      diagnostics: diagnostics.getAll(),
+      repairs: diagnostics.getAll(),
     };
   },
 };

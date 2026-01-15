@@ -55,8 +55,8 @@ describe("fixJsonStructure", () => {
       const result = fixJsonStructure(input);
 
       expect(result.changed).toBe(true);
-      expect(result.diagnostics).toBeDefined();
-      expect(result.diagnostics?.length).toBeGreaterThan(0);
+      expect(result.repairs).toBeDefined();
+      expect(result.repairs?.length).toBeGreaterThan(0);
     });
   });
 });

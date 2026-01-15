@@ -364,7 +364,7 @@ describe("Type Safety Call Chain Improvements", () => {
         const data: z.infer<typeof schema> = result.data;
         expect(data.status).toBe("success");
         expect(data.result.count).toBe(10);
-        expect(result.mutationSteps).toBeDefined();
+        expect(result.repairs).toBeDefined();
       } else {
         // result.error should be available
         expect(result.error).toBeDefined();
@@ -634,8 +634,8 @@ describe("Type Safety Call Chain Improvements", () => {
         expect(data.value).toBeUndefined();
 
         // Mutation steps should be tracked
-        expect(Array.isArray(result.mutationSteps)).toBe(true);
-        expect(result.mutationSteps.length).toBeGreaterThan(0);
+        expect(Array.isArray(result.repairs)).toBe(true);
+        expect(result.repairs.length).toBeGreaterThan(0);
       }
     });
 

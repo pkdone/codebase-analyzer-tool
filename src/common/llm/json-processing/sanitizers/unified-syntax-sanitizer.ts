@@ -68,6 +68,6 @@ export const unifiedSyntaxSanitizer: Sanitizer = (input, config): SanitizerResul
     content: pipelineResult.content,
     changed: pipelineResult.changed,
     description: pipelineResult.changed ? "Fixed property and value syntax" : undefined,
-    diagnostics: pipelineResult.diagnostics,
+    repairs: pipelineResult.repairs,
   };
 };

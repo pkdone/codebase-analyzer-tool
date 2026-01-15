@@ -1,5 +1,5 @@
 import { Sanitizer, SanitizerResult } from "./sanitizers-types";
-import { MUTATION_STEP } from "../constants/mutation-steps.config";
+import { REPAIR_STEP } from "../constants/repair-steps.config";
 import { logWarn } from "../../../utils/logging";
 
 /**
@@ -131,7 +131,7 @@ export const normalizeCharacters: Sanitizer = (input: string): SanitizerResult =
     }
 
     let hasChanges = false;
-    const diagnostics: string[] = [];
+    const repairs: string[] = [];
     let result = input;
 
     // First pass: convert curly quotes to ASCII quotes (before character-by-character processing)
@@ -157,22 +157,22 @@ export const normalizeCharacters: Sanitizer = (input: string): SanitizerResult =
       result = result.replaceAll("\u2019", "'");
 
       if (leftDoubleCount > 0) {
-        diagnostics.push(
+        repairs.push(
           `Converted ${leftDoubleCount} left double curly quote${leftDoubleCount !== 1 ? "s" : ""} (") to regular quote`,
         );
       }
       if (rightDoubleCount > 0) {
-        diagnostics.push(
+        repairs.push(
           `Converted ${rightDoubleCount} right double curly quote${rightDoubleCount !== 1 ? "s" : ""} (") to regular quote`,
         );
       }
       if (leftSingleCount > 0) {
-        diagnostics.push(
+        repairs.push(
           `Converted ${leftSingleCount} left single curly quote${leftSingleCount !== 1 ? "s" : ""} (') to regular quote`,
         );
       }
       if (rightSingleCount > 0) {
-        diagnostics.push(
+        repairs.push(
           `Converted ${rightSingleCount} right single curly quote${rightSingleCount !== 1 ? "s" : ""} (') to regular quote`,
         );
       }
@@ -224,7 +224,7 @@ export const normalizeCharacters: Sanitizer = (input: string): SanitizerResult =
                 continue;
               } else {
                 // Invalid: \u without 4 hex digits - escape the backslash
-                diagnostics.push(`Fixed invalid unicode escape \\u${hexDigits}`);
+                repairs.push(`Fixed invalid unicode escape \\u${hexDigits}`);
                 processedResult += "\\\\u" + hexDigits;
                 i = j;
                 hasChanges = true;
@@ -233,7 +233,7 @@ export const normalizeCharacters: Sanitizer = (input: string): SanitizerResult =
               }
             } else if (nextChar === " ") {
               // Invalid: \ (backslash-space) - remove backslash, keep space
-              diagnostics.push("Fixed invalid escape sequence \\  (backslash-space)");
+              repairs.push("Fixed invalid escape sequence \\  (backslash-space)");
               processedResult += " ";
               i += 2;
               hasChanges = true;
@@ -246,7 +246,7 @@ export const normalizeCharacters: Sanitizer = (input: string): SanitizerResult =
               continue;
             } else {
               // Invalid escape sequence - escape the backslash (make it literal)
-              diagnostics.push(`Fixed invalid escape sequence \\${nextChar}`);
+              repairs.push(`Fixed invalid escape sequence \\${nextChar}`);
               processedResult += "\\\\" + nextChar;
               i += 2;
               hasChanges = true;
@@ -417,40 +417,40 @@ export const normalizeCharacters: Sanitizer = (input: string): SanitizerResult =
     }
 
     if (fixedNullEscapes > 0) {
-      diagnostics.push(
+      repairs.push(
         `Fixed ${fixedNullEscapes} null escape sequence${fixedNullEscapes !== 1 ? "s" : ""} (\\0 -> \\u0000)`,
       );
     }
 
     result = outputFinal;
 
-    // Build diagnostics summary
+    // Build repairs summary
     if (hasChanges) {
       if (controlCharsRemoved > 0) {
-        diagnostics.push(
+        repairs.push(
           `Removed ${controlCharsRemoved} control character${controlCharsRemoved !== 1 ? "s" : ""} outside strings`,
         );
       }
       if (controlCharsEscaped > 0) {
-        diagnostics.push(
+        repairs.push(
           `Escaped ${controlCharsEscaped} control character${controlCharsEscaped !== 1 ? "s" : ""} in string values`,
         );
       }
       if (invalidEscapesFixed > 0) {
-        diagnostics.push(
+        repairs.push(
           `Fixed ${invalidEscapesFixed} invalid escape sequence${invalidEscapesFixed !== 1 ? "s" : ""}`,
         );
       }
       if (overEscapesFixed) {
-        diagnostics.push(MUTATION_STEP.FIXED_OVER_ESCAPED_SEQUENCES);
+        repairs.push(REPAIR_STEP.FIXED_OVER_ESCAPED_SEQUENCES);
       }
     }
 
     return {
       content: result,
       changed: hasChanges,
-      description: hasChanges ? MUTATION_STEP.NORMALIZED_ESCAPE_SEQUENCES : undefined,
-      diagnostics: hasChanges && diagnostics.length > 0 ? diagnostics : undefined,
+      description: hasChanges ? REPAIR_STEP.NORMALIZED_ESCAPE_SEQUENCES : undefined,
+      repairs: hasChanges && repairs.length > 0 ? repairs : undefined,
     };
   } catch (error) {
     // If sanitization fails, return the original string
@@ -459,7 +459,7 @@ export const normalizeCharacters: Sanitizer = (input: string): SanitizerResult =
       content: input,
       changed: false,
       description: undefined,
-      diagnostics: [`Sanitizer failed: ${String(error)}`],
+      repairs: [`Sanitizer failed: ${String(error)}`],
     };
   }
 };

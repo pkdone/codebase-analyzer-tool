@@ -43,7 +43,7 @@ export const arrayElementFixer: SanitizerStrategy = {
 
   apply(input: string, config?: LLMSanitizerConfig): StrategyResult {
     if (!input) {
-      return { content: input, changed: false, diagnostics: [] };
+      return { content: input, changed: false, repairs: [] };
     }
 
     // Keep fallback prefix replacements for backwards compatibility
@@ -326,7 +326,7 @@ export const arrayElementFixer: SanitizerStrategy = {
     return {
       content: sanitized,
       changed: hasChanges,
-      diagnostics: diagnostics.getAll(),
+      repairs: diagnostics.getAll(),
     };
   },
 };

@@ -75,7 +75,7 @@ describe("unclosedArrayBeforeProperty rule", () => {
       const result = fixJsonStructureAndNoise(input);
 
       expect(result.changed).toBe(true);
-      expect(result.diagnostics).toContain("Fixed unclosed array before property name");
+      expect(result.repairs).toContain("Fixed unclosed array before property name");
       expect(() => JSON.parse(result.content)).not.toThrow();
     });
 

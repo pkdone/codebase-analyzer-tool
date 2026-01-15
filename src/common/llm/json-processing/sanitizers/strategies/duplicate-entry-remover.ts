@@ -16,11 +16,11 @@ export const duplicateEntryRemover: SanitizerStrategy = {
 
   apply(input: string, _config?: LLMSanitizerConfig): StrategyResult {
     if (!input) {
-      return { content: input, changed: false, diagnostics: [] };
+      return { content: input, changed: false, repairs: [] };
     }
 
     let sanitized = input;
-    const diagnostics: string[] = [];
+    const repairs: string[] = [];
     let hasChanges = false;
 
     // Pattern 1: Remove duplicate entries with missing opening quote (ending with comma or bracket)
@@ -47,7 +47,7 @@ export const duplicateEntryRemover: SanitizerStrategy = {
         if (isInArrayContext && looksLikeCorruptionMarker) {
           hasChanges = true;
           const validEntryStr = typeof validEntry === "string" ? validEntry : "";
-          diagnostics.push(
+          repairs.push(
             `Removed duplicate entry starting with "${prefixStr}" after "${validEntryStr}"`,
           );
           // Preserve the terminator (comma or bracket)
@@ -79,9 +79,7 @@ export const duplicateEntryRemover: SanitizerStrategy = {
           const delimiterStr = typeof delimiter === "string" ? delimiter : "";
           // Preserve proper delimiter (convert ] to just ] without comma)
           const cleanDelimiter = delimiterStr.includes("]") ? "]" : delimiterStr;
-          diagnostics.push(
-            `Removed duplicate entry starting with "${prefix}" after "${validEntry}"`,
-          );
+          repairs.push(`Removed duplicate entry starting with "${prefix}" after "${validEntry}"`);
           return `"${validEntry}"${cleanDelimiter}`;
         }
 
@@ -92,7 +90,7 @@ export const duplicateEntryRemover: SanitizerStrategy = {
     return {
       content: sanitized,
       changed: hasChanges,
-      diagnostics,
+      repairs,
     };
   },
 };

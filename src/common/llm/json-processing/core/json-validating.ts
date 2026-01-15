@@ -11,11 +11,11 @@ import { type SchemaFixingTransform } from "../sanitizers/index.js";
 
 /**
  * Result type for validation with transforms operations.
- * Includes transform steps that were applied during the validation process.
+ * Includes transform repairs that were applied during the validation process.
  */
 export type ValidationWithTransformsResult<T> =
-  | { success: true; data: T; transformSteps: readonly string[] }
-  | { success: false; issues: z.ZodIssue[]; transformSteps: readonly string[] };
+  | { success: true; data: T; transformRepairs: readonly string[] }
+  | { success: false; issues: z.ZodIssue[]; transformRepairs: readonly string[] };
 
 /**
  * Schema fixing transformations applied after successful JSON.parse when initial validation fails.
@@ -53,7 +53,7 @@ function createValidationFailureWithTransforms<T>(
         message,
       },
     ],
-    transformSteps: [],
+    transformRepairs: [],
   } as ValidationWithTransformsResult<T>;
 }
 
@@ -97,7 +97,7 @@ function attemptValidate<S extends z.ZodType>(
 function applySchemaFixingTransforms(
   data: unknown,
   config?: import("../../config/llm-module-config.types").LLMSanitizerConfig,
-): { data: unknown; steps: readonly string[] } {
+): { data: unknown; repairs: readonly string[] } {
   const appliedTransforms: string[] = [];
   let transformedData = data;
 
@@ -115,7 +115,7 @@ function applySchemaFixingTransforms(
 
   return {
     data: transformedData,
-    steps: appliedTransforms,
+    repairs: appliedTransforms,
   };
 }
 
@@ -130,7 +130,7 @@ function applySchemaFixingTransforms(
  * @param data - The parsed data to validate
  * @param jsonSchema - The Zod schema to validate against
  * @param config - Optional sanitizer configuration to pass to transforms
- * @returns A ValidationWithTransformsResult indicating success with validated data and transform steps, or failure with validation issues and transform steps
+ * @returns A ValidationWithTransformsResult indicating success with validated data and transform repairs, or failure with validation issues and transform repairs
  */
 export function validateJsonWithTransforms<S extends z.ZodType>(
   data: unknown,
@@ -153,25 +153,25 @@ export function validateJsonWithTransforms<S extends z.ZodType>(
 
   // If validation succeeded on first attempt, no transforms needed
   if (initialValidation.success) {
-    return { success: true, data: initialValidation.data, transformSteps: [] };
+    return { success: true, data: initialValidation.data, transformRepairs: [] };
   }
 
   // Initial validation failed, so apply schema fixing transforms
   const transformResult = applySchemaFixingTransforms(data, config);
   const validationAfterTransforms = attemptValidate(transformResult.data, jsonSchema);
 
-  // Return result with transform steps included
+  // Return result with transform repairs included
   if (validationAfterTransforms.success) {
     return {
       success: true,
       data: validationAfterTransforms.data,
-      transformSteps: transformResult.steps,
+      transformRepairs: transformResult.repairs,
     };
   } else {
     return {
       success: false,
       issues: validationAfterTransforms.issues,
-      transformSteps: transformResult.steps,
+      transformRepairs: transformResult.repairs,
     };
   }
 }

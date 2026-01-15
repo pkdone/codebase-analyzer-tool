@@ -243,7 +243,7 @@ describe("Simplified Type Chain - parseAndValidateLLMJson", () => {
 
       if (result.success) {
         // Should have applied transforms
-        expect(result.mutationSteps.length).toBeGreaterThan(0);
+        expect(result.repairs.length).toBeGreaterThan(0);
         expect(result.data.name).toBe("test");
         expect(result.data.value).toBeUndefined();
       }
@@ -264,7 +264,7 @@ describe("Simplified Type Chain - parseAndValidateLLMJson", () => {
 
       if (result.success) {
         // No transforms should be needed
-        expect(result.mutationSteps).toEqual([]);
+        expect(result.repairs).toEqual([]);
         expect(result.data.name).toBe("test");
       }
     });

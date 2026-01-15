@@ -23,8 +23,8 @@ describe("JsonProcessor lastSanitizer tracking", () => {
         const anyErr = result.error;
         if (anyErr.lastSanitizer) {
           expect(typeof anyErr.lastSanitizer).toBe("string");
-          if (Array.isArray(anyErr.appliedSanitizers)) {
-            expect(anyErr.appliedSanitizers).toContain(anyErr.lastSanitizer);
+          if (Array.isArray(anyErr.pipelineSteps)) {
+            expect(anyErr.pipelineSteps).toContain(anyErr.lastSanitizer);
           }
         }
       }

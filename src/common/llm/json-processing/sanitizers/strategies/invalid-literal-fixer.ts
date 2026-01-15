@@ -6,7 +6,7 @@
 import type { LLMSanitizerConfig } from "../../../config/llm-module-config.types";
 import type { SanitizerStrategy, StrategyResult } from "../pipeline/sanitizer-pipeline.types";
 import { isInStringAt } from "../../utils/parser-context-utils";
-import { MUTATION_STEP } from "../../constants/mutation-steps.config";
+import { REPAIR_STEP } from "../../constants/repair-steps.config";
 
 /**
  * Strategy that fixes invalid literal values in JSON.
@@ -16,11 +16,11 @@ export const invalidLiteralFixer: SanitizerStrategy = {
 
   apply(input: string, _config?: LLMSanitizerConfig): StrategyResult {
     if (!input) {
-      return { content: input, changed: false, diagnostics: [] };
+      return { content: input, changed: false, repairs: [] };
     }
 
     let sanitized = input;
-    const diagnostics: string[] = [];
+    const repairs: string[] = [];
     let hasChanges = false;
 
     // Fix undefined values - convert to null
@@ -29,7 +29,7 @@ export const invalidLiteralFixer: SanitizerStrategy = {
       undefinedValuePattern,
       (_match, beforeColon, afterUndefined, terminator) => {
         hasChanges = true;
-        diagnostics.push(MUTATION_STEP.CONVERTED_UNDEFINED_TO_NULL);
+        repairs.push(REPAIR_STEP.CONVERTED_UNDEFINED_TO_NULL);
         return `${beforeColon}null${afterUndefined}${terminator}`;
       },
     );
@@ -48,7 +48,7 @@ export const invalidLiteralFixer: SanitizerStrategy = {
         }
 
         hasChanges = true;
-        diagnostics.push(
+        repairs.push(
           `Fixed corrupted numeric value: "${propertyNameStr}":_${digitsStr} -> "${propertyNameStr}": ${digitsStr}`,
         );
 
@@ -65,7 +65,7 @@ export const invalidLiteralFixer: SanitizerStrategy = {
     return {
       content: sanitized,
       changed: hasChanges,
-      diagnostics,
+      repairs,
     };
   },
 };

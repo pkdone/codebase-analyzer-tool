@@ -352,16 +352,16 @@ export interface LLMFunctionResponse<T = LLMGeneratedContent> {
   readonly tokensUsage?: LLMResponseTokensUsage;
   readonly error?: unknown;
   /**
-   * Low-level mutation steps (individual fixes applied during JSON processing).
+   * Individual repair operations applied to fix JSON issues during processing.
    * Used for determining significance of changes. Contains entries from
-   * MUTATION_STEP constants (e.g., "Removed code fences", "coerceStringToArray").
+   * REPAIR_STEP constants (e.g., "Removed code fences", "coerceStringToArray").
    */
-  readonly mutationSteps?: readonly string[];
+  readonly repairs?: readonly string[];
   /**
-   * High-level sanitizer descriptions (which sanitizers ran during JSON processing).
+   * High-level pipeline step descriptions (which sanitizers/phases ran during JSON processing).
    * Used for logging context about what processing occurred.
    */
-  readonly appliedSanitizers?: readonly string[];
+  readonly pipelineSteps?: readonly string[];
 }
 
 /**

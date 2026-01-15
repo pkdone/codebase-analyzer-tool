@@ -140,12 +140,12 @@ export function executeRules(
     return { content: input, changed: false };
   }
 
-  const collectedDiagnostics = diagnostics.getAll();
+  const collectedRepairs = diagnostics.getAll();
   return {
     content,
     changed: true,
     description: "Fixed malformed JSON patterns",
-    diagnostics: collectedDiagnostics.length > 0 ? collectedDiagnostics : undefined,
+    repairs: collectedRepairs.length > 0 ? collectedRepairs : undefined,
   };
 }
 

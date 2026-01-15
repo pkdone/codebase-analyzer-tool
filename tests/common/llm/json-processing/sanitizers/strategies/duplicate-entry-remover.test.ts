@@ -51,7 +51,7 @@ describe("duplicateEntryRemover", () => {
     const input = '["valid",\n  "extra_duplicate",]';
     const result = duplicateEntryRemover.apply(input);
     if (result.changed) {
-      expect(result.diagnostics.length).toBeGreaterThan(0);
+      expect(result.repairs.length).toBeGreaterThan(0);
     }
   });
 });

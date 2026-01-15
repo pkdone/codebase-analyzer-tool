@@ -49,7 +49,7 @@ describe("invalidLiteralFixer", () => {
   it("should add diagnostics for changes", () => {
     const input = '{"value": undefined}';
     const result = invalidLiteralFixer.apply(input);
-    expect(result.diagnostics.length).toBeGreaterThan(0);
-    expect(result.diagnostics[0]).toContain("undefined");
+    expect(result.repairs.length).toBeGreaterThan(0);
+    expect(result.repairs[0]).toContain("undefined");
   });
 });

@@ -1,5 +1,5 @@
 import { normalizeCharacters } from "../../../../../src/common/llm/json-processing/sanitizers/index";
-import { MUTATION_STEP } from "../../../../../src/common/llm/json-processing/constants/mutation-steps.config";
+import { REPAIR_STEP } from "../../../../../src/common/llm/json-processing/constants/repair-steps.config";
 
 describe("normalizeCharacters", () => {
   describe("converts curly quotes to ASCII quotes", () => {
@@ -9,9 +9,9 @@ describe("normalizeCharacters", () => {
 
       expect(result.changed).toBe(true);
       expect(result.content).toBe('{"name": "value"}');
-      expect(result.description).toBe(MUTATION_STEP.NORMALIZED_ESCAPE_SEQUENCES);
-      expect(result.diagnostics).toBeDefined();
-      expect(result.diagnostics?.length).toBeGreaterThan(0);
+      expect(result.description).toBe(REPAIR_STEP.NORMALIZED_ESCAPE_SEQUENCES);
+      expect(result.repairs).toBeDefined();
+      expect(result.repairs?.length).toBeGreaterThan(0);
     });
 
     it("should convert right double curly quote to regular quote", () => {
@@ -20,7 +20,7 @@ describe("normalizeCharacters", () => {
 
       expect(result.changed).toBe(true);
       expect(result.content).toBe('"externalReferences": [');
-      expect(result.diagnostics).toBeDefined();
+      expect(result.repairs).toBeDefined();
     });
 
     it("should convert both left and right double curly quotes", () => {
@@ -29,7 +29,7 @@ describe("normalizeCharacters", () => {
 
       expect(result.changed).toBe(true);
       expect(result.content).toBe('{"name": "value", "property": "test"}');
-      expect(result.diagnostics).toBeDefined();
+      expect(result.repairs).toBeDefined();
     });
 
     it("should convert single curly quotes", () => {
@@ -79,8 +79,8 @@ describe("normalizeCharacters", () => {
 
       expect(result.changed).toBe(true);
       expect(result.content).toBe('{"prop1": "val1", "prop2": "val2", "prop3": "val3"}');
-      expect(result.diagnostics).toBeDefined();
-      const diagnosticsStr = result.diagnostics?.join(" ") ?? "";
+      expect(result.repairs).toBeDefined();
+      const diagnosticsStr = result.repairs?.join(" ") ?? "";
       expect(diagnosticsStr).toContain("Converted");
     });
 
@@ -116,8 +116,8 @@ describe("normalizeCharacters", () => {
       expect(result.content).not.toContain("\u201D"); // Right curly quote
       expect(result.content).toContain('"externalReferences":');
       expect(result.content).toMatch(/\],\s*\n\s*"externalReferences"/);
-      expect(result.diagnostics).toBeDefined();
-      expect(result.diagnostics?.length).toBeGreaterThan(0);
+      expect(result.repairs).toBeDefined();
+      expect(result.repairs?.length).toBeGreaterThan(0);
     });
   });
 
@@ -237,9 +237,9 @@ describe("normalizeCharacters", () => {
       const result = normalizeCharacters(input);
 
       expect(result.changed).toBe(true);
-      expect(result.diagnostics).toBeDefined();
+      expect(result.repairs).toBeDefined();
       expect(
-        result.diagnostics?.some(
+        result.repairs?.some(
           (d: string) => d.includes("Escaped") && d.includes("control character"),
         ),
       ).toBe(true);
@@ -326,8 +326,8 @@ describe("normalizeCharacters", () => {
       const result = normalizeCharacters(input);
 
       expect(result.changed).toBe(true);
-      expect(result.diagnostics).toBeDefined();
-      expect(result.diagnostics?.some((d: string) => d.includes("invalid escape"))).toBe(true);
+      expect(result.repairs).toBeDefined();
+      expect(result.repairs?.some((d: string) => d.includes("invalid escape"))).toBe(true);
     });
   });
 
@@ -387,8 +387,8 @@ describe("normalizeCharacters", () => {
       const result = normalizeCharacters(input);
 
       expect(result.changed).toBe(true);
-      expect(result.diagnostics).toBeDefined();
-      expect(result.diagnostics?.some((d: string) => d.includes("over-escaped"))).toBe(true);
+      expect(result.repairs).toBeDefined();
+      expect(result.repairs?.some((d: string) => d.includes("over-escaped"))).toBe(true);
     });
   });
 
@@ -408,8 +408,8 @@ describe("normalizeCharacters", () => {
 
       expect(result.changed).toBe(true);
       expect(() => JSON.parse(result.content)).not.toThrow();
-      expect(result.diagnostics).toBeDefined();
-      expect(result.diagnostics?.length).toBeGreaterThan(0);
+      expect(result.repairs).toBeDefined();
+      expect(result.repairs?.length).toBeGreaterThan(0);
     });
 
     it("handles all fix types together in complex JSON", () => {
@@ -419,8 +419,8 @@ describe("normalizeCharacters", () => {
 
       expect(result.changed).toBe(true);
       expect(() => JSON.parse(result.content)).not.toThrow();
-      expect(result.diagnostics).toBeDefined();
-      expect(result.diagnostics?.length).toBeGreaterThan(0);
+      expect(result.repairs).toBeDefined();
+      expect(result.repairs?.length).toBeGreaterThan(0);
     });
   });
 

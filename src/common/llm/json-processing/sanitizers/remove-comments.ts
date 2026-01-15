@@ -29,7 +29,7 @@ export const removeComments: Sanitizer = (input: string): SanitizerResult => {
     }
 
     let sanitized = input;
-    const diagnostics: string[] = [];
+    const repairs: string[] = [];
 
     // Pattern 1: Remove multi-line comments /* ... */
     // Use non-greedy match to handle multiple comments
@@ -42,8 +42,8 @@ export const removeComments: Sanitizer = (input: string): SanitizerResult => {
 
       const matchStr = typeof match === "string" ? match : "";
       const preview = matchStr.length > 30 ? `${matchStr.substring(0, 27)}...` : matchStr;
-      if (diagnostics.length < 10) {
-        diagnostics.push(`Removed multi-line comment: /* ${preview} */`);
+      if (repairs.length < 10) {
+        repairs.push(`Removed multi-line comment: /* ${preview} */`);
       }
       return "";
     });
@@ -60,8 +60,8 @@ export const removeComments: Sanitizer = (input: string): SanitizerResult => {
 
       const matchStr = typeof match === "string" ? match : "";
       const preview = matchStr.length > 30 ? `${matchStr.substring(0, 27)}...` : matchStr;
-      if (diagnostics.length < 10) {
-        diagnostics.push(`Removed single-line comment: // ${preview}`);
+      if (repairs.length < 10) {
+        repairs.push(`Removed single-line comment: // ${preview}`);
       }
       // If comment is at the start of the string, remove it completely
       // Otherwise, replace with newline to preserve structure
@@ -81,7 +81,7 @@ export const removeComments: Sanitizer = (input: string): SanitizerResult => {
       content: sanitized,
       changed: true,
       description: "Removed comments from JSON",
-      diagnostics: diagnostics.length > 0 ? diagnostics : undefined,
+      repairs: repairs.length > 0 ? repairs : undefined,
     };
   } catch (error) {
     logWarn(`removeComments sanitizer failed: ${String(error)}`);
@@ -89,7 +89,7 @@ export const removeComments: Sanitizer = (input: string): SanitizerResult => {
       content: input,
       changed: false,
       description: undefined,
-      diagnostics: [`Sanitizer failed: ${String(error)}`],
+      repairs: [`Sanitizer failed: ${String(error)}`],
     };
   }
 };

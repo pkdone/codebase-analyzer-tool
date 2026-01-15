@@ -14,8 +14,8 @@ describe("removeComments", () => {
   "name": "value" 
 }`);
       expect(result.description).toBe("Removed comments from JSON");
-      expect(result.diagnostics).toBeDefined();
-      expect(result.diagnostics?.some((d) => d.includes("single-line comment"))).toBe(true);
+      expect(result.repairs).toBeDefined();
+      expect(result.repairs?.some((d) => d.includes("single-line comment"))).toBe(true);
     });
 
     it("should remove single-line comment on its own line", () => {
@@ -93,8 +93,8 @@ describe("removeComments", () => {
   "name": "value"
 }`);
       expect(result.description).toBe("Removed comments from JSON");
-      expect(result.diagnostics).toBeDefined();
-      expect(result.diagnostics?.some((d) => d.includes("multi-line comment"))).toBe(true);
+      expect(result.repairs).toBeDefined();
+      expect(result.repairs?.some((d) => d.includes("multi-line comment"))).toBe(true);
     });
 
     it("should remove multi-line comment spanning multiple lines", () => {
@@ -271,9 +271,9 @@ describe("removeComments", () => {
       const result = removeComments(input);
 
       expect(result.changed).toBe(true);
-      expect(result.diagnostics).toBeDefined();
-      expect(result.diagnostics?.length).toBeGreaterThan(0);
-      expect(result.diagnostics?.some((d) => d.includes("comment"))).toBe(true);
+      expect(result.repairs).toBeDefined();
+      expect(result.repairs?.length).toBeGreaterThan(0);
+      expect(result.repairs?.some((d) => d.includes("comment"))).toBe(true);
     });
 
     it("should limit diagnostics to prevent excessive output", () => {
@@ -288,9 +288,9 @@ ${Array(20)
       const result = removeComments(input);
 
       expect(result.changed).toBe(true);
-      expect(result.diagnostics).toBeDefined();
+      expect(result.repairs).toBeDefined();
       // Should limit to 10 diagnostics
-      expect(result.diagnostics?.length).toBeLessThanOrEqual(10);
+      expect(result.repairs?.length).toBeLessThanOrEqual(10);
     });
   });
 });

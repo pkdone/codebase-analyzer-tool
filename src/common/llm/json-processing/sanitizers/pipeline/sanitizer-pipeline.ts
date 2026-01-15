@@ -37,8 +37,8 @@ export function executePipeline(
 
   let currentContent = input;
   let hasChanges = false;
-  const allDiagnostics: string[] = [];
-  const appliedStrategies: string[] = [];
+  const allRepairs: string[] = [];
+  const appliedPipelineSteps: string[] = [];
 
   for (const strategy of strategies) {
     try {
@@ -47,14 +47,14 @@ export function executePipeline(
       if (result.changed) {
         currentContent = result.content;
         hasChanges = true;
-        appliedStrategies.push(strategy.name);
+        appliedPipelineSteps.push(strategy.name);
       }
 
-      // Collect diagnostics up to the limit
-      if (result.diagnostics.length > 0) {
-        const limitedDiagnostics = result.diagnostics.slice(0, opts.maxDiagnosticsPerStrategy);
-        for (const diag of limitedDiagnostics) {
-          allDiagnostics.push(`[${strategy.name}] ${diag}`);
+      // Collect repairs up to the limit
+      if (result.repairs.length > 0) {
+        const limitedRepairs = result.repairs.slice(0, opts.maxRepairsPerStrategy);
+        for (const repair of limitedRepairs) {
+          allRepairs.push(`[${strategy.name}] ${repair}`);
         }
       }
     } catch (error) {
@@ -73,14 +73,14 @@ export function executePipeline(
     content: currentContent,
     changed: hasChanges,
     ...(hasChanges &&
-      appliedStrategies.length > 0 && {
-        description: `Applied: ${appliedStrategies.join(", ")}`,
+      appliedPipelineSteps.length > 0 && {
+        description: `Applied: ${appliedPipelineSteps.join(", ")}`,
       }),
-    ...(allDiagnostics.length > 0 && {
-      diagnostics: allDiagnostics,
+    ...(allRepairs.length > 0 && {
+      repairs: allRepairs,
     }),
-    ...(appliedStrategies.length > 0 && {
-      appliedStrategies,
+    ...(appliedPipelineSteps.length > 0 && {
+      pipelineSteps: appliedPipelineSteps,
     }),
   };
 }

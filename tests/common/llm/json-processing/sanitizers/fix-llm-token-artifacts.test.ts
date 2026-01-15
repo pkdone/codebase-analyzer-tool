@@ -1,5 +1,5 @@
 import { fixLlmTokenArtifacts } from "../../../../../src/common/llm/json-processing/sanitizers/index";
-import { MUTATION_STEP } from "../../../../../src/common/llm/json-processing/constants/mutation-steps.config";
+import { REPAIR_STEP } from "../../../../../src/common/llm/json-processing/constants/repair-steps.config";
 
 describe("fixLlmTokenArtifacts", () => {
   describe("LLM token artifacts", () => {
@@ -11,12 +11,12 @@ describe("fixLlmTokenArtifacts", () => {
       const result = fixLlmTokenArtifacts(input);
 
       expect(result.changed).toBe(true);
-      expect(result.description).toBe(MUTATION_STEP.FIXED_LLM_TOKEN_ARTIFACTS);
+      expect(result.description).toBe(REPAIR_STEP.FIXED_LLM_TOKEN_ARTIFACTS);
       // The sanitizer now just removes the marker - property name fixing is handled by unifiedSyntaxSanitizer
       expect(result.content).toContain('OfCode": 1');
       expect(result.content).not.toContain("<y_bin_");
-      expect(result.diagnostics).toBeDefined();
-      expect(result.diagnostics?.length).toBeGreaterThan(0);
+      expect(result.repairs).toBeDefined();
+      expect(result.repairs?.length).toBeGreaterThan(0);
     });
 
     it("should handle the exact error case from InteropService log", () => {
@@ -44,7 +44,7 @@ describe("fixLlmTokenArtifacts", () => {
       expect(result.changed).toBe(true);
       expect(result.content).not.toContain("<y_bin_");
       expect(result.content).toContain('something": "value"');
-      expect(result.diagnostics).toBeDefined();
+      expect(result.repairs).toBeDefined();
     });
 
     it("should not modify binary markers inside string values", () => {

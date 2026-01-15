@@ -242,6 +242,6 @@ describe("arrayElementFixer", () => {
   it("should add diagnostics for changes", () => {
     const input = '[item"]';
     const result = arrayElementFixer.apply(input);
-    expect(result.diagnostics.length).toBeGreaterThan(0);
+    expect(result.repairs.length).toBeGreaterThan(0);
   });
 });

@@ -1,22 +1,22 @@
 /**
- * Constants for mutation step descriptions.
+ * Constants for repair step descriptions.
  * These constants ensure consistency across the codebase and prevent typos.
  * They are used by sanitizers and transforms to describe what modifications were made to the JSON response.
  *
  * IMPORTANT: All sanitizer and transform code MUST use these constants instead of hardcoded strings
  * to ensure consistency and allow proper categorization of insignificant steps.
  *
- * Mutation steps include:
- * - Sanitization steps: Fixes applied during JSON parsing (removing noise, fixing syntax)
- * - Transform steps: Fixes applied during schema validation (type coercion, property fixes)
+ * Repair steps include:
+ * - Sanitization repairs: Fixes applied during JSON parsing (removing noise, fixing syntax)
+ * - Transform repairs: Fixes applied during schema validation (type coercion, property fixes)
  */
 
 /**
- * Fixed step descriptions for sanitization (no dynamic content)
+ * Fixed step descriptions for repairs (no dynamic content)
  */
-export const MUTATION_STEP = Object.freeze({
+export const REPAIR_STEP = Object.freeze({
   // ============================================
-  // SANITIZATION STEPS (applied during parsing)
+  // SANITIZATION REPAIRS (applied during parsing)
   // ============================================
 
   // Whitespace and formatting
@@ -78,7 +78,7 @@ export const MUTATION_STEP = Object.freeze({
   CONVERTED_UNDEFINED_TO_NULL: "Converted undefined to null",
 
   // ============================================
-  // TRANSFORM STEPS (applied during validation)
+  // TRANSFORM REPAIRS (applied during validation)
   // ============================================
 
   // These match the function names used in json-validating.ts transforms
@@ -91,9 +91,9 @@ export const MUTATION_STEP = Object.freeze({
 } as const);
 
 /**
- * Functions for generating dynamic step descriptions with counts
+ * Functions for generating dynamic repair descriptions with counts
  */
-export const MUTATION_STEP_TEMPLATE = Object.freeze({
+export const REPAIR_STEP_TEMPLATE = Object.freeze({
   /**
    * Generate description for fixed concatenation chains
    * @param count - Number of concatenation chains fixed
@@ -120,13 +120,13 @@ export const MUTATION_STEP_TEMPLATE = Object.freeze({
 } as const);
 
 /**
- * Set of mutation steps that are considered "insignificant" for mutation tracking.
+ * Set of repair steps that are considered "insignificant" for repair tracking.
  * These steps represent trivial formatting changes that don't indicate problematic LLM output.
  *
- * Note: Only sanitization steps can be insignificant. All transform steps are significant
+ * Note: Only sanitization repairs can be insignificant. All transform repairs are significant
  * because they indicate schema mismatches that are worth monitoring.
  */
-export const INSIGNIFICANT_MUTATION_STEPS: ReadonlySet<string> = new Set([
-  MUTATION_STEP.TRIMMED_WHITESPACE,
-  MUTATION_STEP.REMOVED_CODE_FENCES,
+export const INSIGNIFICANT_REPAIR_STEPS: ReadonlySet<string> = new Set([
+  REPAIR_STEP.TRIMMED_WHITESPACE,
+  REPAIR_STEP.REMOVED_CODE_FENCES,
 ]);

@@ -136,6 +136,6 @@ export interface RuleExecutionResult {
   readonly changed: boolean;
   /** Optional description of what was done */
   readonly description?: string;
-  /** Diagnostic messages about specific changes made */
-  readonly diagnostics?: readonly string[];
+  /** Repair messages about specific changes made */
+  readonly repairs?: readonly string[];
 }

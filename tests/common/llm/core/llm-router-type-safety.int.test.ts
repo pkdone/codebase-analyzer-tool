@@ -457,8 +457,8 @@ describe("LLMRouter Type Safety Integration Tests", () => {
       const result = validateJsonWithTransforms(dataRequiringTransforms, schema);
 
       // Transform steps should be tracked
-      expect(result.transformSteps).toBeDefined();
-      expect(Array.isArray(result.transformSteps)).toBe(true);
+      expect(result.transformRepairs).toBeDefined();
+      expect(Array.isArray(result.transformRepairs)).toBe(true);
     });
 
     test("should have empty transform steps when no transforms needed", () => {
@@ -474,7 +474,7 @@ describe("LLMRouter Type Safety Integration Tests", () => {
 
       expect(result.success).toBe(true);
       if (result.success) {
-        expect(result.transformSteps).toEqual([]);
+        expect(result.transformRepairs).toEqual([]);
       }
     });
   });

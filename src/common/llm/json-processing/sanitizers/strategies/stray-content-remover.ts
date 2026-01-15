@@ -27,7 +27,7 @@ export const strayContentRemover: SanitizerStrategy = {
 
   apply(input: string, config?: LLMSanitizerConfig): StrategyResult {
     if (!input) {
-      return { content: input, changed: false, diagnostics: [] };
+      return { content: input, changed: false, repairs: [] };
     }
 
     const PACKAGE_NAME_TYPO_PATTERNS = config?.packageNameTypoPatterns ?? [];
@@ -291,7 +291,7 @@ export const strayContentRemover: SanitizerStrategy = {
     return {
       content: sanitized,
       changed: hasChanges,
-      diagnostics: diagnostics.getAll(),
+      repairs: diagnostics.getAll(),
     };
   },
 };

@@ -1,6 +1,6 @@
 import { Sanitizer, SanitizerResult } from "./sanitizers-types";
 import { logWarn } from "../../../utils/logging";
-import { MUTATION_STEP_TEMPLATE, MUTATION_STEP } from "../constants/mutation-steps.config";
+import { REPAIR_STEP_TEMPLATE, REPAIR_STEP } from "../constants/repair-steps.config";
 import { DELIMITERS, parsingHeuristics } from "../constants/json-processing.config";
 import { isInArrayContext } from "../utils/parser-context-utils";
 
@@ -214,12 +214,12 @@ function addMissingCommasInternal(input: string): SanitizerResult {
   );
 
   if (commaCount > 0) {
-    const description = MUTATION_STEP_TEMPLATE.addedMissingCommas(commaCount);
+    const description = REPAIR_STEP_TEMPLATE.addedMissingCommas(commaCount);
     return {
       content: sanitized,
       changed: true,
       description,
-      diagnostics: [description],
+      repairs: [description],
     };
   }
 
@@ -281,9 +281,9 @@ function removeTrailingCommasInternal(input: string): SanitizerResult {
     return {
       content: sanitized,
       changed: true,
-      description: MUTATION_STEP.REMOVED_TRAILING_COMMAS,
-      diagnostics: [
-        MUTATION_STEP.REMOVED_TRAILING_COMMAS,
+      description: REPAIR_STEP.REMOVED_TRAILING_COMMAS,
+      repairs: [
+        REPAIR_STEP.REMOVED_TRAILING_COMMAS,
         `Removed ${commaCount} trailing comma${commaCount !== 1 ? "s" : ""}`,
       ],
     };
@@ -435,8 +435,8 @@ function fixMismatchedDelimitersInternal(input: string): SanitizerResult {
   return {
     content: workingContent,
     changed: true,
-    description: MUTATION_STEP_TEMPLATE.fixedMismatchedDelimiters(delimiterCorrections.length),
-    diagnostics: [MUTATION_STEP_TEMPLATE.fixedMismatchedDelimiters(delimiterCorrections.length)],
+    description: REPAIR_STEP_TEMPLATE.fixedMismatchedDelimiters(delimiterCorrections.length),
+    repairs: [REPAIR_STEP_TEMPLATE.fixedMismatchedDelimiters(delimiterCorrections.length)],
   };
 }
 
@@ -503,9 +503,9 @@ function completeTruncatedStructuresInternal(input: string): SanitizerResult {
     return {
       content: finalContent,
       changed: true,
-      description: MUTATION_STEP.COMPLETED_TRUNCATED_STRUCTURES,
-      diagnostics: [
-        MUTATION_STEP.COMPLETED_TRUNCATED_STRUCTURES,
+      description: REPAIR_STEP.COMPLETED_TRUNCATED_STRUCTURES,
+      repairs: [
+        REPAIR_STEP.COMPLETED_TRUNCATED_STRUCTURES,
         `Added ${addedDelimiters.length} closing delimiter${addedDelimiters.length !== 1 ? "s" : ""}${inString ? " and closed incomplete string" : ""}`,
       ],
     };
@@ -521,7 +521,7 @@ function fixMissingArrayObjectBracesInternal(input: string): SanitizerResult {
   try {
     let sanitized = input;
     let hasChanges = false;
-    const diagnostics: string[] = [];
+    const repairs: string[] = [];
 
     const corruptedPatternWithValue = /(\}\s*,\s*)(\n?)(\s*)([a-zA-Z]{1,3})"([^"]+)"(\s*,)/g;
 
@@ -544,7 +544,7 @@ function fixMissingArrayObjectBracesInternal(input: string): SanitizerResult {
           const properIndent = indentStr || "    ";
           const innerIndent = properIndent + "  ";
 
-          diagnostics.push(
+          repairs.push(
             `Fixed corrupted array object start: removed stray "${strayTextStr}" and inserted missing {"name": before "${quotedValueStr}"`,
           );
 
@@ -587,7 +587,7 @@ function fixMissingArrayObjectBracesInternal(input: string): SanitizerResult {
           const properIndent = indentStr || "    ";
           const innerIndent = properIndent + "  ";
 
-          diagnostics.push(
+          repairs.push(
             `Fixed corrupted array object start: removed stray "${strayTextStr}" and inserted missing { before "${quotedPropertyNameStr}":`,
           );
 
@@ -612,7 +612,7 @@ function fixMissingArrayObjectBracesInternal(input: string): SanitizerResult {
 
         if (isLikelyArrayContext) {
           hasChanges = true;
-          diagnostics.push(
+          repairs.push(
             `Fixed truncated array element: inserted { and "name": before "${wordValueStr}"`,
           );
 
@@ -634,7 +634,7 @@ function fixMissingArrayObjectBracesInternal(input: string): SanitizerResult {
       description: hasChanges
         ? "Fixed missing opening braces for new objects in arrays"
         : undefined,
-      diagnostics: hasChanges && diagnostics.length > 0 ? diagnostics : undefined,
+      repairs: hasChanges && repairs.length > 0 ? repairs : undefined,
     };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
@@ -643,7 +643,7 @@ function fixMissingArrayObjectBracesInternal(input: string): SanitizerResult {
       content: input,
       changed: false,
       description: undefined,
-      diagnostics: [`Sanitizer failed: ${errorMessage}`],
+      repairs: [`Sanitizer failed: ${errorMessage}`],
     };
   }
 }
@@ -681,7 +681,7 @@ export const fixJsonSyntax: Sanitizer = (input: string): SanitizerResult => {
 
     let sanitized = input;
     let hasChanges = false;
-    const diagnostics: string[] = [];
+    const repairs: string[] = [];
 
     // Step 1: Add missing commas
     const commaResult = addMissingCommasInternal(sanitized);
@@ -689,10 +689,10 @@ export const fixJsonSyntax: Sanitizer = (input: string): SanitizerResult => {
       sanitized = commaResult.content;
       hasChanges = true;
       if (commaResult.description) {
-        diagnostics.push(commaResult.description);
+        repairs.push(commaResult.description);
       }
-      if (commaResult.diagnostics) {
-        diagnostics.push(...commaResult.diagnostics);
+      if (commaResult.repairs) {
+        repairs.push(...commaResult.repairs);
       }
     }
 
@@ -702,10 +702,10 @@ export const fixJsonSyntax: Sanitizer = (input: string): SanitizerResult => {
       sanitized = trailingCommaResult.content;
       hasChanges = true;
       if (trailingCommaResult.description) {
-        diagnostics.push(trailingCommaResult.description);
+        repairs.push(trailingCommaResult.description);
       }
-      if (trailingCommaResult.diagnostics) {
-        diagnostics.push(...trailingCommaResult.diagnostics);
+      if (trailingCommaResult.repairs) {
+        repairs.push(...trailingCommaResult.repairs);
       }
     }
 
@@ -715,10 +715,10 @@ export const fixJsonSyntax: Sanitizer = (input: string): SanitizerResult => {
       sanitized = delimiterResult.content;
       hasChanges = true;
       if (delimiterResult.description) {
-        diagnostics.push(delimiterResult.description);
+        repairs.push(delimiterResult.description);
       }
-      if (delimiterResult.diagnostics) {
-        diagnostics.push(...delimiterResult.diagnostics);
+      if (delimiterResult.repairs) {
+        repairs.push(...delimiterResult.repairs);
       }
     }
 
@@ -728,10 +728,10 @@ export const fixJsonSyntax: Sanitizer = (input: string): SanitizerResult => {
       sanitized = truncationResult.content;
       hasChanges = true;
       if (truncationResult.description) {
-        diagnostics.push(truncationResult.description);
+        repairs.push(truncationResult.description);
       }
-      if (truncationResult.diagnostics) {
-        diagnostics.push(...truncationResult.diagnostics);
+      if (truncationResult.repairs) {
+        repairs.push(...truncationResult.repairs);
       }
     }
 
@@ -741,10 +741,10 @@ export const fixJsonSyntax: Sanitizer = (input: string): SanitizerResult => {
       sanitized = arrayBracesResult.content;
       hasChanges = true;
       if (arrayBracesResult.description) {
-        diagnostics.push(arrayBracesResult.description);
+        repairs.push(arrayBracesResult.description);
       }
-      if (arrayBracesResult.diagnostics) {
-        diagnostics.push(...arrayBracesResult.diagnostics);
+      if (arrayBracesResult.repairs) {
+        repairs.push(...arrayBracesResult.repairs);
       }
     }
 
@@ -756,7 +756,7 @@ export const fixJsonSyntax: Sanitizer = (input: string): SanitizerResult => {
       content: sanitized,
       changed: true,
       description: "Fixed JSON syntax errors",
-      diagnostics: diagnostics.length > 0 ? diagnostics : undefined,
+      repairs: repairs.length > 0 ? repairs : undefined,
     };
   } catch (error) {
     logWarn(`fixJsonSyntax sanitizer failed: ${String(error)}`);
@@ -764,7 +764,7 @@ export const fixJsonSyntax: Sanitizer = (input: string): SanitizerResult => {
       content: input,
       changed: false,
       description: undefined,
-      diagnostics: [`Sanitizer failed: ${String(error)}`],
+      repairs: [`Sanitizer failed: ${String(error)}`],
     };
   }
 };

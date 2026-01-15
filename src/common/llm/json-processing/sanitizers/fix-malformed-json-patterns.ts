@@ -80,7 +80,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       content: result.content,
       changed: true,
       description: "Fixed malformed JSON patterns",
-      diagnostics: result.diagnostics?.length ? [...result.diagnostics] : undefined,
+      repairs: result.repairs?.length ? [...result.repairs] : undefined,
     };
   } catch (error) {
     logWarn(`fixMalformedJsonPatterns sanitizer failed: ${String(error)}`);
@@ -88,7 +88,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       content: input,
       changed: false,
       description: undefined,
-      diagnostics: [`Sanitizer failed: ${String(error)}`],
+      repairs: [`Sanitizer failed: ${String(error)}`],
     };
   }
 };

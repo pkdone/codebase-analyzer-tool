@@ -1,5 +1,5 @@
 import { fixJsonStructureAndNoise } from "../../../../../src/common/llm/json-processing/sanitizers/index";
-import { MUTATION_STEP } from "../../../../../src/common/llm/json-processing/constants/mutation-steps.config";
+import { REPAIR_STEP } from "../../../../../src/common/llm/json-processing/constants/repair-steps.config";
 
 describe("fixJsonStructureAndNoise", () => {
   describe("should handle whitespace trimming", () => {
@@ -9,7 +9,7 @@ describe("fixJsonStructureAndNoise", () => {
 
       expect(result.changed).toBe(true);
       expect(result.content).toBe('{ "key": "value" }');
-      expect(result.diagnostics).toContain(MUTATION_STEP.TRIMMED_WHITESPACE);
+      expect(result.repairs).toContain(REPAIR_STEP.TRIMMED_WHITESPACE);
     });
   });
 
@@ -20,7 +20,7 @@ describe("fixJsonStructureAndNoise", () => {
 
       expect(result.changed).toBe(true);
       expect(result.content.trim()).toBe('{ "key": "value" }');
-      expect(result.diagnostics).toContain(MUTATION_STEP.REMOVED_CODE_FENCES);
+      expect(result.repairs).toContain(REPAIR_STEP.REMOVED_CODE_FENCES);
     });
 
     it("should remove generic code fences", () => {
@@ -49,7 +49,7 @@ describe("fixJsonStructureAndNoise", () => {
 
       expect(result.changed).toBe(true);
       expect(result.content).toBe('{ "key": "value" }');
-      expect(result.diagnostics).toContain(MUTATION_STEP.EXTRACTED_LARGEST_JSON_SPAN);
+      expect(result.repairs).toContain(REPAIR_STEP.EXTRACTED_LARGEST_JSON_SPAN);
     });
   });
 
@@ -81,7 +81,7 @@ describe("fixJsonStructureAndNoise", () => {
 
       expect(result.changed).toBe(true);
       expect(result.content.trim()).toBe('{ "key": "value" }');
-      expect(result.diagnostics?.length).toBeGreaterThan(1);
+      expect(result.repairs?.length).toBeGreaterThan(1);
     });
   });
 
@@ -201,9 +201,9 @@ describe("fixJsonStructureAndNoise", () => {
       const result = fixJsonStructureAndNoise(input);
 
       expect(result.changed).toBe(true);
-      expect(result.diagnostics).toContain(MUTATION_STEP.REMOVED_CODE_FENCES);
+      expect(result.repairs).toContain(REPAIR_STEP.REMOVED_CODE_FENCES);
       // Should NOT contain "Fixed unclosed array" since there's no unclosed array
-      expect(result.diagnostics).not.toContain(MUTATION_STEP.FIXED_UNCLOSED_ARRAY);
+      expect(result.repairs).not.toContain(REPAIR_STEP.FIXED_UNCLOSED_ARRAY);
       // Verify the JSON is valid
       const parsed = JSON.parse(result.content);
       expect(parsed.aggregates[0].repository.name).toBe("HookRepository");
@@ -456,7 +456,7 @@ I have analyzed the code and found no issues.`;
       expect(parsed.kind).toBe("CLASS");
       expect(parsed.publicFunctions).toHaveLength(1);
       expect(parsed.publicFunctions[0].name).toBe("update");
-      expect(result.diagnostics).toContain(MUTATION_STEP.EXTRACTED_LARGEST_JSON_SPAN);
+      expect(result.repairs).toContain(REPAIR_STEP.EXTRACTED_LARGEST_JSON_SPAN);
     });
 
     it("should remove trailing extra closing brace with whitespace", () => {

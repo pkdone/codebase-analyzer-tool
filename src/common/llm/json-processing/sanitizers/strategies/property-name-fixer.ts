@@ -74,7 +74,7 @@ export const propertyNameFixer: SanitizerStrategy = {
 
   apply(input: string, config?: LLMSanitizerConfig): StrategyResult {
     if (!input) {
-      return { content: input, changed: false, diagnostics: [] };
+      return { content: input, changed: false, repairs: [] };
     }
 
     // Extract configuration
@@ -596,7 +596,7 @@ export const propertyNameFixer: SanitizerStrategy = {
     return {
       content: sanitized,
       changed: hasChanges,
-      diagnostics: diagnostics.getAll(),
+      repairs: diagnostics.getAll(),
     };
   },
 };

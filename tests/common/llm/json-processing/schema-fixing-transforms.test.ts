@@ -234,7 +234,7 @@ describe("Schema Fixing Transforms", () => {
           dependencies: ["react", "typescript"],
         });
         // Should have applied sanitization steps
-        expect(result.mutationSteps.length).toBeGreaterThan(0);
+        expect(result.repairs.length).toBeGreaterThan(0);
       }
     });
 

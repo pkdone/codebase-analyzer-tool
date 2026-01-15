@@ -1,5 +1,5 @@
 import { Sanitizer, SanitizerResult } from "./sanitizers-types";
-import { MUTATION_STEP } from "../constants/mutation-steps.config";
+import { REPAIR_STEP } from "../constants/repair-steps.config";
 import { LLM_TOKEN_ARTIFACT_REGEX } from "../constants/regex.constants";
 import { logWarn } from "../../../utils/logging";
 import { isInStringAt } from "../utils/parser-context-utils";
@@ -23,7 +23,7 @@ export const fixLlmTokenArtifacts: Sanitizer = (jsonString: string): SanitizerRe
   try {
     let sanitized = jsonString;
     let hasChanges = false;
-    const diagnostics: string[] = [];
+    const repairs: string[] = [];
 
     // Pattern: Remove all LLM token artifacts <y_bin_XXX>
     // This is a simple, generic approach that removes the artifacts and lets
@@ -40,13 +40,13 @@ export const fixLlmTokenArtifacts: Sanitizer = (jsonString: string): SanitizerRe
       if (afterArtifact === "{") {
         // The artifact is before an opening brace, just remove the artifact
         hasChanges = true;
-        diagnostics.push(`Removed LLM token artifact before opening brace: ${match}`);
+        repairs.push(`Removed LLM token artifact before opening brace: ${match}`);
         return "";
       }
 
       // Remove the artifact - let other sanitizers handle any resulting issues
       hasChanges = true;
-      diagnostics.push(`Removed LLM token artifact: ${match}`);
+      repairs.push(`Removed LLM token artifact: ${match}`);
       return "";
     });
 
@@ -56,8 +56,8 @@ export const fixLlmTokenArtifacts: Sanitizer = (jsonString: string): SanitizerRe
     return {
       content: sanitized,
       changed: hasChanges,
-      description: hasChanges ? MUTATION_STEP.FIXED_LLM_TOKEN_ARTIFACTS : undefined,
-      diagnostics: hasChanges && diagnostics.length > 0 ? diagnostics : undefined,
+      description: hasChanges ? REPAIR_STEP.FIXED_LLM_TOKEN_ARTIFACTS : undefined,
+      repairs: hasChanges && repairs.length > 0 ? repairs : undefined,
     };
   } catch (error) {
     // If sanitization fails, return the original string
@@ -66,7 +66,7 @@ export const fixLlmTokenArtifacts: Sanitizer = (jsonString: string): SanitizerRe
       content: jsonString,
       changed: false,
       description: undefined,
-      diagnostics: [`Sanitizer failed: ${String(error)}`],
+      repairs: [`Sanitizer failed: ${String(error)}`],
     };
   }
 };

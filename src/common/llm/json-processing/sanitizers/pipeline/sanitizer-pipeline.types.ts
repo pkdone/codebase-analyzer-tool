@@ -13,8 +13,8 @@ export interface StrategyResult {
   readonly content: string;
   /** Whether the strategy made any changes */
   readonly changed: boolean;
-  /** Diagnostic messages for debugging */
-  readonly diagnostics: string[];
+  /** Repair messages for debugging */
+  readonly repairs: string[];
 }
 
 /**
@@ -22,7 +22,7 @@ export interface StrategyResult {
  * Each strategy handles a specific category of JSON malformations.
  */
 export interface SanitizerStrategy {
-  /** Unique name identifying this strategy (for diagnostics) */
+  /** Unique name identifying this strategy (for pipeline tracking) */
   readonly name: string;
 
   /**
@@ -38,8 +38,8 @@ export interface SanitizerStrategy {
  * Configuration options for the sanitizer pipeline.
  */
 export interface PipelineConfig {
-  /** Maximum number of diagnostic messages to collect per strategy */
-  readonly maxDiagnosticsPerStrategy?: number;
+  /** Maximum number of repair messages to collect per strategy */
+  readonly maxRepairsPerStrategy?: number;
   /** Whether to continue processing after a strategy throws an error */
   readonly continueOnError?: boolean;
 }
@@ -54,16 +54,16 @@ export interface PipelineResult {
   readonly changed: boolean;
   /** Combined description of changes made */
   readonly description?: string;
-  /** All diagnostic messages from all strategies */
-  readonly diagnostics?: string[];
+  /** All repair messages from all strategies */
+  readonly repairs?: string[];
   /** Names of strategies that made changes */
-  readonly appliedStrategies?: string[];
+  readonly pipelineSteps?: string[];
 }
 
 /**
  * Default pipeline configuration values.
  */
 export const DEFAULT_PIPELINE_CONFIG: Required<PipelineConfig> = {
-  maxDiagnosticsPerStrategy: 20,
+  maxRepairsPerStrategy: 20,
   continueOnError: true,
 } as const;

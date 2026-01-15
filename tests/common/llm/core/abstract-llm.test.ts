@@ -6,7 +6,7 @@ import {
   LLMOutputFormat,
   LLMResponseStatus,
 } from "../../../../src/common/llm/types/llm.types";
-import { MUTATION_STEP } from "../../../../src/common/llm/json-processing/sanitizers";
+import { REPAIR_STEP } from "../../../../src/common/llm/json-processing/sanitizers";
 import {
   LLMImplSpecificResponseSummary,
   LLMProviderManifest,
@@ -404,8 +404,8 @@ describe("Abstract LLM Sanitization Steps Propagation", () => {
       });
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
-      expect(result.mutationSteps).toBeDefined();
-      expect(result.mutationSteps).toEqual([]);
+      expect(result.repairs).toBeDefined();
+      expect(result.repairs).toEqual([]);
     });
 
     test("should propagate sanitization steps for JSON with code fences", async () => {
@@ -417,11 +417,11 @@ describe("Abstract LLM Sanitization Steps Propagation", () => {
       });
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
-      expect(result.mutationSteps).toBeDefined();
+      expect(result.repairs).toBeDefined();
       expect(
-        result.mutationSteps?.some(
+        result.repairs?.some(
           (s: string) =>
-            s.includes("Fixed JSON structure and noise") || s === MUTATION_STEP.REMOVED_CODE_FENCES,
+            s.includes("Fixed JSON structure and noise") || s === REPAIR_STEP.REMOVED_CODE_FENCES,
         ),
       ).toBe(true);
     });
@@ -435,8 +435,8 @@ describe("Abstract LLM Sanitization Steps Propagation", () => {
       });
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
-      expect(result.mutationSteps).toBeDefined();
-      expect(result.mutationSteps?.length).toBeGreaterThan(0);
+      expect(result.repairs).toBeDefined();
+      expect(result.repairs?.length).toBeGreaterThan(0);
     });
 
     test("should not have sanitization steps for clean JSON", async () => {
@@ -448,8 +448,8 @@ describe("Abstract LLM Sanitization Steps Propagation", () => {
       });
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
-      expect(result.mutationSteps).toBeDefined();
-      expect(result.mutationSteps).toEqual([]);
+      expect(result.repairs).toBeDefined();
+      expect(result.repairs).toEqual([]);
     });
 
     test("should not have sanitization steps for text output format", async () => {
@@ -461,7 +461,7 @@ describe("Abstract LLM Sanitization Steps Propagation", () => {
       });
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
-      expect(result.mutationSteps).toBeUndefined();
+      expect(result.repairs).toBeUndefined();
     });
 
     test("should not have sanitization steps when JSON parsing fails", async () => {
@@ -473,7 +473,7 @@ describe("Abstract LLM Sanitization Steps Propagation", () => {
       });
 
       expect(result.status).toBe(LLMResponseStatus.INVALID);
-      expect(result.mutationSteps).toBeUndefined();
+      expect(result.repairs).toBeUndefined();
     });
   });
 });

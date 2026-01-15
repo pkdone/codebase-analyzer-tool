@@ -71,6 +71,6 @@ describe("assignmentSyntaxFixer", () => {
   it("should add diagnostics for changes", () => {
     const input = '{"name":= "test"}';
     const result = assignmentSyntaxFixer.apply(input);
-    expect(result.diagnostics.length).toBeGreaterThan(0);
+    expect(result.repairs.length).toBeGreaterThan(0);
   });
 });

@@ -6,11 +6,11 @@ export interface SanitizerResult {
   changed: boolean;
   description?: string;
   /**
-   * Optional array of diagnostic messages providing details about specific
+   * Optional array of repair messages providing details about specific
    * patterns matched and changes made by this sanitizer.
    * Useful for debugging JSON processing issues.
    */
-  diagnostics?: string[];
+  repairs?: string[];
 }
 
 /**

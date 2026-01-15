@@ -32,7 +32,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
       expect(result.success).toBe(true);
       if (result.success) {
         expect(result.data).toEqual({ clean: "json" });
-        expect(result.mutationSteps).toEqual([]);
+        expect(result.repairs).toEqual([]);
       }
       expect(logWarn).not.toHaveBeenCalled();
     });
@@ -50,8 +50,8 @@ describe("JsonProcessor - Unified Pipeline", () => {
       if (result.success) {
         expect(result.data).toEqual({ key: "value" });
         // Should have stopped after code fence removal
-        expect(result.mutationSteps.length).toBeGreaterThan(0);
-        expect(result.mutationSteps.length).toBeLessThanOrEqual(3);
+        expect(result.repairs.length).toBeGreaterThan(0);
+        expect(result.repairs.length).toBeLessThanOrEqual(3);
       }
     });
 
@@ -67,7 +67,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
       expect(result.success).toBe(true);
       if (result.success) {
         expect(result.data).toEqual({ a: 1 });
-        expect(result.mutationSteps.length).toBeGreaterThan(0);
+        expect(result.repairs.length).toBeGreaterThan(0);
         // Should have logged the sanitization steps
         expect(logWarn).toHaveBeenCalled();
       }
@@ -83,9 +83,9 @@ describe("JsonProcessor - Unified Pipeline", () => {
 
       expect(result.success).toBe(true);
       if (result.success) {
-        expect(result.mutationSteps).toBeDefined();
-        expect(Array.isArray(result.mutationSteps)).toBe(true);
-        expect(result.mutationSteps.length).toBeGreaterThan(0);
+        expect(result.repairs).toBeDefined();
+        expect(Array.isArray(result.repairs)).toBe(true);
+        expect(result.repairs.length).toBeGreaterThan(0);
       }
     });
   });
@@ -247,7 +247,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
       if (result.success) {
         expect(result.data).toEqual({ simple: true });
         // Should have minimal steps since it succeeds early
-        expect(result.mutationSteps.length).toBeLessThan(5);
+        expect(result.repairs.length).toBeLessThan(5);
       }
     });
   });
@@ -390,9 +390,9 @@ describe("JsonProcessor - Unified Pipeline", () => {
 
       expect(result.success).toBe(true);
       if (result.success) {
-        expect(result.mutationSteps).toBeDefined();
-        expect(Array.isArray(result.mutationSteps)).toBe(true);
-        expect(result.mutationSteps.length).toBeGreaterThan(0);
+        expect(result.repairs).toBeDefined();
+        expect(Array.isArray(result.repairs)).toBe(true);
+        expect(result.repairs.length).toBeGreaterThan(0);
       }
     });
 
@@ -420,7 +420,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
 
       expect(result.success).toBe(true);
       if (result.success) {
-        expect(result.mutationSteps).toEqual([]);
+        expect(result.repairs).toEqual([]);
       }
     });
   });
@@ -451,7 +451,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
 
       expect(result.success).toBe(true);
       if (result.success) {
-        expect(result.mutationSteps).toEqual([]);
+        expect(result.repairs).toEqual([]);
       }
     });
 

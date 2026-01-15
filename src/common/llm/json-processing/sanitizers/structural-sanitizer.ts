@@ -5,7 +5,7 @@ import {
   parsingHeuristics,
 } from "../constants/json-processing.config";
 import { CODE_FENCE_REGEXES } from "../constants/regex.constants";
-import { MUTATION_STEP } from "../constants/mutation-steps.config";
+import { REPAIR_STEP } from "../constants/repair-steps.config";
 import { logWarn } from "../../../utils/logging";
 import { isInStringAt } from "../utils/parser-context-utils";
 
@@ -46,14 +46,14 @@ export const fixJsonStructureAndNoise: Sanitizer = (input: string): SanitizerRes
 
     let sanitized = input;
     let hasChanges = false;
-    const diagnostics: string[] = [];
+    const repairs: string[] = [];
 
     // Trim whitespace
     const trimmed = sanitized.trim();
     if (trimmed !== sanitized) {
       sanitized = trimmed;
       hasChanges = true;
-      diagnostics.push(MUTATION_STEP.TRIMMED_WHITESPACE);
+      repairs.push(REPAIR_STEP.TRIMMED_WHITESPACE);
     }
 
     // Remove code fences
@@ -64,13 +64,13 @@ export const fixJsonStructureAndNoise: Sanitizer = (input: string): SanitizerRes
       }
       if (sanitized !== beforeFences) {
         hasChanges = true;
-        diagnostics.push(MUTATION_STEP.REMOVED_CODE_FENCES);
+        repairs.push(REPAIR_STEP.REMOVED_CODE_FENCES);
       }
     }
 
     // Remove invalid prefixes (introductory text, stray prefixes, etc.)
     const beforePrefixes = sanitized;
-    sanitized = removeInvalidPrefixesInternal(sanitized, diagnostics);
+    sanitized = removeInvalidPrefixesInternal(sanitized, repairs);
     if (sanitized !== beforePrefixes) {
       hasChanges = true;
     }
@@ -79,7 +79,7 @@ export const fixJsonStructureAndNoise: Sanitizer = (input: string): SanitizerRes
     // This MUST run before delimiter mismatch detection (in fixJsonSyntax)
     // to prevent incorrect delimiter corrections that corrupt the structure
     const beforeUnclosedArrays = sanitized;
-    sanitized = fixUnclosedArraysBeforePropertiesInternal(sanitized, diagnostics);
+    sanitized = fixUnclosedArraysBeforePropertiesInternal(sanitized, repairs);
     if (sanitized !== beforeUnclosedArrays) {
       hasChanges = true;
     }
@@ -89,7 +89,7 @@ export const fixJsonStructureAndNoise: Sanitizer = (input: string): SanitizerRes
     sanitized = extractLargestJsonSpanInternal(sanitized);
     if (sanitized !== beforeExtract) {
       hasChanges = true;
-      diagnostics.push(MUTATION_STEP.EXTRACTED_LARGEST_JSON_SPAN);
+      repairs.push(REPAIR_STEP.EXTRACTED_LARGEST_JSON_SPAN);
     }
 
     // Collapse duplicate JSON objects
@@ -97,12 +97,12 @@ export const fixJsonStructureAndNoise: Sanitizer = (input: string): SanitizerRes
     sanitized = collapseDuplicateJsonObjectInternal(sanitized);
     if (sanitized !== beforeCollapse) {
       hasChanges = true;
-      diagnostics.push(MUTATION_STEP.COLLAPSED_DUPLICATE_JSON);
+      repairs.push(REPAIR_STEP.COLLAPSED_DUPLICATE_JSON);
     }
 
     // Remove truncation markers
     const beforeTruncation = sanitized;
-    sanitized = removeTruncationMarkersInternal(sanitized, diagnostics);
+    sanitized = removeTruncationMarkersInternal(sanitized, repairs);
     if (sanitized !== beforeTruncation) {
       hasChanges = true;
     }
@@ -115,7 +115,7 @@ export const fixJsonStructureAndNoise: Sanitizer = (input: string): SanitizerRes
       content: sanitized,
       changed: true,
       description: "Fixed JSON structure and noise",
-      diagnostics: diagnostics.length > 0 ? diagnostics : undefined,
+      repairs: repairs.length > 0 ? repairs : undefined,
     };
   } catch (error) {
     logWarn(`fixJsonStructureAndNoise sanitizer failed: ${String(error)}`);
@@ -123,7 +123,7 @@ export const fixJsonStructureAndNoise: Sanitizer = (input: string): SanitizerRes
       content: input,
       changed: false,
       description: undefined,
-      diagnostics: [`Sanitizer failed: ${String(error)}`],
+      repairs: [`Sanitizer failed: ${String(error)}`],
     };
   }
 };
@@ -131,22 +131,22 @@ export const fixJsonStructureAndNoise: Sanitizer = (input: string): SanitizerRes
 /**
  * Internal helper to remove invalid prefixes and stray text.
  */
-function removeInvalidPrefixesInternal(jsonString: string, diagnostics: string[]): string {
+function removeInvalidPrefixesInternal(jsonString: string, repairs: string[]): string {
   let sanitized = jsonString;
 
   // Pattern 1: Remove thought markers
   const ctrlThoughtPattern = /<ctrl\d+>\s*thought\s*\n/i;
   sanitized = sanitized.replace(ctrlThoughtPattern, () => {
-    if (diagnostics.length < 10) {
-      diagnostics.push(MUTATION_STEP.REMOVED_CONTROL_THOUGHT_MARKER);
+    if (repairs.length < 10) {
+      repairs.push(REPAIR_STEP.REMOVED_CONTROL_THOUGHT_MARKER);
     }
     return "";
   });
 
   const thoughtMarkerPattern = /^thought\s*:?\s*\n/i;
   sanitized = sanitized.replace(thoughtMarkerPattern, () => {
-    if (diagnostics.length < 10) {
-      diagnostics.push(MUTATION_STEP.REMOVED_THOUGHT_MARKERS);
+    if (repairs.length < 10) {
+      repairs.push(REPAIR_STEP.REMOVED_THOUGHT_MARKERS);
     }
     return "";
   });
@@ -171,8 +171,8 @@ function removeInvalidPrefixesInternal(jsonString: string, diagnostics: string[]
       }
     }
 
-    if (diagnostics.length < 10) {
-      diagnostics.push(`Removed introductory text "${wordStr}" before opening brace`);
+    if (repairs.length < 10) {
+      repairs.push(`Removed introductory text "${wordStr}" before opening brace`);
     }
     return `${prefix}{`;
   });
@@ -198,10 +198,8 @@ function removeInvalidPrefixesInternal(jsonString: string, diagnostics: string[]
       const isStrayTextValid = jsonKeywords.includes(strayTextStr.toLowerCase());
 
       if (isValidDelimiter && !isStrayTextValid) {
-        if (diagnostics.length < 10) {
-          diagnostics.push(
-            `Removed stray text "${strayTextStr}" before property "${propertyNameStr}"`,
-          );
+        if (repairs.length < 10) {
+          repairs.push(`Removed stray text "${strayTextStr}" before property "${propertyNameStr}"`);
         }
         return `${delimiterStr}${whitespaceStr}"${propertyNameStr}":`;
       }
@@ -238,8 +236,8 @@ function removeInvalidPrefixesInternal(jsonString: string, diagnostics: string[]
         beforeMatch.includes("[") && beforeMatch.lastIndexOf("[") > beforeMatch.lastIndexOf("]");
 
       if (hasOpenArray && strayCharStr !== "") {
-        if (diagnostics.length < 10) {
-          diagnostics.push(
+        if (repairs.length < 10) {
+          repairs.push(
             `Fixed missing opening brace and quote before property "${propertyNameStr}"`,
           );
         }
@@ -273,8 +271,8 @@ function removeInvalidPrefixesInternal(jsonString: string, diagnostics: string[]
         beforeMatch.includes("[") && beforeMatch.lastIndexOf("[") > beforeMatch.lastIndexOf("]");
 
       if (hasOpenArray) {
-        if (diagnostics.length < 10) {
-          diagnostics.push(
+        if (repairs.length < 10) {
+          repairs.push(
             `Fixed missing opening brace and quote before property "${propertyNameStr}"`,
           );
         }
@@ -305,10 +303,7 @@ function removeInvalidPrefixesInternal(jsonString: string, diagnostics: string[]
  *
  * Only array element objects that are missing their array's closing `]` should be fixed.
  */
-function fixUnclosedArraysBeforePropertiesInternal(
-  jsonString: string,
-  diagnostics: string[],
-): string {
+function fixUnclosedArraysBeforePropertiesInternal(jsonString: string, repairs: string[]): string {
   let sanitized = jsonString;
 
   // Pattern: closing brace, comma, newline + whitespace, then a property name with colon
@@ -404,8 +399,8 @@ function fixUnclosedArraysBeforePropertiesInternal(
         return match;
       }
 
-      if (diagnostics.length < 10) {
-        diagnostics.push(MUTATION_STEP.FIXED_UNCLOSED_ARRAY);
+      if (repairs.length < 10) {
+        repairs.push(REPAIR_STEP.FIXED_UNCLOSED_ARRAY);
       }
 
       return `${closingBraceStr}],\n${whitespaceStr}${propertyNameStr}`;
@@ -583,7 +578,7 @@ function collapseDuplicateJsonObjectInternal(input: string): string {
 /**
  * Internal helper to remove truncation markers.
  */
-function removeTruncationMarkersInternal(jsonString: string, diagnostics: string[]): string {
+function removeTruncationMarkersInternal(jsonString: string, repairs: string[]): string {
   let sanitized = jsonString;
 
   // Pattern 1: Remove standalone truncation marker lines
@@ -600,8 +595,8 @@ function removeTruncationMarkersInternal(jsonString: string, diagnostics: string
       const markerStr = typeof marker === "string" ? marker : "";
       const hasTrailingComma = optionalComma !== undefined && optionalComma !== null;
 
-      if (diagnostics.length < 10) {
-        diagnostics.push(`Removed truncation marker: "${markerStr.trim()}"`);
+      if (repairs.length < 10) {
+        repairs.push(`Removed truncation marker: "${markerStr.trim()}"`);
       }
 
       if (hasTrailingComma) {
@@ -624,8 +619,8 @@ function removeTruncationMarkersInternal(jsonString: string, diagnostics: string
       const delimiterStr = typeof delimiter === "string" ? delimiter : "";
       const ws2 = typeof whitespace2 === "string" ? whitespace2 : "";
 
-      if (diagnostics.length < 10) {
-        diagnostics.push(
+      if (repairs.length < 10) {
+        repairs.push(
           `Fixed incomplete string before ${delimiterStr === "]" ? "array" : "object"} closure`,
         );
       }
@@ -657,8 +652,8 @@ function removeTruncationMarkersInternal(jsonString: string, diagnostics: string
       const ws3 = typeof whitespace3 === "string" ? whitespace3 : "";
       const beforeStr = typeof beforeMarker === "string" ? beforeMarker : "";
 
-      if (diagnostics.length < 10) {
-        diagnostics.push(
+      if (repairs.length < 10) {
+        repairs.push(
           `Removed truncation marker before ${delimiterStr === "]" ? "array" : "object"} closure`,
         );
       }
@@ -680,9 +675,9 @@ function removeTruncationMarkersInternal(jsonString: string, diagnostics: string
         return match;
       }
 
-      if (diagnostics.length < 10) {
+      if (repairs.length < 10) {
         const markerStr = typeof marker === "string" ? marker : "";
-        diagnostics.push(`Removed truncation marker: ${markerStr}`);
+        repairs.push(`Removed truncation marker: ${markerStr}`);
       }
 
       const beforeStr = typeof before === "string" ? before : "";
@@ -709,8 +704,8 @@ function removeTruncationMarkersInternal(jsonString: string, diagnostics: string
 
       const delimiterStr = typeof delimiter === "string" ? delimiter : "";
 
-      if (diagnostics.length < 10) {
-        diagnostics.push(MUTATION_STEP.REMOVED_LLM_INSTRUCTION_TEXT);
+      if (repairs.length < 10) {
+        repairs.push(REPAIR_STEP.REMOVED_LLM_INSTRUCTION_TEXT);
       }
 
       return delimiterStr;
@@ -732,8 +727,8 @@ function removeTruncationMarkersInternal(jsonString: string, diagnostics: string
       const delimiter2Str = typeof delimiter2 === "string" ? delimiter2 : "";
       const delimiterStr = delimiter1Str !== "" ? delimiter1Str : delimiter2Str;
       if (delimiterStr !== "") {
-        if (diagnostics.length < 10) {
-          diagnostics.push(MUTATION_STEP.REMOVED_EXTRA_JSON_AFTER_MAIN);
+        if (repairs.length < 10) {
+          repairs.push(REPAIR_STEP.REMOVED_EXTRA_JSON_AFTER_MAIN);
         }
         return delimiterStr;
       }

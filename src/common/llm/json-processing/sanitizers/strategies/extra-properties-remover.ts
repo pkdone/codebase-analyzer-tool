@@ -76,11 +76,11 @@ export const extraPropertiesRemover: SanitizerStrategy = {
   apply(input: string, config?: LLMSanitizerConfig): StrategyResult {
     const knownProperties = config?.knownProperties;
     if (!input) {
-      return { content: input, changed: false, diagnostics: [] };
+      return { content: input, changed: false, repairs: [] };
     }
 
     let sanitized = input;
-    const diagnostics: string[] = [];
+    const repairs: string[] = [];
     let hasChanges = false;
 
     // Pattern 1: Handle malformed LLM artifact properties like `extra_text="  "property":`
@@ -96,7 +96,7 @@ export const extraPropertiesRemover: SanitizerStrategy = {
 
         hasChanges = true;
         const artifactPropStr = typeof artifactProp === "string" ? artifactProp : "";
-        diagnostics.push(`Removed malformed ${artifactPropStr} property`);
+        repairs.push(`Removed malformed ${artifactPropStr} property`);
         const delimiterStr = typeof delimiter === "string" ? delimiter : "";
         const propertyNameWithQuoteStr =
           typeof propertyNameWithQuote === "string" ? propertyNameWithQuote : "";
@@ -266,7 +266,7 @@ export const extraPropertiesRemover: SanitizerStrategy = {
 
         sanitized = before + replacement + after;
         hasChanges = true;
-        diagnostics.push(`Removed unquoted LLM artifact property: ${m.propName}`);
+        repairs.push(`Removed unquoted LLM artifact property: ${m.propName}`);
       }
     }
 
@@ -392,14 +392,14 @@ export const extraPropertiesRemover: SanitizerStrategy = {
 
         sanitized = before + replacement + after;
         hasChanges = true;
-        diagnostics.push(`Removed LLM artifact property: ${m.propName}`);
+        repairs.push(`Removed LLM artifact property: ${m.propName}`);
       }
     }
 
     return {
       content: sanitized,
       changed: hasChanges,
-      diagnostics,
+      repairs,
     };
   },
 };

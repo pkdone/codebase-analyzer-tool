@@ -17,7 +17,7 @@ describe("json-validator", () => {
       expect(result.success).toBe(true);
       if (result.success) {
         expect(result.data).toEqual(content);
-        expect(result.transformSteps).toBeDefined();
+        expect(result.transformRepairs).toBeDefined();
       }
     });
 

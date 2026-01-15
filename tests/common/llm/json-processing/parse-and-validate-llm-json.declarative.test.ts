@@ -1,6 +1,6 @@
 import { parseAndValidateLLMJson } from "../../../../src/common/llm/json-processing/core/json-processing";
 import { LLMOutputFormat, LLMPurpose } from "../../../../src/common/llm/types/llm.types";
-import { MUTATION_STEP } from "../../../../src/common/llm/json-processing/constants/mutation-steps.config";
+import { REPAIR_STEP } from "../../../../src/common/llm/json-processing/constants/repair-steps.config";
 
 jest.mock("../../../../src/common/utils/logging", () => ({
   logErrorMsg: jest.fn(),
@@ -64,8 +64,8 @@ describe("JsonProcessor.parseAndValidate (declarative sanitization pipeline)", (
     if (result.success) {
       expect((result.data as any).path).toBe("");
       // Verify that the concatenation chain was fixed (mutation steps recorded)
-      expect(result.mutationSteps).toBeDefined();
-      expect(result.mutationSteps).toEqual(
+      expect(result.repairs).toBeDefined();
+      expect(result.repairs).toEqual(
         expect.arrayContaining([expect.stringContaining("identifier-only chain")]),
       );
     }
@@ -91,7 +91,7 @@ describe("JsonProcessor.parseAndValidate (declarative sanitization pipeline)", (
     const logMsg = calls.find((c) => c.includes("Applied"));
     expect(logMsg).toMatch(
       new RegExp(
-        `Fixed JSON structure and noise|${MUTATION_STEP.REMOVED_CODE_FENCES}|Fixed JSON structure`,
+        `Fixed JSON structure and noise|${REPAIR_STEP.REMOVED_CODE_FENCES}|Fixed JSON structure`,
       ),
     );
   });

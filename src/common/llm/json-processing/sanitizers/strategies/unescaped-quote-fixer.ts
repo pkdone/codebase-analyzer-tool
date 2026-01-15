@@ -15,11 +15,11 @@ export const unescapedQuoteFixer: SanitizerStrategy = {
 
   apply(input: string, _config?: LLMSanitizerConfig): StrategyResult {
     if (!input) {
-      return { content: input, changed: false, diagnostics: [] };
+      return { content: input, changed: false, repairs: [] };
     }
 
     let sanitized = input;
-    const diagnostics: string[] = [];
+    const repairs: string[] = [];
     let hasChanges = false;
 
     // Fix HTML attribute quotes
@@ -46,7 +46,7 @@ export const unescapedQuoteFixer: SanitizerStrategy = {
         const spacesAfterMatch = /^\s*/.exec(afterStr);
         const spacesAfter = spacesAfterMatch?.[0] ?? "";
         const restAfter = afterStr.substring(spacesAfter.length);
-        diagnostics.push(`Escaped quote in HTML attribute: = "${value}"`);
+        repairs.push(`Escaped quote in HTML attribute: = "${value}"`);
         return `${equalsAndSpace}\\"${value}\\"${spacesAfter}${restAfter}`;
       }
       return match;
@@ -72,7 +72,7 @@ export const unescapedQuoteFixer: SanitizerStrategy = {
         if (isInStringValue) {
           hasChanges = true;
           const afterStr = typeof after === "string" ? after : "";
-          diagnostics.push(`Fixed escaped quote followed by unescaped quote: \\"" -> \\"\\")`);
+          repairs.push(`Fixed escaped quote followed by unescaped quote: \\"" -> \\"\\")`);
           return `\\"\\"${afterStr}`;
         }
         return match;
@@ -82,7 +82,7 @@ export const unescapedQuoteFixer: SanitizerStrategy = {
     return {
       content: sanitized,
       changed: hasChanges,
-      diagnostics,
+      repairs,
     };
   },
 };

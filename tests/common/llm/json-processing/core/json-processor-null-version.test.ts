@@ -171,7 +171,7 @@ describe("JsonProcessor Integration Tests", () => {
         expect(result.data).toBeDefined();
         // The JSON is now valid, so sanitizers aren't applied
         // This is the correct behavior - sanitizers only run when JSON parsing fails
-        expect(result.mutationSteps).toEqual([]);
+        expect(result.repairs).toEqual([]);
       }
     });
 
@@ -200,9 +200,9 @@ describe("JsonProcessor Integration Tests", () => {
       if (result.success) {
         expect(result.data).toBeDefined();
         // Check high-level sanitizer was applied
-        expect(result.appliedSanitizers).toContain("Fixed property and value syntax");
+        expect(result.pipelineSteps).toContain("Fixed property and value syntax");
         // Check low-level mutation steps contain property name fixes
-        expect(result.mutationSteps.some((s) => s.includes("PropertyNameFixer"))).toBe(true);
+        expect(result.repairs.some((s) => s.includes("PropertyNameFixer"))).toBe(true);
       }
     });
 
@@ -232,9 +232,9 @@ describe("JsonProcessor Integration Tests", () => {
       if (result.success) {
         expect(result.data).toBeDefined();
         // Check high-level sanitizer was applied
-        expect(result.appliedSanitizers).toContain("Fixed property and value syntax");
+        expect(result.pipelineSteps).toContain("Fixed property and value syntax");
         // Check low-level mutation steps contain property name fixes
-        expect(result.mutationSteps.some((s) => s.includes("PropertyNameFixer"))).toBe(true);
+        expect(result.repairs.some((s) => s.includes("PropertyNameFixer"))).toBe(true);
       }
     });
   });

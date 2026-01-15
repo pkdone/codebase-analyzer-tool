@@ -297,10 +297,10 @@ describe("JsonProcessor - Undefined Value Handling Integration", () => {
         }
 
         // Verify that sanitizers were applied (high-level descriptions)
-        expect(result.appliedSanitizers).toContain("Fixed JSON structure and noise");
-        expect(result.appliedSanitizers).toContain("Fixed property and value syntax");
+        expect(result.pipelineSteps).toContain("Fixed JSON structure and noise");
+        expect(result.pipelineSteps).toContain("Fixed property and value syntax");
         // Verify that mutation steps contain low-level diagnostics
-        expect(result.mutationSteps.some((s: string) => s.includes("undefined"))).toBe(true);
+        expect(result.repairs.some((s: string) => s.includes("undefined"))).toBe(true);
       }
     });
 

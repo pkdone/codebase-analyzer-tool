@@ -590,8 +590,8 @@ describe("parseAndValidateLLMJson", () => {
       expect(result.success).toBe(true);
       if (result.success) {
         // New behavior: fast path parse does not record a trimWhitespace step; steps may be empty
-        expect(Array.isArray(result.mutationSteps)).toBe(true);
-        expect(result.mutationSteps.length).toBe(0);
+        expect(Array.isArray(result.repairs)).toBe(true);
+        expect(result.repairs.length).toBe(0);
       }
     });
 
@@ -607,7 +607,7 @@ describe("parseAndValidateLLMJson", () => {
       );
       if (result.success) {
         // Successful repair: steps should include missing comma fix (now handled by addMissingCommas)
-        const stepsJoined = result.mutationSteps.join(" | ");
+        const stepsJoined = result.repairs.join(" | ");
         expect(
           /missing comma/i.test(stepsJoined) || /Fixed JSON structure/i.test(stepsJoined),
         ).toBe(true);

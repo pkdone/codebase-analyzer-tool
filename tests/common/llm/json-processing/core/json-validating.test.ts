@@ -21,7 +21,7 @@ describe("json-validating", () => {
         expect(result.success).toBe(true);
         if (result.success) {
           expect(result.data).toEqual(content);
-          expect(result.transformSteps).toEqual([]);
+          expect(result.transformRepairs).toEqual([]);
         }
       });
 
@@ -39,7 +39,7 @@ describe("json-validating", () => {
         if (!result.success) {
           expect(result.issues).toBeDefined();
           expect(Array.isArray(result.issues)).toBe(true);
-          expect(result.transformSteps).toBeDefined();
+          expect(result.transformRepairs).toBeDefined();
         }
       });
 
@@ -79,7 +79,7 @@ describe("json-validating", () => {
         expect(result.success).toBe(false);
         if (!result.success) {
           expect(result.issues[0].message).toContain("Data is required");
-          expect(result.transformSteps).toBeDefined();
+          expect(result.transformRepairs).toBeDefined();
         }
       });
 
@@ -95,7 +95,7 @@ describe("json-validating", () => {
         expect(result.success).toBe(false);
         if (!result.success) {
           expect(result.issues[0].message).toContain("Data is required");
-          expect(result.transformSteps).toBeDefined();
+          expect(result.transformRepairs).toBeDefined();
         }
       });
 
@@ -144,7 +144,7 @@ describe("json-validating", () => {
 
         expect(result.success).toBe(false);
         if (!result.success) {
-          expect(result.transformSteps).toBeDefined();
+          expect(result.transformRepairs).toBeDefined();
         }
       });
 
@@ -160,7 +160,7 @@ describe("json-validating", () => {
 
         expect(result.success).toBe(false);
         if (!result.success) {
-          expect(result.transformSteps).toBeDefined();
+          expect(result.transformRepairs).toBeDefined();
         }
       });
     });
@@ -184,7 +184,7 @@ describe("json-validating", () => {
           const data = result.data as Record<string, unknown>;
           expect(data.name).toBe("test");
           expect("groupId" in data).toBe(false); // null converted to undefined and omitted
-          expect(result.transformSteps).toContain("convertNullToUndefined");
+          expect(result.transformRepairs).toContain("convertNullToUndefined");
         }
       });
 
@@ -203,8 +203,8 @@ describe("json-validating", () => {
 
         expect(result.success).toBe(false);
         if (!result.success) {
-          expect(result.transformSteps).toBeDefined();
-          expect(Array.isArray(result.transformSteps)).toBe(true);
+          expect(result.transformRepairs).toBeDefined();
+          expect(Array.isArray(result.transformRepairs)).toBe(true);
         }
       });
     });
@@ -349,7 +349,7 @@ describe("json-validating", () => {
         expect(data.name).toBe("test");
         expect("type_" in data).toBe(false);
         expect("name_" in data).toBe(false);
-        expect(result.transformSteps).toContain("fixCommonPropertyNameTypos");
+        expect(result.transformRepairs).toContain("fixCommonPropertyNameTypos");
       }
     });
 
@@ -378,7 +378,7 @@ describe("json-validating", () => {
         expect(data.parameters).toEqual([]);
         expect(Array.isArray(data.dependencies)).toBe(true);
         expect(data.dependencies).toEqual([]);
-        expect(result.transformSteps).toContain("coerceStringToArray");
+        expect(result.transformRepairs).toContain("coerceStringToArray");
       }
     });
 
@@ -404,8 +404,8 @@ describe("json-validating", () => {
 
       expect(result.success).toBe(true);
       if (result.success) {
-        expect(result.transformSteps.length).toBeGreaterThan(0);
-        expect(Array.isArray(result.transformSteps)).toBe(true);
+        expect(result.transformRepairs.length).toBeGreaterThan(0);
+        expect(Array.isArray(result.transformRepairs)).toBe(true);
       }
     });
 

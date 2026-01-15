@@ -1,5 +1,5 @@
 import { Sanitizer, SanitizerResult } from "./sanitizers-types";
-import { MUTATION_STEP } from "../constants/mutation-steps.config";
+import { REPAIR_STEP } from "../constants/repair-steps.config";
 import { isInStringAt, isInArrayContext } from "../utils/parser-context-utils";
 
 /**
@@ -38,7 +38,7 @@ export const fixJsonStructure: Sanitizer = (input: string): SanitizerResult => {
   }
 
   let hasChanges = false;
-  const diagnostics: string[] = [];
+  const repairs: string[] = [];
   let finalContent = trimmed;
 
   // Post-processing pass 1: Fix dangling properties
@@ -83,7 +83,7 @@ export const fixJsonStructure: Sanitizer = (input: string): SanitizerResult => {
     }
 
     hasChanges = true;
-    diagnostics.push(
+    repairs.push(
       `Fixed dangling property: "${propertyName} " -> "${propertyName}": null${delimiter === "\n" ? "," : delimiter === "," ? "," : ""}`,
     );
 
@@ -98,7 +98,7 @@ export const fixJsonStructure: Sanitizer = (input: string): SanitizerResult => {
   });
   if (finalContent !== beforeDanglingProperties) {
     hasChanges = true;
-    diagnostics.push(MUTATION_STEP.FIXED_DANGLING_PROPERTIES);
+    repairs.push(REPAIR_STEP.FIXED_DANGLING_PROPERTIES);
   }
 
   // Post-processing pass 2: Fix missing opening quotes in array strings
@@ -125,7 +125,7 @@ export const fixJsonStructure: Sanitizer = (input: string): SanitizerResult => {
         }
 
         hasChanges = true;
-        diagnostics.push(
+        repairs.push(
           `Fixed missing opening quote in array string: ${unquotedValueStr}" -> "${unquotedValueStr}"`,
         );
         return `${delimiterStr}${whitespaceStr}\n${whitespaceStr}"${unquotedValueStr}",`;
@@ -133,7 +133,7 @@ export const fixJsonStructure: Sanitizer = (input: string): SanitizerResult => {
     );
   }
   if (finalContent !== beforeMissingQuotes) {
-    diagnostics.push(MUTATION_STEP.FIXED_MISSING_OPENING_QUOTES_IN_ARRAY_STRINGS);
+    repairs.push(REPAIR_STEP.FIXED_MISSING_OPENING_QUOTES_IN_ARRAY_STRINGS);
   }
 
   // Post-processing pass 3: Fix stray characters after property values
@@ -158,9 +158,7 @@ export const fixJsonStructure: Sanitizer = (input: string): SanitizerResult => {
 
       if (isValidAfterContext && strayCharsStr.length > 0) {
         hasChanges = true;
-        diagnostics.push(
-          `Removed stray characters "${strayCharsStr}" after value ${quotedValueStr}`,
-        );
+        repairs.push(`Removed stray characters "${strayCharsStr}" after value ${quotedValueStr}`);
         // Return just the quoted value (the stray chars and optional whitespace are removed)
         // The content before the match is preserved automatically by replace()
         return quotedValueStr;
@@ -171,7 +169,7 @@ export const fixJsonStructure: Sanitizer = (input: string): SanitizerResult => {
   );
   if (finalContent !== beforeStrayChars) {
     hasChanges = true;
-    diagnostics.push(MUTATION_STEP.FIXED_STRAY_CHARS_AFTER_PROPERTY_VALUES);
+    repairs.push(REPAIR_STEP.FIXED_STRAY_CHARS_AFTER_PROPERTY_VALUES);
   }
 
   // Post-processing pass 4: Fix corrupted property/value pairs
@@ -192,7 +190,7 @@ export const fixJsonStructure: Sanitizer = (input: string): SanitizerResult => {
 
       if (corruptedValueStr.length > 0 && /^[A-Z]/.test(corruptedValueStr)) {
         hasChanges = true;
-        diagnostics.push(
+        repairs.push(
           `Fixed corrupted property/value pair: "${propertyNameStr}":${corruptedValueStr}" -> "${propertyNameStr}": "${corruptedValueStr}", "${nextPropertyValueStr}"`,
         );
         return `"${propertyNameStr}": "${corruptedValueStr}", "${corruptedValueStr}": "${nextPropertyValueStr}"`;
@@ -223,7 +221,7 @@ export const fixJsonStructure: Sanitizer = (input: string): SanitizerResult => {
         corruptedValueStr.length <= 20
       ) {
         hasChanges = true;
-        diagnostics.push(
+        repairs.push(
           `Fixed corrupted property/value pair (pattern 2): "${propertyNameStr}":${corruptedValueStr}" -> "${propertyNameStr}": "${corruptedValueStr}", "type": "${typeValueStr}"`,
         );
         return `{ "${propertyNameStr}": "${corruptedValueStr}", "type": "${typeValueStr}"`;
@@ -234,7 +232,7 @@ export const fixJsonStructure: Sanitizer = (input: string): SanitizerResult => {
   );
   if (finalContent !== beforeCorruptedPairs) {
     hasChanges = true;
-    diagnostics.push(MUTATION_STEP.FIXED_CORRUPTED_PROPERTY_VALUE_PAIRS);
+    repairs.push(REPAIR_STEP.FIXED_CORRUPTED_PROPERTY_VALUE_PAIRS);
   }
 
   // Post-processing pass 5: Fix truncated values in array elements
@@ -263,7 +261,7 @@ export const fixJsonStructure: Sanitizer = (input: string): SanitizerResult => {
         // Schema-agnostic fix: simply close the truncated value with a quote and comma
         // This maintains valid JSON structure without making schema-specific assumptions
         hasChanges = true;
-        diagnostics.push(
+        repairs.push(
           `Fixed truncated value in array element: closed truncated value "${truncatedValueStr}"`,
         );
 
@@ -274,7 +272,7 @@ export const fixJsonStructure: Sanitizer = (input: string): SanitizerResult => {
   }
   if (finalContent !== beforeTruncatedValues) {
     hasChanges = true;
-    diagnostics.push(MUTATION_STEP.FIXED_TRUNCATED_PROPERTY_VALUES_IN_ARRAYS);
+    repairs.push(REPAIR_STEP.FIXED_TRUNCATED_PROPERTY_VALUES_IN_ARRAYS);
   }
 
   if (!hasChanges) {
@@ -285,6 +283,6 @@ export const fixJsonStructure: Sanitizer = (input: string): SanitizerResult => {
     content: finalContent,
     changed: true,
     description: "Fixed JSON structure (post-processing)",
-    diagnostics: diagnostics.length > 0 ? diagnostics : undefined,
+    repairs: repairs.length > 0 ? repairs : undefined,
   };
 };

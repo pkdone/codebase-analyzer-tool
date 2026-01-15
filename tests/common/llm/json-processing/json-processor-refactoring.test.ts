@@ -1,7 +1,7 @@
 import { parseAndValidateLLMJson } from "../../../../src/common/llm/json-processing/core/json-processing";
 import { LLMOutputFormat, LLMPurpose } from "../../../../src/common/llm/types/llm.types";
 import { JsonProcessingErrorType } from "../../../../src/common/llm/json-processing/types/json-processing.errors";
-import { MUTATION_STEP } from "../../../../src/common/llm/json-processing/constants/mutation-steps.config";
+import { REPAIR_STEP } from "../../../../src/common/llm/json-processing/constants/repair-steps.config";
 import { z } from "zod";
 
 /**
@@ -44,8 +44,8 @@ describe("JsonProcessor - Refactored Methods", () => {
       if (result.success) {
         expect(result.data.name).toBe("Test");
         expect(result.data.items).toEqual([1, 2, 3]);
-        expect(result.mutationSteps).toBeDefined();
-        expect(result.mutationSteps.length).toBeGreaterThan(0);
+        expect(result.repairs).toBeDefined();
+        expect(result.repairs.length).toBeGreaterThan(0);
       }
     });
 
@@ -123,7 +123,7 @@ describe("JsonProcessor - Refactored Methods", () => {
       // This actually succeeds after sanitization (removes code fences and fixes concatenation)
       expect(result.success).toBe(true);
       if (result.success) {
-        expect(result.mutationSteps.length).toBeGreaterThan(0);
+        expect(result.repairs.length).toBeGreaterThan(0);
       }
     });
   });
@@ -149,7 +149,7 @@ describe("JsonProcessor - Refactored Methods", () => {
       expect(result.success).toBe(true);
       if (result.success) {
         // No sanitization steps should be applied for already valid JSON
-        expect(result.mutationSteps).toEqual([]);
+        expect(result.repairs).toEqual([]);
       }
     });
 
@@ -175,13 +175,12 @@ describe("JsonProcessor - Refactored Methods", () => {
 
       expect(result.success).toBe(true);
       if (result.success) {
-        expect(result.mutationSteps).toBeDefined();
-        expect(result.mutationSteps.length).toBeGreaterThan(0);
+        expect(result.repairs).toBeDefined();
+        expect(result.repairs.length).toBeGreaterThan(0);
         expect(
-          result.mutationSteps.some(
+          result.repairs.some(
             (s: string) =>
-              s.includes("Fixed JSON structure and noise") ||
-              s === MUTATION_STEP.REMOVED_CODE_FENCES,
+              s.includes("Fixed JSON structure and noise") || s === REPAIR_STEP.REMOVED_CODE_FENCES,
           ),
         ).toBe(true);
       }
@@ -216,7 +215,7 @@ describe("JsonProcessor - Refactored Methods", () => {
 
       expect(result.success).toBe(true);
       if (result.success) {
-        expect(result.mutationSteps.length).toBeGreaterThan(1);
+        expect(result.repairs.length).toBeGreaterThan(1);
       }
     });
   });

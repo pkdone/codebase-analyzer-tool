@@ -14,7 +14,7 @@ describe("json-parsing", () => {
         expect(result.success).toBe(true);
         if (result.success) {
           expect(result.data).toEqual({ key: "value", number: 42 });
-          expect(result.steps).toEqual([]);
+          expect(result.pipelineSteps).toEqual([]);
         }
       });
 
@@ -25,7 +25,7 @@ describe("json-parsing", () => {
         expect(result.success).toBe(true);
         if (result.success) {
           expect(result.data).toEqual([{ item: 1 }, { item: 2 }]);
-          expect(result.steps).toEqual([]);
+          expect(result.pipelineSteps).toEqual([]);
         }
       });
 
@@ -58,7 +58,7 @@ describe("json-parsing", () => {
         expect(result.success).toBe(true);
         if (result.success) {
           expect(result.data).toEqual({ key: "value" });
-          expect(result.steps.length).toBeGreaterThan(0);
+          expect(result.pipelineSteps.length).toBeGreaterThan(0);
         }
       });
 
@@ -89,8 +89,8 @@ describe("json-parsing", () => {
 
         expect(result.success).toBe(true);
         if (result.success) {
-          expect(result.steps.length).toBeGreaterThan(0);
-          expect(Array.isArray(result.steps)).toBe(true);
+          expect(result.pipelineSteps.length).toBeGreaterThan(0);
+          expect(Array.isArray(result.pipelineSteps)).toBe(true);
         }
       });
     });
@@ -104,7 +104,7 @@ describe("json-parsing", () => {
         if (!result.success) {
           expect(result.error).toBeInstanceOf(JsonProcessingError);
           expect(result.error.type).toBe(JsonProcessingErrorType.PARSE);
-          expect(result.steps).toBeDefined();
+          expect(result.pipelineSteps).toBeDefined();
         }
       });
 
@@ -114,7 +114,7 @@ describe("json-parsing", () => {
 
         expect(result.success).toBe(false);
         if (!result.success) {
-          expect(Array.isArray(result.steps)).toBe(true);
+          expect(Array.isArray(result.pipelineSteps)).toBe(true);
         }
       });
 
@@ -124,10 +124,10 @@ describe("json-parsing", () => {
         const result = parseJsonWithSanitizers(json);
 
         // Result may succeed or fail, but diagnostics should always be an array
-        expect(Array.isArray(result.diagnostics)).toBe(true);
+        expect(Array.isArray(result.repairs)).toBe(true);
         // If sanitizers made changes, diagnostics should contain entries
-        if (result.success && result.diagnostics.length > 0) {
-          expect(result.diagnostics.every((d) => typeof d === "string")).toBe(true);
+        if (result.success && result.repairs.length > 0) {
+          expect(result.repairs.every((d) => typeof d === "string")).toBe(true);
         }
       });
     });

@@ -75,7 +75,7 @@ describe("propertyNameFixer", () => {
   it("should add diagnostics for changes", () => {
     const input = '{name": "test"}';
     const result = propertyNameFixer.apply(input);
-    expect(result.diagnostics.length).toBeGreaterThan(0);
+    expect(result.repairs.length).toBeGreaterThan(0);
   });
 
   describe("single-quoted and backticked property names", () => {
@@ -119,13 +119,13 @@ describe("propertyNameFixer", () => {
     it("should add diagnostics for single-quoted fixes", () => {
       const input = "{'name': \"test\"}";
       const result = propertyNameFixer.apply(input);
-      expect(result.diagnostics.some((d) => d.includes("single-quoted"))).toBe(true);
+      expect(result.repairs.some((d) => d.includes("single-quoted"))).toBe(true);
     });
 
     it("should add diagnostics for backticked fixes", () => {
       const input = '{`name`: "test"}';
       const result = propertyNameFixer.apply(input);
-      expect(result.diagnostics.some((d) => d.includes("backticked"))).toBe(true);
+      expect(result.repairs.some((d) => d.includes("backticked"))).toBe(true);
     });
 
     it("should handle mixed quote styles", () => {

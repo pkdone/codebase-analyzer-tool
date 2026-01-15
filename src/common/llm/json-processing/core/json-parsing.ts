@@ -16,16 +16,16 @@ import {
  * Result type for JSON parsing operations.
  * Uses a discriminated union to distinguish between success and parse errors.
  *
- * @property steps - High-level sanitizer descriptions (e.g., "Fixed JSON structure and noise")
- * @property diagnostics - Low-level mutation steps as individual entries (e.g., ["Removed code fences", "Trimmed whitespace"])
+ * @property pipelineSteps - High-level sanitizer descriptions (e.g., "Fixed JSON structure and noise")
+ * @property repairs - Individual repair operations as entries (e.g., ["Removed code fences", "Trimmed whitespace"])
  */
 export type ParseResult =
-  | { success: true; data: unknown; steps: readonly string[]; diagnostics: readonly string[] }
+  | { success: true; data: unknown; pipelineSteps: readonly string[]; repairs: readonly string[] }
   | {
       success: false;
       error: JsonProcessingError;
-      steps: readonly string[];
-      diagnostics: readonly string[];
+      pipelineSteps: readonly string[];
+      repairs: readonly string[];
     };
 
 /**
@@ -91,28 +91,28 @@ const SANITIZATION_PIPELINE_PHASES = [
 ] as const satisfies readonly (readonly Sanitizer[])[];
 
 /**
- * Builds a success ParseResult with the given data, steps, and diagnostics.
+ * Builds a success ParseResult with the given data, pipelineSteps, and repairs.
  */
 function buildSuccessResult(
   data: unknown,
-  steps: readonly string[],
-  diagnostics: readonly string[],
+  pipelineSteps: readonly string[],
+  repairs: readonly string[],
 ): ParseResult {
   return {
     success: true,
     data,
-    steps,
-    diagnostics,
+    pipelineSteps,
+    repairs,
   };
 }
 
 /**
- * Builds a failure ParseResult with the given error, steps, and diagnostics.
+ * Builds a failure ParseResult with the given error, pipelineSteps, and repairs.
  */
 function buildFailureResult(
   error: Error,
-  steps: readonly string[],
-  diagnostics: readonly string[],
+  pipelineSteps: readonly string[],
+  repairs: readonly string[],
 ): ParseResult {
   return {
     success: false,
@@ -121,8 +121,8 @@ function buildFailureResult(
       "cannot be parsed to JSON after all sanitization attempts",
       error,
     ),
-    steps,
-    diagnostics,
+    pipelineSteps,
+    repairs,
   };
 }
 
@@ -133,15 +133,15 @@ function buildFailureResult(
 function applySanitizerToContent(
   sanitizer: Sanitizer,
   content: string,
-  appliedSteps: string[],
-  allDiagnostics: string[],
+  appliedPipelineSteps: string[],
+  allRepairs: string[],
 ): { newContent: string; changed: boolean } {
   const stepResult = sanitizer(content);
   if (!stepResult.changed) return { newContent: content, changed: false };
-  if (stepResult.description) appliedSteps.push(stepResult.description);
+  if (stepResult.description) appliedPipelineSteps.push(stepResult.description);
 
-  if (stepResult.diagnostics && stepResult.diagnostics.length > 0) {
-    allDiagnostics.push(...stepResult.diagnostics);
+  if (stepResult.repairs && stepResult.repairs.length > 0) {
+    allRepairs.push(...stepResult.repairs);
   }
 
   return { newContent: stepResult.content, changed: true };
@@ -178,17 +178,17 @@ function attemptParse(
  * any step, or returns failure info if all sanitizers are exhausted.
  *
  * @param content - The raw JSON string to parse
- * @returns A ParseResult indicating success with parsed data and steps, or failure with an error
+ * @returns A ParseResult indicating success with parsed data and repairs, or failure with an error
  */
 export function parseJsonWithSanitizers(content: string): ParseResult {
-  const appliedSteps: string[] = [];
-  const allDiagnostics: string[] = [];
+  const appliedPipelineSteps: string[] = [];
+  const allRepairs: string[] = [];
 
   // Fast path: try direct parse first
   const fastPathResult = attemptParse(content);
 
   if (fastPathResult.success) {
-    return buildSuccessResult(fastPathResult.data, appliedSteps, allDiagnostics);
+    return buildSuccessResult(fastPathResult.data, appliedPipelineSteps, allRepairs);
   }
 
   let workingContent = content;
@@ -200,15 +200,15 @@ export function parseJsonWithSanitizers(content: string): ParseResult {
       const { newContent, changed } = applySanitizerToContent(
         sanitizer,
         workingContent,
-        appliedSteps,
-        allDiagnostics,
+        appliedPipelineSteps,
+        allRepairs,
       );
       if (!changed) continue;
       workingContent = newContent;
       const parseResult = attemptParse(workingContent);
 
       if (parseResult.success) {
-        return buildSuccessResult(parseResult.data, appliedSteps, allDiagnostics);
+        return buildSuccessResult(parseResult.data, appliedPipelineSteps, allRepairs);
       }
 
       lastParseError = parseResult.error;
@@ -216,5 +216,5 @@ export function parseJsonWithSanitizers(content: string): ParseResult {
   }
 
   // All sanitizers exhausted without success
-  return buildFailureResult(lastParseError, appliedSteps, allDiagnostics);
+  return buildFailureResult(lastParseError, appliedPipelineSteps, allRepairs);
 }

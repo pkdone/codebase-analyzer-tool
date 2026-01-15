@@ -45,7 +45,7 @@ describe("rule-executor", () => {
       const result = executeRules("foo baz foo", [rule]);
       expect(result.changed).toBe(true);
       expect(result.content).toBe("bar baz bar");
-      expect(result.diagnostics).toContain("Replaced foo with bar");
+      expect(result.repairs).toContain("Replaced foo with bar");
     });
 
     it("should skip matches inside string literals when skipInString is true (default)", () => {
@@ -149,7 +149,7 @@ describe("rule-executor", () => {
       const input = "x x x x x x x x x x"; // 10 x's
       const result = executeRules(input, [rule], { maxDiagnostics: 3 });
       expect(result.changed).toBe(true);
-      expect(result.diagnostics).toHaveLength(3);
+      expect(result.repairs).toHaveLength(3);
     });
 
     it("should execute multiple rules in order", () => {
@@ -207,8 +207,8 @@ describe("rule-executor", () => {
       };
 
       const result = executeRules("num42 num7", [rule]);
-      expect(result.diagnostics).toContain("Replaced number: 42");
-      expect(result.diagnostics).toContain("Replaced number: 7");
+      expect(result.repairs).toContain("Replaced number: 42");
+      expect(result.repairs).toContain("Replaced number: 7");
     });
   });
 

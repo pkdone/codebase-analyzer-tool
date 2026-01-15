@@ -386,8 +386,8 @@ export default abstract class BaseLLMProvider implements LLMProvider {
         status: LLMResponseStatus.COMPLETED,
         // Type is correctly inferred through InferResponseType helper
         generated: jsonProcessingResult.data,
-        mutationSteps: jsonProcessingResult.mutationSteps,
-        appliedSanitizers: jsonProcessingResult.appliedSanitizers,
+        repairs: jsonProcessingResult.repairs,
+        pipelineSteps: jsonProcessingResult.pipelineSteps,
       };
     } else {
       context.responseContentParseError = formatError(jsonProcessingResult.error);

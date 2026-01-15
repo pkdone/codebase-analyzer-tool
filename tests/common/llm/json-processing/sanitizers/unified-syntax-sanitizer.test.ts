@@ -135,8 +135,8 @@ describe("unifiedSyntaxSanitizer", () => {
       const result = unifiedSyntaxSanitizer(input);
       expect(result.changed).toBe(true);
       expect(result.content).toBe('{"k": ""}');
-      expect(result.diagnostics).toBeDefined();
-      expect(result.diagnostics?.some((d: string) => d.includes("identifier-only"))).toBe(true);
+      expect(result.repairs).toBeDefined();
+      expect(result.repairs?.some((d: string) => d.includes("identifier-only"))).toBe(true);
     });
 
     it("should keep only literal when identifiers precede it", () => {
@@ -144,7 +144,7 @@ describe("unifiedSyntaxSanitizer", () => {
       const result = unifiedSyntaxSanitizer(input);
       expect(result.changed).toBe(true);
       expect(result.content).toBe('{"k": "literal"}');
-      expect(result.diagnostics).toBeDefined();
+      expect(result.repairs).toBeDefined();
     });
 
     it("should keep only literal when identifiers follow it", () => {
@@ -152,7 +152,7 @@ describe("unifiedSyntaxSanitizer", () => {
       const result = unifiedSyntaxSanitizer(input);
       expect(result.changed).toBe(true);
       expect(result.content).toBe('{"k": "hello"}');
-      expect(result.diagnostics).toBeDefined();
+      expect(result.repairs).toBeDefined();
     });
 
     it("should merge consecutive string literals", () => {
@@ -160,7 +160,7 @@ describe("unifiedSyntaxSanitizer", () => {
       const result = unifiedSyntaxSanitizer(input);
       expect(result.changed).toBe(true);
       expect(result.content).toBe('{"message": "Hello World!"}');
-      expect(result.diagnostics).toBeDefined();
+      expect(result.repairs).toBeDefined();
     });
 
     it("should not modify valid JSON strings containing plus signs", () => {
@@ -178,8 +178,8 @@ describe("unifiedSyntaxSanitizer", () => {
 
       expect(result.changed).toBe(true);
       expect(result.content).toBe('"cyclomaticComplexity": 10');
-      expect(result.diagnostics).toBeDefined();
-      expect(result.diagnostics?.some((d: string) => d.includes("concatenated"))).toBe(true);
+      expect(result.repairs).toBeDefined();
+      expect(result.repairs?.some((d: string) => d.includes("concatenated"))).toBe(true);
     });
 
     it("should handle multiple concatenated parts", () => {
@@ -310,9 +310,9 @@ describe("unifiedSyntaxSanitizer", () => {
 
       expect(result.changed).toBe(true);
       expect(result.content).toBe('{"field": null}');
-      expect(
-        result.diagnostics?.some((d: string) => d.includes("Converted undefined to null")),
-      ).toBe(true);
+      expect(result.repairs?.some((d: string) => d.includes("Converted undefined to null"))).toBe(
+        true,
+      );
     });
 
     it("should handle undefined values with whitespace", () => {
@@ -347,8 +347,8 @@ describe("unifiedSyntaxSanitizer", () => {
 
       expect(result.changed).toBe(true);
       expect(result.content).toBe('{"linesOfCode": 3}');
-      expect(result.diagnostics).toBeDefined();
-      expect(result.diagnostics?.some((d: string) => d.includes("corrupted numeric"))).toBe(true);
+      expect(result.repairs).toBeDefined();
+      expect(result.repairs?.some((d: string) => d.includes("corrupted numeric"))).toBe(true);
     });
 
     it("should handle corrupted numeric values with whitespace", () => {
@@ -375,8 +375,8 @@ describe("unifiedSyntaxSanitizer", () => {
 
       expect(result.changed).toBe(true);
       expect(result.content).toBe('"name": "value"');
-      expect(result.diagnostics).toBeDefined();
-      expect(result.diagnostics?.some((d: string) => d.includes("assignment syntax"))).toBe(true);
+      expect(result.repairs).toBeDefined();
+      expect(result.repairs?.some((d: string) => d.includes("assignment syntax"))).toBe(true);
     });
 
     it("should remove stray text between colon and opening quote", () => {
@@ -420,7 +420,7 @@ describe("unifiedSyntaxSanitizer", () => {
       expect(result.content).toBe(
         '{"implementation": "The class uses `<input type=\\"hidden\\">` element."}',
       );
-      expect(result.diagnostics).toBeDefined();
+      expect(result.repairs).toBeDefined();
     });
 
     it("should not change already escaped quotes", () => {
@@ -436,9 +436,9 @@ describe("unifiedSyntaxSanitizer", () => {
       const result = unifiedSyntaxSanitizer(input);
 
       expect(result.changed).toBe(true);
-      expect(result.diagnostics).toBeDefined();
+      expect(result.repairs).toBeDefined();
       expect(
-        result.diagnostics?.some((d: string) =>
+        result.repairs?.some((d: string) =>
           d.includes("Fixed escaped quote followed by unescaped quote"),
         ),
       ).toBe(true);
@@ -458,7 +458,7 @@ describe("unifiedSyntaxSanitizer", () => {
       expect(result.content).toBe(
         '{"name": "value", "type": "String", "references": [], "field": null}',
       );
-      expect(result.diagnostics?.length).toBeGreaterThan(0);
+      expect(result.repairs?.length).toBeGreaterThan(0);
     });
 
     it("should handle complex JSON with multiple property issues", () => {

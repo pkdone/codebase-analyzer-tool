@@ -154,7 +154,7 @@ describe("extraPropertiesRemover", () => {
   it("should add diagnostics when removing properties", () => {
     const input = '{"name": "test", "extra_thoughts": "thoughts"}';
     const result = extraPropertiesRemover.apply(input);
-    expect(result.diagnostics.length).toBeGreaterThan(0);
+    expect(result.repairs.length).toBeGreaterThan(0);
   });
 
   describe("knownProperties-based removal", () => {

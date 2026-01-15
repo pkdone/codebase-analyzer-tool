@@ -59,6 +59,6 @@ export const fixHeuristicJsonErrors: Sanitizer = (input, config): SanitizerResul
     content: pipelineResult.content,
     changed: pipelineResult.changed,
     description: pipelineResult.changed ? "Fixed heuristic JSON errors" : undefined,
-    diagnostics: pipelineResult.diagnostics,
+    repairs: pipelineResult.repairs,
   };
 };
