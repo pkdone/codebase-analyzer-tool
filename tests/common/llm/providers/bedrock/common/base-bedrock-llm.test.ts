@@ -13,7 +13,9 @@ import {
 import type { JsonObject } from "../../../../../../src/common/llm/types/json-value.types";
 import { z } from "zod";
 import { ValidationException } from "@aws-sdk/client-bedrock-runtime";
+import { CredentialsProviderError } from "@smithy/property-provider";
 import { createMockErrorLogger } from "../../../../helpers/llm/mock-error-logger";
+import { LLMError, LLMErrorCode } from "../../../../../../src/common/llm/types/llm-errors.types";
 
 // Helper to create test provider init
 function createTestProviderInit(
@@ -289,5 +291,180 @@ describe("BaseBedrockLLM - JSON stringification centralization", () => {
       expect(isTokenLimitExceeded(nonTokenError)).toBe(false);
       expect(isTokenLimitExceeded(nonValidationError)).toBe(false);
     });
+  });
+});
+
+describe("BaseBedrockLLM - validateCredentials", () => {
+  const mockModelsMetadata: Record<string, ResolvedLLMModelMetadata> = {
+    EMBEDDINGS: {
+      modelKey: "EMBEDDINGS",
+      name: "Test Embeddings",
+      urn: "test-embeddings-model",
+      purpose: LLMPurpose.EMBEDDINGS,
+      dimensions: 1536,
+      maxTotalTokens: 8192,
+    },
+    COMPLETION: {
+      modelKey: "COMPLETION",
+      name: "Test Completion",
+      urn: "test-completion-model",
+      purpose: LLMPurpose.COMPLETIONS,
+      maxCompletionTokens: 4096,
+      maxTotalTokens: 100000,
+    },
+  };
+
+  const mockConfig: LLMProviderSpecificConfig = {
+    requestTimeoutMillis: 60000,
+    maxRetryAttempts: 3,
+    minRetryDelayMillis: 1000,
+    maxRetryDelayMillis: 10000,
+    temperature: 0,
+    topP: 0.95,
+  };
+
+  // Helper to create test provider init with access to mock credentials
+  function createTestProviderInitForCredentials(): ProviderInit {
+    const embeddingsKey = "EMBEDDINGS";
+    const completionKey = "COMPLETION";
+
+    const manifest: LLMProviderManifest = {
+      providerName: "Test Bedrock Provider",
+      modelFamily: "TEST_BEDROCK",
+      envSchema: z.object({}),
+      models: {
+        embeddings: {
+          modelKey: embeddingsKey,
+          name: mockModelsMetadata[embeddingsKey].name,
+          urnEnvKey: "TEST_EMBED",
+          purpose: LLMPurpose.EMBEDDINGS,
+          maxTotalTokens: mockModelsMetadata[embeddingsKey].maxTotalTokens,
+          dimensions: mockModelsMetadata[embeddingsKey].dimensions,
+        },
+        primaryCompletion: {
+          modelKey: completionKey,
+          name: mockModelsMetadata[completionKey].name,
+          urnEnvKey: "TEST_COMPLETE",
+          purpose: LLMPurpose.COMPLETIONS,
+          maxCompletionTokens: mockModelsMetadata[completionKey].maxCompletionTokens,
+          maxTotalTokens: mockModelsMetadata[completionKey].maxTotalTokens,
+        },
+      },
+      errorPatterns: [],
+      providerSpecificConfig: mockConfig,
+      implementation: TestBedrockLLMWithCredentials as any,
+    };
+
+    return {
+      manifest,
+      providerParams: {},
+      resolvedModels: {
+        embeddings: mockModelsMetadata[embeddingsKey].urn,
+        primaryCompletion: mockModelsMetadata[completionKey].urn,
+      },
+      errorLogger: createMockErrorLogger(),
+    };
+  }
+
+  /**
+   * Test implementation that allows injecting a mock credentials function
+   */
+  class TestBedrockLLMWithCredentials extends BaseBedrockLLM {
+    mockCredentialsFn: (() => Promise<{ accessKeyId: string }>) | null = null;
+
+    // Override to allow testing with mock credentials - placed before protected methods per member-ordering rules
+    override async validateCredentials(): Promise<void> {
+      if (this.mockCredentialsFn) {
+        try {
+          await this.mockCredentialsFn();
+        } catch (error: unknown) {
+          if (error instanceof CredentialsProviderError) {
+            throw new LLMError(
+              LLMErrorCode.PROVIDER_ERROR,
+              `AWS credentials are unavailable or expired. Please run 'aws sso login' and try again. Original error: ${error.message}`,
+              error,
+            );
+          }
+          throw error;
+        }
+      }
+    }
+
+    protected override buildCompletionRequestBody(_modelKey: string, prompt: string): JsonObject {
+      return { prompt };
+    }
+
+    protected override async invokeEmbeddingProvider(
+      _modelKey: string,
+      _prompt: string,
+    ): Promise<{
+      isIncompleteResponse: boolean;
+      responseContent: number[];
+      tokenUsage: { promptTokens: number; completionTokens: number; maxTotalTokens: number };
+    }> {
+      return {
+        isIncompleteResponse: false,
+        responseContent: [0.1, 0.2, 0.3],
+        tokenUsage: { promptTokens: 10, completionTokens: 0, maxTotalTokens: 1000 },
+      };
+    }
+
+    protected override async invokeCompletionProvider(
+      _modelKey: string,
+      _prompt: string,
+      _options?: LLMCompletionOptions,
+    ): Promise<LLMImplSpecificResponseSummary> {
+      return {
+        isIncompleteResponse: false,
+        responseContent: "test",
+        tokenUsage: { promptTokens: 10, completionTokens: 20, maxTotalTokens: 1000 },
+      };
+    }
+
+    protected getResponseExtractionConfig() {
+      return {
+        schema: z.object({ content: z.string() }),
+        pathConfig: {
+          contentPath: "content",
+          promptTokensPath: "usage.input",
+          completionTokensPath: "usage.output",
+          stopReasonPath: "stop",
+          stopReasonValueForLength: "length",
+        },
+        providerName: "TestBedrock",
+      };
+    }
+  }
+
+  it("should succeed when credentials are valid", async () => {
+    const llm = new TestBedrockLLMWithCredentials(createTestProviderInitForCredentials());
+    llm.mockCredentialsFn = jest.fn().mockResolvedValue({ accessKeyId: "AKIATEST" });
+
+    await expect(llm.validateCredentials()).resolves.not.toThrow();
+    expect(llm.mockCredentialsFn).toHaveBeenCalled();
+  });
+
+  it("should throw LLMError with helpful message when CredentialsProviderError occurs", async () => {
+    const llm = new TestBedrockLLMWithCredentials(createTestProviderInitForCredentials());
+    const credentialsError = new CredentialsProviderError(
+      "Could not load credentials from any providers",
+      { logger: { debug: () => {}, info: () => {}, warn: () => {}, error: () => {} } },
+    );
+    llm.mockCredentialsFn = jest.fn().mockRejectedValue(credentialsError);
+
+    await expect(llm.validateCredentials()).rejects.toThrow(LLMError);
+    await expect(llm.validateCredentials()).rejects.toMatchObject({
+      code: LLMErrorCode.PROVIDER_ERROR,
+      message: expect.stringContaining("aws sso login"),
+    });
+  });
+
+  it("should re-throw non-CredentialsProviderError errors as-is", async () => {
+    const llm = new TestBedrockLLMWithCredentials(createTestProviderInitForCredentials());
+    const genericError = new Error("Network timeout");
+    llm.mockCredentialsFn = jest.fn().mockRejectedValue(genericError);
+
+    await expect(llm.validateCredentials()).rejects.toThrow("Network timeout");
+    await expect(llm.validateCredentials()).rejects.not.toBeInstanceOf(LLMError);
   });
 });

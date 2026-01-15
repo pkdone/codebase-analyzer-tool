@@ -113,6 +113,15 @@ export default class LLMRouter {
   }
 
   /**
+   * Validate provider credentials are available and not expired.
+   * Should be called at startup to fail fast if credentials are invalid.
+   * @throws LLMError if credentials are unavailable or expired
+   */
+  async validateCredentials(): Promise<void> {
+    await this.activeLlmProvider.validateCredentials();
+  }
+
+  /**
    * Get the model family of the LLM implementation.
    */
   getModelFamily(): string {

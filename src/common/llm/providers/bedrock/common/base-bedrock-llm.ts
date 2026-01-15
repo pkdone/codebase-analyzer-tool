@@ -6,6 +6,7 @@ import {
   ModelTimeoutException,
   ValidationException,
 } from "@aws-sdk/client-bedrock-runtime";
+import { CredentialsProviderError } from "@smithy/property-provider";
 import { llmConfig } from "../../../config/llm.config";
 import { formatError } from "../../../../utils/error-formatters";
 import { logErr } from "../../../../utils/logging";
@@ -91,6 +92,28 @@ export default abstract class BaseBedrockLLM extends BaseLLMProvider {
     }
     // Implementation of async interface - destroy() is synchronous but base class requires Promise
     await Promise.resolve();
+  }
+
+  /**
+   * Validate AWS credentials are available and not expired.
+   * Forces credential resolution to fail fast at startup if SSO login is required.
+   */
+  override async validateCredentials(): Promise<void> {
+    try {
+      const credentials = this.client.config.credentials;
+      if (typeof credentials === "function") {
+        await credentials();
+      }
+    } catch (error: unknown) {
+      if (error instanceof CredentialsProviderError) {
+        throw new LLMError(
+          LLMErrorCode.PROVIDER_ERROR,
+          `AWS credentials are unavailable or expired. Please run 'aws sso login' and try again. Original error: ${error.message}`,
+          error,
+        );
+      }
+      throw error;
+    }
   }
 
   /**

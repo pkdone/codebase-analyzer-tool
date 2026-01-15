@@ -183,6 +183,15 @@ export default abstract class BaseLLMProvider implements LLMProvider {
   }
 
   /**
+   * Validate provider credentials are available.
+   * Default implementation is a no-op. Providers that require credential validation
+   * (e.g., AWS Bedrock with SSO) should override this method.
+   */
+  async validateCredentials(): Promise<void> {
+    // No-op default - providers with credential requirements override this
+  }
+
+  /**
    * Executes the LLM function for the given model key and task type.
    * Type safety is enforced through generic schema type propagation.
    * Generic over the schema type S directly to simplify type inference.

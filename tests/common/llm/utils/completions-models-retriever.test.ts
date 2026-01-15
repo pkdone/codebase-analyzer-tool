@@ -41,6 +41,7 @@ describe("completions-models-retriever", () => {
         getModelsMetadata: jest.fn(() => ({})),
         close: jest.fn<() => Promise<void>>().mockResolvedValue(undefined),
         getShutdownBehavior: jest.fn(() => ShutdownBehavior.GRACEFUL),
+        validateCredentials: jest.fn<() => Promise<void>>().mockResolvedValue(undefined),
       };
 
       const candidates = buildCompletionCandidates(mockLLM);
@@ -72,6 +73,7 @@ describe("completions-models-retriever", () => {
         getModelsMetadata: jest.fn(() => ({})),
         close: jest.fn<() => Promise<void>>().mockResolvedValue(undefined),
         getShutdownBehavior: jest.fn(() => ShutdownBehavior.GRACEFUL),
+        validateCredentials: jest.fn<() => Promise<void>>().mockResolvedValue(undefined),
       };
 
       const candidates = buildCompletionCandidates(mockLLM);
@@ -110,6 +112,7 @@ describe("completions-models-retriever", () => {
         getModelsMetadata: jest.fn(() => ({})),
         close: jest.fn<() => Promise<void>>().mockResolvedValue(undefined),
         getShutdownBehavior: jest.fn(() => ShutdownBehavior.GRACEFUL),
+        validateCredentials: jest.fn<() => Promise<void>>().mockResolvedValue(undefined),
       };
 
       const candidates = buildCompletionCandidates(mockLLM);

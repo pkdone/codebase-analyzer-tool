@@ -7,8 +7,9 @@ import { llmTokens, coreTokens } from "../tokens";
 /**
  * Initializes and registers LLM components.
  * This function should be called during application bootstrap after registering dependencies.
+ * Validates credentials at startup to fail fast if authentication is missing or expired.
  */
-export function initializeAndRegisterLLMComponents(): void {
+export async function initializeAndRegisterLLMComponents(): Promise<void> {
   if (container.isRegistered(llmTokens.LLMRouter)) {
     console.log("LLM components already registered - skipping initialization");
     return;
@@ -29,6 +30,10 @@ export function initializeAndRegisterLLMComponents(): void {
 
   // Create LLM router using factory
   const { router, stats } = createLLMRouter(llmConfig);
+
+  // Validate credentials at startup to fail fast if authentication is missing or expired
+  // This is especially important for AWS SSO where credentials expire and require `aws sso login`
+  await router.validateCredentials();
 
   // Register LLMRouter and LLMExecutionStats instances in DI container for application use
   container.registerInstance(llmTokens.LLMRouter, router);

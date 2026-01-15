@@ -40,6 +40,11 @@ export interface LLMProvider {
    * Used by the application lifecycle to determine how to clean up.
    */
   getShutdownBehavior(): ShutdownBehavior;
+  /**
+   * Validate provider credentials are available and not expired.
+   * Throws if credentials are invalid, providing fail-fast behavior at startup.
+   */
+  validateCredentials(): Promise<void>;
 }
 
 /**

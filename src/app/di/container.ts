@@ -20,7 +20,7 @@ export async function bootstrapContainer(): Promise<void> {
   // they're only instantiated when actually needed
   registerLlmEnvDependencies();
   registerBaseEnvDependencies();
-  initializeAndRegisterLLMComponents();
+  await initializeAndRegisterLLMComponents();
   registerMongoDBDependencies();
   await connectAndRegisterMongoClient();
   registerCaptureDependencies();
