@@ -42,10 +42,12 @@ describe("JsonProcessor.parseAndValidate (declarative sanitization pipeline)", (
     if (result.success) {
       expect((result.data as any).y).toBe(2);
     }
-    const calls = (logWarn as jest.Mock).mock.calls.flat();
+    const calls = (logWarn as jest.Mock).mock.calls
+      .flat()
+      .filter((c): c is string => typeof c === "string");
     expect(
       calls.some(
-        (c: string) =>
+        (c) =>
           c.includes("Fixed JSON structure and noise") || c.includes("Extracted largest JSON span"),
       ),
     ).toBe(true);
@@ -61,11 +63,12 @@ describe("JsonProcessor.parseAndValidate (declarative sanitization pipeline)", (
     expect(result.success).toBe(true);
     if (result.success) {
       expect((result.data as any).path).toBe("");
+      // Verify that the concatenation chain was fixed (mutation steps recorded)
+      expect(result.mutationSteps).toBeDefined();
+      expect(result.mutationSteps).toEqual(
+        expect.arrayContaining([expect.stringContaining("identifier-only chain")]),
+      );
     }
-    const calls = (logWarn as jest.Mock).mock.calls.flat();
-    expect(
-      calls.some((c: string) => c.includes("Fixed") && c.includes("property and value syntax")),
-    ).toBe(true);
   });
 
   it("applies multiple sanitizers in pipeline for complex malformed JSON", () => {
@@ -79,11 +82,13 @@ describe("JsonProcessor.parseAndValidate (declarative sanitization pipeline)", (
     if (result.success) {
       expect((result.data as any).a).toBe(1);
     }
-    const calls = (logWarn as jest.Mock).mock.calls.flat();
+    const calls = (logWarn as jest.Mock).mock.calls
+      .flat()
+      .filter((c): c is string => typeof c === "string");
     // Should have applied multiple sanitizers for this complex case
-    expect(calls.some((c: string) => c.includes("Applied"))).toBe(true);
+    expect(calls.some((c) => c.includes("Applied"))).toBe(true);
     // Should include at least code fence removal or JSON structure fixes
-    const logMsg = calls.find((c: string) => c.includes("Applied"));
+    const logMsg = calls.find((c) => c.includes("Applied"));
     expect(logMsg).toMatch(
       new RegExp(
         `Fixed JSON structure and noise|${MUTATION_STEP.REMOVED_CODE_FENCES}|Fixed JSON structure`,
