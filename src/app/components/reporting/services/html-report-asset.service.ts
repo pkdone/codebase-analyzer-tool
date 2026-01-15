@@ -16,12 +16,14 @@ export interface HtmlReportAssets {
 }
 
 /**
- * Service responsible for loading assets required for HTML report generation.
- * Centralizes asset loading logic that was previously scattered in the report generator,
- * following the Single Responsibility Principle.
+ * Service responsible for loading and managing assets required for HTML report generation.
+ * Centralizes asset loading logic following the Single Responsibility Principle.
  *
- * This service is injected into HtmlReportWriter, allowing the writer to be
- * self-contained and not depend on the generator for asset content.
+ * Responsibilities:
+ * - Loading inline CSS and SVG assets for report embedding
+ * - Ensuring external assets (like Mermaid.js) are available in the output directory
+ *
+ * This service is injected into HtmlReportWriter and AppReportGenerator.
  */
 @injectable()
 export class HtmlReportAssetService {
@@ -69,5 +71,60 @@ export class HtmlReportAssetService {
    */
   clearCache(): void {
     this.cachedAssets = null;
+  }
+
+  /**
+   * Ensures Mermaid.js is available in the output assets directory for offline report viewing.
+   * Attempts to copy from local node_modules first, falls back to CDN download if needed.
+   * Skips if the file already exists.
+   *
+   * @param outputDir - The output directory where the report will be generated
+   */
+  async ensureMermaidAsset(outputDir: string): Promise<void> {
+    const assetsDir = path.join(outputDir, this.outputConfig.assets.ASSETS_SUBDIR);
+    const mermaidPath = path.join(assetsDir, this.outputConfig.externalAssets.MERMAID_UMD_FILENAME);
+
+    try {
+      await fs.mkdir(assetsDir, { recursive: true });
+
+      // Check if file already exists
+      try {
+        await fs.access(mermaidPath);
+        console.log("Mermaid.js already exists in assets directory, skipping download");
+        return;
+      } catch {
+        // File doesn't exist, proceed with download
+      }
+
+      // Prefer copying from local node_modules for true offline report generation.
+      // Use require.resolve to find the package reliably regardless of CWD
+      try {
+        const localMermaidPath = require.resolve("mermaid/dist/mermaid.min.js");
+        const buffer = await fs.readFile(localMermaidPath);
+        await fs.writeFile(mermaidPath, buffer);
+        console.log(`Mermaid.js copied from node_modules to ${mermaidPath}`);
+        return;
+      } catch {
+        // Fall back to downloading from CDN (requires internet during report generation)
+      }
+
+      console.log("Downloading Mermaid.js for offline report support...");
+      const response = await fetch(this.outputConfig.externalAssets.MERMAID_CDN_UMD_URL);
+      if (!response.ok) {
+        throw new Error(`Failed to download Mermaid.js: ${response.status} ${response.statusText}`);
+      }
+
+      const arrayBuffer = await response.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+
+      await fs.writeFile(mermaidPath, buffer);
+      console.log(`Mermaid.js downloaded and copied to ${mermaidPath}`);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.warn(
+        `Warning: Failed to download Mermaid.js. Report will require internet connection: ${errorMessage}`,
+      );
+      // Don't throw - allow report generation to continue even if Mermaid download fails
+    }
   }
 }

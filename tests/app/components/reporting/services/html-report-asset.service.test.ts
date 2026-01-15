@@ -6,12 +6,18 @@ import type { OutputConfigType } from "../../../../../src/app/config/output.conf
 jest.mock("fs", () => ({
   promises: {
     readFile: jest.fn(),
+    mkdir: jest.fn(),
+    access: jest.fn(),
+    writeFile: jest.fn(),
   },
 }));
 
 import { promises as fs } from "fs";
 
 const mockReadFile = fs.readFile as jest.MockedFunction<typeof fs.readFile>;
+const mockMkdir = fs.mkdir as jest.MockedFunction<typeof fs.mkdir>;
+const mockAccess = fs.access as jest.MockedFunction<typeof fs.access>;
+const mockWriteFile = fs.writeFile as jest.MockedFunction<typeof fs.writeFile>;
 
 describe("HtmlReportAssetService", () => {
   const mockOutputConfig: OutputConfigType = {
@@ -151,6 +157,133 @@ describe("HtmlReportAssetService", () => {
       // TypeScript should enforce readonly, but we verify the values are present
       expect(typeof assets.inlineCss).toBe("string");
       expect(typeof assets.jsonIconSvg).toBe("string");
+    });
+  });
+
+  describe("ensureMermaidAsset", () => {
+    const outputDir = "/test/output";
+    const consoleSpy = jest.spyOn(console, "log").mockImplementation();
+    const consoleWarnSpy = jest.spyOn(console, "warn").mockImplementation();
+
+    beforeEach(() => {
+      consoleSpy.mockClear();
+      consoleWarnSpy.mockClear();
+    });
+
+    afterAll(() => {
+      consoleSpy.mockRestore();
+      consoleWarnSpy.mockRestore();
+    });
+
+    it("should skip download if Mermaid.js already exists", async () => {
+      mockMkdir.mockResolvedValue(undefined);
+      mockAccess.mockResolvedValue(undefined); // File exists
+
+      await service.ensureMermaidAsset(outputDir);
+
+      expect(mockMkdir).toHaveBeenCalledWith(
+        expect.stringContaining("assets"),
+        { recursive: true },
+      );
+      expect(mockAccess).toHaveBeenCalled();
+      expect(mockWriteFile).not.toHaveBeenCalled();
+      expect(consoleSpy).toHaveBeenCalledWith(
+        "Mermaid.js already exists in assets directory, skipping download",
+      );
+    });
+
+    it("should copy from node_modules when file does not exist", async () => {
+      const mockMermaidContent = Buffer.from("// mermaid.js content");
+
+      mockMkdir.mockResolvedValue(undefined);
+      mockAccess.mockRejectedValue(new Error("ENOENT")); // File doesn't exist
+      mockReadFile.mockImplementation(async (filePath: unknown) => {
+        const pathStr = String(filePath);
+        if (pathStr.includes("mermaid")) {
+          return mockMermaidContent;
+        }
+        throw new Error(`Unexpected file: ${pathStr}`);
+      });
+      mockWriteFile.mockResolvedValue(undefined);
+
+      await service.ensureMermaidAsset(outputDir);
+
+      expect(mockMkdir).toHaveBeenCalledWith(
+        expect.stringContaining("assets"),
+        { recursive: true },
+      );
+      expect(mockWriteFile).toHaveBeenCalledWith(
+        expect.stringContaining("mermaid.min.js"),
+        mockMermaidContent,
+      );
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining("Mermaid.js copied from node_modules"),
+      );
+    });
+
+    it("should fall back to CDN when node_modules copy fails", async () => {
+      const mockCdnContent = new ArrayBuffer(8);
+      const mockResponse = {
+        ok: true,
+        arrayBuffer: jest.fn().mockResolvedValue(mockCdnContent),
+      };
+
+      mockMkdir.mockResolvedValue(undefined);
+      mockAccess.mockRejectedValue(new Error("ENOENT")); // File doesn't exist
+      mockReadFile.mockRejectedValue(new Error("Cannot find module")); // node_modules not found
+      mockWriteFile.mockResolvedValue(undefined);
+
+      // Mock global fetch
+      const originalFetch = global.fetch;
+      global.fetch = jest.fn().mockResolvedValue(mockResponse);
+
+      try {
+        await service.ensureMermaidAsset(outputDir);
+
+        expect(global.fetch).toHaveBeenCalledWith(mockOutputConfig.externalAssets.MERMAID_CDN_UMD_URL);
+        expect(mockWriteFile).toHaveBeenCalled();
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining("Mermaid.js downloaded and copied"),
+        );
+      } finally {
+        global.fetch = originalFetch;
+      }
+    });
+
+    it("should warn but not throw when all download methods fail", async () => {
+      mockMkdir.mockResolvedValue(undefined);
+      mockAccess.mockRejectedValue(new Error("ENOENT")); // File doesn't exist
+      mockReadFile.mockRejectedValue(new Error("Cannot find module")); // node_modules not found
+
+      // Mock global fetch to fail
+      const originalFetch = global.fetch;
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: false,
+        status: 500,
+        statusText: "Internal Server Error",
+      });
+
+      try {
+        // Should not throw
+        await service.ensureMermaidAsset(outputDir);
+
+        expect(consoleWarnSpy).toHaveBeenCalledWith(
+          expect.stringContaining("Warning: Failed to download Mermaid.js"),
+        );
+      } finally {
+        global.fetch = originalFetch;
+      }
+    });
+
+    it("should handle mkdir failure gracefully", async () => {
+      mockMkdir.mockRejectedValue(new Error("Permission denied"));
+
+      // Should not throw
+      await service.ensureMermaidAsset(outputDir);
+
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        expect.stringContaining("Warning: Failed to download Mermaid.js"),
+      );
     });
   });
 });

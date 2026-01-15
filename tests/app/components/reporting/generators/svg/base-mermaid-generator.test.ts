@@ -84,27 +84,23 @@ describe("BaseDiagramGenerator", () => {
   });
 
   describe("wrapForClientRendering", () => {
-    it("should wrap definition in pre tag with mermaid class", () => {
+    it("should wrap definition in pre tag with mermaid and mermaid-diagram classes", () => {
       const definition = "flowchart TB\n    A --> B";
       const result = generator.testWrapForClientRendering(definition);
 
-      expect(result).toContain('<pre class="mermaid"');
+      expect(result).toContain('<pre class="mermaid mermaid-diagram">');
       expect(result).toContain(definition);
       expect(result).toContain("</pre>");
     });
 
-    it("should include background color styling", () => {
+    it("should use CSS class for styling instead of inline styles", () => {
       const definition = "flowchart TB";
       const result = generator.testWrapForClientRendering(definition);
 
-      expect(result).toContain(`background-color: ${DIAGRAM_STYLES.backgroundColor}`);
-    });
-
-    it("should include overflow-x auto for horizontal scrolling", () => {
-      const definition = "flowchart TB";
-      const result = generator.testWrapForClientRendering(definition);
-
-      expect(result).toContain("overflow-x: auto");
+      // Styling is now handled via .mermaid-diagram CSS class in style.css
+      expect(result).toContain("mermaid-diagram");
+      // Should NOT contain inline styles - they're in the CSS file
+      expect(result).not.toContain("style=");
     });
   });
 

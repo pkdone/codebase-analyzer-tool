@@ -40,7 +40,7 @@ describe("CurrentArchitectureDiagramGenerator", () => {
 
       const result = generator.generateCurrentArchitectureDiagram(data);
 
-      expect(result).toContain('<pre class="mermaid"');
+      expect(result).toContain('<pre class="mermaid mermaid-diagram">');
       expect(result).toContain("</pre>");
     });
 
@@ -139,7 +139,7 @@ describe("CurrentArchitectureDiagramGenerator", () => {
 
       // Should not throw
       const result = generator.generateCurrentArchitectureDiagram(data);
-      expect(result).toContain('<pre class="mermaid"');
+      expect(result).toContain('<pre class="mermaid mermaid-diagram">');
     });
   });
 });

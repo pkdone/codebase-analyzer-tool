@@ -7,7 +7,13 @@
  * - Multi-pass execution support
  */
 
-import { isInStringAt, isDirectlyInArrayContext } from "../../utils/parser-context-utils";
+import {
+  isInStringAt,
+  isAfterJsonDelimiter,
+  isInPropertyContext,
+  isInArrayContextSimple,
+  isDeepArrayContext,
+} from "../../utils/parser-context-utils";
 import { DiagnosticCollector } from "../../utils/diagnostic-collector";
 import { processingConfig, parsingHeuristics } from "../../constants/json-processing.config";
 import type {
@@ -16,6 +22,14 @@ import type {
   RuleExecutionResult,
   ContextInfo,
 } from "./replacement-rule.types";
+
+// Re-export context check functions for backwards compatibility
+// These are now defined in parser-context-utils.ts
+export { isAfterJsonDelimiter, isInPropertyContext, isDeepArrayContext };
+
+// Alias for backwards compatibility - isInArrayContext was renamed to isInArrayContextSimple
+// to distinguish from the position-based isInArrayContext in parser-context-utils
+export { isInArrayContextSimple as isInArrayContext };
 
 /** Default maximum number of passes for multi-pass execution */
 const DEFAULT_MAX_PASSES = 10;
@@ -164,71 +178,4 @@ export function executeRulesMultiPass(
   options: Omit<ExecutorOptions, "multiPass"> = {},
 ): RuleExecutionResult {
   return executeRules(input, rules, { ...options, multiPass: true });
-}
-
-/**
- * Common context check: validates that the match is after a JSON structural delimiter.
- * Useful for property and value patterns that should only match at valid JSON positions.
- *
- * @param context - The context info from the rule execution
- * @returns true if the match is in a valid JSON structural context
- */
-export function isAfterJsonDelimiter(context: ContextInfo): boolean {
-  const { beforeMatch, offset } = context;
-  return (
-    /[}\],]\s*$/.test(beforeMatch) ||
-    /^\s*$/.test(beforeMatch) ||
-    offset < parsingHeuristics.START_OF_FILE_OFFSET_LIMIT ||
-    /,\s*\n\s*$/.test(beforeMatch)
-  );
-}
-
-/**
- * Common context check: validates that the match is in a property context.
- * Useful for patterns that should only match where a property name is expected.
- *
- * @param context - The context info from the rule execution
- * @returns true if the match is in a property context
- */
-export function isInPropertyContext(context: ContextInfo): boolean {
-  const { beforeMatch, offset } = context;
-  return (
-    /[{,]\s*$/.test(beforeMatch) ||
-    /}\s*,\s*\n\s*$/.test(beforeMatch) ||
-    /]\s*,\s*\n\s*$/.test(beforeMatch) ||
-    /\n\s*$/.test(beforeMatch) ||
-    offset < parsingHeuristics.PROPERTY_CONTEXT_OFFSET_LIMIT
-  );
-}
-
-/**
- * Common context check: validates that the match is in an array context.
- * Useful for patterns that should only match inside arrays.
- *
- * @param context - The context info from the rule execution
- * @returns true if the match appears to be in an array context
- */
-export function isInArrayContext(context: ContextInfo): boolean {
-  const { beforeMatch } = context;
-  return (
-    /\[\s*$/.test(beforeMatch) ||
-    /,\s*\n\s*$/.test(beforeMatch) ||
-    /"\s*,\s*\n\s*$/.test(beforeMatch)
-  );
-}
-
-/**
- * Deep array context check using backward scanning.
- * This combines the simple `isInArrayContext` check with a more thorough
- * `isDirectlyInArrayContext` scan for cases where the simple check misses
- * the array context.
- *
- * @param context - The context info from the rule execution
- * @returns true if the match is in an array context (either by simple or deep scan)
- */
-export function isDeepArrayContext(context: ContextInfo): boolean {
-  if (isInArrayContext(context)) {
-    return true;
-  }
-  return isDirectlyInArrayContext(context.offset, context.fullContent);
 }

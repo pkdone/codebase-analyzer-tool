@@ -1,9 +1,14 @@
 /**
  * Utility functions for parsing JSON context during sanitization.
  * These helpers are used by multiple sanitizers to determine parsing context.
+ *
+ * This module provides two categories of context checking functions:
+ * 1. Position-based functions (take offset and content string)
+ * 2. ContextInfo-based functions (take a ContextInfo object from rule execution)
  */
 
 import { parsingHeuristics } from "../constants/json-processing.config";
+import type { ContextInfo } from "../sanitizers/rules/replacement-rule.types";
 
 /**
  * Checks if a given position in a string is inside a JSON string literal.
@@ -141,4 +146,78 @@ export function isDirectlyInArrayContext(offset: number, content: string): boole
     }
   }
   return false;
+}
+
+// ============================================================================
+// ContextInfo-based context check functions
+// ============================================================================
+// These functions operate on ContextInfo objects passed from the rule executor,
+// providing a consistent interface for rule context checking.
+
+/**
+ * Common context check: validates that the match is after a JSON structural delimiter.
+ * Useful for property and value patterns that should only match at valid JSON positions.
+ *
+ * @param context - The context info from the rule execution
+ * @returns true if the match is in a valid JSON structural context
+ */
+export function isAfterJsonDelimiter(context: ContextInfo): boolean {
+  const { beforeMatch, offset } = context;
+  return (
+    /[}\],]\s*$/.test(beforeMatch) ||
+    /^\s*$/.test(beforeMatch) ||
+    offset < parsingHeuristics.START_OF_FILE_OFFSET_LIMIT ||
+    /,\s*\n\s*$/.test(beforeMatch)
+  );
+}
+
+/**
+ * Common context check: validates that the match is in a property context.
+ * Useful for patterns that should only match where a property name is expected.
+ *
+ * @param context - The context info from the rule execution
+ * @returns true if the match is in a property context
+ */
+export function isInPropertyContext(context: ContextInfo): boolean {
+  const { beforeMatch, offset } = context;
+  return (
+    /[{,]\s*$/.test(beforeMatch) ||
+    /}\s*,\s*\n\s*$/.test(beforeMatch) ||
+    /]\s*,\s*\n\s*$/.test(beforeMatch) ||
+    /\n\s*$/.test(beforeMatch) ||
+    offset < parsingHeuristics.PROPERTY_CONTEXT_OFFSET_LIMIT
+  );
+}
+
+/**
+ * Simple context check: validates that the match is in an array context using regex.
+ * This is a fast check using beforeMatch content only.
+ * For a more thorough check, use `isDeepArrayContext`.
+ *
+ * @param context - The context info from the rule execution
+ * @returns true if the match appears to be in an array context
+ */
+export function isInArrayContextSimple(context: ContextInfo): boolean {
+  const { beforeMatch } = context;
+  return (
+    /\[\s*$/.test(beforeMatch) ||
+    /,\s*\n\s*$/.test(beforeMatch) ||
+    /"\s*,\s*\n\s*$/.test(beforeMatch)
+  );
+}
+
+/**
+ * Deep array context check using backward scanning.
+ * This combines the simple `isInArrayContextSimple` check with a more thorough
+ * `isDirectlyInArrayContext` scan for cases where the simple check misses
+ * the array context.
+ *
+ * @param context - The context info from the rule execution
+ * @returns true if the match is in an array context (either by simple or deep scan)
+ */
+export function isDeepArrayContext(context: ContextInfo): boolean {
+  if (isInArrayContextSimple(context)) {
+    return true;
+  }
+  return isDirectlyInArrayContext(context.offset, context.fullContent);
 }

@@ -1,4 +1,7 @@
-import { extractGenericCompletionResponse } from "../../../../../src/common/llm/providers/bedrock/common/bedrock-response-parser";
+import {
+  extractGenericCompletionResponse,
+  extractEmbeddingResponse,
+} from "../../../../../src/common/llm/providers/bedrock/common/bedrock-response-parser";
 import { z } from "zod";
 import { LLMError, LLMErrorCode } from "../../../../../src/common/llm/types/llm-errors.types";
 
@@ -320,6 +323,98 @@ describe("bedrock-response-parser", () => {
 
       expect(summary.tokenUsage.promptTokens).toBe(-1);
       expect(summary.tokenUsage.completionTokens).toBe(-1);
+    });
+  });
+
+  describe("extractEmbeddingResponse", () => {
+    it("extracts embedding vector from valid response", () => {
+      const response = {
+        embedding: [0.1, 0.2, 0.3, 0.4],
+        inputTextTokenCount: 10,
+      };
+
+      const result = extractEmbeddingResponse(response);
+
+      expect(result.responseContent).toEqual([0.1, 0.2, 0.3, 0.4]);
+      expect(result.isIncompleteResponse).toBe(false);
+      expect(result.tokenUsage.promptTokens).toBe(10);
+    });
+
+    it("returns empty array when embedding is missing", () => {
+      const response = {
+        inputTextTokenCount: 5,
+      };
+
+      const result = extractEmbeddingResponse(response);
+
+      expect(result.responseContent).toEqual([]);
+      expect(result.isIncompleteResponse).toBe(true);
+    });
+
+    it("extracts token count from results array when available", () => {
+      const response = {
+        embedding: [0.5, 0.6],
+        inputTextTokenCount: 8,
+        results: [{ tokenCount: 15 }],
+      };
+
+      const result = extractEmbeddingResponse(response);
+
+      expect(result.tokenUsage.promptTokens).toBe(8);
+      expect(result.tokenUsage.completionTokens).toBe(15);
+    });
+
+    it("handles missing token counts gracefully", () => {
+      const response = {
+        embedding: [0.1, 0.2],
+      };
+
+      const result = extractEmbeddingResponse(response);
+
+      expect(result.responseContent).toEqual([0.1, 0.2]);
+      expect(result.tokenUsage.promptTokens).toBe(-1);
+      expect(result.tokenUsage.completionTokens).toBe(-1);
+    });
+
+    it("throws LLMError for invalid response structure", () => {
+      const invalidResponse = {
+        embedding: "not an array",
+      };
+
+      expect(() => extractEmbeddingResponse(invalidResponse)).toThrow(LLMError);
+
+      try {
+        extractEmbeddingResponse(invalidResponse);
+        fail("Should have thrown an error");
+      } catch (error) {
+        expect(error).toBeInstanceOf(LLMError);
+        expect((error as LLMError).code).toBe(LLMErrorCode.BAD_RESPONSE_CONTENT);
+        expect((error as LLMError).message).toContain("Invalid Bedrock embeddings response");
+      }
+    });
+
+    it("handles empty embedding array", () => {
+      const response = {
+        embedding: [],
+        inputTextTokenCount: 1,
+      };
+
+      const result = extractEmbeddingResponse(response);
+
+      expect(result.responseContent).toEqual([]);
+      expect(result.isIncompleteResponse).toBe(true);
+    });
+
+    it("handles response with only results array", () => {
+      const response = {
+        embedding: [1.0, 2.0, 3.0],
+        results: [{ tokenCount: 100 }],
+      };
+
+      const result = extractEmbeddingResponse(response);
+
+      expect(result.responseContent).toEqual([1.0, 2.0, 3.0]);
+      expect(result.tokenUsage.completionTokens).toBe(100);
     });
   });
 });

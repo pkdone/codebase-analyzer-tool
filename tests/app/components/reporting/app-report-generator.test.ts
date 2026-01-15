@@ -5,6 +5,7 @@ import { HtmlReportWriter } from "../../../../src/app/components/reporting/html-
 import { JsonReportWriter } from "../../../../src/app/components/reporting/json-report-writer";
 import { AppStatisticsDataProvider } from "../../../../src/app/components/reporting/sections/overview/app-statistics-data-provider";
 import { CategorizedSectionDataBuilder } from "../../../../src/app/components/reporting/sections/overview/categorized-section-data-builder";
+import { HtmlReportAssetService } from "../../../../src/app/components/reporting/services/html-report-asset.service";
 import type { ReportSection } from "../../../../src/app/components/reporting/sections/report-section.interface";
 // Import types for type checking only
 import type { ReportData } from "../../../../src/app/components/reporting/report-data.types";
@@ -17,6 +18,7 @@ describe("AppReportGenerator", () => {
   let mockAppStatsDataProvider: jest.Mocked<AppStatisticsDataProvider>;
   let mockCategorizedDataBuilder: jest.Mocked<CategorizedSectionDataBuilder>;
   let mockSections: jest.Mocked<ReportSection>[];
+  let mockAssetService: jest.Mocked<HtmlReportAssetService>;
 
   beforeEach(() => {
     mockAppSummariesRepository = {
@@ -38,6 +40,12 @@ describe("AppReportGenerator", () => {
     mockCategorizedDataBuilder = {
       getStandardSectionData: jest.fn(),
     } as unknown as jest.Mocked<CategorizedSectionDataBuilder>;
+
+    mockAssetService = {
+      ensureMermaidAsset: jest.fn().mockResolvedValue(undefined),
+      loadAssets: jest.fn().mockResolvedValue({ inlineCss: "", jsonIconSvg: "" }),
+      clearCache: jest.fn(),
+    } as unknown as jest.Mocked<HtmlReportAssetService>;
 
     // Create mock sections
     mockSections = [
@@ -80,6 +88,7 @@ describe("AppReportGenerator", () => {
       mockCategorizedDataBuilder,
       mockSections,
       mockOutputConfig,
+      mockAssetService,
     );
   });
 

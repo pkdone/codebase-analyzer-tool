@@ -13,10 +13,10 @@ import { logErr } from "../../../../utils/logging";
 import BaseLLMProvider from "../../base-llm-provider";
 import { z } from "zod";
 import { LLMError, LLMErrorCode } from "../../../types/llm-errors.types";
-import { createTokenUsageRecord } from "../../../types/llm.types";
 import type { JsonObject } from "../../../types/json-value.types";
 import {
   extractGenericCompletionResponse,
+  extractEmbeddingResponse,
   type ResponsePathConfig,
 } from "./bedrock-response-parser";
 
@@ -40,21 +40,6 @@ interface ResponseExtractionConfig {
   /** Provider name for error messages */
   providerName: string;
 }
-
-/**
- * Zod schema for Bedrock embeddings response validation
- */
-const BedrockEmbeddingsResponseSchema = z.object({
-  embedding: z.array(z.number()).optional(),
-  inputTextTokenCount: z.number().optional(),
-  results: z
-    .array(
-      z.object({
-        tokenCount: z.number().optional(),
-      }),
-    )
-    .optional(),
-});
 
 /**
  * Class for the public AWS Bedrock service (multiple possible LLMs)
@@ -125,7 +110,7 @@ export default abstract class BaseBedrockLLM extends BaseLLMProvider {
     const rawResponse = await this.client.send(command);
     const jsonString = new TextDecoder(llmConfig.UTF8_ENCODING).decode(rawResponse.body);
     const llmResponse: unknown = JSON.parse(jsonString);
-    return this.extractEmbeddingModelSpecificResponse(llmResponse);
+    return extractEmbeddingResponse(llmResponse);
   }
 
   /**
@@ -182,27 +167,6 @@ export default abstract class BaseBedrockLLM extends BaseLLMProvider {
     if (!(error instanceof ValidationException)) return false;
     const lowercaseContent = formatError(error).toLowerCase();
     return TOKEN_LIMIT_ERROR_KEYWORDS.some((keyword) => lowercaseContent.includes(keyword));
-  }
-
-  /**
-   * Extract the relevant information from the LLM specific response.
-   */
-  private extractEmbeddingModelSpecificResponse(llmResponse: unknown) {
-    const validation = BedrockEmbeddingsResponseSchema.safeParse(llmResponse);
-    if (!validation.success)
-      throw new LLMError(
-        LLMErrorCode.BAD_RESPONSE_CONTENT,
-        "Invalid Bedrock embeddings response structure",
-        llmResponse,
-      );
-    const response = validation.data;
-    const responseContent = response.embedding ?? [];
-    const isIncompleteResponse = !responseContent; // If no content assume prompt maxed out total tokens available
-    const tokenUsage = createTokenUsageRecord(
-      response.inputTextTokenCount,
-      response.results?.[0]?.tokenCount,
-    );
-    return { isIncompleteResponse, responseContent, tokenUsage };
   }
 
   /**

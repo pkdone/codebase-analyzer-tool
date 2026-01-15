@@ -3,7 +3,7 @@ import { getNestedValue, getNestedValueWithFallbacks } from "../../../../utils/o
 import { isDefined } from "../../../../utils/type-guards";
 import { LLMError, LLMErrorCode } from "../../../types/llm-errors.types";
 import { LLMGeneratedContent, createTokenUsageRecord } from "../../../types/llm.types";
-import { LLMImplSpecificResponseSummary } from "../../llm-provider.types";
+import type { LLMImplSpecificResponseSummary } from "../../llm-provider.types";
 import type { JsonObject } from "../../../types/json-value.types";
 
 /**
@@ -13,6 +13,59 @@ import type { JsonObject } from "../../../types/json-value.types";
  */
 const parseNumericOrDefault = (value: unknown): number | undefined =>
   typeof value === "number" ? value : undefined;
+
+/**
+ * Zod schema for Bedrock embeddings response validation.
+ * Supports both direct embedding format and results array format.
+ */
+const BedrockEmbeddingsResponseSchema = z.object({
+  embedding: z.array(z.number()).optional(),
+  inputTextTokenCount: z.number().optional(),
+  results: z
+    .array(
+      z.object({
+        tokenCount: z.number().optional(),
+      }),
+    )
+    .optional(),
+});
+
+/**
+ * Response type for embedding extraction.
+ */
+export interface EmbeddingResponseSummary {
+  isIncompleteResponse: boolean;
+  responseContent: number[];
+  tokenUsage: ReturnType<typeof createTokenUsageRecord>;
+}
+
+/**
+ * Extracts embedding response data from Bedrock embedding model responses.
+ * Validates the response structure and extracts the embedding vector and token usage.
+ *
+ * @param llmResponse The raw LLM response object
+ * @returns Standardized embedding response summary
+ * @throws LLMError if the response structure is invalid
+ */
+export function extractEmbeddingResponse(llmResponse: unknown): EmbeddingResponseSummary {
+  const validation = BedrockEmbeddingsResponseSchema.safeParse(llmResponse);
+  if (!validation.success) {
+    throw new LLMError(
+      LLMErrorCode.BAD_RESPONSE_CONTENT,
+      "Invalid Bedrock embeddings response structure",
+      llmResponse,
+    );
+  }
+  const response = validation.data;
+  const responseContent = response.embedding ?? [];
+  // If no content assume prompt maxed out total tokens available
+  const isIncompleteResponse = responseContent.length === 0;
+  const tokenUsage = createTokenUsageRecord(
+    response.inputTextTokenCount,
+    response.results?.[0]?.tokenCount,
+  );
+  return { isIncompleteResponse, responseContent, tokenUsage };
+}
 
 /**
  * Configuration for extracting response data from different Bedrock provider response structures

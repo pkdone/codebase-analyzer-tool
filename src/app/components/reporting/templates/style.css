@@ -711,6 +711,14 @@ td code {
   overflow-y: visible;
 }
 
+/* Mermaid Diagram Wrapper */
+.mermaid-diagram {
+  background-color: #F0F3F2;
+  border-radius: 8px;
+  padding: 20px;
+  overflow-x: auto;
+}
+
 .diagram-container svg {
   max-width: 100%;
   width: auto;
