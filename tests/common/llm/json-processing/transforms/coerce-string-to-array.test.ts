@@ -489,6 +489,97 @@ describe("coerceStringToArray", () => {
     });
   });
 
+  describe("stringified JSON array parsing", () => {
+    const config: LLMSanitizerConfig = {
+      arrayPropertyNames: ["parameters", "dependencies", "references", "items", "tags"],
+    };
+
+    describe("JSON.parse fallback", () => {
+      it("should parse stringified JSON arrays with double quotes", () => {
+        const input = {
+          items: '["item1", "item2", "item3"]',
+        };
+
+        const result = coerceStringToArray(input, config);
+
+        expect((result as any).items).toEqual(["item1", "item2", "item3"]);
+      });
+
+      it("should parse stringified JSON arrays with single quotes (converted)", () => {
+        const input = {
+          tags: "['tag1', 'tag2', 'tag3']",
+        };
+
+        const result = coerceStringToArray(input, config);
+
+        expect((result as any).tags).toEqual(["tag1", "tag2", "tag3"]);
+      });
+
+      it("should parse stringified JSON array with numbers", () => {
+        const input = {
+          items: "[1, 2, 3, 4, 5]",
+        };
+
+        const result = coerceStringToArray(input, config);
+
+        expect((result as any).items).toEqual(["1", "2", "3", "4", "5"]);
+      });
+
+      it("should parse mixed type stringified JSON arrays", () => {
+        const input = {
+          items: '["string", 123, true, null]',
+        };
+
+        const result = coerceStringToArray(input, config);
+
+        expect((result as any).items).toEqual(["string", "123", "true", "null"]);
+      });
+
+      it("should parse empty stringified JSON array", () => {
+        const input = {
+          items: "[]",
+        };
+
+        const result = coerceStringToArray(input, config);
+
+        expect((result as any).items).toEqual([]);
+      });
+
+      it("should fall through to bullet parsing for invalid JSON starting with [", () => {
+        const input = {
+          // This looks like it starts with [ but isn't valid JSON
+          items: "[not valid json at all",
+        };
+
+        const result = coerceStringToArray(input, config);
+
+        // Falls through to other strategies, returns empty array as fallback
+        expect((result as any).items).toEqual([]);
+      });
+
+      it("should handle nested stringified arrays", () => {
+        const input = {
+          items: '[["a", "b"], ["c", "d"]]',
+        };
+
+        const result = coerceStringToArray(input, config);
+
+        // Nested arrays are converted to strings
+        expect((result as any).items).toEqual(["a,b", "c,d"]);
+      });
+
+      it("should handle stringified object arrays (converts objects to strings)", () => {
+        const input = {
+          items: '[{"name": "item1"}, {"name": "item2"}]',
+        };
+
+        const result = coerceStringToArray(input, config);
+
+        expect((result as any).items).toEqual(["[object Object]", "[object Object]"]);
+      });
+    });
+  });
+
   describe("bulleted and numbered list parsing", () => {
     const config: LLMSanitizerConfig = {
       arrayPropertyNames: ["parameters", "dependencies", "references", "items", "tags"],

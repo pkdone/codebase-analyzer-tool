@@ -36,7 +36,7 @@ import { deepMap, isPlainObject } from "../utils/object-traversal";
 
 /**
  * Attempts to parse a string value as a list and convert it to an array.
- * Handles bulleted lists, numbered lists, and comma/semicolon-separated values.
+ * Handles stringified JSON arrays, bulleted lists, numbered lists, and comma/semicolon-separated values.
  *
  * @param stringValue - The string to parse as a list
  * @returns An array of extracted items, or an empty array if no list structure detected
@@ -47,6 +47,28 @@ function parseStringAsList(stringValue: string): string[] {
   // Empty string returns empty array
   if (!trimmed) {
     return [];
+  }
+
+  // Strategy 0: Try JSON.parse for stringified JSON arrays
+  // Handles cases like: '["item1", "item2"]' or "['a', 'b']"
+  if (trimmed.startsWith("[")) {
+    try {
+      const parsed: unknown = JSON.parse(trimmed);
+      if (Array.isArray(parsed)) {
+        return parsed.map(String);
+      }
+    } catch {
+      // Try with single quotes converted to double quotes (common LLM output)
+      try {
+        const normalizedQuotes = trimmed.replace(/'/g, '"');
+        const parsed: unknown = JSON.parse(normalizedQuotes);
+        if (Array.isArray(parsed)) {
+          return parsed.map(String);
+        }
+      } catch {
+        // Not valid JSON, fall through to other strategies
+      }
+    }
   }
 
   // Strategy 1: Bulleted list (lines starting with -, *, •, or similar)

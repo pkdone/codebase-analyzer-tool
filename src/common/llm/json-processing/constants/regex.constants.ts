@@ -60,10 +60,19 @@ export const CONCATENATION_REGEXES = Object.freeze({
 } as const);
 
 /**
- * LLM token artifact regex.
- * Matches LLM token artifacts like <y_bin_XXX> that leak into LLM responses.
+ * Generic LLM token artifact regex.
+ * Matches various special token formats that leak from different LLM models:
+ * - Vertex AI/Gemini artifacts: <y_bin_123>
+ * - OpenAI-style tokens: <|endoftext|>, <|im_start|>, <|im_end|>, <|assistant|>
+ * - Common special tokens: <pad>, <eos>, <bos>, <s>, </s>, <unk>
+ * - BERT/Transformer tokens: [EOS], [PAD], [UNK], [CLS], [SEP], [MASK], [BOS]
+ * - Instruction tokens: [INST], [/INST]
+ *
+ * Note: The regex is case-insensitive for flexibility across models.
+ * Square bracket tokens only match uppercase to avoid false positives with JSON arrays.
  */
-export const LLM_TOKEN_ARTIFACT_REGEX = /<y_bin_\d+>/g;
+export const LLM_TOKEN_ARTIFACT_REGEX =
+  /<(?:y_bin_\d+|\|?[\w]+(?:[:=][\w]+)?\|?|\/?\w+)>|\[(?:EOS|PAD|UNK|CLS|SEP|MASK|BOS|INST|\/INST)\]/gi;
 
 /**
  * Generic structural patterns for detecting non-JSON content.

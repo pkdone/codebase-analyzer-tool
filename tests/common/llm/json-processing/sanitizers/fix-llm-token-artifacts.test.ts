@@ -2,7 +2,7 @@ import { fixLlmTokenArtifacts } from "../../../../../src/common/llm/json-process
 import { REPAIR_STEP } from "../../../../../src/common/llm/json-processing/constants/repair-steps.config";
 
 describe("fixLlmTokenArtifacts", () => {
-  describe("LLM token artifacts", () => {
+  describe("Vertex AI/Gemini token artifacts", () => {
     it("should remove <y_bin_XXX> markers", () => {
       const input = `      "cyclomaticComplexity": 1,
       <y_bin_305>OfCode": 1,
@@ -55,6 +55,195 @@ describe("fixLlmTokenArtifacts", () => {
       // Should not change because it's inside a string
       expect(result.changed).toBe(false);
       expect(result.content).toBe(input);
+    });
+  });
+
+  describe("OpenAI-style token artifacts", () => {
+    it("should remove <|endoftext|> tokens", () => {
+      const input = `{
+        "name": "test",
+        "value": 123
+      }<|endoftext|>`;
+
+      const result = fixLlmTokenArtifacts(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain("<|endoftext|>");
+      expect(result.content).toContain('"name": "test"');
+    });
+
+    it("should remove <|im_start|> and <|im_end|> tokens", () => {
+      const input = `<|im_start|>{
+        "name": "test"
+      }<|im_end|>`;
+
+      const result = fixLlmTokenArtifacts(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain("<|im_start|>");
+      expect(result.content).not.toContain("<|im_end|>");
+      expect(result.content).toContain('"name": "test"');
+    });
+
+    it("should remove <|assistant|> tokens", () => {
+      const input = `<|assistant|>{"name": "test"}`;
+
+      const result = fixLlmTokenArtifacts(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain("<|assistant|>");
+      expect(result.content).toContain('"name": "test"');
+    });
+
+    it("should not modify OpenAI tokens inside string values", () => {
+      const input = `{"description": "Token format: <|endoftext|>"}`;
+
+      const result = fixLlmTokenArtifacts(input);
+
+      // Should not change because it's inside a string
+      expect(result.changed).toBe(false);
+      expect(result.content).toBe(input);
+    });
+  });
+
+  describe("Common special tokens", () => {
+    it("should remove <pad> tokens", () => {
+      const input = `{"name": "test"}<pad><pad>`;
+
+      const result = fixLlmTokenArtifacts(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain("<pad>");
+    });
+
+    it("should remove <eos> tokens", () => {
+      const input = `{"name": "test"}<eos>`;
+
+      const result = fixLlmTokenArtifacts(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain("<eos>");
+    });
+
+    it("should remove <s> and </s> tokens", () => {
+      const input = `<s>{"name": "test"}</s>`;
+
+      const result = fixLlmTokenArtifacts(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain("<s>");
+      expect(result.content).not.toContain("</s>");
+    });
+
+    it("should remove <unk> tokens", () => {
+      const input = `{"name": <unk>"test"}`;
+
+      const result = fixLlmTokenArtifacts(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain("<unk>");
+    });
+  });
+
+  describe("BERT/Transformer token artifacts", () => {
+    it("should remove [EOS] tokens", () => {
+      const input = `{"name": "test"}[EOS]`;
+
+      const result = fixLlmTokenArtifacts(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain("[EOS]");
+      expect(result.content).toContain('"name": "test"');
+    });
+
+    it("should remove [PAD] tokens", () => {
+      const input = `{"name": "test"}[PAD][PAD][PAD]`;
+
+      const result = fixLlmTokenArtifacts(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain("[PAD]");
+    });
+
+    it("should remove [UNK] tokens", () => {
+      const input = `{"name": [UNK]"test"}`;
+
+      const result = fixLlmTokenArtifacts(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain("[UNK]");
+    });
+
+    it("should remove [CLS] and [SEP] tokens", () => {
+      const input = `[CLS]{"name": "test"}[SEP]`;
+
+      const result = fixLlmTokenArtifacts(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain("[CLS]");
+      expect(result.content).not.toContain("[SEP]");
+    });
+
+    it("should remove [MASK] tokens", () => {
+      const input = `{"name": [MASK]}`;
+
+      const result = fixLlmTokenArtifacts(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain("[MASK]");
+    });
+
+    it("should not modify BERT tokens inside string values", () => {
+      const input = `{"description": "Token: [EOS]"}`;
+
+      const result = fixLlmTokenArtifacts(input);
+
+      // Should not change because it's inside a string
+      expect(result.changed).toBe(false);
+      expect(result.content).toBe(input);
+    });
+  });
+
+  describe("Instruction tokens", () => {
+    it("should remove [INST] and [/INST] tokens", () => {
+      const input = `[INST]{"name": "test"}[/INST]`;
+
+      const result = fixLlmTokenArtifacts(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain("[INST]");
+      expect(result.content).not.toContain("[/INST]");
+    });
+  });
+
+  describe("Mixed token artifacts", () => {
+    it("should remove multiple different token types in one input", () => {
+      const input = `<|im_start|>{"name": "test", "value": 123}<|endoftext|>[EOS]<pad>`;
+
+      const result = fixLlmTokenArtifacts(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain("<|im_start|>");
+      expect(result.content).not.toContain("<|endoftext|>");
+      expect(result.content).not.toContain("[EOS]");
+      expect(result.content).not.toContain("<pad>");
+      expect(result.content).toContain('"name": "test"');
+    });
+
+    it("should handle token artifacts embedded in JSON structure", () => {
+      const input = `{
+        "items": [
+          {"name": "item1"},
+          <y_bin_100>{"name": "item2"},
+          {"name": "item3"}<|endoftext|>
+        ]
+      }`;
+
+      const result = fixLlmTokenArtifacts(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain("<y_bin_100>");
+      expect(result.content).not.toContain("<|endoftext|>");
     });
   });
 

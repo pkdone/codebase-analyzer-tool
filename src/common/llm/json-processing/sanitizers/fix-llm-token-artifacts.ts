@@ -8,11 +8,20 @@ import { isInStringAt } from "../utils/parser-context-utils";
  * Sanitizer that fixes LLM token artifacts in responses.
  *
  * This sanitizer addresses cases where LLM responses contain internal token artifacts
- * like `<y_bin_XXX>` that leak into the output, replacing parts of property names or appearing in JSON structures.
+ * that leak into the output, replacing parts of property names or appearing in JSON structures.
+ *
+ * Supported token artifact formats:
+ * - Vertex AI/Gemini: `<y_bin_123>`
+ * - OpenAI-style: `<|endoftext|>`, `<|im_start|>`, `<|im_end|>`, `<|assistant|>`
+ * - Common special tokens: `<pad>`, `<eos>`, `<bos>`, `<s>`, `</s>`, `<unk>`
+ * - BERT/Transformer: `[EOS]`, `[PAD]`, `[UNK]`, `[CLS]`, `[SEP]`, `[MASK]`
+ * - Instruction tokens: `[INST]`, `[/INST]`
  *
  * Examples of issues this sanitizer handles:
  * - `<y_bin_305>` -> removed (LLM token artifact)
  * - `<y_bin_XXX>OfCode":` -> `OfCode":` (removes artifact, let unifiedSyntaxSanitizer handle the typo)
+ * - `<|endoftext|>` -> removed (OpenAI end-of-text token)
+ * - `[EOS]` -> removed (end-of-sequence token)
  *
  * Strategy:
  * Simply removes all LLM token artifacts. The resulting typos (e.g., `OfCode"` instead of `linesOfCode"`)
