@@ -3,7 +3,7 @@ import {
   buildInstructionBlock,
   type InstructionSectionTitle,
   createDbMechanismInstructions,
-} from "../../../../src/app/prompts/definitions/instruction-utils";
+} from "../../../../src/app/prompts/utils/instruction-utils";
 
 describe("instruction-utils", () => {
   describe("INSTRUCTION_SECTION_TITLES", () => {

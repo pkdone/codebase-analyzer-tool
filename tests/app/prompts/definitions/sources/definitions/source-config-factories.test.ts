@@ -6,16 +6,16 @@ import {
   createStandardCodeConfig,
   scheduledJobFileSchema,
   type SourceSummaryField,
-} from "../../../../../../src/app/prompts/definitions/sources/definitions/shared-utilities";
+} from "../../../../../../src/app/prompts/definitions/sources/definitions/source-config-factories";
 import {
   INSTRUCTION_SECTION_TITLES,
   buildInstructionBlock,
-} from "../../../../../../src/app/prompts/definitions/instruction-utils";
+} from "../../../../../../src/app/prompts/utils/instruction-utils";
 import { SOURCES_PROMPT_FRAGMENTS } from "../../../../../../src/app/prompts/definitions/sources/sources.fragments";
 import { sourceSummarySchema } from "../../../../../../src/app/schemas/sources.schema";
 import { DATA_BLOCK_HEADERS } from "../../../../../../src/app/prompts/prompt.types";
 
-describe("shared-utilities", () => {
+describe("source-config-factories", () => {
   describe("createBasicInfoBlock", () => {
     it("should create the standard Basic Info block", () => {
       const result = createBasicInfoBlock();

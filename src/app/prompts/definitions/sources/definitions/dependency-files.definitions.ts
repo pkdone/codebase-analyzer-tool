@@ -1,5 +1,5 @@
 import { SOURCES_PROMPT_FRAGMENTS } from "../sources.fragments";
-import { createDependencyConfig, type SourceConfigEntry } from "./shared-utilities";
+import { createDependencyConfig, type SourceConfigEntry } from "./source-config-factories";
 
 /**
  * Source prompt definitions for dependency management files.

@@ -8,7 +8,7 @@ import {
   INSTRUCTION_SECTION_TITLES,
   buildInstructionBlock,
   type InstructionSectionTitle,
-} from "../../instruction-utils";
+} from "../../../utils/instruction-utils";
 import {
   sourceSummarySchema,
   commonSourceAnalysisSchema,

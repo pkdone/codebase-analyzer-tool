@@ -2,7 +2,7 @@ import { renderPrompt } from "../../../src/app/prompts/prompt-renderer";
 import { promptManager } from "../../../src/app/prompts/prompt-registry";
 import { SOURCES_PROMPT_FRAGMENTS } from "../../../src/app/prompts/definitions/sources/sources.fragments";
 import { APP_SUMMARY_PROMPT_FRAGMENTS } from "../../../src/app/prompts/definitions/app-summaries/app-summaries.fragments";
-import { INSTRUCTION_SECTION_TITLES } from "../../../src/app/prompts/definitions/instruction-utils";
+import { INSTRUCTION_SECTION_TITLES } from "../../../src/app/prompts/utils/instruction-utils";
 import { fileTypePromptRegistry } from "../../../src/app/prompts/definitions/sources/sources.definitions";
 import { appSummaryConfigMap } from "../../../src/app/prompts/definitions/app-summaries/app-summaries.definitions";
 import { z } from "zod";

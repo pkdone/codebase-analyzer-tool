@@ -22,22 +22,22 @@ const DEFAULT_CONTENT_DESC = "a set of source file summaries";
  * This eliminates duplication of the contentDesc field across all entries
  * and ensures consistent structure for all app summary configs.
  *
+ * Uses rest parameters for cleaner call sites - no array brackets or `as const` needed.
+ *
  * @template S - The Zod schema type for validating the LLM response
  * @param label - Display label for UI and logging
- * @param instructions - Array of instruction strings for the LLM
  * @param responseSchema - Zod schema for validating the LLM response
- * @param contentDesc - Optional content description (defaults to DEFAULT_CONTENT_DESC)
+ * @param instructions - One or more instruction strings for the LLM
  * @returns A fully configured AppSummaryConfigEntry
  */
 export function createAppSummaryConfig<S extends z.ZodType>(
   label: string,
-  instructions: readonly string[],
   responseSchema: S,
-  contentDesc: string = DEFAULT_CONTENT_DESC,
+  ...instructions: string[]
 ): AppSummaryConfigEntry<S> {
   return {
     label,
-    contentDesc,
+    contentDesc: DEFAULT_CONTENT_DESC,
     instructions,
     responseSchema,
     dataBlockHeader: DATA_BLOCK_HEADERS.FILE_SUMMARIES,
@@ -62,47 +62,39 @@ export function createAppSummaryConfig<S extends z.ZodType>(
 export const appSummaryConfigMap = {
   appDescription: createAppSummaryConfig(
     CATEGORY_LABELS.appDescription,
-    ["a detailed description of the application's purpose and implementation"] as const,
     appDescriptionSchema,
+    "a detailed description of the application's purpose and implementation",
   ),
   technologies: createAppSummaryConfig(
     CATEGORY_LABELS.technologies,
-    [
-      `${APP_SUMMARY_PROMPT_FRAGMENTS.COMPREHENSIVE_LIST} of key external and host platform technologies (including the names of programming languages used) depended on by the application`,
-    ] as const,
     technologiesSchema,
+    `${APP_SUMMARY_PROMPT_FRAGMENTS.COMPREHENSIVE_LIST} of key external and host platform technologies (including the names of programming languages used) depended on by the application`,
   ),
   businessProcesses: createAppSummaryConfig(
     CATEGORY_LABELS.businessProcesses,
-    [
-      `${APP_SUMMARY_PROMPT_FRAGMENTS.CONCISE_LIST} of the application's main business processes with their key business activity steps that are linearly conducted by each process`,
-    ] as const,
     businessProcessesSchema,
+    `${APP_SUMMARY_PROMPT_FRAGMENTS.CONCISE_LIST} of the application's main business processes with their key business activity steps that are linearly conducted by each process`,
   ),
   boundedContexts: createAppSummaryConfig(
     CATEGORY_LABELS.boundedContexts,
-    [
-      `${APP_SUMMARY_PROMPT_FRAGMENTS.CONCISE_LIST} of Domain-Driven Design Bounded Contexts that define explicit boundaries around related business capabilities. For each bounded context, include:
+    boundedContextsSchema,
+    `${APP_SUMMARY_PROMPT_FRAGMENTS.CONCISE_LIST} of Domain-Driven Design Bounded Contexts that define explicit boundaries around related business capabilities. For each bounded context, include:
 1. Its aggregates that enforce business rules and maintain consistency
 2. For each aggregate, include:
    - A repository that provides persistence for that aggregate
    - The domain entities it manages with their descriptions and relationships
 
 This hierarchical structure ensures consistent naming across all domain elements within each bounded context`,
-    ] as const,
-    boundedContextsSchema,
   ),
   potentialMicroservices: createAppSummaryConfig(
     CATEGORY_LABELS.potentialMicroservices,
-    [
-      `${APP_SUMMARY_PROMPT_FRAGMENTS.CONCISE_LIST} of recommended microservices to modernize the monolithic application architecture, each following the Single Responsibility Principle with detailed domain entities, defined CRUD operations, and REST API endpoints`,
-    ] as const,
     potentialMicroservicesSchema,
+    `${APP_SUMMARY_PROMPT_FRAGMENTS.CONCISE_LIST} of recommended microservices to modernize the monolithic application architecture, each following the Single Responsibility Principle with detailed domain entities, defined CRUD operations, and REST API endpoints`,
   ),
   inferredArchitecture: createAppSummaryConfig(
     CATEGORY_LABELS.inferredArchitecture,
-    [
-      `${APP_SUMMARY_PROMPT_FRAGMENTS.CONCISE_LIST} of BUSINESS DOMAIN components inferred from the codebase.
+    inferredArchitectureSchema,
+    `${APP_SUMMARY_PROMPT_FRAGMENTS.CONCISE_LIST} of BUSINESS DOMAIN components inferred from the codebase.
 
 IMPORTANT: Identify components by their BUSINESS CAPABILITY, not by their technical layer.
 
@@ -127,8 +119,6 @@ For each business component, describe its domain responsibilities and what busin
 Also identify:
 1. External systems that internal components actively depend on (databases, message queues, external APIs, caches). ONLY include external systems that have at least one dependency relationship with an internal component.
 2. Directed dependency relationships between all business components and external systems. Every external dependency listed MUST have at least one "from" relationship from an internal component.`,
-    ] as const,
-    inferredArchitectureSchema,
   ),
 } as const satisfies Record<string, AppSummaryConfigEntry>;
 

@@ -1,5 +1,5 @@
 import { SOURCES_PROMPT_FRAGMENTS } from "../sources.fragments";
-import { createStandardCodeConfig, type SourceConfigEntry } from "./shared-utilities";
+import { createStandardCodeConfig, type SourceConfigEntry } from "./source-config-factories";
 
 /**
  * Source prompt definitions for standard programming languages.

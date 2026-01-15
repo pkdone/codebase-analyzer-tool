@@ -1,5 +1,8 @@
 import { SOURCES_PROMPT_FRAGMENTS, COMPOSITES } from "../sources.fragments";
-import { INSTRUCTION_SECTION_TITLES, buildInstructionBlock } from "../../instruction-utils";
+import {
+  INSTRUCTION_SECTION_TITLES,
+  buildInstructionBlock,
+} from "../../../utils/instruction-utils";
 import { sourceSummarySchema } from "../../../../schemas/sources.schema";
 import { DATA_BLOCK_HEADERS } from "../../../prompt.types";
 import {
@@ -7,7 +10,7 @@ import {
   createBasicInfoBlock,
   createScheduledJobConfig,
   type SourceConfigEntry,
-} from "./shared-utilities";
+} from "./source-config-factories";
 
 /**
  * Source prompt definitions for special file types (SQL, Markdown, XML, JSP, scripts, etc.).

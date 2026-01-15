@@ -1,4 +1,4 @@
-import { createDbMechanismInstructions } from "../../instruction-utils";
+import { createDbMechanismInstructions } from "../../../utils/instruction-utils";
 import type { LanguageSpecificFragments } from "../sources.fragments";
 
 /**

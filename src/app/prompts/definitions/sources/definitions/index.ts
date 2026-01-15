@@ -9,7 +9,7 @@ export {
   createDependencyConfig,
   createSimpleConfig,
   createStandardCodeConfig,
-} from "./shared-utilities";
+} from "./source-config-factories";
 
 export { standardCodeDefinitions } from "./standard-code.definitions";
 export { dependencyFileDefinitions } from "./dependency-files.definitions";
