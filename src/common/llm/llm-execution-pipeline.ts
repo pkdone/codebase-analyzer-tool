@@ -94,7 +94,9 @@ export class LLMExecutionPipeline {
           this.llmStats.recordJsonMutated();
         }
 
-        if (!result.generated) {
+        // Check for undefined specifically to distinguish between "no content generated"
+        // (undefined) and "content is null" (valid response type in LLMGeneratedContent)
+        if (result.generated === undefined) {
           logWarn(
             `LLM response has COMPLETED status but generated no content for resource: '${resourceName}'`,
             context,

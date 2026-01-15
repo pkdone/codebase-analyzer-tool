@@ -202,7 +202,7 @@ describe("Type Safety Call Chain Improvements", () => {
       }
     });
 
-    it("should return Record<string, unknown> when no schema provided", () => {
+    it("should return unknown when no schema provided", () => {
       const json = '{"key": "value", "number": 42, "nested": {"prop": true}}';
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
 
@@ -210,8 +210,8 @@ describe("Type Safety Call Chain Improvements", () => {
 
       expect(result.success).toBe(true);
       if (result.success) {
-        // Type should be Record<string, unknown>
-        const data: Record<string, unknown> = result.data;
+        // Type is unknown when no schema is provided - callers must cast or use a schema
+        const data = result.data as Record<string, unknown>;
         expect(data.key).toBe("value");
         expect(data.number).toBe(42);
         expect(typeof data.nested).toBe("object");

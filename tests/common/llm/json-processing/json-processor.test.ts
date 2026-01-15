@@ -472,7 +472,7 @@ describe("parseAndValidateLLMJson", () => {
       expect(result.success).toBe(true);
       if (result.success) {
         expect(Array.isArray(result.data)).toBe(true);
-        expect((result.data as unknown as any[]).length).toBe(1000);
+        expect((result.data as unknown[]).length).toBe(1000);
       }
     });
 

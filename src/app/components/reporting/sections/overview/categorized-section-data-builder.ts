@@ -14,11 +14,7 @@ import {
 } from "./category-data-type-guards";
 
 // Re-export types and type guards that consumers may need
-export type {
-  CategorizedSectionItem,
-  CategorizedDataItem,
-  BoundedContextsArray,
-} from "./category-data-type-guards";
+export type { CategorizedSectionItem, BoundedContextsArray } from "./category-data-type-guards";
 export {
   isCategorizedDataNameDescArray,
   isCategorizedDataInferredArchitecture,

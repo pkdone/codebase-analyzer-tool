@@ -7,12 +7,13 @@ import {
   isBusinessProcessesArray,
   parseInferredArchitectureData,
   wrapInferredArchitectureAsArray,
-  type CategorizedDataItem,
   type CategorizedSectionItem,
   type PotentialMicroservicesArray,
   type BoundedContextsArray,
   type BusinessProcessesArray,
+  type InferredArchitectureInner,
 } from "../../../../../../src/app/components/reporting/sections/overview/category-data-type-guards";
+import type { AppSummaryNameDescArray } from "../../../../../../src/app/repositories/app-summaries/app-summaries.model";
 
 describe("category-data-type-guards", () => {
   describe("isAppSummaryNameDescArray", () => {
@@ -48,12 +49,12 @@ describe("category-data-type-guards", () => {
 
   describe("isCategorizedDataNameDescArray", () => {
     it("should return true for valid name-description array", () => {
-      const data: CategorizedDataItem = [{ name: "Tech", description: "Technology item" }];
+      const data: AppSummaryNameDescArray = [{ name: "Tech", description: "Technology item" }];
       expect(isCategorizedDataNameDescArray(data)).toBe(true);
     });
 
     it("should return false for inferred architecture data", () => {
-      const archData: CategorizedDataItem = [
+      const archData: InferredArchitectureInner[] = [
         {
           internalComponents: [{ name: "Component", description: "Desc" }],
           externalDependencies: [],
@@ -62,11 +63,18 @@ describe("category-data-type-guards", () => {
       ];
       expect(isCategorizedDataNameDescArray(archData)).toBe(false);
     });
+
+    it("should return false for non-array values", () => {
+      expect(isCategorizedDataNameDescArray(null)).toBe(false);
+      expect(isCategorizedDataNameDescArray(undefined)).toBe(false);
+      expect(isCategorizedDataNameDescArray("string")).toBe(false);
+      expect(isCategorizedDataNameDescArray(123)).toBe(false);
+    });
   });
 
   describe("isCategorizedDataInferredArchitecture", () => {
     it("should return true for valid inferred architecture array", () => {
-      const archData: CategorizedDataItem = [
+      const archData: InferredArchitectureInner[] = [
         {
           internalComponents: [{ name: "Component", description: "Desc" }],
           externalDependencies: [{ name: "DB", type: "Database", description: "Main DB" }],
@@ -81,8 +89,15 @@ describe("category-data-type-guards", () => {
     });
 
     it("should return false for name-description array", () => {
-      const data: CategorizedDataItem = [{ name: "Tech", description: "Technology item" }];
+      const data: AppSummaryNameDescArray = [{ name: "Tech", description: "Technology item" }];
       expect(isCategorizedDataInferredArchitecture(data)).toBe(false);
+    });
+
+    it("should return false for non-array values", () => {
+      expect(isCategorizedDataInferredArchitecture(null)).toBe(false);
+      expect(isCategorizedDataInferredArchitecture(undefined)).toBe(false);
+      expect(isCategorizedDataInferredArchitecture("string")).toBe(false);
+      expect(isCategorizedDataInferredArchitecture(123)).toBe(false);
     });
   });
 

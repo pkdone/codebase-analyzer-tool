@@ -6,7 +6,6 @@ export { AppStatisticsDataProvider } from "./app-statistics-data-provider";
 export {
   CategorizedSectionDataBuilder,
   type CategorizedSectionItem,
-  type CategorizedDataItem,
   isCategorizedDataNameDescArray,
   isCategorizedDataInferredArchitecture,
 } from "./categorized-section-data-builder";

@@ -220,7 +220,8 @@ describe("json-processing", () => {
         expect(result.success).toBe(true);
         if (result.success) {
           // No transforms applied - null should remain as null
-          const data = result.data;
+          // Cast is needed since no schema was provided, type defaults to unknown
+          const data = result.data as Record<string, unknown>;
           expect(data.name).toBe("test");
           expect("groupId" in data).toBe(true); // null is still present
           expect(data.groupId).toBeNull();
@@ -312,7 +313,7 @@ describe("json-processing", () => {
         }
       });
 
-      it("should return Record<string, unknown> when no schema is provided", () => {
+      it("should return unknown when no schema is provided", () => {
         const json = '{"key": "value", "number": 42}';
         const completionOptions = { outputFormat: LLMOutputFormat.JSON };
 
@@ -320,8 +321,8 @@ describe("json-processing", () => {
 
         expect(result.success).toBe(true);
         if (result.success) {
-          // Type should be Record<string, unknown>
-          const data: Record<string, unknown> = result.data;
+          // Type is unknown when no schema is provided - callers must cast or use a schema
+          const data = result.data as Record<string, unknown>;
           expect(data.key).toBe("value");
           expect(data.number).toBe(42);
         }
@@ -453,10 +454,9 @@ describe("json-processing", () => {
         expect(result.success).toBe(true);
         if (result.success) {
           // Runtime behavior: arrays are accepted and parsed correctly
-          // Note: result.data is typed as Record<string, unknown> but at runtime is an array
-          // This demonstrates the type limitation documented in parseAndValidateLLMJson comments
+          // result.data is typed as unknown when no schema is provided
           expect(Array.isArray(result.data)).toBe(true);
-          expect((result.data as unknown as unknown[]).length).toBe(2);
+          expect((result.data as unknown[]).length).toBe(2);
         }
       });
 

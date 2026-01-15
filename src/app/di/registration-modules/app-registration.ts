@@ -74,8 +74,6 @@ function registerRepositories(): void {
 /**
  * Register component implementations that other parts of the system depend on.
  * Delegates to domain-specific registration modules for better organization.
- * Always registers all components since tsyringe uses lazy-loading - components
- * are only instantiated when actually resolved.
  *
  * Note: LLM core components (RetryStrategy, LLMExecutionPipeline) are NOT registered
  * here because the LLMRouter is created via a factory pattern in llm-registration.ts

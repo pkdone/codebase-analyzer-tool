@@ -127,9 +127,10 @@ function buildEffectiveSanitizerConfig(
  *
  * The function is generic over the schema type, enabling type-safe validation:
  * - When a schema is provided, returns z.infer<S> where S is the schema type
- * - When no schema is provided, returns Record<string, unknown>
+ * - When no schema is provided, returns unknown to avoid unsafe type assumptions
  *
  * @template S - The Zod schema type. When provided, the return type is inferred from the schema.
+ *               When not provided, defaults to unknown to avoid unsafe type assumptions.
  * @param content - The LLM-generated content to parse and validate
  * @param context - Context information about the LLM request
  * @param completionOptions - Options including output format and optional JSON schema
@@ -137,7 +138,7 @@ function buildEffectiveSanitizerConfig(
  * @param config - Optional sanitizer configuration to pass to transforms
  * @returns A JsonProcessorResult indicating success with validated data and repairs, or failure with an error
  */
-export function parseAndValidateLLMJson<S extends z.ZodType = z.ZodType<Record<string, unknown>>>(
+export function parseAndValidateLLMJson<S extends z.ZodType = z.ZodType<unknown>>(
   content: LLMGeneratedContent,
   context: LLMContext,
   completionOptions: LLMCompletionOptions<S>,
@@ -205,13 +206,11 @@ export function parseAndValidateLLMJson<S extends z.ZodType = z.ZodType<Record<s
   const { jsonSchema } = completionOptions;
 
   // If no schema provided, return parsed data without validation.
-  // The default return type is Record<string, unknown>, which is a pragmatic default
-  // for the common case where parsed JSON is an object.
+  // The default return type is unknown, which forces callers to handle the type explicitly.
+  // Callers should provide a schema for proper type inference.
   if (!jsonSchema) {
     // Type guard ensures the data is an object or array (not a primitive or null).
     // Note: typeof returns "object" for both objects AND arrays, so arrays pass this check.
-    // However, the return type Record<string, unknown> does not accurately represent arrays.
-    // Callers expecting array responses should provide an explicit schema for proper typing.
     if (typeof parseResult.data !== "object" || parseResult.data === null) {
       return {
         success: false,
@@ -226,8 +225,8 @@ export function parseAndValidateLLMJson<S extends z.ZodType = z.ZodType<Record<s
     logRepairs(repairs, context, loggingEnabled);
     return {
       success: true,
-      // Cast is safe for objects. Arrays pass at runtime but callers expecting arrays
-      // should provide an explicit schema for compile-time type safety.
+      // Cast is necessary because we can't infer the type without a schema.
+      // Callers should provide a schema for proper type inference.
       data: parseResult.data as z.infer<S>,
       repairs,
       pipelineSteps: parseResult.pipelineSteps,

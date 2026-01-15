@@ -1098,11 +1098,39 @@ describe("LLM Router tests", () => {
       expect(isOk(result)).toBe(false);
     });
 
-    test("should handle completion with null generated content as failure", async () => {
+    test("should handle completion with null generated content as success", async () => {
+      // null is a valid member of LLMGeneratedContent, representing "absence of content"
+      // but still a valid response that was intentionally returned by the LLM
       const { router, mockProvider } = createLLMRouter();
       (mockProvider.executeCompletionPrimary as any).mockResolvedValue({
         status: LLMResponseStatus.COMPLETED,
         generated: null,
+        request: "test prompt",
+        modelKey: "GPT_COMPLETIONS_GPT4",
+        context: {},
+      });
+      const result = await router.executeCompletion(
+        "test-resource",
+        "test prompt",
+        {
+          outputFormat: LLMOutputFormat.TEXT,
+        },
+        null,
+      );
+
+      // null is a valid response type in LLMGeneratedContent, should succeed
+      expect(isOk(result)).toBe(true);
+      if (isOk(result)) {
+        expect(result.value).toBeNull();
+      }
+    });
+
+    test("should handle completion with undefined generated content as failure", async () => {
+      // undefined means no content was generated - this is an error case
+      const { router, mockProvider } = createLLMRouter();
+      (mockProvider.executeCompletionPrimary as any).mockResolvedValue({
+        status: LLMResponseStatus.COMPLETED,
+        generated: undefined,
         request: "test prompt",
         modelKey: "GPT_COMPLETIONS_GPT4",
         context: {},

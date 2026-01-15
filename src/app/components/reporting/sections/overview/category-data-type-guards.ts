@@ -90,12 +90,6 @@ export type CategorizedSectionItem =
   | BaseCategorizedItem<"potentialMicroservices", PotentialMicroservicesArray>
   | BaseCategorizedItem<"inferredArchitecture", InferredArchitectureInner[]>;
 
-/**
- * Legacy union type for categorized data (deprecated, use CategorizedSectionItem instead).
- * Kept for backward compatibility with existing code that doesn't use the discriminated union.
- */
-export type CategorizedDataItem = AppSummaryNameDescArray | InferredArchitectureInner[];
-
 // =============================================================================
 // Type Guards for Category-Specific Arrays
 // =============================================================================
@@ -147,19 +141,19 @@ function isInferredArchitectureInnerArray(data: unknown): data is InferredArchit
 }
 
 /**
- * Type guard to check if categorized data item is AppSummaryNameDescArray.
+ * Type guard to check if a value is AppSummaryNameDescArray.
+ * Useful when narrowing data from CategorizedSectionItem in report generation.
  */
-export function isCategorizedDataNameDescArray(
-  data: CategorizedDataItem,
-): data is AppSummaryNameDescArray {
+export function isCategorizedDataNameDescArray(data: unknown): data is AppSummaryNameDescArray {
   return isAppSummaryNameDescArray(data);
 }
 
 /**
- * Type guard to check if categorized data item is InferredArchitectureInner[].
+ * Type guard to check if a value is InferredArchitectureInner[].
+ * Useful when narrowing data from CategorizedSectionItem in report generation.
  */
 export function isCategorizedDataInferredArchitecture(
-  data: CategorizedDataItem,
+  data: unknown,
 ): data is InferredArchitectureInner[] {
   return isInferredArchitectureInnerArray(data);
 }

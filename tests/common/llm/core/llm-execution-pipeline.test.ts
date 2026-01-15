@@ -642,4 +642,190 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
       }
     });
   });
+
+  describe("Null vs Undefined Content Handling", () => {
+    /**
+     * Tests that verify the pipeline correctly distinguishes between:
+     * - undefined: No content was generated (error case)
+     * - null: Content is null, which is a valid value in LLMGeneratedContent
+     */
+
+    test("should return success when generated content is null", async () => {
+      // null is a valid member of LLMGeneratedContent representing "absence of content"
+      // but still a valid response that was intentionally returned
+      const mockLLMFunction = createMockLLMFunction({
+        status: LLMResponseStatus.COMPLETED,
+        request: "test",
+        modelKey: "test-model",
+        context: { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        generated: null,
+      });
+
+      const context: LLMContext = {
+        resource: "test-resource",
+        purpose: LLMPurpose.COMPLETIONS,
+      };
+
+      const result = await pipeline.execute({
+        resourceName: "test-resource",
+        content: "test prompt",
+        context,
+        llmFunctions: [mockLLMFunction],
+        providerRetryConfig: {
+          requestTimeoutMillis: 60000,
+          maxRetryAttempts: 3,
+          minRetryDelayMillis: 100,
+          maxRetryDelayMillis: 1000,
+        },
+        modelsMetadata: {},
+      });
+
+      // null is a valid response type in LLMGeneratedContent, should succeed
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data).toBeNull();
+      }
+    });
+
+    test("should return error when generated content is explicitly undefined", async () => {
+      // undefined means no content was generated - this is an error case
+      const mockLLMFunction = createMockLLMFunction({
+        status: LLMResponseStatus.COMPLETED,
+        request: "test",
+        modelKey: "test-model",
+        context: { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        generated: undefined,
+      });
+
+      const context: LLMContext = {
+        resource: "test-resource",
+        purpose: LLMPurpose.COMPLETIONS,
+      };
+
+      const result = await pipeline.execute({
+        resourceName: "test-resource",
+        content: "test prompt",
+        context,
+        llmFunctions: [mockLLMFunction],
+        providerRetryConfig: {
+          requestTimeoutMillis: 60000,
+          maxRetryAttempts: 3,
+          minRetryDelayMillis: 100,
+          maxRetryDelayMillis: 1000,
+        },
+        modelsMetadata: {},
+      });
+
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.message).toContain("generated no content");
+      }
+    });
+
+    test("should return success when generated content is empty string", async () => {
+      // Empty string is a valid string response (though unusual for LLM output)
+      const mockLLMFunction = createMockLLMFunction({
+        status: LLMResponseStatus.COMPLETED,
+        request: "test",
+        modelKey: "test-model",
+        context: { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        generated: "",
+      });
+
+      const context: LLMContext = {
+        resource: "test-resource",
+        purpose: LLMPurpose.COMPLETIONS,
+      };
+
+      const result = await pipeline.execute({
+        resourceName: "test-resource",
+        content: "test prompt",
+        context,
+        llmFunctions: [mockLLMFunction],
+        providerRetryConfig: {
+          requestTimeoutMillis: 60000,
+          maxRetryAttempts: 3,
+          minRetryDelayMillis: 100,
+          maxRetryDelayMillis: 1000,
+        },
+        modelsMetadata: {},
+      });
+
+      // Empty string is a valid string value, should succeed
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data).toBe("");
+      }
+    });
+
+    test("should return success when generated content is empty object", async () => {
+      // Empty object is valid JSON
+      const mockLLMFunction = createMockLLMFunction({
+        status: LLMResponseStatus.COMPLETED,
+        request: "test",
+        modelKey: "test-model",
+        context: { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        generated: {},
+      });
+
+      const context: LLMContext = {
+        resource: "test-resource",
+        purpose: LLMPurpose.COMPLETIONS,
+      };
+
+      const result = await pipeline.execute({
+        resourceName: "test-resource",
+        content: "test prompt",
+        context,
+        llmFunctions: [mockLLMFunction],
+        providerRetryConfig: {
+          requestTimeoutMillis: 60000,
+          maxRetryAttempts: 3,
+          minRetryDelayMillis: 100,
+          maxRetryDelayMillis: 1000,
+        },
+        modelsMetadata: {},
+      });
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data).toEqual({});
+      }
+    });
+
+    test("should return success when generated content is empty array", async () => {
+      // Empty array is valid JSON
+      const mockLLMFunction = createMockLLMFunction({
+        status: LLMResponseStatus.COMPLETED,
+        request: "test",
+        modelKey: "test-model",
+        context: { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        generated: [] as unknown[],
+      });
+
+      const context: LLMContext = {
+        resource: "test-resource",
+        purpose: LLMPurpose.COMPLETIONS,
+      };
+
+      const result = await pipeline.execute({
+        resourceName: "test-resource",
+        content: "test prompt",
+        context,
+        llmFunctions: [mockLLMFunction],
+        providerRetryConfig: {
+          requestTimeoutMillis: 60000,
+          maxRetryAttempts: 3,
+          minRetryDelayMillis: 100,
+          maxRetryDelayMillis: 1000,
+        },
+        modelsMetadata: {},
+      });
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data).toEqual([]);
+      }
+    });
+  });
 });

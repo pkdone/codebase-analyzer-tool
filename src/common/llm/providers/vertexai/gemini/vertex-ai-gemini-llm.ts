@@ -93,8 +93,8 @@ export default class VertexAIGeminiLLM extends BaseLLMProvider {
       // VertexAI SDK doesn't have explicit VertexAI.close() method and HTTP connections may persist
       // so can't clean up `this.vertexAiApiClient` properly.
       // This is documented behavior - see: https://github.com/googleapis/nodejs-pubsub/issues/1190
-      // Use timeout-based cleanup as the recommended workaround at the end of the program to allow
-      // the process to terminate.
+      // This provider returns ShutdownBehavior.REQUIRES_PROCESS_EXIT to instruct the application
+      // runner to force terminate the process after work is complete.
     } catch (error: unknown) {
       logErr("Error when closing Vertex AI Gemini LLM clients", error);
     }
