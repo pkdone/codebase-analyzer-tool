@@ -222,16 +222,20 @@ describe("BaseLLMProvider Configuration Validation", () => {
       expect(data.count).toBe(42);
     });
 
-    it("should accept JSON format without jsonSchema (untyped JSON)", async () => {
+    it("should require jsonSchema for JSON format", async () => {
+      // JSON format now requires a schema for type-safe validation
       testLLM.setMockResponse('{"key": "value", "number": 123}');
 
       const result = await testLLM.executeCompletionPrimary("test prompt", testContext, {
         outputFormat: LLMOutputFormat.JSON,
       });
 
-      expect(result.status).toBe(LLMResponseStatus.COMPLETED);
-      expect(result.generated).toBeDefined();
-      expect(typeof result.generated).toBe("object");
+      // Error is returned in status, not thrown
+      expect(result.status).toBe(LLMResponseStatus.ERRORED);
+      expect(result.error).toBeDefined();
+      expect(String(result.error)).toContain(
+        "JSON output requires a schema for type-safe validation",
+      );
     });
 
     it("should accept no options (defaults to TEXT)", async () => {

@@ -395,12 +395,19 @@ describe("Abstract LLM Sanitization Steps Propagation", () => {
   });
 
   describe("JSON response with sanitization steps", () => {
+    // Schema for tests - JSON output now requires a schema
+    const testSchema = z.object({
+      name: z.string(),
+      value: z.number(),
+    });
+
     test("should have empty sanitization steps for clean JSON with whitespace", async () => {
       // JSON with leading/trailing whitespace is handled by JSON.parse naturally
       testLLM.setMockResponse('  {"name": "test", "value": 123}  ');
 
       const result = await testLLM.executeCompletionPrimary("test prompt", testContext, {
         outputFormat: LLMOutputFormat.JSON,
+        jsonSchema: testSchema,
       });
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
@@ -414,6 +421,7 @@ describe("Abstract LLM Sanitization Steps Propagation", () => {
 
       const result = await testLLM.executeCompletionPrimary("test prompt", testContext, {
         outputFormat: LLMOutputFormat.JSON,
+        jsonSchema: testSchema,
       });
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
@@ -432,6 +440,7 @@ describe("Abstract LLM Sanitization Steps Propagation", () => {
 
       const result = await testLLM.executeCompletionPrimary("test prompt", testContext, {
         outputFormat: LLMOutputFormat.JSON,
+        jsonSchema: testSchema,
       });
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
@@ -445,6 +454,7 @@ describe("Abstract LLM Sanitization Steps Propagation", () => {
 
       const result = await testLLM.executeCompletionPrimary("test prompt", testContext, {
         outputFormat: LLMOutputFormat.JSON,
+        jsonSchema: testSchema,
       });
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
@@ -470,6 +480,7 @@ describe("Abstract LLM Sanitization Steps Propagation", () => {
 
       const result = await testLLM.executeCompletionPrimary("test prompt", testContext, {
         outputFormat: LLMOutputFormat.JSON,
+        jsonSchema: testSchema,
       });
 
       expect(result.status).toBe(LLMResponseStatus.INVALID);

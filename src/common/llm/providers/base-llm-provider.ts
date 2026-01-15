@@ -369,9 +369,21 @@ export default abstract class BaseLLMProvider implements LLMProvider {
       };
     }
 
+    // Configuration validation: JSON format requires a jsonSchema.
+    // This enforces the public API contract (LLMRouter.executeCompletion overloads) at the
+    // internal boundary, providing defense-in-depth type safety. Without a schema, we cannot
+    // provide meaningful type inference, so JSON output requires explicit schema validation.
+    if (!completionOptions.jsonSchema) {
+      throw new LLMError(
+        LLMErrorCode.BAD_CONFIGURATION,
+        "Configuration error: outputFormat is JSON but no jsonSchema was provided. " +
+          "JSON output requires a schema for type-safe validation.",
+      );
+    }
+
     // Process JSON with schema-aware type inference.
-    // The jsonSchema from completionOptions carries the type information through the chain.
-    // With the simplified generic approach using S directly, type inference should work correctly.
+    // After the runtime check above, we know jsonSchema is defined.
+    // The type information flows through the generic parameter S from completionOptions.
     const jsonProcessingResult = parseAndValidateLLMJson(
       responseContent,
       context,

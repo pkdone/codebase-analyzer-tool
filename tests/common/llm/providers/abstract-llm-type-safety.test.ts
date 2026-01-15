@@ -333,22 +333,21 @@ describe("Abstract LLM Type Safety", () => {
       }
     });
 
-    test("should handle type inference without schema (defaults to Record<string, unknown>)", async () => {
+    test("should require schema for JSON output format", async () => {
       testLLM.setMockResponse('{"key1": "value1", "key2": 42, "key3": true}');
 
+      // JSON output format now requires a jsonSchema for type-safe validation.
+      // This enforces the API contract that typed JSON output needs a schema.
       const result = await testLLM.executeCompletionPrimary("test prompt", testContext, {
         outputFormat: LLMOutputFormat.JSON,
       });
 
-      expect(result.status).toBe(LLMResponseStatus.COMPLETED);
-      expect(result.generated).toBeDefined();
-
-      if (result.status === LLMResponseStatus.COMPLETED && result.generated) {
-        // Without schema, type should default to LLMGeneratedContent (which is string | Record<string, unknown>)
-        // But since we're processing JSON, it should be Record<string, unknown>
-        expect(typeof result.generated).toBe("object");
-        expect(result.generated).not.toBeNull();
-      }
+      // Error is returned in the response status, not thrown
+      expect(result.status).toBe(LLMResponseStatus.ERRORED);
+      expect(result.error).toBeDefined();
+      expect(String(result.error)).toContain(
+        "JSON output requires a schema for type-safe validation",
+      );
     });
   });
 
@@ -445,19 +444,75 @@ describe("Abstract LLM Type Safety", () => {
       }
     });
 
-    test("should handle JSON processing without schema using type narrowing", async () => {
+    test("should return error when JSON output format is used without schema", async () => {
       testLLM.setMockResponse('{"key": "value", "number": 123}');
 
-      // When no jsonSchema is provided, type narrowing should still work
+      // JSON output format requires a jsonSchema for type-safe validation.
+      // This enforces the public API contract at the internal boundary.
       const result = await testLLM.executeCompletionPrimary("test prompt", testContext, {
         outputFormat: LLMOutputFormat.JSON,
       });
 
+      expect(result.status).toBe(LLMResponseStatus.ERRORED);
+      expect(result.error).toBeDefined();
+      expect(String(result.error)).toContain(
+        "JSON output requires a schema for type-safe validation",
+      );
+    });
+  });
+
+  describe("Configuration validation for output format and schema", () => {
+    test("should return error for JSON output without schema", async () => {
+      testLLM.setMockResponse('{"key": "value"}');
+
+      const result = await testLLM.executeCompletionPrimary("test prompt", testContext, {
+        outputFormat: LLMOutputFormat.JSON,
+      });
+
+      expect(result.status).toBe(LLMResponseStatus.ERRORED);
+      expect(result.error).toBeDefined();
+      expect(String(result.error)).toContain("outputFormat is JSON but no jsonSchema was provided");
+    });
+
+    test("should return error for TEXT output with schema", async () => {
+      const schema = z.object({ key: z.string() });
+      testLLM.setMockResponse("plain text response");
+
+      const result = await testLLM.executeCompletionPrimary("test prompt", testContext, {
+        outputFormat: LLMOutputFormat.TEXT,
+        jsonSchema: schema,
+      });
+
+      expect(result.status).toBe(LLMResponseStatus.ERRORED);
+      expect(result.error).toBeDefined();
+      expect(String(result.error)).toContain("jsonSchema was provided but outputFormat is TEXT");
+    });
+
+    test("should succeed for TEXT output without schema", async () => {
+      testLLM.setMockResponse("plain text response");
+
+      const result = await testLLM.executeCompletionPrimary("test prompt", testContext, {
+        outputFormat: LLMOutputFormat.TEXT,
+      });
+
+      expect(result.status).toBe(LLMResponseStatus.COMPLETED);
+      expect(result.generated).toBe("plain text response");
+    });
+
+    test("should succeed for JSON output with valid schema", async () => {
+      const schema = z.object({ key: z.string(), value: z.number() });
+      testLLM.setMockResponse('{"key": "test", "value": 42}');
+
+      const result = await testLLM.executeCompletionPrimary("test prompt", testContext, {
+        outputFormat: LLMOutputFormat.JSON,
+        jsonSchema: schema,
+      });
+
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
       if (result.status === LLMResponseStatus.COMPLETED && result.generated) {
-        // Without schema, should default to Record<string, unknown>
-        expect(typeof result.generated).toBe("object");
-        expect(result.generated).not.toBeNull();
+        const data = result.generated as { key: string; value: number };
+        expect(data.key).toBe("test");
+        expect(data.value).toBe(42);
       }
     });
   });

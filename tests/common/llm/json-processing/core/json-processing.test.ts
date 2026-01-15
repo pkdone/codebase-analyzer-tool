@@ -528,5 +528,44 @@ describe("json-processing", () => {
         }
       });
     });
+
+    describe("type inference behavior", () => {
+      it("should infer typed result when schema is provided", () => {
+        const schema = z.object({
+          name: z.string(),
+          count: z.number(),
+        });
+        const json = '{"name": "test", "count": 42}';
+        // When jsonSchema is provided, the return type is inferred as z.infer<S>
+        const completionOptions = {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: schema,
+        };
+        const result = parseAndValidateLLMJson(json, context, completionOptions);
+
+        expect(result.success).toBe(true);
+        if (result.success) {
+          // TypeScript infers result.data as { name: string; count: number }
+          expect(result.data.name).toBe("test");
+          expect(result.data.count).toBe(42);
+        }
+      });
+
+      it("should return unknown type when schema is not provided", () => {
+        const json = '{"key": "value", "number": 123}';
+        // When jsonSchema is not provided, the generic defaults to z.ZodType<unknown>,
+        // making z.infer<S> resolve to unknown
+        const completionOptions = { outputFormat: LLMOutputFormat.JSON };
+        const result = parseAndValidateLLMJson(json, context, completionOptions);
+
+        expect(result.success).toBe(true);
+        if (result.success) {
+          // result.data is typed as unknown - must cast for property access
+          const data = result.data as Record<string, unknown>;
+          expect(data.key).toBe("value");
+          expect(data.number).toBe(123);
+        }
+      });
+    });
   });
 });

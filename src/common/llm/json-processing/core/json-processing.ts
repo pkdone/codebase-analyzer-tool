@@ -125,12 +125,17 @@ function buildEffectiveSanitizerConfig(
  * 3. Schema validation against the provided Zod schema
  * 4. Schema-fixing transforms (coercion)
  *
- * The function is generic over the schema type, enabling type-safe validation:
- * - When a schema is provided, returns z.infer<S> where S is the schema type
- * - When no schema is provided, returns unknown to avoid unsafe type assumptions
+ * Type safety behavior:
+ * - When jsonSchema is provided, the return type is inferred from the schema (z.infer<S>)
+ * - When jsonSchema is not provided, the generic S defaults to z.ZodType<unknown>, making
+ *   z.infer<S> resolve to `unknown`. This forces callers to handle the untyped data explicitly.
+ *
+ * Note: For enforced type safety at the API boundary, callers should use BaseLLMProvider
+ * which validates that JSON output format requires a schema, preventing schema-less JSON
+ * processing at the provider level.
  *
  * @template S - The Zod schema type. When provided, the return type is inferred from the schema.
- *               When not provided, defaults to unknown to avoid unsafe type assumptions.
+ *               When not provided, defaults to z.ZodType<unknown> for type-safe handling.
  * @param content - The LLM-generated content to parse and validate
  * @param context - Context information about the LLM request
  * @param completionOptions - Options including output format and optional JSON schema
