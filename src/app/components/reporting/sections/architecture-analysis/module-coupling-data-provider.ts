@@ -4,7 +4,7 @@ import type { SourcesRepository } from "../../../../repositories/sources/sources
 import { repositoryTokens } from "../../../../di/tokens";
 import type { ModuleCoupling } from "./architecture-analysis.types";
 import { moduleCouplingConfig } from "../../config/module-coupling.config";
-import { calculateCouplingLevel } from "../../utils/view-helpers";
+import { calculateCouplingLevel } from "../../view-models/presentation-helpers";
 
 type ModuleCouplingMap = Record<string, Record<string, number>>;
 

@@ -102,11 +102,12 @@ describe("visualization-data-extractors", () => {
       expect(isInferredArchitectureCategoryData(data)).toBe(true);
     });
 
-    it("should return true for partial architecture data", () => {
+    it("should return false for partial architecture data (missing required fields)", () => {
       const data = {
         internalComponents: [{ name: "Component", description: "Desc" }],
       };
-      expect(isInferredArchitectureCategoryData(data)).toBe(true);
+      // Schema now requires all three fields
+      expect(isInferredArchitectureCategoryData(data)).toBe(false);
     });
 
     it("should return false for invalid internal component structure", () => {

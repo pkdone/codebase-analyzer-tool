@@ -32,7 +32,7 @@ export type ProjectedSourceFilePathAndSummary = z.infer<
 /**
  * Type for MongoDB projected document with metadata, content and summary for vector search
  */
-export type ProjectedSourceMetataContentAndSummary = z.infer<
+export type ProjectedSourceMetadataContentAndSummary = z.infer<
   ReturnType<
     typeof sourceSchema.pick<{
       projectName: true;

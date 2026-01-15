@@ -11,7 +11,7 @@ describe("File Handler Configuration", () => {
     jest.clearAllMocks();
   });
 
-  describe("fileTypeMetataDataAndPromptTemplate", () => {
+  describe("fileTypeMetadataDataAndPromptTemplate", () => {
     test("should be a Record with expected file types", () => {
       expect(typeof fileTypePromptMetadata).toBe("object");
       expect(fileTypePromptMetadata).not.toBeNull();

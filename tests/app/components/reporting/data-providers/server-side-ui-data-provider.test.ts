@@ -243,7 +243,7 @@ describe("ServerSideUiDataProvider", () => {
       expect(result.filesWithHighScriptletCount).toBeGreaterThan(0);
     });
 
-    it("should include debt level for top scriptlet files", async () => {
+    it("should return raw data without presentation fields (CSS classes)", async () => {
       mockSourcesRepository.getProjectSourcesSummariesByFileType.mockResolvedValue([
         createMockJspFile("debt.jsp", {
           scriptletCount: 100,
@@ -254,8 +254,43 @@ describe("ServerSideUiDataProvider", () => {
 
       const result = await provider.getUiTechnologyAnalysis("test-project");
 
-      expect(result.topScriptletFiles[0]).toHaveProperty("debtLevel");
-      expect(result.topScriptletFiles[0]).toHaveProperty("debtLevelClass");
+      // Raw data should NOT have presentation fields
+      expect(result).not.toHaveProperty("totalScriptletsCssClass");
+      expect(result).not.toHaveProperty("filesWithHighScriptletCountCssClass");
+      expect(result).not.toHaveProperty("showHighDebtAlert");
+
+      // Top scriptlet files should NOT have debt level presentation fields
+      expect(result.topScriptletFiles[0]).not.toHaveProperty("debtLevel");
+      expect(result.topScriptletFiles[0]).not.toHaveProperty("debtLevelClass");
+
+      // But should have raw metrics
+      expect(result.topScriptletFiles[0]).toHaveProperty("totalScriptletBlocks");
+    });
+
+    it("should include tagType classification for custom tag libraries", async () => {
+      mockSourcesRepository.getProjectSourcesSummariesByFileType.mockResolvedValue([
+        createMockJspFile("page.jsp", {
+          scriptletCount: 0,
+          expressionCount: 0,
+          declarationCount: 0,
+          customTags: [
+            { prefix: "c", uri: "http://java.sun.com/jsp/jstl/core" },
+            { prefix: "spring", uri: "http://springframework.org/tags" },
+          ],
+        }),
+      ]);
+
+      const result = await provider.getUiTechnologyAnalysis("test-project");
+
+      // Should have tagType (domain classification)
+      const jstlLib = result.customTagLibraries.find((t) => t.prefix === "c");
+      expect(jstlLib?.tagType).toBe("JSTL");
+
+      const springLib = result.customTagLibraries.find((t) => t.prefix === "spring");
+      expect(springLib?.tagType).toBe("Spring");
+
+      // Should NOT have tagTypeClass (presentation field)
+      expect(jstlLib).not.toHaveProperty("tagTypeClass");
     });
 
     it("should handle mixed framework and JSP files", async () => {
@@ -278,22 +313,6 @@ describe("ServerSideUiDataProvider", () => {
       expect(result.frameworks).toHaveLength(1);
       expect(result.totalJspFiles).toBe(1);
       expect(result.customTagLibraries).toHaveLength(1);
-    });
-
-    it("should include pre-computed CSS classes", async () => {
-      mockSourcesRepository.getProjectSourcesSummariesByFileType.mockResolvedValue([
-        createMockJspFile("page.jsp", {
-          scriptletCount: 100,
-          expressionCount: 50,
-          declarationCount: 10,
-        }),
-      ]);
-
-      const result = await provider.getUiTechnologyAnalysis("test-project");
-
-      expect(result).toHaveProperty("totalScriptletsCssClass");
-      expect(result).toHaveProperty("filesWithHighScriptletCountCssClass");
-      expect(result).toHaveProperty("showHighDebtAlert");
     });
   });
 });

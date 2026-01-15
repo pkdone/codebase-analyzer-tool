@@ -44,6 +44,6 @@ export interface ReportData {
     | import("./sections/architecture-analysis/architecture-analysis.types").ModuleCoupling
     | null;
   uiTechnologyAnalysis:
-    | import("./sections/ui-analysis/ui-analysis.types").UiTechnologyAnalysis
+    | import("./sections/ui-analysis/ui-analysis.types").UiTechnologyAnalysisData
     | null;
 }

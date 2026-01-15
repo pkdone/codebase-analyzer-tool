@@ -1,5 +1,5 @@
 import {
-  ProjectedSourceMetataContentAndSummary,
+  ProjectedSourceMetadataContentAndSummary,
   ProjectedSourceFilePathAndSummary,
   ProjectedSourceSummaryFields,
   ProjectedDatabaseIntegrationFields,
@@ -69,7 +69,7 @@ export interface SourcesRepository {
     queryVector: number[],
     numCandidates: number,
     limit: number,
-  ): Promise<ProjectedSourceMetataContentAndSummary[]>;
+  ): Promise<ProjectedSourceMetadataContentAndSummary[]>;
 
   /**
    * Get file paths for a specific project (used for testing)

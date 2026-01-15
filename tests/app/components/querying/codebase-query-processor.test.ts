@@ -3,7 +3,7 @@ import { queryCodebaseWithQuestion } from "../../../../src/app/components/queryi
 import type { SourcesRepository } from "../../../../src/app/repositories/sources/sources.repository.interface";
 import type LLMRouter from "../../../../src/common/llm/llm-router";
 import { LLMOutputFormat } from "../../../../src/common/llm/types/llm.types";
-import type { ProjectedSourceMetataContentAndSummary } from "../../../../src/app/repositories/sources/sources.model";
+import type { ProjectedSourceMetadataContentAndSummary } from "../../../../src/app/repositories/sources/sources.model";
 import { ok, err } from "../../../../src/common/types/result.types";
 import { LLMError, LLMErrorCode } from "../../../../src/common/llm/types/llm-errors.types";
 
@@ -32,7 +32,7 @@ describe("queryCodebaseWithQuestion", () => {
     it("should successfully query codebase and return formatted response with references", async () => {
       // Arrange
       const mockVector = [0.1, 0.2, 0.3];
-      const mockSourceFiles: ProjectedSourceMetataContentAndSummary[] = [
+      const mockSourceFiles: ProjectedSourceMetadataContentAndSummary[] = [
         {
           projectName: testProjectName,
           filepath: "src/auth/login.ts",
@@ -135,7 +135,7 @@ describe("queryCodebaseWithQuestion", () => {
     it("should return error message when LLM returns empty response", async () => {
       // Arrange
       const mockVector = [0.1, 0.2, 0.3];
-      const mockSourceFiles: ProjectedSourceMetataContentAndSummary[] = [
+      const mockSourceFiles: ProjectedSourceMetadataContentAndSummary[] = [
         {
           projectName: testProjectName,
           filepath: "src/test.ts",
@@ -165,7 +165,7 @@ describe("queryCodebaseWithQuestion", () => {
     it("should handle object response from LLM", async () => {
       // Arrange
       const mockVector = [0.1, 0.2, 0.3];
-      const mockSourceFiles: ProjectedSourceMetataContentAndSummary[] = [
+      const mockSourceFiles: ProjectedSourceMetadataContentAndSummary[] = [
         {
           projectName: testProjectName,
           filepath: "src/test.ts",
@@ -225,7 +225,7 @@ describe("queryCodebaseWithQuestion", () => {
     it("should use CODEBASE_QUERY_TEMPLATE from templates.ts", async () => {
       // Arrange
       const mockVector = [0.1, 0.2, 0.3];
-      const mockSourceFiles: ProjectedSourceMetataContentAndSummary[] = [
+      const mockSourceFiles: ProjectedSourceMetadataContentAndSummary[] = [
         {
           projectName: testProjectName,
           filepath: "src/test.ts",

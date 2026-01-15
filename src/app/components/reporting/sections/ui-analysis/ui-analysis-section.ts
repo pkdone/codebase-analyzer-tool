@@ -6,6 +6,14 @@ import type { PreparedHtmlReportData } from "../../html-report-writer";
 import type { PreparedJsonData } from "../../json-report-writer";
 import type { ReportData } from "../../report-data.types";
 import { SECTION_NAMES } from "../../reporting.constants";
+import type { UiTechnologyAnalysis } from "./ui-analysis.types";
+import { TAG_LIBRARY_BADGE_CLASSES } from "../../config/ui-analysis.config";
+import {
+  calculateDebtLevel,
+  getTotalScriptletsCssClass,
+  getFilesWithHighScriptletCountCssClass,
+  shouldShowHighDebtAlert,
+} from "../../view-models/presentation-helpers";
 
 /**
  * Report section for server-side UI technology analysis.
@@ -33,11 +41,36 @@ export class UiAnalysisSection implements ReportSection {
     sectionData: Partial<ReportData>,
     _htmlDir: string,
   ): Promise<Partial<PreparedHtmlReportData> | null> {
-    const { uiTechnologyAnalysis } = sectionData;
+    const { uiTechnologyAnalysis: rawData } = sectionData;
 
-    if (!uiTechnologyAnalysis) {
+    if (!rawData) {
       return await Promise.resolve(null);
     }
+
+    // Transform raw data to HTML-ready data with presentation fields
+    const uiTechnologyAnalysis: UiTechnologyAnalysis = {
+      ...rawData,
+      // Add CSS classes to tag libraries
+      customTagLibraries: rawData.customTagLibraries.map((tagLib) => ({
+        ...tagLib,
+        tagTypeClass: TAG_LIBRARY_BADGE_CLASSES[tagLib.tagType],
+      })),
+      // Add debt levels and CSS classes to top scriptlet files
+      topScriptletFiles: rawData.topScriptletFiles.map((file) => {
+        const { level, cssClass } = calculateDebtLevel(file.totalScriptletBlocks);
+        return {
+          ...file,
+          debtLevel: level,
+          debtLevelClass: cssClass,
+        };
+      }),
+      // Add aggregate presentation fields
+      totalScriptletsCssClass: getTotalScriptletsCssClass(rawData.totalScriptlets),
+      filesWithHighScriptletCountCssClass: getFilesWithHighScriptletCountCssClass(
+        rawData.filesWithHighScriptletCount,
+      ),
+      showHighDebtAlert: shouldShowHighDebtAlert(rawData.filesWithHighScriptletCount),
+    };
 
     return await Promise.resolve({
       uiTechnologyAnalysis,

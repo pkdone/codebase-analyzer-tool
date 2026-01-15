@@ -3,7 +3,7 @@ import { numbersToBsonDoubles } from "../../../common/mongodb/bson-utils";
 import { SourcesRepository } from "./sources.repository.interface";
 import {
   SourceRecordWithId,
-  ProjectedSourceMetataContentAndSummary,
+  ProjectedSourceMetadataContentAndSummary,
   ProjectedSourceFilePathAndSummary,
   ProjectedSourceSummaryFields,
   ProjectedDatabaseIntegrationFields,
@@ -182,7 +182,7 @@ export default class SourcesRepositoryImpl
     queryVector: number[],
     numCandidates: number,
     limit: number,
-  ): Promise<ProjectedSourceMetataContentAndSummary[]> {
+  ): Promise<ProjectedSourceMetadataContentAndSummary[]> {
     // Convert number[] to Double[] to work around MongoDB driver issue
     // See: https://jira.mongodb.org/browse/NODE-5714
     const queryVectorDoubles = numbersToBsonDoubles(queryVector);
@@ -214,7 +214,7 @@ export default class SourcesRepositoryImpl
 
     try {
       return await this.collection
-        .aggregate<ProjectedSourceMetataContentAndSummary>(pipeline)
+        .aggregate<ProjectedSourceMetadataContentAndSummary>(pipeline)
         .toArray();
     } catch (error: unknown) {
       logErr(

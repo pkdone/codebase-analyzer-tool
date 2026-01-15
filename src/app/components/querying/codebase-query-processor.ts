@@ -1,7 +1,7 @@
 import LLMRouter from "../../../common/llm/llm-router";
 import { LLMOutputFormat } from "../../../common/llm/types/llm.types";
 import type { SourcesRepository } from "../../repositories/sources/sources.repository.interface";
-import type { ProjectedSourceMetataContentAndSummary } from "../../repositories/sources/sources.model";
+import type { ProjectedSourceMetadataContentAndSummary } from "../../repositories/sources/sources.model";
 import { queryingInputConfig } from "./querying-input.config";
 import { renderPrompt } from "../../prompts/prompt-renderer";
 import { promptManager } from "../../prompts/prompt-registry";
@@ -36,7 +36,7 @@ function createCodebaseQueryPrompt(question: string, codeContent: string): strin
  * @returns Formatted string with markdown code blocks for each file
  */
 function formatSourcesForPrompt(
-  sourceFileMetadataList: ProjectedSourceMetataContentAndSummary[],
+  sourceFileMetadataList: ProjectedSourceMetadataContentAndSummary[],
 ): string {
   return formatFilesAsMarkdownCodeBlocks(
     sourceFileMetadataList.map((file) => ({

@@ -8,12 +8,12 @@ import {
   uiAnalysisConfig,
   type CouplingLevelResult,
   type DebtLevelResult,
-} from "../../../../../src/app/components/reporting/utils/view-helpers";
+} from "../../../../../src/app/components/reporting/view-models/presentation-helpers";
 
 // Extract constant from config for test readability
 const HIGH_SCRIPTLET_WARNING_THRESHOLD = uiAnalysisConfig.HIGH_SCRIPTLET_WARNING_THRESHOLD;
 
-describe("view-helpers", () => {
+describe("presentation-helpers", () => {
   describe("calculateCouplingLevel", () => {
     describe("threshold calculations", () => {
       it("should return Very High for >= 70% of highest coupling count", () => {

@@ -6,7 +6,7 @@ import type { PreparedHtmlReportData } from "../../html-report-writer";
 import type { PreparedJsonData } from "../../json-report-writer";
 import type { ReportData } from "../../report-data.types";
 import { SECTION_NAMES } from "../../reporting.constants";
-import { getBomConflictsCssClass } from "../../utils/view-helpers";
+import { getBomConflictsCssClass } from "../../view-models/presentation-helpers";
 
 /**
  * Report section for Bill of Materials (BOM) dependency data.

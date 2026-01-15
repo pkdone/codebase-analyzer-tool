@@ -1,38 +1,20 @@
 import { injectable, inject } from "tsyringe";
 import type { SourcesRepository } from "../../../../repositories/sources/sources.repository.interface";
 import { repositoryTokens } from "../../../../di/tokens";
-import type { UiTechnologyAnalysis } from "./ui-analysis.types";
-import {
-  uiAnalysisConfig,
-  classifyTagLibrary,
-  TAG_LIBRARY_BADGE_CLASSES,
-} from "../../config/ui-analysis.config";
+import type {
+  UiTechnologyAnalysisData,
+  UiFramework,
+  CustomTagLibraryData,
+  JspFileMetricsData,
+} from "./ui-analysis.types";
+import { uiAnalysisConfig, classifyTagLibrary } from "../../config/ui-analysis.config";
 import { UNKNOWN_VALUE_PLACEHOLDER } from "../../config/placeholders.config";
-import {
-  calculateDebtLevel,
-  getTotalScriptletsCssClass,
-  getFilesWithHighScriptletCountCssClass,
-  shouldShowHighDebtAlert,
-} from "../../utils/view-helpers";
 import type { ProjectedSourceSummaryFields } from "../../../../repositories/sources/sources.model";
-
-/**
- * Type aliases for internal use
- */
-type UiFrameworkItem = UiTechnologyAnalysis["frameworks"][0];
-type CustomTagLibrary = UiTechnologyAnalysis["customTagLibraries"][0];
-type JspFileMetrics = UiTechnologyAnalysis["topScriptletFiles"][0];
-
-/**
- * Intermediate type for JSP file metrics before debt level calculation.
- * Debt levels are computed after sorting to include only in top files.
- */
-type RawJspFileMetrics = Omit<JspFileMetrics, "debtLevel" | "debtLevelClass">;
 
 /**
  * Intermediate type for tag library aggregation before type classification.
  */
-type RawCustomTagLibrary = Omit<CustomTagLibrary, "tagType" | "tagTypeClass">;
+type RawCustomTagLibrary = Omit<CustomTagLibraryData, "tagType">;
 
 /**
  * Result of JSP file analysis containing metrics and tag library data.
@@ -42,13 +24,16 @@ interface JspAnalysisResult {
   totalExpressions: number;
   totalDeclarations: number;
   filesWithHighScriptletCount: number;
-  jspFileMetrics: RawJspFileMetrics[];
+  jspFileMetrics: JspFileMetricsData[];
   tagLibraryMap: Map<string, RawCustomTagLibrary>;
 }
 
 /**
  * Data provider responsible for aggregating server-side UI technology data including framework detection, JSP metrics, and tag library usage.
  * Analyzes server-side UI technologies (JSP, Struts, JSF, Spring MVC) for scriptlets and custom tags to measure technical debt.
+ *
+ * Returns raw domain data without presentation concerns (CSS classes, etc.).
+ * Presentation logic is handled by the Section's prepareHtmlData() method.
  */
 @injectable()
 export class ServerSideUiDataProvider {
@@ -60,8 +45,9 @@ export class ServerSideUiDataProvider {
   /**
    * Aggregates UI technology analysis for a project.
    * Orchestrates the analysis of frameworks, JSP metrics, and tag libraries.
+   * Returns raw data without presentation fields.
    */
-  async getUiTechnologyAnalysis(projectName: string): Promise<UiTechnologyAnalysis> {
+  async getUiTechnologyAnalysis(projectName: string): Promise<UiTechnologyAnalysisData> {
     // Fetch all source files from the project
     const sourceFiles = await this.sourcesRepository.getProjectSourcesSummariesByFileType(
       projectName,
@@ -93,12 +79,6 @@ export class ServerSideUiDataProvider {
       filesWithHighScriptletCount: jspAnalysis.filesWithHighScriptletCount,
       customTagLibraries,
       topScriptletFiles,
-      // Pre-computed presentation values
-      totalScriptletsCssClass: getTotalScriptletsCssClass(jspAnalysis.totalScriptlets),
-      filesWithHighScriptletCountCssClass: getFilesWithHighScriptletCountCssClass(
-        jspAnalysis.filesWithHighScriptletCount,
-      ),
-      showHighDebtAlert: shouldShowHighDebtAlert(jspAnalysis.filesWithHighScriptletCount),
     };
   }
 
@@ -106,8 +86,8 @@ export class ServerSideUiDataProvider {
    * Analyzes UI framework detection from source files (typically XML configuration files).
    * Aggregates frameworks by name and version, collecting configuration file paths.
    */
-  private analyzeFrameworks(sourceFiles: ProjectedSourceSummaryFields[]): UiFrameworkItem[] {
-    const frameworkMap = new Map<string, UiFrameworkItem>();
+  private analyzeFrameworks(sourceFiles: ProjectedSourceSummaryFields[]): UiFramework[] {
+    const frameworkMap = new Map<string, UiFramework>();
     const frameworkFiles = sourceFiles.filter((f) => f.summary?.uiFramework);
 
     for (const file of frameworkFiles) {
@@ -141,7 +121,7 @@ export class ServerSideUiDataProvider {
    */
   private analyzeJspMetrics(sourceFiles: ProjectedSourceSummaryFields[]): JspAnalysisResult {
     const tagLibraryMap = new Map<string, RawCustomTagLibrary>();
-    const jspFileMetrics: RawJspFileMetrics[] = [];
+    const jspFileMetrics: JspFileMetricsData[] = [];
     const jspFiles = sourceFiles.filter((f) => f.summary?.jspMetrics);
 
     let totalScriptlets = 0;
@@ -216,35 +196,28 @@ export class ServerSideUiDataProvider {
   }
 
   /**
-   * Computes the top scriptlet files with debt levels.
-   * Sorts by total scriptlet blocks (descending) and adds debt level classification.
+   * Computes the top scriptlet files sorted by total blocks.
+   * Returns raw metrics without debt level presentation data.
    */
-  private computeTopScriptletFiles(jspFileMetrics: RawJspFileMetrics[]): JspFileMetrics[] {
+  private computeTopScriptletFiles(jspFileMetrics: JspFileMetricsData[]): JspFileMetricsData[] {
     return jspFileMetrics
       .toSorted((a, b) => b.totalScriptletBlocks - a.totalScriptletBlocks)
-      .slice(0, uiAnalysisConfig.TOP_FILES_LIMIT)
-      .map((file) => {
-        const { level, cssClass } = calculateDebtLevel(file.totalScriptletBlocks);
-        return {
-          ...file,
-          debtLevel: level,
-          debtLevelClass: cssClass,
-        };
-      });
+      .slice(0, uiAnalysisConfig.TOP_FILES_LIMIT);
   }
 
   /**
    * Computes final tag library list with type classification and sorting.
-   * Classifies each library by type and sorts by usage count (descending).
+   * Classifies each library by type (domain classification, not presentation).
    */
-  private computeTagLibraries(tagLibraryMap: Map<string, RawCustomTagLibrary>): CustomTagLibrary[] {
+  private computeTagLibraries(
+    tagLibraryMap: Map<string, RawCustomTagLibrary>,
+  ): CustomTagLibraryData[] {
     return Array.from(tagLibraryMap.values())
       .map((tagLib) => {
         const tagType = classifyTagLibrary(tagLib.uri);
         return {
           ...tagLib,
           tagType,
-          tagTypeClass: TAG_LIBRARY_BADGE_CLASSES[tagType],
         };
       })
       .toSorted((a, b) => {
