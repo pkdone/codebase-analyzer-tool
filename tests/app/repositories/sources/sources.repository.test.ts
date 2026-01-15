@@ -134,7 +134,7 @@ describe("SourcesRepositoryImpl", () => {
     });
   });
 
-  describe("vectorSearchProjectSourcesRawContent", () => {
+  describe("vectorSearchProjectSources", () => {
     it("should construct correct aggregation pipeline", async () => {
       const projectName = "test-project";
       const queryVector = [1.0, 2.0, 3.0];
@@ -153,7 +153,7 @@ describe("SourcesRepositoryImpl", () => {
 
       mockAggregationCursor.toArray.mockResolvedValue(mockResults);
 
-      const result = await repository.vectorSearchProjectSourcesRawContent(
+      const result = await repository.vectorSearchProjectSources(
         projectName,
         queryVector,
         numCandidates,
@@ -196,7 +196,7 @@ describe("SourcesRepositoryImpl", () => {
 
       mockAggregationCursor.toArray.mockResolvedValue(mockResults);
 
-      await repository.vectorSearchProjectSourcesRawContent("test-project", queryVector, 100, 10);
+      await repository.vectorSearchProjectSources("test-project", queryVector, 100, 10);
 
       // Verify that aggregate was called with the expected pipeline structure
       expect(mockCollection.aggregate).toHaveBeenCalledWith(
@@ -217,7 +217,7 @@ describe("SourcesRepositoryImpl", () => {
       } as any);
 
       await expect(
-        repository.vectorSearchProjectSourcesRawContent("test", [1, 2, 3], 100, 10),
+        repository.vectorSearchProjectSources("test", [1, 2, 3], 100, 10),
       ).rejects.toThrow(mongoError);
 
       expect(mockLogging.logErr).toHaveBeenCalledWith(

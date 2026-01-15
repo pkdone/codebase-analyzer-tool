@@ -435,7 +435,7 @@ export const ARRAY_ELEMENT_RULES: readonly ReplacementRule[] = [
   // Rule: Remove stray characters before array elements
   // Pattern: `e    "org.apache...` -> `"org.apache...`
   {
-    name: "strayCharBeforeArrayElementPattern90",
+    name: "strayCharBeforeArrayElementAfterNewline",
     pattern: /(\n)([a-z])\s+("([^"]+)")/g,
     replacement: (_match, groups, context) => {
       // Check if we're in an array

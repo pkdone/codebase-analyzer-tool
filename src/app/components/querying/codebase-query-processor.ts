@@ -67,7 +67,7 @@ export async function queryCodebaseWithQuestion(
   if (queryVector === null || queryVector.length <= 0)
     return "No vector was generated for the question - unable to answer question";
 
-  const bestMatchFiles = await sourcesRepository.vectorSearchProjectSourcesRawContent(
+  const bestMatchFiles = await sourcesRepository.vectorSearchProjectSources(
     projectName,
     queryVector,
     queryingInputConfig.VECTOR_SEARCH_NUM_CANDIDATES,

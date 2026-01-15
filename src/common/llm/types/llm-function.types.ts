@@ -8,7 +8,7 @@ import type { LLMFunctionResponse } from "./llm-response.types";
 import type { LLMModelTier } from "./llm-model.types";
 
 /**
- * Type to define the embedding or completion function.
+ * Type for LLM completion functions (text generation with optional JSON schema).
  *
  * This is a generic function type (not a generic type with a function).
  * The return type is inferred from the `options.jsonSchema` at the call site,
@@ -21,7 +21,8 @@ import type { LLMModelTier } from "./llm-model.types";
  * or when no schema is provided, the generated content will be string or
  * LLMGeneratedContent at runtime.
  *
- * For embeddings, use LLMEmbeddingFunction instead.
+ * Note: This type is specifically for completions. For embeddings, use
+ * LLMEmbeddingFunction instead.
  */
 export type LLMFunction = <S extends z.ZodType>(
   content: string,

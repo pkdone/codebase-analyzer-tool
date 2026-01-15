@@ -42,7 +42,7 @@ describe("SourcesRepository Integration Tests", () => {
   });
 
   describe("Vector Search Integration", () => {
-    it("should return correct results from vectorSearchProjectSourcesRawContent with real data", async () => {
+    it("should return correct results from vectorSearchProjectSources with real data", async () => {
       // Arrange: Insert test documents with content vectors
       const testData: SourceRecord[] = [
         {
@@ -90,7 +90,7 @@ describe("SourcesRepository Integration Tests", () => {
 
       // Act: Query with vector close to file2.ts
       const queryVector = await createTestVector(0.75); // Should be similar to the 0.8 seed vector
-      const results = await sourcesRepository.vectorSearchProjectSourcesRawContent(
+      const results = await sourcesRepository.vectorSearchProjectSources(
         projectName,
         queryVector,
         10,
@@ -150,7 +150,7 @@ describe("SourcesRepository Integration Tests", () => {
       }
 
       // Act: Perform search (no type filtering applied inside repository now)
-      const results = await sourcesRepository.vectorSearchProjectSourcesRawContent(
+      const results = await sourcesRepository.vectorSearchProjectSources(
         projectName,
         await createTestVector(0.12),
         10,

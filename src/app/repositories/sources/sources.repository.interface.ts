@@ -62,9 +62,10 @@ export interface SourcesRepository {
   ): Promise<ProjectedSourceFilePathAndSummary[]>;
 
   /**
-   * Perform vector search on source file content
+   * Perform vector search on project sources.
+   * Returns sources with metadata, content, and summary for similarity matching.
    */
-  vectorSearchProjectSourcesRawContent(
+  vectorSearchProjectSources(
     projectName: string,
     queryVector: number[],
     numCandidates: number,

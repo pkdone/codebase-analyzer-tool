@@ -55,7 +55,7 @@ describe("ServerSideUiDataProvider", () => {
       doesProjectSourceExist: jest.fn(),
       getProjectDatabaseIntegrations: jest.fn(),
       getProjectStoredProceduresAndTriggers: jest.fn(),
-      vectorSearchProjectSourcesRawContent: jest.fn(),
+      vectorSearchProjectSources: jest.fn(),
       getProjectFilesPaths: jest.fn(),
       getProjectFileAndLineStats: jest.fn(),
       getProjectFileTypesCountAndLines: jest.fn(),

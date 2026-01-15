@@ -18,7 +18,7 @@ describe("queryCodebaseWithQuestion", () => {
 
     // Create mock repository
     mockSourcesRepository = {
-      vectorSearchProjectSourcesRawContent: jest.fn(),
+      vectorSearchProjectSources: jest.fn(),
     } as unknown as jest.Mocked<SourcesRepository>;
 
     // Create mock LLM router
@@ -49,7 +49,7 @@ describe("queryCodebaseWithQuestion", () => {
       const mockLLMResponse = "The authentication works by using JWT tokens.";
 
       mockLLMRouter.generateEmbeddings.mockResolvedValue(mockVector);
-      mockSourcesRepository.vectorSearchProjectSourcesRawContent.mockResolvedValue(mockSourceFiles);
+      mockSourcesRepository.vectorSearchProjectSources.mockResolvedValue(mockSourceFiles);
       (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(ok(mockLLMResponse));
 
       // Act
@@ -62,7 +62,7 @@ describe("queryCodebaseWithQuestion", () => {
 
       // Assert
       expect(mockLLMRouter.generateEmbeddings).toHaveBeenCalledWith("Human question", testQuestion);
-      expect(mockSourcesRepository.vectorSearchProjectSourcesRawContent).toHaveBeenCalledWith(
+      expect(mockSourcesRepository.vectorSearchProjectSources).toHaveBeenCalledWith(
         testProjectName,
         mockVector,
         150, // VECTOR_SEARCH_NUM_CANDIDATES
@@ -93,7 +93,7 @@ describe("queryCodebaseWithQuestion", () => {
 
       // Assert
       expect(result).toBe("No vector was generated for the question - unable to answer question");
-      expect(mockSourcesRepository.vectorSearchProjectSourcesRawContent).not.toHaveBeenCalled();
+      expect(mockSourcesRepository.vectorSearchProjectSources).not.toHaveBeenCalled();
     });
 
     it("should return error message when empty vector is generated", async () => {
@@ -110,14 +110,14 @@ describe("queryCodebaseWithQuestion", () => {
 
       // Assert
       expect(result).toBe("No vector was generated for the question - unable to answer question");
-      expect(mockSourcesRepository.vectorSearchProjectSourcesRawContent).not.toHaveBeenCalled();
+      expect(mockSourcesRepository.vectorSearchProjectSources).not.toHaveBeenCalled();
     });
 
     it("should return error message when vector search returns no results", async () => {
       // Arrange
       const mockVector = [0.1, 0.2, 0.3];
       mockLLMRouter.generateEmbeddings.mockResolvedValue(mockVector);
-      mockSourcesRepository.vectorSearchProjectSourcesRawContent.mockResolvedValue([]);
+      mockSourcesRepository.vectorSearchProjectSources.mockResolvedValue([]);
 
       // Act
       const result = await queryCodebaseWithQuestion(
@@ -145,7 +145,7 @@ describe("queryCodebaseWithQuestion", () => {
       ];
 
       mockLLMRouter.generateEmbeddings.mockResolvedValue(mockVector);
-      mockSourcesRepository.vectorSearchProjectSourcesRawContent.mockResolvedValue(mockSourceFiles);
+      mockSourcesRepository.vectorSearchProjectSources.mockResolvedValue(mockSourceFiles);
       (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(
         err(new LLMError(LLMErrorCode.BAD_RESPONSE_CONTENT, "No insight generated")),
       );
@@ -177,7 +177,7 @@ describe("queryCodebaseWithQuestion", () => {
       const mockLLMResponse = "Authentication uses JWT";
 
       mockLLMRouter.generateEmbeddings.mockResolvedValue(mockVector);
-      mockSourcesRepository.vectorSearchProjectSourcesRawContent.mockResolvedValue(mockSourceFiles);
+      mockSourcesRepository.vectorSearchProjectSources.mockResolvedValue(mockSourceFiles);
       (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(ok(mockLLMResponse));
 
       // Act
@@ -198,7 +198,7 @@ describe("queryCodebaseWithQuestion", () => {
       // Arrange
       const mockVector = [0.1, 0.2, 0.3];
       mockLLMRouter.generateEmbeddings.mockResolvedValue(mockVector);
-      mockSourcesRepository.vectorSearchProjectSourcesRawContent.mockResolvedValue([
+      mockSourcesRepository.vectorSearchProjectSources.mockResolvedValue([
         {
           projectName: testProjectName,
           filepath: "test.ts",
@@ -217,7 +217,7 @@ describe("queryCodebaseWithQuestion", () => {
       );
 
       // Assert - Verify the constants are used correctly
-      const callArgs = mockSourcesRepository.vectorSearchProjectSourcesRawContent.mock.calls[0];
+      const callArgs = mockSourcesRepository.vectorSearchProjectSources.mock.calls[0];
       expect(callArgs[2]).toBe(150); // VECTOR_SEARCH_NUM_CANDIDATES
       expect(callArgs[3]).toBe(6); // VECTOR_SEARCH_NUM_LIMIT);
     });
@@ -235,7 +235,7 @@ describe("queryCodebaseWithQuestion", () => {
       ];
 
       mockLLMRouter.generateEmbeddings.mockResolvedValue(mockVector);
-      mockSourcesRepository.vectorSearchProjectSourcesRawContent.mockResolvedValue(mockSourceFiles);
+      mockSourcesRepository.vectorSearchProjectSources.mockResolvedValue(mockSourceFiles);
       (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(ok("response"));
 
       // Act

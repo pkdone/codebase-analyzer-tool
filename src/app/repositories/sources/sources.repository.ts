@@ -175,9 +175,10 @@ export default class SourcesRepositoryImpl
   }
 
   /**
-   * Perform vector search on source file content
+   * Perform vector search on project sources.
+   * Returns sources with metadata, content, and summary for similarity matching.
    */
-  async vectorSearchProjectSourcesRawContent(
+  async vectorSearchProjectSources(
     projectName: string,
     queryVector: number[],
     numCandidates: number,
