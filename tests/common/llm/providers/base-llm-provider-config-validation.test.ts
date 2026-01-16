@@ -12,7 +12,7 @@ import {
 } from "../../../../src/common/llm/providers/llm-provider.types";
 import BaseLLMProvider from "../../../../src/common/llm/providers/base-llm-provider";
 import { LLMError, LLMErrorCode } from "../../../../src/common/llm/types/llm-errors.types";
-import { createMockErrorLogger } from "../../helpers/llm/mock-error-logger";
+import { createMockErrorLoggingConfig } from "../../helpers/llm/mock-error-logger";
 import { z } from "zod";
 
 // Test-only constants
@@ -83,7 +83,7 @@ function createTestProviderInit(): ProviderInit {
       embeddings: testModelsMetadata[TEST_EMBEDDINGS_MODEL].urn,
       primaryCompletion: testModelsMetadata[TEST_COMPLETIONS_MODEL].urn,
     },
-    errorLogger: createMockErrorLogger(),
+    errorLogging: createMockErrorLoggingConfig(),
   };
 }
 

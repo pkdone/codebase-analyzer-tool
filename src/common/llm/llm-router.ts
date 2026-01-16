@@ -24,7 +24,6 @@ import {
 } from "./utils/completions-models-retriever";
 import { loadManifestForModelFamily } from "./utils/manifest-loader";
 import { logWarn } from "../utils/logging";
-import { LLMErrorLogger } from "./tracking/llm-error-logger";
 
 /**
  * Class for loading the required LLMs as specified by various environment settings and applying
@@ -47,12 +46,10 @@ export default class LLMRouter {
    *
    * @param config The LLM module configuration
    * @param executionPipeline The execution pipeline for orchestrating LLM calls
-   * @param errorLogger The error logger service for recording JSON processing errors
    */
   constructor(
     config: LLMModuleConfig,
     private readonly executionPipeline: LLMExecutionPipeline,
-    private readonly errorLogger: LLMErrorLogger,
   ) {
     this.modelFamily = config.modelFamily;
     // Load manifest for the model family
@@ -66,7 +63,7 @@ export default class LLMRouter {
       manifest: this.manifest,
       providerParams: config.providerParams,
       resolvedModels: config.resolvedModels,
-      errorLogger: this.errorLogger,
+      errorLogging: config.errorLogging,
     };
     this.activeLlmProvider = new this.manifest.implementation(init);
 

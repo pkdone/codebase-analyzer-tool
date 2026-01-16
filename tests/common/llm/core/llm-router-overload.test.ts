@@ -4,7 +4,6 @@ import LLMRouter from "../../../../src/common/llm/llm-router";
 import { LLMExecutionPipeline } from "../../../../src/common/llm/llm-execution-pipeline";
 import LLMExecutionStats from "../../../../src/common/llm/tracking/llm-execution-stats";
 import { RetryStrategy } from "../../../../src/common/llm/strategies/retry-strategy";
-import { createMockErrorLogger } from "../../helpers/llm/mock-error-logger";
 import {
   LLMPurpose,
   LLMResponseStatus,
@@ -155,8 +154,6 @@ describe("LLMRouter Function Overloads - Type Safety Tests", () => {
       mockRetryStrategy,
       mockLLMExecutionStats,
     );
-    const mockErrorLogger = createMockErrorLogger();
-
     const mockConfig: LLMModuleConfig = {
       modelFamily: "openai",
       providerParams: {},
@@ -167,7 +164,7 @@ describe("LLMRouter Function Overloads - Type Safety Tests", () => {
       errorLogging: { errorLogDirectory: "/tmp", errorLogFilenameTemplate: "error.log" },
     };
 
-    const router = new LLMRouter(mockConfig, mockExecutionPipeline, mockErrorLogger);
+    const router = new LLMRouter(mockConfig, mockExecutionPipeline);
     return { router, mockProvider };
   };
 

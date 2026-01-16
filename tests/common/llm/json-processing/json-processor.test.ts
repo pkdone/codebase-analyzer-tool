@@ -116,22 +116,21 @@ describe("parseAndValidateLLMJson", () => {
         expect(result.error).toBeInstanceOf(JsonProcessingError);
         expect(result.error.type).toBe(JsonProcessingErrorType.PARSE);
         expect(result.error.message).toContain("contains no JSON structure");
-        expect(result.error.message).toContain("plain text rather than JSON");
+        expect(result.error.message).toContain("appears to be plain text");
         expect(result.error.message).toContain("test-resource");
         expect(result.error.type).toBe(JsonProcessingErrorType.PARSE);
       }
     });
 
     it("should detect non-JSON responses without braces or brackets", () => {
-      const testCases = [
+      // Test plain text responses (non-empty)
+      const plainTextCases = [
         "This is plain text",
         "Just a regular sentence with no JSON.",
         "Error: Could not generate response",
-        "",
-        "   ",
       ];
 
-      for (const input of testCases) {
+      for (const input of plainTextCases) {
         const result = parseAndValidateLLMJson(
           input,
           { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
@@ -142,6 +141,31 @@ describe("parseAndValidateLLMJson", () => {
           expect(result.error.message).toContain("contains no JSON structure");
           expect(result.error.type).toBe(JsonProcessingErrorType.PARSE);
         }
+      }
+
+      // Test whitespace-only strings (treated as no JSON structure since trimmed content is empty)
+      const whitespaceCase = "   ";
+      const whitespaceResult = parseAndValidateLLMJson(
+        whitespaceCase,
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        completionOptions,
+      );
+      expect(whitespaceResult.success).toBe(false);
+      if (!whitespaceResult.success) {
+        expect(whitespaceResult.error.message).toContain("contains no JSON structure");
+        expect(whitespaceResult.error.type).toBe(JsonProcessingErrorType.PARSE);
+      }
+
+      // Test empty string (gets a more specific "empty string" error)
+      const emptyResult = parseAndValidateLLMJson(
+        "",
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        completionOptions,
+      );
+      expect(emptyResult.success).toBe(false);
+      if (!emptyResult.success) {
+        expect(emptyResult.error.message).toContain("is just an empty string");
+        expect(emptyResult.error.type).toBe(JsonProcessingErrorType.PARSE);
       }
     });
 

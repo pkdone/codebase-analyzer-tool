@@ -3,7 +3,6 @@ import LLMRouter from "./llm-router";
 import { LLMExecutionPipeline } from "./llm-execution-pipeline";
 import { RetryStrategy } from "./strategies/retry-strategy";
 import LLMExecutionStats from "./tracking/llm-execution-stats";
-import { LLMErrorLogger } from "./tracking/llm-error-logger";
 
 /**
  * Result of creating an LLM Router, including the router and its stats instance.
@@ -39,13 +38,12 @@ export interface LLMRouterComponents {
  */
 export function createLLMRouter(config: LLMModuleConfig): LLMRouterComponents {
   // Instantiate dependencies in correct order (no circular dependencies)
-  const errorLogger = new LLMErrorLogger(config.errorLogging);
   const llmStats = new LLMExecutionStats();
   const retryStrategy = new RetryStrategy(llmStats);
 
   const executionPipeline = new LLMExecutionPipeline(retryStrategy, llmStats);
 
-  const router = new LLMRouter(config, executionPipeline, errorLogger);
+  const router = new LLMRouter(config, executionPipeline);
 
   return { router, stats: llmStats };
 }

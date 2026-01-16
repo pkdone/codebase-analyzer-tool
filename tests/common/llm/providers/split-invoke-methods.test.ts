@@ -4,17 +4,12 @@ import type {
   LLMImplSpecificResponseSummary,
 } from "../../../../src/common/llm/providers/llm-provider.types";
 import { LLMPurpose, LLMOutputFormat } from "../../../../src/common/llm/types/llm.types";
-import type { IErrorLogger } from "../../../../src/common/llm/tracking/llm-error-logger.interface";
 import { z } from "zod";
 
 /**
  * Tests for split invokeProvider methods (invokeEmbeddingProvider and invokeCompletionProvider).
  */
 describe("Split Invoke Methods", () => {
-  const mockErrorLogger: IErrorLogger = {
-    recordJsonProcessingError: jest.fn().mockResolvedValue(undefined),
-  };
-
   // Test provider that tracks which method was called
   class TrackingTestProvider extends BaseLLMProvider {
     embeddingProviderCalls = 0;
@@ -90,7 +85,10 @@ describe("Split Invoke Methods", () => {
       embeddings: "test-embed-urn",
       primaryCompletion: "test-complete-urn",
     },
-    errorLogger: mockErrorLogger,
+    errorLogging: {
+      errorLogDirectory: "/tmp/test-errors",
+      errorLogFilenameTemplate: "error-{timestamp}.log",
+    },
   });
 
   it("should call invokeEmbeddingProvider for embeddings requests", async () => {

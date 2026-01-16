@@ -27,7 +27,7 @@ import { parseAndValidateLLMJson } from "../json-processing/core/json-processing
 import { calculateTokenUsageFromError } from "../utils/error-parser";
 import { LLMError, LLMErrorCode } from "../types/llm-errors.types";
 import { llmProviderConfig } from "../config/llm.config";
-import type { IErrorLogger } from "../tracking/llm-error-logger.interface";
+import { LLMErrorLogger } from "../tracking/llm-error-logger";
 import {
   buildModelsKeysSet,
   buildModelsMetadataFromResolvedUrns,
@@ -45,13 +45,13 @@ export default abstract class BaseLLMProvider implements LLMProvider {
   private readonly modelsKeys: LLMModelKeysSet;
   private readonly errorPatterns: readonly LLMErrorMsgRegExPattern[];
   private readonly modelFamily: string;
-  private readonly errorLogger: IErrorLogger;
+  private readonly errorLogger: LLMErrorLogger;
 
   /**
    * Constructor accepting a ProviderInit configuration object.
    */
   constructor(init: ProviderInit) {
-    const { manifest, providerParams, resolvedModels, errorLogger } = init;
+    const { manifest, providerParams, resolvedModels, errorLogging } = init;
 
     // Build derived values from manifest and resolved models
     this.modelsKeys = buildModelsKeysSet(manifest);
@@ -61,7 +61,7 @@ export default abstract class BaseLLMProvider implements LLMProvider {
     this.errorPatterns = manifest.errorPatterns;
     this.providerSpecificConfig = manifest.providerSpecificConfig;
     this.modelFamily = manifest.providerName;
-    this.errorLogger = errorLogger;
+    this.errorLogger = new LLMErrorLogger(errorLogging);
     this.providerParams = providerParams;
   }
 

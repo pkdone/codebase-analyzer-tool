@@ -9,7 +9,7 @@ import {
   LLMContext,
 } from "../../../../../../src/common/llm/types/llm.types";
 import { z } from "zod";
-import { createMockErrorLogger } from "../../../../helpers/llm/mock-error-logger";
+import { createMockErrorLoggingConfig } from "../../../../helpers/llm/mock-error-logger";
 import type { ProviderInit } from "../../../../../../src/common/llm/providers/llm-provider.types";
 import { vertexAIGeminiProviderManifest } from "../../../../../../src/common/llm/providers/vertexai/gemini/vertex-ai-gemini.manifest";
 
@@ -101,7 +101,7 @@ describe("VertexAIGeminiLLM Schema Sanitization", () => {
         embeddings: mockModelsMetadata.GEMINI_EMBEDDINGS.urn,
         primaryCompletion: mockModelsMetadata.GEMINI_COMPLETIONS.urn,
       },
-      errorLogger: createMockErrorLogger(),
+      errorLogging: createMockErrorLoggingConfig(),
     };
     vertexAIGeminiLLM = new VertexAIGeminiLLM(init);
   });

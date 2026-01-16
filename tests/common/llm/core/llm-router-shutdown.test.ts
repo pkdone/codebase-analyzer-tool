@@ -1,7 +1,6 @@
 import LLMRouter from "../../../../src/common/llm/llm-router";
 import { LLMModuleConfig } from "../../../../src/common/llm/config/llm-module-config.types";
 import { LLMExecutionPipeline } from "../../../../src/common/llm/llm-execution-pipeline";
-import { LLMErrorLogger } from "../../../../src/common/llm/tracking/llm-error-logger";
 import { ShutdownBehavior } from "../../../../src/common/llm/types/llm.types";
 
 // Mock the manifest loader to avoid actual provider instantiation
@@ -99,8 +98,7 @@ describe("LLMRouter Shutdown Behavior", () => {
     const mockStats = { recordSuccess: jest.fn(), recordFailure: jest.fn() } as any;
     // Strategies are now pure functions, not classes
     const pipeline = new LLMExecutionPipeline(mockRetryStrategy, mockStats);
-    const errorLogger = new LLMErrorLogger(config.errorLogging);
-    const router = new LLMRouter(config, pipeline, errorLogger);
+    const router = new LLMRouter(config, pipeline);
 
     // Call shutdown
     await router.shutdown();
@@ -182,8 +180,7 @@ describe("LLMRouter Shutdown Behavior", () => {
     const mockStats = { recordSuccess: jest.fn(), recordFailure: jest.fn() } as any;
     // Strategies are now pure functions, not classes
     const pipeline = new LLMExecutionPipeline(mockRetryStrategy, mockStats);
-    const errorLogger = new LLMErrorLogger(config.errorLogging);
-    const router = new LLMRouter(config, pipeline, errorLogger);
+    const router = new LLMRouter(config, pipeline);
 
     // Check that forced shutdown is signaled via enum
     expect(router.getProviderShutdownBehavior()).toBe(ShutdownBehavior.REQUIRES_PROCESS_EXIT);
@@ -267,8 +264,7 @@ describe("LLMRouter Shutdown Behavior", () => {
     const mockStats = { recordSuccess: jest.fn(), recordFailure: jest.fn() } as any;
     // Strategies are now pure functions, not classes
     const pipeline = new LLMExecutionPipeline(mockRetryStrategy, mockStats);
-    const errorLogger = new LLMErrorLogger(config.errorLogging);
-    const router = new LLMRouter(config, pipeline, errorLogger);
+    const router = new LLMRouter(config, pipeline);
 
     expect(router.getProviderShutdownBehavior()).toBe(ShutdownBehavior.GRACEFUL);
   });

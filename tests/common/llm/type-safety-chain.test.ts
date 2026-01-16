@@ -8,7 +8,7 @@ import {
 } from "../../../src/common/llm/types/llm.types";
 import { LLMImplSpecificResponseSummary } from "../../../src/common/llm/providers/llm-provider.types";
 import BaseLLMProvider from "../../../src/common/llm/providers/base-llm-provider";
-import { createMockErrorLogger } from "../helpers/llm/mock-error-logger";
+import { createMockErrorLoggingConfig } from "../helpers/llm/mock-error-logger";
 import { RetryStrategy } from "../../../src/common/llm/strategies/retry-strategy";
 import { LLMExecutionPipeline } from "../../../src/common/llm/llm-execution-pipeline";
 import LLMExecutionStats from "../../../src/common/llm/tracking/llm-execution-stats";
@@ -83,7 +83,7 @@ class TypeSafetyChainTestLLM extends BaseLLMProvider {
         embeddings: "test-embed",
         primaryCompletion: "test-complete",
       },
-      errorLogger: createMockErrorLogger(),
+      errorLogging: createMockErrorLoggingConfig(),
     });
   }
 

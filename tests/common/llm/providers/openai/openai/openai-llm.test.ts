@@ -7,7 +7,7 @@ import {
 } from "../../../../../../src/common/llm/types/llm.types";
 import OpenAILLM from "../../../../../../src/common/llm/providers/openai/openai/openai-llm";
 import { openAIProviderManifest } from "../../../../../../src/common/llm/providers/openai/openai/openai.manifest";
-import { createMockErrorLogger } from "../../../../helpers/llm/mock-error-logger";
+import { createMockErrorLoggingConfig } from "../../../../helpers/llm/mock-error-logger";
 import type { ProviderInit } from "../../../../../../src/common/llm/providers/llm-provider.types";
 
 // Helper functions to create properly typed mock responses
@@ -154,7 +154,7 @@ describe("OpenAI LLM Provider", () => {
         primaryCompletion: mockModelsMetadata.GPT_COMPLETIONS_GPT4.urn,
         secondaryCompletion: mockModelsMetadata.GPT_COMPLETIONS_GPT35_TURBO.urn,
       },
-      errorLogger: createMockErrorLogger(),
+      errorLogging: createMockErrorLoggingConfig(),
     };
     openAILLM = new OpenAILLM(init);
   });

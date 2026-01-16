@@ -4,7 +4,7 @@ import { JsonProcessingError, JsonProcessingErrorType } from "../types/json-proc
 import { JsonProcessorResult } from "../types/json-processing-result.types";
 import { logWarn } from "../../../utils/logging";
 import { hasSignificantRepairs } from "../utils/repair-analysis";
-import { parseJsonWithSanitizers } from "./json-parsing";
+import { parseJsonWithSanitizers, type ParseResult } from "./json-parsing";
 import { validateJsonWithTransforms } from "./json-validating";
 import {
   extractSchemaMetadata,
@@ -17,8 +17,7 @@ import type { LLMSanitizerConfig } from "../../config/llm-module-config.types";
  * Used for early detection of completely non-JSON responses to provide better error messages.
  */
 function hasJsonLikeStructure(content: string): boolean {
-  const trimmed = content.trim();
-  return trimmed.includes("{") || trimmed.includes("[");
+  return content.includes("{") || content.includes("[");
 }
 
 /**
@@ -81,169 +80,117 @@ function logRepairs(
   }
 }
 
-/**
- * Builds the effective sanitizer configuration by combining:
- * 1. Dynamic metadata extracted from the provided Zod schema (if available)
- * 2. Explicit configuration passed by the caller (takes precedence)
- *
- * This enables schema-agnostic sanitization where property lists are derived
- * from the actual schema being validated, reducing the need for hardcoded lists.
- *
- * @param jsonSchema - Optional Zod schema to extract metadata from
- * @param explicitConfig - Optional explicit configuration to merge with schema metadata
- * @returns The effective sanitizer configuration, or undefined if neither source provides data
- */
-function buildEffectiveSanitizerConfig(
-  jsonSchema: z.ZodType | undefined,
-  explicitConfig: LLMSanitizerConfig | undefined,
-): LLMSanitizerConfig | undefined {
-  // If no schema, just return the explicit config (may be undefined)
-  if (!jsonSchema) {
-    return explicitConfig;
-  }
-
-  // Extract metadata from the schema
-  const schemaMetadata = extractSchemaMetadata(jsonSchema);
-
-  // If schema extraction yielded no properties and no explicit config, return undefined
-  if (schemaMetadata.allProperties.length === 0 && !explicitConfig) {
-    return undefined;
-  }
-
-  // Merge schema metadata with explicit config (explicit config takes precedence)
-  return schemaMetadataToSanitizerConfig(schemaMetadata, explicitConfig);
-}
+/** Result type for input validation. */
+type ContentValidationResult =
+  | { success: true; trimmedContent: string }
+  | { success: false; error: JsonProcessingError };
 
 /**
- * Parses and validates LLM-generated content through a multi-stage sanitization and repair pipeline,
- * then validates it against a Zod schema. Returns a result object indicating success or failure.
+ * Validates the raw LLM content before JSON parsing.
+ * Checks that content is a non-empty string with JSON-like structure.
  *
- * This is the high-level public API for LLM JSON processing, orchestrating parsing and validation
- * with comprehensive logging. The function handles:
- * 1. Sanitization of raw LLM text (removes markdown, comments)
- * 2. JSON parsing with error recovery
- * 3. Schema validation against the provided Zod schema
- * 4. Schema-fixing transforms (coercion)
- *
- * Type safety behavior:
- * - When jsonSchema is provided, the return type is inferred from the schema (z.infer<S>)
- * - When jsonSchema is not provided, the generic S defaults to z.ZodType<unknown>, making
- *   z.infer<S> resolve to `unknown`. This forces callers to handle the untyped data explicitly.
- *
- * Note: For enforced type safety at the API boundary, callers should use BaseLLMProvider
- * which validates that JSON output format requires a schema, preventing schema-less JSON
- * processing at the provider level.
- *
- * @template S - The Zod schema type. When provided, the return type is inferred from the schema.
- *               When not provided, defaults to z.ZodType<unknown> for type-safe handling.
- * @param content - The LLM-generated content to parse and validate
+ * @param content - The LLM-generated content to validate
  * @param context - Context information about the LLM request
- * @param completionOptions - Options including output format and optional JSON schema
- * @param loggingEnabled - Whether to enable sanitization step logging. Defaults to true.
- * @param config - Optional sanitizer configuration to pass to transforms
- * @returns A JsonProcessorResult indicating success with validated data and repairs, or failure with an error
+ * @param loggingEnabled - Whether to enable logging for validation issues
+ * @returns A result with trimmed content on success, or an error on failure
  */
-export function parseAndValidateLLMJson<S extends z.ZodType = z.ZodType<unknown>>(
+function validateContentInput(
   content: LLMGeneratedContent,
   context: LLMContext,
-  completionOptions: LLMCompletionOptions<S>,
-  loggingEnabled = true,
-  config?: LLMSanitizerConfig,
-): JsonProcessorResult<z.infer<S>> {
-  // Pre-check - ensure content is a string
+  loggingEnabled: boolean,
+): ContentValidationResult {
   if (typeof content !== "string") {
-    const contentText = JSON.stringify(content);
     logProblem(
-      `LLM response is not a string. Content: ${contentText.substring(0, 100)}`,
+      `LLM response is not a string. Content: ${JSON.stringify(content).substring(0, 100)}`,
       context,
       loggingEnabled,
     );
     return { success: false, error: createParseError("is not a string", context) };
   }
 
+  const trimmedContent = content.trim();
+
+  if (!content) {
+    logProblem(`LLM response is just an empty string`, context, loggingEnabled);
+    return { success: false, error: createParseError("is just an empty string", context) };
+  }
+
   // Early detection: Check if content has any JSON-like structure at all
-  if (!hasJsonLikeStructure(content)) {
+  if (!hasJsonLikeStructure(trimmedContent)) {
     logProblem(
-      `Contains no JSON structure (no objects or arrays found). The response appears to be plain text rather than JSON.`,
-      { ...context, contentLength: content.length },
+      `Contains no JSON structure (no objects or arrays) and appears to be plain text.`,
+      { ...context, contentLength: trimmedContent.length },
       loggingEnabled,
     );
     return {
       success: false,
-      error: createParseError(
-        "contains no JSON structure (no objects or arrays found). The response appears to be plain text rather than JSON.",
-        context,
-      ),
+      error: createParseError("contains no JSON structure and appears to be plain text", context),
     };
   }
 
-  // Parse the JSON content (with sanitizers applied internally)
-  const parseResult = parseJsonWithSanitizers(content);
+  return { success: true, trimmedContent };
+}
 
-  // If can't parse, log failure and return error
-  if (!parseResult.success) {
-    const pipelineMessage =
-      parseResult.pipelineSteps.length > 0
-        ? `Applied sanitization steps: ${parseResult.pipelineSteps.join(" -> ")}`
-        : "No sanitization steps applied";
-    logProblem(
-      `Cannot parse JSON after all sanitization attempts. ${pipelineMessage}`,
-      {
-        ...context,
-        originalLength: content.length,
-        lastSanitizer: parseResult.pipelineSteps.at(-1),
-        repairsCount: parseResult.repairs.length,
-        responseContentParseError: parseResult.error.cause,
-      },
-      loggingEnabled,
-    );
+/** Type alias for a successful parse result. */
+type SuccessfulParseResult = Extract<ParseResult, { success: true }>;
+
+/**
+ * Builds the result for schema-less JSON parsing.
+ * Validates that the parsed data is an object or array, then constructs the success result.
+ *
+ * @param parseResult - The successful parse result from the sanitization pipeline
+ * @param context - Context information about the LLM request
+ * @param loggingEnabled - Whether to enable repair logging
+ * @returns A JsonProcessorResult with the parsed data or an error if not an object/array
+ */
+function buildSchemalessResult<S extends z.ZodType>(
+  parseResult: SuccessfulParseResult,
+  context: LLMContext,
+  loggingEnabled: boolean,
+): JsonProcessorResult<z.infer<S>> {
+  // Type guard ensures the data is an object or array (not a primitive or null).
+  // Note: typeof returns "object" for both objects AND arrays, so arrays pass this check.
+  if (typeof parseResult.data !== "object" || parseResult.data === null) {
     return {
       success: false,
       error: createParseError(
-        "cannot be parsed to JSON after all sanitization attempts",
+        "expected a JSON object or array but received a primitive type or null",
         context,
-        parseResult.error.cause instanceof Error ? parseResult.error.cause : undefined,
       ),
     };
   }
+  // Build repairs from parse repairs (no transforms when no schema)
+  const repairs = parseResult.repairs;
+  logRepairs(repairs, context, loggingEnabled);
+  return {
+    success: true,
+    // Cast is necessary because we can't infer the type without a schema.
+    // Callers should provide a schema for proper type inference.
+    data: parseResult.data as z.infer<S>,
+    repairs,
+    pipelineSteps: parseResult.pipelineSteps,
+  };
+}
 
-  // Extract schema for type narrowing
-  const { jsonSchema } = completionOptions;
-
-  // If no schema provided, return parsed data without validation.
-  // The default return type is unknown, which forces callers to handle the type explicitly.
-  // Callers should provide a schema for proper type inference.
-  if (!jsonSchema) {
-    // Type guard ensures the data is an object or array (not a primitive or null).
-    // Note: typeof returns "object" for both objects AND arrays, so arrays pass this check.
-    if (typeof parseResult.data !== "object" || parseResult.data === null) {
-      return {
-        success: false,
-        error: createParseError(
-          "expected a JSON object or array but received a primitive type or null",
-          context,
-        ),
-      };
-    }
-    // Build repairs from parse repairs (no transforms when no schema)
-    const repairs = parseResult.repairs;
-    logRepairs(repairs, context, loggingEnabled);
-    return {
-      success: true,
-      // Cast is necessary because we can't infer the type without a schema.
-      // Callers should provide a schema for proper type inference.
-      data: parseResult.data as z.infer<S>,
-      repairs,
-      pipelineSteps: parseResult.pipelineSteps,
-    };
-  }
-
-  // TypeScript now knows jsonSchema exists and is a z.ZodType.
-  // Build effective config by combining schema metadata with any explicit config.
-  // This enables dynamic property detection based on the actual schema being validated.
+/**
+ * Validates parsed JSON data against a Zod schema with transforms and builds the result.
+ * Handles both successful validation and validation failures after transform attempts.
+ *
+ * @param parseResult - The successful parse result from the sanitization pipeline
+ * @param jsonSchema - The Zod schema to validate against
+ * @param context - Context information about the LLM request
+ * @param loggingEnabled - Whether to enable repair logging
+ * @param config - Optional sanitizer configuration to pass to transforms
+ * @returns A JsonProcessorResult with validated data or a validation error
+ */
+function validateAndBuildResult<S extends z.ZodType>(
+  parseResult: SuccessfulParseResult,
+  jsonSchema: S,
+  context: LLMContext,
+  loggingEnabled: boolean,
+  config?: LLMSanitizerConfig,
+): JsonProcessorResult<z.infer<S>> {
   const effectiveConfig = buildEffectiveSanitizerConfig(jsonSchema, config);
-
-  // Validate the parsed data (with transforms applied internally if needed).
   const validationResult = validateJsonWithTransforms(
     parseResult.data,
     jsonSchema,
@@ -287,4 +234,103 @@ export function parseAndValidateLLMJson<S extends z.ZodType = z.ZodType<unknown>
       validationError,
     ),
   };
+}
+
+/**
+ * Builds the effective sanitizer configuration by combining:
+ * 1. Dynamic metadata extracted from the provided Zod schema (if available)
+ * 2. Explicit configuration passed by the caller (takes precedence)
+ *
+ * This enables schema-agnostic sanitization where property lists are derived
+ * from the actual schema being validated, reducing the need for hardcoded lists.
+ *
+ * @param jsonSchema - Optional Zod schema to extract metadata from
+ * @param explicitConfig - Optional explicit configuration to merge with schema metadata
+ * @returns The effective sanitizer configuration, or undefined if neither source provides data
+ */
+function buildEffectiveSanitizerConfig(
+  jsonSchema: z.ZodType | undefined,
+  explicitConfig: LLMSanitizerConfig | undefined,
+): LLMSanitizerConfig | undefined {
+  if (!jsonSchema) return explicitConfig;
+  const schemaMetadata = extractSchemaMetadata(jsonSchema);
+  if (schemaMetadata.allProperties.length === 0 && !explicitConfig) return undefined;
+  return schemaMetadataToSanitizerConfig(schemaMetadata, explicitConfig);
+}
+
+/**
+ * Parses and validates LLM-generated content through a multi-stage sanitization and repair pipeline,
+ * then validates it against a Zod schema. Returns a result object indicating success or failure.
+ *
+ * This is the high-level public API for LLM JSON processing, orchestrating parsing and validation
+ * with comprehensive logging. The function handles:
+ * 1. Sanitization of raw LLM text (removes markdown, comments)
+ * 2. JSON parsing with error recovery
+ * 3. Schema validation against the provided Zod schema
+ * 4. Schema-fixing transforms (coercion)
+ *
+ * Type safety behavior:
+ * - When jsonSchema is provided, the return type is inferred from the schema (z.infer<S>)
+ * - When jsonSchema is not provided, the generic S defaults to z.ZodType<unknown>, making
+ *   z.infer<S> resolve to `unknown`. This forces callers to handle the untyped data explicitly.
+ *
+ * Note: For enforced type safety at the API boundary, callers should use BaseLLMProvider
+ * which validates that JSON output format requires a schema, preventing schema-less JSON
+ * processing at the provider level.
+ *
+ * @template S - The Zod schema type. When provided, the return type is inferred from the schema.
+ *               When not provided, defaults to z.ZodType<unknown> for type-safe handling.
+ * @param content - The LLM-generated content to parse and validate
+ * @param context - Context information about the LLM request
+ * @param completionOptions - Options including output format and optional JSON schema
+ * @param loggingEnabled - Whether to enable sanitization step logging. Defaults to true.
+ * @param config - Optional sanitizer configuration to pass to transforms
+ * @returns A JsonProcessorResult indicating success with validated data and repairs, or failure with an error
+ */
+export function parseAndValidateLLMJson<S extends z.ZodType = z.ZodType<unknown>>(
+  content: LLMGeneratedContent,
+  context: LLMContext,
+  completionOptions: LLMCompletionOptions<S>,
+  loggingEnabled = true,
+  config?: LLMSanitizerConfig,
+): JsonProcessorResult<z.infer<S>> {
+  // Step 1: Validate input content (string type, non-empty, has JSON structure)
+  const inputResult = validateContentInput(content, context, loggingEnabled);
+  if (!inputResult.success) return inputResult;
+
+  // Step 2: Parse JSON content (with sanitizers applied internally)
+  const parseResult = parseJsonWithSanitizers(inputResult.trimmedContent);
+
+  if (!parseResult.success) {
+    const pipelineMessage =
+      parseResult.pipelineSteps.length > 0
+        ? `Applied sanitization steps: ${parseResult.pipelineSteps.join(" -> ")}`
+        : "No sanitization steps applied";
+    logProblem(
+      `Cannot parse JSON after all sanitization attempts. ${pipelineMessage}`,
+      {
+        ...context,
+        originalLength: inputResult.trimmedContent.length,
+        lastSanitizer: parseResult.pipelineSteps.at(-1),
+        repairsCount: parseResult.repairs.length,
+        responseContentParseError: parseResult.error.cause,
+      },
+      loggingEnabled,
+    );
+    return {
+      success: false,
+      error: createParseError(
+        "cannot be parsed to JSON after all sanitization attempts",
+        context,
+        parseResult.error.cause instanceof Error ? parseResult.error.cause : undefined,
+      ),
+    };
+  }
+
+  // Step 3: Branch based on schema presence
+  const { jsonSchema } = completionOptions;
+  if (!jsonSchema) return buildSchemalessResult<S>(parseResult, context, loggingEnabled);
+
+  // Step 4: Validate against schema and build result
+  return validateAndBuildResult(parseResult, jsonSchema, context, loggingEnabled, config);
 }

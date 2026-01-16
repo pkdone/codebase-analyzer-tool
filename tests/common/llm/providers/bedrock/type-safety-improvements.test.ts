@@ -18,7 +18,7 @@ import {
 } from "../../../../../src/common/llm/providers/llm-provider.types";
 import { bedrockClaudeProviderManifest } from "../../../../../src/common/llm/providers/bedrock/claude/bedrock-claude.manifest";
 import { bedrockNovaProviderManifest } from "../../../../../src/common/llm/providers/bedrock/nova/bedrock-nova.manifest";
-import { createMockErrorLogger } from "../../../helpers/llm/mock-error-logger";
+import { createMockErrorLoggingConfig } from "../../../helpers/llm/mock-error-logger";
 import { LLMError, LLMErrorCode } from "../../../../../src/common/llm/types/llm-errors.types";
 
 // Mock the Bedrock client
@@ -80,7 +80,7 @@ describe("Bedrock Type Safety Improvements", () => {
             embeddings: modelsMetadata[embeddingsKey].urn,
             primaryCompletion: modelsMetadata[completionKey].urn,
           },
-          errorLogger: createMockErrorLogger(),
+          errorLogging: createMockErrorLoggingConfig(),
         };
       };
 
@@ -186,7 +186,7 @@ describe("Bedrock Type Safety Improvements", () => {
             embeddings: modelsMetadata[embeddingsKey].urn,
             primaryCompletion: modelsMetadata[completionKey].urn,
           },
-          errorLogger: createMockErrorLogger(),
+          errorLogging: createMockErrorLoggingConfig(),
         };
       };
 

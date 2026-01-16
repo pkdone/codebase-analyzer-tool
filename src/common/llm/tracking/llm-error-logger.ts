@@ -4,13 +4,11 @@ import { formatErrorMessageAndDetail } from "../../utils/error-formatters";
 import { logWarn, logErr } from "../../utils/logging";
 import { LLMErrorLoggingConfig } from "../config/llm-module-config.types";
 import type { LLMContext, LLMGeneratedContent } from "../types/llm.types";
-import type { IErrorLogger } from "./llm-error-logger.interface";
 
 /**
  * Service responsible for logging LLM JSON processing errors to files.
- * Decouples error logging concerns from the core LLM provider abstraction.
  */
-export class LLMErrorLogger implements IErrorLogger {
+export class LLMErrorLogger {
   private hasLoggedJsonError = false;
 
   constructor(private readonly config: LLMErrorLoggingConfig) {}

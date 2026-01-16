@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import BedrockDeepseekLLM from "../../../../../../src/common/llm/providers/bedrock/deepseek/bedrock-deepseek-llm";
-import { createMockErrorLogger } from "../../../../helpers/llm/mock-error-logger";
+import { createMockErrorLoggingConfig } from "../../../../helpers/llm/mock-error-logger";
 import {
   ResolvedLLMModelMetadata,
   LLMPurpose,
@@ -59,7 +59,7 @@ describe("BedrockDeepseekLLM - Request Body Building", () => {
         embeddings: mockModelsMetadata.EMBEDDINGS.urn,
         primaryCompletion: mockModelsMetadata[AWS_COMPLETIONS_DEEPSEEK_R1].urn,
       },
-      errorLogger: createMockErrorLogger(),
+      errorLogging: createMockErrorLoggingConfig(),
     };
   }
 

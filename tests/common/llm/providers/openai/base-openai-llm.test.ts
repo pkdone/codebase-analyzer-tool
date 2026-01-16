@@ -6,7 +6,7 @@ import {
   ProviderInit,
 } from "../../../../../src/common/llm/providers/llm-provider.types";
 import { OpenAI } from "openai";
-import { createMockErrorLogger } from "../../../helpers/llm/mock-error-logger";
+import { createMockErrorLoggingConfig } from "../../../helpers/llm/mock-error-logger";
 import { z } from "zod";
 
 // Minimal fake client with only used methods
@@ -72,7 +72,7 @@ class TestOpenAILLM extends BaseOpenAILLM {
         embeddings: "embed-model",
         primaryCompletion: "complete-model",
       },
-      errorLogger: createMockErrorLogger(),
+      errorLogging: createMockErrorLoggingConfig(),
     };
     super(init);
   }

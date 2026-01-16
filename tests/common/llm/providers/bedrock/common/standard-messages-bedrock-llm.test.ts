@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import StandardMessagesBedrockLLM from "../../../../../../src/common/llm/providers/bedrock/common/standard-messages-bedrock-llm";
-import { createMockErrorLogger } from "../../../../helpers/llm/mock-error-logger";
+import { createMockErrorLoggingConfig } from "../../../../helpers/llm/mock-error-logger";
 import {
   ResolvedLLMModelMetadata,
   LLMPurpose,
@@ -94,7 +94,7 @@ describe("StandardMessagesBedrockLLM", () => {
         embeddings: mockModelsMetadata.EMBEDDINGS.urn,
         primaryCompletion: mockModelsMetadata[TEST_MODEL_KEY].urn,
       },
-      errorLogger: createMockErrorLogger(),
+      errorLogging: createMockErrorLoggingConfig(),
     };
   }
 

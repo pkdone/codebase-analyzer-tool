@@ -11,7 +11,7 @@ import {
   ProviderInit,
 } from "../../../../src/common/llm/providers/llm-provider.types";
 import BaseLLMProvider from "../../../../src/common/llm/providers/base-llm-provider";
-import { createMockErrorLogger } from "../../helpers/llm/mock-error-logger";
+import { createMockErrorLoggingConfig } from "../../helpers/llm/mock-error-logger";
 import { z } from "zod";
 
 // Test-only constants
@@ -79,7 +79,7 @@ class StubLLM extends BaseLLMProvider {
         embeddings: "stub-embed",
         primaryCompletion: "stub-complete",
       },
-      errorLogger: createMockErrorLogger(),
+      errorLogging: createMockErrorLoggingConfig(),
     });
   }
   protected async invokeEmbeddingProvider(): Promise<LLMImplSpecificResponseSummary> {
@@ -145,7 +145,7 @@ function createTestProviderInit(): ProviderInit {
       embeddings: testModelsMetadata[GPT_EMBEDDINGS_GPT4].urn,
       primaryCompletion: testModelsMetadata[GPT_COMPLETIONS_GPT4_32k].urn,
     },
-    errorLogger: createMockErrorLogger(),
+    errorLogging: createMockErrorLoggingConfig(),
   };
 }
 

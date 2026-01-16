@@ -4,7 +4,6 @@ import type {
   ProviderInit,
 } from "../../../../src/common/llm/providers/llm-provider.types";
 import BaseLLMProvider from "../../../../src/common/llm/providers/base-llm-provider";
-import type { IErrorLogger } from "../../../../src/common/llm/tracking/llm-error-logger.interface";
 import { z } from "zod";
 
 /**
@@ -12,11 +11,6 @@ import { z } from "zod";
  * Verifies that providers can be instantiated with the ProviderInit configuration object.
  */
 describe("Provider Constructor Signatures", () => {
-  // Mock error logger
-  const mockErrorLogger: IErrorLogger = {
-    recordJsonProcessingError: jest.fn().mockResolvedValue(undefined),
-  };
-
   // Test provider extending BaseLLMProvider
   class TestProvider extends BaseLLMProvider {
     protected async invokeEmbeddingProvider() {
@@ -83,7 +77,10 @@ describe("Provider Constructor Signatures", () => {
       embeddings: "test-embed-urn",
       primaryCompletion: "test-primary-urn",
     },
-    errorLogger: mockErrorLogger,
+    errorLogging: {
+      errorLogDirectory: "/tmp/test-errors",
+      errorLogFilenameTemplate: "error-{timestamp}.log",
+    },
   });
 
   it("should accept ProviderInit object", () => {

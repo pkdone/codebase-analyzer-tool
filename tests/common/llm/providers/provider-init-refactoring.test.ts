@@ -4,18 +4,12 @@ import type {
   LLMImplSpecificResponseSummary,
 } from "../../../../src/common/llm/providers/llm-provider.types";
 import { LLMPurpose } from "../../../../src/common/llm/types/llm.types";
-import type { IErrorLogger } from "../../../../src/common/llm/tracking/llm-error-logger.interface";
 import { z } from "zod";
 
 /**
  * Tests for refactored provider initialization using ProviderInit object.
  */
 describe("Provider Init Refactoring", () => {
-  // Mock error logger
-  const mockErrorLogger: IErrorLogger = {
-    recordJsonProcessingError: jest.fn().mockResolvedValue(undefined),
-  };
-
   // Test provider extending BaseLLMProvider
   class TestProvider extends BaseLLMProvider {
     protected async invokeEmbeddingProvider(): Promise<LLMImplSpecificResponseSummary> {
@@ -93,7 +87,10 @@ describe("Provider Init Refactoring", () => {
       primaryCompletion: "test-primary-urn",
       ...(includeSecondary && { secondaryCompletion: "test-secondary-urn" }),
     },
-    errorLogger: mockErrorLogger,
+    errorLogging: {
+      errorLogDirectory: "/tmp/test-errors",
+      errorLogFilenameTemplate: "error-{timestamp}.log",
+    },
   });
 
   it("should accept ProviderInit object in constructor", () => {

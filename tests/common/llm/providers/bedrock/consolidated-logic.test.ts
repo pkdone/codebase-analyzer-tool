@@ -6,7 +6,6 @@ import BedrockLlamaLLM from "../../../../../src/common/llm/providers/bedrock/lla
 import BedrockNovaLLM from "../../../../../src/common/llm/providers/bedrock/nova/bedrock-nova-llm";
 import type { ProviderInit } from "../../../../../src/common/llm/providers/llm-provider.types";
 import { LLMPurpose } from "../../../../../src/common/llm/types/llm.types";
-import type { IErrorLogger } from "../../../../../src/common/llm/tracking/llm-error-logger.interface";
 import { z } from "zod";
 
 /**
@@ -14,10 +13,6 @@ import { z } from "zod";
  * Verifies that default buildCompletionRequestBody is inherited correctly.
  */
 describe("Consolidated Bedrock Logic", () => {
-  const mockErrorLogger: IErrorLogger = {
-    recordJsonProcessingError: jest.fn().mockResolvedValue(undefined),
-  };
-
   const createInit = (): ProviderInit => ({
     manifest: {
       providerName: "Test Bedrock",
@@ -54,7 +49,10 @@ describe("Consolidated Bedrock Logic", () => {
       embeddings: "test-embed-urn",
       primaryCompletion: "test-complete-urn",
     },
-    errorLogger: mockErrorLogger,
+    errorLogging: {
+      errorLogDirectory: "/tmp/test-errors",
+      errorLogFilenameTemplate: "error-{timestamp}.log",
+    },
   });
 
   describe("BaseBedrockLLM default implementation", () => {

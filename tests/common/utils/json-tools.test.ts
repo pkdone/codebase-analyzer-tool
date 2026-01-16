@@ -70,7 +70,7 @@ describe("JSON utilities", () => {
       if (!result.success) {
         // Plain text without JSON structure now gets a clearer error message
         expect(result.error.message).toMatch(/contains no JSON structure/);
-        expect(result.error.message).toMatch(/plain text rather than JSON/);
+        expect(result.error.message).toMatch(/appears to be plain text/);
       }
     });
 

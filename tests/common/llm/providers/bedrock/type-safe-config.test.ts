@@ -5,7 +5,6 @@ import type {
 } from "../../../../../src/common/llm/providers/llm-provider.types";
 import type { BedrockLlamaProviderConfig } from "../../../../../src/common/llm/providers/bedrock/llama/bedrock-llama.types";
 import { LLMPurpose } from "../../../../../src/common/llm/types/llm.types";
-import type { IErrorLogger } from "../../../../../src/common/llm/tracking/llm-error-logger.interface";
 import { z } from "zod";
 
 /**
@@ -13,10 +12,6 @@ import { z } from "zod";
  * Verifies that BedrockLlama uses typed config checks instead of feature flags.
  */
 describe("Type-Safe Config Without Features Array", () => {
-  const mockErrorLogger: IErrorLogger = {
-    recordJsonProcessingError: jest.fn().mockResolvedValue(undefined),
-  };
-
   const createInitWithConfig = (config: LLMProviderSpecificConfig): ProviderInit => ({
     manifest: {
       providerName: "Bedrock Llama",
@@ -48,7 +43,10 @@ describe("Type-Safe Config Without Features Array", () => {
       embeddings: "test-embed-urn",
       primaryCompletion: "llama-complete-urn",
     },
-    errorLogger: mockErrorLogger,
+    errorLogging: {
+      errorLogDirectory: "/tmp/test-errors",
+      errorLogFilenameTemplate: "error-{timestamp}.log",
+    },
   });
 
   it("should use type-safe config check for maxGenLenCap", () => {

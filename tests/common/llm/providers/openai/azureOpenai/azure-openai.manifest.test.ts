@@ -5,7 +5,7 @@ import {
 import { calculateTokenUsageFromError } from "../../../../../../src/common/llm/utils/error-parser";
 import { azureOpenAIProviderManifest } from "../../../../../../src/common/llm/providers/openai/azure/azure-openai.manifest";
 import { loadBaseEnvVarsOnly } from "../../../../../../src/app/env/env";
-import { createMockErrorLogger } from "../../../../helpers/llm/mock-error-logger";
+import { createMockErrorLoggingConfig } from "../../../../helpers/llm/mock-error-logger";
 import type { ProviderInit } from "../../../../../../src/common/llm/providers/llm-provider.types";
 
 // Test-only constants
@@ -103,7 +103,7 @@ function createTestProviderInit(): ProviderInit {
             .urn,
       }),
     },
-    errorLogger: createMockErrorLogger(),
+    errorLogging: createMockErrorLoggingConfig(),
   };
 }
 

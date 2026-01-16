@@ -14,7 +14,7 @@ import type { JsonObject } from "../../../../../../src/common/llm/types/json-val
 import { z } from "zod";
 import { ValidationException } from "@aws-sdk/client-bedrock-runtime";
 import { CredentialsProviderError } from "@smithy/property-provider";
-import { createMockErrorLogger } from "../../../../helpers/llm/mock-error-logger";
+import { createMockErrorLoggingConfig } from "../../../../helpers/llm/mock-error-logger";
 import { LLMError, LLMErrorCode } from "../../../../../../src/common/llm/types/llm-errors.types";
 
 // Helper to create test provider init
@@ -63,7 +63,7 @@ function createTestProviderInit(
       embeddings: modelsMetadata[embeddingsKey].urn,
       primaryCompletion: modelsMetadata[completionKey].urn,
     },
-    errorLogger: createMockErrorLogger(),
+    errorLogging: createMockErrorLoggingConfig(),
   };
 }
 
@@ -362,7 +362,7 @@ describe("BaseBedrockLLM - validateCredentials", () => {
         embeddings: mockModelsMetadata[embeddingsKey].urn,
         primaryCompletion: mockModelsMetadata[completionKey].urn,
       },
-      errorLogger: createMockErrorLogger(),
+      errorLogging: createMockErrorLoggingConfig(),
     };
   }
 

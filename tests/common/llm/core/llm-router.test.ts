@@ -10,7 +10,6 @@ import {
 
 import { z } from "zod";
 import LLMRouter from "../../../../src/common/llm/llm-router";
-import { createMockErrorLogger } from "../../helpers/llm/mock-error-logger";
 import LLMExecutionStats from "../../../../src/common/llm/tracking/llm-execution-stats";
 import { RetryStrategy } from "../../../../src/common/llm/strategies/retry-strategy";
 import { LLMExecutionPipeline } from "../../../../src/common/llm/llm-execution-pipeline";
@@ -228,7 +227,6 @@ describe("LLM Router tests", () => {
       mockLLMExecutionStats,
     );
 
-    const mockErrorLogger = createMockErrorLogger();
     const mockConfig: LLMModuleConfig = {
       modelFamily: "openai",
       providerParams: mockEnvVars as unknown as Record<string, unknown>,
@@ -238,7 +236,7 @@ describe("LLM Router tests", () => {
       },
       errorLogging: { errorLogDirectory: "/tmp", errorLogFilenameTemplate: "error.log" },
     };
-    const router = new LLMRouter(mockConfig, mockExecutionPipeline, mockErrorLogger);
+    const router = new LLMRouter(mockConfig, mockExecutionPipeline);
     return { router, mockProvider, mockManifest };
   };
 

@@ -1,12 +1,13 @@
-import { LLMErrorLogger } from "../../../../src/common/llm/tracking/llm-error-logger";
+import type { LLMErrorLoggingConfig } from "../../../../src/common/llm/config/llm-module-config.types";
 
 /**
- * Creates a mock LLMErrorLogger for use in tests.
- * The mock logger does not actually write files, making tests faster and cleaner.
+ * Creates a mock LLMErrorLoggingConfig for use in tests.
+ * Tests will create actual LLMErrorLogger instances from this config,
+ * but using a temp directory prevents cluttering the filesystem.
  */
-export function createMockErrorLogger(): LLMErrorLogger {
-  const mockLogger = {
-    recordJsonProcessingError: jest.fn().mockResolvedValue(undefined),
-  } as unknown as LLMErrorLogger;
-  return mockLogger;
+export function createMockErrorLoggingConfig(): LLMErrorLoggingConfig {
+  return {
+    errorLogDirectory: "/tmp/test-llm-errors",
+    errorLogFilenameTemplate: "llm-error-{timestamp}.log",
+  };
 }

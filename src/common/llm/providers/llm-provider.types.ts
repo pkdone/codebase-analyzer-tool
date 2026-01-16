@@ -6,8 +6,7 @@ import {
   LLMGeneratedContent,
   LLMResponseTokensUsage,
 } from "../types/llm.types";
-import type { ResolvedModels } from "../config/llm-module-config.types";
-import type { IErrorLogger } from "../tracking/llm-error-logger.interface";
+import type { ResolvedModels, LLMErrorLoggingConfig } from "../config/llm-module-config.types";
 import type { JsonValue } from "../types/json-value.types";
 
 /**
@@ -56,8 +55,8 @@ export interface ProviderInit {
   providerParams: Record<string, unknown>;
   /** Resolved model URNs for this provider */
   resolvedModels: ResolvedModels;
-  /** Error logger for recording issues */
-  errorLogger: IErrorLogger;
+  /** Error logging configuration for recording JSON processing issues */
+  errorLogging: LLMErrorLoggingConfig;
 }
 
 /**

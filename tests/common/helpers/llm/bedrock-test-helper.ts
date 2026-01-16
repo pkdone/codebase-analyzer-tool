@@ -8,7 +8,7 @@ import {
   ProviderInit,
 } from "../../../../src/common/llm/providers/llm-provider.types";
 import { loadBaseEnvVarsOnly } from "../../../../src/app/env/env";
-import { createMockErrorLogger } from "./mock-error-logger";
+import { createMockErrorLoggingConfig } from "./mock-error-logger";
 
 /**
  * Configuration for additional test models that may be used in tests
@@ -178,6 +178,6 @@ export function createBedrockProviderInit(
         secondaryCompletion: resolveUrn(manifest.models.secondaryCompletion.urnEnvKey),
       }),
     },
-    errorLogger: createMockErrorLogger(),
+    errorLogging: createMockErrorLoggingConfig(),
   };
 }

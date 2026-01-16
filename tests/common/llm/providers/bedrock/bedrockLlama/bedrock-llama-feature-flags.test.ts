@@ -1,5 +1,5 @@
 import { bedrockLlamaProviderManifest } from "../../../../../../src/common/llm/providers/bedrock/llama/bedrock-llama.manifest";
-import { createMockErrorLogger } from "../../../../helpers/llm/mock-error-logger";
+import { createMockErrorLoggingConfig } from "../../../../helpers/llm/mock-error-logger";
 import BedrockLlamaLLM from "../../../../../../src/common/llm/providers/bedrock/llama/bedrock-llama-llm";
 import type { ProviderInit } from "../../../../../../src/common/llm/providers/llm-provider.types";
 
@@ -15,7 +15,7 @@ describe("Bedrock Llama Type-Safe Configuration", () => {
       primaryCompletion: "llama-primary-urn",
       secondaryCompletion: "llama-secondary-urn",
     },
-    errorLogger: createMockErrorLogger(),
+    errorLogging: createMockErrorLoggingConfig(),
   });
 
   test("maxGenLenCap property in config triggers max_gen_len capping", () => {
