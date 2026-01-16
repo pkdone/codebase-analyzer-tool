@@ -12,11 +12,7 @@ import type { ContextInfo } from "../../../../../src/common/llm/json-processing/
 /**
  * Helper function to create a ContextInfo object for testing.
  */
-function createContext(
-  content: string,
-  offset: number,
-  lookbackLength = 500,
-): ContextInfo {
+function createContext(content: string, offset: number, lookbackLength = 500): ContextInfo {
   return {
     beforeMatch: content.substring(Math.max(0, offset - lookbackLength), offset),
     offset,
@@ -212,7 +208,7 @@ describe("parser-context-utils", () => {
 
   describe("isInPropertyContext", () => {
     it("should return true after opening brace", () => {
-      const content = '{ ';
+      const content = "{ ";
       const context = createContext(content, content.length);
       expect(isInPropertyContext(context)).toBe(true);
     });
@@ -224,7 +220,7 @@ describe("parser-context-utils", () => {
     });
 
     it("should return true after newline", () => {
-      const content = '{\n  ';
+      const content = "{\n  ";
       const context = createContext(content, content.length);
       expect(isInPropertyContext(context)).toBe(true);
     });
@@ -239,7 +235,7 @@ describe("parser-context-utils", () => {
       // This tests a position where beforeMatch doesn't match any property context pattern
       // (not after {, comma, }, ], newline, or near start of file)
       const context: ContextInfo = {
-        beforeMatch: '"value"',  // Just a value string, no structural delimiters
+        beforeMatch: '"value"', // Just a value string, no structural delimiters
         offset: 500, // Far from start of file to avoid offset check
         fullContent: '{"key": "value"}',
         groups: [],

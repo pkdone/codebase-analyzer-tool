@@ -1247,6 +1247,105 @@ extra_text=""""
     });
   });
 
+  describe("extended list marker removal", () => {
+    it("should remove arrow (→) list markers before property names", () => {
+      const input = `{
+  "name": "TestClass",
+→ "purpose": "Test purpose"
+}`;
+
+      const result = unifiedSyntaxSanitizer(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"purpose": "Test purpose"');
+      expect(result.content).not.toContain("→");
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+
+    it("should remove heavy arrow (➤) list markers before property names", () => {
+      const input = `{
+  "name": "TestClass",
+➤ "description": "Test description"
+}`;
+
+      const result = unifiedSyntaxSanitizer(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"description": "Test description"');
+      expect(result.content).not.toContain("➤");
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+
+    it("should remove triangle (▹) list markers before property names", () => {
+      const input = `{
+  "name": "TestClass",
+▹ "type": "String"
+}`;
+
+      const result = unifiedSyntaxSanitizer(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"type": "String"');
+      expect(result.content).not.toContain("▹");
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+
+    it("should remove diamond (◆) list markers before property names", () => {
+      const input = `{
+  "name": "TestClass",
+◆ "value": 42
+}`;
+
+      const result = unifiedSyntaxSanitizer(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"value": 42');
+      expect(result.content).not.toContain("◆");
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+  });
+
+  describe("corrupted property names with alphanumeric text", () => {
+    it("should fix corrupted property name with numeric text after colon", () => {
+      const input = `{
+  "name":123": "value",
+  "type": "String"
+}`;
+
+      const result = unifiedSyntaxSanitizer(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain('"name":123":');
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+
+    it("should fix corrupted property name with mixed alphanumeric text", () => {
+      const input = `{
+  "name":abc123": "value",
+  "type": "String"
+}`;
+
+      const result = unifiedSyntaxSanitizer(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain('"name":abc123":');
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+
+    it("should fix corrupted property name with underscore in corruption", () => {
+      const input = `{
+  "name":test_value": "actual",
+  "type": "String"
+}`;
+
+      const result = unifiedSyntaxSanitizer(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain('"name":test_value":');
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+  });
+
   describe("generic patterns - unquoted property keys", () => {
     it("should fix unquoted property keys after various delimiters", () => {
       const input = `{

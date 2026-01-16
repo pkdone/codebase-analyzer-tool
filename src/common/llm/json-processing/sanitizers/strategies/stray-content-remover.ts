@@ -206,14 +206,18 @@ export const strayContentRemover: SanitizerStrategy = {
       },
     );
 
-    // Pattern 9: Fix comment markers in JSON (like * "property":)
-    const commentMarkerPattern = /([}\],]|\n|^)(\s*)\*(\s+)"([a-zA-Z_$][^"]+)"(\s*[,:])/g;
+    // Pattern 9: Fix list markers in JSON (like * "property":, → "property":, etc.)
+    // Uses negated character class to catch any non-alphanumeric, non-JSON-structural symbol
+    // acting as a list marker (bullets, arrows, asterisks, dashes, etc.)
+    const listMarkerPattern =
+      /([}\],]|\n|^)(\s*)([^\w\s"'{}[\],:\n])(\s+)"([a-zA-Z_$][^"]+)"(\s*[,:])/g;
     sanitized = sanitized.replace(
-      commentMarkerPattern,
+      listMarkerPattern,
       (
         match,
         delimiter,
         whitespaceBefore,
+        marker,
         whitespaceAfter,
         propertyName,
         terminator,
@@ -239,11 +243,14 @@ export const strayContentRemover: SanitizerStrategy = {
         if (isPropertyContext) {
           const delimiterStr = typeof delimiter === "string" ? delimiter : "";
           const whitespaceBeforeStr = typeof whitespaceBefore === "string" ? whitespaceBefore : "";
+          const markerStr = typeof marker === "string" ? marker : "";
           const whitespaceAfterStr = typeof whitespaceAfter === "string" ? whitespaceAfter : "";
           const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
           const terminatorStr = typeof terminator === "string" ? terminator : "";
           hasChanges = true;
-          diagnostics.add(`Removed comment marker before property: * "${propertyNameStr}"`);
+          diagnostics.add(
+            `Removed list marker '${markerStr}' before property: "${propertyNameStr}"`,
+          );
 
           let finalWhitespace = whitespaceAfterStr || whitespaceBeforeStr;
           const isInArrayContext = /\[\s*$/.test(beforeMatch) || /\[\s*\n\s*$/.test(beforeMatch);

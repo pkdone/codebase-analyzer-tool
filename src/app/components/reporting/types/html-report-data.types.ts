@@ -9,7 +9,10 @@ import type { ScheduledJobsSummary } from "../sections/background-processes/back
 import type { ModuleCoupling } from "../sections/architecture-analysis/architecture-analysis.types";
 import type { UiTechnologyAnalysis } from "../sections/ui-analysis/ui-analysis.types";
 import type { BomStatistics } from "../sections/dependencies/dependencies.types";
-import type { ProcsAndTriggers, DatabaseIntegrationInfo } from "../sections/database/database.types";
+import type {
+  ProcsAndTriggers,
+  DatabaseIntegrationInfo,
+} from "../sections/database/database.types";
 import type { IntegrationPointInfo } from "../sections/integration-points/integration-points.types";
 import type { ProjectedFileTypesCountAndLines } from "../../../repositories/sources/sources.model";
 import type { TableViewModel } from "../view-models/table-view-model";

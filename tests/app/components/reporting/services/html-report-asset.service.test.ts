@@ -181,10 +181,9 @@ describe("HtmlReportAssetService", () => {
 
       await service.ensureMermaidAsset(outputDir);
 
-      expect(mockMkdir).toHaveBeenCalledWith(
-        expect.stringContaining("assets"),
-        { recursive: true },
-      );
+      expect(mockMkdir).toHaveBeenCalledWith(expect.stringContaining("assets"), {
+        recursive: true,
+      });
       expect(mockAccess).toHaveBeenCalled();
       expect(mockWriteFile).not.toHaveBeenCalled();
       expect(consoleSpy).toHaveBeenCalledWith(
@@ -208,10 +207,9 @@ describe("HtmlReportAssetService", () => {
 
       await service.ensureMermaidAsset(outputDir);
 
-      expect(mockMkdir).toHaveBeenCalledWith(
-        expect.stringContaining("assets"),
-        { recursive: true },
-      );
+      expect(mockMkdir).toHaveBeenCalledWith(expect.stringContaining("assets"), {
+        recursive: true,
+      });
       expect(mockWriteFile).toHaveBeenCalledWith(
         expect.stringContaining("mermaid.min.js"),
         mockMermaidContent,
@@ -240,7 +238,9 @@ describe("HtmlReportAssetService", () => {
       try {
         await service.ensureMermaidAsset(outputDir);
 
-        expect(global.fetch).toHaveBeenCalledWith(mockOutputConfig.externalAssets.MERMAID_CDN_UMD_URL);
+        expect(global.fetch).toHaveBeenCalledWith(
+          mockOutputConfig.externalAssets.MERMAID_CDN_UMD_URL,
+        );
         expect(mockWriteFile).toHaveBeenCalled();
         expect(consoleSpy).toHaveBeenCalledWith(
           expect.stringContaining("Mermaid.js downloaded and copied"),

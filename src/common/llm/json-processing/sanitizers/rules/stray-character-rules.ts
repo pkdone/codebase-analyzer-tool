@@ -136,11 +136,12 @@ export const STRAY_CHARACTER_RULES: readonly ReplacementRule[] = [
 
   // Rule: Generic removal of list markers/prefixes before property names
   // Consolidates: bulletPointBeforeProperty, asteriskBeforeProperty
-  // Catches bullets (•), asterisks (*), dashes (-), plus (+), and other list markers
-  // Pattern: `• "publicConstants":` or `* "purpose":` or `- "item":` -> `"item":`
+  // Catches any non-alphanumeric, non-JSON-structural character acting as a list marker
+  // Uses negated character class for future-proofing against new Unicode bullet characters
+  // Pattern: `• "publicConstants":` or `* "purpose":` or `→ "item":` -> `"item":`
   {
     name: "genericListMarkerBeforeProperty",
-    pattern: /([}\],]|\n|^)(\s*)([•*\-+>»►▸▹◦‣⁃○●◆◇■□])\s+("([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:)/g,
+    pattern: /([}\],]|\n|^)(\s*)([^\w\s"'{}[\],:])(?:\s+)("([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:)/g,
     replacement: (_match, groups) => {
       const [delimiter, whitespace, , propertyWithQuote] = groups;
       const delimiterStr = delimiter ?? "";

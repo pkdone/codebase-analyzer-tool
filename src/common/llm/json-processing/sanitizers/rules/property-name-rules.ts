@@ -16,9 +16,10 @@ import { isAfterJsonDelimiter, isInPropertyContext } from "./rule-executor";
 export const PROPERTY_NAME_RULES: readonly ReplacementRule[] = [
   // Rule: Fix corrupted property names with extra text after colon
   // Pattern: `"name":g": "value"` -> `"name": "value"`
+  // Pattern: `"name":123": "value"` -> `"name": "value"` (alphanumeric corruption)
   {
     name: "corruptedPropertyNameExtraText",
-    pattern: /"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:\s*([a-zA-Z]+)\s*":(\s*[,}])/g,
+    pattern: /"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:\s*([a-zA-Z0-9_]+)\s*":(\s*[,}])/g,
     replacement: (_match, groups) => {
       const [propertyName, , terminator] = groups;
       const propertyNameStr = propertyName ?? "";

@@ -73,13 +73,14 @@ function parseStringAsList(stringValue: string): string[] {
 
   // Strategy 1: Bulleted list (lines starting with -, *, •, or similar)
   // Pattern: "- item1\n- item2" or "* item1\n* item2" or "• item1\n• item2"
-  const bulletedListPattern = /^[\s]*[-*•◦▪▸►]\s+/m;
+  // Extended to include additional Unicode bullet characters for robustness
+  const bulletedListPattern = /^[\s]*[-*•◦▪▸►▹‣⁃○●◆◇■□→➤➢]\s+/m;
   if (bulletedListPattern.test(trimmed)) {
     const items = trimmed
       .split(/\n/)
       .map((line) => line.trim())
       .filter((line) => line.length > 0)
-      .map((line) => line.replace(/^[-*•◦▪▸►]\s+/, "").trim())
+      .map((line) => line.replace(/^[-*•◦▪▸►▹‣⁃○●◆◇■□→➤➢]\s+/, "").trim())
       .filter((item) => item.length > 0);
 
     if (items.length > 0) {

@@ -639,6 +639,56 @@ describe("coerceStringToArray", () => {
 
         expect((result as any).items).toEqual(["apple", "banana", "cherry"]);
       });
+
+      it("should parse arrow bullet list into array", () => {
+        const input = {
+          items: "→ first item\n→ second item\n→ third item",
+        };
+
+        const result = coerceStringToArray(input, config);
+
+        expect((result as any).items).toEqual(["first item", "second item", "third item"]);
+      });
+
+      it("should parse triangle arrow bullet list into array", () => {
+        const input = {
+          items: "▹ option a\n▹ option b\n▹ option c",
+        };
+
+        const result = coerceStringToArray(input, config);
+
+        expect((result as any).items).toEqual(["option a", "option b", "option c"]);
+      });
+
+      it("should parse heavy arrow bullet list into array", () => {
+        const input = {
+          items: "➤ task 1\n➤ task 2\n➤ task 3",
+        };
+
+        const result = coerceStringToArray(input, config);
+
+        expect((result as any).items).toEqual(["task 1", "task 2", "task 3"]);
+      });
+
+      it("should parse diamond bullet list into array", () => {
+        const input = {
+          items: "◆ diamond 1\n◆ diamond 2\n◆ diamond 3",
+        };
+
+        const result = coerceStringToArray(input, config);
+
+        expect((result as any).items).toEqual(["diamond 1", "diamond 2", "diamond 3"]);
+      });
+
+      it("should parse square bullet list into array", () => {
+        const input = {
+          items: "■ square 1\n■ square 2\n■ square 3",
+        };
+
+        const result = coerceStringToArray(input, config);
+
+        expect((result as any).items).toEqual(["square 1", "square 2", "square 3"]);
+      });
     });
 
     describe("numbered lists", () => {
