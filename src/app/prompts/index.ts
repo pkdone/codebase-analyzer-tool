@@ -31,8 +31,9 @@ export {
 // Definitions - only export high-level config maps, not internal fragments
 export {
   appSummaryConfigMap,
-  createAppSummaryConfig,
+  type AppSummaryConfigMap,
 } from "./definitions/app-summaries/app-summaries.definitions";
+export { createAppSummaryConfig } from "./definitions/app-summaries/app-summaries.factories";
 export {
   fileTypePromptRegistry,
   type FileTypePromptRegistry,

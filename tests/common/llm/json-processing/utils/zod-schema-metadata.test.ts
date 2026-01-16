@@ -143,28 +143,228 @@ describe("zod-schema-metadata", () => {
           level1: z.object({
             level2: z.object({
               level3: z.object({
-                deepProperty: z.number(),
+                level4: z.object({
+                  level5: z.object({
+                    deepProperty: z.number(),
+                  }),
+                }),
               }),
             }),
           }),
         });
 
-        // Default depth = 2, should get level1 and level2
+        // Default depth = 4, should get level1 through level4
         const metadataDefault = extractSchemaMetadata(schema);
         expect(metadataDefault.allProperties).toContain("level1");
         expect(metadataDefault.allProperties).toContain("level2");
-        expect(metadataDefault.allProperties).not.toContain("level3");
+        expect(metadataDefault.allProperties).toContain("level3");
+        expect(metadataDefault.allProperties).toContain("level4");
+        expect(metadataDefault.allProperties).not.toContain("level5");
         expect(metadataDefault.allProperties).not.toContain("deepProperty");
 
-        // Depth = 3, should get level1, level2, level3
-        const metadataDeep = extractSchemaMetadata(schema, { maxDepth: 3 });
-        expect(metadataDeep.allProperties).toContain("level3");
-        expect(metadataDeep.allProperties).not.toContain("deepProperty");
+        // Depth = 2, should only get level1 and level2
+        const metadataShallow = extractSchemaMetadata(schema, { maxDepth: 2 });
+        expect(metadataShallow.allProperties).toContain("level1");
+        expect(metadataShallow.allProperties).toContain("level2");
+        expect(metadataShallow.allProperties).not.toContain("level3");
 
-        // Depth = 4, should get all properties
-        const metadataDeeper = extractSchemaMetadata(schema, { maxDepth: 4 });
-        expect(metadataDeeper.allProperties).toContain("deepProperty");
-        expect(metadataDeeper.numericProperties).toContain("deepProperty");
+        // Depth = 6, should get all properties
+        const metadataDeep = extractSchemaMetadata(schema, { maxDepth: 6 });
+        expect(metadataDeep.allProperties).toContain("level5");
+        expect(metadataDeep.allProperties).toContain("deepProperty");
+        expect(metadataDeep.numericProperties).toContain("deepProperty");
+      });
+    });
+
+    describe("array item schemas", () => {
+      it("should extract properties from z.array(z.object(...))", () => {
+        const schema = z.object({
+          items: z.array(
+            z.object({
+              itemName: z.string(),
+              itemCount: z.number(),
+              subItems: z.array(z.string()),
+            }),
+          ),
+        });
+
+        const metadata = extractSchemaMetadata(schema);
+
+        // Should include the array property itself
+        expect(metadata.arrayProperties).toContain("items");
+
+        // Should also include properties from the array item schema
+        expect(metadata.allProperties).toContain("itemName");
+        expect(metadata.allProperties).toContain("itemCount");
+        expect(metadata.allProperties).toContain("subItems");
+        expect(metadata.numericProperties).toContain("itemCount");
+        expect(metadata.arrayProperties).toContain("subItems");
+      });
+
+      it("should extract properties from deeply nested array items", () => {
+        const schema = z.object({
+          boundedContexts: z.array(
+            z.object({
+              contextName: z.string(),
+              aggregates: z.array(
+                z.object({
+                  aggregateName: z.string(),
+                  entities: z.array(
+                    z.object({
+                      entityName: z.string(),
+                      entityCount: z.number(),
+                    }),
+                  ),
+                }),
+              ),
+            }),
+          ),
+        });
+
+        const metadata = extractSchemaMetadata(schema);
+
+        // All nested properties should be extracted
+        expect(metadata.allProperties).toContain("boundedContexts");
+        expect(metadata.allProperties).toContain("contextName");
+        expect(metadata.allProperties).toContain("aggregates");
+        expect(metadata.allProperties).toContain("aggregateName");
+        expect(metadata.allProperties).toContain("entities");
+        expect(metadata.allProperties).toContain("entityName");
+        expect(metadata.allProperties).toContain("entityCount");
+
+        // Numeric property from deepest level
+        expect(metadata.numericProperties).toContain("entityCount");
+      });
+    });
+
+    describe("union schemas", () => {
+      it("should extract properties from z.union members", () => {
+        const schema = z.object({
+          result: z.union([
+            z.object({
+              success: z.boolean(),
+              data: z.string(),
+            }),
+            z.object({
+              success: z.boolean(),
+              error: z.string(),
+              errorCode: z.number(),
+            }),
+          ]),
+        });
+
+        const metadata = extractSchemaMetadata(schema);
+
+        // Should include properties from both union members
+        expect(metadata.allProperties).toContain("success");
+        expect(metadata.allProperties).toContain("data");
+        expect(metadata.allProperties).toContain("error");
+        expect(metadata.allProperties).toContain("errorCode");
+        expect(metadata.numericProperties).toContain("errorCode");
+      });
+
+      it("should extract properties from optional union types", () => {
+        const schema = z.object({
+          optionalResult: z
+            .union([
+              z.object({ typeA: z.string(), countA: z.number() }),
+              z.object({ typeB: z.string(), countB: z.number() }),
+            ])
+            .optional(),
+        });
+
+        const metadata = extractSchemaMetadata(schema);
+
+        expect(metadata.allProperties).toContain("typeA");
+        expect(metadata.allProperties).toContain("typeB");
+        expect(metadata.numericProperties).toContain("countA");
+        expect(metadata.numericProperties).toContain("countB");
+      });
+    });
+
+    describe("discriminated union schemas", () => {
+      it("should extract properties from z.discriminatedUnion members", () => {
+        const schema = z.object({
+          event: z.discriminatedUnion("type", [
+            z.object({
+              type: z.literal("click"),
+              x: z.number(),
+              y: z.number(),
+            }),
+            z.object({
+              type: z.literal("scroll"),
+              scrollTop: z.number(),
+              scrollLeft: z.number(),
+            }),
+            z.object({
+              type: z.literal("keypress"),
+              key: z.string(),
+              keyCode: z.number(),
+            }),
+          ]),
+        });
+
+        const metadata = extractSchemaMetadata(schema);
+
+        // Should include properties from all discriminated union members
+        expect(metadata.allProperties).toContain("type");
+        expect(metadata.allProperties).toContain("x");
+        expect(metadata.allProperties).toContain("y");
+        expect(metadata.allProperties).toContain("scrollTop");
+        expect(metadata.allProperties).toContain("scrollLeft");
+        expect(metadata.allProperties).toContain("key");
+        expect(metadata.allProperties).toContain("keyCode");
+
+        // Numeric properties from all members
+        expect(metadata.numericProperties).toContain("x");
+        expect(metadata.numericProperties).toContain("y");
+        expect(metadata.numericProperties).toContain("scrollTop");
+        expect(metadata.numericProperties).toContain("keyCode");
+      });
+    });
+
+    describe("intersection schemas", () => {
+      it("should extract properties from z.intersection", () => {
+        const baseSchema = z.object({
+          id: z.string(),
+          createdAt: z.string(),
+        });
+
+        const extendedSchema = z.object({
+          name: z.string(),
+          count: z.number(),
+          tags: z.array(z.string()),
+        });
+
+        const schema = z.object({
+          item: z.intersection(baseSchema, extendedSchema),
+        });
+
+        const metadata = extractSchemaMetadata(schema);
+
+        // Should include properties from both sides of the intersection
+        expect(metadata.allProperties).toContain("id");
+        expect(metadata.allProperties).toContain("createdAt");
+        expect(metadata.allProperties).toContain("name");
+        expect(metadata.allProperties).toContain("count");
+        expect(metadata.allProperties).toContain("tags");
+        expect(metadata.numericProperties).toContain("count");
+        expect(metadata.arrayProperties).toContain("tags");
+      });
+
+      it("should handle z.and() syntax (which creates intersection)", () => {
+        const schema = z.object({
+          combined: z
+            .object({ firstName: z.string() })
+            .and(z.object({ lastName: z.string(), age: z.number() })),
+        });
+
+        const metadata = extractSchemaMetadata(schema);
+
+        expect(metadata.allProperties).toContain("firstName");
+        expect(metadata.allProperties).toContain("lastName");
+        expect(metadata.allProperties).toContain("age");
+        expect(metadata.numericProperties).toContain("age");
       });
     });
 
@@ -283,10 +483,20 @@ describe("zod-schema-metadata", () => {
         expect(metadata.allProperties).toContain("averageComplexity");
         expect(metadata.allProperties).toContain("maxComplexity");
 
+        // Properties from array item schema (publicFunctions items)
+        expect(metadata.allProperties).toContain("returnType");
+        expect(metadata.allProperties).toContain("parameters");
+        expect(metadata.numericProperties).toContain("cyclomaticComplexity");
+        expect(metadata.numericProperties).toContain("linesOfCode");
+
+        // Properties from nested array item schema (parameters items)
+        expect(metadata.allProperties).toContain("type");
+
         // Array properties
         expect(metadata.arrayProperties).toContain("internalReferences");
         expect(metadata.arrayProperties).toContain("externalReferences");
         expect(metadata.arrayProperties).toContain("publicFunctions");
+        expect(metadata.arrayProperties).toContain("parameters");
 
         // Numeric properties
         expect(metadata.numericProperties).toContain("totalFunctions");

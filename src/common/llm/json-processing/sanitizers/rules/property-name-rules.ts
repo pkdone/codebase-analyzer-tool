@@ -5,10 +5,57 @@
  * - Corrupted property names with extra characters
  * - Malformed property-value pairs
  * - Truncated property names
+ *
+ * Rules can use schema metadata (when available via context.config) for smarter
+ * property name inference, with graceful fallback to generic defaults.
  */
 
 import type { ReplacementRule } from "./replacement-rule.types";
 import { isAfterJsonDelimiter, isInPropertyContext } from "./rule-executor";
+import { matchPropertyName, inferFromShortFragment } from "../../utils/property-name-matcher";
+
+/**
+ * Infers a property name from a truncated fragment using schema metadata when available.
+ * Falls back to common short fragment inference or generic "name" default.
+ *
+ * @param fragment - The truncated property name fragment
+ * @param knownProperties - List of known property names from schema (optional)
+ * @returns The inferred property name
+ */
+function inferPropertyName(fragment: string, knownProperties?: readonly string[]): string {
+  // Strategy 1: If we have known properties, try dynamic matching
+  if (knownProperties && knownProperties.length > 0) {
+    const matchResult = matchPropertyName(fragment, knownProperties);
+    if (matchResult.matched && matchResult.confidence > 0.5) {
+      return matchResult.matched;
+    }
+  }
+
+  // Strategy 2: Try inference from common short fragments
+  const inferred = inferFromShortFragment(fragment, knownProperties);
+  if (inferred) {
+    return inferred;
+  }
+
+  // Strategy 3: Fallback to "name" as the most common property name
+  return "name";
+}
+
+/**
+ * Checks if a property name is known based on schema metadata.
+ *
+ * @param propertyName - The property name to check
+ * @param knownProperties - List of known property names from schema (optional)
+ * @returns True if the property is known or if no schema is available
+ */
+function isKnownProperty(propertyName: string, knownProperties?: readonly string[]): boolean {
+  if (!knownProperties || knownProperties.length === 0) {
+    // No schema available, use hardcoded common property names
+    const commonProperties = ["name", "type", "value", "id", "key", "kind", "text", "purpose"];
+    return commonProperties.includes(propertyName.toLowerCase());
+  }
+  return knownProperties.some((p) => p.toLowerCase() === propertyName.toLowerCase());
+}
 
 /**
  * Rules for fixing property name issues in JSON content.
@@ -183,37 +230,48 @@ export const PROPERTY_NAME_RULES: readonly ReplacementRule[] = [
 
   // Rule: Fix truncated property names
   // Pattern: `se": "This test validates...` -> `"name": "This test validates...`
+  // Uses schema-aware inference when config is available
   {
     name: "truncatedPropertyName",
     pattern: /([}\],]|\n|^)(\s*)([a-z]{1,3})"\s*:\s*"([^"]{20,})/g,
-    replacement: (_match, groups) => {
-      const [delimiter, whitespace, , valueStart] = groups;
+    replacement: (_match, groups, context) => {
+      const [delimiter, whitespace, truncatedPart, valueStart] = groups;
       const delimiterStr = delimiter ?? "";
       const whitespaceStr = whitespace ?? "";
+      const truncatedStr = truncatedPart ?? "";
       const valueStartStr = valueStart ?? "";
-      const fullProperty = "name"; // Generic default for truncated property names
+
+      // Use schema-aware inference when config is available
+      const knownProperties = context.config?.knownProperties;
+      const fullProperty = inferPropertyName(truncatedStr, knownProperties);
+
       return `${delimiterStr}${whitespaceStr}"${fullProperty}": "${valueStartStr}`;
     },
     diagnosticMessage: (_match, groups) => {
       const truncated = groups[2] ?? "";
-      return `Fixed truncated property name: ${truncated}" -> "name"`;
+      return `Fixed truncated property name: ${truncated}" -> inferred property`;
     },
     contextCheck: isInPropertyContext,
   },
 
   // Rule: Fix missing property name before colon
   // Pattern: `": "value"` -> `"name": "value"`
+  // Uses schema-aware inference when config is available
   {
     name: "missingPropertyNameBeforeColon",
     pattern: /([{,]\s+)"\s*:\s*"([^"]{20,})"/g,
-    replacement: (_match, groups) => {
+    replacement: (_match, groups, context) => {
       const [prefix, value] = groups;
       const prefixStr = prefix ?? "";
       const valueStr = value ?? "";
-      const inferredProperty = "name";
+
+      // Use schema-aware inference when config is available
+      const knownProperties = context.config?.knownProperties;
+      const inferredProperty = inferPropertyName("", knownProperties);
+
       return `${prefixStr}"${inferredProperty}": "${valueStr}"`;
     },
-    diagnosticMessage: () => 'Fixed missing property name before colon: ": -> "name":',
+    diagnosticMessage: () => 'Fixed missing property name before colon: ": -> inferred property',
   },
 
   // Rule: Fix missing property name with underscore fragment
@@ -347,14 +405,23 @@ export const PROPERTY_NAME_RULES: readonly ReplacementRule[] = [
 
   // Rule: Fix property names with embedded text matching value
   // Pattern: `"name payLoanCharge": "payLoanCharge"` -> `"name": "payLoanCharge"`
+  // Uses schema-aware checking when config is available
   {
     name: "propertyNameWithEmbeddedValue",
-    pattern: /"(name|type|value|id|key|kind|text)\s+([^"]+)":\s*"([^"]+)"/gi,
-    replacement: (_match, groups) => {
+    pattern: /"([a-zA-Z_$][a-zA-Z0-9_$]*)\s+([^"]+)":\s*"([^"]+)"/gi,
+    replacement: (_match, groups, context) => {
       const [propertyNamePart, embeddedPart, value] = groups;
       const propertyNamePartStr = propertyNamePart ?? "";
       const embeddedPartStr = embeddedPart ?? "";
       const valueStr = value ?? "";
+
+      // Check if the property name part is a known property (schema-aware or fallback)
+      const knownProperties = context.config?.knownProperties;
+      if (!isKnownProperty(propertyNamePartStr, knownProperties)) {
+        // Not a known property, skip this replacement
+        return null;
+      }
+
       // Check if embedded matches value
       if (
         embeddedPartStr === valueStr ||
@@ -390,16 +457,28 @@ export const PROPERTY_NAME_RULES: readonly ReplacementRule[] = [
     },
   },
 
-  // Rule: Fix type with embedded word
+  // Rule: Fix known property names with embedded word
   // Pattern: `"type savory": "SavingsInterestCalculationType"` -> `"type": "SavingsInterestCalculationType"`
+  // Uses schema-aware checking when config is available
   {
     name: "typeWithEmbeddedWord",
-    pattern: /"(type)\s+[a-z]+"\s*:\s*"([^"]+)"/gi,
-    replacement: (_match, groups) => {
+    pattern: /"([a-zA-Z_$][a-zA-Z0-9_$]*)\s+[a-z]+"\s*:\s*"([^"]+)"/gi,
+    replacement: (_match, groups, context) => {
+      const propertyNameStr = groups[0] ?? "";
       const value = groups[1] ?? "";
-      return `"type": "${value}"`;
+
+      // Check if the property name is known (schema-aware or fallback)
+      const knownProperties = context.config?.knownProperties;
+      if (!isKnownProperty(propertyNameStr, knownProperties)) {
+        return null;
+      }
+
+      return `"${propertyNameStr}": "${value}"`;
     },
-    diagnosticMessage: () => 'Fixed type with embedded word: "type ..." -> "type"',
+    diagnosticMessage: (_match, groups) => {
+      const propertyName = groups[0] ?? "";
+      return `Fixed property with embedded word: "${propertyName} ..." -> "${propertyName}"`;
+    },
   },
 
   // Rule: Fix missing opening quote on property values

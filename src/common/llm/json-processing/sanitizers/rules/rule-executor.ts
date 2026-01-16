@@ -40,12 +40,14 @@ const DEFAULT_MAX_PASSES = 10;
  * @param content - The content to process
  * @param rule - The rule to execute
  * @param diagnostics - DiagnosticCollector for tracking changes
+ * @param config - Optional sanitizer configuration for schema-aware rules
  * @returns Object containing the modified content and whether changes were made
  */
 function executeRule(
   content: string,
   rule: ReplacementRule,
   diagnostics: DiagnosticCollector,
+  config?: import("../../../config/llm-module-config.types").LLMSanitizerConfig,
 ): { content: string; changed: boolean } {
   let hasChanges = false;
   const skipInString = rule.skipInString !== false; // Default to true
@@ -70,6 +72,7 @@ function executeRule(
         offset,
         fullContent: content,
         groups,
+        config,
       };
 
       // Apply context check if provided
@@ -125,6 +128,7 @@ export function executeRules(
   const maxDiagnostics = options.maxDiagnostics ?? processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY;
   const multiPass = options.multiPass ?? false;
   const maxPasses = options.maxPasses ?? DEFAULT_MAX_PASSES;
+  const config = options.config;
 
   const diagnostics = new DiagnosticCollector(maxDiagnostics);
   let content = input;
@@ -136,7 +140,7 @@ export function executeRules(
     passCount++;
 
     for (const rule of rules) {
-      const result = executeRule(content, rule, diagnostics);
+      const result = executeRule(content, rule, diagnostics, config);
       content = result.content;
       if (result.changed) {
         passChanged = true;

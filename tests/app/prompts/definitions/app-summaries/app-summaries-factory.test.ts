@@ -1,8 +1,6 @@
 import { z } from "zod";
-import {
-  createAppSummaryConfig,
-  appSummaryConfigMap,
-} from "../../../../../src/app/prompts/definitions/app-summaries/app-summaries.definitions";
+import { createAppSummaryConfig } from "../../../../../src/app/prompts/definitions/app-summaries/app-summaries.factories";
+import { appSummaryConfigMap } from "../../../../../src/app/prompts/definitions/app-summaries/app-summaries.definitions";
 import {
   DATA_BLOCK_HEADERS,
   type AppSummaryConfigEntry,

@@ -17,6 +17,8 @@ export interface ContextInfo {
   readonly fullContent: string;
   /** Captured groups from the regex match (may be undefined for unmatched optional groups) */
   readonly groups: readonly (string | undefined)[];
+  /** Optional sanitizer configuration for schema-aware rules */
+  readonly config?: import("../../../config/llm-module-config.types").LLMSanitizerConfig;
 }
 
 /**
@@ -124,6 +126,12 @@ export interface ExecutorOptions {
    * Default: 10
    */
   readonly maxPasses?: number;
+
+  /**
+   * Optional sanitizer configuration for schema-aware rules.
+   * When provided, rules can use schema metadata for smarter property name inference.
+   */
+  readonly config?: import("../../../config/llm-module-config.types").LLMSanitizerConfig;
 }
 
 /**

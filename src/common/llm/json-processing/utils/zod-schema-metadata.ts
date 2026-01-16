@@ -34,7 +34,7 @@ export interface SchemaMetadata {
 export interface ExtractSchemaMetadataOptions {
   /**
    * Maximum depth for nested object extraction.
-   * Default: 2 (extracts properties from top-level and one level of nesting)
+   * Default: 4 (supports deeply nested schemas like boundedContexts -> aggregates -> entities)
    */
   readonly maxDepth?: number;
   /**
@@ -45,7 +45,7 @@ export interface ExtractSchemaMetadataOptions {
 }
 
 const DEFAULT_OPTIONS: Required<ExtractSchemaMetadataOptions> = {
-  maxDepth: 2,
+  maxDepth: 4,
   lowercasePropertyNames: false,
 };
 
@@ -67,6 +67,13 @@ interface ZodLikeDef {
   readonly innerType?: unknown;
   readonly schema?: unknown;
   readonly out?: unknown;
+  /** For ZodArray: the element type schema */
+  readonly type?: unknown;
+  /** For ZodUnion: array of option schemas */
+  readonly options?: unknown[];
+  /** For ZodIntersection: left and right schemas */
+  readonly left?: unknown;
+  readonly right?: unknown;
 }
 
 /**
@@ -131,6 +138,29 @@ function isZodNumber(schema: unknown): schema is z.ZodNumber {
 }
 
 /**
+ * Type guard to check if a value is a Zod union schema.
+ */
+function isZodUnion(schema: unknown): schema is z.ZodUnion<[z.ZodType, ...z.ZodType[]]> {
+  return getTypeName(schema) === "ZodUnion";
+}
+
+/**
+ * Type guard to check if a value is a Zod discriminated union schema.
+ */
+function isZodDiscriminatedUnion(
+  schema: unknown,
+): schema is z.ZodDiscriminatedUnion<string, z.ZodObject<z.ZodRawShape>[]> {
+  return getTypeName(schema) === "ZodDiscriminatedUnion";
+}
+
+/**
+ * Type guard to check if a value is a Zod intersection schema.
+ */
+function isZodIntersection(schema: unknown): schema is z.ZodIntersection<z.ZodType, z.ZodType> {
+  return getTypeName(schema) === "ZodIntersection";
+}
+
+/**
  * Unwraps common Zod wrappers to find the underlying type.
  * Handles: ZodOptional, ZodNullable, ZodDefault, ZodEffects (preprocess/transform)
  */
@@ -166,6 +196,101 @@ function unwrapZodType(schema: unknown): unknown {
 }
 
 /**
+ * Extracts properties from any Zod schema type, handling objects, arrays, unions, and intersections.
+ * This is a recursive helper that traverses the schema structure.
+ *
+ * @param schema - The Zod schema to extract properties from
+ * @param currentDepth - Current recursion depth
+ * @param options - Extraction options
+ * @returns Extracted property metadata
+ */
+function extractPropertiesFromSchema(
+  schema: unknown,
+  currentDepth: number,
+  options: Required<ExtractSchemaMetadataOptions>,
+): { all: string[]; numeric: string[]; arrays: string[] } {
+  if (currentDepth > options.maxDepth) {
+    return { all: [], numeric: [], arrays: [] };
+  }
+
+  const unwrapped = unwrapZodType(schema);
+
+  // Handle object schemas
+  if (isZodObject(unwrapped)) {
+    return extractPropertiesFromShape(unwrapped.shape, currentDepth, options);
+  }
+
+  // Handle array schemas - extract from the item type if it's an object
+  if (isZodArray(unwrapped)) {
+    // ZodArray always has an element type in its _def.type property
+    const itemType = unwrapped._def.type;
+    return extractPropertiesFromSchema(itemType, currentDepth + 1, options);
+  }
+
+  // Handle union schemas - extract from all options
+  if (isZodUnion(unwrapped) && isZodLike(unwrapped)) {
+    const unionOptions = unwrapped._def.options;
+    if (Array.isArray(unionOptions)) {
+      const all: string[] = [];
+      const numeric: string[] = [];
+      const arrays: string[] = [];
+
+      for (const option of unionOptions) {
+        const nested = extractPropertiesFromSchema(option, currentDepth + 1, options);
+        all.push(...nested.all);
+        numeric.push(...nested.numeric);
+        arrays.push(...nested.arrays);
+      }
+
+      return { all, numeric, arrays };
+    }
+  }
+
+  // Handle discriminated union schemas - extract from all options
+  if (isZodDiscriminatedUnion(unwrapped) && isZodLike(unwrapped)) {
+    const unionOptions = unwrapped._def.options;
+    if (Array.isArray(unionOptions)) {
+      const all: string[] = [];
+      const numeric: string[] = [];
+      const arrays: string[] = [];
+
+      for (const option of unionOptions) {
+        const nested = extractPropertiesFromSchema(option, currentDepth + 1, options);
+        all.push(...nested.all);
+        numeric.push(...nested.numeric);
+        arrays.push(...nested.arrays);
+      }
+
+      return { all, numeric, arrays };
+    }
+  }
+
+  // Handle intersection schemas - extract from both sides
+  if (isZodIntersection(unwrapped)) {
+    // ZodIntersection always has left and right in its _def
+    const leftSchema = unwrapped._def.left;
+    const rightSchema = unwrapped._def.right;
+    const all: string[] = [];
+    const numeric: string[] = [];
+    const arrays: string[] = [];
+
+    const leftProps = extractPropertiesFromSchema(leftSchema, currentDepth + 1, options);
+    all.push(...leftProps.all);
+    numeric.push(...leftProps.numeric);
+    arrays.push(...leftProps.arrays);
+
+    const rightProps = extractPropertiesFromSchema(rightSchema, currentDepth + 1, options);
+    all.push(...rightProps.all);
+    numeric.push(...rightProps.numeric);
+    arrays.push(...rightProps.arrays);
+
+    return { all, numeric, arrays };
+  }
+
+  return { all: [], numeric: [], arrays: [] };
+}
+
+/**
  * Extracts properties from a Zod object schema shape.
  */
 function extractPropertiesFromShape(
@@ -188,10 +313,37 @@ function extractPropertiesFromShape(
       numeric.push(propName);
     } else if (isZodArray(unwrapped)) {
       arrays.push(propName);
+      // Also extract properties from array item type if it's an object
+      if (currentDepth < options.maxDepth) {
+        // ZodArray always has an element type in its _def.type property
+        const itemType = unwrapped._def.type;
+        const nested = extractPropertiesFromSchema(itemType, currentDepth + 1, options);
+        all.push(...nested.all);
+        numeric.push(...nested.numeric);
+        arrays.push(...nested.arrays);
+      }
     } else if (isZodObject(unwrapped) && currentDepth < options.maxDepth) {
       // Recursively extract from nested objects
       const nestedShape = unwrapped.shape;
       const nested = extractPropertiesFromShape(nestedShape, currentDepth + 1, options);
+      all.push(...nested.all);
+      numeric.push(...nested.numeric);
+      arrays.push(...nested.arrays);
+    } else if (isZodUnion(unwrapped) && currentDepth < options.maxDepth) {
+      // Extract from all union options
+      const nested = extractPropertiesFromSchema(unwrapped, currentDepth + 1, options);
+      all.push(...nested.all);
+      numeric.push(...nested.numeric);
+      arrays.push(...nested.arrays);
+    } else if (isZodDiscriminatedUnion(unwrapped) && currentDepth < options.maxDepth) {
+      // Extract from all discriminated union options
+      const nested = extractPropertiesFromSchema(unwrapped, currentDepth + 1, options);
+      all.push(...nested.all);
+      numeric.push(...nested.numeric);
+      arrays.push(...nested.arrays);
+    } else if (isZodIntersection(unwrapped) && currentDepth < options.maxDepth) {
+      // Extract from intersection sides
+      const nested = extractPropertiesFromSchema(unwrapped, currentDepth + 1, options);
       all.push(...nested.all);
       numeric.push(...nested.numeric);
       arrays.push(...nested.arrays);
