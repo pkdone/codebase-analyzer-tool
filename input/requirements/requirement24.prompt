@@ -1,1 +1,6 @@
 Make Common Code More Generic For Wider Applicability: Act as a senior programmer analyzing the code in a TypeScript application where the content of each file in the application's codebase is shown below in a code block. The code at `src/common/` is intended to be generic and potenitally useful to multiple projects. Identify if there are any refactorings that this common code would benefit from to make the code more streamlined and aasier to consume from other projects, if the common code was copied over as-is another project. Identify how it can be generally more elegant and consise without losing any behaviour. Provide references to the specific part(s) of the code that needs these improvements with suggestions on how to improve. Include the list or relative file paths of each source file affected.
+
+Do NOT inlude any of the following topics in your recommendations:
+
+ * Recommendations to do with logging
+ * Recommendations to do with error handling
