@@ -357,7 +357,7 @@ export const appSummarySchema = z
 /**
  * Strongly-typed mapping of app summary categories to their Zod schemas.
  * This preserves type information for compile-time inference, unlike the
- * RenderablePrompt.responseSchema which is typed as z.ZodType.
+ * Prompt.responseSchema which is typed as z.ZodType.
  *
  * Use this mapping when you need TypeScript to infer the correct return type
  * based on a category key, rather than getting a generic z.ZodType.

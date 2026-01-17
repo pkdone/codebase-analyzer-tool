@@ -2,7 +2,7 @@ import {
   ANALYSIS_PROMPT_TEMPLATE,
   PARTIAL_ANALYSIS_TEMPLATE,
 } from "../../../src/app/prompts/app-templates";
-import { renderPrompt } from "../../../src/common/prompts/prompt-renderer";
+import { Prompt } from "../../../src/common/prompts/prompt";
 import { z } from "zod";
 
 describe("Template Consolidation", () => {
@@ -27,32 +27,36 @@ describe("Template Consolidation", () => {
     });
 
     it("should render correctly with sources configuration", () => {
-      const definition = {
-        contentDesc:
-          "Act as a senior developer analyzing the code in an existing application. Based on JVM code shown below...",
-        instructions: ["Extract class name"] as const,
-        responseSchema: z.string(),
-        template: ANALYSIS_PROMPT_TEMPLATE,
-        dataBlockHeader: "CODE" as const,
-        wrapInCodeBlock: true,
-      };
-      const rendered = renderPrompt(definition, "test code");
+      const prompt = new Prompt(
+        {
+          contentDesc:
+            "Act as a senior developer analyzing the code in an existing application. Based on JVM code shown below...",
+          instructions: ["Extract class name"] as const,
+          responseSchema: z.string(),
+          dataBlockHeader: "CODE",
+          wrapInCodeBlock: true,
+        },
+        ANALYSIS_PROMPT_TEMPLATE,
+      );
+      const rendered = prompt.renderPrompt("test code");
       expect(rendered).toContain("Act as a senior developer analyzing the code");
       expect(rendered).toContain("CODE:");
       expect(rendered).toContain("```");
     });
 
     it("should render correctly with app summary configuration", () => {
-      const definition = {
-        contentDesc:
-          "Act as a senior developer analyzing the code in an existing application. Based on source file summaries shown below...",
-        instructions: ["Extract entities"] as const,
-        responseSchema: z.string(),
-        template: ANALYSIS_PROMPT_TEMPLATE,
-        dataBlockHeader: "FILE_SUMMARIES" as const,
-        wrapInCodeBlock: false,
-      };
-      const rendered = renderPrompt(definition, "test summaries");
+      const prompt = new Prompt(
+        {
+          contentDesc:
+            "Act as a senior developer analyzing the code in an existing application. Based on source file summaries shown below...",
+          instructions: ["Extract entities"] as const,
+          responseSchema: z.string(),
+          dataBlockHeader: "FILE_SUMMARIES",
+          wrapInCodeBlock: false,
+        },
+        ANALYSIS_PROMPT_TEMPLATE,
+      );
+      const rendered = prompt.renderPrompt("test summaries");
       expect(rendered).toContain("Act as a senior developer analyzing the code");
       expect(rendered).toContain("FILE_SUMMARIES:");
       // JSON schema section has code blocks, but content section should not
@@ -105,15 +109,17 @@ describe("Template Consolidation", () => {
     });
 
     it("should render correctly with partial analysis note", () => {
-      const definition = {
-        contentDesc: "a set of source file summaries",
-        instructions: ["Extract entities"] as const,
-        responseSchema: z.string(),
-        template: PARTIAL_ANALYSIS_TEMPLATE,
-        dataBlockHeader: "FILE_SUMMARIES" as const,
-        wrapInCodeBlock: false,
-      };
-      const rendered = renderPrompt(definition, "test summaries");
+      const prompt = new Prompt(
+        {
+          contentDesc: "a set of source file summaries",
+          instructions: ["Extract entities"] as const,
+          responseSchema: z.string(),
+          dataBlockHeader: "FILE_SUMMARIES",
+          wrapInCodeBlock: false,
+        },
+        PARTIAL_ANALYSIS_TEMPLATE,
+      );
+      const rendered = prompt.renderPrompt("test summaries");
       expect(rendered).toContain("partial analysis");
       expect(rendered).toContain("focus on extracting insights from this subset");
     });
@@ -127,15 +133,17 @@ describe("Template Consolidation", () => {
     });
 
     it("should render JSON schema in schemaSection for JSON-mode prompts", () => {
-      const definition = {
-        contentDesc: "test content",
-        instructions: ["test instruction"],
-        responseSchema: z.object({ name: z.string() }),
-        template: ANALYSIS_PROMPT_TEMPLATE,
-        dataBlockHeader: "CODE" as const,
-        wrapInCodeBlock: false,
-      };
-      const rendered = renderPrompt(definition, "test");
+      const prompt = new Prompt(
+        {
+          contentDesc: "test content",
+          instructions: ["test instruction"],
+          responseSchema: z.object({ name: z.string() }),
+          dataBlockHeader: "CODE",
+          wrapInCodeBlock: false,
+        },
+        ANALYSIS_PROMPT_TEMPLATE,
+      );
+      const rendered = prompt.renderPrompt("test");
 
       // schemaSection should contain the JSON schema code block
       expect(rendered).toContain("```json");
@@ -146,18 +154,20 @@ describe("Template Consolidation", () => {
 
   describe("Template Usage", () => {
     it("should be usable in Prompt class", () => {
-      const mockDefinition = {
-        contentDesc: "Test intro template with test content",
-        instructions: ["test instruction"],
-        responseSchema: z.string(),
-        template: ANALYSIS_PROMPT_TEMPLATE,
-        dataBlockHeader: "CODE" as const,
-        wrapInCodeBlock: true,
-      };
+      const prompt = new Prompt(
+        {
+          contentDesc: "Test intro template with test content",
+          instructions: ["test instruction"],
+          responseSchema: z.string(),
+          dataBlockHeader: "CODE",
+          wrapInCodeBlock: true,
+        },
+        ANALYSIS_PROMPT_TEMPLATE,
+      );
 
       // This should not throw an error
       expect(() => {
-        renderPrompt(mockDefinition, "test");
+        prompt.renderPrompt("test");
       }).not.toThrow();
     });
   });

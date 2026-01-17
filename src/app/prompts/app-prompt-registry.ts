@@ -6,42 +6,70 @@
  */
 
 import { z } from "zod";
-import { createPromptMetadata } from "../../common/prompts/prompt-factory";
-import { LLMOutputFormat } from "../../common/prompts/prompt.types";
+import { Prompt, type PromptConfig } from "../../common/prompts/prompt";
 import { appSummaryConfigMap } from "./definitions/app-summaries/app-summaries.definitions";
 import { fileTypePromptRegistry } from "./definitions/sources/sources.definitions";
 import { ANALYSIS_PROMPT_TEMPLATE, CODEBASE_QUERY_TEMPLATE } from "./app-templates";
-import type { RenderablePrompt } from "../../common/prompts/prompt.types";
+
+/**
+ * Helper type to extract the schema type from a config entry.
+ * Returns z.ZodType if responseSchema is undefined.
+ */
+type ExtractSchemaType<T> = T extends { responseSchema: infer S extends z.ZodType } ? S : z.ZodType;
+
+/**
+ * Mapped type that transforms a config map into a record of Prompts
+ * while preserving the specific schema type for each key.
+ */
+type PromptMapResult<TConfigMap extends Record<string, PromptConfig>> = {
+  [K in keyof TConfigMap]: Prompt<ExtractSchemaType<TConfigMap[K]>>;
+};
+
+/**
+ * Creates a map of Prompt instances from a configuration map.
+ * This helper transforms config entries into Prompt objects with preserved schema types.
+ *
+ * @param configMap - The configuration map containing prompt config entries
+ * @param template - The template string to use for all prompts
+ * @returns A record mapping keys to Prompt objects with preserved schema types
+ */
+function createPromptMap<TConfigMap extends Record<string, PromptConfig>>(
+  configMap: TConfigMap,
+  template: string,
+): PromptMapResult<TConfigMap> {
+  return Object.fromEntries(
+    Object.entries(configMap).map(([key, config]) => [key, new Prompt(config, template)]),
+  ) as PromptMapResult<TConfigMap>;
+}
 
 /**
  * Source file type prompt definitions generated from centralized configuration.
  * These prompts are used to summarize individual source files based on their type.
  */
-const sourcePrompts = createPromptMetadata(fileTypePromptRegistry, ANALYSIS_PROMPT_TEMPLATE);
+const sourcePrompts = createPromptMap(fileTypePromptRegistry, ANALYSIS_PROMPT_TEMPLATE);
 
 /**
  * App summary prompt definitions generated from centralized configuration.
  * These prompts are used to extract high-level insights from file summaries.
  */
-const appSummaryPrompts = createPromptMetadata(appSummaryConfigMap, ANALYSIS_PROMPT_TEMPLATE);
+const appSummaryPrompts = createPromptMap(appSummaryConfigMap, ANALYSIS_PROMPT_TEMPLATE);
 
 /**
  * Prompt definition for codebase queries.
  * Used for RAG workflows where vector search results are provided as context
  * for answering developer questions about the codebase.
  *
- * This is a TEXT-mode prompt that returns plain text responses without JSON validation.
+ * This is a TEXT-mode prompt (no responseSchema) that returns plain text responses.
  */
-const codebaseQueryPrompt: RenderablePrompt<z.ZodString> = {
-  label: "Codebase Query",
-  contentDesc: "source code files",
-  instructions: [],
-  template: CODEBASE_QUERY_TEMPLATE,
-  dataBlockHeader: "CODE",
-  wrapInCodeBlock: false,
-  responseSchema: z.string(),
-  outputFormat: LLMOutputFormat.TEXT,
-};
+const codebaseQueryPrompt = new Prompt(
+  {
+    contentDesc: "source code files",
+    instructions: [],
+    dataBlockHeader: "CODE",
+    wrapInCodeBlock: false,
+  },
+  CODEBASE_QUERY_TEMPLATE,
+);
 
 /**
  * Centralized manager for all prompt definitions used throughout the application.

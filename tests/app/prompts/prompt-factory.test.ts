@@ -1,10 +1,9 @@
-import { createPromptMetadata } from "../../../src/common/prompts/prompt-factory";
-import type { PromptConfig } from "../../../src/common/prompts/prompt.types";
+import { Prompt, type PromptConfig } from "../../../src/common/prompts/prompt";
 import { z } from "zod";
 import { CODE_DATA_BLOCK_HEADER } from "../../../src/app/prompts/definitions/sources/definitions/source-config-factories";
 import { FILE_SUMMARIES_DATA_BLOCK_HEADER } from "../../../src/app/prompts/definitions/app-summaries/app-summaries.factories";
 
-describe("Prompt Factory", () => {
+describe("Prompt Class", () => {
   const testTemplate = "Test template with {{contentDesc}} and {{instructions}}";
 
   /**
@@ -21,104 +20,87 @@ describe("Prompt Factory", () => {
     };
   }
 
-  describe("createPromptMetadata", () => {
-    it("should create prompt metadata from config map", () => {
-      const testConfigMap = {
-        test1: createTestConfig({
-          label: "Test 1",
-          contentDesc: "content 1",
-          responseSchema: z.string(),
-          dataBlockHeader: FILE_SUMMARIES_DATA_BLOCK_HEADER,
-          wrapInCodeBlock: false,
-        }),
-        test2: createTestConfig({
-          label: "Test 2",
-          contentDesc: "content 2",
-          responseSchema: z.number(),
-          dataBlockHeader: CODE_DATA_BLOCK_HEADER,
-          wrapInCodeBlock: true,
-        }),
-      };
+  describe("constructor", () => {
+    it("should create prompt from config", () => {
+      const config1 = createTestConfig({
+        contentDesc: "content 1",
+        responseSchema: z.string(),
+        dataBlockHeader: FILE_SUMMARIES_DATA_BLOCK_HEADER,
+        wrapInCodeBlock: false,
+      });
+      const config2 = createTestConfig({
+        contentDesc: "content 2",
+        responseSchema: z.number(),
+        dataBlockHeader: CODE_DATA_BLOCK_HEADER,
+        wrapInCodeBlock: true,
+      });
 
-      const result = createPromptMetadata(testConfigMap, testTemplate);
+      const prompt1 = new Prompt(config1, testTemplate);
+      const prompt2 = new Prompt(config2, testTemplate);
 
-      expect(result.test1).toBeDefined();
-      expect(result.test1.label).toBe("Test 1");
-      expect(result.test1.contentDesc).toBe("content 1");
-      expect(result.test1.template).toBe(testTemplate);
-      expect(result.test1.dataBlockHeader).toBe(FILE_SUMMARIES_DATA_BLOCK_HEADER);
+      expect(prompt1).toBeDefined();
+      expect(prompt1.contentDesc).toBe("content 1");
+      expect(prompt1.template).toBe(testTemplate);
+      expect(prompt1.dataBlockHeader).toBe(FILE_SUMMARIES_DATA_BLOCK_HEADER);
 
-      expect(result.test2).toBeDefined();
-      expect(result.test2.label).toBe("Test 2");
-      expect(result.test2.contentDesc).toBe("content 2");
+      expect(prompt2).toBeDefined();
+      expect(prompt2.contentDesc).toBe("content 2");
     });
 
     it("should preserve contentDesc from config entries", () => {
-      const testConfigMap = {
-        test1: createTestConfig({
-          label: "Test 1",
-          contentDesc: "custom content description",
-        }),
-      };
+      const config = createTestConfig({
+        contentDesc: "custom content description",
+      });
 
-      const result = createPromptMetadata(testConfigMap, testTemplate);
+      const prompt = new Prompt(config, testTemplate);
 
-      expect(result.test1.contentDesc).toBe("custom content description");
+      expect(prompt.contentDesc).toBe("custom content description");
     });
 
     it("should preserve instructions from config entries", () => {
-      const testConfigMap = {
-        test1: createTestConfig({
-          label: "Test 1",
-          instructions: ["instruction 1", "instruction 2"],
-        }),
-      };
+      const config = createTestConfig({
+        instructions: ["instruction 1", "instruction 2"],
+      });
 
-      const result = createPromptMetadata(testConfigMap, testTemplate);
+      const prompt = new Prompt(config, testTemplate);
 
-      expect(result.test1.instructions).toHaveLength(2);
-      expect(result.test1.instructions[0]).toBe("instruction 1");
-      expect(result.test1.instructions[1]).toBe("instruction 2");
+      expect(prompt.instructions).toHaveLength(2);
+      expect(prompt.instructions[0]).toBe("instruction 1");
+      expect(prompt.instructions[1]).toBe("instruction 2");
     });
 
     it("should use dataBlockHeader from config entries", () => {
-      const testConfigMap = {
-        test1: createTestConfig({
-          label: "Test 1",
-          contentDesc: "first content",
-          dataBlockHeader: CODE_DATA_BLOCK_HEADER,
-        }),
-        test2: createTestConfig({
-          label: "Test 2",
-          contentDesc: "second content",
-          dataBlockHeader: FILE_SUMMARIES_DATA_BLOCK_HEADER,
-        }),
-      };
+      const config1 = createTestConfig({
+        contentDesc: "first content",
+        dataBlockHeader: CODE_DATA_BLOCK_HEADER,
+      });
+      const config2 = createTestConfig({
+        contentDesc: "second content",
+        dataBlockHeader: FILE_SUMMARIES_DATA_BLOCK_HEADER,
+      });
 
-      const result = createPromptMetadata(testConfigMap, testTemplate);
+      const prompt1 = new Prompt(config1, testTemplate);
+      const prompt2 = new Prompt(config2, testTemplate);
 
-      expect(result.test1.dataBlockHeader).toBe(CODE_DATA_BLOCK_HEADER);
-      expect(result.test2.dataBlockHeader).toBe(FILE_SUMMARIES_DATA_BLOCK_HEADER);
+      expect(prompt1.dataBlockHeader).toBe(CODE_DATA_BLOCK_HEADER);
+      expect(prompt2.dataBlockHeader).toBe(FILE_SUMMARIES_DATA_BLOCK_HEADER);
     });
 
     it("should use wrapInCodeBlock from config entries", () => {
-      const testConfigMap = {
-        test1: createTestConfig({
-          label: "Test 1",
-          contentDesc: "first content",
-          wrapInCodeBlock: true,
-        }),
-        test2: createTestConfig({
-          label: "Test 2",
-          contentDesc: "second content",
-          wrapInCodeBlock: false,
-        }),
-      };
+      const config1 = createTestConfig({
+        contentDesc: "first content",
+        wrapInCodeBlock: true,
+      });
+      const config2 = createTestConfig({
+        contentDesc: "second content",
+        wrapInCodeBlock: false,
+      });
 
-      const result = createPromptMetadata(testConfigMap, testTemplate);
+      const prompt1 = new Prompt(config1, testTemplate);
+      const prompt2 = new Prompt(config2, testTemplate);
 
-      expect(result.test1.wrapInCodeBlock).toBe(true);
-      expect(result.test2.wrapInCodeBlock).toBe(false);
+      expect(prompt1.wrapInCodeBlock).toBe(true);
+      expect(prompt2.wrapInCodeBlock).toBe(false);
     });
 
     it("should handle config with all fields", () => {
@@ -127,30 +109,20 @@ describe("Prompt Factory", () => {
         field2: z.number(),
       });
 
-      const testConfigMap = {
-        test1: {
-          label: "Test 1",
-          responseSchema: baseSchema,
-          contentDesc: "custom content description",
-          instructions: ["Instruction for test"] as const,
-          dataBlockHeader: CODE_DATA_BLOCK_HEADER,
-          wrapInCodeBlock: true,
-        } as const,
-      };
+      const config = {
+        responseSchema: baseSchema,
+        contentDesc: "custom content description",
+        instructions: ["Instruction for test"] as const,
+        dataBlockHeader: CODE_DATA_BLOCK_HEADER,
+        wrapInCodeBlock: true,
+      } as const;
 
-      const result = createPromptMetadata(testConfigMap, testTemplate);
-
-      expect(result.test1.label).toBe("Test 1");
-      expect(result.test1.contentDesc).toBe("custom content description");
-      expect(result.test1.instructions[0]).toBe("Instruction for test");
-      expect(result.test1.dataBlockHeader).toBe(CODE_DATA_BLOCK_HEADER);
-      expect(result.test1.wrapInCodeBlock).toBe(true);
-      expect(result.test1.responseSchema).toBe(baseSchema);
-    });
-
-    it("should work with empty config map", () => {
-      const result = createPromptMetadata({}, testTemplate);
-      expect(result).toEqual({});
+      const prompt = new Prompt(config, testTemplate);
+      expect(prompt.contentDesc).toBe("custom content description");
+      expect(prompt.instructions[0]).toBe("Instruction for test");
+      expect(prompt.dataBlockHeader).toBe(CODE_DATA_BLOCK_HEADER);
+      expect(prompt.wrapInCodeBlock).toBe(true);
+      expect(prompt.responseSchema).toBe(baseSchema);
     });
 
     it("should preserve schema type information through generic type parameter", () => {
@@ -161,65 +133,55 @@ describe("Prompt Factory", () => {
         age: z.number(),
       });
 
-      const testConfigMap = {
-        stringType: {
-          label: "String Type",
-          contentDesc: "string content",
-          responseSchema: stringSchema,
-          instructions: ["instruction"] as const,
-          dataBlockHeader: CODE_DATA_BLOCK_HEADER,
-          wrapInCodeBlock: true,
-        } as const,
-        numberType: {
-          label: "Number Type",
-          contentDesc: "number content",
-          responseSchema: numberSchema,
-          instructions: ["instruction"] as const,
-          dataBlockHeader: CODE_DATA_BLOCK_HEADER,
-          wrapInCodeBlock: true,
-        } as const,
-        objectType: {
-          label: "Object Type",
-          contentDesc: "object content",
-          responseSchema: objectSchema,
-          instructions: ["instruction"] as const,
-          dataBlockHeader: CODE_DATA_BLOCK_HEADER,
-          wrapInCodeBlock: true,
-        } as const,
-      };
+      const stringConfig = {
+        contentDesc: "string content",
+        responseSchema: stringSchema,
+        instructions: ["instruction"] as const,
+        dataBlockHeader: CODE_DATA_BLOCK_HEADER,
+        wrapInCodeBlock: true,
+      } as const;
+      const numberConfig = {
+        contentDesc: "number content",
+        responseSchema: numberSchema,
+        instructions: ["instruction"] as const,
+        dataBlockHeader: CODE_DATA_BLOCK_HEADER,
+        wrapInCodeBlock: true,
+      } as const;
+      const objectConfig = {
+        contentDesc: "object content",
+        responseSchema: objectSchema,
+        instructions: ["instruction"] as const,
+        dataBlockHeader: CODE_DATA_BLOCK_HEADER,
+        wrapInCodeBlock: true,
+      } as const;
 
-      const result = createPromptMetadata(testConfigMap, testTemplate);
+      const stringPrompt = new Prompt(stringConfig, testTemplate);
+      const numberPrompt = new Prompt(numberConfig, testTemplate);
+      const objectPrompt = new Prompt(objectConfig, testTemplate);
 
       // Verify runtime schema preservation
-      expect(result.stringType.responseSchema).toBe(stringSchema);
-      expect(result.numberType.responseSchema).toBe(numberSchema);
-      expect(result.objectType.responseSchema).toBe(objectSchema);
+      expect(stringPrompt.responseSchema).toBe(stringSchema);
+      expect(numberPrompt.responseSchema).toBe(numberSchema);
+      expect(objectPrompt.responseSchema).toBe(objectSchema);
 
       // Type-level test: These should compile without type errors if generics work correctly
-      const stringPromptDef = result.stringType;
-      const numberPromptDef = result.numberType;
-      const objectPromptDef = result.objectType;
-
-      expect(stringPromptDef.responseSchema).toBeDefined();
-      expect(numberPromptDef.responseSchema).toBeDefined();
-      expect(objectPromptDef.responseSchema).toBeDefined();
+      expect(stringPrompt.responseSchema).toBeDefined();
+      expect(numberPrompt.responseSchema).toBeDefined();
+      expect(objectPrompt.responseSchema).toBeDefined();
     });
 
     it("should use FRAGMENTED_DATA header when specified in config", () => {
-      const testConfigMap = {
-        reduce: createTestConfig({
-          label: "Reduce",
-          contentDesc: "fragmented data to consolidate",
-          responseSchema: z.object({ items: z.array(z.string()) }),
-          instructions: ["consolidate the list"],
-          dataBlockHeader: "FRAGMENTED_DATA",
-          wrapInCodeBlock: false,
-        }),
-      };
+      const config = createTestConfig({
+        contentDesc: "fragmented data to consolidate",
+        responseSchema: z.object({ items: z.array(z.string()) }),
+        instructions: ["consolidate the list"],
+        dataBlockHeader: "FRAGMENTED_DATA",
+        wrapInCodeBlock: false,
+      });
 
-      const result = createPromptMetadata(testConfigMap, testTemplate);
+      const prompt = new Prompt(config, testTemplate);
 
-      expect(result.reduce.dataBlockHeader).toBe("FRAGMENTED_DATA");
+      expect(prompt.dataBlockHeader).toBe("FRAGMENTED_DATA");
     });
   });
 });

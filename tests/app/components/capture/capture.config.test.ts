@@ -70,7 +70,7 @@ describe("fileTypeMetadataConfig", () => {
 
     it("should have a valid schema", () => {
       expect(fileTypePromptMetadata.java.responseSchema).toBeDefined();
-      expect(typeof fileTypePromptMetadata.java.responseSchema.parse).toBe("function");
+      expect(typeof fileTypePromptMetadata.java.responseSchema!.parse).toBe("function");
     });
   });
 
@@ -115,7 +115,7 @@ describe("fileTypeMetadataConfig", () => {
 
     it("should have a valid schema", () => {
       expect(fileTypePromptMetadata.sql.responseSchema).toBeDefined();
-      expect(typeof fileTypePromptMetadata.sql.responseSchema.parse).toBe("function");
+      expect(typeof fileTypePromptMetadata.sql.responseSchema!.parse).toBe("function");
     });
   });
 

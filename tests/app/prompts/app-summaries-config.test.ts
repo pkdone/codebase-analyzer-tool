@@ -17,7 +17,6 @@ describe("App Summaries Config", () => {
 
       requiredCategories.forEach((category) => {
         expect(appSummaryConfigMap[category]).toBeDefined();
-        expect(appSummaryConfigMap[category].label).toBeTruthy();
         expect(appSummaryConfigMap[category].instructions).toBeTruthy();
         expect(appSummaryConfigMap[category].responseSchema).toBeDefined();
       });
@@ -32,13 +31,10 @@ describe("App Summaries Config", () => {
       expect(configAsRecord.repositories).toBeUndefined();
     });
 
-    it("should have non-empty labels and instructions", () => {
+    it("should have non-empty instructions", () => {
       Object.values(appSummaryConfigMap).forEach((config) => {
-        expect(config.label).toBeTruthy();
         expect(config.instructions).toBeTruthy();
-        expect(typeof config.label).toBe("string");
         expect(Array.isArray(config.instructions)).toBe(true);
-        expect(config.label.length).toBeGreaterThan(0);
         expect(config.instructions.length).toBeGreaterThan(0);
       });
     });
@@ -51,16 +47,9 @@ describe("App Summaries Config", () => {
       });
     });
 
-    it("should have unique labels for each category", () => {
-      const labels = Object.values(appSummaryConfigMap).map((config) => config.label);
-      const uniqueLabels = new Set(labels);
-      expect(uniqueLabels.size).toBe(labels.length);
-    });
-
     it("should have boundedContexts with hierarchical domain model instructions", () => {
       const boundedContextsConfig = appSummaryConfigMap.boundedContexts;
       expect(boundedContextsConfig).toBeDefined();
-      expect(boundedContextsConfig.label).toBe("Domain Model");
       // Instructions should mention the hierarchical structure
       const instructionsText = boundedContextsConfig.instructions.join(" ");
       expect(instructionsText.toLowerCase()).toContain("repository");
@@ -73,7 +62,6 @@ describe("App Summaries Config", () => {
       Object.entries(appSummaryConfigMap).forEach(([key, config]) => {
         const metadata = appSummaryPromptMetadata[key as AppSummaryCategoryType];
         expect(metadata).toBeDefined();
-        expect(metadata.label).toBe(config.label);
         expect(metadata.contentDesc).toContain("a set of source file summaries"); // Generic contentDesc
         expect(metadata.responseSchema).toBe(config.responseSchema);
       });

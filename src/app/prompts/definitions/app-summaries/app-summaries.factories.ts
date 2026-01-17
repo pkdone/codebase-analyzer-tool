@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { type PromptConfig } from "../../../../common/prompts/prompt.types";
+import { type JsonPromptConfig } from "../../../../common/prompts/prompt";
 
 /**
  * Data block header for file summary analysis prompts.
@@ -8,14 +8,12 @@ export const FILE_SUMMARIES_DATA_BLOCK_HEADER = "FILE_SUMMARIES" as const;
 
 /**
  * Configuration entry for app summary prompts.
- * Extends the base PromptConfig with a required `label` field.
+ * Uses JsonPromptConfig which requires responseSchema, ensuring all app summary prompts
+ * are JSON-mode prompts with explicit schema definitions.
  *
  * @template S - The Zod schema type for validating the LLM response.
  */
-export interface AppSummaryConfigEntry<S extends z.ZodType = z.ZodType> extends PromptConfig<S> {
-  /** Label for UI display and logging (required for app summary configs) */
-  label: string;
-}
+export type AppSummaryConfigEntry<S extends z.ZodType = z.ZodType> = JsonPromptConfig<S>;
 
 /**
  * Default content description for app summary prompts.
@@ -31,18 +29,15 @@ const DEFAULT_CONTENT_DESC = "a set of source file summaries";
  * Uses rest parameters for cleaner call sites - no array brackets or `as const` needed.
  *
  * @template S - The Zod schema type for validating the LLM response
- * @param label - Display label for UI and logging
  * @param responseSchema - Zod schema for validating the LLM response
  * @param instructions - One or more instruction strings for the LLM
  * @returns A fully configured AppSummaryConfigEntry
  */
 export function createAppSummaryConfig<S extends z.ZodType>(
-  label: string,
   responseSchema: S,
   ...instructions: string[]
 ): AppSummaryConfigEntry<S> {
   return {
-    label,
     contentDesc: DEFAULT_CONTENT_DESC,
     instructions,
     responseSchema,

@@ -1,8 +1,6 @@
 import { ANALYSIS_PROMPT_TEMPLATE } from "../../../../../src/app/prompts/app-templates";
-import { renderPrompt } from "../../../../../src/common/prompts/prompt-renderer";
+import { Prompt } from "../../../../../src/common/prompts/prompt";
 import { buildReduceInsightsContentDesc } from "../../../../../src/app/prompts/definitions/app-summaries/app-summaries.fragments";
-import type { RenderablePrompt } from "../../../../../src/common/prompts/prompt.types";
-import { LLMOutputFormat } from "../../../../../src/common/llm/types/llm.types";
 import { z } from "zod";
 
 describe("MapReduceInsightStrategy - categoryKey parameter handling", () => {
@@ -11,23 +9,23 @@ describe("MapReduceInsightStrategy - categoryKey parameter handling", () => {
     const categoryKey = "technologies";
     const schema = z.object({ technologies: z.array(z.object({ name: z.string() })) });
 
-    // Create a reduce prompt definition
-    const reducePromptDef: RenderablePrompt = {
-      label: "Reduce Insights",
-      contentDesc: buildReduceInsightsContentDesc(categoryKey),
-      instructions: [`a consolidated list of '${categoryKey}'`],
-      responseSchema: schema,
-      template: ANALYSIS_PROMPT_TEMPLATE,
-      dataBlockHeader: "FRAGMENTED_DATA",
-      wrapInCodeBlock: false,
-      outputFormat: LLMOutputFormat.JSON,
-    };
+    // Create a reduce prompt definition (JSON mode = responseSchema present)
+    const reducePrompt = new Prompt(
+      {
+        contentDesc: buildReduceInsightsContentDesc(categoryKey),
+        instructions: [`a consolidated list of '${categoryKey}'`],
+        responseSchema: schema,
+        dataBlockHeader: "FRAGMENTED_DATA",
+        wrapInCodeBlock: false,
+      },
+      ANALYSIS_PROMPT_TEMPLATE,
+    );
 
     // Verify the categoryKey is embedded in contentDesc
-    expect(reducePromptDef.contentDesc).toContain(categoryKey);
+    expect(reducePrompt.contentDesc).toContain(categoryKey);
 
     // Now render with the definition
-    const rendered = renderPrompt(reducePromptDef, '{"technologies": []}');
+    const rendered = reducePrompt.renderPrompt('{"technologies": []}');
 
     // Verify categoryKey appears in the rendered output
     expect(rendered).toContain("technologies");
@@ -37,19 +35,19 @@ describe("MapReduceInsightStrategy - categoryKey parameter handling", () => {
   it("should render reduce prompt with FRAGMENTED_DATA header", () => {
     const categoryKey = "technologies";
     const schema = z.object({ technologies: z.array(z.object({ name: z.string() })) });
-    const reducePromptDef: RenderablePrompt = {
-      label: "Reduce Insights",
-      contentDesc: buildReduceInsightsContentDesc(categoryKey),
-      instructions: [`a consolidated list of '${categoryKey}'`],
-      responseSchema: schema,
-      template: ANALYSIS_PROMPT_TEMPLATE,
-      dataBlockHeader: "FRAGMENTED_DATA",
-      wrapInCodeBlock: false,
-      outputFormat: LLMOutputFormat.JSON,
-    };
+    const reducePrompt = new Prompt(
+      {
+        contentDesc: buildReduceInsightsContentDesc(categoryKey),
+        instructions: [`a consolidated list of '${categoryKey}'`],
+        responseSchema: schema,
+        dataBlockHeader: "FRAGMENTED_DATA",
+        wrapInCodeBlock: false,
+      },
+      ANALYSIS_PROMPT_TEMPLATE,
+    );
 
     const content = JSON.stringify({ technologies: [{ name: "Test" }] }, null, 2);
-    const rendered = renderPrompt(reducePromptDef, content);
+    const rendered = reducePrompt.renderPrompt(content);
 
     // Verify the template was rendered correctly
     expect(rendered).toContain("technologies");
@@ -60,18 +58,19 @@ describe("MapReduceInsightStrategy - categoryKey parameter handling", () => {
   it("should work with pre-populated contentDesc (simulating inline definition)", () => {
     // This tests the pattern where factory pre-populates the contentDesc
     const categoryKey = "technologies";
-    const testConfig = {
-      label: "Test Reduce",
-      contentDesc: `Test intro with ${categoryKey} in the section below.`,
-      instructions: ["a consolidated list"],
-      responseSchema: z.object({ technologies: z.array(z.object({ name: z.string() })) }),
-      template: ANALYSIS_PROMPT_TEMPLATE,
-      dataBlockHeader: "FRAGMENTED_DATA" as const,
-      wrapInCodeBlock: false,
-    };
+    const testPrompt = new Prompt(
+      {
+        contentDesc: `Test intro with ${categoryKey} in the section below.`,
+        instructions: ["a consolidated list"],
+        responseSchema: z.object({ technologies: z.array(z.object({ name: z.string() })) }),
+        dataBlockHeader: "FRAGMENTED_DATA",
+        wrapInCodeBlock: false,
+      },
+      ANALYSIS_PROMPT_TEMPLATE,
+    );
 
     const content = JSON.stringify({ technologies: [{ name: "Test" }] }, null, 2);
-    const rendered = renderPrompt(testConfig, content);
+    const rendered = testPrompt.renderPrompt(content);
 
     // Verify the template was rendered correctly with categoryKey already embedded
     expect(rendered).toContain("technologies");

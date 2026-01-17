@@ -1,12 +1,10 @@
 import { z } from "zod";
-import { renderPrompt } from "../../../src/common/prompts/prompt-renderer";
+import { Prompt } from "../../../src/common/prompts/prompt";
 import { buildReduceInsightsContentDesc } from "../../../src/app/prompts/definitions/app-summaries/app-summaries.fragments";
 import {
   ANALYSIS_PROMPT_TEMPLATE,
   PARTIAL_ANALYSIS_TEMPLATE,
 } from "../../../src/app/prompts/app-templates";
-import type { RenderablePrompt } from "../../../src/common/prompts/prompt.types";
-import { LLMOutputFormat } from "../../../src/common/llm/types/llm.types";
 
 describe("Prompt Renderer", () => {
   const baseSchema = z.object({
@@ -14,19 +12,19 @@ describe("Prompt Renderer", () => {
     value: z.number(),
   });
 
-  const testRenderablePrompt: RenderablePrompt = {
-    label: "Test Prompt",
+  const testConfig = {
     contentDesc: "test content",
     instructions: ["instruction 1", "instruction 2"],
     responseSchema: baseSchema,
-    template: ANALYSIS_PROMPT_TEMPLATE,
     dataBlockHeader: "CODE",
     wrapInCodeBlock: false,
-  };
+  } as const;
+
+  const testPrompt = new Prompt(testConfig, ANALYSIS_PROMPT_TEMPLATE);
 
   describe("Basic Rendering", () => {
     it("should render prompt with definition schema", () => {
-      const result = renderPrompt(testRenderablePrompt, "sample code");
+      const result = testPrompt.renderPrompt("sample code");
 
       expect(result).toContain("test content");
       expect(result).toContain("sample code");
@@ -35,7 +33,7 @@ describe("Prompt Renderer", () => {
     });
 
     it("should use definition's responseSchema for JSON schema generation", () => {
-      const result = renderPrompt(testRenderablePrompt, "sample code");
+      const result = testPrompt.renderPrompt("sample code");
 
       // The result should contain the JSON schema from the definition's responseSchema
       expect(result).toContain('"name"');
@@ -59,12 +57,12 @@ describe("Prompt Renderer", () => {
         total: z.number(),
       });
 
-      const complexPrompt: RenderablePrompt = {
-        ...testRenderablePrompt,
-        responseSchema: complexSchema,
-      };
+      const complexPrompt = new Prompt(
+        { ...testConfig, responseSchema: complexSchema },
+        ANALYSIS_PROMPT_TEMPLATE,
+      );
 
-      const result = renderPrompt(complexPrompt, "sample code");
+      const result = complexPrompt.renderPrompt("sample code");
 
       expect(result).toContain('"items"');
       expect(result).toContain('"metadata"');
@@ -72,12 +70,12 @@ describe("Prompt Renderer", () => {
     });
 
     it("should handle z.unknown() schema", () => {
-      const unknownPrompt: RenderablePrompt = {
-        ...testRenderablePrompt,
-        responseSchema: z.unknown(),
-      };
+      const unknownPrompt = new Prompt(
+        { ...testConfig, responseSchema: z.unknown() },
+        ANALYSIS_PROMPT_TEMPLATE,
+      );
 
-      const result = renderPrompt(unknownPrompt, "sample code");
+      const result = unknownPrompt.renderPrompt("sample code");
 
       // Should still render a valid prompt
       expect(result).toContain("sample code");
@@ -85,12 +83,12 @@ describe("Prompt Renderer", () => {
     });
 
     it("should work with primitive schemas", () => {
-      const stringPrompt: RenderablePrompt = {
-        ...testRenderablePrompt,
-        responseSchema: z.string(),
-      };
+      const stringPrompt = new Prompt(
+        { ...testConfig, responseSchema: z.string() },
+        ANALYSIS_PROMPT_TEMPLATE,
+      );
 
-      const result = renderPrompt(stringPrompt, "sample code");
+      const result = stringPrompt.renderPrompt("sample code");
 
       expect(result).toContain('"type": "string"');
     });
@@ -103,12 +101,12 @@ describe("Prompt Renderer", () => {
         }),
       );
 
-      const arrayPrompt: RenderablePrompt = {
-        ...testRenderablePrompt,
-        responseSchema: arraySchema,
-      };
+      const arrayPrompt = new Prompt(
+        { ...testConfig, responseSchema: arraySchema },
+        ANALYSIS_PROMPT_TEMPLATE,
+      );
 
-      const result = renderPrompt(arrayPrompt, "sample code");
+      const result = arrayPrompt.renderPrompt("sample code");
 
       expect(result).toContain('"type": "array"');
       expect(result).toContain('"description"');
@@ -118,12 +116,9 @@ describe("Prompt Renderer", () => {
   describe("Template Variables", () => {
     it("should include all template variables in rendered output", () => {
       // Use PARTIAL_ANALYSIS_TEMPLATE to test the partial analysis note
-      const promptWithPartialTemplate: RenderablePrompt = {
-        ...testRenderablePrompt,
-        template: PARTIAL_ANALYSIS_TEMPLATE,
-      };
+      const promptWithPartialTemplate = new Prompt(testConfig, PARTIAL_ANALYSIS_TEMPLATE);
 
-      const result = renderPrompt(promptWithPartialTemplate, "sample code");
+      const result = promptWithPartialTemplate.renderPrompt("sample code");
 
       expect(result).toContain("sample code");
       expect(result).toContain("partial analysis");
@@ -132,7 +127,7 @@ describe("Prompt Renderer", () => {
     });
 
     it("should render ANALYSIS_PROMPT_TEMPLATE without partial analysis note", () => {
-      const result = renderPrompt(testRenderablePrompt, "sample code");
+      const result = testPrompt.renderPrompt("sample code");
 
       // Should render without errors
       expect(result).toContain("sample code");
@@ -143,19 +138,19 @@ describe("Prompt Renderer", () => {
 
   describe("Code Block Wrapping", () => {
     it("should wrap content in code blocks when wrapInCodeBlock is true", () => {
-      const wrappedPrompt: RenderablePrompt = {
-        ...testRenderablePrompt,
-        wrapInCodeBlock: true,
-      };
+      const wrappedPrompt = new Prompt(
+        { ...testConfig, wrapInCodeBlock: true },
+        ANALYSIS_PROMPT_TEMPLATE,
+      );
 
-      const result = renderPrompt(wrappedPrompt, "sample code");
+      const result = wrappedPrompt.renderPrompt("sample code");
 
       // The content should be wrapped with ``` markers
       expect(result).toContain("```\nsample code```");
     });
 
     it("should not wrap content when wrapInCodeBlock is false", () => {
-      const result = renderPrompt(testRenderablePrompt, "sample code");
+      const result = testPrompt.renderPrompt("sample code");
 
       // Content should appear without surrounding ``` markers (except in JSON schema block)
       const contentSection = result.split("CODE:")[1];
@@ -174,23 +169,23 @@ describe("Prompt Renderer", () => {
         ),
       });
 
-      // Create a typed prompt definition
-      const reducePrompt: RenderablePrompt = {
-        label: "Reduce Insights",
-        contentDesc: buildReduceInsightsContentDesc("technologies"),
-        instructions: [`a consolidated list of 'technologies'`],
-        responseSchema: categorySchema,
-        template: ANALYSIS_PROMPT_TEMPLATE,
-        dataBlockHeader: "FRAGMENTED_DATA",
-        wrapInCodeBlock: false,
-        outputFormat: LLMOutputFormat.JSON,
-      };
+      // Create a typed prompt definition (JSON mode = responseSchema present)
+      const reducePrompt = new Prompt(
+        {
+          contentDesc: buildReduceInsightsContentDesc("technologies"),
+          instructions: [`a consolidated list of 'technologies'`],
+          responseSchema: categorySchema,
+          dataBlockHeader: "FRAGMENTED_DATA",
+          wrapInCodeBlock: false,
+        },
+        ANALYSIS_PROMPT_TEMPLATE,
+      );
 
       const partialData = {
         technologies: [{ name: "TypeScript", description: "Typed JavaScript" }],
       };
 
-      const result = renderPrompt(reducePrompt, JSON.stringify(partialData));
+      const result = reducePrompt.renderPrompt(JSON.stringify(partialData));
 
       // Should have categoryKey baked into the prompt definition
       expect(result).toContain("'technologies'");
@@ -208,19 +203,18 @@ describe("Prompt Renderer", () => {
         technologies: z.array(z.object({ name: z.string(), version: z.string() })),
       });
 
-      const reducePrompt: RenderablePrompt = {
-        label: "Reduce Insights",
-        contentDesc: buildReduceInsightsContentDesc("technologies"),
-        instructions: [`a consolidated list of 'technologies'`],
-        responseSchema: techSchema,
-        template: ANALYSIS_PROMPT_TEMPLATE,
-        dataBlockHeader: "FRAGMENTED_DATA",
-        wrapInCodeBlock: false,
-        outputFormat: LLMOutputFormat.JSON,
-      };
+      const reducePrompt = new Prompt(
+        {
+          contentDesc: buildReduceInsightsContentDesc("technologies"),
+          instructions: [`a consolidated list of 'technologies'`],
+          responseSchema: techSchema,
+          dataBlockHeader: "FRAGMENTED_DATA",
+          wrapInCodeBlock: false,
+        },
+        ANALYSIS_PROMPT_TEMPLATE,
+      );
 
-      const result = renderPrompt(
-        reducePrompt,
+      const result = reducePrompt.renderPrompt(
         JSON.stringify({ technologies: [{ name: "TypeScript", version: "5.7" }] }),
       );
 
@@ -231,27 +225,27 @@ describe("Prompt Renderer", () => {
 
   describe("Data Block Header", () => {
     it("should use the correct dataBlockHeader in output", () => {
-      const result = renderPrompt(testRenderablePrompt, "sample code");
+      const result = testPrompt.renderPrompt("sample code");
       expect(result).toContain("CODE:");
     });
 
     it("should handle different dataBlockHeaders", () => {
-      const fileSummariesPrompt: RenderablePrompt = {
-        ...testRenderablePrompt,
-        dataBlockHeader: "FILE_SUMMARIES",
-      };
+      const fileSummariesPrompt = new Prompt(
+        { ...testConfig, dataBlockHeader: "FILE_SUMMARIES" },
+        ANALYSIS_PROMPT_TEMPLATE,
+      );
 
-      const result = renderPrompt(fileSummariesPrompt, "summaries");
+      const result = fileSummariesPrompt.renderPrompt("summaries");
       expect(result).toContain("FILE_SUMMARIES:");
     });
 
     it("should handle FRAGMENTED_DATA header", () => {
-      const fragmentedPrompt: RenderablePrompt = {
-        ...testRenderablePrompt,
-        dataBlockHeader: "FRAGMENTED_DATA",
-      };
+      const fragmentedPrompt = new Prompt(
+        { ...testConfig, dataBlockHeader: "FRAGMENTED_DATA" },
+        ANALYSIS_PROMPT_TEMPLATE,
+      );
 
-      const result = renderPrompt(fragmentedPrompt, "data");
+      const result = fragmentedPrompt.renderPrompt("data");
       expect(result).toContain("FRAGMENTED_DATA:");
     });
   });

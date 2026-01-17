@@ -1,4 +1,4 @@
-import { renderPrompt } from "../../../src/common/prompts/prompt-renderer";
+import { Prompt } from "../../../src/common/prompts/prompt";
 import { appPromptManager } from "../../../src/app/prompts/app-prompt-registry";
 import { SOURCES_PROMPT_FRAGMENTS } from "../../../src/app/prompts/definitions/sources/sources.fragments";
 import { APP_SUMMARY_PROMPT_FRAGMENTS } from "../../../src/app/prompts/definitions/app-summaries/app-summaries.fragments";
@@ -38,7 +38,7 @@ describe("Prompt Refactoring - Unified Configuration", () => {
       const javaMetadata = fileTypePromptMetadata.java;
       const testCode = "public class Test {}";
 
-      const rendered = renderPrompt(javaMetadata, testCode);
+      const rendered = javaMetadata.renderPrompt(testCode);
 
       // Verify section titles are present
       expect(rendered).toContain(`__${INSTRUCTION_SECTION_TITLES.BASIC_INFO}__`);
@@ -53,7 +53,7 @@ describe("Prompt Refactoring - Unified Configuration", () => {
       const javaMetadata = fileTypePromptMetadata.java;
       const testCode = "public class Test {}";
 
-      const rendered = renderPrompt(javaMetadata, testCode);
+      const rendered = javaMetadata.renderPrompt(testCode);
 
       // Since we can't directly test the template variable, we test the rendered output
       // which should have proper section separation
@@ -92,7 +92,7 @@ describe("Prompt Refactoring - Unified Configuration", () => {
       const appDescriptionMetadata = appSummaryPromptMetadata.appDescription;
       const testSummaries = "Test summary content";
 
-      const rendered = renderPrompt(appDescriptionMetadata, testSummaries);
+      const rendered = appDescriptionMetadata.renderPrompt(testSummaries);
 
       // Should contain the instruction text
       expect(rendered).toContain(
@@ -112,32 +112,36 @@ describe("Prompt Refactoring - Unified Configuration", () => {
 
   describe("Prompt Rendering Consistency", () => {
     it("should join instructions with double newlines", () => {
-      const testDefinition = {
-        contentDesc: "test content",
-        instructions: ["Instruction 1", "Instruction 2", "Instruction 3"] as const,
-        responseSchema: z.object({ test: z.string() }),
-        template: "Intro with instructions: {{instructionsText}}",
-        dataBlockHeader: "CODE" as const,
-        wrapInCodeBlock: false,
-      };
+      const testPrompt = new Prompt(
+        {
+          contentDesc: "test content",
+          instructions: ["Instruction 1", "Instruction 2", "Instruction 3"],
+          responseSchema: z.object({ test: z.string() }),
+          dataBlockHeader: "CODE",
+          wrapInCodeBlock: false,
+        },
+        "Intro with instructions: {{instructionsText}}",
+      );
 
-      const rendered = renderPrompt(testDefinition, "test");
+      const rendered = testPrompt.renderPrompt("test");
 
       // Instructions are joined with double newlines
       expect(rendered).toContain("Instruction 1\n\nInstruction 2\n\nInstruction 3");
     });
 
     it("should handle single instruction correctly", () => {
-      const testDefinition = {
-        contentDesc: "test content",
-        instructions: ["Single instruction"] as const,
-        responseSchema: z.object({ test: z.string() }),
-        template: "Intro with instruction: {{instructionsText}}",
-        dataBlockHeader: "CODE" as const,
-        wrapInCodeBlock: false,
-      };
+      const testPrompt = new Prompt(
+        {
+          contentDesc: "test content",
+          instructions: ["Single instruction"],
+          responseSchema: z.object({ test: z.string() }),
+          dataBlockHeader: "CODE",
+          wrapInCodeBlock: false,
+        },
+        "Intro with instruction: {{instructionsText}}",
+      );
 
-      const rendered = renderPrompt(testDefinition, "test");
+      const rendered = testPrompt.renderPrompt("test");
 
       expect(rendered).toContain("Single instruction");
     });

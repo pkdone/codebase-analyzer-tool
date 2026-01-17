@@ -1,115 +1,115 @@
-import type { RenderablePrompt } from "../../../../src/common/prompts/prompt.types";
+import { Prompt, type PromptConfig } from "../../../../src/common/prompts/prompt";
 import { z } from "zod";
 
-describe("RenderablePrompt", () => {
-  const createMockRenderablePrompt = (overrides?: Partial<RenderablePrompt>): RenderablePrompt => ({
-    contentDesc: "Test intro text template with {{placeholder}}",
-    instructions: ["instruction 1", "instruction 2"],
-    responseSchema: z.string(),
-    template: "Test template",
-    dataBlockHeader: "CODE",
-    wrapInCodeBlock: false,
-    ...overrides,
-  });
+describe("Prompt", () => {
+  const createMockPrompt = (overrides?: Partial<PromptConfig>): Prompt => {
+    const config: PromptConfig = {
+      contentDesc: "Test intro text template with {{placeholder}}",
+      instructions: ["instruction 1", "instruction 2"],
+      responseSchema: z.string(),
+      dataBlockHeader: "CODE",
+      wrapInCodeBlock: false,
+      ...overrides,
+    };
+    return new Prompt(config, "Test template");
+  };
 
   describe("structure", () => {
     it("should have required fields", () => {
-      const definition: RenderablePrompt = {
-        contentDesc: "Test intro text template",
-        instructions: ["test"],
-        responseSchema: z.string(),
-        template: "Test template",
-        dataBlockHeader: "CODE",
-        wrapInCodeBlock: false,
-      };
+      const prompt = new Prompt(
+        {
+          contentDesc: "Test intro text template",
+          instructions: ["test"],
+          responseSchema: z.string(),
+          dataBlockHeader: "CODE",
+          wrapInCodeBlock: false,
+        },
+        "Test template",
+      );
 
-      expect(definition.contentDesc).toBe("Test intro text template");
-      expect(definition.instructions).toEqual(["test"]);
-      expect(definition.responseSchema).toBeDefined();
-    });
-
-    it("should have optional label field", () => {
-      const definitionWithoutLabel = createMockRenderablePrompt();
-      expect(definitionWithoutLabel.label).toBeUndefined();
-
-      const definitionWithLabel = createMockRenderablePrompt({
-        label: "Test Label",
-      });
-      expect(definitionWithLabel.label).toBe("Test Label");
+      expect(prompt.contentDesc).toBe("Test intro text template");
+      expect(prompt.instructions).toEqual(["test"]);
+      expect(prompt.responseSchema).toBeDefined();
     });
   });
 
   describe("compatibility", () => {
     it("should accept readonly string arrays for instructions", () => {
-      const definition: RenderablePrompt = {
-        contentDesc: "Test intro text template",
-        instructions: ["a", "b", "c"],
-        responseSchema: z.string(),
-        template: "Test template",
-        dataBlockHeader: "CODE",
-        wrapInCodeBlock: false,
-      };
+      const prompt = new Prompt(
+        {
+          contentDesc: "Test intro text template",
+          instructions: ["a", "b", "c"],
+          responseSchema: z.string(),
+          dataBlockHeader: "CODE",
+          wrapInCodeBlock: false,
+        },
+        "Test template",
+      );
 
-      expect(Array.isArray(definition.instructions)).toBe(true);
-      expect(definition.instructions.length).toBe(3);
+      expect(Array.isArray(prompt.instructions)).toBe(true);
+      expect(prompt.instructions.length).toBe(3);
     });
 
     it("should accept various Zod schema types", () => {
-      const stringSchema = createMockRenderablePrompt({ responseSchema: z.string() });
-      expect(stringSchema.responseSchema).toBeDefined();
+      const stringPrompt = createMockPrompt({ responseSchema: z.string() });
+      expect(stringPrompt.responseSchema).toBeDefined();
 
-      const objectSchema = createMockRenderablePrompt({
+      const objectPrompt = createMockPrompt({
         responseSchema: z.object({ name: z.string() }),
       });
-      expect(objectSchema.responseSchema).toBeDefined();
+      expect(objectPrompt.responseSchema).toBeDefined();
 
-      const arraySchema = createMockRenderablePrompt({ responseSchema: z.array(z.string()) });
-      expect(arraySchema.responseSchema).toBeDefined();
+      const arrayPrompt = createMockPrompt({ responseSchema: z.array(z.string()) });
+      expect(arrayPrompt.responseSchema).toBeDefined();
     });
   });
 
   describe("usage examples", () => {
     it("should work with source file prompting", () => {
-      const sourceFileDefinition: RenderablePrompt = {
-        contentDesc:
-          "Act as a senior developer analyzing the code in an existing application. Based on the JVM code shown below...",
-        instructions: [
-          "Extract the class name",
-          "Extract the purpose",
-          "Extract the implementation",
-        ],
-        responseSchema: z.object({
-          name: z.string(),
-          purpose: z.string(),
-          implementation: z.string(),
-        }),
-        template: "Test template",
-        dataBlockHeader: "CODE",
-        wrapInCodeBlock: true,
-      };
+      const sourceFilePrompt = new Prompt(
+        {
+          contentDesc:
+            "Act as a senior developer analyzing the code in an existing application. Based on the JVM code shown below...",
+          instructions: [
+            "Extract the class name",
+            "Extract the purpose",
+            "Extract the implementation",
+          ],
+          responseSchema: z.object({
+            name: z.string(),
+            purpose: z.string(),
+            implementation: z.string(),
+          }),
+          dataBlockHeader: "CODE",
+          wrapInCodeBlock: true,
+        },
+        "Test template",
+      );
 
-      expect(sourceFileDefinition.contentDesc).toContain("JVM code");
-      expect(sourceFileDefinition.instructions).toHaveLength(3);
+      expect(sourceFilePrompt.contentDesc).toContain("JVM code");
+      expect(sourceFilePrompt.instructions).toHaveLength(3);
     });
 
     it("should work with app summary prompting", () => {
-      const appSummaryDefinition: RenderablePrompt = {
-        contentDesc:
-          "Act as a senior developer analyzing the code in an existing application. Based on the source files shown below...",
-        instructions: ["Extract entities", "Extract bounded contexts"],
-        responseSchema: z.object({
-          entities: z.array(z.string()),
-          boundedContexts: z.array(z.string()),
-        }),
-        template: "Test template",
-        dataBlockHeader: "FILE_SUMMARIES",
-        wrapInCodeBlock: false,
-      };
+      const appSummaryPrompt = new Prompt(
+        {
+          contentDesc:
+            "Act as a senior developer analyzing the code in an existing application. Based on the source files shown below...",
+          instructions: ["Extract entities", "Extract bounded contexts"],
+          responseSchema: z.object({
+            entities: z.array(z.string()),
+            boundedContexts: z.array(z.string()),
+          }),
+          dataBlockHeader: "FILE_SUMMARIES",
+          wrapInCodeBlock: false,
+        },
+        "Test template",
+      );
 
-      expect(appSummaryDefinition.contentDesc).toContain("source files");
-      expect(appSummaryDefinition.instructions).toHaveLength(2);
-      expect(appSummaryDefinition.instructions[0]).toBe("Extract entities");
-      expect(appSummaryDefinition.instructions[1]).toBe("Extract bounded contexts");
+      expect(appSummaryPrompt.contentDesc).toContain("source files");
+      expect(appSummaryPrompt.instructions).toHaveLength(2);
+      expect(appSummaryPrompt.instructions[0]).toBe("Extract entities");
+      expect(appSummaryPrompt.instructions[1]).toBe("Extract bounded contexts");
     });
   });
 
@@ -117,16 +117,18 @@ describe("RenderablePrompt", () => {
     it("should support readonly string arrays", () => {
       const readonlyInstructions: readonly string[] = ["instruction 1", "instruction 2"];
 
-      const definition: RenderablePrompt = {
-        contentDesc: "Test intro text template",
-        instructions: readonlyInstructions,
-        responseSchema: z.string(),
-        template: "Test template",
-        dataBlockHeader: "CODE",
-        wrapInCodeBlock: false,
-      };
+      const prompt = new Prompt(
+        {
+          contentDesc: "Test intro text template",
+          instructions: readonlyInstructions,
+          responseSchema: z.string(),
+          dataBlockHeader: "CODE",
+          wrapInCodeBlock: false,
+        },
+        "Test template",
+      );
 
-      expect(definition.instructions).toEqual(["instruction 1", "instruction 2"]);
+      expect(prompt.instructions).toEqual(["instruction 1", "instruction 2"]);
     });
   });
 });

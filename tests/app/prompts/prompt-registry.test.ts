@@ -57,7 +57,6 @@ describe("Prompt Registry", () => {
       const categories = AppSummaryCategories.options;
       categories.forEach((category) => {
         const prompt = appPromptManager.appSummaries[category];
-        expect(prompt).toHaveProperty("label");
         expect(prompt).toHaveProperty("contentDesc");
         expect(prompt).toHaveProperty("instructions");
         expect(prompt).toHaveProperty("responseSchema");
@@ -66,7 +65,6 @@ describe("Prompt Registry", () => {
         expect(prompt).toHaveProperty("wrapInCodeBlock");
 
         // Verify types
-        expect(typeof prompt.label).toBe("string");
         expect(typeof prompt.contentDesc).toBe("string");
         expect(Array.isArray(prompt.instructions)).toBe(true);
         expect(prompt.responseSchema).toBeInstanceOf(z.ZodType);
@@ -104,7 +102,6 @@ describe("Prompt Registry", () => {
       const fileType = "java"; // Test one as representative
       const prompt = appPromptManager.sources[fileType];
 
-      expect(prompt).toHaveProperty("label");
       expect(prompt).toHaveProperty("contentDesc");
       expect(prompt).toHaveProperty("instructions");
       expect(prompt).toHaveProperty("responseSchema");
@@ -138,10 +135,10 @@ describe("Prompt Registry", () => {
     it("should have valid structure", () => {
       const prompt = appPromptManager.codebaseQuery;
 
-      expect(prompt.label).toBe("Codebase Query");
       expect(prompt.contentDesc).toBe("source code files");
       expect(prompt.instructions).toEqual([]);
-      expect(prompt.responseSchema).toBeInstanceOf(z.ZodString);
+      // TEXT mode prompt = no responseSchema
+      expect(prompt.responseSchema).toBeUndefined();
       expect(prompt.dataBlockHeader).toBe("CODE");
       expect(prompt.wrapInCodeBlock).toBe(false);
     });
@@ -161,7 +158,7 @@ describe("Prompt Registry", () => {
         expect(schema).toBeInstanceOf(z.ZodType);
 
         // Verify the schema can be used for parsing
-        expect(() => schema.safeParse({})).not.toThrow();
+        expect(() => schema!.safeParse({})).not.toThrow();
       });
     });
 
@@ -172,7 +169,7 @@ describe("Prompt Registry", () => {
         expect(schema).toBeInstanceOf(z.ZodType);
 
         // Verify the schema can be used for parsing
-        expect(() => schema.safeParse({})).not.toThrow();
+        expect(() => schema!.safeParse({})).not.toThrow();
       });
     });
   });

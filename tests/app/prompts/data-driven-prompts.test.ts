@@ -45,7 +45,7 @@ describe("Data-driven Prompt System", () => {
 
       // The schema should be a picked version with the specified fields
       expect(javaMetadata.responseSchema).toBeDefined();
-      expect(typeof javaMetadata.responseSchema.parse).toBe("function");
+      expect(typeof javaMetadata.responseSchema!.parse).toBe("function");
 
       // Check that the schema fields match the configuration
       const schemaFields = getSchemaFields(javaConfig);
@@ -85,7 +85,6 @@ describe("Data-driven Prompt System", () => {
         const metadata =
           appSummaryPromptMetadata[category as keyof typeof appSummaryPromptMetadata];
 
-        expect(metadata.label).toBe(config.label);
         expect(metadata.contentDesc).toContain("a set of source file summaries"); // Generic description
         expect(metadata.template).toBeDefined();
         expect(metadata.responseSchema).toBe(config.responseSchema);

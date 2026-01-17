@@ -21,26 +21,24 @@ describe("createAppSummaryConfig Factory", () => {
 
   describe("default contentDesc behavior", () => {
     it("should use default contentDesc", () => {
-      const config = createAppSummaryConfig("Test Label", testSchema, "instruction 1");
+      const config = createAppSummaryConfig(testSchema, "instruction 1");
 
       expect(config.contentDesc).toBe("a set of source file summaries");
     });
 
     it("should always use the default contentDesc for all configurations", () => {
       // The factory now uses a fixed contentDesc, which is the standard for all app summaries
-      const config = createAppSummaryConfig("Test", testSchema, "test instruction");
+      const config = createAppSummaryConfig(testSchema, "test instruction");
       expect(config.contentDesc).toBe("a set of source file summaries");
     });
   });
 
   describe("field population", () => {
     it("should correctly populate all fields", () => {
-      const label = "My Category";
       const schema = z.object({ result: z.array(z.string()) });
 
-      const config = createAppSummaryConfig(label, schema, "do this", "do that");
+      const config = createAppSummaryConfig(schema, "do this", "do that");
 
-      expect(config.label).toBe(label);
       expect(config.instructions).toEqual(["do this", "do that"]);
       expect(config.responseSchema).toBe(schema);
       expect(config.contentDesc).toBe("a set of source file summaries");
@@ -48,7 +46,6 @@ describe("createAppSummaryConfig Factory", () => {
 
     it("should collect rest parameters into instructions array", () => {
       const config = createAppSummaryConfig(
-        "Label",
         testSchema,
         "instruction 1",
         "instruction 2",
@@ -68,7 +65,6 @@ describe("createAppSummaryConfig Factory", () => {
 
       // Type assertion: The factory should return AppSummaryConfigEntry<typeof specificSchema>
       const config: AppSummaryConfigEntry<typeof specificSchema> = createAppSummaryConfig(
-        "Typed Label",
         specificSchema,
         "typed instruction",
       );
@@ -84,7 +80,7 @@ describe("createAppSummaryConfig Factory", () => {
         items: z.array(z.object({ name: z.string() })),
       });
 
-      const config = createAppSummaryConfig("Generic Test", schema, "test");
+      const config = createAppSummaryConfig(schema, "test");
 
       // Verify schema type is preserved by parsing valid data
       const validData = { items: [{ name: "test" }] };
@@ -102,13 +98,12 @@ describe("createAppSummaryConfig Factory", () => {
     it("should produce configs compatible with existing map structure", () => {
       // Verify that factory-created configs have the same structure as map entries
       const factoryConfig = createAppSummaryConfig(
-        "Test",
         z.object({ test: z.string() }),
         "test instruction",
       );
 
       // All configs in the map should have these required fields
-      const requiredFields = ["label", "contentDesc", "instructions", "responseSchema"];
+      const requiredFields = ["contentDesc", "instructions", "responseSchema"];
 
       requiredFields.forEach((field) => {
         expect(factoryConfig).toHaveProperty(field);
@@ -130,8 +125,6 @@ describe("createAppSummaryConfig Factory", () => {
       categories.forEach((category) => {
         const config = appSummaryConfigMap[category];
 
-        expect(typeof config.label).toBe("string");
-        expect(config.label.length).toBeGreaterThan(0);
         expect(Array.isArray(config.instructions)).toBe(true);
         expect(config.instructions.length).toBeGreaterThan(0);
         expect(config.responseSchema).toBeInstanceOf(z.ZodType);
@@ -142,21 +135,19 @@ describe("createAppSummaryConfig Factory", () => {
 
   describe("edge cases", () => {
     it("should handle no instructions (empty rest params)", () => {
-      const config = createAppSummaryConfig("Empty Instructions", testSchema);
+      const config = createAppSummaryConfig(testSchema);
 
       expect(config.instructions).toEqual([]);
-      expect(config.label).toBe("Empty Instructions");
     });
 
     it("should handle single instruction", () => {
-      const config = createAppSummaryConfig("Single", testSchema, "only one");
+      const config = createAppSummaryConfig(testSchema, "only one");
 
       expect(config.instructions).toEqual(["only one"]);
     });
 
     it("should handle instructions with special characters", () => {
       const config = createAppSummaryConfig(
-        "Special",
         testSchema,
         "instruction with `code`",
         'instruction with "quotes"',
@@ -174,7 +165,7 @@ describe("createAppSummaryConfig Factory", () => {
       const multiLineInstruction = `Line 1
 Line 2
 Line 3`;
-      const config = createAppSummaryConfig("Multi-line", testSchema, multiLineInstruction);
+      const config = createAppSummaryConfig(testSchema, multiLineInstruction);
 
       expect(config.instructions).toEqual([multiLineInstruction]);
       expect(config.instructions[0]).toContain("Line 1");
@@ -184,13 +175,13 @@ Line 3`;
 
   describe("explicit presentation values", () => {
     it("should explicitly set dataBlockHeader to FILE_SUMMARIES", () => {
-      const config = createAppSummaryConfig("Test Label", testSchema, "instruction");
+      const config = createAppSummaryConfig(testSchema, "instruction");
 
       expect(config.dataBlockHeader).toBe(FILE_SUMMARIES_DATA_BLOCK_HEADER);
     });
 
     it("should explicitly set wrapInCodeBlock to false", () => {
-      const config = createAppSummaryConfig("Test Label", testSchema, "instruction");
+      const config = createAppSummaryConfig(testSchema, "instruction");
 
       expect(config.wrapInCodeBlock).toBe(false);
     });
@@ -208,16 +199,14 @@ Line 3`;
 
   describe("rest parameter ergonomics", () => {
     it("should allow cleaner call sites without array brackets", () => {
-      // Old style required: createAppSummaryConfig("Label", ["instruction"] as const, schema)
-      // New style: createAppSummaryConfig("Label", schema, "instruction")
-      const config = createAppSummaryConfig("Clean API", testSchema, "single instruction");
+      // New style: createAppSummaryConfig(schema, "instruction")
+      const config = createAppSummaryConfig(testSchema, "single instruction");
 
       expect(config.instructions).toEqual(["single instruction"]);
     });
 
     it("should support multiple instructions without array syntax", () => {
       const config = createAppSummaryConfig(
-        "Multiple",
         testSchema,
         "first instruction",
         "second instruction",

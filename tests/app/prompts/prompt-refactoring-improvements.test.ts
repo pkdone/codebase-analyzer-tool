@@ -1,28 +1,26 @@
 import { z } from "zod";
-import { renderPrompt } from "../../../src/common/prompts/prompt-renderer";
+import { Prompt, type PromptConfig } from "../../../src/common/prompts/prompt";
 import {
   ANALYSIS_PROMPT_TEMPLATE,
   CODEBASE_QUERY_TEMPLATE,
 } from "../../../src/app/prompts/app-templates";
 import { fileTypePromptRegistry } from "../../../src/app/prompts/definitions/sources/sources.definitions";
-import { LLMOutputFormat } from "../../../src/common/llm/types/llm.types";
-import type { RenderablePrompt, PromptConfig } from "../../../src/common/prompts/prompt.types";
 
 describe("Prompt Refactoring Improvements", () => {
-  describe("TEXT-mode Rendering", () => {
-    it("should not include JSON schema section for TEXT-mode prompts", () => {
-      const textPrompt: RenderablePrompt<z.ZodString> = {
-        label: "Text Query",
-        contentDesc: "source code files",
-        instructions: [],
-        template: CODEBASE_QUERY_TEMPLATE,
-        dataBlockHeader: "CODE",
-        wrapInCodeBlock: false,
-        responseSchema: z.string(),
-        outputFormat: LLMOutputFormat.TEXT,
-      };
+  describe("TEXT-mode Rendering (no responseSchema)", () => {
+    it("should not include JSON schema section for TEXT-mode prompts (no responseSchema)", () => {
+      // TEXT mode = no responseSchema
+      const textPrompt = new Prompt(
+        {
+          contentDesc: "source code files",
+          instructions: [],
+          dataBlockHeader: "CODE",
+          wrapInCodeBlock: false,
+        },
+        CODEBASE_QUERY_TEMPLATE,
+      );
 
-      const result = renderPrompt(textPrompt, "sample code", {
+      const result = textPrompt.renderPrompt("sample code", {
         question: "What does this code do?",
       });
 
@@ -36,19 +34,20 @@ describe("Prompt Refactoring Improvements", () => {
       expect(result).toContain("sample code");
     });
 
-    it("should include JSON schema section for JSON-mode prompts", () => {
-      const jsonPrompt: RenderablePrompt = {
-        label: "JSON Test",
-        contentDesc: "test content",
-        instructions: ["test instruction"],
-        responseSchema: z.object({ name: z.string() }),
-        template: ANALYSIS_PROMPT_TEMPLATE,
-        dataBlockHeader: "CODE",
-        wrapInCodeBlock: false,
-        outputFormat: LLMOutputFormat.JSON,
-      };
+    it("should include JSON schema section for JSON-mode prompts (has responseSchema)", () => {
+      // JSON mode = responseSchema is provided
+      const jsonPrompt = new Prompt(
+        {
+          contentDesc: "test content",
+          instructions: ["test instruction"],
+          responseSchema: z.object({ name: z.string() }),
+          dataBlockHeader: "CODE",
+          wrapInCodeBlock: false,
+        },
+        ANALYSIS_PROMPT_TEMPLATE,
+      );
 
-      const result = renderPrompt(jsonPrompt, "sample code");
+      const result = jsonPrompt.renderPrompt("sample code");
 
       // Should contain JSON schema section
       expect(result).toContain("JSON response must follow");
@@ -192,10 +191,10 @@ describe("Prompt Refactoring Improvements", () => {
         responseSchema: z.string(),
         dataBlockHeader: "CODE",
         wrapInCodeBlock: true,
-        // label and hasComplexSchema are optional
+        // hasComplexSchema is optional
       };
 
-      expect(config.label).toBeUndefined();
+      expect(config.hasComplexSchema).toBeUndefined();
       expect(config.hasComplexSchema).toBeUndefined();
       expect(config.dataBlockHeader).toBe("CODE");
       expect(config.wrapInCodeBlock).toBe(true);
@@ -217,17 +216,18 @@ describe("Prompt Refactoring Improvements", () => {
 
   describe("Rendered prompt comparison", () => {
     it("should render Java prompt with correct structure", () => {
-      const testPromptDef: RenderablePrompt = {
-        label: "Java",
-        contentDesc: `the ${fileTypePromptRegistry.java.contentDesc}`,
-        instructions: fileTypePromptRegistry.java.instructions,
-        responseSchema: fileTypePromptRegistry.java.responseSchema,
-        template: ANALYSIS_PROMPT_TEMPLATE,
-        dataBlockHeader: "CODE",
-        wrapInCodeBlock: true,
-      };
+      const testPrompt = new Prompt(
+        {
+          contentDesc: `the ${fileTypePromptRegistry.java.contentDesc}`,
+          instructions: fileTypePromptRegistry.java.instructions,
+          responseSchema: fileTypePromptRegistry.java.responseSchema,
+          dataBlockHeader: "CODE",
+          wrapInCodeBlock: true,
+        },
+        ANALYSIS_PROMPT_TEMPLATE,
+      );
 
-      const result = renderPrompt(testPromptDef, "public class Test {}");
+      const result = testPrompt.renderPrompt("public class Test {}");
 
       expect(result).toContain("JVM code");
       expect(result).toContain("__Basic Information__");

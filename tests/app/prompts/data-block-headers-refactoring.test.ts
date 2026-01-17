@@ -1,6 +1,5 @@
 import { z } from "zod";
-import type { RenderablePrompt } from "../../../src/common/prompts/prompt.types";
-import { renderPrompt } from "../../../src/common/prompts/prompt-renderer";
+import { Prompt } from "../../../src/common/prompts/prompt";
 import { appPromptManager } from "../../../src/app/prompts/app-prompt-registry";
 import { fileTypePromptRegistry } from "../../../src/app/prompts/definitions/sources/sources.definitions";
 import { appSummaryConfigMap } from "../../../src/app/prompts/definitions/app-summaries/app-summaries.definitions";
@@ -12,22 +11,23 @@ import { FILE_SUMMARIES_DATA_BLOCK_HEADER } from "../../../src/app/prompts/defin
  * 1. Schema section rendering via renderPrompt
  * 2. Self-contained source configs with "the " prefix
  * 3. Self-contained app summary configs with contentDesc
- * 4. Simplified createPromptMetadata factory
+ * 4. Simplified Prompt class constructor
  */
 describe("Prompt Refactoring", () => {
   describe("Schema section rendering via renderPrompt", () => {
     it("should generate proper JSON schema section", () => {
-      const definition: RenderablePrompt = {
-        label: "Test",
-        contentDesc: "test content",
-        instructions: ["test instruction"],
-        responseSchema: z.object({ name: z.string(), count: z.number() }),
-        template: "{{schemaSection}}",
-        dataBlockHeader: CODE_DATA_BLOCK_HEADER,
-        wrapInCodeBlock: false,
-      };
+      const prompt = new Prompt(
+        {
+          contentDesc: "test content",
+          instructions: ["test instruction"],
+          responseSchema: z.object({ name: z.string(), count: z.number() }),
+          dataBlockHeader: CODE_DATA_BLOCK_HEADER,
+          wrapInCodeBlock: false,
+        },
+        "{{schemaSection}}",
+      );
 
-      const result = renderPrompt(definition, "test data");
+      const result = prompt.renderPrompt("test data");
 
       // Should contain schema header
       expect(result).toContain("The JSON response must follow this JSON schema:");
@@ -46,17 +46,18 @@ describe("Prompt Refactoring", () => {
     });
 
     it("should work with array schemas", () => {
-      const definition: RenderablePrompt = {
-        label: "Test",
-        contentDesc: "test content",
-        instructions: ["test instruction"],
-        responseSchema: z.array(z.object({ id: z.string(), value: z.number() })),
-        template: "{{schemaSection}}",
-        dataBlockHeader: CODE_DATA_BLOCK_HEADER,
-        wrapInCodeBlock: false,
-      };
+      const prompt = new Prompt(
+        {
+          contentDesc: "test content",
+          instructions: ["test instruction"],
+          responseSchema: z.array(z.object({ id: z.string(), value: z.number() })),
+          dataBlockHeader: CODE_DATA_BLOCK_HEADER,
+          wrapInCodeBlock: false,
+        },
+        "{{schemaSection}}",
+      );
 
-      const result = renderPrompt(definition, "test data");
+      const result = prompt.renderPrompt("test data");
 
       expect(result).toContain('"type": "array"');
       expect(result).toContain('"id"');
@@ -64,17 +65,18 @@ describe("Prompt Refactoring", () => {
     });
 
     it("should include schema section in full prompt", () => {
-      const definition: RenderablePrompt = {
-        label: "Test",
-        contentDesc: "test content",
-        instructions: ["test instruction"],
-        responseSchema: z.object({ field: z.string() }),
-        template: "Test {{contentDesc}} {{schemaSection}} {{dataBlockHeader}}:{{content}}",
-        dataBlockHeader: CODE_DATA_BLOCK_HEADER,
-        wrapInCodeBlock: false,
-      };
+      const prompt = new Prompt(
+        {
+          contentDesc: "test content",
+          instructions: ["test instruction"],
+          responseSchema: z.object({ field: z.string() }),
+          dataBlockHeader: CODE_DATA_BLOCK_HEADER,
+          wrapInCodeBlock: false,
+        },
+        "Test {{contentDesc}} {{schemaSection}} {{dataBlockHeader}}:{{content}}",
+      );
 
-      const result = renderPrompt(definition, "test data");
+      const result = prompt.renderPrompt("test data");
 
       // The rendered prompt should contain the schema section
       expect(result).toContain("The JSON response must follow this JSON schema:");
@@ -154,7 +156,7 @@ describe("Prompt Refactoring", () => {
   describe("Rendered prompts maintain correct output", () => {
     it("should render source prompt with correct structure", () => {
       const javaPrompt = appPromptManager.sources.java;
-      const result = renderPrompt(javaPrompt, "public class Test {}");
+      const result = javaPrompt.renderPrompt("public class Test {}");
 
       // Should contain contentDesc with "the " prefix
       expect(result).toContain("the JVM code");
@@ -171,7 +173,7 @@ describe("Prompt Refactoring", () => {
 
     it("should render app summary prompt with correct structure", () => {
       const appDescPrompt = appPromptManager.appSummaries.appDescription;
-      const result = renderPrompt(appDescPrompt, "test file summaries");
+      const result = appDescPrompt.renderPrompt("test file summaries");
 
       // Should contain contentDesc
       expect(result).toContain("a set of source file summaries");
@@ -185,18 +187,19 @@ describe("Prompt Refactoring", () => {
   });
 
   describe("Type safety", () => {
-    it("should work with RenderablePrompt interface", () => {
-      const definition: RenderablePrompt = {
-        label: "Test",
-        contentDesc: "test content",
-        instructions: ["test instruction"],
-        responseSchema: z.string(),
-        template: "test template",
-        dataBlockHeader: CODE_DATA_BLOCK_HEADER,
-        wrapInCodeBlock: true,
-      };
+    it("should work with Prompt class", () => {
+      const prompt = new Prompt(
+        {
+          contentDesc: "test content",
+          instructions: ["test instruction"],
+          responseSchema: z.string(),
+          dataBlockHeader: CODE_DATA_BLOCK_HEADER,
+          wrapInCodeBlock: true,
+        },
+        "test template",
+      );
 
-      expect(definition.dataBlockHeader).toBe(CODE_DATA_BLOCK_HEADER);
+      expect(prompt.dataBlockHeader).toBe(CODE_DATA_BLOCK_HEADER);
     });
   });
 });

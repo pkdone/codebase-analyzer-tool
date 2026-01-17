@@ -30,7 +30,6 @@ describe("appSummaryConfigMap Type Safety", () => {
         const entry = appSummaryConfigMap[category];
 
         // Verify required fields from AppSummaryConfigEntry
-        expect(typeof entry.label).toBe("string");
         expect(entry.responseSchema).toBeInstanceOf(z.ZodType);
         expect(Array.isArray(entry.instructions)).toBe(true);
       }
@@ -96,7 +95,6 @@ describe("appSummaryConfigMap Type Safety", () => {
 
       // This should compile without error, showing the generic works
       const testEntry: AppSummaryConfigEntry<typeof testSchema> = {
-        label: "Test Category",
         contentDesc: "test content",
         responseSchema: testSchema,
         instructions: ["Generate a test list"],
@@ -105,13 +103,11 @@ describe("appSummaryConfigMap Type Safety", () => {
       };
 
       expect(testEntry.responseSchema).toBe(testSchema);
-      expect(testEntry.label).toBe("Test Category");
     });
 
     it("should default to z.ZodType when no type parameter is provided", () => {
       // This should accept any ZodType without specific parameter
       const genericEntry: AppSummaryConfigEntry = {
-        label: "Generic Label",
         contentDesc: "test content",
         responseSchema: z.string(),
         instructions: [],
@@ -168,21 +164,6 @@ describe("appSummaryConfigMap Type Safety", () => {
         const schema = appSummaryConfigMap[category].responseSchema;
         // All schemas should be ZodObject instances
         expect(schema).toBeInstanceOf(z.ZodObject);
-      }
-    });
-  });
-
-  describe("Category Labels", () => {
-    it("should have unique labels for each category", () => {
-      const labels = Object.values(appSummaryConfigMap).map((entry) => entry.label);
-      const uniqueLabels = new Set(labels);
-      expect(uniqueLabels.size).toBe(labels.length);
-    });
-
-    it("should have non-empty labels", () => {
-      for (const category of validCategories) {
-        const entry = appSummaryConfigMap[category];
-        expect(entry.label.length).toBeGreaterThan(0);
       }
     });
   });

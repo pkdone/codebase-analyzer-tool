@@ -6,7 +6,6 @@ import {
   potentialMicroservicesSchema,
   technologiesSchema,
 } from "../../../schemas/app-summaries.schema";
-import { CATEGORY_LABELS } from "../../../config/category-labels.config";
 import { APP_SUMMARY_PROMPT_FRAGMENTS } from "./app-summaries.fragments";
 import { createAppSummaryConfig, type AppSummaryConfigEntry } from "./app-summaries.factories";
 
@@ -14,7 +13,7 @@ import { createAppSummaryConfig, type AppSummaryConfigEntry } from "./app-summar
  * Centralized configuration for all app summary prompt definitions.
  *
  * Note: The `instructions` field contains the specific instruction text that will be used
- * in the RenderablePrompt. The RenderablePrompt's contentDesc field will be set to a
+ * in the Prompt. The Prompt's contentDesc field will be set to a
  * generic value like "a set of source file summaries".
  *
  * Note: aggregates, entities, and repositories are captured within the boundedContexts
@@ -26,22 +25,18 @@ import { createAppSummaryConfig, type AppSummaryConfigEntry } from "./app-summar
  */
 export const appSummaryConfigMap = {
   appDescription: createAppSummaryConfig(
-    CATEGORY_LABELS.appDescription,
     appDescriptionSchema,
     "a detailed description of the application's purpose and implementation",
   ),
   technologies: createAppSummaryConfig(
-    CATEGORY_LABELS.technologies,
     technologiesSchema,
     `${APP_SUMMARY_PROMPT_FRAGMENTS.COMPREHENSIVE_LIST} of key external and host platform technologies (including the names of programming languages used) depended on by the application`,
   ),
   businessProcesses: createAppSummaryConfig(
-    CATEGORY_LABELS.businessProcesses,
     businessProcessesSchema,
     `${APP_SUMMARY_PROMPT_FRAGMENTS.CONCISE_LIST} of the application's main business processes with their key business activity steps that are linearly conducted by each process`,
   ),
   boundedContexts: createAppSummaryConfig(
-    CATEGORY_LABELS.boundedContexts,
     boundedContextsSchema,
     `${APP_SUMMARY_PROMPT_FRAGMENTS.CONCISE_LIST} of Domain-Driven Design Bounded Contexts that define explicit boundaries around related business capabilities. For each bounded context, include:
 1. Its aggregates that enforce business rules and maintain consistency
@@ -52,12 +47,10 @@ export const appSummaryConfigMap = {
 This hierarchical structure ensures consistent naming across all domain elements within each bounded context`,
   ),
   potentialMicroservices: createAppSummaryConfig(
-    CATEGORY_LABELS.potentialMicroservices,
     potentialMicroservicesSchema,
     `${APP_SUMMARY_PROMPT_FRAGMENTS.CONCISE_LIST} of recommended microservices to modernize the monolithic application architecture, each following the Single Responsibility Principle with detailed domain entities, defined CRUD operations, and REST API endpoints`,
   ),
   inferredArchitecture: createAppSummaryConfig(
-    CATEGORY_LABELS.inferredArchitecture,
     inferredArchitectureSchema,
     `${APP_SUMMARY_PROMPT_FRAGMENTS.CONCISE_LIST} of BUSINESS DOMAIN components inferred from the codebase.
 

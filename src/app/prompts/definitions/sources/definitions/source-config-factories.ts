@@ -13,7 +13,7 @@ import {
   sourceSummarySchema,
   commonSourceAnalysisSchema,
 } from "../../../../schemas/sources.schema";
-import type { PromptConfig } from "../../../../../common/prompts/prompt.types";
+import type { JsonPromptConfig } from "../../../../../common/prompts/prompt";
 
 /**
  * Data block header for source code analysis prompts.
@@ -22,13 +22,14 @@ export const CODE_DATA_BLOCK_HEADER = "CODE" as const;
 
 /**
  * Configuration entry for a source prompt definition.
- * Extends PromptConfig which requires contentDesc, responseSchema, and instructions fields.
+ * Uses JsonPromptConfig which requires responseSchema, ensuring all source prompts
+ * are JSON-mode prompts with explicit schema definitions.
  * Each entry directly includes the responseSchema using sourceSummarySchema.pick(),
  * making the schemas explicit and type-safe.
  *
  * @template S - The Zod schema type for validating the LLM response. Defaults to z.ZodType for backward compatibility.
  */
-export type SourceConfigEntry<S extends z.ZodType = z.ZodType> = PromptConfig<S>;
+export type SourceConfigEntry<S extends z.ZodType = z.ZodType> = JsonPromptConfig<S>;
 
 /**
  * Valid field names that can be picked from sourceSummarySchema.

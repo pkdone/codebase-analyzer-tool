@@ -1,5 +1,4 @@
-import { renderPrompt } from "../../../src/common/prompts/prompt-renderer";
-import type { RenderablePrompt } from "../../../src/common/prompts/prompt.types";
+import { Prompt } from "../../../src/common/prompts/prompt";
 import { z } from "zod";
 import {
   ANALYSIS_PROMPT_TEMPLATE,
@@ -7,22 +6,21 @@ import {
 } from "../../../src/app/prompts/app-templates";
 
 describe("Prompt Refactoring", () => {
-  const testDefinition: RenderablePrompt = {
-    label: "Test",
+  const testConfig = {
     contentDesc:
       "Act as a senior developer analyzing the code in an existing application. Based on test content shown below, return:\n\n{{instructionsText}}.",
     instructions: ["instruction 1", "instruction 2"],
     responseSchema: z.string(),
-    template: ANALYSIS_PROMPT_TEMPLATE,
-    dataBlockHeader: "CODE" as const,
+    dataBlockHeader: "CODE",
     wrapInCodeBlock: true,
-  };
+  } as const;
 
+  const testPrompt = new Prompt(testConfig, ANALYSIS_PROMPT_TEMPLATE);
   const testContent = "test file content";
 
   describe("Function-based rendering", () => {
     it("should render prompts correctly with function", () => {
-      const rendered = renderPrompt(testDefinition, testContent);
+      const rendered = testPrompt.renderPrompt(testContent);
 
       expect(rendered).toContain("Act as a senior developer analyzing the code");
       expect(rendered).toContain("CODE:");
@@ -32,13 +30,11 @@ describe("Prompt Refactoring", () => {
     });
 
     it("should handle different template types", () => {
-      const appSummaryDefinition = {
-        ...testDefinition,
-        template: ANALYSIS_PROMPT_TEMPLATE,
-        dataBlockHeader: "FILE_SUMMARIES" as const,
-        wrapInCodeBlock: false,
-      };
-      const rendered = renderPrompt(appSummaryDefinition, testContent);
+      const appSummaryPrompt = new Prompt(
+        { ...testConfig, dataBlockHeader: "FILE_SUMMARIES", wrapInCodeBlock: false },
+        ANALYSIS_PROMPT_TEMPLATE,
+      );
+      const rendered = appSummaryPrompt.renderPrompt(testContent);
 
       expect(rendered).toContain("FILE_SUMMARIES:");
       expect(rendered).not.toContain("CODE:");
@@ -47,15 +43,17 @@ describe("Prompt Refactoring", () => {
     it("should handle reduce template with category key via inline definition", () => {
       // categoryKey is directly embedded in contentDesc, rather than being a placeholder
       const categoryKey = "technologies";
-      const reduceDefinition = {
-        ...testDefinition,
-        // Factory would pre-populate contentDesc with the category key
-        contentDesc: `Consolidate ${categoryKey} from the data below.`,
-        template: ANALYSIS_PROMPT_TEMPLATE,
-        dataBlockHeader: "FRAGMENTED_DATA" as const,
-        wrapInCodeBlock: false,
-      };
-      const rendered = renderPrompt(reduceDefinition, testContent);
+      const reducePrompt = new Prompt(
+        {
+          ...testConfig,
+          // Factory would pre-populate contentDesc with the category key
+          contentDesc: `Consolidate ${categoryKey} from the data below.`,
+          dataBlockHeader: "FRAGMENTED_DATA",
+          wrapInCodeBlock: false,
+        },
+        ANALYSIS_PROMPT_TEMPLATE,
+      );
+      const rendered = reducePrompt.renderPrompt(testContent);
 
       expect(rendered).toContain("FRAGMENTED_DATA:");
       expect(rendered).toContain(categoryKey);
@@ -64,15 +62,18 @@ describe("Prompt Refactoring", () => {
     });
 
     it("should handle complex instruction sections with titles", () => {
-      const complexDefinition: RenderablePrompt = {
-        ...testDefinition,
-        instructions: [
-          "__Section 1__\npoint 1\npoint 2",
-          "point without title",
-          "__Section 2__\npoint 3",
-        ],
-      };
-      const rendered = renderPrompt(complexDefinition, testContent);
+      const complexPrompt = new Prompt(
+        {
+          ...testConfig,
+          instructions: [
+            "__Section 1__\npoint 1\npoint 2",
+            "point without title",
+            "__Section 2__\npoint 3",
+          ],
+        },
+        ANALYSIS_PROMPT_TEMPLATE,
+      );
+      const rendered = complexPrompt.renderPrompt(testContent);
 
       expect(rendered).toContain("__Section 1__");
       expect(rendered).toContain("__Section 2__");
@@ -84,20 +85,18 @@ describe("Prompt Refactoring", () => {
 
     it("should use PARTIAL_ANALYSIS_TEMPLATE for partial analysis scenarios", () => {
       // Use PARTIAL_ANALYSIS_TEMPLATE for partial analysis
-      const appSummaryDefinition = {
-        ...testDefinition,
-        template: PARTIAL_ANALYSIS_TEMPLATE,
-        dataBlockHeader: "FILE_SUMMARIES" as const,
-        wrapInCodeBlock: false,
-      };
-      const rendered = renderPrompt(appSummaryDefinition, testContent);
+      const appSummaryPrompt = new Prompt(
+        { ...testConfig, dataBlockHeader: "FILE_SUMMARIES", wrapInCodeBlock: false },
+        PARTIAL_ANALYSIS_TEMPLATE,
+      );
+      const rendered = appSummaryPrompt.renderPrompt(testContent);
 
       expect(rendered).toContain("partial analysis");
       expect(rendered).toContain("focus on extracting insights from this subset");
     });
 
     it("should handle empty additional parameters", () => {
-      const rendered = renderPrompt(testDefinition, testContent);
+      const rendered = testPrompt.renderPrompt(testContent);
 
       expect(rendered).toContain("Act as a senior developer analyzing the code");
       expect(rendered).toContain(testContent);
@@ -122,7 +121,7 @@ describe("Prompt Refactoring", () => {
     });
 
     it("should not have any placeholder syntax in rendered output", () => {
-      const rendered = renderPrompt(testDefinition, testContent);
+      const rendered = testPrompt.renderPrompt(testContent);
 
       expect(rendered).not.toMatch(/\{\{[a-zA-Z]+\}\}/);
     });
@@ -131,21 +130,17 @@ describe("Prompt Refactoring", () => {
   describe("Backward compatibility", () => {
     it("should produce identical output as before refactoring", () => {
       // Test that the constructor produces the same output as the old factory methods
-      const sourceDefinition = {
-        ...testDefinition,
-        template: ANALYSIS_PROMPT_TEMPLATE,
-        dataBlockHeader: "CODE" as const,
-        wrapInCodeBlock: true,
-      };
-      const appSummaryDefinition = {
-        ...testDefinition,
-        template: ANALYSIS_PROMPT_TEMPLATE,
-        dataBlockHeader: "FILE_SUMMARIES" as const,
-        wrapInCodeBlock: false,
-      };
+      const sourcePrompt = new Prompt(
+        { ...testConfig, dataBlockHeader: "CODE", wrapInCodeBlock: true },
+        ANALYSIS_PROMPT_TEMPLATE,
+      );
+      const appSummaryPrompt = new Prompt(
+        { ...testConfig, dataBlockHeader: "FILE_SUMMARIES", wrapInCodeBlock: false },
+        ANALYSIS_PROMPT_TEMPLATE,
+      );
 
-      const sourceRendered = renderPrompt(sourceDefinition, testContent);
-      const appSummaryRendered = renderPrompt(appSummaryDefinition, testContent);
+      const sourceRendered = sourcePrompt.renderPrompt(testContent);
+      const appSummaryRendered = appSummaryPrompt.renderPrompt(testContent);
 
       // Verify the structure is correct
       expect(sourceRendered).toContain("CODE:");

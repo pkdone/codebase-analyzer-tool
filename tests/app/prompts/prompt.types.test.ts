@@ -1,4 +1,4 @@
-import type { RenderablePrompt, PromptConfig } from "../../../src/common/prompts/prompt.types";
+import { Prompt, type PromptConfig } from "../../../src/common/prompts/prompt";
 import {
   CANONICAL_FILE_TYPES,
   canonicalFileTypeSchema,
@@ -24,20 +24,6 @@ describe("Prompt Types", () => {
       expect(config.responseSchema).toBe(schema);
       expect(config.dataBlockHeader).toBe("CODE");
       expect(config.wrapInCodeBlock).toBe(true);
-    });
-
-    it("should allow optional label", () => {
-      const schema = z.object({ result: z.string() });
-      const configWithLabel: PromptConfig<typeof schema> = {
-        contentDesc: "Description",
-        instructions: ["Instruction"],
-        responseSchema: schema,
-        dataBlockHeader: "CODE",
-        wrapInCodeBlock: true,
-        label: "Optional Label",
-      };
-
-      expect(configWithLabel.label).toBe("Optional Label");
     });
 
     it("should allow optional hasComplexSchema", () => {
@@ -73,56 +59,54 @@ describe("Prompt Types", () => {
     });
   });
 
-  describe("RenderablePrompt", () => {
-    const createMockRenderablePrompt = (
-      overrides?: Partial<RenderablePrompt>,
-    ): RenderablePrompt => ({
-      contentDesc: "Test intro text template with {{placeholder}}",
-      instructions: ["instruction 1", "instruction 2"],
-      responseSchema: z.string(),
-      template: "Test template",
-      dataBlockHeader: "CODE",
-      wrapInCodeBlock: false,
-      ...overrides,
-    });
-
-    it("should have required fields", () => {
-      const definition: RenderablePrompt = {
-        contentDesc: "Test intro text template",
-        instructions: ["test"],
+  describe("Prompt class", () => {
+    // Helper function for potential future test expansion
+    const _createMockPrompt = (overrides?: Partial<PromptConfig>): Prompt => {
+      const config: PromptConfig = {
+        contentDesc: "Test intro text template with {{placeholder}}",
+        instructions: ["instruction 1", "instruction 2"],
         responseSchema: z.string(),
-        template: "Test template",
         dataBlockHeader: "CODE",
         wrapInCodeBlock: false,
+        ...overrides,
       };
+      return new Prompt(config, "Test template");
+    };
+    void _createMockPrompt; // Suppress unused warning
 
-      expect(definition.contentDesc).toBe("Test intro text template");
-      expect(definition.instructions).toEqual(["test"]);
-      expect(definition.responseSchema).toBeDefined();
-      expect(definition.template).toBe("Test template");
-    });
+    it("should have required fields", () => {
+      const prompt = new Prompt(
+        {
+          contentDesc: "Test intro text template",
+          instructions: ["test"],
+          responseSchema: z.string(),
+          dataBlockHeader: "CODE",
+          wrapInCodeBlock: false,
+        },
+        "Test template",
+      );
 
-    it("should support optional fields", () => {
-      const definitionWithOptional = createMockRenderablePrompt({
-        label: "Test Label",
-      });
-
-      expect(definitionWithOptional.label).toBe("Test Label");
+      expect(prompt.contentDesc).toBe("Test intro text template");
+      expect(prompt.instructions).toEqual(["test"]);
+      expect(prompt.responseSchema).toBeDefined();
+      expect(prompt.template).toBe("Test template");
     });
 
     it("should support readonly string arrays", () => {
       const readonlyInstructions: readonly string[] = ["instruction 1", "instruction 2"];
 
-      const definition: RenderablePrompt = {
-        contentDesc: "Test intro text template",
-        instructions: readonlyInstructions,
-        responseSchema: z.string(),
-        template: "Test template",
-        dataBlockHeader: "CODE",
-        wrapInCodeBlock: false,
-      };
+      const prompt = new Prompt(
+        {
+          contentDesc: "Test intro text template",
+          instructions: readonlyInstructions,
+          responseSchema: z.string(),
+          dataBlockHeader: "CODE",
+          wrapInCodeBlock: false,
+        },
+        "Test template",
+      );
 
-      expect(definition.instructions).toEqual(["instruction 1", "instruction 2"]);
+      expect(prompt.instructions).toEqual(["instruction 1", "instruction 2"]);
     });
   });
 

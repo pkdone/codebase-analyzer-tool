@@ -39,7 +39,6 @@ describe("App Summaries Config Refactoring", () => {
         const metadata = appSummaryPromptMetadata[key as AppSummaryCategoryType];
 
         expect(metadata).toBeDefined();
-        expect(metadata.label).toBe(config.label);
         expect(metadata.contentDesc).toContain("a set of source file summaries");
         expect(metadata.responseSchema).toBe(config.responseSchema);
         expect(metadata.template).toBe(ANALYSIS_PROMPT_TEMPLATE);
@@ -85,11 +84,9 @@ describe("App Summaries Config Refactoring", () => {
     it("should have proper TypeScript types", () => {
       Object.values(appSummaryConfigMap).forEach((config) => {
         // These should compile without TypeScript errors
-        const label: string = config.label;
         const instructions: readonly string[] = config.instructions;
         const responseSchema = config.responseSchema;
 
-        expect(typeof label).toBe("string");
         expect(Array.isArray(instructions)).toBe(true);
         expect(responseSchema).toBeDefined();
       });

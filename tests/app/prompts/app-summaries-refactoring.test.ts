@@ -1,10 +1,10 @@
 import { appPromptManager } from "../../../src/app/prompts/app-prompt-registry";
+import { Prompt } from "../../../src/common/prompts/prompt";
 const appSummaryPromptMetadata = appPromptManager.appSummaries;
 import {
   ANALYSIS_PROMPT_TEMPLATE,
   PARTIAL_ANALYSIS_TEMPLATE,
 } from "../../../src/app/prompts/app-templates";
-import { renderPrompt } from "../../../src/common/prompts/prompt-renderer";
 
 describe("App Summaries Refactoring", () => {
   describe("Prompt definitions consistency", () => {
@@ -50,7 +50,7 @@ describe("App Summaries Refactoring", () => {
       const config = appSummaryPromptMetadata.technologies;
       const testContent = "Test file content";
 
-      const renderedPrompt = renderPrompt(config, testContent);
+      const renderedPrompt = config.renderPrompt(testContent);
 
       // Verify the template structure
       expect(renderedPrompt).toContain("Act as a senior developer analyzing the code");
@@ -67,8 +67,17 @@ describe("App Summaries Refactoring", () => {
       const testContent = "Test file content";
 
       // Use PARTIAL_ANALYSIS_TEMPLATE for partial analysis
-      const configWithPartialTemplate = { ...config, template: PARTIAL_ANALYSIS_TEMPLATE };
-      const renderedPrompt = renderPrompt(configWithPartialTemplate, testContent);
+      const partialPrompt = new Prompt(
+        {
+          contentDesc: config.contentDesc,
+          instructions: config.instructions,
+          responseSchema: config.responseSchema,
+          dataBlockHeader: config.dataBlockHeader,
+          wrapInCodeBlock: config.wrapInCodeBlock,
+        },
+        PARTIAL_ANALYSIS_TEMPLATE,
+      );
+      const renderedPrompt = partialPrompt.renderPrompt(testContent);
 
       // Verify the template structure includes partial analysis note
       expect(renderedPrompt).toContain("Act as a senior developer analyzing the code");
@@ -104,7 +113,7 @@ describe("App Summaries Refactoring", () => {
     it("should verify prompt text structure with generic contentDesc and specific instructions", () => {
       const config = appSummaryPromptMetadata.technologies;
       const testContent = "Test file summaries content";
-      const renderedPrompt = renderPrompt(config, testContent);
+      const renderedPrompt = config.renderPrompt(testContent);
 
       // Verify generic contentDesc appears in template
       expect(renderedPrompt).toContain("a set of source file summaries");

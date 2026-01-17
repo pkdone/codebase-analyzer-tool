@@ -1,7 +1,7 @@
 import { z } from "zod";
 import LLMRouter from "../../../../common/llm/llm-router";
 import { LLMOutputFormat } from "../../../../common/llm/types/llm.types";
-import { renderPrompt } from "../../../../common/prompts/prompt-renderer";
+import { Prompt } from "../../../../common/prompts/prompt";
 import { appPromptManager } from "../../../prompts/app-prompt-registry";
 import { getCategoryLabel } from "../../../config/category-labels.config";
 import { logWarn } from "../../../../common/utils/logging";
@@ -50,11 +50,20 @@ export async function executeInsightCompletion<C extends AppSummaryCategoryEnum>
 
   try {
     const taskCategory: string = options.taskCategory ?? category;
-    const config = appPromptManager.appSummaries[category];
+    const prompt = appPromptManager.appSummaries[category];
     const codeContent = joinArrayWithSeparators(sourceFileSummaries);
-    // Create prompt definition with the specified template
-    const promptDef = { ...config, template: options.template };
-    const renderedPrompt = renderPrompt(promptDef, codeContent);
+    // Create a new Prompt with the specified template for this execution
+    const promptWithTemplate = new Prompt(
+      {
+        contentDesc: prompt.contentDesc,
+        instructions: prompt.instructions,
+        responseSchema: prompt.responseSchema,
+        dataBlockHeader: prompt.dataBlockHeader,
+        wrapInCodeBlock: prompt.wrapInCodeBlock,
+      },
+      options.template,
+    );
+    const renderedPrompt = promptWithTemplate.renderPrompt(codeContent);
     /**
      * Schema lookup uses the category type to get the correct schema.
      *

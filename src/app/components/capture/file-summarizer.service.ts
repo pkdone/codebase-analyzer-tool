@@ -3,7 +3,6 @@ import { z } from "zod";
 import { logErr } from "../../../common/utils/logging";
 import type LLMRouter from "../../../common/llm/llm-router";
 import { LLMOutputFormat } from "../../../common/llm/types/llm.types";
-import { renderPrompt } from "../../../common/prompts/prompt-renderer";
 import { sourceSummarySchema } from "../../schemas/sources.schema";
 import { getCanonicalFileType } from "../../config/file-handling";
 import { getLlmArtifactCorrections } from "../../config/llm-artifact-corrections";
@@ -64,7 +63,7 @@ export class FileSummarizerService {
       if (content.trim().length === 0) return err(new Error("File is empty"));
       const canonicalFileType = getCanonicalFileType(filepath, type);
       const promptMetadata = this.appPromptManager.sources[canonicalFileType];
-      const renderedPrompt = renderPrompt(promptMetadata, content);
+      const renderedPrompt = promptMetadata.renderPrompt(content);
       const fileTypePromptConfig = this.fileTypePromptRegistry[canonicalFileType];
       const schema = fileTypePromptConfig.responseSchema;
       // hasComplexSchema is optional and may not exist on some entries

@@ -1,8 +1,8 @@
 import { z } from "zod";
-import type { RenderablePrompt } from "../../../src/common/prompts/prompt.types";
+import { Prompt } from "../../../src/common/prompts/prompt";
 
-describe("RenderablePrompt Generic Type", () => {
-  it("should allow RenderablePrompt with specific schema types", () => {
+describe("Prompt Generic Type", () => {
+  it("should allow Prompt with specific schema types", () => {
     const stringSchema = z.string();
     const numberSchema = z.number();
     const objectSchema = z.object({
@@ -11,53 +11,61 @@ describe("RenderablePrompt Generic Type", () => {
     });
 
     // Type-level test: These should compile without errors
-    const stringPromptDef: RenderablePrompt<typeof stringSchema> = {
-      contentDesc: "Test intro",
-      instructions: ["Instruction 1"],
-      responseSchema: stringSchema,
-      template: "Test template",
-      dataBlockHeader: "CODE",
-      wrapInCodeBlock: true,
-    };
+    const stringPrompt = new Prompt<typeof stringSchema>(
+      {
+        contentDesc: "Test intro",
+        instructions: ["Instruction 1"],
+        responseSchema: stringSchema,
+        dataBlockHeader: "CODE",
+        wrapInCodeBlock: true,
+      },
+      "Test template",
+    );
 
-    const numberPromptDef: RenderablePrompt<typeof numberSchema> = {
-      contentDesc: "Test intro",
-      instructions: ["Instruction 1"],
-      responseSchema: numberSchema,
-      template: "Test template",
-      dataBlockHeader: "FILE_SUMMARIES",
-      wrapInCodeBlock: false,
-    };
+    const numberPrompt = new Prompt<typeof numberSchema>(
+      {
+        contentDesc: "Test intro",
+        instructions: ["Instruction 1"],
+        responseSchema: numberSchema,
+        dataBlockHeader: "FILE_SUMMARIES",
+        wrapInCodeBlock: false,
+      },
+      "Test template",
+    );
 
-    const objectPromptDef: RenderablePrompt<typeof objectSchema> = {
-      contentDesc: "Test intro",
-      instructions: ["Instruction 1"],
-      responseSchema: objectSchema,
-      template: "Test template",
-      dataBlockHeader: "FRAGMENTED_DATA",
-      wrapInCodeBlock: false,
-    };
+    const objectPrompt = new Prompt<typeof objectSchema>(
+      {
+        contentDesc: "Test intro",
+        instructions: ["Instruction 1"],
+        responseSchema: objectSchema,
+        dataBlockHeader: "FRAGMENTED_DATA",
+        wrapInCodeBlock: false,
+      },
+      "Test template",
+    );
 
     // Runtime assertions
-    expect(stringPromptDef.responseSchema).toBe(stringSchema);
-    expect(numberPromptDef.responseSchema).toBe(numberSchema);
-    expect(objectPromptDef.responseSchema).toBe(objectSchema);
+    expect(stringPrompt.responseSchema).toBe(stringSchema);
+    expect(numberPrompt.responseSchema).toBe(numberSchema);
+    expect(objectPrompt.responseSchema).toBe(objectSchema);
   });
 
   it("should work with default generic parameter (backward compatibility)", () => {
     const genericSchema = z.unknown();
 
     // Type-level test: Should compile without explicit generic parameter
-    const genericPromptDef: RenderablePrompt = {
-      contentDesc: "Test intro",
-      instructions: ["Instruction 1"],
-      responseSchema: genericSchema,
-      template: "Test template",
-      dataBlockHeader: "CODE",
-      wrapInCodeBlock: true,
-    };
+    const genericPrompt = new Prompt(
+      {
+        contentDesc: "Test intro",
+        instructions: ["Instruction 1"],
+        responseSchema: genericSchema,
+        dataBlockHeader: "CODE",
+        wrapInCodeBlock: true,
+      },
+      "Test template",
+    );
 
-    expect(genericPromptDef.responseSchema).toBe(genericSchema);
+    expect(genericPrompt.responseSchema).toBe(genericSchema);
   });
 
   it("should preserve schema type through generic parameter", () => {
@@ -68,24 +76,22 @@ describe("RenderablePrompt Generic Type", () => {
       age: z.number().min(0),
     });
 
-    type UserPromptDef = RenderablePrompt<typeof userSchema>;
-
-    const userPromptDef: UserPromptDef = {
-      contentDesc: "User data analysis",
-      instructions: ["Extract user information"],
-      responseSchema: userSchema,
-      template: "User template",
-      dataBlockHeader: "CODE",
-      wrapInCodeBlock: true,
-      label: "User Schema",
-    };
+    const userPrompt = new Prompt<typeof userSchema>(
+      {
+        contentDesc: "User data analysis",
+        instructions: ["Extract user information"],
+        responseSchema: userSchema,
+        dataBlockHeader: "CODE",
+        wrapInCodeBlock: true,
+      },
+      "User template",
+    );
 
     // Verify the schema is preserved at runtime
-    expect(userPromptDef.responseSchema).toBe(userSchema);
-    expect(userPromptDef.label).toBe("User Schema");
+    expect(userPrompt.responseSchema).toBe(userSchema);
 
     // Type-level test: responseSchema should be typed as the specific user schema
-    const parsed = userPromptDef.responseSchema.parse({
+    const parsed = userPrompt.responseSchema!.parse({
       id: "123",
       name: "John Doe",
       email: "john@example.com",
@@ -106,18 +112,17 @@ describe("RenderablePrompt Generic Type", () => {
       optional: z.string().optional(),
     });
 
-    const promptDef: RenderablePrompt<typeof schema> = {
-      contentDesc: "Test",
-      instructions: [],
-      responseSchema: schema,
-      template: "Template",
-      dataBlockHeader: "CODE",
-      // Optional fields
-      label: "Test Label",
-      wrapInCodeBlock: true,
-    };
+    const prompt = new Prompt<typeof schema>(
+      {
+        contentDesc: "Test",
+        instructions: [],
+        responseSchema: schema,
+        dataBlockHeader: "CODE",
+        wrapInCodeBlock: true,
+      },
+      "Template",
+    );
 
-    expect(promptDef.label).toBe("Test Label");
-    expect(promptDef.wrapInCodeBlock).toBe(true);
+    expect(prompt.wrapInCodeBlock).toBe(true);
   });
 });

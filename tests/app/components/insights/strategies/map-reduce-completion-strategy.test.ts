@@ -133,7 +133,7 @@ describe("MapReduceInsightStrategy", () => {
       // Type check: result is category-specific but also compatible with PartialAppSummaryRecord
       expect(result).toEqual(mockResponse);
       if (result) {
-        const schemaType: z.infer<typeof _config.responseSchema> = result;
+        const schemaType: z.infer<NonNullable<typeof _config.responseSchema>> = result;
         expect(schemaType).toBeDefined();
       }
     });
@@ -154,7 +154,7 @@ describe("MapReduceInsightStrategy", () => {
 
       expect(result).toEqual(mockResponse);
       if (result) {
-        const schemaType: z.infer<typeof _config.responseSchema> = result;
+        const schemaType: z.infer<NonNullable<typeof _config.responseSchema>> = result;
         expect(schemaType.technologies).toBeDefined();
         expect(Array.isArray(schemaType.technologies)).toBe(true);
       }
@@ -176,7 +176,7 @@ describe("MapReduceInsightStrategy", () => {
 
       expect(result).toEqual(mockResponse);
       if (result) {
-        const schemaType: z.infer<typeof _config.responseSchema> = result;
+        const schemaType: z.infer<NonNullable<typeof _config.responseSchema>> = result;
         expect(schemaType.technologies).toBeDefined();
       }
     });
@@ -292,7 +292,7 @@ describe("MapReduceInsightStrategy", () => {
         expect(result).toEqual(mockResponse);
         // Verify type inference works for each category
         if (result) {
-          const schemaType: z.infer<typeof _config.responseSchema> = result;
+          const schemaType: z.infer<NonNullable<typeof _config.responseSchema>> = result;
           expect(schemaType).toBeDefined();
         }
       }

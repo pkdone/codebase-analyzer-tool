@@ -1,6 +1,5 @@
 import { z } from "zod";
-import { renderPrompt } from "../../../src/common/prompts/prompt-renderer";
-import type { RenderablePrompt } from "../../../src/common/prompts/prompt.types";
+import { Prompt } from "../../../src/common/prompts/prompt";
 import {
   ANALYSIS_PROMPT_TEMPLATE,
   PARTIAL_ANALYSIS_TEMPLATE,
@@ -10,40 +9,40 @@ describe("Prompt Renderer Type Safety", () => {
   /**
    * Base test definition used across tests
    */
-  const testDefinition: RenderablePrompt = {
-    label: "Test Prompt",
+  const testConfig = {
     contentDesc: "test content description",
     instructions: ["instruction 1", "instruction 2"],
     responseSchema: z.object({ result: z.string(), count: z.number() }),
-    template: ANALYSIS_PROMPT_TEMPLATE,
     dataBlockHeader: "CODE",
     wrapInCodeBlock: false,
-  };
+  } as const;
+
+  const testPrompt = new Prompt(testConfig, ANALYSIS_PROMPT_TEMPLATE);
 
   describe("Template Variable Rendering", () => {
     it("should render contentDesc from definition", () => {
-      const result = renderPrompt(testDefinition, "sample");
+      const result = testPrompt.renderPrompt("sample");
       expect(result).toContain("test content description");
     });
 
     it("should render instructionsText as joined instructions", () => {
-      const result = renderPrompt(testDefinition, "sample");
+      const result = testPrompt.renderPrompt("sample");
       expect(result).toContain("instruction 1");
       expect(result).toContain("instruction 2");
     });
 
     it("should render dataBlockHeader from definition", () => {
-      const result = renderPrompt(testDefinition, "sample");
+      const result = testPrompt.renderPrompt("sample");
       expect(result).toContain("CODE:");
     });
 
     it("should render content from data", () => {
-      const result = renderPrompt(testDefinition, "my sample content");
+      const result = testPrompt.renderPrompt("my sample content");
       expect(result).toContain("my sample content");
     });
 
     it("should render jsonSchema from responseSchema", () => {
-      const result = renderPrompt(testDefinition, "sample");
+      const result = testPrompt.renderPrompt("sample");
       // Should contain the schema properties
       expect(result).toContain('"result"');
       expect(result).toContain('"count"');
@@ -51,26 +50,23 @@ describe("Prompt Renderer Type Safety", () => {
     });
 
     it("should render forceJSON enforcement text", () => {
-      const result = renderPrompt(testDefinition, "sample");
+      const result = testPrompt.renderPrompt("sample");
       expect(result).toContain("The response MUST be valid JSON");
     });
   });
 
   describe("PARTIAL_ANALYSIS_TEMPLATE Handling", () => {
     it("should render partial analysis note when using PARTIAL_ANALYSIS_TEMPLATE", () => {
-      const partialDefinition: RenderablePrompt = {
-        ...testDefinition,
-        template: PARTIAL_ANALYSIS_TEMPLATE,
-      };
+      const partialPrompt = new Prompt(testConfig, PARTIAL_ANALYSIS_TEMPLATE);
 
-      const result = renderPrompt(partialDefinition, "sample");
+      const result = partialPrompt.renderPrompt("sample");
 
       expect(result).toContain("partial analysis");
       expect(result).toContain("focus on extracting insights from this subset");
     });
 
     it("should handle ANALYSIS_PROMPT_TEMPLATE without partial analysis note", () => {
-      const result = renderPrompt(testDefinition, "sample");
+      const result = testPrompt.renderPrompt("sample");
 
       // Should not contain "undefined" anywhere in the output
       expect(result).not.toContain("undefined");
@@ -81,7 +77,7 @@ describe("Prompt Renderer Type Safety", () => {
 
   describe("contentWrapper Behavior", () => {
     it("should not wrap content when wrapInCodeBlock is false", () => {
-      const result = renderPrompt(testDefinition, "unwrapped content");
+      const result = testPrompt.renderPrompt("unwrapped content");
 
       // Content should appear after "CODE:" without surrounding backticks
       const contentSection = result.split("CODE:")[1];
@@ -90,76 +86,76 @@ describe("Prompt Renderer Type Safety", () => {
     });
 
     it("should wrap content when wrapInCodeBlock is true", () => {
-      const wrappedDefinition: RenderablePrompt = {
-        ...testDefinition,
-        wrapInCodeBlock: true,
-      };
+      const wrappedPrompt = new Prompt(
+        { ...testConfig, wrapInCodeBlock: true },
+        ANALYSIS_PROMPT_TEMPLATE,
+      );
 
-      const result = renderPrompt(wrappedDefinition, "wrapped content");
+      const result = wrappedPrompt.renderPrompt("wrapped content");
       expect(result).toContain("```\nwrapped content```");
     });
   });
 
   describe("DataBlockHeader Variants", () => {
     it("should handle CODE dataBlockHeader", () => {
-      const result = renderPrompt(testDefinition, "code content");
+      const result = testPrompt.renderPrompt("code content");
       expect(result).toContain("CODE:");
     });
 
     it("should handle FILE_SUMMARIES dataBlockHeader", () => {
-      const fileSummariesDef: RenderablePrompt = {
-        ...testDefinition,
-        dataBlockHeader: "FILE_SUMMARIES",
-      };
+      const fileSummariesPrompt = new Prompt(
+        { ...testConfig, dataBlockHeader: "FILE_SUMMARIES" },
+        ANALYSIS_PROMPT_TEMPLATE,
+      );
 
-      const result = renderPrompt(fileSummariesDef, "summaries");
+      const result = fileSummariesPrompt.renderPrompt("summaries");
       expect(result).toContain("FILE_SUMMARIES:");
     });
 
     it("should handle FRAGMENTED_DATA dataBlockHeader", () => {
-      const fragmentedDef: RenderablePrompt = {
-        ...testDefinition,
-        dataBlockHeader: "FRAGMENTED_DATA",
-      };
+      const fragmentedPrompt = new Prompt(
+        { ...testConfig, dataBlockHeader: "FRAGMENTED_DATA" },
+        ANALYSIS_PROMPT_TEMPLATE,
+      );
 
-      const result = renderPrompt(fragmentedDef, "fragmented data");
+      const result = fragmentedPrompt.renderPrompt("fragmented data");
       expect(result).toContain("FRAGMENTED_DATA:");
     });
   });
 
   describe("Schema Types", () => {
     it("should handle simple object schema", () => {
-      const result = renderPrompt(testDefinition, "sample");
+      const result = testPrompt.renderPrompt("sample");
       expect(result).toContain('"type": "object"');
     });
 
     it("should handle array schema", () => {
-      const arrayDef: RenderablePrompt = {
-        ...testDefinition,
-        responseSchema: z.array(z.object({ item: z.string() })),
-      };
+      const arrayPrompt = new Prompt(
+        { ...testConfig, responseSchema: z.array(z.object({ item: z.string() })) },
+        ANALYSIS_PROMPT_TEMPLATE,
+      );
 
-      const result = renderPrompt(arrayDef, "sample");
+      const result = arrayPrompt.renderPrompt("sample");
       expect(result).toContain('"type": "array"');
     });
 
     it("should handle string schema", () => {
-      const stringDef: RenderablePrompt = {
-        ...testDefinition,
-        responseSchema: z.string(),
-      };
+      const stringPrompt = new Prompt(
+        { ...testConfig, responseSchema: z.string() },
+        ANALYSIS_PROMPT_TEMPLATE,
+      );
 
-      const result = renderPrompt(stringDef, "sample");
+      const result = stringPrompt.renderPrompt("sample");
       expect(result).toContain('"type": "string"');
     });
 
     it("should handle z.unknown() schema", () => {
-      const unknownDef: RenderablePrompt = {
-        ...testDefinition,
-        responseSchema: z.unknown(),
-      };
+      const unknownPrompt = new Prompt(
+        { ...testConfig, responseSchema: z.unknown() },
+        ANALYSIS_PROMPT_TEMPLATE,
+      );
 
-      const result = renderPrompt(unknownDef, "sample");
+      const result = unknownPrompt.renderPrompt("sample");
 
       // Should still render a valid prompt
       expect(result).toContain("sample");
@@ -167,16 +163,19 @@ describe("Prompt Renderer Type Safety", () => {
     });
 
     it("should handle nested schema", () => {
-      const nestedDef: RenderablePrompt = {
-        ...testDefinition,
-        responseSchema: z.object({
-          outer: z.object({
-            inner: z.array(z.object({ deepField: z.string() })),
+      const nestedPrompt = new Prompt(
+        {
+          ...testConfig,
+          responseSchema: z.object({
+            outer: z.object({
+              inner: z.array(z.object({ deepField: z.string() })),
+            }),
           }),
-        }),
-      };
+        },
+        ANALYSIS_PROMPT_TEMPLATE,
+      );
 
-      const result = renderPrompt(nestedDef, "sample");
+      const result = nestedPrompt.renderPrompt("sample");
       expect(result).toContain('"outer"');
       expect(result).toContain('"inner"');
       expect(result).toContain('"deepField"');
@@ -185,40 +184,43 @@ describe("Prompt Renderer Type Safety", () => {
 
   describe("Instructions Joining", () => {
     it("should join multiple instructions with double newlines", () => {
-      const result = renderPrompt(testDefinition, "sample");
+      const result = testPrompt.renderPrompt("sample");
 
       // Instructions should be joined with \n\n
       expect(result).toContain("instruction 1\n\ninstruction 2");
     });
 
     it("should handle single instruction", () => {
-      const singleInstructionDef: RenderablePrompt = {
-        ...testDefinition,
-        instructions: ["only one instruction"],
-      };
+      const singleInstructionPrompt = new Prompt(
+        { ...testConfig, instructions: ["only one instruction"] },
+        ANALYSIS_PROMPT_TEMPLATE,
+      );
 
-      const result = renderPrompt(singleInstructionDef, "sample");
+      const result = singleInstructionPrompt.renderPrompt("sample");
       expect(result).toContain("only one instruction");
     });
 
     it("should handle empty instructions array", () => {
-      const noInstructionsDef: RenderablePrompt = {
-        ...testDefinition,
-        instructions: [],
-      };
+      const noInstructionsPrompt = new Prompt(
+        { ...testConfig, instructions: [] },
+        ANALYSIS_PROMPT_TEMPLATE,
+      );
 
-      const result = renderPrompt(noInstructionsDef, "sample");
+      const result = noInstructionsPrompt.renderPrompt("sample");
       // Should render without errors
       expect(result).toContain("sample");
     });
 
     it("should handle instructions with special characters", () => {
-      const specialCharDef: RenderablePrompt = {
-        ...testDefinition,
-        instructions: ["__Title__\n- Point 1\n- Point 2", "Another instruction with `code`"],
-      };
+      const specialCharPrompt = new Prompt(
+        {
+          ...testConfig,
+          instructions: ["__Title__\n- Point 1\n- Point 2", "Another instruction with `code`"],
+        },
+        ANALYSIS_PROMPT_TEMPLATE,
+      );
 
-      const result = renderPrompt(specialCharDef, "sample");
+      const result = specialCharPrompt.renderPrompt("sample");
       expect(result).toContain("__Title__");
       expect(result).toContain("Point 1");
       expect(result).toContain("`code`");
@@ -227,13 +229,13 @@ describe("Prompt Renderer Type Safety", () => {
 
   describe("Content Types", () => {
     it("should handle string content", () => {
-      const result = renderPrompt(testDefinition, "string content");
+      const result = testPrompt.renderPrompt("string content");
       expect(result).toContain("string content");
     });
 
     it("should handle JSON string content", () => {
       const jsonContent = JSON.stringify({ key: "value", nested: { data: 123 } });
-      const result = renderPrompt(testDefinition, jsonContent);
+      const result = testPrompt.renderPrompt(jsonContent);
       expect(result).toContain(jsonContent);
     });
 
@@ -241,7 +243,7 @@ describe("Prompt Renderer Type Safety", () => {
       const multiLineContent = `line 1
 line 2
 line 3`;
-      const result = renderPrompt(testDefinition, multiLineContent);
+      const result = testPrompt.renderPrompt(multiLineContent);
       expect(result).toContain("line 1");
       expect(result).toContain("line 2");
       expect(result).toContain("line 3");
@@ -249,7 +251,7 @@ line 3`;
 
     it("should handle content with code blocks", () => {
       const codeContent = "```javascript\nconsole.log('hello');\n```";
-      const result = renderPrompt(testDefinition, codeContent);
+      const result = testPrompt.renderPrompt(codeContent);
       expect(result).toContain("console.log");
     });
   });
@@ -257,12 +259,9 @@ line 3`;
   describe("Complete Output Structure", () => {
     it("should produce a complete prompt with all sections", () => {
       // Use PARTIAL_ANALYSIS_TEMPLATE to test with partial analysis note
-      const partialDefinition: RenderablePrompt = {
-        ...testDefinition,
-        template: PARTIAL_ANALYSIS_TEMPLATE,
-      };
+      const partialPrompt = new Prompt(testConfig, PARTIAL_ANALYSIS_TEMPLATE);
 
-      const result = renderPrompt(partialDefinition, "sample code");
+      const result = partialPrompt.renderPrompt("sample code");
 
       // Check overall structure
       expect(result).toContain("Act as a senior developer"); // Template intro
@@ -275,7 +274,7 @@ line 3`;
     });
 
     it("should maintain consistent ordering of sections", () => {
-      const result = renderPrompt(testDefinition, "sample");
+      const result = testPrompt.renderPrompt("sample");
 
       const contentDescIndex = result.indexOf("test content description");
       const instructionsIndex = result.indexOf("instruction 1");

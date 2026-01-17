@@ -1,24 +1,25 @@
-import { renderPrompt } from "../../../src/common/prompts/prompt-renderer";
+import { Prompt } from "../../../src/common/prompts/prompt";
 import {
   ANALYSIS_PROMPT_TEMPLATE,
   PARTIAL_ANALYSIS_TEMPLATE,
 } from "../../../src/app/prompts/app-templates";
 import { z } from "zod";
-import type { RenderablePrompt } from "../../../src/common/prompts/prompt.types";
 
 describe("Prompt Rendering Refactoring Tests", () => {
   describe("Single-step rendering with contentDesc", () => {
     test("should render prompt with contentDesc directly in template", () => {
-      const definition: RenderablePrompt = {
-        contentDesc: "JVM code",
-        instructions: ["Extract class name", "Extract methods"],
-        responseSchema: z.object({ name: z.string() }),
-        template: ANALYSIS_PROMPT_TEMPLATE,
-        dataBlockHeader: "CODE",
-        wrapInCodeBlock: true,
-      };
+      const prompt = new Prompt(
+        {
+          contentDesc: "JVM code",
+          instructions: ["Extract class name", "Extract methods"],
+          responseSchema: z.object({ name: z.string() }),
+          dataBlockHeader: "CODE",
+          wrapInCodeBlock: true,
+        },
+        ANALYSIS_PROMPT_TEMPLATE,
+      );
 
-      const rendered = renderPrompt(definition, "class Test {}");
+      const rendered = prompt.renderPrompt("class Test {}");
 
       // Should contain the intro text directly from the template
       expect(rendered).toContain(
@@ -34,16 +35,18 @@ describe("Prompt Rendering Refactoring Tests", () => {
     });
 
     test("should render prompt with app summary contentDesc", () => {
-      const definition: RenderablePrompt = {
-        contentDesc: "a set of source file summaries",
-        instructions: ["a list of entities"],
-        responseSchema: z.object({ technologies: z.array(z.string()) }),
-        template: ANALYSIS_PROMPT_TEMPLATE,
-        dataBlockHeader: "FILE_SUMMARIES",
-        wrapInCodeBlock: false,
-      };
+      const prompt = new Prompt(
+        {
+          contentDesc: "a set of source file summaries",
+          instructions: ["a list of entities"],
+          responseSchema: z.object({ technologies: z.array(z.string()) }),
+          dataBlockHeader: "FILE_SUMMARIES",
+          wrapInCodeBlock: false,
+        },
+        ANALYSIS_PROMPT_TEMPLATE,
+      );
 
-      const rendered = renderPrompt(definition, "summaries...");
+      const rendered = prompt.renderPrompt("summaries...");
 
       // Should use contentDesc without "the" article (since it's already "a set of")
       expect(rendered).toContain("a set of source file summaries");
@@ -51,17 +54,19 @@ describe("Prompt Rendering Refactoring Tests", () => {
     });
 
     test("should render reduce insights prompt with complex contentDesc", () => {
-      const definition: RenderablePrompt = {
-        contentDesc:
-          "several JSON objects, each containing a list of '{{categoryKey}}' generated from different parts of a codebase. Your task is to consolidate these lists into a single, de-duplicated, and coherent final JSON object. Merge similar items, remove duplicates based on semantic similarity (not just exact name matches), and ensure the final list is comprehensive and well-organized",
-        instructions: ["a consolidated list of 'Entities'"],
-        responseSchema: z.object({ technologies: z.array(z.string()) }),
-        template: ANALYSIS_PROMPT_TEMPLATE,
-        dataBlockHeader: "FRAGMENTED_DATA",
-        wrapInCodeBlock: false,
-      };
+      const prompt = new Prompt(
+        {
+          contentDesc:
+            "several JSON objects, each containing a list of '{{categoryKey}}' generated from different parts of a codebase. Your task is to consolidate these lists into a single, de-duplicated, and coherent final JSON object. Merge similar items, remove duplicates based on semantic similarity (not just exact name matches), and ensure the final list is comprehensive and well-organized",
+          instructions: ["a consolidated list of 'Entities'"],
+          responseSchema: z.object({ technologies: z.array(z.string()) }),
+          dataBlockHeader: "FRAGMENTED_DATA",
+          wrapInCodeBlock: false,
+        },
+        ANALYSIS_PROMPT_TEMPLATE,
+      );
 
-      const rendered = renderPrompt(definition, '[{"technologies": ["User"]}]', {
+      const rendered = prompt.renderPrompt('[{"technologies": ["User"]}]', {
         categoryKey: "technologies",
       });
 
@@ -71,32 +76,36 @@ describe("Prompt Rendering Refactoring Tests", () => {
     });
 
     test("should join multiple instructions with double newlines", () => {
-      const definition: RenderablePrompt = {
-        contentDesc: "Python code",
-        instructions: ["First instruction", "Second instruction", "Third instruction"],
-        responseSchema: z.string(),
-        template: ANALYSIS_PROMPT_TEMPLATE,
-        dataBlockHeader: "CODE",
-        wrapInCodeBlock: false,
-      };
+      const prompt = new Prompt(
+        {
+          contentDesc: "Python code",
+          instructions: ["First instruction", "Second instruction", "Third instruction"],
+          responseSchema: z.string(),
+          dataBlockHeader: "CODE",
+          wrapInCodeBlock: false,
+        },
+        ANALYSIS_PROMPT_TEMPLATE,
+      );
 
-      const rendered = renderPrompt(definition, "print('test')");
+      const rendered = prompt.renderPrompt("print('test')");
 
       // Instructions should be joined with \n\n
       expect(rendered).toContain("First instruction\n\nSecond instruction\n\nThird instruction");
     });
 
     test("should render ANALYSIS_PROMPT_TEMPLATE without partialAnalysisNote placeholder", () => {
-      const definition: RenderablePrompt = {
-        contentDesc: "JavaScript code",
-        instructions: ["Analyze the code"],
-        responseSchema: z.object({ result: z.string() }),
-        template: ANALYSIS_PROMPT_TEMPLATE,
-        dataBlockHeader: "CODE",
-        wrapInCodeBlock: false,
-      };
+      const prompt = new Prompt(
+        {
+          contentDesc: "JavaScript code",
+          instructions: ["Analyze the code"],
+          responseSchema: z.object({ result: z.string() }),
+          dataBlockHeader: "CODE",
+          wrapInCodeBlock: false,
+        },
+        ANALYSIS_PROMPT_TEMPLATE,
+      );
 
-      const rendered = renderPrompt(definition, "const x = 1;");
+      const rendered = prompt.renderPrompt("const x = 1;");
 
       // Should not contain any placeholder
       expect(rendered).not.toContain("{{partialAnalysisNote}}");
@@ -104,16 +113,18 @@ describe("Prompt Rendering Refactoring Tests", () => {
     });
 
     test("should render PARTIAL_ANALYSIS_TEMPLATE with partial analysis note", () => {
-      const definition: RenderablePrompt = {
-        contentDesc: "Ruby code",
-        instructions: ["Extract class info"],
-        responseSchema: z.object({ className: z.string() }),
-        template: PARTIAL_ANALYSIS_TEMPLATE,
-        dataBlockHeader: "CODE",
-        wrapInCodeBlock: false,
-      };
+      const prompt = new Prompt(
+        {
+          contentDesc: "Ruby code",
+          instructions: ["Extract class info"],
+          responseSchema: z.object({ className: z.string() }),
+          dataBlockHeader: "CODE",
+          wrapInCodeBlock: false,
+        },
+        PARTIAL_ANALYSIS_TEMPLATE,
+      );
 
-      const rendered = renderPrompt(definition, "class Foo; end");
+      const rendered = prompt.renderPrompt("class Foo; end");
 
       expect(rendered).toContain("partial analysis");
       expect(rendered).toContain("focus on extracting insights from this subset");
@@ -121,17 +132,19 @@ describe("Prompt Rendering Refactoring Tests", () => {
     });
 
     test("should wrap content in code blocks when wrapInCodeBlock is true", () => {
-      const definition: RenderablePrompt = {
-        contentDesc: "C# code",
-        instructions: ["Find classes"],
-        responseSchema: z.object({ classes: z.array(z.string()) }),
-        template: ANALYSIS_PROMPT_TEMPLATE,
-        dataBlockHeader: "CODE",
-        wrapInCodeBlock: true,
-      };
+      const prompt = new Prompt(
+        {
+          contentDesc: "C# code",
+          instructions: ["Find classes"],
+          responseSchema: z.object({ classes: z.array(z.string()) }),
+          dataBlockHeader: "CODE",
+          wrapInCodeBlock: true,
+        },
+        ANALYSIS_PROMPT_TEMPLATE,
+      );
 
       const content = "public class MyClass { }";
-      const rendered = renderPrompt(definition, content);
+      const rendered = prompt.renderPrompt(content);
 
       // Should have triple backticks around content
       // Format is: CODE:\n```\n{content}```
@@ -139,17 +152,19 @@ describe("Prompt Rendering Refactoring Tests", () => {
     });
 
     test("should not wrap content when wrapInCodeBlock is false", () => {
-      const definition: RenderablePrompt = {
-        contentDesc: "XML configuration",
-        instructions: ["Extract framework info"],
-        responseSchema: z.object({ framework: z.string() }),
-        template: ANALYSIS_PROMPT_TEMPLATE,
-        dataBlockHeader: "CODE",
-        wrapInCodeBlock: false,
-      };
+      const prompt = new Prompt(
+        {
+          contentDesc: "XML configuration",
+          instructions: ["Extract framework info"],
+          responseSchema: z.object({ framework: z.string() }),
+          dataBlockHeader: "CODE",
+          wrapInCodeBlock: false,
+        },
+        ANALYSIS_PROMPT_TEMPLATE,
+      );
 
       const content = "<config></config>";
-      const rendered = renderPrompt(definition, content);
+      const rendered = prompt.renderPrompt(content);
 
       // Should not have triple backticks
       expect(rendered).not.toContain("```\n" + content + "\n```");
@@ -159,17 +174,19 @@ describe("Prompt Rendering Refactoring Tests", () => {
 
   describe("Backward compatibility - contentDesc in data passed to renderPrompt", () => {
     test("should prioritize contentDesc from definition over data", () => {
-      const definition: RenderablePrompt = {
-        contentDesc: "TypeScript code",
-        instructions: ["Analyze"],
-        responseSchema: z.string(),
-        template: ANALYSIS_PROMPT_TEMPLATE,
-        dataBlockHeader: "CODE",
-        wrapInCodeBlock: false,
-      };
+      const prompt = new Prompt(
+        {
+          contentDesc: "TypeScript code",
+          instructions: ["Analyze"],
+          responseSchema: z.string(),
+          dataBlockHeader: "CODE",
+          wrapInCodeBlock: false,
+        },
+        ANALYSIS_PROMPT_TEMPLATE,
+      );
 
       // Even if contentDesc is passed in extras, definition's contentDesc takes precedence
-      const rendered = renderPrompt(definition, "const x = 1;", {
+      const rendered = prompt.renderPrompt("const x = 1;", {
         contentDesc: "this should be ignored",
       });
 

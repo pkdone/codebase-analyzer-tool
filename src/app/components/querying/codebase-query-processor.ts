@@ -3,7 +3,6 @@ import { LLMOutputFormat } from "../../../common/llm/types/llm.types";
 import type { SourcesRepository } from "../../repositories/sources/sources.repository.interface";
 import type { ProjectedSourceMetadataContentAndSummary } from "../../repositories/sources/sources.model";
 import { queryingInputConfig } from "./querying-input.config";
-import { renderPrompt } from "../../../common/prompts/prompt-renderer";
 import { appPromptManager } from "../../prompts/app-prompt-registry";
 import { formatFilesAsMarkdownCodeBlocks } from "../../../common/utils/markdown-formatter";
 import { isOk } from "../../../common/types/result.types";
@@ -17,7 +16,7 @@ import { isOk } from "../../../common/types/result.types";
  * @returns The filled prompt string
  */
 function createCodebaseQueryPrompt(question: string, codeContent: string): string {
-  return renderPrompt(appPromptManager.codebaseQuery, codeContent, { question });
+  return appPromptManager.codebaseQuery.renderPrompt(codeContent, { question });
 }
 
 /**

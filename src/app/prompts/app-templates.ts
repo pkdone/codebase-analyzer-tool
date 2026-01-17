@@ -19,7 +19,7 @@ const DEFAULT_SYSTEM_ROLE =
  * This template uses placeholders for customization:
  * - {{contentDesc}}: Description of the content being analyzed
  * - {{dataBlockHeader}}: The section header (e.g., "CODE", "FILE_SUMMARIES")
- * - {{instructionsText}}: The joined instruction strings from the RenderablePrompt
+ * - {{instructionsText}}: The joined instruction strings from the Prompt
  * - {{contentWrapper}}: Optional code block markers (```) if wrapInCodeBlock is true
  * - {{schemaSection}}: Conditional JSON schema section (empty for TEXT-mode prompts)
  */

@@ -1,5 +1,4 @@
-import { renderPrompt } from "../../../src/common/prompts/prompt-renderer";
-import type { RenderablePrompt } from "../../../src/common/prompts/prompt.types";
+import { Prompt } from "../../../src/common/prompts/prompt";
 import { z } from "zod";
 import {
   ANALYSIS_PROMPT_TEMPLATE,
@@ -7,33 +6,32 @@ import {
 } from "../../../src/app/prompts/app-templates";
 
 describe("Prompt Constructor and Templates", () => {
-  const sourceDefinition: RenderablePrompt = {
-    label: "Test",
+  const sourceConfig = {
     contentDesc:
       "Act as a senior developer analyzing the code in an existing application. Based on test content shown below...",
     instructions: ["instruction 1"],
     responseSchema: z.string(),
-    template: ANALYSIS_PROMPT_TEMPLATE,
-    dataBlockHeader: "CODE" as const,
+    dataBlockHeader: "CODE",
     wrapInCodeBlock: true,
-  };
+  } as const;
 
-  const appSummaryDefinition: RenderablePrompt = {
-    label: "Test",
+  const appSummaryConfig = {
     contentDesc:
       "Act as a senior developer analyzing the code in an existing application. Based on test content shown below...",
     instructions: ["instruction 1"],
     responseSchema: z.string(),
-    template: ANALYSIS_PROMPT_TEMPLATE,
-    dataBlockHeader: "FILE_SUMMARIES" as const,
+    dataBlockHeader: "FILE_SUMMARIES",
     wrapInCodeBlock: false,
-  };
+  } as const;
+
+  const sourcePrompt = new Prompt(sourceConfig, ANALYSIS_PROMPT_TEMPLATE);
+  const appSummaryPrompt = new Prompt(appSummaryConfig, ANALYSIS_PROMPT_TEMPLATE);
 
   const testContent = "test file content";
 
   describe("renderPrompt function", () => {
     it("should render a prompt with ANALYSIS_PROMPT_TEMPLATE for sources", () => {
-      const rendered = renderPrompt(sourceDefinition, testContent);
+      const rendered = sourcePrompt.renderPrompt(testContent);
 
       expect(rendered).toContain("Act as a senior developer analyzing the code");
       expect(rendered).toContain("CODE:");
@@ -41,7 +39,7 @@ describe("Prompt Constructor and Templates", () => {
     });
 
     it("should render a prompt with ANALYSIS_PROMPT_TEMPLATE for app summaries", () => {
-      const rendered = renderPrompt(appSummaryDefinition, testContent);
+      const rendered = appSummaryPrompt.renderPrompt(testContent);
 
       expect(rendered).toContain("Act as a senior developer analyzing the code");
       expect(rendered).toContain("FILE_SUMMARIES:");
@@ -49,11 +47,8 @@ describe("Prompt Constructor and Templates", () => {
     });
 
     it("should use PARTIAL_ANALYSIS_TEMPLATE for partial analysis", () => {
-      const partialDefinition = {
-        ...appSummaryDefinition,
-        template: PARTIAL_ANALYSIS_TEMPLATE,
-      };
-      const rendered = renderPrompt(partialDefinition, testContent);
+      const partialPrompt = new Prompt(appSummaryConfig, PARTIAL_ANALYSIS_TEMPLATE);
+      const rendered = partialPrompt.renderPrompt(testContent);
 
       expect(rendered).toContain("partial analysis");
       expect(rendered).toContain("focus on extracting insights from this subset");
@@ -83,17 +78,17 @@ describe("Prompt Constructor and Templates", () => {
     it("should handle reduce template with category key via inline definition", () => {
       // categoryKey is directly embedded in contentDesc, rather than being a placeholder
       const categoryKey = "technologies";
-      const reduceDefinition = {
-        ...sourceDefinition,
-        // Factory would pre-populate contentDesc with the category key
-        contentDesc: `Act as a senior developer. You've been provided with data containing '${categoryKey}'...`,
-        template: ANALYSIS_PROMPT_TEMPLATE,
-        dataBlockHeader: "FRAGMENTED_DATA" as const,
-        wrapInCodeBlock: false,
-      };
-      const rendered = renderPrompt(reduceDefinition, {
-        content: testContent,
-      });
+      const reducePrompt = new Prompt(
+        {
+          ...sourceConfig,
+          // Factory would pre-populate contentDesc with the category key
+          contentDesc: `Act as a senior developer. You've been provided with data containing '${categoryKey}'...`,
+          dataBlockHeader: "FRAGMENTED_DATA",
+          wrapInCodeBlock: false,
+        },
+        ANALYSIS_PROMPT_TEMPLATE,
+      );
+      const rendered = reducePrompt.renderPrompt(testContent);
 
       expect(rendered).toContain("FRAGMENTED_DATA:");
       expect(rendered).toContain(categoryKey);

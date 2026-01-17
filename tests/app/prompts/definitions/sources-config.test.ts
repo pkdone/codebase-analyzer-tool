@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import { appPromptManager } from "../../../../src/app/prompts/app-prompt-registry";
 const fileTypePromptMetadata = appPromptManager.sources;
-import type { RenderablePrompt } from "../../../../src/common/prompts/prompt.types";
+import { Prompt } from "../../../../src/common/prompts/prompt";
 import { getCanonicalFileType } from "../../../../src/app/config/file-handling";
 import { sourceSummarySchema } from "../../../../src/app/schemas/sources.schema";
 import { SourceSummaryType } from "../../../../src/app/components/capture/file-summarizer.service";
@@ -47,9 +47,9 @@ describe("File Handler Configuration", () => {
     test("should have valid Zod schemas for each file type", () => {
       for (const [, config] of Object.entries(fileTypePromptMetadata)) {
         expect(config.responseSchema).toBeDefined();
-        expect(config.responseSchema._def).toBeDefined();
+        expect(config.responseSchema!._def).toBeDefined();
         // Schema should have a parse method indicating it's a Zod schema
-        expect(typeof config.responseSchema.parse).toBe("function");
+        expect(typeof config.responseSchema!.parse).toBe("function");
       }
     });
 
@@ -65,38 +65,42 @@ describe("File Handler Configuration", () => {
     });
   });
 
-  describe("DynamicPromptConfig structure", () => {
+  describe("Prompt structure", () => {
     test("should enforce correct structure", () => {
-      const testConfig: RenderablePrompt = {
-        contentDesc: "test content",
-        instructions: ["test instructions"],
-        responseSchema: sourceSummarySchema,
-        template: "Test template",
-        dataBlockHeader: "CODE",
-        wrapInCodeBlock: true,
-      };
+      const testPrompt = new Prompt(
+        {
+          contentDesc: "test content",
+          instructions: ["test instructions"],
+          responseSchema: sourceSummarySchema,
+          dataBlockHeader: "CODE",
+          wrapInCodeBlock: true,
+        },
+        "Test template",
+      );
 
-      expect(testConfig).toHaveProperty("contentDesc");
-      expect(testConfig).toHaveProperty("instructions");
-      expect(testConfig).toHaveProperty("responseSchema");
-      expect(typeof testConfig.contentDesc).toBe("string");
-      expect(typeof testConfig.instructions).toBe("object");
-      expect(Array.isArray(testConfig.instructions)).toBe(true);
+      expect(testPrompt).toHaveProperty("contentDesc");
+      expect(testPrompt).toHaveProperty("instructions");
+      expect(testPrompt).toHaveProperty("responseSchema");
+      expect(typeof testPrompt.contentDesc).toBe("string");
+      expect(typeof testPrompt.instructions).toBe("object");
+      expect(Array.isArray(testPrompt.instructions)).toBe(true);
     });
 
     test("should work with type compatibility", () => {
-      // Test that DynamicPromptConfig can work with inline schema types
-      const typedConfig: RenderablePrompt = {
-        contentDesc: "test content",
-        instructions: ["test instructions"],
-        responseSchema: sourceSummarySchema.pick({ purpose: true, implementation: true }),
-        template: "Test template",
-        dataBlockHeader: "CODE",
-        wrapInCodeBlock: true,
-      };
+      // Test that Prompt can work with inline schema types
+      const typedPrompt = new Prompt(
+        {
+          contentDesc: "test content",
+          instructions: ["test instructions"],
+          responseSchema: sourceSummarySchema.pick({ purpose: true, implementation: true }),
+          dataBlockHeader: "CODE",
+          wrapInCodeBlock: true,
+        },
+        "Test template",
+      );
 
-      expect(typedConfig.responseSchema).toBeDefined();
-      expect(typeof typedConfig.responseSchema.parse).toBe("function");
+      expect(typedPrompt.responseSchema).toBeDefined();
+      expect(typeof typedPrompt.responseSchema!.parse).toBe("function");
     });
   });
 

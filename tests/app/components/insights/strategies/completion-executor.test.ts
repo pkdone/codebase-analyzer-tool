@@ -31,10 +31,6 @@ jest.mock("../../../../../src/common/utils/text-utils", () => ({
   joinArrayWithSeparators: jest.fn((arr: string[]) => arr.join("\n")),
 }));
 
-jest.mock("../../../../../src/common/prompts/prompt-renderer", () => ({
-  renderPrompt: jest.fn().mockReturnValue("mock rendered prompt"),
-}));
-
 describe("executeInsightCompletion - Type Inference", () => {
   let mockLLMRouter: jest.Mocked<LLMRouter>;
 
@@ -461,7 +457,6 @@ describe("executeInsightCompletion - Type Inference", () => {
       });
       // Verify the configuration is correct
       expect(config).toBeDefined();
-      expect(config.label).toBeDefined();
       expect(config.responseSchema).toBeDefined();
     });
   });

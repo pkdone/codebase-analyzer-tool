@@ -2,12 +2,12 @@ import { injectable, inject } from "tsyringe";
 import { z } from "zod";
 import LLMRouter from "../../../../common/llm/llm-router";
 import { LLMOutputFormat } from "../../../../common/llm/types/llm.types";
+import { Prompt } from "../../../../common/prompts/prompt";
 import { insightsConfig } from "../insights.config";
 import { llmConcurrencyLimiter } from "../../../config/concurrency.config";
 import { getCategoryLabel } from "../../../config/category-labels.config";
 import { logWarn } from "../../../../common/utils/logging";
 import { isNotNull } from "../../../../common/utils/type-guards";
-import { renderPrompt } from "../../../../common/prompts/prompt-renderer";
 import { llmTokens } from "../../../di/tokens";
 import { IInsightGenerationStrategy } from "./completion-strategy.interface";
 import {
@@ -24,7 +24,6 @@ import {
   ANALYSIS_PROMPT_TEMPLATE,
   PARTIAL_ANALYSIS_TEMPLATE,
 } from "../../../prompts/app-templates";
-import type { RenderablePrompt } from "../../../../common/prompts/prompt.types";
 
 /**
  * Data block header for reduce insights prompts (consolidating fragmented data).
@@ -217,16 +216,17 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
     const categoryKey = Object.keys(schemaShape)[0] as keyof CategoryInsightResult<C>;
     const combinedData = this.combinePartialResultsData(category, partialResults);
     const content = JSON.stringify(combinedData, null, 2);
-    const reducePromptDef: RenderablePrompt = {
-      contentDesc: buildReduceInsightsContentDesc(categoryKey as string),
-      instructions: [`a consolidated list of '${String(categoryKey)}'`],
-      responseSchema: schema,
-      template: ANALYSIS_PROMPT_TEMPLATE,
-      dataBlockHeader: FRAGMENTED_DATA_BLOCK_HEADER,
-      wrapInCodeBlock: false,
-      outputFormat: LLMOutputFormat.JSON,
-    };
-    const renderedPrompt = renderPrompt(reducePromptDef, content);
+    const reducePrompt = new Prompt(
+      {
+        contentDesc: buildReduceInsightsContentDesc(categoryKey as string),
+        instructions: [`a consolidated list of '${String(categoryKey)}'`],
+        responseSchema: schema,
+        dataBlockHeader: FRAGMENTED_DATA_BLOCK_HEADER,
+        wrapInCodeBlock: false,
+      },
+      ANALYSIS_PROMPT_TEMPLATE,
+    );
+    const renderedPrompt = reducePrompt.renderPrompt(content);
 
     try {
       const result = await this.llmRouter.executeCompletion(`${category}-reduce`, renderedPrompt, {

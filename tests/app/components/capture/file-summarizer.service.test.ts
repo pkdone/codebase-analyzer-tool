@@ -21,10 +21,6 @@ jest.mock("../../../../src/app/config/file-handling", () => ({
   getCanonicalFileType: jest.fn().mockReturnValue("javascript"),
 }));
 
-jest.mock("../../../../src/common/prompts/prompt-renderer", () => ({
-  renderPrompt: jest.fn().mockReturnValue("rendered prompt"),
-}));
-
 jest.mock("../../../../src/app/config/llm-artifact-corrections", () => ({
   getLlmArtifactCorrections: jest.fn().mockReturnValue({}),
 }));
@@ -39,6 +35,8 @@ describe("FileSummarizerService", () => {
     name: z.string(),
     purpose: z.string(),
   });
+
+  const mockRenderPrompt = jest.fn().mockReturnValue("rendered prompt");
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -55,13 +53,13 @@ describe("FileSummarizerService", () => {
       getLLMManifest: jest.fn(),
     } as unknown as jest.Mocked<LLMRouter>;
 
-    // Create mock prompt registry
+    // Create mock prompt registry with renderPrompt method on each prompt
     mockPromptManager = {
       sources: {
         javascript: {
-          label: "JavaScript",
           hasComplexSchema: true,
           template: "test template",
+          renderPrompt: mockRenderPrompt,
         },
       },
       appSummaries: {},
