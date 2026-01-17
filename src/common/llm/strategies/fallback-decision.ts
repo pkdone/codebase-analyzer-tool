@@ -29,7 +29,6 @@ export function determineNextAction(
   totalLLMCount: number,
   context: LLMContext,
   resourceName: string,
-  doWarnNoisyOverloads = true, // TODO: flip to false?
 ): FallbackDecision {
   const canSwitchModel = currentLLMFunctionIndex + 1 < totalLLMCount;
 
@@ -49,12 +48,10 @@ export function determineNextAction(
 
   switch (llmResponse.status) {
     case LLMResponseStatus.INVALID:
-      if (doWarnNoisyOverloads) {
-        logWarn(
-          `Unable to extract a valid response from the current LLM model - invalid response format even after retries`,
-          context,
-        );
-      }
+      logWarn(
+        `Unable to extract a valid response from the current LLM model - invalid response format even after retries`,
+        context,
+      );
       return {
         shouldTerminate: !canSwitchModel,
         shouldCropPrompt: false,
@@ -62,9 +59,7 @@ export function determineNextAction(
       };
 
     case LLMResponseStatus.OVERLOADED:
-      if (doWarnNoisyOverloads) {
-        logWarn(`LLM model is overloaded or timing out even after retries`, context);
-      }
+      logWarn(`LLM model is overloaded or timing out even after retries`, context);
       return {
         shouldTerminate: !canSwitchModel,
         shouldCropPrompt: false,
