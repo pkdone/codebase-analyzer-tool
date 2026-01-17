@@ -3,10 +3,8 @@ import {
   appSummaryConfigMap,
   type AppSummaryConfigMap,
 } from "../../../../../src/app/prompts/definitions/app-summaries/app-summaries.definitions";
-import {
-  DATA_BLOCK_HEADERS,
-  type AppSummaryConfigEntry,
-} from "../../../../../src/app/prompts/prompt.types";
+import { type AppSummaryConfigEntry } from "../../../../../src/app/prompts/definitions/app-summaries/app-summaries.factories";
+import { FILE_SUMMARIES_DATA_BLOCK_HEADER } from "../../../../../src/app/prompts/definitions/app-summaries/app-summaries.factories";
 import { AppSummaryCategories } from "../../../../../src/app/schemas/app-summaries.schema";
 
 /**
@@ -102,7 +100,7 @@ describe("appSummaryConfigMap Type Safety", () => {
         contentDesc: "test content",
         responseSchema: testSchema,
         instructions: ["Generate a test list"],
-        dataBlockHeader: DATA_BLOCK_HEADERS.FILE_SUMMARIES,
+        dataBlockHeader: FILE_SUMMARIES_DATA_BLOCK_HEADER,
         wrapInCodeBlock: false,
       };
 
@@ -117,7 +115,7 @@ describe("appSummaryConfigMap Type Safety", () => {
         contentDesc: "test content",
         responseSchema: z.string(),
         instructions: [],
-        dataBlockHeader: DATA_BLOCK_HEADERS.FILE_SUMMARIES,
+        dataBlockHeader: FILE_SUMMARIES_DATA_BLOCK_HEADER,
         wrapInCodeBlock: false,
       };
 

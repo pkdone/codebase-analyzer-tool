@@ -1,6 +1,6 @@
 import { appSummaryConfigMap } from "../../../src/app/prompts/definitions/app-summaries/app-summaries.definitions";
-import { promptManager } from "../../../src/app/prompts/prompt-registry";
-const appSummaryPromptMetadata = promptManager.appSummaries;
+import { appPromptManager } from "../../../src/app/prompts/app-prompt-registry";
+const appSummaryPromptMetadata = appPromptManager.appSummaries;
 import type { AppSummaryCategoryType } from "../../../src/app/components/insights/insights.types";
 
 describe("App Summaries Config", () => {

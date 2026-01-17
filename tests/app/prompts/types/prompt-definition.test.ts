@@ -1,8 +1,8 @@
-import { PromptDefinition } from "../../../../src/app/prompts/prompt.types";
+import type { RenderablePrompt } from "../../../../src/common/prompts/prompt.types";
 import { z } from "zod";
 
-describe("PromptDefinition", () => {
-  const createMockPromptDefinition = (overrides?: Partial<PromptDefinition>): PromptDefinition => ({
+describe("RenderablePrompt", () => {
+  const createMockRenderablePrompt = (overrides?: Partial<RenderablePrompt>): RenderablePrompt => ({
     contentDesc: "Test intro text template with {{placeholder}}",
     instructions: ["instruction 1", "instruction 2"],
     responseSchema: z.string(),
@@ -14,7 +14,7 @@ describe("PromptDefinition", () => {
 
   describe("structure", () => {
     it("should have required fields", () => {
-      const definition: PromptDefinition = {
+      const definition: RenderablePrompt = {
         contentDesc: "Test intro text template",
         instructions: ["test"],
         responseSchema: z.string(),
@@ -29,10 +29,10 @@ describe("PromptDefinition", () => {
     });
 
     it("should have optional label field", () => {
-      const definitionWithoutLabel = createMockPromptDefinition();
+      const definitionWithoutLabel = createMockRenderablePrompt();
       expect(definitionWithoutLabel.label).toBeUndefined();
 
-      const definitionWithLabel = createMockPromptDefinition({
+      const definitionWithLabel = createMockRenderablePrompt({
         label: "Test Label",
       });
       expect(definitionWithLabel.label).toBe("Test Label");
@@ -41,7 +41,7 @@ describe("PromptDefinition", () => {
 
   describe("compatibility", () => {
     it("should accept readonly string arrays for instructions", () => {
-      const definition: PromptDefinition = {
+      const definition: RenderablePrompt = {
         contentDesc: "Test intro text template",
         instructions: ["a", "b", "c"],
         responseSchema: z.string(),
@@ -55,22 +55,22 @@ describe("PromptDefinition", () => {
     });
 
     it("should accept various Zod schema types", () => {
-      const stringSchema = createMockPromptDefinition({ responseSchema: z.string() });
+      const stringSchema = createMockRenderablePrompt({ responseSchema: z.string() });
       expect(stringSchema.responseSchema).toBeDefined();
 
-      const objectSchema = createMockPromptDefinition({
+      const objectSchema = createMockRenderablePrompt({
         responseSchema: z.object({ name: z.string() }),
       });
       expect(objectSchema.responseSchema).toBeDefined();
 
-      const arraySchema = createMockPromptDefinition({ responseSchema: z.array(z.string()) });
+      const arraySchema = createMockRenderablePrompt({ responseSchema: z.array(z.string()) });
       expect(arraySchema.responseSchema).toBeDefined();
     });
   });
 
   describe("usage examples", () => {
     it("should work with source file prompting", () => {
-      const sourceFileDefinition: PromptDefinition = {
+      const sourceFileDefinition: RenderablePrompt = {
         contentDesc:
           "Act as a senior developer analyzing the code in an existing application. Based on the JVM code shown below...",
         instructions: [
@@ -93,7 +93,7 @@ describe("PromptDefinition", () => {
     });
 
     it("should work with app summary prompting", () => {
-      const appSummaryDefinition: PromptDefinition = {
+      const appSummaryDefinition: RenderablePrompt = {
         contentDesc:
           "Act as a senior developer analyzing the code in an existing application. Based on the source files shown below...",
         instructions: ["Extract entities", "Extract bounded contexts"],
@@ -117,7 +117,7 @@ describe("PromptDefinition", () => {
     it("should support readonly string arrays", () => {
       const readonlyInstructions: readonly string[] = ["instruction 1", "instruction 2"];
 
-      const definition: PromptDefinition = {
+      const definition: RenderablePrompt = {
         contentDesc: "Test intro text template",
         instructions: readonlyInstructions,
         responseSchema: z.string(),

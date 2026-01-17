@@ -1,4 +1,4 @@
-import { PromptDefinition, PromptConfigEntry } from "../../../src/app/prompts/prompt.types";
+import type { RenderablePrompt, PromptConfig } from "../../../src/common/prompts/prompt.types";
 import {
   CANONICAL_FILE_TYPES,
   canonicalFileTypeSchema,
@@ -8,10 +8,10 @@ import type { AppSummaryCategoryType } from "../../../src/app/components/insight
 import { z } from "zod";
 
 describe("Prompt Types", () => {
-  describe("PromptConfigEntry", () => {
+  describe("PromptConfig", () => {
     it("should require contentDesc, instructions, responseSchema, dataBlockHeader, and wrapInCodeBlock", () => {
       const schema = z.object({ result: z.string() });
-      const config: PromptConfigEntry<typeof schema> = {
+      const config: PromptConfig<typeof schema> = {
         contentDesc: "Required description",
         instructions: ["Required instruction"],
         responseSchema: schema,
@@ -28,7 +28,7 @@ describe("Prompt Types", () => {
 
     it("should allow optional label", () => {
       const schema = z.object({ result: z.string() });
-      const configWithLabel: PromptConfigEntry<typeof schema> = {
+      const configWithLabel: PromptConfig<typeof schema> = {
         contentDesc: "Description",
         instructions: ["Instruction"],
         responseSchema: schema,
@@ -42,7 +42,7 @@ describe("Prompt Types", () => {
 
     it("should allow optional hasComplexSchema", () => {
       const schema = z.object({ result: z.string() });
-      const configWithComplexSchema: PromptConfigEntry<typeof schema> = {
+      const configWithComplexSchema: PromptConfig<typeof schema> = {
         contentDesc: "Description",
         instructions: ["Instruction"],
         responseSchema: schema,
@@ -60,7 +60,7 @@ describe("Prompt Types", () => {
         count: z.number(),
       });
 
-      const config: PromptConfigEntry<typeof specificSchema> = {
+      const config: PromptConfig<typeof specificSchema> = {
         contentDesc: "Description",
         instructions: ["Instruction"],
         responseSchema: specificSchema,
@@ -73,10 +73,10 @@ describe("Prompt Types", () => {
     });
   });
 
-  describe("PromptDefinition", () => {
-    const createMockPromptDefinition = (
-      overrides?: Partial<PromptDefinition>,
-    ): PromptDefinition => ({
+  describe("RenderablePrompt", () => {
+    const createMockRenderablePrompt = (
+      overrides?: Partial<RenderablePrompt>,
+    ): RenderablePrompt => ({
       contentDesc: "Test intro text template with {{placeholder}}",
       instructions: ["instruction 1", "instruction 2"],
       responseSchema: z.string(),
@@ -87,7 +87,7 @@ describe("Prompt Types", () => {
     });
 
     it("should have required fields", () => {
-      const definition: PromptDefinition = {
+      const definition: RenderablePrompt = {
         contentDesc: "Test intro text template",
         instructions: ["test"],
         responseSchema: z.string(),
@@ -103,7 +103,7 @@ describe("Prompt Types", () => {
     });
 
     it("should support optional fields", () => {
-      const definitionWithOptional = createMockPromptDefinition({
+      const definitionWithOptional = createMockRenderablePrompt({
         label: "Test Label",
       });
 
@@ -113,7 +113,7 @@ describe("Prompt Types", () => {
     it("should support readonly string arrays", () => {
       const readonlyInstructions: readonly string[] = ["instruction 1", "instruction 2"];
 
-      const definition: PromptDefinition = {
+      const definition: RenderablePrompt = {
         contentDesc: "Test intro text template",
         instructions: readonlyInstructions,
         responseSchema: z.string(),

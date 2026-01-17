@@ -1,11 +1,11 @@
 import { z } from "zod";
 import LLMRouter from "../../../../common/llm/llm-router";
 import { LLMOutputFormat } from "../../../../common/llm/types/llm.types";
-import { promptManager } from "../../../prompts/prompt-registry";
+import { renderPrompt } from "../../../../common/prompts/prompt-renderer";
+import { appPromptManager } from "../../../prompts/app-prompt-registry";
 import { getCategoryLabel } from "../../../config/category-labels.config";
 import { logWarn } from "../../../../common/utils/logging";
 import { joinArrayWithSeparators } from "../../../../common/utils/text-utils";
-import { renderPrompt, type RenderPromptData } from "../../../prompts/prompt-renderer";
 import {
   AppSummaryCategoryEnum,
   appSummaryCategorySchemas,
@@ -19,8 +19,8 @@ import { insightsConfig } from "../insights.config";
  * Options for executing insight completion.
  */
 export interface InsightCompletionOptions {
-  /** Optional note to add to the prompt (e.g., for partial analysis) */
-  partialAnalysisNote?: string;
+  /** The template to use for rendering the prompt (required) */
+  template: string;
   /** Custom category label for the completion task (defaults to category) */
   taskCategory?: string;
 }
@@ -37,26 +37,24 @@ export interface InsightCompletionOptions {
  * @param llmRouter The LLM router instance
  * @param category The app summary category
  * @param sourceFileSummaries Array of source file summaries to analyze
- * @param options Optional configuration for the completion
+ * @param options Configuration for the completion including the template to use
  * @returns The generated insights with category-specific typing, or null if generation failed
  */
 export async function executeInsightCompletion<C extends AppSummaryCategoryEnum>(
   llmRouter: LLMRouter,
   category: C,
   sourceFileSummaries: readonly string[],
-  options: InsightCompletionOptions = {},
+  options: InsightCompletionOptions,
 ): Promise<z.infer<AppSummaryCategorySchemas[C]> | null> {
   const categoryLabel = getCategoryLabel(category);
 
   try {
     const taskCategory: string = options.taskCategory ?? category;
-    const config = promptManager.appSummaries[category];
+    const config = appPromptManager.appSummaries[category];
     const codeContent = joinArrayWithSeparators(sourceFileSummaries);
-    const renderParams: RenderPromptData = {
-      content: codeContent,
-      partialAnalysisNote: options.partialAnalysisNote,
-    };
-    const renderedPrompt = renderPrompt(config, renderParams);
+    // Create prompt definition with the specified template
+    const promptDef = { ...config, template: options.template };
+    const renderedPrompt = renderPrompt(promptDef, codeContent);
     /**
      * Schema lookup uses the category type to get the correct schema.
      *

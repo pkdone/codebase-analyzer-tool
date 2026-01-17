@@ -1,14 +1,17 @@
 import { z } from "zod";
-import { renderPrompt } from "../../../src/app/prompts/prompt-renderer";
-import { BASE_PROMPT_TEMPLATE, CODEBASE_QUERY_TEMPLATE } from "../../../src/app/prompts/templates";
+import { renderPrompt } from "../../../src/common/prompts/prompt-renderer";
+import {
+  ANALYSIS_PROMPT_TEMPLATE,
+  CODEBASE_QUERY_TEMPLATE,
+} from "../../../src/app/prompts/app-templates";
 import { fileTypePromptRegistry } from "../../../src/app/prompts/definitions/sources/sources.definitions";
 import { LLMOutputFormat } from "../../../src/common/llm/types/llm.types";
-import type { PromptDefinition, PromptConfigEntry } from "../../../src/app/prompts/prompt.types";
+import type { RenderablePrompt, PromptConfig } from "../../../src/common/prompts/prompt.types";
 
 describe("Prompt Refactoring Improvements", () => {
   describe("TEXT-mode Rendering", () => {
     it("should not include JSON schema section for TEXT-mode prompts", () => {
-      const textPrompt: PromptDefinition<z.ZodString> = {
+      const textPrompt: RenderablePrompt<z.ZodString> = {
         label: "Text Query",
         contentDesc: "source code files",
         instructions: [],
@@ -19,8 +22,7 @@ describe("Prompt Refactoring Improvements", () => {
         outputFormat: LLMOutputFormat.TEXT,
       };
 
-      const result = renderPrompt(textPrompt, {
-        content: "sample code",
+      const result = renderPrompt(textPrompt, "sample code", {
         question: "What does this code do?",
       });
 
@@ -35,18 +37,18 @@ describe("Prompt Refactoring Improvements", () => {
     });
 
     it("should include JSON schema section for JSON-mode prompts", () => {
-      const jsonPrompt: PromptDefinition = {
+      const jsonPrompt: RenderablePrompt = {
         label: "JSON Test",
         contentDesc: "test content",
         instructions: ["test instruction"],
         responseSchema: z.object({ name: z.string() }),
-        template: BASE_PROMPT_TEMPLATE,
+        template: ANALYSIS_PROMPT_TEMPLATE,
         dataBlockHeader: "CODE",
         wrapInCodeBlock: false,
         outputFormat: LLMOutputFormat.JSON,
       };
 
-      const result = renderPrompt(jsonPrompt, { content: "sample code" });
+      const result = renderPrompt(jsonPrompt, "sample code");
 
       // Should contain JSON schema section
       expect(result).toContain("JSON response must follow");
@@ -168,11 +170,11 @@ describe("Prompt Refactoring Improvements", () => {
     });
   });
 
-  describe("PromptConfigEntry interface compatibility", () => {
+  describe("PromptConfig interface compatibility", () => {
     it("should be compatible with SourceConfigEntry", () => {
       // TypeScript compilation test - if this compiles, the interfaces are compatible
       const sourceConfig = fileTypePromptRegistry.java;
-      const configEntry: PromptConfigEntry = {
+      const configEntry: PromptConfig = {
         instructions: sourceConfig.instructions,
         responseSchema: sourceConfig.responseSchema,
         contentDesc: sourceConfig.contentDesc,
@@ -184,7 +186,7 @@ describe("Prompt Refactoring Improvements", () => {
     });
 
     it("should require core fields including dataBlockHeader and wrapInCodeBlock", () => {
-      const config: PromptConfigEntry = {
+      const config: PromptConfig = {
         contentDesc: "test content",
         instructions: ["test instruction"],
         responseSchema: z.string(),
@@ -200,7 +202,7 @@ describe("Prompt Refactoring Improvements", () => {
     });
 
     it("should support optional hasComplexSchema field", () => {
-      const config: PromptConfigEntry = {
+      const config: PromptConfig = {
         contentDesc: "test content",
         instructions: ["test instruction"],
         responseSchema: z.string(),
@@ -215,19 +217,17 @@ describe("Prompt Refactoring Improvements", () => {
 
   describe("Rendered prompt comparison", () => {
     it("should render Java prompt with correct structure", () => {
-      const testPromptDef: PromptDefinition = {
+      const testPromptDef: RenderablePrompt = {
         label: "Java",
         contentDesc: `the ${fileTypePromptRegistry.java.contentDesc}`,
         instructions: fileTypePromptRegistry.java.instructions,
         responseSchema: fileTypePromptRegistry.java.responseSchema,
-        template: BASE_PROMPT_TEMPLATE,
+        template: ANALYSIS_PROMPT_TEMPLATE,
         dataBlockHeader: "CODE",
         wrapInCodeBlock: true,
       };
 
-      const result = renderPrompt(testPromptDef, {
-        content: "public class Test {}",
-      });
+      const result = renderPrompt(testPromptDef, "public class Test {}");
 
       expect(result).toContain("JVM code");
       expect(result).toContain("__Basic Information__");

@@ -8,22 +8,27 @@ import {
   INSTRUCTION_SECTION_TITLES,
   buildInstructionBlock,
   type InstructionSectionTitle,
-} from "../../../utils/instruction-utils";
+} from "../source-instruction-utils";
 import {
   sourceSummarySchema,
   commonSourceAnalysisSchema,
 } from "../../../../schemas/sources.schema";
-import { DATA_BLOCK_HEADERS, type PromptConfigEntry } from "../../../prompt.types";
+import type { PromptConfig } from "../../../../../common/prompts/prompt.types";
+
+/**
+ * Data block header for source code analysis prompts.
+ */
+export const CODE_DATA_BLOCK_HEADER = "CODE" as const;
 
 /**
  * Configuration entry for a source prompt definition.
- * Extends PromptConfigEntry which requires contentDesc, responseSchema, and instructions fields.
+ * Extends PromptConfig which requires contentDesc, responseSchema, and instructions fields.
  * Each entry directly includes the responseSchema using sourceSummarySchema.pick(),
  * making the schemas explicit and type-safe.
  *
  * @template S - The Zod schema type for validating the LLM response. Defaults to z.ZodType for backward compatibility.
  */
-export type SourceConfigEntry<S extends z.ZodType = z.ZodType> = PromptConfigEntry<S>;
+export type SourceConfigEntry<S extends z.ZodType = z.ZodType> = PromptConfig<S>;
 
 /**
  * Valid field names that can be picked from sourceSummarySchema.
@@ -93,7 +98,7 @@ export function createDependencyConfig(
       buildInstructionBlock(INSTRUCTION_SECTION_TITLES.REFERENCES_AND_DEPS, dependencyFragment),
     ],
     hasComplexSchema: true,
-    dataBlockHeader: DATA_BLOCK_HEADERS.CODE,
+    dataBlockHeader: CODE_DATA_BLOCK_HEADER,
     wrapInCodeBlock: true,
   };
 }
@@ -125,7 +130,7 @@ export function createScheduledJobConfig(
         ...jobFragments,
       ),
     ],
-    dataBlockHeader: DATA_BLOCK_HEADERS.CODE,
+    dataBlockHeader: CODE_DATA_BLOCK_HEADER,
     wrapInCodeBlock: true,
   };
 }
@@ -178,7 +183,7 @@ export function createSimpleConfig(
       pickMask as Parameters<typeof sourceSummarySchema.pick>[0],
     ),
     instructions,
-    dataBlockHeader: DATA_BLOCK_HEADERS.CODE,
+    dataBlockHeader: CODE_DATA_BLOCK_HEADER,
     wrapInCodeBlock: true,
   };
 }
@@ -248,7 +253,7 @@ export function createStandardCodeConfig(
       ),
       buildInstructionBlock(INSTRUCTION_SECTION_TITLES.CODE_QUALITY_METRICS, ...codeQualityParts),
     ],
-    dataBlockHeader: DATA_BLOCK_HEADERS.CODE,
+    dataBlockHeader: CODE_DATA_BLOCK_HEADER,
     wrapInCodeBlock: true,
   };
 }

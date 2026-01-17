@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { promptManager } from "../../../../src/app/prompts/prompt-registry";
-const fileTypePromptMetadata = promptManager.sources;
+import { appPromptManager } from "../../../../src/app/prompts/app-prompt-registry";
+const fileTypePromptMetadata = appPromptManager.sources;
 import { fileTypePromptRegistry } from "../../../../src/app/prompts/definitions/sources/sources.definitions";
 
 /**

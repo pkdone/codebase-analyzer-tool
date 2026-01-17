@@ -8,14 +8,13 @@ import {
 } from "../../../schemas/app-summaries.schema";
 import { CATEGORY_LABELS } from "../../../config/category-labels.config";
 import { APP_SUMMARY_PROMPT_FRAGMENTS } from "./app-summaries.fragments";
-import { createAppSummaryConfig } from "./app-summaries.factories";
-import type { AppSummaryConfigEntry } from "../../prompt.types";
+import { createAppSummaryConfig, type AppSummaryConfigEntry } from "./app-summaries.factories";
 
 /**
  * Centralized configuration for all app summary prompt definitions.
  *
  * Note: The `instructions` field contains the specific instruction text that will be used
- * in the PromptDefinition. The PromptDefinition's contentDesc field will be set to a
+ * in the RenderablePrompt. The RenderablePrompt's contentDesc field will be set to a
  * generic value like "a set of source file summaries".
  *
  * Note: aggregates, entities, and repositories are captured within the boundedContexts

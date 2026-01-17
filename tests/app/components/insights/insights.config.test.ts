@@ -1,6 +1,6 @@
 import { insightsConfig } from "../../../../src/app/components/insights/insights.config";
-import { promptManager } from "../../../../src/app/prompts/prompt-registry";
-const summaryCategoriesConfig = promptManager.appSummaries;
+import { appPromptManager } from "../../../../src/app/prompts/app-prompt-registry";
+const summaryCategoriesConfig = appPromptManager.appSummaries;
 import { AppSummaryCategoryEnum } from "../../../../src/app/components/insights/insights.types";
 
 describe("insightsTuningConfig", () => {

@@ -5,7 +5,7 @@
 import "reflect-metadata";
 import { FileSummarizerService } from "../../../../src/app/components/capture/file-summarizer.service";
 import type LLMRouter from "../../../../src/common/llm/llm-router";
-import type { PromptManager } from "../../../../src/app/prompts/prompt-registry";
+import type { AppPromptManager } from "../../../../src/app/prompts/app-prompt-registry";
 import type { FileTypePromptRegistry } from "../../../../src/app/prompts/definitions/sources/sources.definitions";
 import { z } from "zod";
 import { LLMError, LLMErrorCode } from "../../../../src/common/llm/types/llm-errors.types";
@@ -21,7 +21,7 @@ jest.mock("../../../../src/app/config/file-handling", () => ({
   getCanonicalFileType: jest.fn().mockReturnValue("javascript"),
 }));
 
-jest.mock("../../../../src/app/prompts/prompt-renderer", () => ({
+jest.mock("../../../../src/common/prompts/prompt-renderer", () => ({
   renderPrompt: jest.fn().mockReturnValue("rendered prompt"),
 }));
 
@@ -32,7 +32,7 @@ jest.mock("../../../../src/app/config/llm-artifact-corrections", () => ({
 describe("FileSummarizerService", () => {
   let service: FileSummarizerService;
   let mockLLMRouter: jest.Mocked<LLMRouter>;
-  let mockPromptManager: PromptManager;
+  let mockPromptManager: AppPromptManager;
   let mockFileTypePromptRegistry: FileTypePromptRegistry;
 
   const mockSchema = z.object({
@@ -66,7 +66,7 @@ describe("FileSummarizerService", () => {
       },
       appSummaries: {},
       codebaseQuery: {},
-    } as unknown as PromptManager;
+    } as unknown as AppPromptManager;
 
     // Create mock source config map
     mockFileTypePromptRegistry = {

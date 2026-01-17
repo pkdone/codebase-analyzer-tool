@@ -10,7 +10,7 @@ import {
   type SourceConfigEntry,
 } from "../../../../../src/app/prompts/definitions/sources/definitions";
 import { CANONICAL_FILE_TYPES } from "../../../../../src/app/schemas/canonical-file-types";
-import { DATA_BLOCK_HEADERS } from "../../../../../src/app/prompts/prompt.types";
+import { CODE_DATA_BLOCK_HEADER } from "../../../../../src/app/prompts/definitions/sources/definitions/source-config-factories";
 
 /**
  * Type safety tests for fileTypePromptRegistry.
@@ -124,7 +124,7 @@ describe("fileTypePromptRegistry Type Safety", () => {
         contentDesc: "Test content",
         responseSchema: testSchema,
         instructions: ["Test instruction"],
-        dataBlockHeader: DATA_BLOCK_HEADERS.CODE,
+        dataBlockHeader: CODE_DATA_BLOCK_HEADER,
         wrapInCodeBlock: true,
       };
 
@@ -138,7 +138,7 @@ describe("fileTypePromptRegistry Type Safety", () => {
         contentDesc: "Generic content",
         responseSchema: z.string(),
         instructions: [],
-        dataBlockHeader: DATA_BLOCK_HEADERS.CODE,
+        dataBlockHeader: CODE_DATA_BLOCK_HEADER,
         wrapInCodeBlock: true,
       };
 

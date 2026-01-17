@@ -1,10 +1,10 @@
 import { z } from "zod";
-import { createAppSummaryConfig } from "../../../../../src/app/prompts/definitions/app-summaries/app-summaries.factories";
-import { appSummaryConfigMap } from "../../../../../src/app/prompts/definitions/app-summaries/app-summaries.definitions";
 import {
-  DATA_BLOCK_HEADERS,
+  createAppSummaryConfig,
   type AppSummaryConfigEntry,
-} from "../../../../../src/app/prompts/prompt.types";
+} from "../../../../../src/app/prompts/definitions/app-summaries/app-summaries.factories";
+import { appSummaryConfigMap } from "../../../../../src/app/prompts/definitions/app-summaries/app-summaries.definitions";
+import { FILE_SUMMARIES_DATA_BLOCK_HEADER } from "../../../../../src/app/prompts/definitions/app-summaries/app-summaries.factories";
 
 /**
  * Unit tests for the createAppSummaryConfig factory function.
@@ -186,7 +186,7 @@ Line 3`;
     it("should explicitly set dataBlockHeader to FILE_SUMMARIES", () => {
       const config = createAppSummaryConfig("Test Label", testSchema, "instruction");
 
-      expect(config.dataBlockHeader).toBe(DATA_BLOCK_HEADERS.FILE_SUMMARIES);
+      expect(config.dataBlockHeader).toBe(FILE_SUMMARIES_DATA_BLOCK_HEADER);
     });
 
     it("should explicitly set wrapInCodeBlock to false", () => {
@@ -200,7 +200,7 @@ Line 3`;
 
       categories.forEach((category) => {
         const config = appSummaryConfigMap[category];
-        expect(config.dataBlockHeader).toBe(DATA_BLOCK_HEADERS.FILE_SUMMARIES);
+        expect(config.dataBlockHeader).toBe(FILE_SUMMARIES_DATA_BLOCK_HEADER);
         expect(config.wrapInCodeBlock).toBe(false);
       });
     });

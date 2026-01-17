@@ -1,8 +1,8 @@
 import { z } from "zod";
-import type { PromptDefinition } from "../../../src/app/prompts/prompt.types";
+import type { RenderablePrompt } from "../../../src/common/prompts/prompt.types";
 
-describe("PromptDefinition Generic Type", () => {
-  it("should allow PromptDefinition with specific schema types", () => {
+describe("RenderablePrompt Generic Type", () => {
+  it("should allow RenderablePrompt with specific schema types", () => {
     const stringSchema = z.string();
     const numberSchema = z.number();
     const objectSchema = z.object({
@@ -11,7 +11,7 @@ describe("PromptDefinition Generic Type", () => {
     });
 
     // Type-level test: These should compile without errors
-    const stringPromptDef: PromptDefinition<typeof stringSchema> = {
+    const stringPromptDef: RenderablePrompt<typeof stringSchema> = {
       contentDesc: "Test intro",
       instructions: ["Instruction 1"],
       responseSchema: stringSchema,
@@ -20,7 +20,7 @@ describe("PromptDefinition Generic Type", () => {
       wrapInCodeBlock: true,
     };
 
-    const numberPromptDef: PromptDefinition<typeof numberSchema> = {
+    const numberPromptDef: RenderablePrompt<typeof numberSchema> = {
       contentDesc: "Test intro",
       instructions: ["Instruction 1"],
       responseSchema: numberSchema,
@@ -29,7 +29,7 @@ describe("PromptDefinition Generic Type", () => {
       wrapInCodeBlock: false,
     };
 
-    const objectPromptDef: PromptDefinition<typeof objectSchema> = {
+    const objectPromptDef: RenderablePrompt<typeof objectSchema> = {
       contentDesc: "Test intro",
       instructions: ["Instruction 1"],
       responseSchema: objectSchema,
@@ -48,7 +48,7 @@ describe("PromptDefinition Generic Type", () => {
     const genericSchema = z.unknown();
 
     // Type-level test: Should compile without explicit generic parameter
-    const genericPromptDef: PromptDefinition = {
+    const genericPromptDef: RenderablePrompt = {
       contentDesc: "Test intro",
       instructions: ["Instruction 1"],
       responseSchema: genericSchema,
@@ -68,7 +68,7 @@ describe("PromptDefinition Generic Type", () => {
       age: z.number().min(0),
     });
 
-    type UserPromptDef = PromptDefinition<typeof userSchema>;
+    type UserPromptDef = RenderablePrompt<typeof userSchema>;
 
     const userPromptDef: UserPromptDef = {
       contentDesc: "User data analysis",
@@ -106,7 +106,7 @@ describe("PromptDefinition Generic Type", () => {
       optional: z.string().optional(),
     });
 
-    const promptDef: PromptDefinition<typeof schema> = {
+    const promptDef: RenderablePrompt<typeof schema> = {
       contentDesc: "Test",
       instructions: [],
       responseSchema: schema,

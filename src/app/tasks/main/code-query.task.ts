@@ -4,7 +4,7 @@ import { readFile } from "../../../common/fs/file-operations";
 import { formatError } from "../../../common/utils/error-formatters";
 import { queryCodebaseWithQuestion } from "../../components/querying/codebase-query-processor";
 import { coreTokens, repositoryTokens, llmTokens } from "../../di/tokens";
-import { inputConfig } from "../../prompts/config/input.config";
+import { inputConfig } from "../../config/input.config";
 import type { SourcesRepository } from "../../repositories/sources/sources.repository.interface";
 import type LLMRouter from "../../../common/llm/llm-router";
 import type LLMExecutionStats from "../../../common/llm/tracking/llm-execution-stats";

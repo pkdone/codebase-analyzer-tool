@@ -3,12 +3,12 @@ import { z } from "zod";
 import { logErr } from "../../../common/utils/logging";
 import type LLMRouter from "../../../common/llm/llm-router";
 import { LLMOutputFormat } from "../../../common/llm/types/llm.types";
-import { renderPrompt } from "../../prompts/prompt-renderer";
+import { renderPrompt } from "../../../common/prompts/prompt-renderer";
 import { sourceSummarySchema } from "../../schemas/sources.schema";
 import { getCanonicalFileType } from "../../config/file-handling";
 import { getLlmArtifactCorrections } from "../../config/llm-artifact-corrections";
 import { llmTokens, captureTokens } from "../../di/tokens";
-import type { PromptManager } from "../../prompts/prompt-registry";
+import type { AppPromptManager } from "../../prompts/app-prompt-registry";
 import type { FileTypePromptRegistry } from "../../prompts/definitions/sources/sources.definitions";
 import { type Result, ok, err, isOk } from "../../../common/types/result.types";
 
@@ -36,7 +36,7 @@ export type PartialSourceSummaryType = Partial<SourceSummaryType>;
 export class FileSummarizerService {
   constructor(
     @inject(llmTokens.LLMRouter) private readonly llmRouter: LLMRouter,
-    @inject(captureTokens.PromptManager) private readonly promptManager: PromptManager,
+    @inject(captureTokens.PromptManager) private readonly appPromptManager: AppPromptManager,
     @inject(captureTokens.FileTypePromptRegistry)
     private readonly fileTypePromptRegistry: FileTypePromptRegistry,
   ) {}
@@ -63,8 +63,8 @@ export class FileSummarizerService {
     try {
       if (content.trim().length === 0) return err(new Error("File is empty"));
       const canonicalFileType = getCanonicalFileType(filepath, type);
-      const promptMetadata = this.promptManager.sources[canonicalFileType];
-      const renderedPrompt = renderPrompt(promptMetadata, { content });
+      const promptMetadata = this.appPromptManager.sources[canonicalFileType];
+      const renderedPrompt = renderPrompt(promptMetadata, content);
       const fileTypePromptConfig = this.fileTypePromptRegistry[canonicalFileType];
       const schema = fileTypePromptConfig.responseSchema;
       // hasComplexSchema is optional and may not exist on some entries

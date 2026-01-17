@@ -1,4 +1,4 @@
-import { inputConfig } from "../../../src/app/prompts/config/input.config";
+import { inputConfig } from "../../../src/app/config/input.config";
 
 describe("inputConfig", () => {
   describe("base path", () => {

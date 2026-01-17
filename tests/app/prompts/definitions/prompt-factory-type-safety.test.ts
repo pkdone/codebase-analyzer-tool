@@ -1,7 +1,8 @@
 import { z } from "zod";
-import { createPromptMetadata } from "../../../../src/app/prompts/prompt-registry";
-import type { PromptDefinition } from "../../../../src/app/prompts/prompt.types";
-import { DATA_BLOCK_HEADERS } from "../../../../src/app/prompts/prompt.types";
+import { createPromptMetadata } from "../../../../src/common/prompts/prompt-factory";
+import type { RenderablePrompt } from "../../../../src/common/prompts/prompt.types";
+import { CODE_DATA_BLOCK_HEADER } from "../../../../src/app/prompts/definitions/sources/definitions/source-config-factories";
+import { FILE_SUMMARIES_DATA_BLOCK_HEADER } from "../../../../src/app/prompts/definitions/app-summaries/app-summaries.factories";
 
 /**
  * Type safety tests for createPromptMetadata factory function.
@@ -24,7 +25,7 @@ describe("createPromptMetadata Type Safety", () => {
           contentDesc: "string content",
           responseSchema: stringSchema,
           instructions: ["test"] as const,
-          dataBlockHeader: DATA_BLOCK_HEADERS.CODE,
+          dataBlockHeader: CODE_DATA_BLOCK_HEADER,
           wrapInCodeBlock: true,
         },
         numberType: {
@@ -32,7 +33,7 @@ describe("createPromptMetadata Type Safety", () => {
           contentDesc: "number content",
           responseSchema: numberSchema,
           instructions: ["test"] as const,
-          dataBlockHeader: DATA_BLOCK_HEADERS.CODE,
+          dataBlockHeader: CODE_DATA_BLOCK_HEADER,
           wrapInCodeBlock: true,
         },
         arrayType: {
@@ -40,7 +41,7 @@ describe("createPromptMetadata Type Safety", () => {
           contentDesc: "array content",
           responseSchema: arraySchema,
           instructions: ["test"] as const,
-          dataBlockHeader: DATA_BLOCK_HEADERS.CODE,
+          dataBlockHeader: CODE_DATA_BLOCK_HEADER,
           wrapInCodeBlock: true,
         },
       } as const;
@@ -70,7 +71,7 @@ describe("createPromptMetadata Type Safety", () => {
           contentDesc: "user data",
           responseSchema: userSchema,
           instructions: [] as const,
-          dataBlockHeader: DATA_BLOCK_HEADERS.FILE_SUMMARIES,
+          dataBlockHeader: FILE_SUMMARIES_DATA_BLOCK_HEADER,
           wrapInCodeBlock: false,
         },
         product: {
@@ -78,7 +79,7 @@ describe("createPromptMetadata Type Safety", () => {
           contentDesc: "product data",
           responseSchema: productSchema,
           instructions: [] as const,
-          dataBlockHeader: DATA_BLOCK_HEADERS.FILE_SUMMARIES,
+          dataBlockHeader: FILE_SUMMARIES_DATA_BLOCK_HEADER,
           wrapInCodeBlock: false,
         },
       } as const;
@@ -99,8 +100,8 @@ describe("createPromptMetadata Type Safety", () => {
     });
   });
 
-  describe("PromptDefinition Generic Parameter", () => {
-    it("should produce PromptDefinition with correct generic parameter", () => {
+  describe("RenderablePrompt Generic Parameter", () => {
+    it("should produce RenderablePrompt with correct generic parameter", () => {
       const schema = z.object({
         field: z.string(),
       });
@@ -111,16 +112,16 @@ describe("createPromptMetadata Type Safety", () => {
           contentDesc: "test content",
           responseSchema: schema,
           instructions: [] as const,
-          dataBlockHeader: DATA_BLOCK_HEADERS.CODE,
+          dataBlockHeader: CODE_DATA_BLOCK_HEADER,
           wrapInCodeBlock: true,
         },
       } as const;
 
       const result = createPromptMetadata(configMap, testTemplate);
 
-      // The result should be a PromptDefinition with the specific schema type
+      // The result should be a RenderablePrompt with the specific schema type
       // Type-level verification: this should compile
-      const testDef: PromptDefinition<typeof schema> = result.test;
+      const testDef: RenderablePrompt<typeof schema> = result.test;
 
       expect(testDef.responseSchema).toBe(schema);
     });
@@ -136,7 +137,7 @@ describe("createPromptMetadata Type Safety", () => {
           contentDesc: "first content",
           responseSchema: schema,
           instructions: ["Instruction 1"] as const,
-          dataBlockHeader: DATA_BLOCK_HEADERS.CODE,
+          dataBlockHeader: CODE_DATA_BLOCK_HEADER,
           wrapInCodeBlock: true,
         },
         second: {
@@ -144,15 +145,15 @@ describe("createPromptMetadata Type Safety", () => {
           contentDesc: "second content",
           responseSchema: schema,
           instructions: ["Instruction 2"] as const,
-          dataBlockHeader: DATA_BLOCK_HEADERS.FILE_SUMMARIES,
+          dataBlockHeader: FILE_SUMMARIES_DATA_BLOCK_HEADER,
           wrapInCodeBlock: false,
         },
       } as const;
 
       const result = createPromptMetadata(configMap, testTemplate);
 
-      expect(result.first.dataBlockHeader).toBe(DATA_BLOCK_HEADERS.CODE);
-      expect(result.second.dataBlockHeader).toBe(DATA_BLOCK_HEADERS.FILE_SUMMARIES);
+      expect(result.first.dataBlockHeader).toBe(CODE_DATA_BLOCK_HEADER);
+      expect(result.second.dataBlockHeader).toBe(FILE_SUMMARIES_DATA_BLOCK_HEADER);
       expect(result.first.wrapInCodeBlock).toBe(true);
       expect(result.second.wrapInCodeBlock).toBe(false);
     });
@@ -164,7 +165,7 @@ describe("createPromptMetadata Type Safety", () => {
           contentDesc: "custom description from config",
           responseSchema: z.string(),
           instructions: ["Step 1", "Step 2"] as const,
-          dataBlockHeader: DATA_BLOCK_HEADERS.CODE,
+          dataBlockHeader: CODE_DATA_BLOCK_HEADER,
           wrapInCodeBlock: true,
         },
       } as const;
@@ -200,7 +201,7 @@ describe("createPromptMetadata Type Safety", () => {
           contentDesc: "type A content",
           responseSchema: z.object({ a: z.string() }),
           instructions: ["A instruction"] as const,
-          dataBlockHeader: DATA_BLOCK_HEADERS.CODE,
+          dataBlockHeader: CODE_DATA_BLOCK_HEADER,
           wrapInCodeBlock: true,
         },
         typeB: {
@@ -208,7 +209,7 @@ describe("createPromptMetadata Type Safety", () => {
           contentDesc: "type B content",
           responseSchema: z.object({ b: z.number() }),
           instructions: ["B instruction"] as const,
-          dataBlockHeader: DATA_BLOCK_HEADERS.FILE_SUMMARIES,
+          dataBlockHeader: FILE_SUMMARIES_DATA_BLOCK_HEADER,
           wrapInCodeBlock: false,
         },
       } as const satisfies Record<string, TestConfigEntry>;
@@ -224,8 +225,8 @@ describe("createPromptMetadata Type Safety", () => {
       expect(result.typeB.contentDesc).toBe("type B content");
 
       // DataBlockHeader should be preserved from config
-      expect(result.typeA.dataBlockHeader).toBe(DATA_BLOCK_HEADERS.CODE);
-      expect(result.typeB.dataBlockHeader).toBe(DATA_BLOCK_HEADERS.FILE_SUMMARIES);
+      expect(result.typeA.dataBlockHeader).toBe(CODE_DATA_BLOCK_HEADER);
+      expect(result.typeB.dataBlockHeader).toBe(FILE_SUMMARIES_DATA_BLOCK_HEADER);
 
       // Validate that schemas are distinct
       const typeAShape = (result.typeA.responseSchema as z.ZodObject<z.ZodRawShape>).shape;

@@ -1,10 +1,10 @@
-import { renderPrompt } from "../../../src/app/prompts/prompt-renderer";
-import { promptManager } from "../../../src/app/prompts/prompt-registry";
-import { FORCE_JSON_FORMAT, BASE_PROMPT_TEMPLATE } from "../../../src/app/prompts/templates";
+import { renderPrompt } from "../../../src/common/prompts/prompt-renderer";
+import { appPromptManager } from "../../../src/app/prompts/app-prompt-registry";
+import { PARTIAL_ANALYSIS_TEMPLATE } from "../../../src/app/prompts/app-templates";
 import { SOURCES_PROMPT_FRAGMENTS } from "../../../src/app/prompts/definitions/sources/sources.fragments";
-import { INSTRUCTION_SECTION_TITLES } from "../../../src/app/prompts/utils/instruction-utils";
+import { INSTRUCTION_SECTION_TITLES } from "../../../src/app/prompts/definitions/sources/source-instruction-utils";
 
-const fileTypePromptMetadata = promptManager.sources;
+const fileTypePromptMetadata = appPromptManager.sources;
 
 describe("renderPrompt", () => {
   const javaCodeSample = `package com.acme.myapp.address.ejb;
@@ -89,7 +89,7 @@ public abstract class AddressEJB implements EntityBean {
     it("should render prompt correctly with Java file type metadata", () => {
       const javaMetadata = fileTypePromptMetadata.java;
 
-      const renderedPrompt = renderPrompt(javaMetadata, { content: javaCodeSample });
+      const renderedPrompt = renderPrompt(javaMetadata, javaCodeSample);
 
       // Verify template structure is present
       expect(renderedPrompt).toContain("Act as a senior developer analyzing the code");
@@ -124,8 +124,8 @@ public abstract class AddressEJB implements EntityBean {
       expect(renderedPrompt).toContain('"type":');
       expect(renderedPrompt).toContain("properties");
 
-      // Verify FORCE_JSON_FORMAT instruction is present
-      expect(renderedPrompt).toContain(FORCE_JSON_FORMAT);
+      // Verify JSON format enforcement instruction is present
+      expect(renderedPrompt).toContain("The response MUST be valid JSON");
 
       // Verify JSON schema contains Java-specific fields
       const jsonSchemaRegex = /```json\n([\s\S]*?)\n```/;
@@ -147,7 +147,7 @@ public abstract class AddressEJB implements EntityBean {
     it("should format instruction sections with titles correctly", () => {
       const javaMetadata = fileTypePromptMetadata.java;
 
-      const renderedPrompt = renderPrompt(javaMetadata, { content: javaCodeSample });
+      const renderedPrompt = renderPrompt(javaMetadata, javaCodeSample);
 
       // Verify sections are separated by double newlines
       const basicInfoSection = `__${INSTRUCTION_SECTION_TITLES.BASIC_INFO}__`;
@@ -166,7 +166,7 @@ public abstract class AddressEJB implements EntityBean {
     it("should include all template placeholders correctly", () => {
       const javaMetadata = fileTypePromptMetadata.java;
 
-      const renderedPrompt = renderPrompt(javaMetadata, { content: javaCodeSample });
+      const renderedPrompt = renderPrompt(javaMetadata, javaCodeSample);
 
       // Verify no placeholder syntax remains
       expect(renderedPrompt).not.toMatch(/\{\{[a-zA-Z]+\}\}/);
@@ -174,80 +174,63 @@ public abstract class AddressEJB implements EntityBean {
       // Verify all expected content is present
       expect(renderedPrompt).toContain("JVM code"); // Check intro text is rendered
       expect(renderedPrompt).toContain(javaCodeSample);
-      expect(renderedPrompt).toContain(FORCE_JSON_FORMAT);
+      expect(renderedPrompt).toContain("The response MUST be valid JSON");
     });
 
-    it("should support additional parameters in render method", () => {
-      // Use BASE_PROMPT_TEMPLATE which supports additional parameters
+    it("should render PARTIAL_ANALYSIS_TEMPLATE with partial analysis note", () => {
+      // Use PARTIAL_ANALYSIS_TEMPLATE for partial analysis scenarios
       const javaMetadata = fileTypePromptMetadata.java;
       const config = {
-        contentDesc: "test code with {{dataBlockHeader}} reference",
+        contentDesc: "test code",
         instructions: ["test instruction"],
         responseSchema: javaMetadata.responseSchema,
-        template: BASE_PROMPT_TEMPLATE,
+        template: PARTIAL_ANALYSIS_TEMPLATE,
         dataBlockHeader: "FILE_SUMMARIES" as const,
         wrapInCodeBlock: false,
       };
 
-      const renderedPrompt = renderPrompt(config, {
-        content: javaCodeSample,
-        partialAnalysisNote: "This is a custom note for testing.\n\n",
-      });
+      const renderedPrompt = renderPrompt(config, javaCodeSample);
 
-      // Verify additional parameters are included
-      expect(renderedPrompt).toContain("This is a custom note for testing");
+      // Verify partial analysis note is included (from the template itself)
+      expect(renderedPrompt).toContain("partial analysis");
+      expect(renderedPrompt).toContain("focus on extracting insights from this subset");
 
       // Verify no placeholder syntax remains
       expect(renderedPrompt).not.toMatch(/\{\{[a-zA-Z]+\}\}/);
     });
 
-    it("should use nullish coalescing for partialAnalysisNote (allows empty string)", () => {
+    it("should handle custom template placeholder", () => {
       const javaMetadata = fileTypePromptMetadata.java;
       const config = {
         contentDesc: "Test intro text template",
         instructions: ["test instruction"],
         responseSchema: javaMetadata.responseSchema,
-        template: `{{partialAnalysisNote}}Test template`,
+        template: `{{customPlaceholder}}Test template`,
         dataBlockHeader: "CODE" as const,
         wrapInCodeBlock: false,
       };
 
-      // Test that empty string is preserved (not replaced with default)
-      const renderedWithEmptyString = renderPrompt(config, {
-        content: javaCodeSample,
-        partialAnalysisNote: "",
+      // Test that custom placeholder is replaced
+      const rendered = renderPrompt(config, javaCodeSample, {
+        customPlaceholder: "Custom value - ",
       });
-      expect(renderedWithEmptyString).toContain("Test template");
-      // Empty string should be included, not replaced
-      expect(renderedWithEmptyString).toBe("Test template");
-
-      // Test that undefined uses default
-      const renderedWithUndefined = renderPrompt(config, { content: javaCodeSample });
-      expect(renderedWithUndefined).toBe("Test template");
-
-      // Test that actual value is used
-      const renderedWithValue = renderPrompt(config, {
-        content: javaCodeSample,
-        partialAnalysisNote: "Custom note",
-      });
-      expect(renderedWithValue).toContain("Custom note");
+      expect(rendered).toContain("Custom value - Test template");
     });
 
     it("should handle missing content gracefully", () => {
       const javaMetadata = fileTypePromptMetadata.java;
 
-      const renderedPrompt = renderPrompt(javaMetadata, { content: "" });
+      const renderedPrompt = renderPrompt(javaMetadata, "");
 
       // Should still render the template structure
       expect(renderedPrompt).toContain("Act as a senior developer analyzing the code");
       expect(renderedPrompt).toContain("CODE:");
     });
 
-    it("should handle undefined values in data object", () => {
+    it("should handle undefined values in extras object", () => {
       const javaMetadata = fileTypePromptMetadata.java;
 
-      const renderedPrompt = renderPrompt(javaMetadata, {
-        content: javaCodeSample,
+      const renderedPrompt = renderPrompt(javaMetadata, javaCodeSample, {
         someUndefinedValue: undefined,
       });
 
@@ -260,7 +243,7 @@ public abstract class AddressEJB implements EntityBean {
       const javaMetadata = fileTypePromptMetadata.java;
 
       // Content is now a required field in RenderPromptData - provide empty string
-      const renderedPrompt = renderPrompt(javaMetadata, { content: "" });
+      const renderedPrompt = renderPrompt(javaMetadata, "");
 
       // Template should still render with empty content
       expect(renderedPrompt).toContain("Act as a senior developer analyzing the code");

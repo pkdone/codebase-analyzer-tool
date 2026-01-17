@@ -4,6 +4,7 @@ import { llmTokens } from "../../../di/tokens";
 import { IInsightGenerationStrategy } from "./completion-strategy.interface";
 import { AppSummaryCategoryEnum, CategoryInsightResult } from "../insights.types";
 import { executeInsightCompletion } from "./insights-completion-executor";
+import { ANALYSIS_PROMPT_TEMPLATE } from "../../../prompts/app-templates";
 
 /**
  * Single-pass insight generation strategy for small to medium codebases.
@@ -21,6 +22,8 @@ export class SinglePassInsightStrategy implements IInsightGenerationStrategy {
     category: C,
     sourceFileSummaries: readonly string[],
   ): Promise<CategoryInsightResult<C> | null> {
-    return executeInsightCompletion(this.llmRouter, category, sourceFileSummaries);
+    return executeInsightCompletion(this.llmRouter, category, sourceFileSummaries, {
+      template: ANALYSIS_PROMPT_TEMPLATE,
+    });
   }
 }

@@ -1,14 +1,11 @@
 import { SOURCES_PROMPT_FRAGMENTS, COMPOSITES } from "../sources.fragments";
-import {
-  INSTRUCTION_SECTION_TITLES,
-  buildInstructionBlock,
-} from "../../../utils/instruction-utils";
+import { INSTRUCTION_SECTION_TITLES, buildInstructionBlock } from "../source-instruction-utils";
 import { sourceSummarySchema } from "../../../../schemas/sources.schema";
-import { DATA_BLOCK_HEADERS } from "../../../prompt.types";
 import {
   createSimpleConfig,
   createBasicInfoBlock,
   createScheduledJobConfig,
+  CODE_DATA_BLOCK_HEADER,
   type SourceConfigEntry,
 } from "./source-config-factories";
 
@@ -116,7 +113,7 @@ export const specialFileDefinitions = {
         SOURCES_PROMPT_FRAGMENTS.JSP_SPECIFIC.JSP_METRICS_ANALYSIS,
       ),
     ] as const,
-    dataBlockHeader: DATA_BLOCK_HEADERS.CODE,
+    dataBlockHeader: CODE_DATA_BLOCK_HEADER,
     wrapInCodeBlock: true,
   },
   "shell-script": createScheduledJobConfig(

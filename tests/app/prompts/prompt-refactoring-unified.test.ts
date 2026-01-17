@@ -1,14 +1,14 @@
-import { renderPrompt } from "../../../src/app/prompts/prompt-renderer";
-import { promptManager } from "../../../src/app/prompts/prompt-registry";
+import { renderPrompt } from "../../../src/common/prompts/prompt-renderer";
+import { appPromptManager } from "../../../src/app/prompts/app-prompt-registry";
 import { SOURCES_PROMPT_FRAGMENTS } from "../../../src/app/prompts/definitions/sources/sources.fragments";
 import { APP_SUMMARY_PROMPT_FRAGMENTS } from "../../../src/app/prompts/definitions/app-summaries/app-summaries.fragments";
-import { INSTRUCTION_SECTION_TITLES } from "../../../src/app/prompts/utils/instruction-utils";
+import { INSTRUCTION_SECTION_TITLES } from "../../../src/app/prompts/definitions/sources/source-instruction-utils";
 import { fileTypePromptRegistry } from "../../../src/app/prompts/definitions/sources/sources.definitions";
 import { appSummaryConfigMap } from "../../../src/app/prompts/definitions/app-summaries/app-summaries.definitions";
 import { z } from "zod";
 
-const fileTypePromptMetadata = promptManager.sources;
-const appSummaryPromptMetadata = promptManager.appSummaries;
+const fileTypePromptMetadata = appPromptManager.sources;
+const appSummaryPromptMetadata = appPromptManager.appSummaries;
 
 describe("Prompt Refactoring - Unified Configuration", () => {
   describe("Sources Configuration", () => {
@@ -38,7 +38,7 @@ describe("Prompt Refactoring - Unified Configuration", () => {
       const javaMetadata = fileTypePromptMetadata.java;
       const testCode = "public class Test {}";
 
-      const rendered = renderPrompt(javaMetadata, { content: testCode });
+      const rendered = renderPrompt(javaMetadata, testCode);
 
       // Verify section titles are present
       expect(rendered).toContain(`__${INSTRUCTION_SECTION_TITLES.BASIC_INFO}__`);
@@ -53,7 +53,7 @@ describe("Prompt Refactoring - Unified Configuration", () => {
       const javaMetadata = fileTypePromptMetadata.java;
       const testCode = "public class Test {}";
 
-      const rendered = renderPrompt(javaMetadata, { content: testCode });
+      const rendered = renderPrompt(javaMetadata, testCode);
 
       // Since we can't directly test the template variable, we test the rendered output
       // which should have proper section separation
@@ -92,7 +92,7 @@ describe("Prompt Refactoring - Unified Configuration", () => {
       const appDescriptionMetadata = appSummaryPromptMetadata.appDescription;
       const testSummaries = "Test summary content";
 
-      const rendered = renderPrompt(appDescriptionMetadata, { content: testSummaries });
+      const rendered = renderPrompt(appDescriptionMetadata, testSummaries);
 
       // Should contain the instruction text
       expect(rendered).toContain(
@@ -121,7 +121,7 @@ describe("Prompt Refactoring - Unified Configuration", () => {
         wrapInCodeBlock: false,
       };
 
-      const rendered = renderPrompt(testDefinition, { content: "test" });
+      const rendered = renderPrompt(testDefinition, "test");
 
       // Instructions are joined with double newlines
       expect(rendered).toContain("Instruction 1\n\nInstruction 2\n\nInstruction 3");
@@ -137,7 +137,7 @@ describe("Prompt Refactoring - Unified Configuration", () => {
         wrapInCodeBlock: false,
       };
 
-      const rendered = renderPrompt(testDefinition, { content: "test" });
+      const rendered = renderPrompt(testDefinition, "test");
 
       expect(rendered).toContain("Single instruction");
     });

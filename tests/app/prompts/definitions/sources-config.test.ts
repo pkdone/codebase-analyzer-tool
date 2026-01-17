@@ -1,7 +1,7 @@
 import "reflect-metadata";
-import { promptManager } from "../../../../src/app/prompts/prompt-registry";
-const fileTypePromptMetadata = promptManager.sources;
-import { PromptDefinition } from "../../../../src/app/prompts/prompt.types";
+import { appPromptManager } from "../../../../src/app/prompts/app-prompt-registry";
+const fileTypePromptMetadata = appPromptManager.sources;
+import type { RenderablePrompt } from "../../../../src/common/prompts/prompt.types";
 import { getCanonicalFileType } from "../../../../src/app/config/file-handling";
 import { sourceSummarySchema } from "../../../../src/app/schemas/sources.schema";
 import { SourceSummaryType } from "../../../../src/app/components/capture/file-summarizer.service";
@@ -67,7 +67,7 @@ describe("File Handler Configuration", () => {
 
   describe("DynamicPromptConfig structure", () => {
     test("should enforce correct structure", () => {
-      const testConfig: PromptDefinition = {
+      const testConfig: RenderablePrompt = {
         contentDesc: "test content",
         instructions: ["test instructions"],
         responseSchema: sourceSummarySchema,
@@ -86,7 +86,7 @@ describe("File Handler Configuration", () => {
 
     test("should work with type compatibility", () => {
       // Test that DynamicPromptConfig can work with inline schema types
-      const typedConfig: PromptDefinition = {
+      const typedConfig: RenderablePrompt = {
         contentDesc: "test content",
         instructions: ["test instructions"],
         responseSchema: sourceSummarySchema.pick({ purpose: true, implementation: true }),

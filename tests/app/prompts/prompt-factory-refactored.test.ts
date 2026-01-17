@@ -1,7 +1,7 @@
 import {
   buildInstructionBlock,
   INSTRUCTION_SECTION_TITLES,
-} from "../../../src/app/prompts/utils/instruction-utils";
+} from "../../../src/app/prompts/definitions/sources/source-instruction-utils";
 
 describe("Prompt Factory Refactoring Tests", () => {
   describe("buildInstructionBlock in instruction-utils", () => {
@@ -59,9 +59,9 @@ describe("Prompt Factory Refactoring Tests", () => {
       expect(result).toBe("__Instructions__\nPart 1\nPart 2");
     });
 
-    test("should be accessible from instruction-utils module", () => {
+    test("should be accessible from source-instruction-utils module", () => {
       // This test verifies that buildInstructionBlock is properly exported
-      // from instruction-utils (co-located with INSTRUCTION_SECTION_TITLES)
+      // from source-instruction-utils (co-located with INSTRUCTION_SECTION_TITLES)
       expect(typeof buildInstructionBlock).toBe("function");
     });
   });

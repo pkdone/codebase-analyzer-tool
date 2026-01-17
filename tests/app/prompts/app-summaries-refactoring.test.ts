@@ -1,7 +1,10 @@
-import { promptManager } from "../../../src/app/prompts/prompt-registry";
-const appSummaryPromptMetadata = promptManager.appSummaries;
-import { BASE_PROMPT_TEMPLATE } from "../../../src/app/prompts/templates";
-import { renderPrompt } from "../../../src/app/prompts/prompt-renderer";
+import { appPromptManager } from "../../../src/app/prompts/app-prompt-registry";
+const appSummaryPromptMetadata = appPromptManager.appSummaries;
+import {
+  ANALYSIS_PROMPT_TEMPLATE,
+  PARTIAL_ANALYSIS_TEMPLATE,
+} from "../../../src/app/prompts/app-templates";
+import { renderPrompt } from "../../../src/common/prompts/prompt-renderer";
 
 describe("App Summaries Refactoring", () => {
   describe("Prompt definitions consistency", () => {
@@ -43,30 +46,11 @@ describe("App Summaries Refactoring", () => {
   });
 
   describe("Unified template functionality", () => {
-    it("should render BASE_PROMPT_TEMPLATE with partialAnalysisNote parameter", () => {
-      const config = appSummaryPromptMetadata.technologies;
-      const testContent = "Test file content";
-      const partialAnalysisNote = "This is a partial analysis note for testing";
-
-      const renderedPrompt = renderPrompt(config, {
-        content: testContent,
-        partialAnalysisNote,
-      });
-
-      // Verify the template structure
-      expect(renderedPrompt).toContain("Act as a senior developer analyzing the code");
-      expect(renderedPrompt).toContain("FILE_SUMMARIES:");
-      expect(renderedPrompt).toContain(testContent);
-      expect(renderedPrompt).toContain(partialAnalysisNote);
-      expect(renderedPrompt).toContain("```json");
-      expect(renderedPrompt).toContain("```");
-    });
-
-    it("should render BASE_PROMPT_TEMPLATE without partialAnalysisNote parameter", () => {
+    it("should render ANALYSIS_PROMPT_TEMPLATE for standard analysis", () => {
       const config = appSummaryPromptMetadata.technologies;
       const testContent = "Test file content";
 
-      const renderedPrompt = renderPrompt(config, { content: testContent });
+      const renderedPrompt = renderPrompt(config, testContent);
 
       // Verify the template structure
       expect(renderedPrompt).toContain("Act as a senior developer analyzing the code");
@@ -74,50 +58,53 @@ describe("App Summaries Refactoring", () => {
       expect(renderedPrompt).toContain(testContent);
       expect(renderedPrompt).toContain("```json");
       expect(renderedPrompt).toContain("```");
-
       // Verify no placeholder syntax remains
-      expect(renderedPrompt).not.toMatch(/\{\{partialAnalysisNote\}\}/);
-      // When partialAnalysisNote is empty, it should not add extra whitespace
-      expect(renderedPrompt).not.toMatch(/\n\n\n/); // No triple newlines
+      expect(renderedPrompt).not.toMatch(/\{\{[a-zA-Z]+\}\}/);
     });
 
-    it("should handle empty partialAnalysisNote correctly", () => {
+    it("should render PARTIAL_ANALYSIS_TEMPLATE with partial analysis note", () => {
       const config = appSummaryPromptMetadata.technologies;
       const testContent = "Test file content";
 
-      const renderedPrompt = renderPrompt(config, {
-        content: testContent,
-        partialAnalysisNote: "",
-      });
+      // Use PARTIAL_ANALYSIS_TEMPLATE for partial analysis
+      const configWithPartialTemplate = { ...config, template: PARTIAL_ANALYSIS_TEMPLATE };
+      const renderedPrompt = renderPrompt(configWithPartialTemplate, testContent);
 
-      // Verify the template structure without the note
+      // Verify the template structure includes partial analysis note
       expect(renderedPrompt).toContain("Act as a senior developer analyzing the code");
       expect(renderedPrompt).toContain("FILE_SUMMARIES:");
       expect(renderedPrompt).toContain(testContent);
-
-      // Verify no placeholder syntax remains
-      expect(renderedPrompt).not.toMatch(/\{\{partialAnalysisNote\}\}/);
-      // When partialAnalysisNote is empty, it should not add extra whitespace
-      expect(renderedPrompt).not.toMatch(/\n\n\n/); // No triple newlines
+      expect(renderedPrompt).toContain("partial analysis");
+      expect(renderedPrompt).toContain("focus on extracting insights from this subset");
+      expect(renderedPrompt).toContain("```json");
+      expect(renderedPrompt).toContain("```");
     });
   });
 
   describe("Template consolidation", () => {
-    it("should use BASE_PROMPT_TEMPLATE that replaces both SINGLE_PASS and PARTIAL templates", () => {
+    it("should use ANALYSIS_PROMPT_TEMPLATE for standard analysis", () => {
       // Verify the unified template contains the essential elements
-      // jsonSchema and forceJSON are now consolidated into schemaSection
-      expect(BASE_PROMPT_TEMPLATE).toContain("{{contentDesc}}");
-      expect(BASE_PROMPT_TEMPLATE).toContain("{{instructionsText}}");
-      expect(BASE_PROMPT_TEMPLATE).toContain("{{dataBlockHeader}}");
-      expect(BASE_PROMPT_TEMPLATE).toContain("{{partialAnalysisNote}}");
-      expect(BASE_PROMPT_TEMPLATE).toContain("{{schemaSection}}");
-      expect(BASE_PROMPT_TEMPLATE).toContain("{{content}}");
+      expect(ANALYSIS_PROMPT_TEMPLATE).toContain("{{contentDesc}}");
+      expect(ANALYSIS_PROMPT_TEMPLATE).toContain("{{instructionsText}}");
+      expect(ANALYSIS_PROMPT_TEMPLATE).toContain("{{dataBlockHeader}}");
+      expect(ANALYSIS_PROMPT_TEMPLATE).toContain("{{schemaSection}}");
+      expect(ANALYSIS_PROMPT_TEMPLATE).toContain("{{content}}");
+      // partialAnalysisNote is handled via PARTIAL_ANALYSIS_TEMPLATE, not as a placeholder
+      expect(ANALYSIS_PROMPT_TEMPLATE).not.toContain("{{partialAnalysisNote}}");
+    });
+
+    it("should use PARTIAL_ANALYSIS_TEMPLATE derived from ANALYSIS_PROMPT_TEMPLATE", () => {
+      // PARTIAL_ANALYSIS_TEMPLATE includes the partial analysis note
+      expect(PARTIAL_ANALYSIS_TEMPLATE).toContain("{{contentDesc}}");
+      expect(PARTIAL_ANALYSIS_TEMPLATE).toContain("{{instructionsText}}");
+      expect(PARTIAL_ANALYSIS_TEMPLATE).toContain("partial analysis");
+      expect(PARTIAL_ANALYSIS_TEMPLATE).toContain("focus on extracting insights from this subset");
     });
 
     it("should verify prompt text structure with generic contentDesc and specific instructions", () => {
       const config = appSummaryPromptMetadata.technologies;
       const testContent = "Test file summaries content";
-      const renderedPrompt = renderPrompt(config, { content: testContent });
+      const renderedPrompt = renderPrompt(config, testContent);
 
       // Verify generic contentDesc appears in template
       expect(renderedPrompt).toContain("a set of source file summaries");

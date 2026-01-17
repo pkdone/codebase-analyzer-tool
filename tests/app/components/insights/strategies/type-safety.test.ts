@@ -12,6 +12,7 @@ import {
 } from "../../../../../src/app/components/insights/insights.types";
 import LLMRouter from "../../../../../src/common/llm/llm-router";
 import { z } from "zod";
+import { ANALYSIS_PROMPT_TEMPLATE } from "../../../../../src/app/prompts/app-templates";
 
 describe("Type Safety Tests", () => {
   describe("IInsightGenerationStrategy interface", () => {
@@ -292,9 +293,12 @@ describe("Type Safety Tests", () => {
       const mockResponse = { appDescription: "Test description" };
       mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(mockResponse);
 
-      const result = await executeInsightCompletion(mockLLMRouter, "appDescription", [
-        "* file1.ts: purpose",
-      ]);
+      const result = await executeInsightCompletion(
+        mockLLMRouter,
+        "appDescription",
+        ["* file1.ts: purpose"],
+        { template: ANALYSIS_PROMPT_TEMPLATE },
+      );
 
       if (result) {
         // TypeScript should infer this as z.infer<AppSummaryCategorySchemas["appDescription"]>
@@ -310,9 +314,12 @@ describe("Type Safety Tests", () => {
       };
       mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(mockResponse);
 
-      const result = await executeInsightCompletion(mockLLMRouter, "technologies", [
-        "* file1.ts: purpose",
-      ]);
+      const result = await executeInsightCompletion(
+        mockLLMRouter,
+        "technologies",
+        ["* file1.ts: purpose"],
+        { template: ANALYSIS_PROMPT_TEMPLATE },
+      );
 
       if (result) {
         // TypeScript should infer this as z.infer<AppSummaryCategorySchemas["technologies"]>
@@ -344,9 +351,12 @@ describe("Type Safety Tests", () => {
       };
       mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(mockResponse);
 
-      const result = await executeInsightCompletion(mockLLMRouter, "boundedContexts", [
-        "* file1.ts: purpose",
-      ]);
+      const result = await executeInsightCompletion(
+        mockLLMRouter,
+        "boundedContexts",
+        ["* file1.ts: purpose"],
+        { template: ANALYSIS_PROMPT_TEMPLATE },
+      );
 
       if (result) {
         // Should be able to access boundedContext-specific properties directly
@@ -370,9 +380,12 @@ describe("Type Safety Tests", () => {
       };
       mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(mockResponse);
 
-      const result = await executeInsightCompletion(mockLLMRouter, "potentialMicroservices", [
-        "* file1.ts: purpose",
-      ]);
+      const result = await executeInsightCompletion(
+        mockLLMRouter,
+        "potentialMicroservices",
+        ["* file1.ts: purpose"],
+        { template: ANALYSIS_PROMPT_TEMPLATE },
+      );
 
       if (result) {
         const typed: z.infer<AppSummaryCategorySchemas["potentialMicroservices"]> = result;

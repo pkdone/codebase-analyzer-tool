@@ -1,12 +1,12 @@
 /**
- * Instruction utilities for building prompt instruction blocks.
- * This module provides standardized section titles and helper functions
- * for constructing instruction-based prompts.
+ * Source file-specific instruction utilities for building prompt instruction blocks.
+ * This module provides type-safe wrappers around common utilities with
+ * standardized section titles used in source code analysis prompts.
  */
 
 /**
- * Standardized section titles for instruction-based prompts.
- * These constants ensure consistency and prevent typos across all prompt definitions.
+ * Standardized section titles for source file instruction-based prompts.
+ * These constants ensure consistency and prevent typos across all source prompt definitions.
  */
 export const INSTRUCTION_SECTION_TITLES = {
   BASIC_INFO: "Basic Information",
@@ -39,9 +39,6 @@ export type InstructionSectionTitle =
  * The title is formatted with double underscores (__title__) and followed by a newline,
  * then all parts are joined with newlines.
  *
- * This function is used by both sources.config.ts and app-summaries.config.ts
- * to construct consistent instruction blocks for LLM prompts.
- *
  * @param title - The title for the instruction block (must be a valid InstructionSectionTitle)
  * @param parts - Variable number of instruction parts, which can be strings or readonly string arrays
  * @returns A single formatted string with the title and joined parts
@@ -61,10 +58,12 @@ export function buildInstructionBlock(
   ...parts: (string | readonly string[])[]
 ): string {
   const flattenedParts = parts.flat();
+  const formattedTitle = `__${title}__`;
+
   if (flattenedParts.length === 0) {
-    return `__${title}__`;
+    return formattedTitle;
   }
-  return `__${title}__\n${flattenedParts.join("\n")}`;
+  return `${formattedTitle}\n${flattenedParts.join("\n")}`;
 }
 
 /**

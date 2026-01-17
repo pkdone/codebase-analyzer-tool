@@ -5,15 +5,15 @@ import {
   createScheduledJobConfig,
   createStandardCodeConfig,
   scheduledJobFileSchema,
+  CODE_DATA_BLOCK_HEADER,
   type SourceSummaryField,
 } from "../../../../../../src/app/prompts/definitions/sources/definitions/source-config-factories";
 import {
   INSTRUCTION_SECTION_TITLES,
   buildInstructionBlock,
-} from "../../../../../../src/app/prompts/utils/instruction-utils";
+} from "../../../../../../src/app/prompts/definitions/sources/source-instruction-utils";
 import { SOURCES_PROMPT_FRAGMENTS } from "../../../../../../src/app/prompts/definitions/sources/sources.fragments";
 import { sourceSummarySchema } from "../../../../../../src/app/schemas/sources.schema";
-import { DATA_BLOCK_HEADERS } from "../../../../../../src/app/prompts/prompt.types";
 
 describe("source-config-factories", () => {
   describe("createBasicInfoBlock", () => {
@@ -373,7 +373,7 @@ describe("source-config-factories", () => {
         SOURCES_PROMPT_FRAGMENTS.JAVA_SPECIFIC,
       );
 
-      expect(config.dataBlockHeader).toBe(DATA_BLOCK_HEADERS.CODE);
+      expect(config.dataBlockHeader).toBe(CODE_DATA_BLOCK_HEADER);
     });
 
     it("should explicitly set wrapInCodeBlock to true", () => {
@@ -390,7 +390,7 @@ describe("source-config-factories", () => {
     describe("createDependencyConfig", () => {
       it("should explicitly set dataBlockHeader to CODE", () => {
         const config = createDependencyConfig("test content", "dependency fragment");
-        expect(config.dataBlockHeader).toBe(DATA_BLOCK_HEADERS.CODE);
+        expect(config.dataBlockHeader).toBe(CODE_DATA_BLOCK_HEADER);
       });
 
       it("should explicitly set wrapInCodeBlock to true", () => {
@@ -402,7 +402,7 @@ describe("source-config-factories", () => {
     describe("createScheduledJobConfig", () => {
       it("should explicitly set dataBlockHeader to CODE", () => {
         const config = createScheduledJobConfig("test script", "fragment");
-        expect(config.dataBlockHeader).toBe(DATA_BLOCK_HEADERS.CODE);
+        expect(config.dataBlockHeader).toBe(CODE_DATA_BLOCK_HEADER);
       });
 
       it("should explicitly set wrapInCodeBlock to true", () => {
@@ -427,7 +427,7 @@ describe("source-config-factories", () => {
           ],
         );
 
-        expect(config.dataBlockHeader).toBe(DATA_BLOCK_HEADERS.CODE);
+        expect(config.dataBlockHeader).toBe(CODE_DATA_BLOCK_HEADER);
       });
 
       it("should explicitly set wrapInCodeBlock to true", () => {
@@ -456,7 +456,7 @@ describe("source-config-factories", () => {
           SOURCES_PROMPT_FRAGMENTS.JAVA_SPECIFIC,
         );
 
-        expect(config.dataBlockHeader).toBe(DATA_BLOCK_HEADERS.CODE);
+        expect(config.dataBlockHeader).toBe(CODE_DATA_BLOCK_HEADER);
       });
 
       it("should explicitly set wrapInCodeBlock to true", () => {
