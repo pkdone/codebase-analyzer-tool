@@ -108,6 +108,17 @@ function validateContentInput(
     return { success: false, error: createParseError("is not a string", context) };
   }
 
+  // ES2023: Check for malformed Unicode (lone surrogates) which can occur in
+  // truncated LLM streaming responses or encoding issues
+  if (!content.isWellFormed()) {
+    logProblem(
+      `LLM response contains malformed Unicode (lone surrogates)`,
+      { ...context, contentLength: content.length },
+      loggingEnabled,
+    );
+    return { success: false, error: createParseError("contains malformed Unicode", context) };
+  }
+
   const trimmedContent = content.trim();
 
   if (!content) {

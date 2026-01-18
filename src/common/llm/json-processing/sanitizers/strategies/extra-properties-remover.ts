@@ -112,12 +112,7 @@ export const extraPropertiesRemover: SanitizerStrategy = {
     while (previousUnquoted !== sanitized) {
       previousUnquoted = sanitized;
       const matches: { start: number; end: number; delimiter: string; propName: string }[] = [];
-      let match;
-      const pattern = new RegExp(
-        unquotedArtifactPropertyPattern.source,
-        unquotedArtifactPropertyPattern.flags,
-      );
-      while ((match = pattern.exec(sanitized)) !== null) {
+      for (const match of sanitized.matchAll(unquotedArtifactPropertyPattern)) {
         const numericOffset = match.index;
         if (isInStringAt(numericOffset, sanitized)) {
           continue;
@@ -277,12 +272,7 @@ export const extraPropertiesRemover: SanitizerStrategy = {
     while (previousExtraProperty !== sanitized) {
       previousExtraProperty = sanitized;
       const matches: { start: number; end: number; delimiter: string; propName: string }[] = [];
-      let match;
-      const pattern = new RegExp(
-        quotedArtifactPropertyPattern.source,
-        quotedArtifactPropertyPattern.flags,
-      );
-      while ((match = pattern.exec(sanitized)) !== null) {
+      for (const match of sanitized.matchAll(quotedArtifactPropertyPattern)) {
         const numericOffset = match.index;
         if (isInStringAt(numericOffset, sanitized)) {
           continue;

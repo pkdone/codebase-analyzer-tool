@@ -300,7 +300,7 @@ function extractNumericValue(value: string): number {
 
   // Strategy 1: Strict parsing - handles clean numeric strings
   const strictValue = Number(trimmed);
-  if (!isNaN(strictValue) && isFinite(strictValue)) {
+  if (!Number.isNaN(strictValue) && Number.isFinite(strictValue)) {
     return strictValue;
   }
 
@@ -309,7 +309,7 @@ function extractNumericValue(value: string): number {
   const leadingNumericMatch = /^[~≈]?\s*(-?\d+(?:\.\d+)?)/.exec(trimmed);
   if (leadingNumericMatch) {
     const extracted = Number(leadingNumericMatch[1]);
-    if (!isNaN(extracted) && isFinite(extracted)) {
+    if (!Number.isNaN(extracted) && Number.isFinite(extracted)) {
       return extracted;
     }
   }
@@ -319,7 +319,7 @@ function extractNumericValue(value: string): number {
   const embeddedNumericMatch = /\b(-?\d+(?:\.\d+)?)\b/.exec(trimmed);
   if (embeddedNumericMatch) {
     const extracted = Number(embeddedNumericMatch[1]);
-    if (!isNaN(extracted) && isFinite(extracted)) {
+    if (!Number.isNaN(extracted) && Number.isFinite(extracted)) {
       return extracted;
     }
   }
@@ -367,7 +367,7 @@ export function coerceNumericProperties(parsed: unknown, config?: LLMSanitizerCo
       ) {
         // Try to extract a number from the string (handles both clean and mixed values)
         const numValue = extractNumericValue(value);
-        if (!isNaN(numValue) && isFinite(numValue)) {
+        if (!Number.isNaN(numValue) && Number.isFinite(numValue)) {
           result[key] = numValue;
           continue;
         }

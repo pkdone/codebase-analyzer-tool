@@ -100,6 +100,58 @@ describe("json-processing", () => {
       });
     });
 
+    describe("malformed Unicode handling (ES2023 isWellFormed)", () => {
+      it("should reject content with lone high surrogate (malformed Unicode)", () => {
+        // Create a string with a lone high surrogate (\uD800 without a following low surrogate)
+        const malformedContent = '{"key": "value\uD800"}';
+        const completionOptions = { outputFormat: LLMOutputFormat.JSON };
+        const result = parseAndValidateLLMJson(malformedContent, context, completionOptions);
+
+        expect(result.success).toBe(false);
+        if (!result.success) {
+          expect(result.error.message).toContain("malformed Unicode");
+          expect(result.error.type).toBe(JsonProcessingErrorType.PARSE);
+        }
+      });
+
+      it("should reject content with lone low surrogate (malformed Unicode)", () => {
+        // Create a string with a lone low surrogate (\uDC00 without a preceding high surrogate)
+        const malformedContent = '{"key": "value\uDC00more"}';
+        const completionOptions = { outputFormat: LLMOutputFormat.JSON };
+        const result = parseAndValidateLLMJson(malformedContent, context, completionOptions);
+
+        expect(result.success).toBe(false);
+        if (!result.success) {
+          expect(result.error.message).toContain("malformed Unicode");
+          expect(result.error.type).toBe(JsonProcessingErrorType.PARSE);
+        }
+      });
+
+      it("should accept well-formed Unicode content with valid surrogate pairs", () => {
+        // Valid emoji using surrogate pair (😀 = \uD83D\uDE00)
+        const wellFormedContent = '{"key": "Hello 😀 World"}';
+        const completionOptions = { outputFormat: LLMOutputFormat.JSON };
+        const result = parseAndValidateLLMJson(wellFormedContent, context, completionOptions);
+
+        expect(result.success).toBe(true);
+        if (result.success) {
+          expect(result.data).toEqual({ key: "Hello 😀 World" });
+        }
+      });
+
+      it("should accept content with standard Unicode characters", () => {
+        // Various Unicode scripts (Chinese, Japanese, Korean, Cyrillic)
+        const unicodeContent = '{"greeting": "你好世界こんにちは안녕Привет"}';
+        const completionOptions = { outputFormat: LLMOutputFormat.JSON };
+        const result = parseAndValidateLLMJson(unicodeContent, context, completionOptions);
+
+        expect(result.success).toBe(true);
+        if (result.success) {
+          expect(result.data).toEqual({ greeting: "你好世界こんにちは안녕Привет" });
+        }
+      });
+    });
+
     describe("validation failure scenarios", () => {
       it("should return validation error when schema validation fails", () => {
         const schema = z.object({ name: z.string(), age: z.number() });
