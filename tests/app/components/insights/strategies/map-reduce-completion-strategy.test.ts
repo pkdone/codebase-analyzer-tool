@@ -1228,4 +1228,431 @@ describe("MapReduceInsightStrategy", () => {
       expect(reducePrompt).toContain("order processing");
     });
   });
+
+  describe("combinePartialResultsData strongly-typed return value", () => {
+    /**
+     * These tests verify that combinePartialResultsData returns CategoryInsightResult<C>
+     * instead of the weakly-typed Record<string, unknown>, ensuring compile-time
+     * type safety for the combined data passed to the reduce phase.
+     */
+
+    it("should return CategoryInsightResult<'technologies'> for flat array schema", async () => {
+      // Use a smaller token limit to force chunking
+      mockLLMRouter.getLLMManifest = jest.fn().mockReturnValue({
+        models: { primaryCompletion: { maxTotalTokens: 100 } },
+      });
+      strategy = new MapReduceInsightStrategy(mockLLMRouter);
+
+      const longSummary1 = "* file1.ts: " + "implementation ".repeat(50);
+      const longSummary2 = "* file2.ts: " + "implementation ".repeat(50);
+
+      const partialResult1: z.infer<AppSummaryCategorySchemas["technologies"]> = {
+        technologies: [
+          { name: "React", description: "UI library" },
+          { name: "TypeScript", description: "Typed JavaScript" },
+        ],
+      };
+      const partialResult2: z.infer<AppSummaryCategorySchemas["technologies"]> = {
+        technologies: [
+          { name: "Node.js", description: "JavaScript runtime" },
+          { name: "MongoDB", description: "NoSQL database" },
+        ],
+      };
+      const consolidatedResult: z.infer<AppSummaryCategorySchemas["technologies"]> = {
+        technologies: [
+          { name: "React", description: "UI library" },
+          { name: "TypeScript", description: "Typed JavaScript" },
+          { name: "Node.js", description: "JavaScript runtime" },
+          { name: "MongoDB", description: "NoSQL database" },
+        ],
+      };
+
+      mockLLMRouter.executeCompletion = jest
+        .fn()
+        .mockResolvedValueOnce(ok(partialResult1))
+        .mockResolvedValueOnce(ok(partialResult2))
+        .mockResolvedValueOnce(ok(consolidatedResult));
+
+      const result = await strategy.generateInsights("technologies", [longSummary1, longSummary2]);
+
+      // Verify the result is strongly typed and accessible without casts
+      expect(result).not.toBeNull();
+      if (result) {
+        // These accesses compile without type assertions, proving strong typing
+        expect(result.technologies.length).toBe(4);
+        expect(result.technologies[0].name).toBe("React");
+        expect(result.technologies[3].description).toBe("NoSQL database");
+      }
+
+      // Verify the reduce call received properly combined data
+      const reduceCall = mockLLMRouter.executeCompletion.mock.calls[2];
+      const reducePrompt = reduceCall[1];
+      expect(reducePrompt).toContain("React");
+      expect(reducePrompt).toContain("TypeScript");
+      expect(reducePrompt).toContain("Node.js");
+      expect(reducePrompt).toContain("MongoDB");
+    });
+
+    it("should return CategoryInsightResult<'inferredArchitecture'> for nested object schema", async () => {
+      // Use a smaller token limit to force chunking
+      mockLLMRouter.getLLMManifest = jest.fn().mockReturnValue({
+        models: { primaryCompletion: { maxTotalTokens: 100 } },
+      });
+      strategy = new MapReduceInsightStrategy(mockLLMRouter);
+
+      const longSummary1 = "* file1.ts: " + "implementation ".repeat(50);
+      const longSummary2 = "* file2.ts: " + "implementation ".repeat(50);
+
+      const partialResult1: z.infer<AppSummaryCategorySchemas["inferredArchitecture"]> = {
+        inferredArchitecture: {
+          internalComponents: [{ name: "AuthService", description: "Handles authentication" }],
+          externalDependencies: [
+            { name: "OAuth2", type: "Protocol", description: "Auth standard" },
+          ],
+          dependencies: [{ from: "AuthService", to: "OAuth2", description: "Uses for auth" }],
+        },
+      };
+      const partialResult2: z.infer<AppSummaryCategorySchemas["inferredArchitecture"]> = {
+        inferredArchitecture: {
+          internalComponents: [{ name: "DataService", description: "Manages data access" }],
+          externalDependencies: [{ name: "PostgreSQL", type: "Database", description: "Main DB" }],
+          dependencies: [{ from: "DataService", to: "PostgreSQL", description: "Stores data" }],
+        },
+      };
+      const consolidatedResult: z.infer<AppSummaryCategorySchemas["inferredArchitecture"]> = {
+        inferredArchitecture: {
+          internalComponents: [
+            { name: "AuthService", description: "Handles authentication" },
+            { name: "DataService", description: "Manages data access" },
+          ],
+          externalDependencies: [
+            { name: "OAuth2", type: "Protocol", description: "Auth standard" },
+            { name: "PostgreSQL", type: "Database", description: "Main DB" },
+          ],
+          dependencies: [
+            { from: "AuthService", to: "OAuth2", description: "Uses for auth" },
+            { from: "DataService", to: "PostgreSQL", description: "Stores data" },
+          ],
+        },
+      };
+
+      mockLLMRouter.executeCompletion = jest
+        .fn()
+        .mockResolvedValueOnce(ok(partialResult1))
+        .mockResolvedValueOnce(ok(partialResult2))
+        .mockResolvedValueOnce(ok(consolidatedResult));
+
+      const result = await strategy.generateInsights("inferredArchitecture", [
+        longSummary1,
+        longSummary2,
+      ]);
+
+      // Verify the result is strongly typed
+      expect(result).not.toBeNull();
+      if (result) {
+        // Direct access without casts proves strong typing is preserved
+        expect(result.inferredArchitecture.internalComponents.length).toBe(2);
+        expect(result.inferredArchitecture.externalDependencies[0].type).toBe("Protocol");
+        expect(result.inferredArchitecture.dependencies[1].from).toBe("DataService");
+      }
+    });
+
+    it("should return CategoryInsightResult<'appDescription'> for string schema with collected array", async () => {
+      // Use a smaller token limit to force chunking
+      mockLLMRouter.getLLMManifest = jest.fn().mockReturnValue({
+        models: { primaryCompletion: { maxTotalTokens: 100 } },
+      });
+      strategy = new MapReduceInsightStrategy(mockLLMRouter);
+
+      const longSummary1 = "* file1.ts: " + "implementation ".repeat(50);
+      const longSummary2 = "* file2.ts: " + "implementation ".repeat(50);
+
+      const partialResult1: z.infer<AppSummaryCategorySchemas["appDescription"]> = {
+        appDescription: "This is the core business logic module.",
+      };
+      const partialResult2: z.infer<AppSummaryCategorySchemas["appDescription"]> = {
+        appDescription: "It also provides REST API endpoints for external access.",
+      };
+      const consolidatedResult: z.infer<AppSummaryCategorySchemas["appDescription"]> = {
+        appDescription:
+          "This comprehensive system provides core business logic and REST API endpoints for external access.",
+      };
+
+      mockLLMRouter.executeCompletion = jest
+        .fn()
+        .mockResolvedValueOnce(ok(partialResult1))
+        .mockResolvedValueOnce(ok(partialResult2))
+        .mockResolvedValueOnce(ok(consolidatedResult));
+
+      const result = await strategy.generateInsights("appDescription", [
+        longSummary1,
+        longSummary2,
+      ]);
+
+      // Verify the final consolidated result is strongly typed
+      expect(result).not.toBeNull();
+      if (result) {
+        // Direct string access without casts
+        expect(typeof result.appDescription).toBe("string");
+        expect(result.appDescription).toContain("comprehensive");
+      }
+
+      // Verify the reduce phase received both partial descriptions for consolidation
+      const reduceCall = mockLLMRouter.executeCompletion.mock.calls[2];
+      const reducePrompt = reduceCall[1];
+      expect(reducePrompt).toContain("core business logic");
+      expect(reducePrompt).toContain("REST API endpoints");
+    });
+
+    it("should maintain type safety through entire map-reduce pipeline for boundedContexts", async () => {
+      // Use a smaller token limit to force chunking
+      mockLLMRouter.getLLMManifest = jest.fn().mockReturnValue({
+        models: { primaryCompletion: { maxTotalTokens: 100 } },
+      });
+      strategy = new MapReduceInsightStrategy(mockLLMRouter);
+
+      const longSummary1 = "* file1.ts: " + "implementation ".repeat(50);
+      const longSummary2 = "* file2.ts: " + "implementation ".repeat(50);
+
+      const partialResult1: z.infer<AppSummaryCategorySchemas["boundedContexts"]> = {
+        boundedContexts: [
+          {
+            name: "IdentityContext",
+            description: "Manages user identity and authentication",
+            aggregates: [
+              {
+                name: "UserAggregate",
+                description: "User aggregate root",
+                repository: { name: "UserRepository", description: "Persists users" },
+                entities: [{ name: "User", description: "Core user entity" }],
+              },
+            ],
+          },
+        ],
+      };
+      const partialResult2: z.infer<AppSummaryCategorySchemas["boundedContexts"]> = {
+        boundedContexts: [
+          {
+            name: "OrderContext",
+            description: "Handles order processing and fulfillment",
+            aggregates: [
+              {
+                name: "OrderAggregate",
+                description: "Order aggregate root",
+                repository: { name: "OrderRepository", description: "Persists orders" },
+                entities: [{ name: "Order", description: "Core order entity" }],
+              },
+            ],
+          },
+        ],
+      };
+      const consolidatedResult: z.infer<AppSummaryCategorySchemas["boundedContexts"]> = {
+        boundedContexts: [
+          {
+            name: "IdentityContext",
+            description: "Manages user identity and authentication",
+            aggregates: [
+              {
+                name: "UserAggregate",
+                description: "User aggregate root",
+                repository: { name: "UserRepository", description: "Persists users" },
+                entities: [{ name: "User", description: "Core user entity" }],
+              },
+            ],
+          },
+          {
+            name: "OrderContext",
+            description: "Handles order processing and fulfillment",
+            aggregates: [
+              {
+                name: "OrderAggregate",
+                description: "Order aggregate root",
+                repository: { name: "OrderRepository", description: "Persists orders" },
+                entities: [{ name: "Order", description: "Core order entity" }],
+              },
+            ],
+          },
+        ],
+      };
+
+      mockLLMRouter.executeCompletion = jest
+        .fn()
+        .mockResolvedValueOnce(ok(partialResult1))
+        .mockResolvedValueOnce(ok(partialResult2))
+        .mockResolvedValueOnce(ok(consolidatedResult));
+
+      const result = await strategy.generateInsights("boundedContexts", [
+        longSummary1,
+        longSummary2,
+      ]);
+
+      // Verify deeply nested type safety without any casts
+      expect(result).not.toBeNull();
+      if (result) {
+        expect(result.boundedContexts.length).toBe(2);
+        expect(result.boundedContexts[0].aggregates[0].repository.name).toBe("UserRepository");
+        expect(result.boundedContexts[1].aggregates[0].entities[0].name).toBe("Order");
+      }
+    });
+
+    it("should preserve type safety when combining potentialMicroservices with nested arrays", async () => {
+      // Use a smaller token limit to force chunking
+      mockLLMRouter.getLLMManifest = jest.fn().mockReturnValue({
+        models: { primaryCompletion: { maxTotalTokens: 100 } },
+      });
+      strategy = new MapReduceInsightStrategy(mockLLMRouter);
+
+      const longSummary1 = "* file1.ts: " + "implementation ".repeat(50);
+      const longSummary2 = "* file2.ts: " + "implementation ".repeat(50);
+
+      const partialResult1: z.infer<AppSummaryCategorySchemas["potentialMicroservices"]> = {
+        potentialMicroservices: [
+          {
+            name: "UserMicroservice",
+            description: "Handles user operations",
+            entities: [{ name: "User", description: "User entity" }],
+            endpoints: [{ path: "/users", method: "GET", description: "List users" }],
+            operations: [{ operation: "CreateUser", method: "POST", description: "Creates user" }],
+          },
+        ],
+      };
+      const partialResult2: z.infer<AppSummaryCategorySchemas["potentialMicroservices"]> = {
+        potentialMicroservices: [
+          {
+            name: "ProductMicroservice",
+            description: "Handles product catalog",
+            entities: [{ name: "Product", description: "Product entity" }],
+            endpoints: [{ path: "/products", method: "GET", description: "List products" }],
+            operations: [
+              { operation: "CreateProduct", method: "POST", description: "Creates product" },
+            ],
+          },
+        ],
+      };
+      const consolidatedResult: z.infer<AppSummaryCategorySchemas["potentialMicroservices"]> = {
+        potentialMicroservices: [
+          {
+            name: "UserMicroservice",
+            description: "Handles user operations",
+            entities: [{ name: "User", description: "User entity" }],
+            endpoints: [{ path: "/users", method: "GET", description: "List users" }],
+            operations: [{ operation: "CreateUser", method: "POST", description: "Creates user" }],
+          },
+          {
+            name: "ProductMicroservice",
+            description: "Handles product catalog",
+            entities: [{ name: "Product", description: "Product entity" }],
+            endpoints: [{ path: "/products", method: "GET", description: "List products" }],
+            operations: [
+              { operation: "CreateProduct", method: "POST", description: "Creates product" },
+            ],
+          },
+        ],
+      };
+
+      mockLLMRouter.executeCompletion = jest
+        .fn()
+        .mockResolvedValueOnce(ok(partialResult1))
+        .mockResolvedValueOnce(ok(partialResult2))
+        .mockResolvedValueOnce(ok(consolidatedResult));
+
+      const result = await strategy.generateInsights("potentialMicroservices", [
+        longSummary1,
+        longSummary2,
+      ]);
+
+      // Type-safe nested array access
+      expect(result).not.toBeNull();
+      if (result) {
+        expect(result.potentialMicroservices.length).toBe(2);
+        expect(result.potentialMicroservices[0].entities[0].name).toBe("User");
+        expect(result.potentialMicroservices[1].endpoints[0].path).toBe("/products");
+        expect(result.potentialMicroservices[1].operations[0].operation).toBe("CreateProduct");
+      }
+    });
+
+    it("should ensure combined data structure matches schema for businessProcesses", async () => {
+      // Use a smaller token limit to force chunking
+      mockLLMRouter.getLLMManifest = jest.fn().mockReturnValue({
+        models: { primaryCompletion: { maxTotalTokens: 100 } },
+      });
+      strategy = new MapReduceInsightStrategy(mockLLMRouter);
+
+      const longSummary1 = "* file1.ts: " + "implementation ".repeat(50);
+      const longSummary2 = "* file2.ts: " + "implementation ".repeat(50);
+
+      const partialResult1: z.infer<AppSummaryCategorySchemas["businessProcesses"]> = {
+        businessProcesses: [
+          {
+            name: "OrderProcessing",
+            description: "Handles end-to-end order lifecycle",
+            keyBusinessActivities: [
+              { activity: "ValidateOrder", description: "Validates order data" },
+              { activity: "ProcessPayment", description: "Processes payment" },
+            ],
+          },
+        ],
+      };
+      const partialResult2: z.infer<AppSummaryCategorySchemas["businessProcesses"]> = {
+        businessProcesses: [
+          {
+            name: "InventoryManagement",
+            description: "Tracks product inventory levels",
+            keyBusinessActivities: [
+              { activity: "UpdateStock", description: "Updates inventory count" },
+              { activity: "ReorderAlert", description: "Triggers reorder alerts" },
+            ],
+          },
+        ],
+      };
+      const consolidatedResult: z.infer<AppSummaryCategorySchemas["businessProcesses"]> = {
+        businessProcesses: [
+          {
+            name: "OrderProcessing",
+            description: "Handles end-to-end order lifecycle",
+            keyBusinessActivities: [
+              { activity: "ValidateOrder", description: "Validates order data" },
+              { activity: "ProcessPayment", description: "Processes payment" },
+            ],
+          },
+          {
+            name: "InventoryManagement",
+            description: "Tracks product inventory levels",
+            keyBusinessActivities: [
+              { activity: "UpdateStock", description: "Updates inventory count" },
+              { activity: "ReorderAlert", description: "Triggers reorder alerts" },
+            ],
+          },
+        ],
+      };
+
+      mockLLMRouter.executeCompletion = jest
+        .fn()
+        .mockResolvedValueOnce(ok(partialResult1))
+        .mockResolvedValueOnce(ok(partialResult2))
+        .mockResolvedValueOnce(ok(consolidatedResult));
+
+      const result = await strategy.generateInsights("businessProcesses", [
+        longSummary1,
+        longSummary2,
+      ]);
+
+      // Validate type-safe access to nested keyBusinessActivities
+      expect(result).not.toBeNull();
+      if (result) {
+        expect(result.businessProcesses.length).toBe(2);
+        expect(result.businessProcesses[0].keyBusinessActivities.length).toBe(2);
+        expect(result.businessProcesses[0].keyBusinessActivities[0].activity).toBe("ValidateOrder");
+        expect(result.businessProcesses[1].keyBusinessActivities[1].description).toBe(
+          "Triggers reorder alerts",
+        );
+      }
+
+      // Verify the reduce call received combined data from both partial results
+      const reduceCall = mockLLMRouter.executeCompletion.mock.calls[2];
+      const reducePrompt = reduceCall[1];
+      expect(reducePrompt).toContain("OrderProcessing");
+      expect(reducePrompt).toContain("InventoryManagement");
+    });
+  });
 });

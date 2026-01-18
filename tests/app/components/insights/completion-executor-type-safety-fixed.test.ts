@@ -234,7 +234,9 @@ describe("Completion Executor Type Safety - Post Fix", () => {
       // Verify the partial analysis note was included in the prompt
       const callArgs = mockLLMRouter.executeCompletion.mock.calls[0];
       const renderedPrompt = callArgs[1];
-      expect(renderedPrompt).toContain("partial analysis of a larger set of file summaries");
+      expect(renderedPrompt).toContain(
+        "partial analysis of what is a much larger set of file summaries",
+      );
     });
   });
 

@@ -198,5 +198,5 @@ function buildPartialAnalysisNoteSection(
 ): string {
   if (!forPartialAnalysis) return "";
   const formattedHeader = dataBlockHeader.toLowerCase().replace(/_/g, " ");
-  return `Note, this is a partial analysis of a larger set of ${formattedHeader}; focus on extracting insights from this subset of ${formattedHeader} only.\n\n`;
+  return `Note, this is a partial analysis of what is a much larger set of ${formattedHeader}; focus on extracting insights from this subset of ${formattedHeader} only.\n\n`;
 }

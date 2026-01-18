@@ -13,8 +13,9 @@ export const APP_SUMMARY_CONTENT_DESC = "a set of source file summaries" as cons
  * Common instruction fragments used across multiple app summary templates
  */
 export const APP_SUMMARY_PROMPT_FRAGMENTS = {
-  CONCISE_LIST: "a concise list",
-  COMPREHENSIVE_LIST: "a comprehensive list",
+  DETAILED_DESC: "* A detailed description",
+  CONCISE_LIST: "* A concise list",
+  COMPREHENSIVE_LIST: "* A comprehensive list",
 } as const;
 
 /**

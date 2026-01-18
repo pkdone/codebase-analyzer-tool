@@ -46,7 +46,9 @@ export interface AppSummaryConfigEntry<S extends z.ZodType = z.ZodType> {
 export const appSummaryConfigMap = {
   appDescription: {
     responseSchema: appDescriptionSchema,
-    instructions: ["a detailed description of the application's purpose and implementation"],
+    instructions: [
+      `${APP_SUMMARY_PROMPT_FRAGMENTS.DETAILED_DESC} of the application's purpose and implementation`,
+    ],
   },
   technologies: {
     responseSchema: technologiesSchema,

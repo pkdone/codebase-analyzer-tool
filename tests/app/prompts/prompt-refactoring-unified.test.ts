@@ -126,9 +126,9 @@ describe("JSONSchemaPrompt Refactoring - Unified Configuration", () => {
 
       const rendered = prompt.renderPrompt(testSummaries);
 
-      // Should contain the instruction text
+      // Should contain the instruction text (with bullet point prefix and capitalized)
       expect(rendered).toContain(
-        "a detailed description of the application's purpose and implementation",
+        "* A detailed description of the application's purpose and implementation",
       );
       // Should contain the content
       expect(rendered).toContain(testSummaries);

@@ -3,9 +3,9 @@
 exports[`renderPrompt Snapshot Tests app summary prompts should match snapshots app summary prompt with forPartialAnalysis should match snapshot 1`] = `
 "Act as a senior developer analyzing the code in an existing application. Based on the a set of source file summaries shown below in the section marked 'FILE_SUMMARIES', return a JSON response that contains:
 
-a comprehensive list of key external and host platform technologies (including the names of programming languages used) depended on by the application
+* A comprehensive list of key external and host platform technologies (including the names of programming languages used) depended on by the application
 
-Note, this is a partial analysis of a larger set of file summaries; focus on extracting insights from this subset of file summaries only.
+Note, this is a partial analysis of what is a much larger set of file summaries; focus on extracting insights from this subset of file summaries only.
 
 The JSON response must follow this JSON schema:
 \`\`\`json
@@ -70,7 +70,7 @@ FILE_SUMMARIES:
 exports[`renderPrompt Snapshot Tests app summary prompts should match snapshots appDescription prompt should match snapshot 1`] = `
 "Act as a senior developer analyzing the code in an existing application. Based on the a set of source file summaries shown below in the section marked 'FILE_SUMMARIES', return a JSON response that contains:
 
-a detailed description of the application's purpose and implementation
+* A detailed description of the application's purpose and implementation
 
 The JSON response must follow this JSON schema:
 \`\`\`json
@@ -117,7 +117,7 @@ FILE_SUMMARIES:
 exports[`renderPrompt Snapshot Tests app summary prompts should match snapshots boundedContexts prompt should match snapshot 1`] = `
 "Act as a senior developer analyzing the code in an existing application. Based on the a set of source file summaries shown below in the section marked 'FILE_SUMMARIES', return a JSON response that contains:
 
-a concise list of Domain-Driven Design Bounded Contexts that define explicit boundaries around related business capabilities. For each bounded context, include:
+* A concise list of Domain-Driven Design Bounded Contexts that define explicit boundaries around related business capabilities. For each bounded context, include:
 1. Its aggregates that enforce business rules and maintain consistency
 2. For each aggregate, include:
    - A repository that provides persistence for that aggregate
@@ -254,7 +254,7 @@ FILE_SUMMARIES:
 exports[`renderPrompt Snapshot Tests app summary prompts should match snapshots businessProcesses prompt should match snapshot 1`] = `
 "Act as a senior developer analyzing the code in an existing application. Based on the a set of source file summaries shown below in the section marked 'FILE_SUMMARIES', return a JSON response that contains:
 
-a concise list of the application's main business processes with their key business activity steps that are linearly conducted by each process
+* A concise list of the application's main business processes with their key business activity steps that are linearly conducted by each process
 
 The JSON response must follow this JSON schema:
 \`\`\`json
@@ -342,7 +342,7 @@ FILE_SUMMARIES:
 exports[`renderPrompt Snapshot Tests app summary prompts should match snapshots inferredArchitecture prompt should match snapshot 1`] = `
 "Act as a senior developer analyzing the code in an existing application. Based on the a set of source file summaries shown below in the section marked 'FILE_SUMMARIES', return a JSON response that contains:
 
-a concise list of BUSINESS DOMAIN components inferred from the codebase.
+* A concise list of BUSINESS DOMAIN components inferred from the codebase.
 
 IMPORTANT: Identify components by their BUSINESS CAPABILITY, not by their technical layer.
 
@@ -497,7 +497,7 @@ FILE_SUMMARIES:
 exports[`renderPrompt Snapshot Tests app summary prompts should match snapshots potentialMicroservices prompt should match snapshot 1`] = `
 "Act as a senior developer analyzing the code in an existing application. Based on the a set of source file summaries shown below in the section marked 'FILE_SUMMARIES', return a JSON response that contains:
 
-a concise list of recommended microservices to modernize the monolithic application architecture, each following the Single Responsibility Principle with detailed domain entities, defined CRUD operations, and REST API endpoints
+* A concise list of recommended microservices to modernize the monolithic application architecture, each following the Single Responsibility Principle with detailed domain entities, defined CRUD operations, and REST API endpoints
 
 The JSON response must follow this JSON schema:
 \`\`\`json
@@ -648,7 +648,7 @@ FILE_SUMMARIES:
 exports[`renderPrompt Snapshot Tests app summary prompts should match snapshots technologies prompt should match snapshot 1`] = `
 "Act as a senior developer analyzing the code in an existing application. Based on the a set of source file summaries shown below in the section marked 'FILE_SUMMARIES', return a JSON response that contains:
 
-a comprehensive list of key external and host platform technologies (including the names of programming languages used) depended on by the application
+* A comprehensive list of key external and host platform technologies (including the names of programming languages used) depended on by the application
 
 The JSON response must follow this JSON schema:
 \`\`\`json

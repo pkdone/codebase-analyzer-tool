@@ -131,14 +131,14 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
    * Handles three schema shapes:
    * - Flat array: `{ categoryKey: [...] }` → flatMap all arrays
    * - Nested object: `{ categoryKey: { prop1: [], prop2: [] } }` → merge each nested array
-   * - String value: `{ categoryKey: "..." }` → collect strings into array
+   * - String value: `{ categoryKey: "..." }` → collect strings into array for reduce consolidation
    *
-   * @returns An object with the combined data structure, ready for JSON serialization
+   * @returns A CategoryInsightResult<C> with the combined data structure, ready for JSON serialization
    */
   private combinePartialResultsData<C extends AppSummaryCategoryEnum>(
     category: C,
     partialResults: CategoryInsightResult<C>[],
-  ): Record<string, unknown> {
+  ): CategoryInsightResult<C> {
     const schema = appSummaryCategorySchemas[category];
     const schemaShape = (schema as z.ZodObject<z.ZodRawShape>).shape;
     const categoryKey = Object.keys(schemaShape)[0] as keyof CategoryInsightResult<C>;
@@ -150,7 +150,14 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
         const data = result[categoryKey];
         return Array.isArray(data) ? data : [];
       });
-      return { [categoryKey]: combinedArray };
+      /**
+       * TYPE ASSERTION RATIONALE:
+       * We construct the object using the exact categoryKey derived from the schema for C.
+       * The flatMap operation preserves the element type from CategoryInsightResult<C>[categoryKey].
+       * TypeScript cannot infer that { [categoryKey]: combinedArray } matches CategoryInsightResult<C>
+       * because the key is computed at runtime, but the structure is guaranteed by construction.
+       */
+      return { [categoryKey]: combinedArray } as CategoryInsightResult<C>;
     }
 
     // Case 2: Nested object shape (e.g., inferredArchitecture)
@@ -179,10 +186,19 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
         }
       }
 
-      return { [categoryKey]: mergedObject };
+      /**
+       * TYPE ASSERTION RATIONALE:
+       * The mergedObject is constructed by iterating over the schema's nested shape keys.
+       * Each array property in the schema is initialized and populated from the typed inputs.
+       * The runtime structure matches CategoryInsightResult<C> for nested object categories,
+       * but TypeScript cannot verify this due to the dynamic key iteration.
+       */
+      return { [categoryKey]: mergedObject } as CategoryInsightResult<C>;
     }
 
     // Case 3: String value shape (e.g., appDescription)
+    // For string categories, we collect partial strings into an array for the reduce phase
+    // to consolidate. The reduce LLM prompt will merge these into a single description.
     if (valueSchema instanceof z.ZodString) {
       const collectedStrings = partialResults
         .map((result) => {
@@ -190,11 +206,25 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
           return typeof data === "string" ? data : "";
         })
         .filter((s) => s.length > 0);
-      return { [categoryKey]: collectedStrings };
+      /**
+       * TYPE ASSERTION RATIONALE:
+       * For string-valued categories like appDescription, we return the collected strings
+       * as an array for the reduce phase to consolidate. This is an intermediate representation
+       * that differs from the final schema (which expects a single string), but the reduce
+       * prompt handles this transformation. The cast is necessary because we're providing
+       * reduce-phase input rather than final schema-conformant output.
+       */
+      return { [categoryKey]: collectedStrings } as unknown as CategoryInsightResult<C>;
     }
 
-    // Fallback: return empty object (shouldn't reach here with current schemas)
-    return { [categoryKey]: [] };
+    /**
+     * TYPE ASSERTION RATIONALE:
+     * Fallback for unhandled schema shapes. Returns an empty array structure to prevent
+     * runtime errors. This should not occur with current AppSummaryCategoryEnum schemas,
+     * but provides a safe default. The cast is necessary because the empty array type
+     * cannot be inferred to match CategoryInsightResult<C>.
+     */
+    return { [categoryKey]: [] } as unknown as CategoryInsightResult<C>;
   }
 
   /**
