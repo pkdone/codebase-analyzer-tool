@@ -1,24 +1,25 @@
 import { SOURCES_PROMPT_FRAGMENTS, COMPOSITES } from "../sources.fragments";
-import { INSTRUCTION_SECTION_TITLES, buildInstructionBlock } from "./source-config-factories";
-import { sourceSummarySchema } from "../../../schemas/sources.schema";
 import {
+  INSTRUCTION_SECTION_TITLES,
+  buildInstructionBlock,
   createBasicInfoBlock,
+  createCompositeSourceConfig,
   createScheduledJobConfig,
   type SourceConfigEntry,
 } from "./source-config-factories";
+import { sourceSummarySchema } from "../../../schemas/sources.schema";
 
 /**
  * Source prompt definitions for special file types (SQL, Markdown, XML, JSP, scripts, etc.).
  *
+ * Uses createCompositeSourceConfig factory for consistency with other definition files.
  * The `satisfies` pattern validates that the object conforms to the Record structure
  * while preserving the literal key types for each entry.
- *
- * Note: hasComplexSchema defaults to false, so it's only explicitly set when true.
  */
 export const specialFileDefinitions = {
-  sql: {
-    contentDesc: "the database DDL/DML/SQL code",
-    responseSchema: sourceSummarySchema.pick({
+  sql: createCompositeSourceConfig(
+    "the database DDL/DML/SQL code",
+    sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
       tables: true,
@@ -26,7 +27,7 @@ export const specialFileDefinitions = {
       triggers: true,
       databaseIntegration: true,
     }),
-    instructions: [
+    [
       createBasicInfoBlock(),
       buildInstructionBlock(
         INSTRUCTION_SECTION_TITLES.DATABASE_OBJECTS,
@@ -39,16 +40,17 @@ export const specialFileDefinitions = {
         SOURCES_PROMPT_FRAGMENTS.SQL_SPECIFIC.DB_INTEGRATION_ANALYSIS,
       ),
     ],
-    hasComplexSchema: true,
-  },
-  markdown: {
-    contentDesc: "the Markdown documentation",
-    responseSchema: sourceSummarySchema.pick({
+    true,
+  ),
+
+  markdown: createCompositeSourceConfig(
+    "the Markdown documentation",
+    sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
       databaseIntegration: true,
     }),
-    instructions: [
+    [
       createBasicInfoBlock(),
       buildInstructionBlock(
         INSTRUCTION_SECTION_TITLES.DATABASE_INTEGRATION_ANALYSIS,
@@ -56,25 +58,27 @@ export const specialFileDefinitions = {
         SOURCES_PROMPT_FRAGMENTS.COMMON.DB_IN_DOCUMENTATION,
       ),
     ],
-  },
-  xml: {
-    contentDesc: "the XML configuration",
-    responseSchema: sourceSummarySchema.pick({
+  ),
+
+  xml: createCompositeSourceConfig(
+    "the XML configuration",
+    sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
       uiFramework: true,
     }),
-    instructions: [
+    [
       createBasicInfoBlock(),
       buildInstructionBlock(
         INSTRUCTION_SECTION_TITLES.UI_FRAMEWORK_DETECTION,
         SOURCES_PROMPT_FRAGMENTS.XML_SPECIFIC.UI_FRAMEWORK_DETECTION,
       ),
     ],
-  },
-  jsp: {
-    contentDesc: "the JSP code",
-    responseSchema: sourceSummarySchema.pick({
+  ),
+
+  jsp: createCompositeSourceConfig(
+    "the JSP code",
+    sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
       internalReferences: true,
@@ -82,7 +86,7 @@ export const specialFileDefinitions = {
       dataInputFields: true,
       jspMetrics: true,
     }),
-    instructions: [
+    [
       createBasicInfoBlock(),
       buildInstructionBlock(
         INSTRUCTION_SECTION_TITLES.REFERENCES_AND_DEPS,
@@ -97,14 +101,16 @@ export const specialFileDefinitions = {
         INSTRUCTION_SECTION_TITLES.CODE_QUALITY_METRICS,
         SOURCES_PROMPT_FRAGMENTS.JSP_SPECIFIC.JSP_METRICS_ANALYSIS,
       ),
-    ] as const,
-  },
+    ],
+  ),
+
   "shell-script": createScheduledJobConfig(
     "the Shell script (bash/sh)",
     SOURCES_PROMPT_FRAGMENTS.SHELL_SCRIPT_SPECIFIC.CRON_EXPRESSIONS,
     SOURCES_PROMPT_FRAGMENTS.SHELL_SCRIPT_SPECIFIC.DATABASE_OPS,
     SOURCES_PROMPT_FRAGMENTS.SHELL_SCRIPT_SPECIFIC.EXTERNAL_API_CALLS,
   ),
+
   "batch-script": createScheduledJobConfig(
     "the Windows batch script (.bat/.cmd)",
     SOURCES_PROMPT_FRAGMENTS.BATCH_SCRIPT_SPECIFIC.TASK_SCHEDULER,
@@ -112,6 +118,7 @@ export const specialFileDefinitions = {
     SOURCES_PROMPT_FRAGMENTS.BATCH_SCRIPT_SPECIFIC.NETWORK_OPS,
     SOURCES_PROMPT_FRAGMENTS.BATCH_SCRIPT_SPECIFIC.SERVICE_OPS,
   ),
+
   jcl: createScheduledJobConfig(
     "the Mainframe JCL (Job Control Language)",
     SOURCES_PROMPT_FRAGMENTS.JCL_SPECIFIC.EXEC_STATEMENTS,
@@ -119,14 +126,15 @@ export const specialFileDefinitions = {
     SOURCES_PROMPT_FRAGMENTS.JCL_SPECIFIC.COND_PARAMETERS,
     SOURCES_PROMPT_FRAGMENTS.JCL_SPECIFIC.SORT_UTILITIES,
   ),
-  default: {
-    contentDesc: "the source files",
-    responseSchema: sourceSummarySchema.pick({
+
+  default: createCompositeSourceConfig(
+    "the source files",
+    sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
       databaseIntegration: true,
     }),
-    instructions: [
+    [
       createBasicInfoBlock(),
       buildInstructionBlock(
         INSTRUCTION_SECTION_TITLES.DATABASE_INTEGRATION_ANALYSIS,
@@ -134,5 +142,5 @@ export const specialFileDefinitions = {
         SOURCES_PROMPT_FRAGMENTS.COMMON.DB_IN_FILE,
       ),
     ],
-  },
+  ),
 } satisfies Record<string, SourceConfigEntry>;

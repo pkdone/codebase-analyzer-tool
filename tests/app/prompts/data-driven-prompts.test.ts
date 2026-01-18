@@ -99,9 +99,9 @@ describe("Data-driven JSONSchemaPrompt System", () => {
         (fileTypePromptRegistry.javascript as SourceConfigEntry).hasComplexSchema,
       ).toBeUndefined();
       expect((fileTypePromptRegistry.python as SourceConfigEntry).hasComplexSchema).toBeUndefined();
-      expect(
-        (fileTypePromptRegistry.markdown as SourceConfigEntry).hasComplexSchema,
-      ).toBeUndefined();
+
+      // Special file types using createCompositeSourceConfig explicitly set hasComplexSchema: false
+      expect((fileTypePromptRegistry.markdown as SourceConfigEntry).hasComplexSchema).toBe(false);
 
       // Dependency configs have hasComplexSchema: true (set by createDependencyConfig)
       expect(fileTypePromptRegistry.maven.hasComplexSchema).toBe(true);

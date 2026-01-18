@@ -3,7 +3,10 @@ import {
   fileTypePromptRegistry,
   type FileTypePromptRegistry,
 } from "../../../../../src/app/prompts/sources/sources.definitions";
-import { INSTRUCTION_SECTION_TITLES } from "../../../../../src/app/prompts/sources/definitions/source-config-factories";
+import {
+  INSTRUCTION_SECTION_TITLES,
+  createCompositeSourceConfig,
+} from "../../../../../src/app/prompts/sources/definitions/source-config-factories";
 import { commonSourceAnalysisSchema } from "../../../../../src/app/schemas/sources.schema";
 
 describe("Source Config Consistency", () => {
@@ -356,6 +359,103 @@ describe("Source Config Consistency", () => {
         // Either empty (title only) or starts with newline
         expect(afterTitle === "" || afterTitle.startsWith("\n")).toBe(true);
       }
+    });
+  });
+
+  describe("createCompositeSourceConfig Factory", () => {
+    it("should create a config with all provided properties", () => {
+      const testSchema = z.object({
+        purpose: z.string(),
+        implementation: z.string(),
+      });
+      const testInstructions = [
+        "__Test Section__\nInstruction 1",
+        "__Another Section__\nInstruction 2",
+      ];
+
+      const config = createCompositeSourceConfig(
+        "test content description",
+        testSchema,
+        testInstructions,
+        true,
+      );
+
+      expect(config.contentDesc).toBe("test content description");
+      expect(config.responseSchema).toBe(testSchema);
+      expect(config.instructions).toEqual(testInstructions);
+      expect(config.hasComplexSchema).toBe(true);
+    });
+
+    it("should default hasComplexSchema to false when not provided", () => {
+      const testSchema = z.object({ field: z.string() });
+      const testInstructions = ["__Test__\nContent"];
+
+      const config = createCompositeSourceConfig("test", testSchema, testInstructions);
+
+      expect(config.hasComplexSchema).toBe(false);
+    });
+
+    it("should preserve the exact schema type passed to it", () => {
+      const specificSchema = z.object({
+        tables: z.array(z.string()),
+        triggers: z.array(z.string()),
+      });
+
+      const config = createCompositeSourceConfig("SQL content", specificSchema, []);
+
+      // Verify the schema is preserved by checking its shape
+      const schemaShape = Object.keys((config.responseSchema as z.ZodObject<z.ZodRawShape>).shape);
+      expect(schemaShape).toContain("tables");
+      expect(schemaShape).toContain("triggers");
+    });
+
+    it("should work with readonly string arrays for instructions", () => {
+      const testSchema = z.object({ data: z.string() });
+      const readonlyInstructions = ["__Section 1__\nA", "__Section 2__\nB"] as const;
+
+      const config = createCompositeSourceConfig("test", testSchema, readonlyInstructions);
+
+      expect(config.instructions).toHaveLength(2);
+      expect(config.instructions[0]).toBe("__Section 1__\nA");
+      expect(config.instructions[1]).toBe("__Section 2__\nB");
+    });
+
+    it("should handle empty instructions array", () => {
+      const testSchema = z.object({ empty: z.boolean() });
+
+      const config = createCompositeSourceConfig("empty test", testSchema, []);
+
+      expect(config.instructions).toHaveLength(0);
+      expect(config.contentDesc).toBe("empty test");
+    });
+  });
+
+  describe("Special File Types Using createCompositeSourceConfig", () => {
+    /**
+     * Special file types that use createCompositeSourceConfig factory.
+     * These are the non-scheduled-job entries in specialFileDefinitions.
+     */
+    const COMPOSITE_CONFIG_TYPES = ["sql", "markdown", "xml", "jsp", "default"] as const;
+
+    it.each(COMPOSITE_CONFIG_TYPES)("%s should have valid config structure", (fileType) => {
+      const config = fileTypePromptRegistry[fileType];
+
+      expect(config.contentDesc).toBeTruthy();
+      expect(typeof config.contentDesc).toBe("string");
+      expect(config.responseSchema).toBeDefined();
+      expect(typeof config.responseSchema.parse).toBe("function");
+      expect(Array.isArray(config.instructions)).toBe(true);
+      expect(config.instructions.length).toBeGreaterThan(0);
+    });
+
+    it.each(COMPOSITE_CONFIG_TYPES)("%s should have Basic Info as first section", (fileType) => {
+      const config = fileTypePromptRegistry[fileType];
+      const firstInstruction = config.instructions[0];
+      const titlePattern = /^__(.+?)__/;
+      const match = titlePattern.exec(firstInstruction);
+
+      expect(match).not.toBeNull();
+      expect(match![1]).toBe(INSTRUCTION_SECTION_TITLES.BASIC_INFO);
     });
   });
 });

@@ -207,6 +207,31 @@ export function createScheduledJobConfig(
 }
 
 /**
+ * Factory function to create a composite source configuration.
+ * This function is used for special file types (SQL, Markdown, XML, JSP, etc.) that
+ * don't fit the standard code or dependency patterns but need specific instruction blocks.
+ *
+ * @param contentDesc - Description of the content being analyzed
+ * @param responseSchema - The Zod schema for validation
+ * @param instructions - Array of pre-formatted instruction blocks
+ * @param hasComplexSchema - Whether the schema requires complex handling (default: false)
+ * @returns A SourceConfigEntry with the provided configuration
+ */
+export function createCompositeSourceConfig<S extends z.ZodType>(
+  contentDesc: string,
+  responseSchema: S,
+  instructions: readonly string[],
+  hasComplexSchema = false,
+): SourceConfigEntry<S> {
+  return {
+    contentDesc,
+    responseSchema,
+    instructions,
+    hasComplexSchema,
+  };
+}
+
+/**
  * Factory function to create a standard code source configuration.
  * This function eliminates duplication for standard programming languages by generating
  * the standard 5-block instruction pattern:
