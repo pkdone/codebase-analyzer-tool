@@ -1,6 +1,6 @@
 /**
  * Tests for visualization configuration modules.
- * These configs have been split from a single file into co-located config files.
+ * Each diagram/chart type has its own co-located config file.
  */
 
 import { architectureConfig } from "../../../../../src/app/components/reporting/diagrams/generators/architecture.config";

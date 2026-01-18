@@ -23,7 +23,7 @@ import { IntegrationPointsSection } from "../../components/reporting/sections/in
 import { ArchitectureAndDomainSection } from "../../components/reporting/sections/visualizations/architecture-and-domain-section";
 import { BusinessProcessesSection } from "../../components/reporting/sections/business-processes/business-processes-section";
 
-// New focused report sections (split from QualityMetricsSection)
+// Focused report sections
 import { DependenciesSection } from "../../components/reporting/sections/dependencies/dependencies-section";
 import { BomDataProvider } from "../../components/reporting/sections/dependencies/bom-data-provider";
 import { BackgroundProcessesSection } from "../../components/reporting/sections/background-processes/background-processes-section";
@@ -94,7 +94,7 @@ export function registerReportingComponents(): void {
   container.registerSingleton(reportingTokens.ReportSection, IntegrationPointsSection);
   container.registerSingleton(reportingTokens.ReportSection, BusinessProcessesSection);
   container.registerSingleton(reportingTokens.ReportSection, ArchitectureAndDomainSection);
-  // New focused sections (replaced QualityMetricsSection)
+  // Focused analysis sections
   container.registerSingleton(reportingTokens.ReportSection, DependenciesSection);
   container.registerSingleton(reportingTokens.ReportSection, BackgroundProcessesSection);
   container.registerSingleton(reportingTokens.ReportSection, ArchitectureAnalysisSection);
