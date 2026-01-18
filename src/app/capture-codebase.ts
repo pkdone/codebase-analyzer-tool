@@ -1,3 +1,2 @@
-import { runCliTask } from "./lifecycle/cli-entry-utils";
-import { taskTokens } from "./di/tokens";
+import { runCliTask, taskTokens } from "./lifecycle/cli-entry-utils";
 runCliTask(taskTokens.CodebaseCaptureTask);

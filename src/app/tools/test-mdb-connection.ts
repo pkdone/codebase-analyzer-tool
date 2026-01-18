@@ -1,3 +1,2 @@
-import { runApplication } from "../lifecycle/application-runner";
-import { taskTokens } from "../di/tokens";
-void runApplication(taskTokens.MongoConnectionTestTask);
+import { runCliTask, taskTokens } from "../lifecycle/cli-entry-utils";
+runCliTask(taskTokens.MongoConnectionTestTask);

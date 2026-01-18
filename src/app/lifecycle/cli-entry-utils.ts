@@ -1,5 +1,7 @@
 import { runApplication } from "./application-runner";
 
+export { taskTokens } from "../di/tokens";
+
 /**
  * Utility function to run a CLI application with a specific task token.
  * This centralizes the common pattern used across all CLI entry points,
