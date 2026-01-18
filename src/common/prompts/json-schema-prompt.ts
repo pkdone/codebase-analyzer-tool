@@ -146,7 +146,8 @@ export class JSONSchemaPrompt<S extends z.ZodType = z.ZodType> {
  * This ensures LLM responses are valid, parseable JSON that conforms to strict formatting requirements.
  */
 const FORCE_JSON_FORMAT = `The response MUST be valid JSON and meet the following critical JSON requirements:
-- Only include JSON: start directly with { or [. No XML, markdown, explanations, or other text. Do NOT start with code fences or triple-backticks.
+- Only include JSON: start directly with { or [. No XML, markdown, explanations, or other text.
+- Do NOT start or end the response with markdown code fences (triple-backticks).
 - Return data values according to the schema - do NOT return the schema definition itself
 - All property names must be quoted: use "propertyName": value at ALL nesting levels (both opening and closing quotes required)
 - Property name format: every property must follow the exact pattern "propertyName": value - no unquoted names (e.g., use "name": not name:)
