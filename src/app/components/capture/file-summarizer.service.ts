@@ -10,7 +10,7 @@ import {
 import { DEFAULT_PERSONA_INTRODUCTION } from "../../prompts/prompt.config";
 import { sourceSummarySchema } from "../../schemas/sources.schema";
 import { getCanonicalFileType } from "../../config/file-handling";
-import { getLlmArtifactCorrections } from "../../config/llm-artifact-corrections";
+import { getLlmArtifactCorrections } from "../../llm";
 import { llmTokens, captureTokens } from "../../di/tokens";
 import {
   type FileTypePromptRegistry,

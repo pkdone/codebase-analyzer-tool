@@ -19,7 +19,7 @@ import {
   appSummaryCategorySchemas,
   type AppSummaryCategorySchemas,
 } from "../insights.types";
-import { getLlmArtifactCorrections } from "../../../config/llm-artifact-corrections";
+import { getLlmArtifactCorrections } from "../../../llm";
 import { isOk } from "../../../../common/types/result.types";
 import { insightsConfig } from "../insights.config";
 

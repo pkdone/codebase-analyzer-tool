@@ -20,7 +20,7 @@ jest.mock("../../../../src/app/config/file-handling", () => ({
   getCanonicalFileType: jest.fn().mockReturnValue("javascript"),
 }));
 
-jest.mock("../../../../src/app/config/llm-artifact-corrections", () => ({
+jest.mock("../../../../src/app/llm", () => ({
   getLlmArtifactCorrections: jest.fn().mockReturnValue({}),
 }));
 

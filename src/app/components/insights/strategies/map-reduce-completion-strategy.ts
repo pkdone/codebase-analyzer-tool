@@ -14,7 +14,7 @@ import {
   CategoryInsightResult,
   appSummaryCategorySchemas,
 } from "../insights.types";
-import { getLlmArtifactCorrections } from "../../../config/llm-artifact-corrections";
+import { getLlmArtifactCorrections } from "../../../llm";
 import { executeInsightCompletion } from "./insights-completion-executor";
 import { chunkTextByTokenLimit } from "../../../../common/llm/utils/text-chunking";
 import { isOk } from "../../../../common/types/result.types";
