@@ -1,5 +1,5 @@
 import { SOURCES_PROMPT_FRAGMENTS, COMPOSITES } from "../sources.fragments";
-import { INSTRUCTION_SECTION_TITLES, buildInstructionBlock } from "../source-instruction-utils";
+import { INSTRUCTION_SECTION_TITLES, buildInstructionBlock } from "./source-config-factories";
 import { sourceSummarySchema } from "../../../schemas/sources.schema";
 import {
   createBasicInfoBlock,

@@ -3,7 +3,7 @@ import {
   fileTypePromptRegistry,
   type FileTypePromptRegistry,
 } from "../../../../../src/app/prompts/sources/sources.definitions";
-import { INSTRUCTION_SECTION_TITLES } from "../../../../../src/app/prompts/sources/source-instruction-utils";
+import { INSTRUCTION_SECTION_TITLES } from "../../../../../src/app/prompts/sources/definitions/source-config-factories";
 import { commonSourceAnalysisSchema } from "../../../../../src/app/schemas/sources.schema";
 
 describe("Source Config Consistency", () => {

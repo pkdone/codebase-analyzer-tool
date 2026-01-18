@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { JSONSchemaPrompt } from "../../../../src/common/prompts/json-schema-prompt";
 import { DEFAULT_PERSONA_INTRODUCTION } from "../../../../src/app/prompts/prompt.config";
-import { CODE_DATA_BLOCK_HEADER } from "../../../../src/app/prompts/sources/definitions/source-config-factories";
+import { CODE_DATA_BLOCK_HEADER } from "../../../../src/app/prompts/sources/sources.definitions";
 import { FILE_SUMMARIES_DATA_BLOCK_HEADER } from "../../../../src/app/prompts/app-summaries/app-summaries.fragments";
 
 /**

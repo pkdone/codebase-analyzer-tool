@@ -84,9 +84,19 @@ export class FileSummarizerService {
         hasComplexSchema,
         sanitizerConfig: getLlmArtifactCorrections(),
       } as const;
+      const result = await this.llmRouter.executeCompletion(
+        filepath,
+        renderedPrompt,
+        completionOptions,
+      );
+
+      if (!isOk(result)) {
+        const errorMsg = `Failed to generate summary for '${filepath}'`;
+        logErr(errorMsg, result.error);
+        return err(result.error);
+      }
+
       /**
-       * Execute completion with the file-type-specific schema.
-       *
        * TYPE ASSERTION RATIONALE:
        * The cast to `PartialSourceSummaryType` is necessary because TypeScript cannot
        * narrow the schema type through the dynamic runtime lookup `fileTypePromptRegistry[canonicalFileType]`.
@@ -102,20 +112,6 @@ export class FileSummarizerService {
        * 3. The LLM router validates the response against the specific schema at runtime,
        *    ensuring the data structure matches before reaching this cast.
        */
-      const result = await this.llmRouter.executeCompletion(
-        filepath,
-        renderedPrompt,
-        completionOptions,
-      );
-
-      if (!isOk(result)) {
-        const errorMsg = `Failed to generate summary for '${filepath}'`;
-        logErr(errorMsg, result.error);
-        return err(result.error);
-      }
-
-      // The response is typed as PartialSourceSummaryType, representing the subset
-      // of fields that were actually requested for this file type.
       return ok(result.value as unknown as PartialSourceSummaryType);
     } catch (error: unknown) {
       const errorMsg = `Failed to generate summary for '${filepath}'`;

@@ -8,7 +8,7 @@ import {
   CODE_DATA_BLOCK_HEADER,
 } from "../../../src/app/prompts/sources/sources.definitions";
 import { SOURCES_PROMPT_FRAGMENTS } from "../../../src/app/prompts/sources/sources.fragments";
-import { INSTRUCTION_SECTION_TITLES } from "../../../src/app/prompts/sources/source-instruction-utils";
+import { INSTRUCTION_SECTION_TITLES } from "../../../src/app/prompts/sources/definitions/source-config-factories";
 
 /**
  * Helper to create a JSONSchemaPrompt from fileTypePromptRegistry config.

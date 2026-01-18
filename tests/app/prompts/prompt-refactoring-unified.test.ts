@@ -10,7 +10,7 @@ import {
 } from "../../../src/app/prompts/app-summaries/app-summaries.definitions";
 import { SOURCES_PROMPT_FRAGMENTS } from "../../../src/app/prompts/sources/sources.fragments";
 import { APP_SUMMARY_PROMPT_FRAGMENTS } from "../../../src/app/prompts/app-summaries/app-summaries.fragments";
-import { INSTRUCTION_SECTION_TITLES } from "../../../src/app/prompts/sources/source-instruction-utils";
+import { INSTRUCTION_SECTION_TITLES } from "../../../src/app/prompts/sources/definitions/source-config-factories";
 import {
   fileTypePromptRegistry,
   CODE_DATA_BLOCK_HEADER,

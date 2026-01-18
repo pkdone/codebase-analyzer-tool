@@ -208,22 +208,21 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
     category: C,
     partialResults: CategoryInsightResult<C>[],
   ): Promise<CategoryInsightResult<C> | null> {
-    const schema = appSummaryCategorySchemas[category];
-    const schemaShape = (schema as z.ZodObject<z.ZodRawShape>).shape;
-    const categoryKey = Object.keys(schemaShape)[0] as keyof CategoryInsightResult<C>;
-    const combinedData = this.combinePartialResultsData(category, partialResults);
-    const content = JSON.stringify(combinedData, null, 2);
-    const promptGenerator = new JSONSchemaPrompt({
-      personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
-      contentDesc: buildReduceInsightsContentDesc(categoryKey as string),
-      instructions: [`a consolidated list of '${String(categoryKey)}'`],
-      responseSchema: schema,
-      dataBlockHeader: FRAGMENTED_DATA_BLOCK_HEADER,
-      wrapInCodeBlock: false,
-    });
-    const renderedPrompt = promptGenerator.renderPrompt(content);
-
     try {
+      const schema = appSummaryCategorySchemas[category];
+      const schemaShape = (schema as z.ZodObject<z.ZodRawShape>).shape;
+      const categoryKey = Object.keys(schemaShape)[0] as keyof CategoryInsightResult<C>;
+      const combinedData = this.combinePartialResultsData(category, partialResults);
+      const content = JSON.stringify(combinedData, null, 2);
+      const promptGenerator = new JSONSchemaPrompt({
+        personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+        contentDesc: buildReduceInsightsContentDesc(categoryKey as string),
+        instructions: [`a consolidated list of '${String(categoryKey)}'`],
+        responseSchema: schema,
+        dataBlockHeader: FRAGMENTED_DATA_BLOCK_HEADER,
+        wrapInCodeBlock: false,
+      });
+      const renderedPrompt = promptGenerator.renderPrompt(content);
       const result = await this.llmRouter.executeCompletion(`${category}-reduce`, renderedPrompt, {
         outputFormat: LLMOutputFormat.JSON,
         jsonSchema: schema,
@@ -239,11 +238,9 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
       }
       /**
        * TYPE ASSERTION RATIONALE:
-       * This follows the same pattern as FileSummarizerService.summarize() and
-       * executeInsightCompletion(). TypeScript cannot narrow the schema type through
-       * the dynamic lookup `appSummaryCategorySchemas[category]` when `category` is
-       * a generic parameter. The compiler sees the union of all possible schemas
-       * rather than the specific schema for C.
+       * TypeScript cannot narrow the schema type through the dynamic lookup
+       * `appSummaryCategorySchemas[category]` when `category` is a generic parameter.
+       * The compiler sees the union of all possible schemasrather than the specific schema for C.
        *
        * This is TYPE-SAFE because:
        * 1. The generic parameter C is constrained to valid AppSummaryCategoryEnum keys.

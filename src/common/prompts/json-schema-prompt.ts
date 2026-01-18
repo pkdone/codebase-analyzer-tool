@@ -33,117 +33,34 @@ export const JSON_SCHEMA_PROMPT_TEMPLATE = `{{personaIntroduction}} Based on the
 
 /**
  * Configuration for creating a JSONSchemaPrompt instance.
- * This interface defines the common structure for all prompt configurations
- * to ensure consistency and enable generic processing.
+ * This interface defines the structure for all prompt configurations,
+ * ensuring consistency and enabling generic processing.
  *
  * All essential fields for prompt generation are required, eliminating the need
  * for defensive checks at runtime and improving type safety for downstream consumers.
  *
  * @template S - The Zod schema type for validating the LLM response. Defaults to z.ZodType.
  */
-/**
- * Base configuration for prompt definitions (used by factories).
- * This type excludes personaIntroduction, which is added at instantiation time.
- *
- * @template S - The Zod schema type for validating the LLM response. Defaults to z.ZodType.
- */
-export interface PromptConfigBase<S extends z.ZodType = z.ZodType> {
-  /** Description of the content being analyzed (required) */
+export interface JSONSchemaPromptConfig<S extends z.ZodType = z.ZodType> {
+  /** Introduction text establishing the AI persona */
+  personaIntroduction: string;
+  /** Description of the content being analyzed */
   contentDesc: string;
-  /** Array of instruction strings for the LLM (required) */
+  /** Array of instruction strings for the LLM */
   instructions: readonly string[];
-  /** Zod schema for validating the LLM response (required) */
+  /** Zod schema for validating the LLM response */
   responseSchema: S;
   /** Whether the schema is complex and incompatible with some LLM providers */
   hasComplexSchema?: boolean;
-  /**
-   * The data block header to use in the template (required).
-   * Factories must explicitly define their presentation.
-   * Applications can constrain this to specific values using branded types or unions.
-   */
+  /** The data block header to use in the template (e.g., "CODE", "FILE_SUMMARIES") */
   dataBlockHeader: string;
-  /**
-   * Whether to wrap content in code blocks (required).
-   * Factories must explicitly define their presentation.
-   */
+  /** Whether to wrap content in code blocks */
   wrapInCodeBlock: boolean;
   /**
    * Whether this prompt is for partial/chunked analysis in map-reduce workflows.
    * When true, a note is prepended indicating this is a partial analysis.
    */
   forPartialAnalysis?: boolean;
-}
-
-/**
- * Full configuration for creating a JSONSchemaPrompt instance.
- * Extends PromptConfigBase with personaIntroduction, which is required for instantiation.
- *
- * @template S - The Zod schema type for validating the LLM response. Defaults to z.ZodType.
- */
-export interface JSONSchemaPromptConfig<
-  S extends z.ZodType = z.ZodType,
-> extends PromptConfigBase<S> {
-  /** Introduction text establishing the AI persona (required) */
-  personaIntroduction: string;
-}
-
-/**
- * JSON format enforcement instruction used across all prompt templates.
- * This ensures LLM responses are valid, parseable JSON that conforms to strict formatting requirements.
- */
-const FORCE_JSON_FORMAT = `The response MUST be valid JSON and meet the following critical JSON requirements:
-- Only include JSON: start directly with { or [. No XML, markdown, explanations, or other text. Do NOT start with code fences or triple-backticks.
-- Return data values according to the schema - do NOT return the schema definition itself
-- All property names must be quoted: use "propertyName": value at ALL nesting levels (both opening and closing quotes required)
-- Property name format: every property must follow the exact pattern "propertyName": value - no unquoted names (e.g., use "name": not name:)
-- Property names must be followed by a colon: use "propertyName": value, not "propertyName" value or "propertyName" []
-- All string values must be quoted: use "value" not unquoted strings
-- No markdown formatting: do not use asterisks (*), bullet points (•), or any markdown characters before property names
-- No stray text: do not include any text, characters, or lines between or around JSON properties
-- Every property must have a name: do not omit property names (e.g., use "purpose": "value" not ": "value")
-- Use proper JSON syntax: commas, colons, matching brackets/braces, and escape quotes in strings
-- Complete and valid: ensure all property names are complete (no truncation) and JSON is parseable
-- Use only exact property names from the schema - do not add extra properties or characters before property names
-- No stray prefixes: do not add prefixes like "ar" or other characters before array elements or string values
-- ASCII only: use only ASCII characters in string values
-- No explanatory text: do not include phrases like "so many methods" or "I will stop here" in the JSON
-- Proper commas: ensure commas separate all array elements and object properties
-- Escape control characters: any control characters in string values must be properly escaped as \\uXXXX`;
-
-/**
- * Builds the schema section for JSON-mode prompts.
- * This function generates the JSON schema block with format enforcement instructions.
- *
- * @param responseSchema - The Zod schema for the response
- * @returns The formatted schema section string including schema and FORCE_JSON_FORMAT instructions
- */
-function buildSchemaSection(responseSchema: z.ZodType): string {
-  const jsonSchemaString = JSON.stringify(zodToJsonSchema(responseSchema), null, 2);
-  return `The JSON response must follow this JSON schema:
-\`\`\`json
-${jsonSchemaString}
-\`\`\`
-
-${FORCE_JSON_FORMAT}
-`;
-}
-
-/**
- * Builds the note section for partial/chunked analysis prompts.
- * This function returns a dynamically constructed partial analysis note when applicable,
- * or an empty string otherwise.
- *
- * @param forPartialAnalysis - Whether this prompt is for partial/chunked analysis
- * @param dataBlockHeader - The data block header (e.g., "CODE", "FILE_SUMMARIES") used in the note
- * @returns The partial analysis note string or empty string
- */
-function buildPartialAnalysisNoteSection(
-  forPartialAnalysis: boolean,
-  dataBlockHeader: string,
-): string {
-  if (!forPartialAnalysis) return "";
-  const formattedHeader = dataBlockHeader.toLowerCase().replace(/_/g, " ");
-  return `Note, this is a partial analysis of a larger set of ${formattedHeader}; focus on extracting insights from this subset of ${formattedHeader} only.\n\n`;
 }
 
 /**
@@ -222,4 +139,63 @@ export class JSONSchemaPrompt<S extends z.ZodType = z.ZodType> {
     };
     return fillPrompt(JSON_SCHEMA_PROMPT_TEMPLATE, templateData);
   }
+}
+
+/**
+ * JSON format enforcement instruction used across all prompt templates.
+ * This ensures LLM responses are valid, parseable JSON that conforms to strict formatting requirements.
+ */
+const FORCE_JSON_FORMAT = `The response MUST be valid JSON and meet the following critical JSON requirements:
+- Only include JSON: start directly with { or [. No XML, markdown, explanations, or other text. Do NOT start with code fences or triple-backticks.
+- Return data values according to the schema - do NOT return the schema definition itself
+- All property names must be quoted: use "propertyName": value at ALL nesting levels (both opening and closing quotes required)
+- Property name format: every property must follow the exact pattern "propertyName": value - no unquoted names (e.g., use "name": not name:)
+- Property names must be followed by a colon: use "propertyName": value, not "propertyName" value or "propertyName" []
+- All string values must be quoted: use "value" not unquoted strings
+- No markdown formatting: do not use asterisks (*), bullet points (•), or any markdown characters before property names
+- No stray text: do not include any text, characters, or lines between or around JSON properties
+- Every property must have a name: do not omit property names (e.g., use "purpose": "value" not ": "value")
+- Use proper JSON syntax: commas, colons, matching brackets/braces, and escape quotes in strings
+- Complete and valid: ensure all property names are complete (no truncation) and JSON is parseable
+- Use only exact property names from the schema - do not add extra properties or characters before property names
+- No stray prefixes: do not add prefixes like "ar" or other characters before array elements or string values
+- ASCII only: use only ASCII characters in string values
+- No explanatory text: do not include phrases like "so many methods" or "I will stop here" in the JSON
+- Proper commas: ensure commas separate all array elements and object properties
+- Escape control characters: any control characters in string values must be properly escaped as \\uXXXX`;
+
+/**
+ * Builds the schema section for JSON-mode prompts.
+ * This function generates the JSON schema block with format enforcement instructions.
+ *
+ * @param responseSchema - The Zod schema for the response
+ * @returns The formatted schema section string including schema and FORCE_JSON_FORMAT instructions
+ */
+function buildSchemaSection(responseSchema: z.ZodType): string {
+  const jsonSchemaString = JSON.stringify(zodToJsonSchema(responseSchema), null, 2);
+  return `The JSON response must follow this JSON schema:
+\`\`\`json
+${jsonSchemaString}
+\`\`\`
+
+${FORCE_JSON_FORMAT}
+`;
+}
+
+/**
+ * Builds the note section for partial/chunked analysis prompts.
+ * This function returns a dynamically constructed partial analysis note when applicable,
+ * or an empty string otherwise.
+ *
+ * @param forPartialAnalysis - Whether this prompt is for partial/chunked analysis
+ * @param dataBlockHeader - The data block header (e.g., "CODE", "FILE_SUMMARIES") used in the note
+ * @returns The partial analysis note string or empty string
+ */
+function buildPartialAnalysisNoteSection(
+  forPartialAnalysis: boolean,
+  dataBlockHeader: string,
+): string {
+  if (!forPartialAnalysis) return "";
+  const formattedHeader = dataBlockHeader.toLowerCase().replace(/_/g, " ");
+  return `Note, this is a partial analysis of a larger set of ${formattedHeader}; focus on extracting insights from this subset of ${formattedHeader} only.\n\n`;
 }

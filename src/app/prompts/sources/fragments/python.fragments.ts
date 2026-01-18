@@ -1,4 +1,4 @@
-import { createDbMechanismInstructions } from "../source-instruction-utils";
+import { createDbMechanismInstructions } from "../definitions/source-config-factories";
 import type { LanguageSpecificFragments } from "../sources.fragments";
 
 /**
