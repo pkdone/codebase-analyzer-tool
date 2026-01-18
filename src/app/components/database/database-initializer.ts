@@ -2,12 +2,12 @@ import "reflect-metadata";
 import { injectable, inject } from "tsyringe";
 import { MongoClient, Db, Collection, MongoServerError, type IndexSpecification } from "mongodb";
 import type { JsonSchema7Type } from "zod-to-json-schema";
-import { coreTokens } from "../../di/tokens";
+import { coreTokens, configTokens } from "../../di/tokens";
 import {
-  databaseConfig,
   STANDARD_INDEX_CONFIGS,
   COLLECTION_TYPES,
   type CollectionType,
+  type DatabaseConfigType,
 } from "./database.config";
 import { logErr } from "../../../common/utils/logging";
 import { getJSONSchema as getSourcesJSONSchema } from "../../repositories/sources/sources.model";
@@ -38,14 +38,18 @@ export class DatabaseInitializer {
 
   /**
    * Constructor with dependency injection.
+   * @param mongoClient - MongoDB client instance
+   * @param dbName - Database name for the application
+   * @param dbConfig - Database configuration for collection names and index settings
    */
   constructor(
     @inject(coreTokens.MongoClient) private readonly mongoClient: MongoClient,
     @inject(coreTokens.DatabaseName) dbName: string,
+    @inject(configTokens.DatabaseConfig) private readonly dbConfig: DatabaseConfigType,
   ) {
     this.db = this.mongoClient.db(dbName);
-    this.sourcesCollection = this.db.collection(databaseConfig.SOURCES_COLLECTION_NAME);
-    this.appSummariesCollection = this.db.collection(databaseConfig.SUMMARIES_COLLECTION_NAME);
+    this.sourcesCollection = this.db.collection(this.dbConfig.SOURCES_COLLECTION_NAME);
+    this.appSummariesCollection = this.db.collection(this.dbConfig.SUMMARIES_COLLECTION_NAME);
   }
 
   /**
@@ -127,7 +131,7 @@ export class DatabaseInitializer {
    */
   private async ensureSourcesVectorSearchIndexes(numDimensions: number): Promise<void> {
     let unknownErrorOccurred = false;
-    const vectorSearchIndexes = databaseConfig.VECTOR_INDEX_CONFIGS.map((config) =>
+    const vectorSearchIndexes = this.dbConfig.VECTOR_INDEX_CONFIGS.map((config) =>
       this.createProjectScopedVectorIndexDefinition(config.name, config.field, numDimensions),
     );
 
@@ -193,8 +197,8 @@ export class DatabaseInitializer {
       indexName,
       fieldToIndex,
       numDimensions,
-      databaseConfig.VECTOR_SIMILARITY_TYPE,
-      databaseConfig.VECTOR_QUANTIZATION_TYPE,
+      this.dbConfig.VECTOR_SIMILARITY_TYPE,
+      this.dbConfig.VECTOR_QUANTIZATION_TYPE,
       filters,
     );
   }

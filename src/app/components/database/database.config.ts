@@ -121,3 +121,9 @@ export const databaseConfig = {
     { field: SUMMARY_VECTOR_FIELD, name: SUMMARY_VECTOR_INDEX_NAME },
   ],
 } as const satisfies DatabaseConfig;
+
+/**
+ * Type alias for the databaseConfig value type.
+ * Used for dependency injection to avoid circular type references.
+ */
+export type DatabaseConfigType = typeof databaseConfig;

@@ -71,6 +71,14 @@ export const llmTokens = {
 
 export type LLMToken = keyof typeof llmTokens;
 
+// Configuration tokens for injectable configuration objects
+export const configTokens = {
+  DatabaseConfig: Symbol("DatabaseConfig"),
+  FileProcessingRules: Symbol("FileProcessingRules"),
+} as const;
+
+export type ConfigToken = keyof typeof configTokens;
+
 // Reporting module tokens
 export const reportingTokens = {
   HtmlReportWriter: Symbol("HtmlReportWriter"),

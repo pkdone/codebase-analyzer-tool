@@ -8,6 +8,6 @@
  * import from 'schemas/canonical-file-types'.
  */
 
-export { fileProcessingRules } from "./file-processing-rules";
+export { fileProcessingRules, type FileProcessingRulesType } from "./file-processing-rules";
 
 export { getCanonicalFileType } from "./file-type-mapping";

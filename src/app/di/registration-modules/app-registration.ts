@@ -1,5 +1,5 @@
 import { container } from "tsyringe";
-import { coreTokens, captureTokens, insightsTokens } from "../tokens";
+import { coreTokens, captureTokens, insightsTokens, configTokens } from "../tokens";
 import { repositoryTokens } from "../tokens";
 import { taskTokens } from "../tokens";
 
@@ -33,6 +33,7 @@ import { ReportGenerationTask } from "../../tasks/main/report-generation.task";
 // Configuration imports
 import { databaseConfig } from "../../components/database/database.config";
 import { outputConfig } from "../../config/output.config";
+import { fileProcessingRules } from "../../config/file-handling";
 
 // Database component imports
 import { DatabaseInitializer } from "../../components/database/database-initializer";
@@ -48,10 +49,14 @@ export function registerAppDependencies(): void {
 }
 
 /**
- * Registers repositories in the DI container
+ * Registers repositories and configuration objects in the DI container
  */
 function registerRepositories(): void {
-  // Register the default database name for the application
+  // Register configuration objects for dependency injection
+  container.registerInstance(configTokens.DatabaseConfig, databaseConfig);
+  container.registerInstance(configTokens.FileProcessingRules, fileProcessingRules);
+
+  // Register the default database name for the application (derived from config)
   container.registerInstance(coreTokens.DatabaseName, databaseConfig.CODEBASE_DB_NAME);
 
   // Register output configuration as a singleton instance

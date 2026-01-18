@@ -1,4 +1,4 @@
-import { coreTokens, llmTokens } from "../../../src/app/di/tokens";
+import { coreTokens, llmTokens, configTokens } from "../../../src/app/di/tokens";
 
 /**
  * Unit tests to verify that unused tokens have been removed from the DI container.
@@ -42,6 +42,23 @@ describe("DI Tokens Cleanup", () => {
       expect(llmTokens).toHaveProperty("LLMRouter");
       expect(llmTokens).toHaveProperty("LLMModelFamily");
       expect(llmTokens).toHaveProperty("LLMErrorLogger");
+    });
+  });
+
+  describe("configTokens", () => {
+    it("should contain DatabaseConfig token for injectable database configuration", () => {
+      expect(configTokens).toHaveProperty("DatabaseConfig");
+      expect(typeof configTokens.DatabaseConfig).toBe("symbol");
+    });
+
+    it("should contain FileProcessingRules token for injectable file processing configuration", () => {
+      expect(configTokens).toHaveProperty("FileProcessingRules");
+      expect(typeof configTokens.FileProcessingRules).toBe("symbol");
+    });
+
+    it("should contain all expected config tokens", () => {
+      // Verify that all configuration tokens are present
+      expect(Object.keys(configTokens)).toEqual(["DatabaseConfig", "FileProcessingRules"]);
     });
   });
 });

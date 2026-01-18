@@ -175,3 +175,9 @@ export const fileProcessingRules = {
     "jcl",
   ] as const satisfies readonly string[],
 } as const;
+
+/**
+ * Type alias for the fileProcessingRules value type.
+ * Used for dependency injection to avoid circular type references.
+ */
+export type FileProcessingRulesType = typeof fileProcessingRules;

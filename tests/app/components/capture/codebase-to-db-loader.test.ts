@@ -10,6 +10,7 @@ import * as pathUtils from "../../../../src/common/fs/path-utils";
 import * as textAnalysis from "../../../../src/common/utils/text-utils";
 import { ok, err } from "../../../../src/common/types/result.types";
 import { LLMError, LLMErrorCode } from "../../../../src/common/llm/types/llm-errors.types";
+import type { FileProcessingRulesType } from "../../../../src/app/config/file-handling";
 
 // Mock dependencies
 jest.mock("../../../../src/common/fs/file-operations");
@@ -22,18 +23,20 @@ jest.mock("../../../../src/common/utils/logging", () => ({
   logErr: jest.fn(),
 }));
 
-jest.mock("../../../../src/app/config/file-handling", () => {
-  const actual = jest.requireActual("../../../../src/app/config/file-handling");
-  return {
-    ...actual,
-    fileProcessingRules: {
-      FOLDER_IGNORE_LIST: [".git", "node_modules"],
-      FILENAME_PREFIX_IGNORE: "test-",
-      FILENAME_IGNORE_LIST: ["package-lock.json"],
-      BINARY_FILE_EXTENSION_IGNORE_LIST: ["jpg", "png", "pdf", "exe"],
-    },
-  };
-});
+/**
+ * Test configuration for file processing rules.
+ * Injected directly into CodebaseToDBLoader instead of mocking module imports.
+ * Uses type assertion to allow test-specific values without matching exact literal types.
+ */
+const mockFileProcessingRules = {
+  FOLDER_IGNORE_LIST: [".git", "node_modules"],
+  FILENAME_PREFIX_IGNORE: "test-",
+  FILENAME_IGNORE_LIST: ["package-lock.json"],
+  BINARY_FILE_EXTENSION_IGNORE_LIST: ["jpg", "png", "pdf", "exe"],
+  CODE_FILE_EXTENSIONS: ["ts", "js"],
+  BOM_DEPENDENCY_CANONICAL_TYPES: [],
+  SCHEDULED_JOB_CANONICAL_TYPES: [],
+} as unknown as FileProcessingRulesType;
 
 const mockPathRelative = jest.fn();
 const mockPathBasename = jest.fn();
@@ -109,7 +112,13 @@ describe("CodebaseToDBLoader", () => {
     // Default mock for sortFilesBySize - returns files in same order
     mockDirectoryOperations.sortFilesBySize.mockImplementation(async (files) => files);
 
-    loader = new CodebaseToDBLoader(mockSourcesRepository, mockLLMRouter, mockFileSummarizer);
+    // Create loader with injected mock config (no module mocking needed)
+    loader = new CodebaseToDBLoader(
+      mockSourcesRepository,
+      mockLLMRouter,
+      mockFileSummarizer,
+      mockFileProcessingRules,
+    );
   });
 
   afterEach(() => {

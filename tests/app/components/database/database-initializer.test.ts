@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import { DatabaseInitializer } from "../../../../src/app/components/database/database-initializer";
-import { coreTokens } from "../../../../src/app/di/tokens";
+import { coreTokens, configTokens } from "../../../../src/app/di/tokens";
 
 describe("DatabaseInitializer in components/database", () => {
   it("should be importable from components/database directory", () => {
@@ -11,6 +11,11 @@ describe("DatabaseInitializer in components/database", () => {
   it("should have the correct token registered", () => {
     expect(coreTokens.DatabaseInitializer).toBeDefined();
     expect(typeof coreTokens.DatabaseInitializer).toBe("symbol");
+  });
+
+  it("should have the DatabaseConfig token registered for injection", () => {
+    expect(configTokens.DatabaseConfig).toBeDefined();
+    expect(typeof configTokens.DatabaseConfig).toBe("symbol");
   });
 
   it("should be a class (constructor function)", () => {
@@ -32,5 +37,11 @@ describe("DatabaseInitializer in components/database", () => {
     // Verify that the class has the injectable decorator metadata
     const metadata = Reflect.getMetadata("design:paramtypes", DatabaseInitializer);
     expect(metadata).toBeDefined();
+  });
+
+  it("should expect three constructor parameters for DI", () => {
+    // Verify constructor expects MongoClient, DatabaseName, and DatabaseConfig
+    const metadata = Reflect.getMetadata("design:paramtypes", DatabaseInitializer);
+    expect(metadata).toHaveLength(3);
   });
 });

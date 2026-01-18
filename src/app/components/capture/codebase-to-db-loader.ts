@@ -1,10 +1,7 @@
 import { injectable, inject } from "tsyringe";
 import type LLMRouter from "../../../common/llm/llm-router";
 import path from "path";
-import {
-  fileProcessingRules as fileProcessingConfig,
-  getCanonicalFileType,
-} from "../../config/file-handling";
+import { getCanonicalFileType, type FileProcessingRulesType } from "../../config/file-handling";
 import { llmConcurrencyLimiter } from "../../config/concurrency.config";
 import { readFile } from "../../../common/fs/file-operations";
 import { findFilesRecursively, sortFilesBySize } from "../../../common/fs/directory-operations";
@@ -14,7 +11,7 @@ import { logErr } from "../../../common/utils/logging";
 import { FileSummarizerService, type PartialSourceSummaryType } from "./file-summarizer.service";
 import type { SourcesRepository } from "../../repositories/sources/sources.repository.interface";
 import type { SourceRecord } from "../../repositories/sources/sources.model";
-import { repositoryTokens, llmTokens, captureTokens } from "../../di/tokens";
+import { repositoryTokens, llmTokens, captureTokens, configTokens } from "../../di/tokens";
 import { isOk } from "../../../common/types/result.types";
 
 /**
@@ -23,7 +20,11 @@ import { isOk } from "../../../common/types/result.types";
 @injectable()
 export default class CodebaseToDBLoader {
   /**
-   * Constructor.
+   * Constructor with dependency injection.
+   * @param sourcesRepository - Repository for storing source file data
+   * @param llmRouter - Router for LLM operations (embeddings, summarization)
+   * @param fileSummarizer - Service for generating file summaries
+   * @param fileProcessingConfig - Configuration for file processing rules
    */
   constructor(
     @inject(repositoryTokens.SourcesRepository)
@@ -31,6 +32,8 @@ export default class CodebaseToDBLoader {
     @inject(llmTokens.LLMRouter) private readonly llmRouter: LLMRouter,
     @inject(captureTokens.FileSummarizerService)
     private readonly fileSummarizer: FileSummarizerService,
+    @inject(configTokens.FileProcessingRules)
+    private readonly fileProcessingConfig: FileProcessingRulesType,
   ) {}
 
   /**
@@ -43,9 +46,9 @@ export default class CodebaseToDBLoader {
   ): Promise<void> {
     const srcFilepaths = await findFilesRecursively(
       srcDirPath,
-      fileProcessingConfig.FOLDER_IGNORE_LIST,
-      fileProcessingConfig.FILENAME_PREFIX_IGNORE,
-      fileProcessingConfig.FILENAME_IGNORE_LIST,
+      this.fileProcessingConfig.FOLDER_IGNORE_LIST,
+      this.fileProcessingConfig.FILENAME_PREFIX_IGNORE,
+      this.fileProcessingConfig.FILENAME_IGNORE_LIST,
     );
     // Sort files by size (largest first) to distribute work more evenly during concurrent processing
     const sortedFilepaths = await sortFilesBySize(srcFilepaths);
@@ -129,7 +132,7 @@ export default class CodebaseToDBLoader {
     const fileType = getFileExtension(fullFilepath).toLowerCase();
 
     if (
-      (fileProcessingConfig.BINARY_FILE_EXTENSION_IGNORE_LIST as readonly string[]).includes(
+      (this.fileProcessingConfig.BINARY_FILE_EXTENSION_IGNORE_LIST as readonly string[]).includes(
         fileType,
       )
     ) {
