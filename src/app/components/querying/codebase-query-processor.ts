@@ -1,11 +1,24 @@
+import { fillPrompt } from "type-safe-prompt";
 import LLMRouter from "../../../common/llm/llm-router";
 import { LLMOutputFormat } from "../../../common/llm/types/llm.types";
 import type { SourcesRepository } from "../../repositories/sources/sources.repository.interface";
 import type { ProjectedSourceMetadataContentAndSummary } from "../../repositories/sources/sources.model";
 import { queryingInputConfig } from "./querying-input.config";
-import { appPromptManager } from "../../prompts/app-prompt-registry";
 import { formatFilesAsMarkdownCodeBlocks } from "../../../common/utils/markdown-formatter";
 import { isOk } from "../../../common/types/result.types";
+
+/**
+ * Template for querying the codebase with a specific question.
+ * Used for RAG (Retrieval-Augmented Generation) workflows where vector search results
+ * are provided as context for answering developer questions about the codebase.
+ */
+const CODEBASE_QUERY_TEMPLATE = `Act as a senior developer analyzing the code in an existing application. I've provided the content of some source code files below in the section marked 'CODE'. Using all that code for context, answer the question a developer has asked about the code, where their question is shown in the section marked 'QUESTION' below. Provide your answer in a few paragraphs, referring to specific evidence in the provided code.
+
+QUESTION:
+{{question}}
+
+CODE:
+{{content}}`;
 
 /**
  * Creates a prompt for querying the codebase with a specific question.
@@ -16,7 +29,7 @@ import { isOk } from "../../../common/types/result.types";
  * @returns The filled prompt string
  */
 function createCodebaseQueryPrompt(question: string, codeContent: string): string {
-  return appPromptManager.codebaseQuery.renderPrompt(codeContent, { question });
+  return fillPrompt(CODEBASE_QUERY_TEMPLATE, { question, content: codeContent });
 }
 
 /**

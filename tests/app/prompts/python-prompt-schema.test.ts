@@ -1,12 +1,10 @@
-import { appPromptManager } from "../../../src/app/prompts/app-prompt-registry";
-const fileTypePromptMetadata = appPromptManager.sources;
+import { fileTypePromptRegistry } from "../../../src/app/prompts/sources/sources.definitions";
 import { sourceSummarySchema } from "../../../src/app/schemas/sources.schema";
-import { fileTypePromptRegistry } from "../../../src/app/prompts/definitions/sources/sources.definitions";
 
 describe("Python prompt metadata schema", () => {
   it("should define python entry with expected response schema fields", () => {
-    const pythonMeta = fileTypePromptMetadata.python;
-    expect(pythonMeta).toBeDefined();
+    const pythonConfig = fileTypePromptRegistry.python;
+    expect(pythonConfig).toBeDefined();
     const picked = sourceSummarySchema.pick({
       name: true,
       kind: true,
@@ -24,7 +22,7 @@ describe("Python prompt metadata schema", () => {
 
     // Compare shape keys
     const expectedKeys = Object.keys((picked as any)._def.shape());
-    const actualKeys = Object.keys((pythonMeta.responseSchema as any)._def.shape());
+    const actualKeys = Object.keys((pythonConfig.responseSchema as any)._def.shape());
     expect(actualKeys.sort()).toEqual(expectedKeys.sort());
   });
 

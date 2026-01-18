@@ -1,12 +1,13 @@
-import { Prompt } from "../../../src/common/prompts/prompt";
-import { z } from "zod";
 import {
-  ANALYSIS_PROMPT_TEMPLATE,
-  PARTIAL_ANALYSIS_TEMPLATE,
-} from "../../../src/app/prompts/app-templates";
+  JSONSchemaPrompt,
+  JSON_SCHEMA_PROMPT_TEMPLATE,
+} from "../../../src/common/prompts/json-schema-prompt";
+import { DEFAULT_PERSONA_INTRODUCTION } from "../../../src/app/prompts/prompt.config";
+import { z } from "zod";
 
-describe("Prompt Constructor and Templates", () => {
+describe("JSONSchemaPrompt Constructor and Templates", () => {
   const sourceConfig = {
+    personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
     contentDesc:
       "Act as a senior developer analyzing the code in an existing application. Based on test content shown below...",
     instructions: ["instruction 1"],
@@ -16,6 +17,7 @@ describe("Prompt Constructor and Templates", () => {
   } as const;
 
   const appSummaryConfig = {
+    personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
     contentDesc:
       "Act as a senior developer analyzing the code in an existing application. Based on test content shown below...",
     instructions: ["instruction 1"],
@@ -24,13 +26,13 @@ describe("Prompt Constructor and Templates", () => {
     wrapInCodeBlock: false,
   } as const;
 
-  const sourcePrompt = new Prompt(sourceConfig, ANALYSIS_PROMPT_TEMPLATE);
-  const appSummaryPrompt = new Prompt(appSummaryConfig, ANALYSIS_PROMPT_TEMPLATE);
+  const sourcePrompt = new JSONSchemaPrompt(sourceConfig);
+  const appSummaryPrompt = new JSONSchemaPrompt(appSummaryConfig);
 
   const testContent = "test file content";
 
   describe("renderPrompt function", () => {
-    it("should render a prompt with ANALYSIS_PROMPT_TEMPLATE for sources", () => {
+    it("should render a prompt with JSON_SCHEMA_PROMPT_TEMPLATE for sources", () => {
       const rendered = sourcePrompt.renderPrompt(testContent);
 
       expect(rendered).toContain("Act as a senior developer analyzing the code");
@@ -38,7 +40,7 @@ describe("Prompt Constructor and Templates", () => {
       expect(rendered).toContain(testContent);
     });
 
-    it("should render a prompt with ANALYSIS_PROMPT_TEMPLATE for app summaries", () => {
+    it("should render a prompt with JSON_SCHEMA_PROMPT_TEMPLATE for app summaries", () => {
       const rendered = appSummaryPrompt.renderPrompt(testContent);
 
       expect(rendered).toContain("Act as a senior developer analyzing the code");
@@ -46,8 +48,8 @@ describe("Prompt Constructor and Templates", () => {
       expect(rendered).toContain(testContent);
     });
 
-    it("should use PARTIAL_ANALYSIS_TEMPLATE for partial analysis", () => {
-      const partialPrompt = new Prompt(appSummaryConfig, PARTIAL_ANALYSIS_TEMPLATE);
+    it("should use forPartialAnalysis flag for partial analysis", () => {
+      const partialPrompt = new JSONSchemaPrompt({ ...appSummaryConfig, forPartialAnalysis: true });
       const rendered = partialPrompt.renderPrompt(testContent);
 
       expect(rendered).toContain("partial analysis");
@@ -56,38 +58,30 @@ describe("Prompt Constructor and Templates", () => {
   });
 
   describe("Template consolidation", () => {
-    it("should export ANALYSIS_PROMPT_TEMPLATE and PARTIAL_ANALYSIS_TEMPLATE", () => {
-      expect(ANALYSIS_PROMPT_TEMPLATE).toBeDefined();
-      expect(PARTIAL_ANALYSIS_TEMPLATE).toBeDefined();
-      expect(typeof ANALYSIS_PROMPT_TEMPLATE).toBe("string");
-      expect(typeof PARTIAL_ANALYSIS_TEMPLATE).toBe("string");
+    it("should export JSON_SCHEMA_PROMPT_TEMPLATE", () => {
+      expect(JSON_SCHEMA_PROMPT_TEMPLATE).toBeDefined();
+      expect(typeof JSON_SCHEMA_PROMPT_TEMPLATE).toBe("string");
     });
 
     it("should have consistent template structure", () => {
-      // All prompts now use the unified ANALYSIS_PROMPT_TEMPLATE structure
-      // jsonSchema and forceJSON are now consolidated into schemaSection
-      expect(ANALYSIS_PROMPT_TEMPLATE).toContain("{{contentDesc}}");
-      expect(ANALYSIS_PROMPT_TEMPLATE).toContain("{{instructionsText}}");
-      expect(ANALYSIS_PROMPT_TEMPLATE).toContain("{{dataBlockHeader}}");
-      expect(ANALYSIS_PROMPT_TEMPLATE).toContain("{{schemaSection}}");
-      expect(ANALYSIS_PROMPT_TEMPLATE).toContain("{{content}}");
-      // partialAnalysisNote is handled via PARTIAL_ANALYSIS_TEMPLATE, not as a placeholder
-      expect(ANALYSIS_PROMPT_TEMPLATE).not.toContain("{{partialAnalysisNote}}");
+      expect(JSON_SCHEMA_PROMPT_TEMPLATE).toContain("{{contentDesc}}");
+      expect(JSON_SCHEMA_PROMPT_TEMPLATE).toContain("{{instructionsText}}");
+      expect(JSON_SCHEMA_PROMPT_TEMPLATE).toContain("{{dataBlockHeader}}");
+      expect(JSON_SCHEMA_PROMPT_TEMPLATE).toContain("{{schemaSection}}");
+      expect(JSON_SCHEMA_PROMPT_TEMPLATE).toContain("{{content}}");
+      expect(JSON_SCHEMA_PROMPT_TEMPLATE).toContain("{{partialAnalysisNote}}");
     });
 
     it("should handle reduce template with category key via inline definition", () => {
       // categoryKey is directly embedded in contentDesc, rather than being a placeholder
       const categoryKey = "technologies";
-      const reducePrompt = new Prompt(
-        {
-          ...sourceConfig,
-          // Factory would pre-populate contentDesc with the category key
-          contentDesc: `Act as a senior developer. You've been provided with data containing '${categoryKey}'...`,
-          dataBlockHeader: "FRAGMENTED_DATA",
-          wrapInCodeBlock: false,
-        },
-        ANALYSIS_PROMPT_TEMPLATE,
-      );
+      const reducePrompt = new JSONSchemaPrompt({
+        ...sourceConfig,
+        // Factory would pre-populate contentDesc with the category key
+        contentDesc: `Act as a senior developer. You've been provided with data containing '${categoryKey}'...`,
+        dataBlockHeader: "FRAGMENTED_DATA",
+        wrapInCodeBlock: false,
+      });
       const rendered = reducePrompt.renderPrompt(testContent);
 
       expect(rendered).toContain("FRAGMENTED_DATA:");

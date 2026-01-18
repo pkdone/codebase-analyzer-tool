@@ -1,4 +1,8 @@
-import { Prompt, type PromptConfig } from "../../../src/common/prompts/prompt";
+import {
+  JSONSchemaPrompt,
+  type JSONSchemaPromptConfig,
+} from "../../../src/common/prompts/json-schema-prompt";
+import { DEFAULT_PERSONA_INTRODUCTION } from "../../../src/app/prompts/prompt.config";
 import {
   CANONICAL_FILE_TYPES,
   canonicalFileTypeSchema,
@@ -7,11 +11,12 @@ import {
 import type { AppSummaryCategoryType } from "../../../src/app/components/insights/insights.types";
 import { z } from "zod";
 
-describe("Prompt Types", () => {
+describe("JSONSchemaPrompt Types", () => {
   describe("PromptConfig", () => {
     it("should require contentDesc, instructions, responseSchema, dataBlockHeader, and wrapInCodeBlock", () => {
       const schema = z.object({ result: z.string() });
-      const config: PromptConfig<typeof schema> = {
+      const config: JSONSchemaPromptConfig<typeof schema> = {
+        personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
         contentDesc: "Required description",
         instructions: ["Required instruction"],
         responseSchema: schema,
@@ -28,7 +33,8 @@ describe("Prompt Types", () => {
 
     it("should allow optional hasComplexSchema", () => {
       const schema = z.object({ result: z.string() });
-      const configWithComplexSchema: PromptConfig<typeof schema> = {
+      const configWithComplexSchema: JSONSchemaPromptConfig<typeof schema> = {
+        personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
         contentDesc: "Description",
         instructions: ["Instruction"],
         responseSchema: schema,
@@ -46,7 +52,8 @@ describe("Prompt Types", () => {
         count: z.number(),
       });
 
-      const config: PromptConfig<typeof specificSchema> = {
+      const config: JSONSchemaPromptConfig<typeof specificSchema> = {
+        personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
         contentDesc: "Description",
         instructions: ["Instruction"],
         responseSchema: specificSchema,
@@ -59,52 +66,33 @@ describe("Prompt Types", () => {
     });
   });
 
-  describe("Prompt class", () => {
-    // Helper function for potential future test expansion
-    const _createMockPrompt = (overrides?: Partial<PromptConfig>): Prompt => {
-      const config: PromptConfig = {
-        contentDesc: "Test intro text template with {{placeholder}}",
-        instructions: ["instruction 1", "instruction 2"],
+  describe("JSONSchemaPrompt class", () => {
+    it("should have required fields", () => {
+      const prompt = new JSONSchemaPrompt({
+        personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+        contentDesc: "Test intro text template",
+        instructions: ["test"],
         responseSchema: z.string(),
         dataBlockHeader: "CODE",
         wrapInCodeBlock: false,
-        ...overrides,
-      };
-      return new Prompt(config, "Test template");
-    };
-    void _createMockPrompt; // Suppress unused warning
-
-    it("should have required fields", () => {
-      const prompt = new Prompt(
-        {
-          contentDesc: "Test intro text template",
-          instructions: ["test"],
-          responseSchema: z.string(),
-          dataBlockHeader: "CODE",
-          wrapInCodeBlock: false,
-        },
-        "Test template",
-      );
+      });
 
       expect(prompt.contentDesc).toBe("Test intro text template");
       expect(prompt.instructions).toEqual(["test"]);
       expect(prompt.responseSchema).toBeDefined();
-      expect(prompt.template).toBe("Test template");
     });
 
     it("should support readonly string arrays", () => {
       const readonlyInstructions: readonly string[] = ["instruction 1", "instruction 2"];
 
-      const prompt = new Prompt(
-        {
-          contentDesc: "Test intro text template",
-          instructions: readonlyInstructions,
-          responseSchema: z.string(),
-          dataBlockHeader: "CODE",
-          wrapInCodeBlock: false,
-        },
-        "Test template",
-      );
+      const prompt = new JSONSchemaPrompt({
+        personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+        contentDesc: "Test intro text template",
+        instructions: readonlyInstructions,
+        responseSchema: z.string(),
+        dataBlockHeader: "CODE",
+        wrapInCodeBlock: false,
+      });
 
       expect(prompt.instructions).toEqual(["instruction 1", "instruction 2"]);
     });

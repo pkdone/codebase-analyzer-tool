@@ -2,7 +2,6 @@ import { injectable, inject } from "tsyringe";
 import { z } from "zod";
 import LLMRouter from "../../../../common/llm/llm-router";
 import { LLMOutputFormat } from "../../../../common/llm/types/llm.types";
-import { Prompt } from "../../../../common/prompts/prompt";
 import { insightsConfig } from "../insights.config";
 import { llmConcurrencyLimiter } from "../../../config/concurrency.config";
 import { getCategoryLabel } from "../../../config/category-labels.config";
@@ -19,11 +18,9 @@ import { getLlmArtifactCorrections } from "../../../config/llm-artifact-correcti
 import { executeInsightCompletion } from "./insights-completion-executor";
 import { chunkTextByTokenLimit } from "../../../../common/llm/utils/text-chunking";
 import { isOk } from "../../../../common/types/result.types";
-import { buildReduceInsightsContentDesc } from "../../../prompts/definitions/app-summaries/app-summaries.fragments";
-import {
-  ANALYSIS_PROMPT_TEMPLATE,
-  PARTIAL_ANALYSIS_TEMPLATE,
-} from "../../../prompts/app-templates";
+import { buildReduceInsightsContentDesc } from "../../../prompts/app-summaries/app-summaries.fragments";
+import { JSONSchemaPrompt } from "../../../../common/prompts/json-schema-prompt";
+import { DEFAULT_PERSONA_INTRODUCTION } from "../../../prompts/prompt.config";
 
 /**
  * Data block header for reduce insights prompts (consolidating fragmented data).
@@ -116,7 +113,7 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
   /**
    * MAP step: Generates partial insights for a single chunk of summaries.
    * This method is called once per chunk in the map-reduce process.
-   * Uses PARTIAL_ANALYSIS_TEMPLATE which includes a note about partial analysis.
+   * Uses forPartialAnalysis flag which includes a note about partial analysis.
    * Returns the strongly-typed result inferred from the category's schema.
    */
   private async generatePartialInsightsForCategory<C extends AppSummaryCategoryEnum>(
@@ -124,7 +121,7 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
     summaryChunk: string[],
   ): Promise<CategoryInsightResult<C> | null> {
     return executeInsightCompletion(this.llmRouter, category, summaryChunk, {
-      template: PARTIAL_ANALYSIS_TEMPLATE,
+      forPartialAnalysis: true,
       taskCategory: `${category}-chunk`,
     });
   }
@@ -216,17 +213,15 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
     const categoryKey = Object.keys(schemaShape)[0] as keyof CategoryInsightResult<C>;
     const combinedData = this.combinePartialResultsData(category, partialResults);
     const content = JSON.stringify(combinedData, null, 2);
-    const reducePrompt = new Prompt(
-      {
-        contentDesc: buildReduceInsightsContentDesc(categoryKey as string),
-        instructions: [`a consolidated list of '${String(categoryKey)}'`],
-        responseSchema: schema,
-        dataBlockHeader: FRAGMENTED_DATA_BLOCK_HEADER,
-        wrapInCodeBlock: false,
-      },
-      ANALYSIS_PROMPT_TEMPLATE,
-    );
-    const renderedPrompt = reducePrompt.renderPrompt(content);
+    const promptGenerator = new JSONSchemaPrompt({
+      personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+      contentDesc: buildReduceInsightsContentDesc(categoryKey as string),
+      instructions: [`a consolidated list of '${String(categoryKey)}'`],
+      responseSchema: schema,
+      dataBlockHeader: FRAGMENTED_DATA_BLOCK_HEADER,
+      wrapInCodeBlock: false,
+    });
+    const renderedPrompt = promptGenerator.renderPrompt(content);
 
     try {
       const result = await this.llmRouter.executeCompletion(`${category}-reduce`, renderedPrompt, {

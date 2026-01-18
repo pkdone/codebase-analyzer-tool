@@ -1,16 +1,19 @@
-import { Prompt, type PromptConfig } from "../../../src/common/prompts/prompt";
+import {
+  JSONSchemaPrompt,
+  type JSONSchemaPromptConfig,
+} from "../../../src/common/prompts/json-schema-prompt";
 import { z } from "zod";
-import { CODE_DATA_BLOCK_HEADER } from "../../../src/app/prompts/definitions/sources/definitions/source-config-factories";
-import { FILE_SUMMARIES_DATA_BLOCK_HEADER } from "../../../src/app/prompts/definitions/app-summaries/app-summaries.factories";
+import { CODE_DATA_BLOCK_HEADER } from "../../../src/app/prompts/sources/definitions/source-config-factories";
+import { FILE_SUMMARIES_DATA_BLOCK_HEADER } from "../../../src/app/prompts/app-summaries/app-summaries.fragments";
+import { DEFAULT_PERSONA_INTRODUCTION } from "../../../src/app/prompts/prompt.config";
 
-describe("Prompt Class", () => {
-  const testTemplate = "Test template with {{contentDesc}} and {{instructions}}";
-
+describe("JSONSchemaPrompt Class", () => {
   /**
    * Helper to create a valid test config entry with required fields.
    */
-  function createTestConfig(overrides?: Partial<PromptConfig>): PromptConfig {
+  function createTestConfig(overrides?: Partial<JSONSchemaPromptConfig>): JSONSchemaPromptConfig {
     return {
+      personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
       contentDesc: "test content",
       instructions: ["test instruction"],
       responseSchema: z.string(),
@@ -35,12 +38,11 @@ describe("Prompt Class", () => {
         wrapInCodeBlock: true,
       });
 
-      const prompt1 = new Prompt(config1, testTemplate);
-      const prompt2 = new Prompt(config2, testTemplate);
+      const prompt1 = new JSONSchemaPrompt(config1);
+      const prompt2 = new JSONSchemaPrompt(config2);
 
       expect(prompt1).toBeDefined();
       expect(prompt1.contentDesc).toBe("content 1");
-      expect(prompt1.template).toBe(testTemplate);
       expect(prompt1.dataBlockHeader).toBe(FILE_SUMMARIES_DATA_BLOCK_HEADER);
 
       expect(prompt2).toBeDefined();
@@ -52,7 +54,7 @@ describe("Prompt Class", () => {
         contentDesc: "custom content description",
       });
 
-      const prompt = new Prompt(config, testTemplate);
+      const prompt = new JSONSchemaPrompt(config);
 
       expect(prompt.contentDesc).toBe("custom content description");
     });
@@ -62,7 +64,7 @@ describe("Prompt Class", () => {
         instructions: ["instruction 1", "instruction 2"],
       });
 
-      const prompt = new Prompt(config, testTemplate);
+      const prompt = new JSONSchemaPrompt(config);
 
       expect(prompt.instructions).toHaveLength(2);
       expect(prompt.instructions[0]).toBe("instruction 1");
@@ -79,8 +81,8 @@ describe("Prompt Class", () => {
         dataBlockHeader: FILE_SUMMARIES_DATA_BLOCK_HEADER,
       });
 
-      const prompt1 = new Prompt(config1, testTemplate);
-      const prompt2 = new Prompt(config2, testTemplate);
+      const prompt1 = new JSONSchemaPrompt(config1);
+      const prompt2 = new JSONSchemaPrompt(config2);
 
       expect(prompt1.dataBlockHeader).toBe(CODE_DATA_BLOCK_HEADER);
       expect(prompt2.dataBlockHeader).toBe(FILE_SUMMARIES_DATA_BLOCK_HEADER);
@@ -96,8 +98,8 @@ describe("Prompt Class", () => {
         wrapInCodeBlock: false,
       });
 
-      const prompt1 = new Prompt(config1, testTemplate);
-      const prompt2 = new Prompt(config2, testTemplate);
+      const prompt1 = new JSONSchemaPrompt(config1);
+      const prompt2 = new JSONSchemaPrompt(config2);
 
       expect(prompt1.wrapInCodeBlock).toBe(true);
       expect(prompt2.wrapInCodeBlock).toBe(false);
@@ -110,6 +112,7 @@ describe("Prompt Class", () => {
       });
 
       const config = {
+        personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
         responseSchema: baseSchema,
         contentDesc: "custom content description",
         instructions: ["Instruction for test"] as const,
@@ -117,7 +120,7 @@ describe("Prompt Class", () => {
         wrapInCodeBlock: true,
       } as const;
 
-      const prompt = new Prompt(config, testTemplate);
+      const prompt = new JSONSchemaPrompt(config);
       expect(prompt.contentDesc).toBe("custom content description");
       expect(prompt.instructions[0]).toBe("Instruction for test");
       expect(prompt.dataBlockHeader).toBe(CODE_DATA_BLOCK_HEADER);
@@ -134,6 +137,7 @@ describe("Prompt Class", () => {
       });
 
       const stringConfig = {
+        personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
         contentDesc: "string content",
         responseSchema: stringSchema,
         instructions: ["instruction"] as const,
@@ -141,6 +145,7 @@ describe("Prompt Class", () => {
         wrapInCodeBlock: true,
       } as const;
       const numberConfig = {
+        personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
         contentDesc: "number content",
         responseSchema: numberSchema,
         instructions: ["instruction"] as const,
@@ -148,6 +153,7 @@ describe("Prompt Class", () => {
         wrapInCodeBlock: true,
       } as const;
       const objectConfig = {
+        personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
         contentDesc: "object content",
         responseSchema: objectSchema,
         instructions: ["instruction"] as const,
@@ -155,9 +161,9 @@ describe("Prompt Class", () => {
         wrapInCodeBlock: true,
       } as const;
 
-      const stringPrompt = new Prompt(stringConfig, testTemplate);
-      const numberPrompt = new Prompt(numberConfig, testTemplate);
-      const objectPrompt = new Prompt(objectConfig, testTemplate);
+      const stringPrompt = new JSONSchemaPrompt(stringConfig);
+      const numberPrompt = new JSONSchemaPrompt(numberConfig);
+      const objectPrompt = new JSONSchemaPrompt(objectConfig);
 
       // Verify runtime schema preservation
       expect(stringPrompt.responseSchema).toBe(stringSchema);
@@ -179,7 +185,7 @@ describe("Prompt Class", () => {
         wrapInCodeBlock: false,
       });
 
-      const prompt = new Prompt(config, testTemplate);
+      const prompt = new JSONSchemaPrompt(config);
 
       expect(prompt.dataBlockHeader).toBe("FRAGMENTED_DATA");
     });

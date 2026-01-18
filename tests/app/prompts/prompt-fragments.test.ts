@@ -1,4 +1,4 @@
-import { SOURCES_PROMPT_FRAGMENTS } from "../../../src/app/prompts/definitions/sources/sources.fragments";
+import { SOURCES_PROMPT_FRAGMENTS } from "../../../src/app/prompts/sources/sources.fragments";
 
 describe("Fragment Factory Functions", () => {
   describe("DB_MECHANISM_MAPPING fragments", () => {

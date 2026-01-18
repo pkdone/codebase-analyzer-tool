@@ -8,8 +8,8 @@ import {
 } from "../../../../../src/app/components/insights/insights.types";
 import LLMRouter from "../../../../../src/common/llm/llm-router";
 import { LLMOutputFormat } from "../../../../../src/common/llm/types/llm.types";
-import { appPromptManager } from "../../../../../src/app/prompts/app-prompt-registry";
-const appSummaryPromptMetadata = appPromptManager.appSummaries;
+import { appSummaryConfigMap } from "../../../../../src/app/prompts/app-summaries/app-summaries.definitions";
+const appSummaryPromptMetadata = appSummaryConfigMap;
 import { z } from "zod";
 import { ok, err } from "../../../../../src/common/types/result.types";
 import { LLMError, LLMErrorCode } from "../../../../../src/common/llm/types/llm-errors.types";

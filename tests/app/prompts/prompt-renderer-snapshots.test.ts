@@ -1,123 +1,129 @@
-import { Prompt } from "../../../src/common/prompts/prompt";
-import { appPromptManager } from "../../../src/app/prompts/app-prompt-registry";
-import { PARTIAL_ANALYSIS_TEMPLATE } from "../../../src/app/prompts/app-templates";
-const fileTypePromptMetadata = appPromptManager.sources;
+import {
+  JSONSchemaPrompt,
+  type JSONSchemaPromptConfig,
+} from "../../../src/common/prompts/json-schema-prompt";
+import { DEFAULT_PERSONA_INTRODUCTION } from "../../../src/app/prompts/prompt.config";
+import {
+  appSummaryConfigMap,
+  FILE_SUMMARIES_DATA_BLOCK_HEADER,
+  APP_SUMMARY_CONTENT_DESC,
+} from "../../../src/app/prompts/app-summaries/app-summaries.definitions";
+import {
+  fileTypePromptRegistry,
+  CODE_DATA_BLOCK_HEADER,
+} from "../../../src/app/prompts/sources/sources.definitions";
+
+/**
+ * Helper to create a JSONSchemaPrompt from fileTypePromptRegistry config.
+ * Adds dataBlockHeader and wrapInCodeBlock which are no longer in the registry entries.
+ */
+function createSourcePrompt(fileType: keyof typeof fileTypePromptRegistry): JSONSchemaPrompt {
+  const config = fileTypePromptRegistry[fileType];
+  return new JSONSchemaPrompt({
+    personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+    ...config,
+    dataBlockHeader: CODE_DATA_BLOCK_HEADER,
+    wrapInCodeBlock: true,
+  } as JSONSchemaPromptConfig);
+}
+
+/**
+ * Helper to create a JSONSchemaPrompt from appSummaryConfigMap config.
+ * Adds contentDesc, dataBlockHeader, and wrapInCodeBlock which are no longer in the config entries.
+ */
+function createAppSummaryPrompt(
+  category: keyof typeof appSummaryConfigMap,
+  options?: { forPartialAnalysis?: boolean },
+): JSONSchemaPrompt {
+  const config = appSummaryConfigMap[category];
+  return new JSONSchemaPrompt({
+    personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+    ...config,
+    contentDesc: APP_SUMMARY_CONTENT_DESC,
+    dataBlockHeader: FILE_SUMMARIES_DATA_BLOCK_HEADER,
+    wrapInCodeBlock: false,
+    forPartialAnalysis: options?.forPartialAnalysis,
+  } as JSONSchemaPromptConfig);
+}
 
 describe("renderPrompt Snapshot Tests", () => {
   const testContent = "public class TestClass {\n  // Test code\n}";
 
   describe("rendered prompts should match snapshots", () => {
     test("Java prompt should match snapshot", () => {
-      const definition = fileTypePromptMetadata.java;
-
-      const rendered = definition.renderPrompt(testContent);
+      const prompt = createSourcePrompt("java");
+      const rendered = prompt.renderPrompt(testContent);
       expect(rendered).toMatchSnapshot();
     });
 
     test("JavaScript prompt should match snapshot", () => {
-      const definition = fileTypePromptMetadata.javascript;
-
-      const rendered = definition.renderPrompt(testContent);
+      const prompt = createSourcePrompt("javascript");
+      const rendered = prompt.renderPrompt(testContent);
       expect(rendered).toMatchSnapshot();
     });
 
     test("C# prompt should match snapshot", () => {
-      const definition = fileTypePromptMetadata.csharp;
-
-      const rendered = definition.renderPrompt(testContent);
+      const prompt = createSourcePrompt("csharp");
+      const rendered = prompt.renderPrompt(testContent);
       expect(rendered).toMatchSnapshot();
     });
 
     test("Python prompt should match snapshot", () => {
-      const definition = fileTypePromptMetadata.python;
-
-      const rendered = definition.renderPrompt(testContent);
+      const prompt = createSourcePrompt("python");
+      const rendered = prompt.renderPrompt(testContent);
       expect(rendered).toMatchSnapshot();
     });
 
     test("Ruby prompt should match snapshot", () => {
-      const definition = fileTypePromptMetadata.ruby;
-
-      const rendered = definition.renderPrompt(testContent);
+      const prompt = createSourcePrompt("ruby");
+      const rendered = prompt.renderPrompt(testContent);
       expect(rendered).toMatchSnapshot();
     });
 
     test("SQL prompt should match snapshot", () => {
-      const definition = fileTypePromptMetadata.sql;
-
-      const rendered = definition.renderPrompt("CREATE TABLE test (id INT);");
+      const prompt = createSourcePrompt("sql");
+      const rendered = prompt.renderPrompt("CREATE TABLE test (id INT);");
       expect(rendered).toMatchSnapshot();
     });
 
     test("Markdown prompt should match snapshot", () => {
-      const definition = fileTypePromptMetadata.markdown;
-
-      const rendered = definition.renderPrompt("# Test Document\n\nContent here");
+      const prompt = createSourcePrompt("markdown");
+      const rendered = prompt.renderPrompt("# Test Document\n\nContent here");
       expect(rendered).toMatchSnapshot();
     });
 
     test("XML prompt should match snapshot", () => {
-      const definition = fileTypePromptMetadata.xml;
-
-      const rendered = definition.renderPrompt("<root><element>test</element></root>");
+      const prompt = createSourcePrompt("xml");
+      const rendered = prompt.renderPrompt("<root><element>test</element></root>");
       expect(rendered).toMatchSnapshot();
     });
 
     test("JSP prompt should match snapshot", () => {
-      const definition = fileTypePromptMetadata.jsp;
-
-      const rendered = definition.renderPrompt('<%@ page language="java" %>\n<html>test</html>');
+      const prompt = createSourcePrompt("jsp");
+      const rendered = prompt.renderPrompt('<%@ page language="java" %>\n<html>test</html>');
       expect(rendered).toMatchSnapshot();
     });
 
     test("Default prompt should match snapshot", () => {
-      const definition = fileTypePromptMetadata.default;
-
-      const rendered = definition.renderPrompt(testContent);
+      const prompt = createSourcePrompt("default");
+      const rendered = prompt.renderPrompt(testContent);
       expect(rendered).toMatchSnapshot();
     });
   });
 
-  describe("extras parameter handling", () => {
-    test("prompt with extras should handle gracefully (sources template doesn't use them)", () => {
-      const definition = fileTypePromptMetadata.java;
-
-      // Sources template doesn't use partialAnalysisNote, but renderer should handle it
-      const rendered = definition.renderPrompt(testContent, {
-        partialAnalysisNote: "Note: This is a partial analysis.",
-      });
-      expect(rendered).toBeTruthy();
-      // The note won't appear in sources template, but renderer should not error
-    });
-
-    test("prompt without extras should work normally", () => {
-      const definition = fileTypePromptMetadata.java;
-
-      const rendered = definition.renderPrompt(testContent);
+  describe("renderPrompt basic handling", () => {
+    test("prompt should render correctly", () => {
+      const prompt = createSourcePrompt("java");
+      const rendered = prompt.renderPrompt(testContent);
       expect(rendered).toBeTruthy();
       expect(rendered).toContain("CODE:");
-    });
-
-    test("prompt with undefined extras should handle gracefully", () => {
-      const definition = fileTypePromptMetadata.java;
-
-      const rendered = definition.renderPrompt(testContent, undefined);
-      expect(rendered).toBeTruthy();
-    });
-
-    test("prompt with empty extras object should work", () => {
-      const definition = fileTypePromptMetadata.java;
-
-      const rendered = definition.renderPrompt(testContent, {});
-      expect(rendered).toBeTruthy();
     });
   });
 
   describe("instruction block formatting", () => {
     test("instructions should be properly formatted with double underscores", () => {
-      const definition = fileTypePromptMetadata.java;
-
-      const rendered = definition.renderPrompt(testContent);
+      const prompt = createSourcePrompt("java");
+      const rendered = prompt.renderPrompt(testContent);
 
       // Should contain properly formatted instruction section titles
       expect(rendered).toContain("__Basic Information__");
@@ -128,9 +134,8 @@ describe("renderPrompt Snapshot Tests", () => {
     });
 
     test("instructions should be properly formatted", () => {
-      const definition = fileTypePromptMetadata.java;
-
-      const rendered = definition.renderPrompt(testContent);
+      const prompt = createSourcePrompt("java");
+      const rendered = prompt.renderPrompt(testContent);
       const instructionsSection = rendered.split("CODE:")[0];
 
       // Should have instruction section titles with double underscores
@@ -170,10 +175,10 @@ describe("renderPrompt Snapshot Tests", () => {
 
     fileTypes.forEach((fileType) => {
       test(`${fileType} should render successfully`, () => {
-        const definition = fileTypePromptMetadata[fileType];
+        const prompt = createSourcePrompt(fileType);
 
         expect(() => {
-          const rendered = definition.renderPrompt("test content");
+          const rendered = prompt.renderPrompt("test content");
           expect(rendered).toBeTruthy();
           expect(typeof rendered).toBe("string");
           expect(rendered.length).toBeGreaterThan(0);
@@ -182,59 +187,23 @@ describe("renderPrompt Snapshot Tests", () => {
     });
   });
 
-  describe("TEXT mode prompts (codebaseQuery)", () => {
-    test("codebaseQuery prompt should be TEXT mode (no responseSchema)", () => {
-      const definition = appPromptManager.codebaseQuery;
-      // TEXT mode = no responseSchema
-      expect(definition.responseSchema).toBeUndefined();
-    });
-
-    test("codebaseQuery prompt should render without JSON schema", () => {
-      const definition = appPromptManager.codebaseQuery;
-      const content = "function main() { return 42; }";
-
-      const rendered = definition.renderPrompt(content, {
-        question: "What does the main function do?",
-      });
-
-      // TEXT mode prompts should NOT include JSON schema or force JSON text
-      expect(rendered).not.toContain("The response MUST be valid JSON");
-      expect(rendered).not.toContain('"type":');
-      expect(rendered).not.toContain("```json");
-
-      // Should include the question and content
-      expect(rendered).toContain("What does the main function do?");
-      expect(rendered).toContain("function main()");
-    });
-
-    test("codebaseQuery prompt should match snapshot", () => {
-      const definition = appPromptManager.codebaseQuery;
-      const content = "export function calculate(x: number) { return x * 2; }";
-
-      const rendered = definition.renderPrompt(content, {
-        question: "What is the purpose of this code?",
-      });
-      expect(rendered).toMatchSnapshot();
-    });
-  });
-
-  describe("app summary prompts (JSON mode)", () => {
+  describe("app summary configs (JSON mode)", () => {
     const appSummaryTypes = Object.keys(
-      appPromptManager.appSummaries,
-    ) as (keyof typeof appPromptManager.appSummaries)[];
+      appSummaryConfigMap,
+    ) as (keyof typeof appSummaryConfigMap)[];
 
-    test("all app summary prompts should be JSON mode (have responseSchema)", () => {
+    test("all app summary configs should be JSON mode (have responseSchema)", () => {
       appSummaryTypes.forEach((category) => {
-        const definition = appPromptManager.appSummaries[category];
+        const config = appSummaryConfigMap[category];
         // JSON mode = responseSchema is defined
-        expect(definition.responseSchema).toBeDefined();
+        expect(config.responseSchema).toBeDefined();
       });
     });
 
     test("app summary prompts should include JSON schema", () => {
-      const definition = appPromptManager.appSummaries[appSummaryTypes[0]];
+      const prompt = createAppSummaryPrompt(appSummaryTypes[0]);
 
-      const rendered = definition.renderPrompt("[{summary: 'test'}]");
+      const rendered = prompt.renderPrompt("[{summary: 'test'}]");
 
       // JSON mode prompts should include JSON enforcement
       expect(rendered).toContain("The response MUST be valid JSON");
@@ -242,10 +211,10 @@ describe("renderPrompt Snapshot Tests", () => {
 
     appSummaryTypes.forEach((category) => {
       test(`${category} app summary prompt should render successfully`, () => {
-        const definition = appPromptManager.appSummaries[category];
+        const prompt = createAppSummaryPrompt(category);
 
         expect(() => {
-          const rendered = definition.renderPrompt("[{summary: 'test file summary'}]");
+          const rendered = prompt.renderPrompt("[{summary: 'test file summary'}]");
           expect(rendered).toBeTruthy();
           expect(typeof rendered).toBe("string");
           expect(rendered.length).toBeGreaterThan(0);
@@ -261,62 +230,44 @@ describe("renderPrompt Snapshot Tests", () => {
     ]);
 
     test("appDescription prompt should match snapshot", () => {
-      const definition = appPromptManager.appSummaries.appDescription;
-
-      const rendered = definition.renderPrompt(testSummaryContent);
+      const prompt = createAppSummaryPrompt("appDescription");
+      const rendered = prompt.renderPrompt(testSummaryContent);
       expect(rendered).toMatchSnapshot();
     });
 
     test("technologies prompt should match snapshot", () => {
-      const definition = appPromptManager.appSummaries.technologies;
-
-      const rendered = definition.renderPrompt(testSummaryContent);
+      const prompt = createAppSummaryPrompt("technologies");
+      const rendered = prompt.renderPrompt(testSummaryContent);
       expect(rendered).toMatchSnapshot();
     });
 
     test("businessProcesses prompt should match snapshot", () => {
-      const definition = appPromptManager.appSummaries.businessProcesses;
-
-      const rendered = definition.renderPrompt(testSummaryContent);
+      const prompt = createAppSummaryPrompt("businessProcesses");
+      const rendered = prompt.renderPrompt(testSummaryContent);
       expect(rendered).toMatchSnapshot();
     });
 
     test("boundedContexts prompt should match snapshot", () => {
-      const definition = appPromptManager.appSummaries.boundedContexts;
-
-      const rendered = definition.renderPrompt(testSummaryContent);
+      const prompt = createAppSummaryPrompt("boundedContexts");
+      const rendered = prompt.renderPrompt(testSummaryContent);
       expect(rendered).toMatchSnapshot();
     });
 
     test("potentialMicroservices prompt should match snapshot", () => {
-      const definition = appPromptManager.appSummaries.potentialMicroservices;
-
-      const rendered = definition.renderPrompt(testSummaryContent);
+      const prompt = createAppSummaryPrompt("potentialMicroservices");
+      const rendered = prompt.renderPrompt(testSummaryContent);
       expect(rendered).toMatchSnapshot();
     });
 
     test("inferredArchitecture prompt should match snapshot", () => {
-      const definition = appPromptManager.appSummaries.inferredArchitecture;
-
-      const rendered = definition.renderPrompt(testSummaryContent);
+      const prompt = createAppSummaryPrompt("inferredArchitecture");
+      const rendered = prompt.renderPrompt(testSummaryContent);
       expect(rendered).toMatchSnapshot();
     });
 
-    test("app summary prompt with PARTIAL_ANALYSIS_TEMPLATE should match snapshot", () => {
-      const definition = appPromptManager.appSummaries.technologies;
-      // Use PARTIAL_ANALYSIS_TEMPLATE for partial analysis
-      const promptWithPartialTemplate = new Prompt(
-        {
-          contentDesc: definition.contentDesc,
-          instructions: definition.instructions,
-          responseSchema: definition.responseSchema,
-          dataBlockHeader: definition.dataBlockHeader,
-          wrapInCodeBlock: definition.wrapInCodeBlock,
-        },
-        PARTIAL_ANALYSIS_TEMPLATE,
-      );
-
-      const rendered = promptWithPartialTemplate.renderPrompt(testSummaryContent);
+    test("app summary prompt with forPartialAnalysis should match snapshot", () => {
+      const prompt = createAppSummaryPrompt("technologies", { forPartialAnalysis: true });
+      const rendered = prompt.renderPrompt(testSummaryContent);
       expect(rendered).toMatchSnapshot();
     });
   });

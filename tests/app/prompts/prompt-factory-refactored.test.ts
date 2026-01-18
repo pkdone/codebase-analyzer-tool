@@ -1,7 +1,7 @@
 import {
   buildInstructionBlock,
   INSTRUCTION_SECTION_TITLES,
-} from "../../../src/app/prompts/definitions/sources/source-instruction-utils";
+} from "../../../src/app/prompts/sources/source-instruction-utils";
 
 describe("Prompt Factory Refactoring Tests", () => {
   describe("buildInstructionBlock in instruction-utils", () => {

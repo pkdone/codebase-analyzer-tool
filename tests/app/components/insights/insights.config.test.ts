@@ -1,6 +1,5 @@
 import { insightsConfig } from "../../../../src/app/components/insights/insights.config";
-import { appPromptManager } from "../../../../src/app/prompts/app-prompt-registry";
-const summaryCategoriesConfig = appPromptManager.appSummaries;
+import { appSummaryConfigMap } from "../../../../src/app/prompts/app-summaries/app-summaries.definitions";
 import { AppSummaryCategoryEnum } from "../../../../src/app/components/insights/insights.types";
 
 describe("insightsTuningConfig", () => {
@@ -31,6 +30,8 @@ describe("insightsTuningConfig", () => {
 describe("summaryCategoriesConfig", () => {
   it("should have all required category configurations", () => {
     // Note: aggregates, entities, and repositories are now nested within boundedContexts
+    // Note: contentDesc, dataBlockHeader, wrapInCodeBlock are no longer in config entries
+    // They are set at instantiation time by the consumer (InsightCompletionExecutor)
     const categories: AppSummaryCategoryEnum[] = [
       "appDescription",
       "technologies",
@@ -40,24 +41,25 @@ describe("summaryCategoriesConfig", () => {
     ];
 
     categories.forEach((category) => {
-      expect(summaryCategoriesConfig[category]).toBeDefined();
-      expect(summaryCategoriesConfig[category]).toHaveProperty("contentDesc");
-      expect(summaryCategoriesConfig[category]).toHaveProperty("responseSchema");
+      expect(appSummaryConfigMap[category]).toBeDefined();
+      expect(appSummaryConfigMap[category]).toHaveProperty("instructions");
+      expect(appSummaryConfigMap[category]).toHaveProperty("responseSchema");
     });
   });
 
-  it("should have non-empty descriptions", () => {
-    Object.values(summaryCategoriesConfig).forEach((config) => {
-      expect(config.contentDesc).toBeTruthy();
-      expect(typeof config.contentDesc).toBe("string");
+  it("should have non-empty instructions", () => {
+    Object.values(appSummaryConfigMap).forEach((config) => {
+      expect(config.instructions).toBeDefined();
+      expect(Array.isArray(config.instructions)).toBe(true);
+      expect(config.instructions.length).toBeGreaterThan(0);
     });
   });
 
   it("should have valid zod schemas", () => {
-    Object.values(summaryCategoriesConfig).forEach((config) => {
+    Object.values(appSummaryConfigMap).forEach((config) => {
       expect(config.responseSchema).toBeDefined();
-      expect(config.responseSchema!.parse).toBeDefined();
-      expect(typeof config.responseSchema!.parse).toBe("function");
+      expect(config.responseSchema.parse).toBeDefined();
+      expect(typeof config.responseSchema.parse).toBe("function");
     });
   });
 });

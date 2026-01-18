@@ -43,7 +43,6 @@ export type TaskToken = keyof typeof taskTokens;
 export const captureTokens = {
   CodebaseToDBLoader: Symbol("CodebaseToDBLoader"),
   FileSummarizerService: Symbol("FileSummarizerService"),
-  PromptManager: Symbol("PromptManager"),
   FileTypePromptRegistry: Symbol("FileTypePromptRegistry"),
 } as const;
 

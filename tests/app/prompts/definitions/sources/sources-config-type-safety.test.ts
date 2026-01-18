@@ -2,15 +2,12 @@ import { z } from "zod";
 import {
   fileTypePromptRegistry,
   type FileTypePromptRegistry,
-} from "../../../../../src/app/prompts/definitions/sources/sources.definitions";
-import {
-  standardCodeDefinitions,
-  dependencyFileDefinitions,
-  specialFileDefinitions,
-  type SourceConfigEntry,
-} from "../../../../../src/app/prompts/definitions/sources/definitions";
+} from "../../../../../src/app/prompts/sources/sources.definitions";
+import { type SourceConfigEntry } from "../../../../../src/app/prompts/sources/definitions/source-config-factories";
+import { standardCodeDefinitions } from "../../../../../src/app/prompts/sources/definitions/standard-code.definitions";
+import { dependencyFileDefinitions } from "../../../../../src/app/prompts/sources/definitions/dependency-files.definitions";
+import { specialFileDefinitions } from "../../../../../src/app/prompts/sources/definitions/special-files.definitions";
 import { CANONICAL_FILE_TYPES } from "../../../../../src/app/schemas/canonical-file-types";
-import { CODE_DATA_BLOCK_HEADER } from "../../../../../src/app/prompts/definitions/sources/definitions/source-config-factories";
 
 /**
  * Type safety tests for fileTypePromptRegistry.
@@ -120,12 +117,11 @@ describe("fileTypePromptRegistry Type Safety", () => {
       });
 
       // This should compile without error, showing the generic works
+      // Note: dataBlockHeader and wrapInCodeBlock are no longer part of SourceConfigEntry
       const testEntry: SourceConfigEntry<typeof testSchema> = {
         contentDesc: "Test content",
         responseSchema: testSchema,
         instructions: ["Test instruction"],
-        dataBlockHeader: CODE_DATA_BLOCK_HEADER,
-        wrapInCodeBlock: true,
       };
 
       expect(testEntry.responseSchema).toBe(testSchema);
@@ -134,12 +130,11 @@ describe("fileTypePromptRegistry Type Safety", () => {
 
     it("should default to z.ZodType when no type parameter is provided", () => {
       // This should accept any ZodType without specific parameter
+      // Note: dataBlockHeader and wrapInCodeBlock are no longer part of SourceConfigEntry
       const genericEntry: SourceConfigEntry = {
         contentDesc: "Generic content",
         responseSchema: z.string(),
         instructions: [],
-        dataBlockHeader: CODE_DATA_BLOCK_HEADER,
-        wrapInCodeBlock: true,
       };
 
       expect(genericEntry.responseSchema).toBeInstanceOf(z.ZodType);

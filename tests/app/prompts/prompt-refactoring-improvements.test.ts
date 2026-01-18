@@ -1,51 +1,23 @@
 import { z } from "zod";
-import { Prompt, type PromptConfig } from "../../../src/common/prompts/prompt";
 import {
-  ANALYSIS_PROMPT_TEMPLATE,
-  CODEBASE_QUERY_TEMPLATE,
-} from "../../../src/app/prompts/app-templates";
-import { fileTypePromptRegistry } from "../../../src/app/prompts/definitions/sources/sources.definitions";
+  JSONSchemaPrompt,
+  type JSONSchemaPromptConfig,
+} from "../../../src/common/prompts/json-schema-prompt";
+import { DEFAULT_PERSONA_INTRODUCTION } from "../../../src/app/prompts/prompt.config";
+import { fileTypePromptRegistry } from "../../../src/app/prompts/sources/sources.definitions";
 
-describe("Prompt Refactoring Improvements", () => {
-  describe("TEXT-mode Rendering (no responseSchema)", () => {
-    it("should not include JSON schema section for TEXT-mode prompts (no responseSchema)", () => {
-      // TEXT mode = no responseSchema
-      const textPrompt = new Prompt(
-        {
-          contentDesc: "source code files",
-          instructions: [],
-          dataBlockHeader: "CODE",
-          wrapInCodeBlock: false,
-        },
-        CODEBASE_QUERY_TEMPLATE,
-      );
-
-      const result = textPrompt.renderPrompt("sample code", {
-        question: "What does this code do?",
+describe("JSONSchemaPrompt Refactoring Improvements", () => {
+  describe("JSON Schema Rendering", () => {
+    it("should include JSON schema section for JSON-mode prompts", () => {
+      // JSON mode = responseSchema is provided (now mandatory)
+      const jsonPrompt = new JSONSchemaPrompt({
+        personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+        contentDesc: "test content",
+        instructions: ["test instruction"],
+        responseSchema: z.object({ name: z.string() }),
+        dataBlockHeader: "CODE",
+        wrapInCodeBlock: false,
       });
-
-      // Should not contain JSON schema section
-      expect(result).not.toContain("JSON response must follow");
-      expect(result).not.toContain("```json");
-      expect(result).not.toContain('"type": "string"');
-
-      // Should contain the expected content
-      expect(result).toContain("What does this code do?");
-      expect(result).toContain("sample code");
-    });
-
-    it("should include JSON schema section for JSON-mode prompts (has responseSchema)", () => {
-      // JSON mode = responseSchema is provided
-      const jsonPrompt = new Prompt(
-        {
-          contentDesc: "test content",
-          instructions: ["test instruction"],
-          responseSchema: z.object({ name: z.string() }),
-          dataBlockHeader: "CODE",
-          wrapInCodeBlock: false,
-        },
-        ANALYSIS_PROMPT_TEMPLATE,
-      );
 
       const result = jsonPrompt.renderPrompt("sample code");
 
@@ -53,6 +25,8 @@ describe("Prompt Refactoring Improvements", () => {
       expect(result).toContain("JSON response must follow");
       expect(result).toContain("```json");
       expect(result).toContain('"name"');
+      // Should contain the expected content
+      expect(result).toContain("sample code");
     });
   });
 
@@ -125,7 +99,7 @@ describe("Prompt Refactoring Improvements", () => {
     });
   });
 
-  describe("Prompt text preservation", () => {
+  describe("JSONSchemaPrompt text preservation", () => {
     it("should preserve Java prompt text structure", () => {
       const config = fileTypePromptRegistry.java;
       const fullInstructions = config.instructions.join("\n\n");
@@ -169,23 +143,26 @@ describe("Prompt Refactoring Improvements", () => {
     });
   });
 
-  describe("PromptConfig interface compatibility", () => {
-    it("should be compatible with SourceConfigEntry", () => {
+  describe("JSONSchemaPromptConfig interface compatibility", () => {
+    it("should be compatible with SourceConfigEntry when presentation values are added", () => {
       // TypeScript compilation test - if this compiles, the interfaces are compatible
+      // Note: dataBlockHeader and wrapInCodeBlock must now be added at instantiation time
       const sourceConfig = fileTypePromptRegistry.java;
-      const configEntry: PromptConfig = {
+      const configEntry: JSONSchemaPromptConfig = {
+        personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
         instructions: sourceConfig.instructions,
         responseSchema: sourceConfig.responseSchema,
         contentDesc: sourceConfig.contentDesc,
-        dataBlockHeader: sourceConfig.dataBlockHeader,
-        wrapInCodeBlock: sourceConfig.wrapInCodeBlock,
+        dataBlockHeader: "CODE",
+        wrapInCodeBlock: true,
       };
 
       expect(configEntry.instructions).toBe(sourceConfig.instructions);
     });
 
     it("should require core fields including dataBlockHeader and wrapInCodeBlock", () => {
-      const config: PromptConfig = {
+      const config: JSONSchemaPromptConfig = {
+        personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
         contentDesc: "test content",
         instructions: ["test instruction"],
         responseSchema: z.string(),
@@ -201,7 +178,8 @@ describe("Prompt Refactoring Improvements", () => {
     });
 
     it("should support optional hasComplexSchema field", () => {
-      const config: PromptConfig = {
+      const config: JSONSchemaPromptConfig = {
+        personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
         contentDesc: "test content",
         instructions: ["test instruction"],
         responseSchema: z.string(),
@@ -216,16 +194,14 @@ describe("Prompt Refactoring Improvements", () => {
 
   describe("Rendered prompt comparison", () => {
     it("should render Java prompt with correct structure", () => {
-      const testPrompt = new Prompt(
-        {
-          contentDesc: `the ${fileTypePromptRegistry.java.contentDesc}`,
-          instructions: fileTypePromptRegistry.java.instructions,
-          responseSchema: fileTypePromptRegistry.java.responseSchema,
-          dataBlockHeader: "CODE",
-          wrapInCodeBlock: true,
-        },
-        ANALYSIS_PROMPT_TEMPLATE,
-      );
+      const testPrompt = new JSONSchemaPrompt({
+        personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+        contentDesc: `the ${fileTypePromptRegistry.java.contentDesc}`,
+        instructions: fileTypePromptRegistry.java.instructions,
+        responseSchema: fileTypePromptRegistry.java.responseSchema,
+        dataBlockHeader: "CODE",
+        wrapInCodeBlock: true,
+      });
 
       const result = testPrompt.renderPrompt("public class Test {}");
 

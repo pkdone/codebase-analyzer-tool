@@ -1,43 +1,37 @@
 import {
-  ANALYSIS_PROMPT_TEMPLATE,
-  PARTIAL_ANALYSIS_TEMPLATE,
-} from "../../../src/app/prompts/app-templates";
-import { Prompt } from "../../../src/common/prompts/prompt";
+  JSONSchemaPrompt,
+  JSON_SCHEMA_PROMPT_TEMPLATE,
+} from "../../../src/common/prompts/json-schema-prompt";
+import { DEFAULT_PERSONA_INTRODUCTION } from "../../../src/app/prompts/prompt.config";
 import { z } from "zod";
 
 describe("Template Consolidation", () => {
-  describe("ANALYSIS_PROMPT_TEMPLATE", () => {
+  describe("JSON_SCHEMA_PROMPT_TEMPLATE", () => {
     it("should be defined and exported", () => {
-      expect(ANALYSIS_PROMPT_TEMPLATE).toBeDefined();
-      expect(typeof ANALYSIS_PROMPT_TEMPLATE).toBe("string");
+      expect(JSON_SCHEMA_PROMPT_TEMPLATE).toBeDefined();
+      expect(typeof JSON_SCHEMA_PROMPT_TEMPLATE).toBe("string");
     });
 
     it("should contain expected placeholders for unified template", () => {
-      // Unified template now uses contentDesc and instructionsText directly
-      // jsonSchema and forceJSON are now consolidated into schemaSection
-      // which is built by the renderer for JSON-mode prompts (empty for TEXT-mode)
-      expect(ANALYSIS_PROMPT_TEMPLATE).toContain("{{contentDesc}}");
-      expect(ANALYSIS_PROMPT_TEMPLATE).toContain("{{instructionsText}}");
-      expect(ANALYSIS_PROMPT_TEMPLATE).toContain("{{dataBlockHeader}}");
-      expect(ANALYSIS_PROMPT_TEMPLATE).toContain("{{schemaSection}}");
-      expect(ANALYSIS_PROMPT_TEMPLATE).toContain("{{content}}");
-      expect(ANALYSIS_PROMPT_TEMPLATE).toContain("{{contentWrapper}}");
-      // partialAnalysisNote is handled via PARTIAL_ANALYSIS_TEMPLATE, not as a placeholder
-      expect(ANALYSIS_PROMPT_TEMPLATE).not.toContain("{{partialAnalysisNote}}");
+      expect(JSON_SCHEMA_PROMPT_TEMPLATE).toContain("{{contentDesc}}");
+      expect(JSON_SCHEMA_PROMPT_TEMPLATE).toContain("{{instructionsText}}");
+      expect(JSON_SCHEMA_PROMPT_TEMPLATE).toContain("{{dataBlockHeader}}");
+      expect(JSON_SCHEMA_PROMPT_TEMPLATE).toContain("{{schemaSection}}");
+      expect(JSON_SCHEMA_PROMPT_TEMPLATE).toContain("{{content}}");
+      expect(JSON_SCHEMA_PROMPT_TEMPLATE).toContain("{{contentWrapper}}");
+      expect(JSON_SCHEMA_PROMPT_TEMPLATE).toContain("{{partialAnalysisNote}}");
     });
 
     it("should render correctly with sources configuration", () => {
-      const prompt = new Prompt(
-        {
-          contentDesc:
-            "Act as a senior developer analyzing the code in an existing application. Based on JVM code shown below...",
-          instructions: ["Extract class name"] as const,
-          responseSchema: z.string(),
-          dataBlockHeader: "CODE",
-          wrapInCodeBlock: true,
-        },
-        ANALYSIS_PROMPT_TEMPLATE,
-      );
+      const prompt = new JSONSchemaPrompt({
+        personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+        contentDesc:
+          "Act as a senior developer analyzing the code in an existing application. Based on JVM code shown below...",
+        instructions: ["Extract class name"] as const,
+        responseSchema: z.string(),
+        dataBlockHeader: "CODE",
+        wrapInCodeBlock: true,
+      });
       const rendered = prompt.renderPrompt("test code");
       expect(rendered).toContain("Act as a senior developer analyzing the code");
       expect(rendered).toContain("CODE:");
@@ -45,17 +39,15 @@ describe("Template Consolidation", () => {
     });
 
     it("should render correctly with app summary configuration", () => {
-      const prompt = new Prompt(
-        {
-          contentDesc:
-            "Act as a senior developer analyzing the code in an existing application. Based on source file summaries shown below...",
-          instructions: ["Extract entities"] as const,
-          responseSchema: z.string(),
-          dataBlockHeader: "FILE_SUMMARIES",
-          wrapInCodeBlock: false,
-        },
-        ANALYSIS_PROMPT_TEMPLATE,
-      );
+      const prompt = new JSONSchemaPrompt({
+        personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+        contentDesc:
+          "Act as a senior developer analyzing the code in an existing application. Based on source file summaries shown below...",
+        instructions: ["Extract entities"] as const,
+        responseSchema: z.string(),
+        dataBlockHeader: "FILE_SUMMARIES",
+        wrapInCodeBlock: false,
+      });
       const rendered = prompt.renderPrompt("test summaries");
       expect(rendered).toContain("Act as a senior developer analyzing the code");
       expect(rendered).toContain("FILE_SUMMARIES:");
@@ -70,13 +62,14 @@ describe("Template Consolidation", () => {
     it("should not contain any undefined placeholders", () => {
       // Check that all placeholders are properly formatted
       const placeholderRegex = /\{\{[^}]+\}\}/g;
-      const placeholders = ANALYSIS_PROMPT_TEMPLATE.match(placeholderRegex) ?? [];
+      const placeholders = JSON_SCHEMA_PROMPT_TEMPLATE.match(placeholderRegex) ?? [];
 
-      // schemaSection consolidates jsonSchema and forceJSON
       const expectedPlaceholders = [
+        "{{personaIntroduction}}",
         "{{contentDesc}}",
         "{{instructionsText}}",
         "{{dataBlockHeader}}",
+        "{{partialAnalysisNote}}",
         "{{schemaSection}}",
         "{{content}}",
         "{{contentWrapper}}",
@@ -88,61 +81,51 @@ describe("Template Consolidation", () => {
     });
   });
 
-  describe("PARTIAL_ANALYSIS_TEMPLATE", () => {
-    it("should be defined and derived from ANALYSIS_PROMPT_TEMPLATE", () => {
-      expect(PARTIAL_ANALYSIS_TEMPLATE).toBeDefined();
-      expect(typeof PARTIAL_ANALYSIS_TEMPLATE).toBe("string");
-    });
-
-    it("should contain the partial analysis note text", () => {
-      expect(PARTIAL_ANALYSIS_TEMPLATE).toContain("partial analysis");
-      expect(PARTIAL_ANALYSIS_TEMPLATE).toContain("focus on extracting insights from this subset");
-    });
-
-    it("should contain all the same placeholders as ANALYSIS_PROMPT_TEMPLATE", () => {
-      expect(PARTIAL_ANALYSIS_TEMPLATE).toContain("{{contentDesc}}");
-      expect(PARTIAL_ANALYSIS_TEMPLATE).toContain("{{instructionsText}}");
-      expect(PARTIAL_ANALYSIS_TEMPLATE).toContain("{{dataBlockHeader}}");
-      expect(PARTIAL_ANALYSIS_TEMPLATE).toContain("{{schemaSection}}");
-      expect(PARTIAL_ANALYSIS_TEMPLATE).toContain("{{content}}");
-      expect(PARTIAL_ANALYSIS_TEMPLATE).toContain("{{contentWrapper}}");
-    });
-
-    it("should render correctly with partial analysis note", () => {
-      const prompt = new Prompt(
-        {
-          contentDesc: "a set of source file summaries",
-          instructions: ["Extract entities"] as const,
-          responseSchema: z.string(),
-          dataBlockHeader: "FILE_SUMMARIES",
-          wrapInCodeBlock: false,
-        },
-        PARTIAL_ANALYSIS_TEMPLATE,
-      );
+  describe("forPartialAnalysis flag", () => {
+    it("should include partial analysis note when forPartialAnalysis is true", () => {
+      const prompt = new JSONSchemaPrompt({
+        personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+        contentDesc: "a set of source file summaries",
+        instructions: ["Extract entities"] as const,
+        responseSchema: z.string(),
+        dataBlockHeader: "FILE_SUMMARIES",
+        wrapInCodeBlock: false,
+        forPartialAnalysis: true,
+      });
       const rendered = prompt.renderPrompt("test summaries");
       expect(rendered).toContain("partial analysis");
       expect(rendered).toContain("focus on extracting insights from this subset");
+    });
+
+    it("should NOT include partial analysis note when forPartialAnalysis is false", () => {
+      const prompt = new JSONSchemaPrompt({
+        personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+        contentDesc: "a set of source file summaries",
+        instructions: ["Extract entities"] as const,
+        responseSchema: z.string(),
+        dataBlockHeader: "FILE_SUMMARIES",
+        wrapInCodeBlock: false,
+        forPartialAnalysis: false,
+      });
+      const rendered = prompt.renderPrompt("test summaries");
+      expect(rendered).not.toContain("partial analysis");
     });
   });
 
   describe("Template Consistency", () => {
     it("should have schemaSection placeholder for JSON schema and format enforcement", () => {
-      // JSON schema code block and forceJSON are now built by the renderer into schemaSection
-      // This allows TEXT-mode prompts to have an empty schemaSection
-      expect(ANALYSIS_PROMPT_TEMPLATE).toContain("{{schemaSection}}");
+      expect(JSON_SCHEMA_PROMPT_TEMPLATE).toContain("{{schemaSection}}");
     });
 
     it("should render JSON schema in schemaSection for JSON-mode prompts", () => {
-      const prompt = new Prompt(
-        {
-          contentDesc: "test content",
-          instructions: ["test instruction"],
-          responseSchema: z.object({ name: z.string() }),
-          dataBlockHeader: "CODE",
-          wrapInCodeBlock: false,
-        },
-        ANALYSIS_PROMPT_TEMPLATE,
-      );
+      const prompt = new JSONSchemaPrompt({
+        personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+        contentDesc: "test content",
+        instructions: ["test instruction"],
+        responseSchema: z.object({ name: z.string() }),
+        dataBlockHeader: "CODE",
+        wrapInCodeBlock: false,
+      });
       const rendered = prompt.renderPrompt("test");
 
       // schemaSection should contain the JSON schema code block
@@ -153,17 +136,15 @@ describe("Template Consolidation", () => {
   });
 
   describe("Template Usage", () => {
-    it("should be usable in Prompt class", () => {
-      const prompt = new Prompt(
-        {
-          contentDesc: "Test intro template with test content",
-          instructions: ["test instruction"],
-          responseSchema: z.string(),
-          dataBlockHeader: "CODE",
-          wrapInCodeBlock: true,
-        },
-        ANALYSIS_PROMPT_TEMPLATE,
-      );
+    it("should be usable in JSONSchemaPrompt class", () => {
+      const prompt = new JSONSchemaPrompt({
+        personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+        contentDesc: "Test intro template with test content",
+        instructions: ["test instruction"],
+        responseSchema: z.string(),
+        dataBlockHeader: "CODE",
+        wrapInCodeBlock: true,
+      });
 
       // This should not throw an error
       expect(() => {

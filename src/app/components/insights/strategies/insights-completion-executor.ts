@@ -1,8 +1,16 @@
 import { z } from "zod";
 import LLMRouter from "../../../../common/llm/llm-router";
 import { LLMOutputFormat } from "../../../../common/llm/types/llm.types";
-import { Prompt } from "../../../../common/prompts/prompt";
-import { appPromptManager } from "../../../prompts/app-prompt-registry";
+import {
+  JSONSchemaPrompt,
+  type JSONSchemaPromptConfig,
+} from "../../../../common/prompts/json-schema-prompt";
+import { DEFAULT_PERSONA_INTRODUCTION } from "../../../prompts/prompt.config";
+import {
+  appSummaryConfigMap,
+  FILE_SUMMARIES_DATA_BLOCK_HEADER,
+  APP_SUMMARY_CONTENT_DESC,
+} from "../../../prompts/app-summaries/app-summaries.definitions";
 import { getCategoryLabel } from "../../../config/category-labels.config";
 import { logWarn } from "../../../../common/utils/logging";
 import { joinArrayWithSeparators } from "../../../../common/utils/text-utils";
@@ -19,8 +27,8 @@ import { insightsConfig } from "../insights.config";
  * Options for executing insight completion.
  */
 export interface InsightCompletionOptions {
-  /** The template to use for rendering the prompt (required) */
-  template: string;
+  /** Whether this is a partial analysis in map-reduce workflows */
+  forPartialAnalysis?: boolean;
   /** Custom category label for the completion task (defaults to category) */
   taskCategory?: string;
 }
@@ -37,53 +45,37 @@ export interface InsightCompletionOptions {
  * @param llmRouter The LLM router instance
  * @param category The app summary category
  * @param sourceFileSummaries Array of source file summaries to analyze
- * @param options Configuration for the completion including the template to use
+ * @param options Configuration for the completion (optional)
  * @returns The generated insights with category-specific typing, or null if generation failed
  */
 export async function executeInsightCompletion<C extends AppSummaryCategoryEnum>(
   llmRouter: LLMRouter,
   category: C,
   sourceFileSummaries: readonly string[],
-  options: InsightCompletionOptions,
+  options?: InsightCompletionOptions,
 ): Promise<z.infer<AppSummaryCategorySchemas[C]> | null> {
   const categoryLabel = getCategoryLabel(category);
 
   try {
-    const taskCategory: string = options.taskCategory ?? category;
-    const prompt = appPromptManager.appSummaries[category];
+    const taskCategory: string = options?.taskCategory ?? category;
+    const config = appSummaryConfigMap[category];
     const codeContent = joinArrayWithSeparators(sourceFileSummaries);
-    // Create a new Prompt with the specified template for this execution
-    const promptWithTemplate = new Prompt(
-      {
-        contentDesc: prompt.contentDesc,
-        instructions: prompt.instructions,
-        responseSchema: prompt.responseSchema,
-        dataBlockHeader: prompt.dataBlockHeader,
-        wrapInCodeBlock: prompt.wrapInCodeBlock,
-      },
-      options.template,
-    );
-    const renderedPrompt = promptWithTemplate.renderPrompt(codeContent);
     /**
-     * Schema lookup uses the category type to get the correct schema.
-     *
      * TYPE ASSERTION RATIONALE:
-     * Although `appSummaryCategorySchemas` is defined with `as const` to preserve specific
-     * schema types, TypeScript cannot infer through the dynamic lookup when `category`
-     * is a generic parameter `C extends AppSummaryCategoryEnum`. The compiler sees the
-     * lookup result as the union of all possible schemas, not the specific schema for C.
-     *
-     * This assertion to `z.infer<AppSummaryCategorySchemas[C]> | null` is TYPE-SAFE because:
-     * 1. The AppSummaryCategorySchemas type maps each category key to its exact schema.
-     * 2. The generic parameter C is constrained to valid category keys.
-     * 3. The runtime lookup `appSummaryCategorySchemas[category]` returns the exact
-     *    schema corresponding to C, and the LLM router validates against it.
-     * 4. The return type declaration `z.infer<AppSummaryCategorySchemas[C]>` matches
-     *    exactly what the schema will validate.
-     *
-     * This is a TypeScript limitation with indexed access on generic parameters,
-     * not a design flaw. The types are correct; the compiler just cannot prove it.
+     * The config from appSummaryConfigMap is a partial config (without presentation fields).
+     * We add personaIntroduction, contentDesc, dataBlockHeader, and wrapInCodeBlock
+     * at instantiation time per our architecture.
+     * TypeScript can't infer the combined type through the generic lookup, so we assert.
      */
+    const promptGenerator = new JSONSchemaPrompt({
+      personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+      ...config,
+      contentDesc: APP_SUMMARY_CONTENT_DESC,
+      dataBlockHeader: FILE_SUMMARIES_DATA_BLOCK_HEADER,
+      wrapInCodeBlock: false,
+      forPartialAnalysis: options?.forPartialAnalysis,
+    } as JSONSchemaPromptConfig);
+    const renderedPrompt = promptGenerator.renderPrompt(codeContent);
     const schema = appSummaryCategorySchemas[category];
     const result = await llmRouter.executeCompletion(taskCategory, renderedPrompt, {
       outputFormat: LLMOutputFormat.JSON,

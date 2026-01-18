@@ -1,10 +1,13 @@
-import type { CanonicalFileType } from "../../../schemas/canonical-file-types";
+import type { CanonicalFileType } from "../../schemas/canonical-file-types";
 import {
-  standardCodeDefinitions,
-  dependencyFileDefinitions,
-  specialFileDefinitions,
+  CODE_DATA_BLOCK_HEADER,
   type SourceConfigEntry,
-} from "./definitions";
+} from "./definitions/source-config-factories";
+import { standardCodeDefinitions } from "./definitions/standard-code.definitions";
+import { dependencyFileDefinitions } from "./definitions/dependency-files.definitions";
+import { specialFileDefinitions } from "./definitions/special-files.definitions";
+
+export { CODE_DATA_BLOCK_HEADER };
 
 /**
  * Centralized registry mapping file types to their prompt definitions and schemas.

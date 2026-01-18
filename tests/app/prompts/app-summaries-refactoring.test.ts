@@ -1,37 +1,52 @@
-import { appPromptManager } from "../../../src/app/prompts/app-prompt-registry";
-import { Prompt } from "../../../src/common/prompts/prompt";
-const appSummaryPromptMetadata = appPromptManager.appSummaries;
 import {
-  ANALYSIS_PROMPT_TEMPLATE,
-  PARTIAL_ANALYSIS_TEMPLATE,
-} from "../../../src/app/prompts/app-templates";
+  appSummaryConfigMap,
+  FILE_SUMMARIES_DATA_BLOCK_HEADER,
+  APP_SUMMARY_CONTENT_DESC,
+} from "../../../src/app/prompts/app-summaries/app-summaries.definitions";
+import {
+  JSONSchemaPrompt,
+  JSON_SCHEMA_PROMPT_TEMPLATE,
+  type JSONSchemaPromptConfig,
+} from "../../../src/common/prompts/json-schema-prompt";
+import { DEFAULT_PERSONA_INTRODUCTION } from "../../../src/app/prompts/prompt.config";
+
+/**
+ * Helper to create a JSONSchemaPrompt from appSummaryConfigMap config.
+ * Adds contentDesc, dataBlockHeader, and wrapInCodeBlock which are no longer in the config entries.
+ */
+function createAppSummaryPrompt(
+  category: keyof typeof appSummaryConfigMap,
+  options?: { forPartialAnalysis?: boolean },
+): JSONSchemaPrompt {
+  const config = appSummaryConfigMap[category];
+  return new JSONSchemaPrompt({
+    personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+    ...config,
+    contentDesc: APP_SUMMARY_CONTENT_DESC,
+    dataBlockHeader: FILE_SUMMARIES_DATA_BLOCK_HEADER,
+    wrapInCodeBlock: false,
+    forPartialAnalysis: options?.forPartialAnalysis,
+  } as JSONSchemaPromptConfig);
+}
 
 describe("App Summaries Refactoring", () => {
-  describe("Prompt definitions consistency", () => {
-    it("should have generic contentDesc and specific instructions for all app summary categories", () => {
-      Object.entries(appSummaryPromptMetadata).forEach(([, config]) => {
-        // Verify that contentDesc is generic
-        expect(config.contentDesc).toContain("a set of source file summaries");
+  describe("JSONSchemaPrompt definitions consistency", () => {
+    it("should have proper instructions for all app summary categories", () => {
+      // contentDesc is now set at instantiation time by the consumer
+      Object.entries(appSummaryConfigMap).forEach(([, config]) => {
         // Verify that instructions contain the specific instruction text
         expect(config.instructions).toBeDefined();
         expect(config.instructions.length).toBeGreaterThan(0);
         // Instructions should contain specific text
         expect(config.instructions[0].length).toBeGreaterThan(0);
-        // introTextTemplate should contain generic description
-        expect(config.contentDesc).toContain("a set of source file summaries");
       });
     });
 
     it("should have proper instruction constants for refactored categories", () => {
       // Test a few specific categories that were refactored
-      const technologiesConfig = appSummaryPromptMetadata.technologies;
-      const boundedContextsConfig = appSummaryPromptMetadata.boundedContexts;
-      const potentialMicroservicesConfig = appSummaryPromptMetadata.potentialMicroservices;
-
-      // Verify that contentDesc is generic
-      expect(technologiesConfig.contentDesc).toContain("a set of source file summaries");
-      expect(boundedContextsConfig.contentDesc).toContain("a set of source file summaries");
-      expect(potentialMicroservicesConfig.contentDesc).toContain("a set of source file summaries");
+      const technologiesConfig = appSummaryConfigMap.technologies;
+      const boundedContextsConfig = appSummaryConfigMap.boundedContexts;
+      const potentialMicroservicesConfig = appSummaryConfigMap.potentialMicroservices;
 
       // Verify instructions contain the specific instruction text
       expect(technologiesConfig.instructions[0]).toContain(
@@ -46,11 +61,11 @@ describe("App Summaries Refactoring", () => {
   });
 
   describe("Unified template functionality", () => {
-    it("should render ANALYSIS_PROMPT_TEMPLATE for standard analysis", () => {
-      const config = appSummaryPromptMetadata.technologies;
+    it("should render JSON_SCHEMA_PROMPT_TEMPLATE for standard analysis", () => {
       const testContent = "Test file content";
 
-      const renderedPrompt = config.renderPrompt(testContent);
+      const prompt = createAppSummaryPrompt("technologies");
+      const renderedPrompt = prompt.renderPrompt(testContent);
 
       // Verify the template structure
       expect(renderedPrompt).toContain("Act as a senior developer analyzing the code");
@@ -62,21 +77,11 @@ describe("App Summaries Refactoring", () => {
       expect(renderedPrompt).not.toMatch(/\{\{[a-zA-Z]+\}\}/);
     });
 
-    it("should render PARTIAL_ANALYSIS_TEMPLATE with partial analysis note", () => {
-      const config = appSummaryPromptMetadata.technologies;
+    it("should render with forPartialAnalysis flag and partial analysis note", () => {
       const testContent = "Test file content";
 
-      // Use PARTIAL_ANALYSIS_TEMPLATE for partial analysis
-      const partialPrompt = new Prompt(
-        {
-          contentDesc: config.contentDesc,
-          instructions: config.instructions,
-          responseSchema: config.responseSchema,
-          dataBlockHeader: config.dataBlockHeader,
-          wrapInCodeBlock: config.wrapInCodeBlock,
-        },
-        PARTIAL_ANALYSIS_TEMPLATE,
-      );
+      // Use forPartialAnalysis flag for partial analysis
+      const partialPrompt = createAppSummaryPrompt("technologies", { forPartialAnalysis: true });
       const renderedPrompt = partialPrompt.renderPrompt(testContent);
 
       // Verify the template structure includes partial analysis note
@@ -91,29 +96,20 @@ describe("App Summaries Refactoring", () => {
   });
 
   describe("Template consolidation", () => {
-    it("should use ANALYSIS_PROMPT_TEMPLATE for standard analysis", () => {
+    it("should use JSON_SCHEMA_PROMPT_TEMPLATE for standard analysis", () => {
       // Verify the unified template contains the essential elements
-      expect(ANALYSIS_PROMPT_TEMPLATE).toContain("{{contentDesc}}");
-      expect(ANALYSIS_PROMPT_TEMPLATE).toContain("{{instructionsText}}");
-      expect(ANALYSIS_PROMPT_TEMPLATE).toContain("{{dataBlockHeader}}");
-      expect(ANALYSIS_PROMPT_TEMPLATE).toContain("{{schemaSection}}");
-      expect(ANALYSIS_PROMPT_TEMPLATE).toContain("{{content}}");
-      // partialAnalysisNote is handled via PARTIAL_ANALYSIS_TEMPLATE, not as a placeholder
-      expect(ANALYSIS_PROMPT_TEMPLATE).not.toContain("{{partialAnalysisNote}}");
-    });
-
-    it("should use PARTIAL_ANALYSIS_TEMPLATE derived from ANALYSIS_PROMPT_TEMPLATE", () => {
-      // PARTIAL_ANALYSIS_TEMPLATE includes the partial analysis note
-      expect(PARTIAL_ANALYSIS_TEMPLATE).toContain("{{contentDesc}}");
-      expect(PARTIAL_ANALYSIS_TEMPLATE).toContain("{{instructionsText}}");
-      expect(PARTIAL_ANALYSIS_TEMPLATE).toContain("partial analysis");
-      expect(PARTIAL_ANALYSIS_TEMPLATE).toContain("focus on extracting insights from this subset");
+      expect(JSON_SCHEMA_PROMPT_TEMPLATE).toContain("{{contentDesc}}");
+      expect(JSON_SCHEMA_PROMPT_TEMPLATE).toContain("{{instructionsText}}");
+      expect(JSON_SCHEMA_PROMPT_TEMPLATE).toContain("{{dataBlockHeader}}");
+      expect(JSON_SCHEMA_PROMPT_TEMPLATE).toContain("{{schemaSection}}");
+      expect(JSON_SCHEMA_PROMPT_TEMPLATE).toContain("{{content}}");
+      expect(JSON_SCHEMA_PROMPT_TEMPLATE).toContain("{{partialAnalysisNote}}");
     });
 
     it("should verify prompt text structure with generic contentDesc and specific instructions", () => {
-      const config = appSummaryPromptMetadata.technologies;
       const testContent = "Test file summaries content";
-      const renderedPrompt = config.renderPrompt(testContent);
+      const prompt = createAppSummaryPrompt("technologies");
+      const renderedPrompt = prompt.renderPrompt(testContent);
 
       // Verify generic contentDesc appears in template
       expect(renderedPrompt).toContain("a set of source file summaries");

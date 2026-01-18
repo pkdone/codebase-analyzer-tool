@@ -11,14 +11,10 @@ import {
   AppSummaryCategoryEnum,
   appSummaryCategorySchemas,
 } from "../../../../../src/app/components/insights/insights.types";
-import { appPromptManager } from "../../../../../src/app/prompts/app-prompt-registry";
-import {
-  ANALYSIS_PROMPT_TEMPLATE,
-  PARTIAL_ANALYSIS_TEMPLATE,
-} from "../../../../../src/app/prompts/app-templates";
+import { appSummaryConfigMap } from "../../../../../src/app/prompts/app-summaries/app-summaries.definitions";
 import { ok, err } from "../../../../../src/common/types/result.types";
 import { LLMError, LLMErrorCode } from "../../../../../src/common/llm/types/llm-errors.types";
-const appSummaryPromptMetadata = appPromptManager.appSummaries;
+const appSummaryPromptMetadata = appSummaryConfigMap;
 
 // Mock dependencies
 jest.mock("../../../../../src/common/utils/logging", () => ({
@@ -62,7 +58,7 @@ describe("executeInsightCompletion - Type Inference", () => {
         mockLLMRouter,
         "technologies",
         ["* file1.ts: implementation"],
-        { template: ANALYSIS_PROMPT_TEMPLATE },
+        undefined,
       );
 
       // Type should be inferred as CategoryInsightResult<"technologies">
@@ -88,7 +84,7 @@ describe("executeInsightCompletion - Type Inference", () => {
         mockLLMRouter,
         "technologies",
         ["* file1.ts: implementation"],
-        { template: ANALYSIS_PROMPT_TEMPLATE },
+        undefined,
       );
 
       expect(result).toEqual(mockResponse);
@@ -110,7 +106,7 @@ describe("executeInsightCompletion - Type Inference", () => {
         mockLLMRouter,
         "appDescription",
         ["* file1.ts: implementation"],
-        { template: ANALYSIS_PROMPT_TEMPLATE },
+        undefined,
       );
 
       expect(result).toEqual(mockResponse);
@@ -136,7 +132,7 @@ describe("executeInsightCompletion - Type Inference", () => {
         mockLLMRouter,
         "boundedContexts",
         ["* file1.ts: implementation"],
-        { template: ANALYSIS_PROMPT_TEMPLATE },
+        undefined,
       );
 
       expect(result).toEqual(mockResponse);
@@ -173,7 +169,7 @@ describe("executeInsightCompletion - Type Inference", () => {
         mockLLMRouter,
         "boundedContexts",
         ["* file1.ts: implementation"],
-        { template: ANALYSIS_PROMPT_TEMPLATE },
+        undefined,
       );
 
       expect(result).toEqual(mockResponse);
@@ -198,7 +194,7 @@ describe("executeInsightCompletion - Type Inference", () => {
         mockLLMRouter,
         category,
         ["* file1.ts: implementation"],
-        { template: ANALYSIS_PROMPT_TEMPLATE },
+        undefined,
       );
       expect(result).toEqual(mockResponse);
     });
@@ -223,7 +219,7 @@ describe("executeInsightCompletion - Type Inference", () => {
           mockLLMRouter,
           category,
           ["* file1.ts: implementation"],
-          { template: ANALYSIS_PROMPT_TEMPLATE },
+          undefined,
         );
 
         expect(result).toEqual(mockResponse);
@@ -254,7 +250,7 @@ describe("executeInsightCompletion - Type Inference", () => {
         mockLLMRouter,
         "businessProcesses",
         ["* file1.ts: implementation"],
-        { template: ANALYSIS_PROMPT_TEMPLATE },
+        undefined,
       );
 
       // Should not need any type assertions to access properties
@@ -274,7 +270,7 @@ describe("executeInsightCompletion - Type Inference", () => {
         mockLLMRouter,
         "technologies",
         ["* file1.ts: implementation"],
-        { template: ANALYSIS_PROMPT_TEMPLATE },
+        undefined,
       );
 
       expect(result).toBeNull();
@@ -287,7 +283,7 @@ describe("executeInsightCompletion - Type Inference", () => {
         mockLLMRouter,
         "technologies",
         ["* file1.ts: implementation"],
-        { template: ANALYSIS_PROMPT_TEMPLATE },
+        undefined,
       );
 
       expect(result).toBeNull();
@@ -303,9 +299,7 @@ describe("executeInsightCompletion - Type Inference", () => {
 
       (mockLLMRouter.executeCompletion as any).mockResolvedValue(ok(mockResponse));
 
-      await executeInsightCompletion(mockLLMRouter, category, ["* file1.ts: implementation"], {
-        template: ANALYSIS_PROMPT_TEMPLATE,
-      });
+      await executeInsightCompletion(mockLLMRouter, category, ["* file1.ts: implementation"], {});
       // Verify the correct schema was used
       expect(mockLLMRouter.executeCompletion).toHaveBeenCalledWith(
         category,
@@ -349,7 +343,7 @@ describe("executeInsightCompletion - Type Inference", () => {
         mockLLMRouter,
         "potentialMicroservices",
         ["* file1.ts: implementation"],
-        { template: ANALYSIS_PROMPT_TEMPLATE },
+        undefined,
       );
 
       expect(result).toEqual(mockResponse);
@@ -368,7 +362,7 @@ describe("executeInsightCompletion - Type Inference", () => {
       (mockLLMRouter.executeCompletion as any).mockResolvedValue(ok(mockResponse));
 
       const options: InsightCompletionOptions = {
-        template: PARTIAL_ANALYSIS_TEMPLATE,
+        forPartialAnalysis: true,
         taskCategory: "entities-chunk",
       };
 
@@ -430,7 +424,7 @@ describe("executeInsightCompletion - Type Inference", () => {
         mockLLMRouter,
         "technologies",
         ["* file1.ts: implementation"],
-        { template: ANALYSIS_PROMPT_TEMPLATE },
+        undefined,
       );
 
       // Demonstrates end-to-end type flow from schema through LLM router
@@ -452,9 +446,7 @@ describe("executeInsightCompletion - Type Inference", () => {
 
       (mockLLMRouter.executeCompletion as any).mockResolvedValue(ok(mockResponse));
 
-      await executeInsightCompletion(mockLLMRouter, category, ["* file1.ts: implementation"], {
-        template: ANALYSIS_PROMPT_TEMPLATE,
-      });
+      await executeInsightCompletion(mockLLMRouter, category, ["* file1.ts: implementation"], {});
       // Verify the configuration is correct
       expect(config).toBeDefined();
       expect(config.responseSchema).toBeDefined();
@@ -477,7 +469,7 @@ describe("executeInsightCompletion - Type Inference", () => {
         mockLLMRouter,
         "technologies",
         ["* file1.ts: implementation"],
-        { template: ANALYSIS_PROMPT_TEMPLATE },
+        undefined,
       );
 
       // Should not need 'as' cast - types flow correctly
@@ -515,7 +507,7 @@ describe("executeInsightCompletion - Type Inference", () => {
         mockLLMRouter,
         "boundedContexts",
         ["* file1.ts: implementation"],
-        { template: ANALYSIS_PROMPT_TEMPLATE },
+        undefined,
       );
 
       if (result) {
@@ -554,7 +546,7 @@ describe("executeInsightCompletion - Type Inference", () => {
         mockLLMRouter,
         category,
         ["* file1.ts: implementation"],
-        { template: ANALYSIS_PROMPT_TEMPLATE },
+        undefined,
       );
       // Schema-specific type is preserved
       expect(mockLLMRouter.executeCompletion).toHaveBeenCalledWith(

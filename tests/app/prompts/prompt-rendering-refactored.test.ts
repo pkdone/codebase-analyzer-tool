@@ -1,23 +1,18 @@
-import { Prompt } from "../../../src/common/prompts/prompt";
-import {
-  ANALYSIS_PROMPT_TEMPLATE,
-  PARTIAL_ANALYSIS_TEMPLATE,
-} from "../../../src/app/prompts/app-templates";
+import { JSONSchemaPrompt } from "../../../src/common/prompts/json-schema-prompt";
+import { DEFAULT_PERSONA_INTRODUCTION } from "../../../src/app/prompts/prompt.config";
 import { z } from "zod";
 
-describe("Prompt Rendering Refactoring Tests", () => {
+describe("JSONSchemaPrompt Rendering Refactoring Tests", () => {
   describe("Single-step rendering with contentDesc", () => {
     test("should render prompt with contentDesc directly in template", () => {
-      const prompt = new Prompt(
-        {
-          contentDesc: "JVM code",
-          instructions: ["Extract class name", "Extract methods"],
-          responseSchema: z.object({ name: z.string() }),
-          dataBlockHeader: "CODE",
-          wrapInCodeBlock: true,
-        },
-        ANALYSIS_PROMPT_TEMPLATE,
-      );
+      const prompt = new JSONSchemaPrompt({
+        personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+        contentDesc: "JVM code",
+        instructions: ["Extract class name", "Extract methods"],
+        responseSchema: z.object({ name: z.string() }),
+        dataBlockHeader: "CODE",
+        wrapInCodeBlock: true,
+      });
 
       const rendered = prompt.renderPrompt("class Test {}");
 
@@ -35,16 +30,14 @@ describe("Prompt Rendering Refactoring Tests", () => {
     });
 
     test("should render prompt with app summary contentDesc", () => {
-      const prompt = new Prompt(
-        {
-          contentDesc: "a set of source file summaries",
-          instructions: ["a list of entities"],
-          responseSchema: z.object({ technologies: z.array(z.string()) }),
-          dataBlockHeader: "FILE_SUMMARIES",
-          wrapInCodeBlock: false,
-        },
-        ANALYSIS_PROMPT_TEMPLATE,
-      );
+      const prompt = new JSONSchemaPrompt({
+        personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+        contentDesc: "a set of source file summaries",
+        instructions: ["a list of entities"],
+        responseSchema: z.object({ technologies: z.array(z.string()) }),
+        dataBlockHeader: "FILE_SUMMARIES",
+        wrapInCodeBlock: false,
+      });
 
       const rendered = prompt.renderPrompt("summaries...");
 
@@ -54,38 +47,32 @@ describe("Prompt Rendering Refactoring Tests", () => {
     });
 
     test("should render reduce insights prompt with complex contentDesc", () => {
-      const prompt = new Prompt(
-        {
-          contentDesc:
-            "several JSON objects, each containing a list of '{{categoryKey}}' generated from different parts of a codebase. Your task is to consolidate these lists into a single, de-duplicated, and coherent final JSON object. Merge similar items, remove duplicates based on semantic similarity (not just exact name matches), and ensure the final list is comprehensive and well-organized",
-          instructions: ["a consolidated list of 'Entities'"],
-          responseSchema: z.object({ technologies: z.array(z.string()) }),
-          dataBlockHeader: "FRAGMENTED_DATA",
-          wrapInCodeBlock: false,
-        },
-        ANALYSIS_PROMPT_TEMPLATE,
-      );
-
-      const rendered = prompt.renderPrompt('[{"technologies": ["User"]}]', {
-        categoryKey: "technologies",
+      const prompt = new JSONSchemaPrompt({
+        personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+        contentDesc:
+          "several JSON objects, each containing a list of '{{categoryKey}}' generated from different parts of a codebase. Your task is to consolidate these lists into a single, de-duplicated, and coherent final JSON object. Merge similar items, remove duplicates based on semantic similarity (not just exact name matches), and ensure the final list is comprehensive and well-organized",
+        instructions: ["a consolidated list of 'Entities'"],
+        responseSchema: z.object({ technologies: z.array(z.string()) }),
+        dataBlockHeader: "FRAGMENTED_DATA",
+        wrapInCodeBlock: false,
       });
 
-      // Should contain the contentDesc with template placeholder replaced
+      const rendered = prompt.renderPrompt('[{"technologies": ["User"]}]');
+
+      // Should contain the contentDesc
       expect(rendered).toContain("consolidate these lists");
       expect(rendered).toContain("a consolidated list of 'Entities'");
     });
 
     test("should join multiple instructions with double newlines", () => {
-      const prompt = new Prompt(
-        {
-          contentDesc: "Python code",
-          instructions: ["First instruction", "Second instruction", "Third instruction"],
-          responseSchema: z.string(),
-          dataBlockHeader: "CODE",
-          wrapInCodeBlock: false,
-        },
-        ANALYSIS_PROMPT_TEMPLATE,
-      );
+      const prompt = new JSONSchemaPrompt({
+        personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+        contentDesc: "Python code",
+        instructions: ["First instruction", "Second instruction", "Third instruction"],
+        responseSchema: z.string(),
+        dataBlockHeader: "CODE",
+        wrapInCodeBlock: false,
+      });
 
       const rendered = prompt.renderPrompt("print('test')");
 
@@ -93,17 +80,15 @@ describe("Prompt Rendering Refactoring Tests", () => {
       expect(rendered).toContain("First instruction\n\nSecond instruction\n\nThird instruction");
     });
 
-    test("should render ANALYSIS_PROMPT_TEMPLATE without partialAnalysisNote placeholder", () => {
-      const prompt = new Prompt(
-        {
-          contentDesc: "JavaScript code",
-          instructions: ["Analyze the code"],
-          responseSchema: z.object({ result: z.string() }),
-          dataBlockHeader: "CODE",
-          wrapInCodeBlock: false,
-        },
-        ANALYSIS_PROMPT_TEMPLATE,
-      );
+    test("should render without partialAnalysisNote placeholder", () => {
+      const prompt = new JSONSchemaPrompt({
+        personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+        contentDesc: "JavaScript code",
+        instructions: ["Analyze the code"],
+        responseSchema: z.object({ result: z.string() }),
+        dataBlockHeader: "CODE",
+        wrapInCodeBlock: false,
+      });
 
       const rendered = prompt.renderPrompt("const x = 1;");
 
@@ -112,17 +97,16 @@ describe("Prompt Rendering Refactoring Tests", () => {
       expect(rendered).toContain("The JSON response must follow this JSON schema:");
     });
 
-    test("should render PARTIAL_ANALYSIS_TEMPLATE with partial analysis note", () => {
-      const prompt = new Prompt(
-        {
-          contentDesc: "Ruby code",
-          instructions: ["Extract class info"],
-          responseSchema: z.object({ className: z.string() }),
-          dataBlockHeader: "CODE",
-          wrapInCodeBlock: false,
-        },
-        PARTIAL_ANALYSIS_TEMPLATE,
-      );
+    test("should render with partial analysis note when forPartialAnalysis is true", () => {
+      const prompt = new JSONSchemaPrompt({
+        personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+        contentDesc: "Ruby code",
+        instructions: ["Extract class info"],
+        responseSchema: z.object({ className: z.string() }),
+        dataBlockHeader: "CODE",
+        wrapInCodeBlock: false,
+        forPartialAnalysis: true,
+      });
 
       const rendered = prompt.renderPrompt("class Foo; end");
 
@@ -132,16 +116,14 @@ describe("Prompt Rendering Refactoring Tests", () => {
     });
 
     test("should wrap content in code blocks when wrapInCodeBlock is true", () => {
-      const prompt = new Prompt(
-        {
-          contentDesc: "C# code",
-          instructions: ["Find classes"],
-          responseSchema: z.object({ classes: z.array(z.string()) }),
-          dataBlockHeader: "CODE",
-          wrapInCodeBlock: true,
-        },
-        ANALYSIS_PROMPT_TEMPLATE,
-      );
+      const prompt = new JSONSchemaPrompt({
+        personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+        contentDesc: "C# code",
+        instructions: ["Find classes"],
+        responseSchema: z.object({ classes: z.array(z.string()) }),
+        dataBlockHeader: "CODE",
+        wrapInCodeBlock: true,
+      });
 
       const content = "public class MyClass { }";
       const rendered = prompt.renderPrompt(content);
@@ -152,16 +134,14 @@ describe("Prompt Rendering Refactoring Tests", () => {
     });
 
     test("should not wrap content when wrapInCodeBlock is false", () => {
-      const prompt = new Prompt(
-        {
-          contentDesc: "XML configuration",
-          instructions: ["Extract framework info"],
-          responseSchema: z.object({ framework: z.string() }),
-          dataBlockHeader: "CODE",
-          wrapInCodeBlock: false,
-        },
-        ANALYSIS_PROMPT_TEMPLATE,
-      );
+      const prompt = new JSONSchemaPrompt({
+        personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+        contentDesc: "XML configuration",
+        instructions: ["Extract framework info"],
+        responseSchema: z.object({ framework: z.string() }),
+        dataBlockHeader: "CODE",
+        wrapInCodeBlock: false,
+      });
 
       const content = "<config></config>";
       const rendered = prompt.renderPrompt(content);
@@ -173,25 +153,20 @@ describe("Prompt Rendering Refactoring Tests", () => {
   });
 
   describe("Backward compatibility - contentDesc in data passed to renderPrompt", () => {
-    test("should prioritize contentDesc from definition over data", () => {
-      const prompt = new Prompt(
-        {
-          contentDesc: "TypeScript code",
-          instructions: ["Analyze"],
-          responseSchema: z.string(),
-          dataBlockHeader: "CODE",
-          wrapInCodeBlock: false,
-        },
-        ANALYSIS_PROMPT_TEMPLATE,
-      );
-
-      // Even if contentDesc is passed in extras, definition's contentDesc takes precedence
-      const rendered = prompt.renderPrompt("const x = 1;", {
-        contentDesc: "this should be ignored",
+    test("should use contentDesc from definition", () => {
+      const prompt = new JSONSchemaPrompt({
+        personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+        contentDesc: "TypeScript code",
+        instructions: ["Analyze"],
+        responseSchema: z.string(),
+        dataBlockHeader: "CODE",
+        wrapInCodeBlock: false,
       });
 
+      // Definition's contentDesc should be used
+      const rendered = prompt.renderPrompt("const x = 1;");
+
       expect(rendered).toContain("TypeScript code");
-      expect(rendered).not.toContain("this should be ignored");
     });
   });
 });

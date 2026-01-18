@@ -4,16 +4,8 @@ import {
   COMPOSITES,
   type LanguageSpecificFragments,
 } from "../sources.fragments";
-import {
-  INSTRUCTION_SECTION_TITLES,
-  buildInstructionBlock,
-  type InstructionSectionTitle,
-} from "../source-instruction-utils";
-import {
-  sourceSummarySchema,
-  commonSourceAnalysisSchema,
-} from "../../../../schemas/sources.schema";
-import type { JsonPromptConfig } from "../../../../../common/prompts/prompt";
+import { INSTRUCTION_SECTION_TITLES, buildInstructionBlock } from "../source-instruction-utils";
+import { sourceSummarySchema, commonSourceAnalysisSchema } from "../../../schemas/sources.schema";
 
 /**
  * Data block header for source code analysis prompts.
@@ -22,21 +14,23 @@ export const CODE_DATA_BLOCK_HEADER = "CODE" as const;
 
 /**
  * Configuration entry for a source prompt definition.
- * Uses JsonPromptConfig which requires responseSchema, ensuring all source prompts
- * are JSON-mode prompts with explicit schema definitions.
+ * Contains only the category-specific fields; presentation fields (dataBlockHeader,
+ * wrapInCodeBlock) are provided by the consumer (FileSummarizerService) at instantiation time.
  * Each entry directly includes the responseSchema using sourceSummarySchema.pick(),
  * making the schemas explicit and type-safe.
  *
  * @template S - The Zod schema type for validating the LLM response. Defaults to z.ZodType for backward compatibility.
  */
-export type SourceConfigEntry<S extends z.ZodType = z.ZodType> = JsonPromptConfig<S>;
-
-/**
- * Valid field names that can be picked from sourceSummarySchema.
- * This type ensures compile-time safety when specifying schema fields.
- * We use keyof shape to get the actual schema keys, not the inferred type keys.
- */
-export type SourceSummaryField = keyof typeof sourceSummarySchema.shape;
+export interface SourceConfigEntry<S extends z.ZodType = z.ZodType> {
+  /** Description of the content being analyzed */
+  readonly contentDesc: string;
+  /** Array of instruction strings for the LLM */
+  readonly instructions: readonly string[];
+  /** Zod schema for validating the LLM response */
+  readonly responseSchema: S;
+  /** Whether the schema is complex and incompatible with some LLM providers */
+  readonly hasComplexSchema?: boolean;
+}
 
 /**
  * Options for creating a standard code source configuration.
@@ -99,8 +93,6 @@ export function createDependencyConfig(
       buildInstructionBlock(INSTRUCTION_SECTION_TITLES.REFERENCES_AND_DEPS, dependencyFragment),
     ],
     hasComplexSchema: true,
-    dataBlockHeader: CODE_DATA_BLOCK_HEADER,
-    wrapInCodeBlock: true,
   };
 }
 
@@ -131,61 +123,6 @@ export function createScheduledJobConfig(
         ...jobFragments,
       ),
     ],
-    dataBlockHeader: CODE_DATA_BLOCK_HEADER,
-    wrapInCodeBlock: true,
-  };
-}
-
-/**
- * Factory function to create a simple source configuration.
- * This function eliminates duplication for simple file types that follow a pattern of
- * BASIC_INFO followed by one or more additional instruction blocks.
- *
- * @param contentDesc - Description of the content being analyzed (e.g., "the Markdown documentation")
- * @param schemaFields - Array of field names to pick from sourceSummarySchema
- * @param instructionBlocks - Array of instruction block configurations, each containing a title and content fragments
- * @returns A SourceConfigEntry with the specified instruction blocks
- */
-export function createSimpleConfig(
-  contentDesc: string,
-  schemaFields: readonly SourceSummaryField[],
-  instructionBlocks: readonly {
-    title: InstructionSectionTitle;
-    fragments: readonly (string | readonly string[])[];
-  }[],
-): SourceConfigEntry {
-  // Build the pick mask dynamically from the field names
-  // Type assertion is required because Zod's pick() uses `Exactly<>` which requires
-  // compile-time known keys, but we're building them dynamically at runtime.
-  // The SourceSummaryField type ensures we only accept valid field names.
-  const pickMask = Object.fromEntries(
-    schemaFields.map((field) => [field, true] as const),
-  ) as Partial<Record<SourceSummaryField, true>>;
-
-  const instructions = instructionBlocks.map((block) => {
-    // If this is the first block and it's BASIC_INFO with standard fragments, use the helper
-    if (
-      block.title === INSTRUCTION_SECTION_TITLES.BASIC_INFO &&
-      block.fragments.length === 2 &&
-      block.fragments[0] === SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE &&
-      block.fragments[1] === SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION
-    ) {
-      return createBasicInfoBlock();
-    }
-    return buildInstructionBlock(block.title, ...block.fragments);
-  }) as readonly string[];
-
-  return {
-    contentDesc,
-    // Type assertion needed because Zod's pick() signature uses Exactly<> which
-    // requires compile-time knowledge of the mask, but we build it at runtime.
-    // Runtime safety is ensured by SourceSummaryField constraining valid keys.
-    responseSchema: sourceSummarySchema.pick(
-      pickMask as Parameters<typeof sourceSummarySchema.pick>[0],
-    ),
-    instructions,
-    dataBlockHeader: CODE_DATA_BLOCK_HEADER,
-    wrapInCodeBlock: true,
   };
 }
 
@@ -254,7 +191,5 @@ export function createStandardCodeConfig(
       ),
       buildInstructionBlock(INSTRUCTION_SECTION_TITLES.CODE_QUALITY_METRICS, ...codeQualityParts),
     ],
-    dataBlockHeader: CODE_DATA_BLOCK_HEADER,
-    wrapInCodeBlock: true,
   };
 }

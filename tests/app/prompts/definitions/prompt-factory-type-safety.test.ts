@@ -1,16 +1,15 @@
 import { z } from "zod";
-import { Prompt } from "../../../../src/common/prompts/prompt";
-import { CODE_DATA_BLOCK_HEADER } from "../../../../src/app/prompts/definitions/sources/definitions/source-config-factories";
-import { FILE_SUMMARIES_DATA_BLOCK_HEADER } from "../../../../src/app/prompts/definitions/app-summaries/app-summaries.factories";
+import { JSONSchemaPrompt } from "../../../../src/common/prompts/json-schema-prompt";
+import { DEFAULT_PERSONA_INTRODUCTION } from "../../../../src/app/prompts/prompt.config";
+import { CODE_DATA_BLOCK_HEADER } from "../../../../src/app/prompts/sources/definitions/source-config-factories";
+import { FILE_SUMMARIES_DATA_BLOCK_HEADER } from "../../../../src/app/prompts/app-summaries/app-summaries.fragments";
 
 /**
- * Type safety tests for Prompt class.
- * These tests verify that the Prompt class correctly preserves
+ * Type safety tests for JSONSchemaPrompt class.
+ * These tests verify that the JSONSchemaPrompt class correctly preserves
  * specific Zod schema types.
  */
-describe("Prompt Type Safety", () => {
-  const testTemplate = "Test template with {{contentDesc}} and {{instructions}}";
-
+describe("JSONSchemaPrompt Type Safety", () => {
   describe("Schema Type Preservation", () => {
     it("should preserve distinct schema types for each key", () => {
       // Define config map with distinct schemas for each key
@@ -18,36 +17,30 @@ describe("Prompt Type Safety", () => {
       const numberSchema = z.object({ numberField: z.number() });
       const arraySchema = z.object({ arrayField: z.array(z.string()) });
 
-      const stringPrompt = new Prompt(
-        {
-          contentDesc: "string content",
-          responseSchema: stringSchema,
-          instructions: ["test"],
-          dataBlockHeader: CODE_DATA_BLOCK_HEADER,
-          wrapInCodeBlock: true,
-        },
-        testTemplate,
-      );
-      const numberPrompt = new Prompt(
-        {
-          contentDesc: "number content",
-          responseSchema: numberSchema,
-          instructions: ["test"],
-          dataBlockHeader: CODE_DATA_BLOCK_HEADER,
-          wrapInCodeBlock: true,
-        },
-        testTemplate,
-      );
-      const arrayPrompt = new Prompt(
-        {
-          contentDesc: "array content",
-          responseSchema: arraySchema,
-          instructions: ["test"],
-          dataBlockHeader: CODE_DATA_BLOCK_HEADER,
-          wrapInCodeBlock: true,
-        },
-        testTemplate,
-      );
+      const stringPrompt = new JSONSchemaPrompt({
+        personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+        contentDesc: "string content",
+        responseSchema: stringSchema,
+        instructions: ["test"],
+        dataBlockHeader: CODE_DATA_BLOCK_HEADER,
+        wrapInCodeBlock: true,
+      });
+      const numberPrompt = new JSONSchemaPrompt({
+        personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+        contentDesc: "number content",
+        responseSchema: numberSchema,
+        instructions: ["test"],
+        dataBlockHeader: CODE_DATA_BLOCK_HEADER,
+        wrapInCodeBlock: true,
+      });
+      const arrayPrompt = new JSONSchemaPrompt({
+        personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+        contentDesc: "array content",
+        responseSchema: arraySchema,
+        instructions: ["test"],
+        dataBlockHeader: CODE_DATA_BLOCK_HEADER,
+        wrapInCodeBlock: true,
+      });
 
       // Each key should have its specific schema preserved
       expect(stringPrompt.responseSchema).toBe(stringSchema);
@@ -66,26 +59,22 @@ describe("Prompt Type Safety", () => {
         price: z.number(),
       });
 
-      const userPrompt = new Prompt(
-        {
-          contentDesc: "user data",
-          responseSchema: userSchema,
-          instructions: [],
-          dataBlockHeader: FILE_SUMMARIES_DATA_BLOCK_HEADER,
-          wrapInCodeBlock: false,
-        },
-        testTemplate,
-      );
-      const productPrompt = new Prompt(
-        {
-          contentDesc: "product data",
-          responseSchema: productSchema,
-          instructions: [],
-          dataBlockHeader: FILE_SUMMARIES_DATA_BLOCK_HEADER,
-          wrapInCodeBlock: false,
-        },
-        testTemplate,
-      );
+      const userPrompt = new JSONSchemaPrompt({
+        personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+        contentDesc: "user data",
+        responseSchema: userSchema,
+        instructions: [],
+        dataBlockHeader: FILE_SUMMARIES_DATA_BLOCK_HEADER,
+        wrapInCodeBlock: false,
+      });
+      const productPrompt = new JSONSchemaPrompt({
+        personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+        contentDesc: "product data",
+        responseSchema: productSchema,
+        instructions: [],
+        dataBlockHeader: FILE_SUMMARIES_DATA_BLOCK_HEADER,
+        wrapInCodeBlock: false,
+      });
 
       // Runtime verification
       expect(userPrompt.responseSchema).toBe(userSchema);
@@ -93,24 +82,22 @@ describe("Prompt Type Safety", () => {
     });
   });
 
-  describe("Prompt Generic Parameter", () => {
-    it("should produce Prompt with correct generic parameter", () => {
+  describe("JSONSchemaPrompt Generic Parameter", () => {
+    it("should produce JSONSchemaPrompt with correct generic parameter", () => {
       const schema = z.object({
         field: z.string(),
       });
 
-      const prompt = new Prompt<typeof schema>(
-        {
-          contentDesc: "test content",
-          responseSchema: schema,
-          instructions: [],
-          dataBlockHeader: CODE_DATA_BLOCK_HEADER,
-          wrapInCodeBlock: true,
-        },
-        testTemplate,
-      );
+      const prompt = new JSONSchemaPrompt<typeof schema>({
+        personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+        contentDesc: "test content",
+        responseSchema: schema,
+        instructions: [],
+        dataBlockHeader: CODE_DATA_BLOCK_HEADER,
+        wrapInCodeBlock: true,
+      });
 
-      // The result should be a Prompt with the specific schema type
+      // The result should be a JSONSchemaPrompt with the specific schema type
       expect(prompt.responseSchema).toBe(schema);
     });
   });
@@ -119,26 +106,22 @@ describe("Prompt Type Safety", () => {
     it("should use dataBlockHeader and wrapInCodeBlock from config entries", () => {
       const schema = z.object({ data: z.string() });
 
-      const firstPrompt = new Prompt(
-        {
-          contentDesc: "first content",
-          responseSchema: schema,
-          instructions: ["Instruction 1"],
-          dataBlockHeader: CODE_DATA_BLOCK_HEADER,
-          wrapInCodeBlock: true,
-        },
-        testTemplate,
-      );
-      const secondPrompt = new Prompt(
-        {
-          contentDesc: "second content",
-          responseSchema: schema,
-          instructions: ["Instruction 2"],
-          dataBlockHeader: FILE_SUMMARIES_DATA_BLOCK_HEADER,
-          wrapInCodeBlock: false,
-        },
-        testTemplate,
-      );
+      const firstPrompt = new JSONSchemaPrompt({
+        personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+        contentDesc: "first content",
+        responseSchema: schema,
+        instructions: ["Instruction 1"],
+        dataBlockHeader: CODE_DATA_BLOCK_HEADER,
+        wrapInCodeBlock: true,
+      });
+      const secondPrompt = new JSONSchemaPrompt({
+        personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+        contentDesc: "second content",
+        responseSchema: schema,
+        instructions: ["Instruction 2"],
+        dataBlockHeader: FILE_SUMMARIES_DATA_BLOCK_HEADER,
+        wrapInCodeBlock: false,
+      });
 
       expect(firstPrompt.dataBlockHeader).toBe(CODE_DATA_BLOCK_HEADER);
       expect(secondPrompt.dataBlockHeader).toBe(FILE_SUMMARIES_DATA_BLOCK_HEADER);
@@ -147,16 +130,14 @@ describe("Prompt Type Safety", () => {
     });
 
     it("should read contentDesc and instructions directly from config entries", () => {
-      const prompt = new Prompt(
-        {
-          contentDesc: "custom description from config",
-          responseSchema: z.string(),
-          instructions: ["Step 1", "Step 2"],
-          dataBlockHeader: CODE_DATA_BLOCK_HEADER,
-          wrapInCodeBlock: true,
-        },
-        testTemplate,
-      );
+      const prompt = new JSONSchemaPrompt({
+        personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+        contentDesc: "custom description from config",
+        responseSchema: z.string(),
+        instructions: ["Step 1", "Step 2"],
+        dataBlockHeader: CODE_DATA_BLOCK_HEADER,
+        wrapInCodeBlock: true,
+      });
 
       expect(prompt.contentDesc).toBe("custom description from config");
       expect(prompt.instructions).toEqual(["Step 1", "Step 2"]);
@@ -166,6 +147,7 @@ describe("Prompt Type Safety", () => {
   describe("Type Safety with config map patterns", () => {
     it("should work with satisfies pattern similar to fileTypePromptRegistry", () => {
       interface TestConfigEntry<S extends z.ZodType = z.ZodType> {
+        personaIntroduction: string;
         contentDesc: string;
         responseSchema: S;
         instructions: readonly string[];
@@ -175,6 +157,7 @@ describe("Prompt Type Safety", () => {
 
       const testConfigMap = {
         typeA: {
+          personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
           contentDesc: "type A content",
           responseSchema: z.object({ a: z.string() }),
           instructions: ["A instruction"] as const,
@@ -182,6 +165,7 @@ describe("Prompt Type Safety", () => {
           wrapInCodeBlock: true,
         },
         typeB: {
+          personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
           contentDesc: "type B content",
           responseSchema: z.object({ b: z.number() }),
           instructions: ["B instruction"] as const,
@@ -190,8 +174,8 @@ describe("Prompt Type Safety", () => {
         },
       } as const satisfies Record<string, TestConfigEntry>;
 
-      const typeAPrompt = new Prompt(testConfigMap.typeA, testTemplate);
-      const typeBPrompt = new Prompt(testConfigMap.typeB, testTemplate);
+      const typeAPrompt = new JSONSchemaPrompt(testConfigMap.typeA);
+      const typeBPrompt = new JSONSchemaPrompt(testConfigMap.typeB);
 
       // Schemas should be preserved through the factory
       expect(typeAPrompt.responseSchema).toBe(testConfigMap.typeA.responseSchema);

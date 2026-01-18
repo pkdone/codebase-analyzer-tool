@@ -1,10 +1,19 @@
 import { z } from "zod";
-import { appPromptManager } from "../../../src/app/prompts/app-prompt-registry";
-import { fileTypePromptRegistry } from "../../../src/app/prompts/definitions/sources/sources.definitions";
-import { appSummaryConfigMap } from "../../../src/app/prompts/definitions/app-summaries/app-summaries.definitions";
-
-const fileTypePromptMetadata = appPromptManager.sources;
-const appSummaryPromptMetadata = appPromptManager.appSummaries;
+import {
+  appSummaryConfigMap,
+  FILE_SUMMARIES_DATA_BLOCK_HEADER,
+  APP_SUMMARY_CONTENT_DESC,
+} from "../../../src/app/prompts/app-summaries/app-summaries.definitions";
+import {
+  fileTypePromptRegistry,
+  CODE_DATA_BLOCK_HEADER,
+} from "../../../src/app/prompts/sources/sources.definitions";
+import {
+  JSONSchemaPrompt,
+  type JSONSchemaPromptConfig,
+} from "../../../src/common/prompts/json-schema-prompt";
+import { DEFAULT_PERSONA_INTRODUCTION } from "../../../src/app/prompts/prompt.config";
+import type { SourceConfigEntry } from "../../../src/app/prompts/sources/definitions/source-config-factories";
 
 /**
  * Helper function to get schema field names from a config entry.
@@ -17,35 +26,63 @@ function getSchemaFields(
   return Object.keys(schema.shape);
 }
 
-describe("Data-driven Prompt System", () => {
-  describe("Source prompt generation", () => {
-    it("should generate all file types from configuration", () => {
-      const configFileTypes = Object.keys(fileTypePromptRegistry);
-      const generatedFileTypes = Object.keys(fileTypePromptMetadata);
+/**
+ * Helper to create a JSONSchemaPrompt from fileTypePromptRegistry config.
+ * Adds dataBlockHeader and wrapInCodeBlock which are no longer in the registry entries.
+ */
+function createSourcePrompt(fileType: keyof typeof fileTypePromptRegistry): JSONSchemaPrompt {
+  const config = fileTypePromptRegistry[fileType];
+  return new JSONSchemaPrompt({
+    personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+    ...config,
+    dataBlockHeader: CODE_DATA_BLOCK_HEADER,
+    wrapInCodeBlock: true,
+  } as JSONSchemaPromptConfig);
+}
 
-      expect(generatedFileTypes.length).toBe(configFileTypes.length);
-      configFileTypes.forEach((fileType) => {
-        expect(generatedFileTypes).toContain(fileType);
-      });
+/**
+ * Helper to create a JSONSchemaPrompt from appSummaryConfigMap config.
+ * Adds contentDesc, dataBlockHeader, and wrapInCodeBlock which are no longer in the config entries.
+ */
+function createAppSummaryPrompt(category: keyof typeof appSummaryConfigMap): JSONSchemaPrompt {
+  const config = appSummaryConfigMap[category];
+  return new JSONSchemaPrompt({
+    personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+    ...config,
+    contentDesc: APP_SUMMARY_CONTENT_DESC,
+    dataBlockHeader: FILE_SUMMARIES_DATA_BLOCK_HEADER,
+    wrapInCodeBlock: false,
+  } as JSONSchemaPromptConfig);
+}
+
+describe("Data-driven JSONSchemaPrompt System", () => {
+  describe("Source config structure", () => {
+    it("should have all file types in configuration", () => {
+      const configFileTypes = Object.keys(fileTypePromptRegistry);
+
+      // All standard file types should be present
+      expect(configFileTypes).toContain("java");
+      expect(configFileTypes).toContain("javascript");
+      expect(configFileTypes).toContain("python");
+      expect(configFileTypes).toContain("default");
     });
 
-    it("should have consistent structure between config and generated metadata", () => {
-      Object.entries(fileTypePromptRegistry).forEach(([fileType, config]) => {
-        const metadata = fileTypePromptMetadata[fileType as keyof typeof fileTypePromptMetadata];
-
-        expect(metadata.contentDesc).toContain(config.contentDesc); // Check that contentDesc is used in intro template
-        expect(metadata.template).toBeDefined(); // Template is assigned in generatePromptMetadata
-        expect(metadata.instructions).toEqual(config.instructions);
+    it("should have consistent config structure for all file types", () => {
+      Object.entries(fileTypePromptRegistry).forEach(([, config]) => {
+        expect(config.contentDesc).toBeDefined();
+        expect(config.instructions).toBeDefined();
+        expect(config.responseSchema).toBeDefined();
+        // dataBlockHeader and wrapInCodeBlock are now set at instantiation time
+        // and are not part of the registry entries
       });
     });
 
     it("should properly pick schema fields from master schema", () => {
-      const javaMetadata = fileTypePromptMetadata.java;
       const javaConfig = fileTypePromptRegistry.java;
 
       // The schema should be a picked version with the specified fields
-      expect(javaMetadata.responseSchema).toBeDefined();
-      expect(typeof javaMetadata.responseSchema!.parse).toBe("function");
+      expect(javaConfig.responseSchema).toBeDefined();
+      expect(typeof javaConfig.responseSchema.parse).toBe("function");
 
       // Check that the schema fields match the configuration
       const schemaFields = getSchemaFields(javaConfig);
@@ -56,10 +93,15 @@ describe("Data-driven Prompt System", () => {
 
     it("should have hasComplexSchema in source config entries", () => {
       // Standard code configs don't explicitly set hasComplexSchema (defaults to false at usage site)
-      expect(fileTypePromptRegistry.java.hasComplexSchema).toBeUndefined();
-      expect(fileTypePromptRegistry.javascript.hasComplexSchema).toBeUndefined();
-      expect(fileTypePromptRegistry.python.hasComplexSchema).toBeUndefined();
-      expect(fileTypePromptRegistry.markdown.hasComplexSchema).toBeUndefined();
+      // Use type assertion to SourceConfigEntry to access the optional property
+      expect((fileTypePromptRegistry.java as SourceConfigEntry).hasComplexSchema).toBeUndefined();
+      expect(
+        (fileTypePromptRegistry.javascript as SourceConfigEntry).hasComplexSchema,
+      ).toBeUndefined();
+      expect((fileTypePromptRegistry.python as SourceConfigEntry).hasComplexSchema).toBeUndefined();
+      expect(
+        (fileTypePromptRegistry.markdown as SourceConfigEntry).hasComplexSchema,
+      ).toBeUndefined();
 
       // Dependency configs have hasComplexSchema: true (set by createDependencyConfig)
       expect(fileTypePromptRegistry.maven.hasComplexSchema).toBe(true);
@@ -69,71 +111,68 @@ describe("Data-driven Prompt System", () => {
     });
   });
 
-  describe("App summary prompt generation", () => {
-    it("should generate all categories from configuration", () => {
+  describe("App summary config structure", () => {
+    it("should have all categories in configuration", () => {
       const configCategories = Object.keys(appSummaryConfigMap);
-      const generatedCategories = Object.keys(appSummaryPromptMetadata);
 
-      expect(generatedCategories.length).toBe(configCategories.length);
+      // appSummaryConfigMap is used directly now, no separate generated metadata
       configCategories.forEach((category) => {
-        expect(generatedCategories).toContain(category);
+        expect(appSummaryConfigMap[category as keyof typeof appSummaryConfigMap]).toBeDefined();
       });
     });
 
-    it("should have consistent structure between config and generated metadata", () => {
-      Object.entries(appSummaryConfigMap).forEach(([category, config]) => {
-        const metadata =
-          appSummaryPromptMetadata[category as keyof typeof appSummaryPromptMetadata];
-
-        expect(metadata.contentDesc).toContain("a set of source file summaries"); // Generic description
-        expect(metadata.template).toBeDefined();
-        expect(metadata.responseSchema).toBe(config.responseSchema);
-        // Instructions should be built from config.instructions
-        expect(metadata.instructions).toEqual(config.instructions);
+    it("should have consistent structure in configs", () => {
+      // contentDesc, dataBlockHeader, wrapInCodeBlock are no longer in config entries
+      // They are set at instantiation time by the consumer (InsightCompletionExecutor)
+      Object.entries(appSummaryConfigMap).forEach(([, config]) => {
+        expect(config.responseSchema).toBeDefined();
+        expect(config.instructions).toBeDefined();
+        expect(Array.isArray(config.instructions)).toBe(true);
       });
     });
 
     it("should properly structure instructions", () => {
-      Object.values(appSummaryPromptMetadata).forEach((metadata) => {
-        expect(metadata.instructions).toBeDefined();
-        expect(Array.isArray(metadata.instructions)).toBe(true);
-        expect(metadata.instructions.length).toBe(1); // App summaries have single instruction section
-        expect(metadata.instructions[0]).toBeDefined();
-        expect(typeof metadata.instructions[0]).toBe("string");
-        expect(metadata.instructions[0].length).toBeGreaterThan(0); // Single instruction string
+      Object.values(appSummaryConfigMap).forEach((config) => {
+        expect(config.instructions).toBeDefined();
+        expect(Array.isArray(config.instructions)).toBe(true);
+        expect(config.instructions.length).toBe(1); // App summaries have single instruction section
+        expect(config.instructions[0]).toBeDefined();
+        expect(typeof config.instructions[0]).toBe("string");
+        expect(config.instructions[0].length).toBeGreaterThan(0); // Single instruction string
       });
     });
   });
 
-  describe("Template consistency", () => {
-    it("should use consistent templates across source file types", () => {
-      const templates = Object.values(fileTypePromptMetadata).map((metadata) => metadata.template);
-      const uniqueTemplates = [...new Set(templates)];
-
-      // All source file types should use the same template
-      expect(uniqueTemplates.length).toBe(1);
+  describe("JSONSchemaPrompt rendering consistency", () => {
+    it("should render all source file types with JSON_SCHEMA_PROMPT_TEMPLATE structure", () => {
+      // All source file types should render with the standard template
+      Object.keys(fileTypePromptRegistry).forEach((fileType) => {
+        const prompt = createSourcePrompt(fileType as keyof typeof fileTypePromptRegistry);
+        const rendered = prompt.renderPrompt("test");
+        expect(rendered).toContain("Act as a senior developer");
+      });
     });
 
-    it("should use consistent templates across app summary categories", () => {
-      const templates = Object.values(appSummaryPromptMetadata).map(
-        (metadata) => metadata.template,
-      );
-      const uniqueTemplates = [...new Set(templates)];
-
-      // All app summary categories should use the same template
-      expect(uniqueTemplates.length).toBe(1);
+    it("should render app summary configs with JSON_SCHEMA_PROMPT_TEMPLATE structure", () => {
+      // All app summary configs should be rendered with JSON_SCHEMA_PROMPT_TEMPLATE
+      Object.keys(appSummaryConfigMap).forEach((categoryKey) => {
+        const prompt = createAppSummaryPrompt(categoryKey as keyof typeof appSummaryConfigMap);
+        const rendered = prompt.renderPrompt("test");
+        // Should contain template markers rendered
+        expect(rendered).toContain("Act as a senior developer");
+      });
     });
   });
 
   describe("Instruction composition", () => {
     it("should properly compose instruction sections", () => {
-      const javaMetadata = fileTypePromptMetadata.java;
+      const javaConfig = fileTypePromptRegistry.java;
 
       // Java should have multiple instruction sections
-      expect(javaMetadata.instructions.length).toBeGreaterThan(1);
+      expect(javaConfig.instructions.length).toBeGreaterThan(1);
 
       // Each instruction should be a string
-      javaMetadata.instructions.forEach((instruction: string) => {
+      javaConfig.instructions.forEach((instruction: string) => {
         expect(typeof instruction).toBe("string");
         expect(instruction.length).toBeGreaterThan(0);
       });
@@ -141,12 +180,12 @@ describe("Data-driven Prompt System", () => {
 
     it("should include appropriate instruction sections for different file types", () => {
       // Java should have code quality instructions
-      const javaInstructions = fileTypePromptMetadata.java.instructions;
+      const javaInstructions = fileTypePromptRegistry.java.instructions;
       const javaInstructionText = javaInstructions.join(" ");
       expect(javaInstructionText).toContain("Code Quality Analysis");
 
       // Markdown should not have complex code quality instructions
-      const markdownInstructions = fileTypePromptMetadata.markdown.instructions;
+      const markdownInstructions = fileTypePromptRegistry.markdown.instructions;
       const markdownInstructionText = markdownInstructions.join(" ");
       // Markdown files are documentation and don't include code quality metrics
       expect(markdownInstructionText).not.toContain("cyclomaticComplexity");

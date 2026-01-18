@@ -9,10 +9,6 @@ import {
 import { z } from "zod";
 import { ok, err } from "../../../../../src/common/types/result.types";
 import { LLMError, LLMErrorCode } from "../../../../../src/common/llm/types/llm-errors.types";
-import {
-  ANALYSIS_PROMPT_TEMPLATE,
-  PARTIAL_ANALYSIS_TEMPLATE,
-} from "../../../../../src/app/prompts/app-templates";
 
 /**
  * Test suite to verify type inference improvements in completion-executor.ts
@@ -44,7 +40,7 @@ describe("completion-executor type inference improvements", () => {
         mockLLMRouter,
         category,
         ["* file1.ts: User management"],
-        { template: ANALYSIS_PROMPT_TEMPLATE },
+        undefined,
       );
 
       // Type should be inferred without explicit cast
@@ -71,7 +67,7 @@ describe("completion-executor type inference improvements", () => {
         mockLLMRouter,
         category,
         ["* file1.ts: Implementation"],
-        { template: ANALYSIS_PROMPT_TEMPLATE },
+        undefined,
       );
 
       expect(result).not.toBeNull();
@@ -99,7 +95,7 @@ describe("completion-executor type inference improvements", () => {
         mockLLMRouter,
         category,
         ["* file1.ts: Entity definitions"],
-        { template: ANALYSIS_PROMPT_TEMPLATE },
+        undefined,
       );
 
       expect(result).not.toBeNull();
@@ -129,7 +125,7 @@ describe("completion-executor type inference improvements", () => {
         mockLLMRouter,
         category,
         ["* file1.ts: Context implementation"],
-        { template: ANALYSIS_PROMPT_TEMPLATE },
+        undefined,
       );
 
       expect(result).not.toBeNull();
@@ -155,7 +151,7 @@ describe("completion-executor type inference improvements", () => {
         mockLLMRouter,
         category,
         ["* file1.ts: Process flows"],
-        { template: ANALYSIS_PROMPT_TEMPLATE },
+        undefined,
       );
 
       expect(result).not.toBeNull();
@@ -191,7 +187,7 @@ describe("completion-executor type inference improvements", () => {
         mockLLMRouter,
         category,
         ["* file1.ts: Aggregate roots"],
-        { template: ANALYSIS_PROMPT_TEMPLATE },
+        undefined,
       );
 
       expect(result).not.toBeNull();
@@ -224,7 +220,7 @@ describe("completion-executor type inference improvements", () => {
         mockLLMRouter,
         category,
         ["* file1.ts: Business process implementations"],
-        { template: ANALYSIS_PROMPT_TEMPLATE },
+        undefined,
       );
 
       expect(result).not.toBeNull();
@@ -250,7 +246,7 @@ describe("completion-executor type inference improvements", () => {
         mockLLMRouter,
         category,
         ["* file1.ts: Service boundaries"],
-        { template: ANALYSIS_PROMPT_TEMPLATE },
+        undefined,
       );
 
       expect(result).not.toBeNull();
@@ -276,7 +272,7 @@ describe("completion-executor type inference improvements", () => {
         mockLLMRouter,
         category,
         ["* file1.ts: Implementation"],
-        { template: ANALYSIS_PROMPT_TEMPLATE },
+        undefined,
       );
 
       // Verify the call to LLM router used correct schema
@@ -310,7 +306,7 @@ describe("completion-executor type inference improvements", () => {
         mockLLMRouter,
         category,
         ["* file1.ts: Implementation"],
-        { template: ANALYSIS_PROMPT_TEMPLATE },
+        undefined,
       );
 
       // Direct assignment without cast
@@ -335,7 +331,7 @@ describe("completion-executor type inference improvements", () => {
         mockLLMRouter,
         category,
         ["* file1.ts: Entities"],
-        { template: ANALYSIS_PROMPT_TEMPLATE },
+        undefined,
       );
 
       // Destructuring should work without casts
@@ -359,7 +355,7 @@ describe("completion-executor type inference improvements", () => {
         mockLLMRouter,
         category,
         ["* file1.ts: Implementation"],
-        { template: ANALYSIS_PROMPT_TEMPLATE },
+        undefined,
       );
 
       // Result type should be inferred union type | null
@@ -383,7 +379,7 @@ describe("completion-executor type inference improvements", () => {
         mockLLMRouter,
         category,
         ["* file1.ts: Implementation"],
-        { template: ANALYSIS_PROMPT_TEMPLATE },
+        undefined,
       );
 
       expect(result).toBeNull();
@@ -404,7 +400,7 @@ describe("completion-executor type inference improvements", () => {
         mockLLMRouter,
         category,
         ["* file1.ts: Implementation"],
-        { template: ANALYSIS_PROMPT_TEMPLATE, taskCategory: customTaskCategory },
+        { taskCategory: customTaskCategory },
       );
 
       // Verify custom category was used
@@ -421,7 +417,7 @@ describe("completion-executor type inference improvements", () => {
       }
     });
 
-    it("should preserve types when using PARTIAL_ANALYSIS_TEMPLATE", async () => {
+    it("should preserve types when using forPartialAnalysis flag", async () => {
       const category: AppSummaryCategoryEnum = "technologies";
       const mockResponse = {
         technologies: [{ name: "Entity1", description: "Description" }],
@@ -433,7 +429,7 @@ describe("completion-executor type inference improvements", () => {
         mockLLMRouter,
         category,
         ["* file1.ts: Implementation"],
-        { template: PARTIAL_ANALYSIS_TEMPLATE },
+        { forPartialAnalysis: true },
       );
 
       // Type should be preserved regardless of options
@@ -459,7 +455,7 @@ describe("completion-executor type inference improvements", () => {
           mockLLMRouter,
           cat,
           ["* file1.ts: Implementation"],
-          { template: ANALYSIS_PROMPT_TEMPLATE },
+          undefined,
         );
 
         if (result) {
@@ -496,7 +492,7 @@ describe("completion-executor type inference improvements", () => {
         mockLLMRouter,
         category,
         ["* file1.ts: Implementation"],
-        { template: ANALYSIS_PROMPT_TEMPLATE },
+        undefined,
       );
 
       if (result) {
@@ -518,7 +514,7 @@ describe("completion-executor type inference improvements", () => {
         mockLLMRouter,
         category,
         ["* file1.ts: Implementation"],
-        { template: ANALYSIS_PROMPT_TEMPLATE },
+        undefined,
       );
 
       // Direct property access without cast
@@ -540,7 +536,7 @@ describe("completion-executor type inference improvements", () => {
         mockLLMRouter,
         category,
         ["* file1.ts: Implementation"],
-        { template: ANALYSIS_PROMPT_TEMPLATE },
+        undefined,
       );
 
       // Array access without cast
@@ -569,7 +565,7 @@ describe("completion-executor type inference improvements", () => {
         mockLLMRouter,
         category,
         ["* file1.ts: Implementation"],
-        { template: ANALYSIS_PROMPT_TEMPLATE },
+        undefined,
       );
 
       // Nested access without cast
@@ -595,7 +591,7 @@ describe("completion-executor type inference improvements", () => {
         mockLLMRouter,
         category,
         ["* file1.ts: Implementation"],
-        { template: ANALYSIS_PROMPT_TEMPLATE },
+        undefined,
       );
 
       // Spread operator should work without cast
@@ -618,7 +614,7 @@ describe("completion-executor type inference improvements", () => {
         mockLLMRouter,
         category,
         ["* file1.ts: Implementation"],
-        { template: ANALYSIS_PROMPT_TEMPLATE },
+        undefined,
       );
 
       // Object methods should work without cast

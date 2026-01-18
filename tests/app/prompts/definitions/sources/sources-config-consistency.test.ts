@@ -2,8 +2,8 @@ import { z } from "zod";
 import {
   fileTypePromptRegistry,
   type FileTypePromptRegistry,
-} from "../../../../../src/app/prompts/definitions/sources/sources.definitions";
-import { INSTRUCTION_SECTION_TITLES } from "../../../../../src/app/prompts/definitions/sources/source-instruction-utils";
+} from "../../../../../src/app/prompts/sources/sources.definitions";
+import { INSTRUCTION_SECTION_TITLES } from "../../../../../src/app/prompts/sources/source-instruction-utils";
 import { commonSourceAnalysisSchema } from "../../../../../src/app/schemas/sources.schema";
 
 describe("Source Config Consistency", () => {

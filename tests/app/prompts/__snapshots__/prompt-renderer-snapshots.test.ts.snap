@@ -1,21 +1,11 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`renderPrompt Snapshot Tests TEXT mode prompts (codebaseQuery) codebaseQuery prompt should match snapshot 1`] = `
-"Act as a senior developer analyzing the code in an existing application. I've provided the content of some source code files below in the section marked 'CODE'. Using all that code for context, answer the question a developer has asked about the code, where their question is shown in the section marked 'QUESTION' below. Provide your answer in a few paragraphs, referring to specific evidence in the provided code.
-
-QUESTION:
-What is the purpose of this code?
-
-CODE:
-export function calculate(x: number) { return x * 2; }"
-`;
-
-exports[`renderPrompt Snapshot Tests app summary prompts should match snapshots app summary prompt with PARTIAL_ANALYSIS_TEMPLATE should match snapshot 1`] = `
+exports[`renderPrompt Snapshot Tests app summary prompts should match snapshots app summary prompt with forPartialAnalysis should match snapshot 1`] = `
 "Act as a senior developer analyzing the code in an existing application. Based on the a set of source file summaries shown below in the section marked 'FILE_SUMMARIES', return a JSON response that contains:
 
 a comprehensive list of key external and host platform technologies (including the names of programming languages used) depended on by the application
 
-Note, this is a partial analysis of a larger codebase; focus on extracting insights from this subset of file summaries only.
+Note, this is a partial analysis of a larger set of file summaries; focus on extracting insights from this subset of file summaries only.
 
 The JSON response must follow this JSON schema:
 \`\`\`json

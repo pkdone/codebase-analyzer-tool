@@ -1,4 +1,4 @@
-import { SOURCES_PROMPT_FRAGMENTS } from "../../../../../src/app/prompts/definitions/sources/sources.fragments";
+import { SOURCES_PROMPT_FRAGMENTS } from "../../../../../src/app/prompts/sources/sources.fragments";
 
 /**
  * Tests for the createDbMechanismInstructions function.

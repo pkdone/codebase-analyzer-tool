@@ -1,18 +1,16 @@
 import { z } from "zod";
-import { Prompt } from "../../../src/common/prompts/prompt";
-import { buildReduceInsightsContentDesc } from "../../../src/app/prompts/definitions/app-summaries/app-summaries.fragments";
-import {
-  ANALYSIS_PROMPT_TEMPLATE,
-  PARTIAL_ANALYSIS_TEMPLATE,
-} from "../../../src/app/prompts/app-templates";
+import { JSONSchemaPrompt } from "../../../src/common/prompts/json-schema-prompt";
+import { DEFAULT_PERSONA_INTRODUCTION } from "../../../src/app/prompts/prompt.config";
+import { buildReduceInsightsContentDesc } from "../../../src/app/prompts/app-summaries/app-summaries.fragments";
 
-describe("Prompt Renderer", () => {
+describe("JSONSchemaPrompt Renderer", () => {
   const baseSchema = z.object({
     name: z.string(),
     value: z.number(),
   });
 
   const testConfig = {
+    personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
     contentDesc: "test content",
     instructions: ["instruction 1", "instruction 2"],
     responseSchema: baseSchema,
@@ -20,7 +18,7 @@ describe("Prompt Renderer", () => {
     wrapInCodeBlock: false,
   } as const;
 
-  const testPrompt = new Prompt(testConfig, ANALYSIS_PROMPT_TEMPLATE);
+  const testPrompt = new JSONSchemaPrompt(testConfig);
 
   describe("Basic Rendering", () => {
     it("should render prompt with definition schema", () => {
@@ -57,10 +55,10 @@ describe("Prompt Renderer", () => {
         total: z.number(),
       });
 
-      const complexPrompt = new Prompt(
-        { ...testConfig, responseSchema: complexSchema },
-        ANALYSIS_PROMPT_TEMPLATE,
-      );
+      const complexPrompt = new JSONSchemaPrompt({
+        ...testConfig,
+        responseSchema: complexSchema,
+      });
 
       const result = complexPrompt.renderPrompt("sample code");
 
@@ -70,10 +68,10 @@ describe("Prompt Renderer", () => {
     });
 
     it("should handle z.unknown() schema", () => {
-      const unknownPrompt = new Prompt(
-        { ...testConfig, responseSchema: z.unknown() },
-        ANALYSIS_PROMPT_TEMPLATE,
-      );
+      const unknownPrompt = new JSONSchemaPrompt({
+        ...testConfig,
+        responseSchema: z.unknown(),
+      });
 
       const result = unknownPrompt.renderPrompt("sample code");
 
@@ -83,10 +81,10 @@ describe("Prompt Renderer", () => {
     });
 
     it("should work with primitive schemas", () => {
-      const stringPrompt = new Prompt(
-        { ...testConfig, responseSchema: z.string() },
-        ANALYSIS_PROMPT_TEMPLATE,
-      );
+      const stringPrompt = new JSONSchemaPrompt({
+        ...testConfig,
+        responseSchema: z.string(),
+      });
 
       const result = stringPrompt.renderPrompt("sample code");
 
@@ -101,10 +99,10 @@ describe("Prompt Renderer", () => {
         }),
       );
 
-      const arrayPrompt = new Prompt(
-        { ...testConfig, responseSchema: arraySchema },
-        ANALYSIS_PROMPT_TEMPLATE,
-      );
+      const arrayPrompt = new JSONSchemaPrompt({
+        ...testConfig,
+        responseSchema: arraySchema,
+      });
 
       const result = arrayPrompt.renderPrompt("sample code");
 
@@ -114,11 +112,14 @@ describe("Prompt Renderer", () => {
   });
 
   describe("Template Variables", () => {
-    it("should include all template variables in rendered output", () => {
-      // Use PARTIAL_ANALYSIS_TEMPLATE to test the partial analysis note
-      const promptWithPartialTemplate = new Prompt(testConfig, PARTIAL_ANALYSIS_TEMPLATE);
+    it("should include all template variables in rendered output with forPartialAnalysis", () => {
+      // Use forPartialAnalysis flag to test the partial analysis note
+      const promptWithPartialFlag = new JSONSchemaPrompt({
+        ...testConfig,
+        forPartialAnalysis: true,
+      });
 
-      const result = promptWithPartialTemplate.renderPrompt("sample code");
+      const result = promptWithPartialFlag.renderPrompt("sample code");
 
       expect(result).toContain("sample code");
       expect(result).toContain("partial analysis");
@@ -126,7 +127,7 @@ describe("Prompt Renderer", () => {
       expect(result).toContain("CODE:");
     });
 
-    it("should render ANALYSIS_PROMPT_TEMPLATE without partial analysis note", () => {
+    it("should render without partial analysis note", () => {
       const result = testPrompt.renderPrompt("sample code");
 
       // Should render without errors
@@ -138,10 +139,10 @@ describe("Prompt Renderer", () => {
 
   describe("Code Block Wrapping", () => {
     it("should wrap content in code blocks when wrapInCodeBlock is true", () => {
-      const wrappedPrompt = new Prompt(
-        { ...testConfig, wrapInCodeBlock: true },
-        ANALYSIS_PROMPT_TEMPLATE,
-      );
+      const wrappedPrompt = new JSONSchemaPrompt({
+        ...testConfig,
+        wrapInCodeBlock: true,
+      });
 
       const result = wrappedPrompt.renderPrompt("sample code");
 
@@ -170,16 +171,14 @@ describe("Prompt Renderer", () => {
       });
 
       // Create a typed prompt definition (JSON mode = responseSchema present)
-      const reducePrompt = new Prompt(
-        {
-          contentDesc: buildReduceInsightsContentDesc("technologies"),
-          instructions: [`a consolidated list of 'technologies'`],
-          responseSchema: categorySchema,
-          dataBlockHeader: "FRAGMENTED_DATA",
-          wrapInCodeBlock: false,
-        },
-        ANALYSIS_PROMPT_TEMPLATE,
-      );
+      const reducePrompt = new JSONSchemaPrompt({
+        personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+        contentDesc: buildReduceInsightsContentDesc("technologies"),
+        instructions: [`a consolidated list of 'technologies'`],
+        responseSchema: categorySchema,
+        dataBlockHeader: "FRAGMENTED_DATA",
+        wrapInCodeBlock: false,
+      });
 
       const partialData = {
         technologies: [{ name: "TypeScript", description: "Typed JavaScript" }],
@@ -203,16 +202,14 @@ describe("Prompt Renderer", () => {
         technologies: z.array(z.object({ name: z.string(), version: z.string() })),
       });
 
-      const reducePrompt = new Prompt(
-        {
-          contentDesc: buildReduceInsightsContentDesc("technologies"),
-          instructions: [`a consolidated list of 'technologies'`],
-          responseSchema: techSchema,
-          dataBlockHeader: "FRAGMENTED_DATA",
-          wrapInCodeBlock: false,
-        },
-        ANALYSIS_PROMPT_TEMPLATE,
-      );
+      const reducePrompt = new JSONSchemaPrompt({
+        personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+        contentDesc: buildReduceInsightsContentDesc("technologies"),
+        instructions: [`a consolidated list of 'technologies'`],
+        responseSchema: techSchema,
+        dataBlockHeader: "FRAGMENTED_DATA",
+        wrapInCodeBlock: false,
+      });
 
       const result = reducePrompt.renderPrompt(
         JSON.stringify({ technologies: [{ name: "TypeScript", version: "5.7" }] }),
@@ -230,20 +227,20 @@ describe("Prompt Renderer", () => {
     });
 
     it("should handle different dataBlockHeaders", () => {
-      const fileSummariesPrompt = new Prompt(
-        { ...testConfig, dataBlockHeader: "FILE_SUMMARIES" },
-        ANALYSIS_PROMPT_TEMPLATE,
-      );
+      const fileSummariesPrompt = new JSONSchemaPrompt({
+        ...testConfig,
+        dataBlockHeader: "FILE_SUMMARIES",
+      });
 
       const result = fileSummariesPrompt.renderPrompt("summaries");
       expect(result).toContain("FILE_SUMMARIES:");
     });
 
     it("should handle FRAGMENTED_DATA header", () => {
-      const fragmentedPrompt = new Prompt(
-        { ...testConfig, dataBlockHeader: "FRAGMENTED_DATA" },
-        ANALYSIS_PROMPT_TEMPLATE,
-      );
+      const fragmentedPrompt = new JSONSchemaPrompt({
+        ...testConfig,
+        dataBlockHeader: "FRAGMENTED_DATA",
+      });
 
       const result = fragmentedPrompt.renderPrompt("data");
       expect(result).toContain("FRAGMENTED_DATA:");

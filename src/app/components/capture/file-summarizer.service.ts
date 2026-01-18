@@ -3,12 +3,19 @@ import { z } from "zod";
 import { logErr } from "../../../common/utils/logging";
 import type LLMRouter from "../../../common/llm/llm-router";
 import { LLMOutputFormat } from "../../../common/llm/types/llm.types";
+import {
+  JSONSchemaPrompt,
+  type JSONSchemaPromptConfig,
+} from "../../../common/prompts/json-schema-prompt";
+import { DEFAULT_PERSONA_INTRODUCTION } from "../../prompts/prompt.config";
 import { sourceSummarySchema } from "../../schemas/sources.schema";
 import { getCanonicalFileType } from "../../config/file-handling";
 import { getLlmArtifactCorrections } from "../../config/llm-artifact-corrections";
 import { llmTokens, captureTokens } from "../../di/tokens";
-import type { AppPromptManager } from "../../prompts/app-prompt-registry";
-import type { FileTypePromptRegistry } from "../../prompts/definitions/sources/sources.definitions";
+import {
+  type FileTypePromptRegistry,
+  CODE_DATA_BLOCK_HEADER,
+} from "../../prompts/sources/sources.definitions";
 import { type Result, ok, err, isOk } from "../../../common/types/result.types";
 
 /**
@@ -35,7 +42,6 @@ export type PartialSourceSummaryType = Partial<SourceSummaryType>;
 export class FileSummarizerService {
   constructor(
     @inject(llmTokens.LLMRouter) private readonly llmRouter: LLMRouter,
-    @inject(captureTokens.PromptManager) private readonly appPromptManager: AppPromptManager,
     @inject(captureTokens.FileTypePromptRegistry)
     private readonly fileTypePromptRegistry: FileTypePromptRegistry,
   ) {}
@@ -62,15 +68,16 @@ export class FileSummarizerService {
     try {
       if (content.trim().length === 0) return err(new Error("File is empty"));
       const canonicalFileType = getCanonicalFileType(filepath, type);
-      const promptMetadata = this.appPromptManager.sources[canonicalFileType];
-      const renderedPrompt = promptMetadata.renderPrompt(content);
-      const fileTypePromptConfig = this.fileTypePromptRegistry[canonicalFileType];
-      const schema = fileTypePromptConfig.responseSchema;
-      // hasComplexSchema is optional and may not exist on some entries
-      // Use Boolean() to handle undefined safely
-      const hasComplexSchema = Boolean(
-        "hasComplexSchema" in fileTypePromptConfig && fileTypePromptConfig.hasComplexSchema,
-      );
+      const config = this.fileTypePromptRegistry[canonicalFileType];
+      const promptGenerator = new JSONSchemaPrompt({
+        personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+        ...config,
+        dataBlockHeader: CODE_DATA_BLOCK_HEADER,
+        wrapInCodeBlock: true,
+      } as JSONSchemaPromptConfig);
+      const renderedPrompt = promptGenerator.renderPrompt(content);
+      const schema = config.responseSchema;
+      const hasComplexSchema = "hasComplexSchema" in config && Boolean(config.hasComplexSchema);
       const completionOptions = {
         outputFormat: LLMOutputFormat.JSON,
         jsonSchema: schema,
@@ -109,7 +116,7 @@ export class FileSummarizerService {
 
       // The response is typed as PartialSourceSummaryType, representing the subset
       // of fields that were actually requested for this file type.
-      return ok(result.value as PartialSourceSummaryType);
+      return ok(result.value as unknown as PartialSourceSummaryType);
     } catch (error: unknown) {
       const errorMsg = `Failed to generate summary for '${filepath}'`;
       logErr(errorMsg, error);

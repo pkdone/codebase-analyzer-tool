@@ -8,10 +8,6 @@ import LLMRouter from "../../../../src/common/llm/llm-router";
 import { LLMOutputFormat } from "../../../../src/common/llm/types/llm.types";
 import { ok, err } from "../../../../src/common/types/result.types";
 import { LLMError, LLMErrorCode } from "../../../../src/common/llm/types/llm-errors.types";
-import {
-  ANALYSIS_PROMPT_TEMPLATE,
-  PARTIAL_ANALYSIS_TEMPLATE,
-} from "../../../../src/app/prompts/app-templates";
 
 // Mock dependencies
 jest.mock("../../../../src/common/utils/logging", () => ({
@@ -49,7 +45,7 @@ describe("Completion Executor Type Safety - Post Fix", () => {
         mockLLMRouter,
         AppSummaryCategories.enum.technologies,
         ["file1.ts", "file2.ts"],
-        { template: ANALYSIS_PROMPT_TEMPLATE },
+        undefined,
       );
 
       expect(result).toBeDefined();
@@ -109,7 +105,7 @@ describe("Completion Executor Type Safety - Post Fix", () => {
         mockLLMRouter,
         AppSummaryCategories.enum.boundedContexts,
         ["file1.ts", "file2.ts"],
-        { template: ANALYSIS_PROMPT_TEMPLATE },
+        undefined,
       );
 
       expect(result).toBeDefined();
@@ -158,7 +154,7 @@ describe("Completion Executor Type Safety - Post Fix", () => {
         mockLLMRouter,
         AppSummaryCategories.enum.boundedContexts,
         ["file1.ts", "file2.ts"],
-        { template: ANALYSIS_PROMPT_TEMPLATE },
+        undefined,
       );
 
       expect(result).toBeDefined();
@@ -185,7 +181,7 @@ describe("Completion Executor Type Safety - Post Fix", () => {
         mockLLMRouter,
         AppSummaryCategories.enum.technologies,
         ["file1.ts", "file2.ts"],
-        { template: ANALYSIS_PROMPT_TEMPLATE },
+        undefined,
       );
 
       expect(result).toBeDefined();
@@ -211,7 +207,7 @@ describe("Completion Executor Type Safety - Post Fix", () => {
         mockLLMRouter,
         AppSummaryCategories.enum.technologies,
         ["file1.ts"],
-        { template: ANALYSIS_PROMPT_TEMPLATE, taskCategory: "custom-entities" },
+        { taskCategory: "custom-entities" },
       );
 
       expect(mockLLMRouter.executeCompletion).toHaveBeenCalledWith(
@@ -221,7 +217,7 @@ describe("Completion Executor Type Safety - Post Fix", () => {
       );
     });
 
-    test("should handle partial analysis using PARTIAL_ANALYSIS_TEMPLATE", async () => {
+    test("should handle partial analysis using forPartialAnalysis flag", async () => {
       const mockData = {
         entities: [{ name: "TestEntity", description: "Test" }],
       };
@@ -232,13 +228,13 @@ describe("Completion Executor Type Safety - Post Fix", () => {
         mockLLMRouter,
         AppSummaryCategories.enum.technologies,
         ["file1.ts"],
-        { template: PARTIAL_ANALYSIS_TEMPLATE },
+        { forPartialAnalysis: true },
       );
 
       // Verify the partial analysis note was included in the prompt
       const callArgs = mockLLMRouter.executeCompletion.mock.calls[0];
       const renderedPrompt = callArgs[1];
-      expect(renderedPrompt).toContain("partial analysis of a larger codebase");
+      expect(renderedPrompt).toContain("partial analysis of a larger set of file summaries");
     });
   });
 
@@ -252,7 +248,7 @@ describe("Completion Executor Type Safety - Post Fix", () => {
         mockLLMRouter,
         AppSummaryCategories.enum.technologies,
         ["file1.ts"],
-        { template: ANALYSIS_PROMPT_TEMPLATE },
+        undefined,
       );
 
       expect(result).toBeNull();
@@ -265,7 +261,7 @@ describe("Completion Executor Type Safety - Post Fix", () => {
         mockLLMRouter,
         AppSummaryCategories.enum.technologies,
         ["file1.ts"],
-        { template: ANALYSIS_PROMPT_TEMPLATE },
+        undefined,
       );
 
       expect(result).toBeNull();
@@ -282,7 +278,7 @@ describe("Completion Executor Type Safety - Post Fix", () => {
         mockLLMRouter,
         AppSummaryCategories.enum.technologies,
         [],
-        { template: ANALYSIS_PROMPT_TEMPLATE },
+        undefined,
       );
 
       expect(result).toBeDefined();
@@ -308,7 +304,7 @@ describe("Completion Executor Type Safety - Post Fix", () => {
         mockLLMRouter,
         AppSummaryCategories.enum.technologies,
         ["file1.ts"],
-        { template: ANALYSIS_PROMPT_TEMPLATE },
+        undefined,
       );
 
       // The return type should be correctly inferred without unsafe casts
@@ -350,7 +346,7 @@ describe("Completion Executor Type Safety - Post Fix", () => {
         mockLLMRouter,
         AppSummaryCategories.enum.boundedContexts,
         ["file1.ts"],
-        { template: ANALYSIS_PROMPT_TEMPLATE },
+        undefined,
       );
 
       // TypeScript should infer the correct type based on the category parameter
@@ -390,7 +386,7 @@ describe("Completion Executor Type Safety - Post Fix", () => {
         mockLLMRouter,
         AppSummaryCategories.enum.technologies,
         ["file1.ts"],
-        { template: ANALYSIS_PROMPT_TEMPLATE },
+        undefined,
       );
 
       const callArgs = mockLLMRouter.executeCompletion.mock.calls[0];

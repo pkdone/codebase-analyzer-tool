@@ -2,7 +2,6 @@ import {
   executeInsightCompletion,
   InsightCompletionOptions,
 } from "../../../../../src/app/components/insights/strategies/insights-completion-executor";
-import { ANALYSIS_PROMPT_TEMPLATE } from "../../../../../src/app/prompts/app-templates";
 
 describe("insight-completion.service", () => {
   describe("executeInsightCompletion", () => {
@@ -17,16 +16,15 @@ describe("insight-completion.service", () => {
     });
 
     describe("InsightCompletionOptions interface", () => {
-      it("should require template", () => {
+      it("should allow optional forPartialAnalysis", () => {
         const options: InsightCompletionOptions = {
-          template: ANALYSIS_PROMPT_TEMPLATE,
+          forPartialAnalysis: true,
         };
-        expect(options.template).toBe(ANALYSIS_PROMPT_TEMPLATE);
+        expect(options.forPartialAnalysis).toBe(true);
       });
 
       it("should allow optional taskCategory", () => {
         const options: InsightCompletionOptions = {
-          template: ANALYSIS_PROMPT_TEMPLATE,
           taskCategory: "test-category",
         };
         expect(options.taskCategory).toBe("test-category");

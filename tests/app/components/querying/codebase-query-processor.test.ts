@@ -222,7 +222,7 @@ describe("queryCodebaseWithQuestion", () => {
       expect(callArgs[3]).toBe(6); // VECTOR_SEARCH_NUM_LIMIT);
     });
 
-    it("should use CODEBASE_QUERY_TEMPLATE from templates.ts", async () => {
+    it("should use CODEBASE_QUERY_TEMPLATE format for the prompt", async () => {
       // Arrange
       const mockVector = [0.1, 0.2, 0.3];
       const mockSourceFiles: ProjectedSourceMetadataContentAndSummary[] = [

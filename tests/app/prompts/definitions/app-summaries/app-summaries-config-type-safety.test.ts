@@ -2,9 +2,8 @@ import { z } from "zod";
 import {
   appSummaryConfigMap,
   type AppSummaryConfigMap,
-} from "../../../../../src/app/prompts/definitions/app-summaries/app-summaries.definitions";
-import { type AppSummaryConfigEntry } from "../../../../../src/app/prompts/definitions/app-summaries/app-summaries.factories";
-import { FILE_SUMMARIES_DATA_BLOCK_HEADER } from "../../../../../src/app/prompts/definitions/app-summaries/app-summaries.factories";
+  type AppSummaryConfigEntry,
+} from "../../../../../src/app/prompts/app-summaries/app-summaries.definitions";
 import { AppSummaryCategories } from "../../../../../src/app/schemas/app-summaries.schema";
 
 /**
@@ -89,17 +88,15 @@ describe("appSummaryConfigMap Type Safety", () => {
   describe("AppSummaryConfigEntry Generic Interface", () => {
     it("should accept generic type parameter for specific schemas", () => {
       // Create a test entry with a specific schema type
+      // Note: contentDesc, dataBlockHeader, wrapInCodeBlock are now set at instantiation time
       const testSchema = z.object({
         testCategory: z.array(z.string()),
       });
 
       // This should compile without error, showing the generic works
       const testEntry: AppSummaryConfigEntry<typeof testSchema> = {
-        contentDesc: "test content",
         responseSchema: testSchema,
         instructions: ["Generate a test list"],
-        dataBlockHeader: FILE_SUMMARIES_DATA_BLOCK_HEADER,
-        wrapInCodeBlock: false,
       };
 
       expect(testEntry.responseSchema).toBe(testSchema);
@@ -107,15 +104,25 @@ describe("appSummaryConfigMap Type Safety", () => {
 
     it("should default to z.ZodType when no type parameter is provided", () => {
       // This should accept any ZodType without specific parameter
+      // Note: contentDesc, dataBlockHeader, wrapInCodeBlock are now set at instantiation time
       const genericEntry: AppSummaryConfigEntry = {
-        contentDesc: "test content",
         responseSchema: z.string(),
         instructions: [],
-        dataBlockHeader: FILE_SUMMARIES_DATA_BLOCK_HEADER,
-        wrapInCodeBlock: false,
       };
 
       expect(genericEntry.responseSchema).toBeInstanceOf(z.ZodType);
+    });
+
+    it("should not contain presentation properties (handled by consumer)", () => {
+      // AppSummaryConfigEntry no longer includes these properties
+      const testEntry: AppSummaryConfigEntry = {
+        responseSchema: z.string(),
+        instructions: [],
+      };
+
+      expect("contentDesc" in testEntry).toBe(false);
+      expect("dataBlockHeader" in testEntry).toBe(false);
+      expect("wrapInCodeBlock" in testEntry).toBe(false);
     });
   });
 

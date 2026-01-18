@@ -1,7 +1,7 @@
 import {
   SOURCES_PROMPT_FRAGMENTS,
   COMPOSITES,
-} from "../../../src/app/prompts/definitions/sources/sources.fragments";
+} from "../../../src/app/prompts/sources/sources.fragments";
 
 describe("Fragment Consolidation", () => {
   describe("BASE fragments", () => {

@@ -1,12 +1,16 @@
-import { appSummaryConfigMap } from "../../../src/app/prompts/definitions/app-summaries/app-summaries.definitions";
-import { appPromptManager } from "../../../src/app/prompts/app-prompt-registry";
-const appSummaryPromptMetadata = appPromptManager.appSummaries;
+import {
+  appSummaryConfigMap,
+  APP_SUMMARY_CONTENT_DESC,
+} from "../../../src/app/prompts/app-summaries/app-summaries.definitions";
 import type { AppSummaryCategoryType } from "../../../src/app/components/insights/insights.types";
+
+const appSummaryPromptMetadata = appSummaryConfigMap;
 
 describe("App Summaries Config", () => {
   describe("appSummaryConfigMap", () => {
     it("should contain all required categories", () => {
       // Note: aggregates, entities, and repositories are now nested within boundedContexts
+      // Note: contentDesc, dataBlockHeader, wrapInCodeBlock are no longer in config entries
       const requiredCategories: AppSummaryCategoryType[] = [
         "appDescription",
         "technologies",
@@ -59,10 +63,13 @@ describe("App Summaries Config", () => {
 
   describe("appSummaryPromptMetadata generation", () => {
     it("should generate metadata from config map", () => {
+      // contentDesc is now set at instantiation time, not in the config
+      // We verify the constant is exported instead
+      expect(APP_SUMMARY_CONTENT_DESC).toBe("a set of source file summaries");
+
       Object.entries(appSummaryConfigMap).forEach(([key, config]) => {
         const metadata = appSummaryPromptMetadata[key as AppSummaryCategoryType];
         expect(metadata).toBeDefined();
-        expect(metadata.contentDesc).toContain("a set of source file summaries"); // Generic contentDesc
         expect(metadata.responseSchema).toBe(config.responseSchema);
       });
     });
@@ -75,14 +82,10 @@ describe("App Summaries Config", () => {
       });
     });
 
-    it("should have generic contentDesc and specific instructions", () => {
-      Object.entries(appSummaryConfigMap).forEach(([key, config]) => {
-        const metadata = appSummaryPromptMetadata[key as AppSummaryCategoryType];
-        // introTextTemplate should contain the generic content description
-        expect(metadata.contentDesc).toContain("a set of source file summaries");
-        // instructions should contain the specific instructions from config
-        expect(metadata.instructions).toEqual(config.instructions);
-      });
+    it("should export APP_SUMMARY_CONTENT_DESC constant", () => {
+      // contentDesc is now set at instantiation time by the consumer
+      // The constant is exported for consumers to use
+      expect(APP_SUMMARY_CONTENT_DESC).toBe("a set of source file summaries");
     });
   });
 });

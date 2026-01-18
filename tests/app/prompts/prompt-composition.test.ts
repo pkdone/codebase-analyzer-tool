@@ -1,22 +1,21 @@
-import { SOURCES_PROMPT_FRAGMENTS } from "../../../src/app/prompts/definitions/sources/sources.fragments";
-import { appPromptManager } from "../../../src/app/prompts/app-prompt-registry";
-const fileTypePromptMetadata = appPromptManager.sources;
+import { SOURCES_PROMPT_FRAGMENTS } from "../../../src/app/prompts/sources/sources.fragments";
+import { fileTypePromptRegistry } from "../../../src/app/prompts/sources/sources.definitions";
 
 describe("prompt-composition", () => {
-  describe("fileTypePromptMetadata", () => {
-    it("should use instruction arrays for converted file types", () => {
-      const convertedFileTypes = ["default", "java", "javascript", "sql", "markdown"];
-      convertedFileTypes.forEach((fileType) => {
-        const metadata = fileTypePromptMetadata[fileType as keyof typeof fileTypePromptMetadata];
-        expect(Array.isArray(metadata.instructions)).toBe(true);
-        expect(metadata.instructions.length).toBeGreaterThan(0);
-        expect(metadata.template).toBeDefined();
-        expect(typeof metadata.template).toBe("string");
+  describe("fileTypePromptRegistry", () => {
+    it("should use instruction arrays for file types", () => {
+      const fileTypes = ["default", "java", "javascript", "sql", "markdown"];
+      fileTypes.forEach((fileType) => {
+        const config = fileTypePromptRegistry[fileType as keyof typeof fileTypePromptRegistry];
+        expect(Array.isArray(config.instructions)).toBe(true);
+        expect(config.instructions.length).toBeGreaterThan(0);
+        expect(config.contentDesc).toBeDefined();
+        expect(typeof config.contentDesc).toBe("string");
       });
     });
 
     it("should compose Java instructions from fragments", () => {
-      const javaInstructions = fileTypePromptMetadata.java.instructions;
+      const javaInstructions = fileTypePromptRegistry.java.instructions;
 
       // Instructions are now string array - fragments are embedded within formatted strings
       const allInstructions = javaInstructions.join(" ");
@@ -32,7 +31,7 @@ describe("prompt-composition", () => {
     });
 
     it("should compose JavaScript instructions from fragments", () => {
-      const jsInstructions = fileTypePromptMetadata.javascript.instructions;
+      const jsInstructions = fileTypePromptRegistry.javascript.instructions;
 
       // Instructions are now string array - fragments are embedded within formatted strings
       const jsAllInstructions = jsInstructions.join(" ");
@@ -48,8 +47,8 @@ describe("prompt-composition", () => {
     });
 
     it("should compose simple file type instructions from fragments", () => {
-      const markdownInstructions = fileTypePromptMetadata.markdown.instructions;
-      const sqlInstructions = fileTypePromptMetadata.sql.instructions;
+      const markdownInstructions = fileTypePromptRegistry.markdown.instructions;
+      const sqlInstructions = fileTypePromptRegistry.sql.instructions;
 
       // Instructions are now string array - fragments are embedded within formatted strings
       const markdownAllInstructions = markdownInstructions.join(" ");
@@ -62,66 +61,59 @@ describe("prompt-composition", () => {
       expect(sqlAllInstructions).toContain(SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION);
     });
 
-    it("should maintain backward compatibility for converted types", () => {
-      const convertedFileTypes = ["default", "java", "javascript", "sql", "markdown"];
+    it("should maintain backward compatibility for file types", () => {
+      const fileTypes = ["default", "java", "javascript", "sql", "markdown"];
 
-      convertedFileTypes.forEach((fileType) => {
-        const metadata = fileTypePromptMetadata[fileType as keyof typeof fileTypePromptMetadata];
-        const instructions = metadata.instructions;
+      fileTypes.forEach((fileType) => {
+        const config = fileTypePromptRegistry[fileType as keyof typeof fileTypePromptRegistry];
+        const instructions = config.instructions;
 
         // Instructions are now string array
-        const instructionArray = instructions;
 
         // All file types should have purpose and implementation
-        const instructionText = instructionArray.join(" ");
+        const instructionText = instructions.join(" ");
         expect(instructionText).toContain("purpose");
         expect(instructionText).toContain("implementation");
       });
     });
 
-    it("should have consistent instruction structure for converted types", () => {
-      const convertedFileTypes = ["default", "java", "javascript", "sql", "markdown"];
+    it("should have consistent instruction structure for file types", () => {
+      const fileTypes = ["default", "java", "javascript", "sql", "markdown"];
 
-      convertedFileTypes.forEach((fileType) => {
-        const metadata = fileTypePromptMetadata[fileType as keyof typeof fileTypePromptMetadata];
-        const instructions = metadata.instructions;
-
-        // Instructions are now string array
-        const instructionArray = instructions;
+      fileTypes.forEach((fileType) => {
+        const config = fileTypePromptRegistry[fileType as keyof typeof fileTypePromptRegistry];
+        const instructions = config.instructions;
 
         // Each instruction point should be a non-empty string
-        instructionArray.forEach((instruction) => {
+        instructions.forEach((instruction) => {
           expect(typeof instruction).toBe("string");
           expect(instruction.length).toBeGreaterThan(0);
         });
       });
     });
 
-    it("should reuse common fragments appropriately for converted types", () => {
+    it("should reuse common fragments appropriately for file types", () => {
       const fileTypesWithCodeQuality = ["java", "javascript"];
 
       fileTypesWithCodeQuality.forEach((fileType) => {
-        const metadata = fileTypePromptMetadata[fileType as keyof typeof fileTypePromptMetadata];
-        const instructions = metadata.instructions;
-
-        // Instructions are now string array
-        const instructionArray = instructions;
+        const config = fileTypePromptRegistry[fileType as keyof typeof fileTypePromptRegistry];
+        const instructions = config.instructions;
 
         // These file types should use code quality fragments
-        const instructionText = instructionArray.join(" ");
+        const instructionText = instructions.join(" ");
         expect(instructionText).toContain("Code Quality Analysis");
       });
     });
 
     it("should have language-specific fragments in appropriate file types", () => {
       // Java should use Java-specific fragments
-      const javaInstructions = fileTypePromptMetadata.java.instructions;
+      const javaInstructions = fileTypePromptRegistry.java.instructions;
       const javaAllInstructions = javaInstructions.join(" ");
       expect(javaAllInstructions).toContain(SOURCES_PROMPT_FRAGMENTS.JAVA_SPECIFIC.INTERNAL_REFS);
       expect(javaAllInstructions).toContain(SOURCES_PROMPT_FRAGMENTS.JAVA_SPECIFIC.EXTERNAL_REFS);
 
       // JavaScript should use JavaScript-specific fragments
-      const jsInstructions = fileTypePromptMetadata.javascript.instructions;
+      const jsInstructions = fileTypePromptRegistry.javascript.instructions;
       const jsAllInstructions = jsInstructions.join(" ");
       expect(jsAllInstructions).toContain(
         SOURCES_PROMPT_FRAGMENTS.JAVASCRIPT_SPECIFIC.INTERNAL_REFS,

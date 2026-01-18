@@ -1,8 +1,8 @@
 /**
- * Prompt class for creating and rendering LLM prompts.
+ * JSONSchemaPrompt class for creating and rendering LLM prompts with JSON schema validation.
  *
- * This module provides the core Prompt class that encapsulates prompt configuration
- * and rendering logic. It replaces the previous separate types, factory, and renderer modules.
+ * This module provides the core JSONSchemaPrompt class that encapsulates prompt configuration
+ * and rendering logic for prompts that require structured JSON responses.
  */
 
 import { fillPrompt } from "type-safe-prompt";
@@ -10,7 +10,29 @@ import { zodToJsonSchema } from "zod-to-json-schema";
 import type { z } from "zod";
 
 /**
- * Configuration for creating a Prompt instance.
+ * Template for structured analysis prompts with JSON schema validation.
+ * This template uses placeholders for customization:
+ * - {{personaIntroduction}}: Introduction text establishing the AI persona
+ * - {{partialAnalysisNote}}: Note for partial/chunked analysis (empty string if not partial)
+ * - {{contentDesc}}: Description of the content being analyzed
+ * - {{dataBlockHeader}}: The section header (e.g., "CODE", "FILE_SUMMARIES")
+ * - {{instructionsText}}: The joined instruction strings from the prompt
+ * - {{contentWrapper}}: Optional code block markers (```) if wrapInCodeBlock is true
+ * - {{schemaSection}}: JSON schema section with format enforcement instructions
+ *
+ * Note: This template is used internally by the JSONSchemaPrompt class. It's exported for testing
+ * and documentation purposes only.
+ */
+export const JSON_SCHEMA_PROMPT_TEMPLATE = `{{personaIntroduction}} Based on the {{contentDesc}} shown below in the section marked '{{dataBlockHeader}}', return a JSON response that contains:
+
+{{instructionsText}}
+
+{{partialAnalysisNote}}{{schemaSection}}
+{{dataBlockHeader}}:
+{{contentWrapper}}{{content}}{{contentWrapper}}`;
+
+/**
+ * Configuration for creating a JSONSchemaPrompt instance.
  * This interface defines the common structure for all prompt configurations
  * to ensure consistency and enable generic processing.
  *
@@ -19,17 +41,19 @@ import type { z } from "zod";
  *
  * @template S - The Zod schema type for validating the LLM response. Defaults to z.ZodType.
  */
-export interface PromptConfig<S extends z.ZodType = z.ZodType> {
+/**
+ * Base configuration for prompt definitions (used by factories).
+ * This type excludes personaIntroduction, which is added at instantiation time.
+ *
+ * @template S - The Zod schema type for validating the LLM response. Defaults to z.ZodType.
+ */
+export interface PromptConfigBase<S extends z.ZodType = z.ZodType> {
   /** Description of the content being analyzed (required) */
   contentDesc: string;
   /** Array of instruction strings for the LLM (required) */
   instructions: readonly string[];
-  /**
-   * Zod schema for validating the LLM response.
-   * When provided, the prompt is rendered in JSON mode with the schema section included.
-   * When omitted, the prompt is rendered in TEXT mode without schema instructions.
-   */
-  responseSchema?: S;
+  /** Zod schema for validating the LLM response (required) */
+  responseSchema: S;
   /** Whether the schema is complex and incompatible with some LLM providers */
   hasComplexSchema?: boolean;
   /**
@@ -43,21 +67,25 @@ export interface PromptConfig<S extends z.ZodType = z.ZodType> {
    * Factories must explicitly define their presentation.
    */
   wrapInCodeBlock: boolean;
+  /**
+   * Whether this prompt is for partial/chunked analysis in map-reduce workflows.
+   * When true, a note is prepended indicating this is a partial analysis.
+   */
+  forPartialAnalysis?: boolean;
 }
 
 /**
- * Configuration for JSON-mode prompts that require a response schema.
- * Use this type for prompts that expect structured JSON responses from the LLM.
+ * Full configuration for creating a JSONSchemaPrompt instance.
+ * Extends PromptConfigBase with personaIntroduction, which is required for instantiation.
  *
- * @template S - The Zod schema type for validating the LLM response.
+ * @template S - The Zod schema type for validating the LLM response. Defaults to z.ZodType.
  */
-export type JsonPromptConfig<S extends z.ZodType = z.ZodType> = Omit<
-  PromptConfig<S>,
-  "responseSchema"
-> & {
-  /** Zod schema for validating the LLM response (required for JSON mode) */
-  responseSchema: S;
-};
+export interface JSONSchemaPromptConfig<
+  S extends z.ZodType = z.ZodType,
+> extends PromptConfigBase<S> {
+  /** Introduction text establishing the AI persona (required) */
+  personaIntroduction: string;
+}
 
 /**
  * JSON format enforcement instruction used across all prompt templates.
@@ -86,9 +114,6 @@ const FORCE_JSON_FORMAT = `The response MUST be valid JSON and meet the followin
  * Builds the schema section for JSON-mode prompts.
  * This function generates the JSON schema block with format enforcement instructions.
  *
- * The schema section is only included in JSON-mode prompts. TEXT-mode prompts
- * return an empty string to avoid rendering an empty JSON code block.
- *
  * @param responseSchema - The Zod schema for the response
  * @returns The formatted schema section string including schema and FORCE_JSON_FORMAT instructions
  */
@@ -104,50 +129,69 @@ ${FORCE_JSON_FORMAT}
 }
 
 /**
- * A complete prompt ready for rendering.
+ * Builds the note section for partial/chunked analysis prompts.
+ * This function returns a dynamically constructed partial analysis note when applicable,
+ * or an empty string otherwise.
+ *
+ * @param forPartialAnalysis - Whether this prompt is for partial/chunked analysis
+ * @param dataBlockHeader - The data block header (e.g., "CODE", "FILE_SUMMARIES") used in the note
+ * @returns The partial analysis note string or empty string
+ */
+function buildPartialAnalysisNoteSection(
+  forPartialAnalysis: boolean,
+  dataBlockHeader: string,
+): string {
+  if (!forPartialAnalysis) return "";
+  const formattedHeader = dataBlockHeader.toLowerCase().replace(/_/g, " ");
+  return `Note, this is a partial analysis of a larger set of ${formattedHeader}; focus on extracting insights from this subset of ${formattedHeader} only.\n\n`;
+}
+
+/**
+ * A complete prompt ready for rendering with JSON schema validation.
  * This class encapsulates prompt configuration and provides a method to render
  * the final prompt string with the provided content.
+ *
+ * All prompts use the standard JSON_SCHEMA_PROMPT_TEMPLATE internally and require
+ * a response schema for JSON mode validation.
  *
  * @template S - The Zod schema type for validating the LLM response. Defaults to z.ZodType.
  *
  * @example
  * ```typescript
- * const prompt = new Prompt(myConfig, MY_TEMPLATE);
+ * const prompt = new JSONSchemaPrompt(myConfig);
  * const rendered = prompt.renderPrompt(codeContent);
  * ```
  */
-export class Prompt<S extends z.ZodType = z.ZodType> {
+export class JSONSchemaPrompt<S extends z.ZodType = z.ZodType> {
+  /** Introduction text establishing the AI persona */
+  readonly personaIntroduction: string;
   /** Description of the content being analyzed (e.g., "JVM code", "a set of source file summaries") */
   readonly contentDesc: string;
   /** Array of instruction strings for the LLM. Instructions can include section titles
    * formatted as "__TITLE__\n- Point 1" for better organization. */
   readonly instructions: readonly string[];
-  /**
-   * Zod schema for validating the LLM response.
-   * When defined, the prompt is rendered in JSON mode with schema instructions.
-   * When undefined, the prompt is rendered in TEXT mode without schema.
-   */
-  readonly responseSchema?: S;
-  /** Template string for rendering the prompt */
-  readonly template: string;
+  /** Zod schema for validating the LLM response (required for JSON mode) */
+  readonly responseSchema: S;
   /** Header text for the data block section (e.g., "CODE", "FILE_SUMMARIES") */
   readonly dataBlockHeader: string;
   /** Whether to wrap the content in code block markers (```) */
   readonly wrapInCodeBlock: boolean;
+  /** Whether this prompt is for partial/chunked analysis in map-reduce workflows */
+  readonly forPartialAnalysis: boolean;
 
   /**
-   * Creates a new Prompt instance from configuration and template.
+   * Creates a new JSONSchemaPrompt instance from configuration.
    *
-   * @param config - The prompt configuration containing all metadata
-   * @param template - The template string to use for rendering
+   * @param config - The prompt configuration containing all metadata including responseSchema
    */
-  constructor(config: PromptConfig<S>, template: string) {
+  constructor(config: JSONSchemaPromptConfig<S>) {
+    this.personaIntroduction = config.personaIntroduction;
     this.contentDesc = config.contentDesc;
     this.instructions = config.instructions;
     this.responseSchema = config.responseSchema;
     this.dataBlockHeader = config.dataBlockHeader;
     this.wrapInCodeBlock = config.wrapInCodeBlock;
-    this.template = template;
+    this.forPartialAnalysis = config.forPartialAnalysis ?? false;
   }
 
   /**
@@ -156,22 +200,26 @@ export class Prompt<S extends z.ZodType = z.ZodType> {
    * and generating the JSON schema string from the response schema.
    *
    * @param content - The actual content to analyze (code, summaries, etc.)
-   * @param extras - Optional additional properties for custom templates (e.g., question for codebase queries)
    * @returns The fully rendered prompt string
    */
-  renderPrompt(content: string, extras?: Readonly<Record<string, unknown>>): string {
-    const schemaSection = this.responseSchema ? buildSchemaSection(this.responseSchema) : "";
+  renderPrompt(content: string): string {
+    const partialAnalysisNote = buildPartialAnalysisNoteSection(
+      this.forPartialAnalysis,
+      this.dataBlockHeader,
+    );
+    const schemaSection = buildSchemaSection(this.responseSchema);
     const contentWrapper = this.wrapInCodeBlock ? "```\n" : "";
     const instructionsText = this.instructions.join("\n\n");
     const templateData = {
-      ...extras,
+      personaIntroduction: this.personaIntroduction,
       content,
       contentDesc: this.contentDesc,
       instructionsText,
+      partialAnalysisNote,
       schemaSection,
       dataBlockHeader: this.dataBlockHeader,
       contentWrapper,
     };
-    return fillPrompt(this.template, templateData);
+    return fillPrompt(JSON_SCHEMA_PROMPT_TEMPLATE, templateData);
   }
 }

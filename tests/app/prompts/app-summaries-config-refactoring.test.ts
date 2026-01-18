@@ -1,12 +1,32 @@
-import { appSummaryConfigMap } from "../../../src/app/prompts/definitions/app-summaries/app-summaries.definitions";
-import { appPromptManager } from "../../../src/app/prompts/app-prompt-registry";
-const appSummaryPromptMetadata = appPromptManager.appSummaries;
-import type { AppSummaryCategoryType } from "../../../src/app/components/insights/insights.types";
-import { ANALYSIS_PROMPT_TEMPLATE } from "../../../src/app/prompts/app-templates";
+import {
+  appSummaryConfigMap,
+  FILE_SUMMARIES_DATA_BLOCK_HEADER,
+  APP_SUMMARY_CONTENT_DESC,
+} from "../../../src/app/prompts/app-summaries/app-summaries.definitions";
+import {
+  JSONSchemaPrompt,
+  type JSONSchemaPromptConfig,
+} from "../../../src/common/prompts/json-schema-prompt";
+import { DEFAULT_PERSONA_INTRODUCTION } from "../../../src/app/prompts/prompt.config";
+
+/**
+ * Helper to create a JSONSchemaPrompt from appSummaryConfigMap config.
+ * Adds contentDesc, dataBlockHeader, and wrapInCodeBlock which are no longer in the config entries.
+ */
+function createAppSummaryPrompt(category: keyof typeof appSummaryConfigMap): JSONSchemaPrompt {
+  const config = appSummaryConfigMap[category];
+  return new JSONSchemaPrompt({
+    personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+    ...config,
+    contentDesc: APP_SUMMARY_CONTENT_DESC,
+    dataBlockHeader: FILE_SUMMARIES_DATA_BLOCK_HEADER,
+    wrapInCodeBlock: false,
+  } as JSONSchemaPromptConfig);
+}
 
 describe("App Summaries Config Refactoring", () => {
   describe("Configuration Structure", () => {
-    it("should use instructions array instead of contentDesc string", () => {
+    it("should use instructions array in config entries", () => {
       Object.values(appSummaryConfigMap).forEach((config) => {
         expect(config.instructions).toBeDefined();
         expect(Array.isArray(config.instructions)).toBe(true);
@@ -18,6 +38,15 @@ describe("App Summaries Config Refactoring", () => {
     it("should not have template property in config entries", () => {
       Object.values(appSummaryConfigMap).forEach((config) => {
         expect(config).not.toHaveProperty("template");
+      });
+    });
+
+    it("should not have presentation properties in config entries", () => {
+      // contentDesc, dataBlockHeader, wrapInCodeBlock are now set at instantiation time
+      Object.values(appSummaryConfigMap).forEach((config) => {
+        expect("contentDesc" in config).toBe(false);
+        expect("dataBlockHeader" in config).toBe(false);
+        expect("wrapInCodeBlock" in config).toBe(false);
       });
     });
 
@@ -33,49 +62,53 @@ describe("App Summaries Config Refactoring", () => {
     });
   });
 
-  describe("Metadata Generation", () => {
-    it("should generate metadata with correct structure", () => {
-      Object.entries(appSummaryConfigMap).forEach(([key, config]) => {
-        const metadata = appSummaryPromptMetadata[key as AppSummaryCategoryType];
+  describe("Config Usage", () => {
+    it("should work correctly with JSONSchemaPrompt class when presentation values added", () => {
+      Object.keys(appSummaryConfigMap).forEach((categoryKey) => {
+        const prompt = createAppSummaryPrompt(categoryKey as keyof typeof appSummaryConfigMap);
+        const config = appSummaryConfigMap[categoryKey as keyof typeof appSummaryConfigMap];
 
-        expect(metadata).toBeDefined();
-        expect(metadata.contentDesc).toContain("a set of source file summaries");
-        expect(metadata.responseSchema).toBe(config.responseSchema);
-        expect(metadata.template).toBe(ANALYSIS_PROMPT_TEMPLATE);
-        expect(metadata.instructions).toEqual(config.instructions);
+        expect(prompt).toBeDefined();
+        expect(prompt.contentDesc).toBe(APP_SUMMARY_CONTENT_DESC);
+        expect(prompt.responseSchema).toBe(config.responseSchema);
+        expect(prompt.instructions).toEqual(config.instructions);
       });
     });
 
-    it("should have generic contentDesc and specific instructions", () => {
-      Object.entries(appSummaryConfigMap).forEach(([key, config]) => {
-        const metadata = appSummaryPromptMetadata[key as AppSummaryCategoryType];
-        expect(metadata.contentDesc).toContain("a set of source file summaries");
-        expect(metadata.instructions).toEqual(config.instructions);
+    it("should have generic contentDesc when presentation values are added at instantiation", () => {
+      Object.keys(appSummaryConfigMap).forEach((categoryKey) => {
+        const prompt = createAppSummaryPrompt(categoryKey as keyof typeof appSummaryConfigMap);
+        const config = appSummaryConfigMap[categoryKey as keyof typeof appSummaryConfigMap];
+        expect(prompt.contentDesc).toBe(APP_SUMMARY_CONTENT_DESC);
+        expect(prompt.instructions).toEqual(config.instructions);
       });
     });
 
-    it("should apply template by default", () => {
-      Object.entries(appSummaryConfigMap).forEach(([key]) => {
-        const metadata = appSummaryPromptMetadata[key as AppSummaryCategoryType];
-        expect(metadata.template).toBe(ANALYSIS_PROMPT_TEMPLATE);
+    it("should render prompts correctly", () => {
+      Object.keys(appSummaryConfigMap).forEach((categoryKey) => {
+        const prompt = createAppSummaryPrompt(categoryKey as keyof typeof appSummaryConfigMap);
+        const rendered = prompt.renderPrompt("test summaries");
+        expect(rendered).toContain("Act as a senior developer");
+        expect(rendered).toContain("test summaries");
       });
     });
   });
 
-  describe("Backward Compatibility", () => {
-    it("should use generic contentDesc for all categories", () => {
-      Object.entries(appSummaryConfigMap).forEach(([category]) => {
-        const metadata = appSummaryPromptMetadata[category as AppSummaryCategoryType];
-        expect(metadata.contentDesc).toContain("a set of source file summaries");
-      });
+  describe("Constant Exports", () => {
+    it("should export APP_SUMMARY_CONTENT_DESC constant", () => {
+      expect(APP_SUMMARY_CONTENT_DESC).toBe("a set of source file summaries");
     });
 
-    it("should maintain same instruction content from config instructions", () => {
-      Object.entries(appSummaryConfigMap).forEach(([key, config]) => {
-        const metadata = appSummaryPromptMetadata[key as AppSummaryCategoryType];
+    it("should export FILE_SUMMARIES_DATA_BLOCK_HEADER constant", () => {
+      expect(FILE_SUMMARIES_DATA_BLOCK_HEADER).toBe("FILE_SUMMARIES");
+    });
 
-        // The instruction content should be the same as the config's instructions
-        expect(metadata.instructions).toEqual(config.instructions);
+    it("should maintain instruction content from config", () => {
+      Object.entries(appSummaryConfigMap).forEach(([, config]) => {
+        // The instruction content should be defined and non-empty
+        expect(config.instructions).toBeDefined();
+        expect(config.instructions.length).toBeGreaterThan(0);
+        expect(config.instructions[0].length).toBeGreaterThan(0);
       });
     });
   });

@@ -1,73 +1,96 @@
 import { z } from "zod";
 import {
-  createAppSummaryConfig,
+  APP_SUMMARY_CONTENT_DESC,
+  FILE_SUMMARIES_DATA_BLOCK_HEADER,
+} from "../../../../../src/app/prompts/app-summaries/app-summaries.fragments";
+import {
+  appSummaryConfigMap,
   type AppSummaryConfigEntry,
-} from "../../../../../src/app/prompts/definitions/app-summaries/app-summaries.factories";
-import { appSummaryConfigMap } from "../../../../../src/app/prompts/definitions/app-summaries/app-summaries.definitions";
-import { FILE_SUMMARIES_DATA_BLOCK_HEADER } from "../../../../../src/app/prompts/definitions/app-summaries/app-summaries.factories";
+} from "../../../../../src/app/prompts/app-summaries/app-summaries.definitions";
 
 /**
- * Unit tests for the createAppSummaryConfig factory function.
- * Verifies that the factory correctly creates AppSummaryConfigEntry objects
- * with proper default values and type safety.
+ * Unit tests for the app summary configuration structure.
+ * Verifies that AppSummaryConfigEntry objects have proper structure and type safety.
  *
- * The factory uses rest parameters for cleaner call sites:
- * createAppSummaryConfig(label, schema, ...instructions)
+ * Note: contentDesc, dataBlockHeader, and wrapInCodeBlock are set by the consumer
+ * (InsightCompletionExecutor) at instantiation time, not in the config entries.
  */
-describe("createAppSummaryConfig Factory", () => {
-  const testSchema = z.object({
-    testField: z.string(),
-  });
-
-  describe("default contentDesc behavior", () => {
-    it("should use default contentDesc", () => {
-      const config = createAppSummaryConfig(testSchema, "instruction 1");
-
-      expect(config.contentDesc).toBe("a set of source file summaries");
+describe("App Summary Configuration", () => {
+  describe("constant exports", () => {
+    it("should export APP_SUMMARY_CONTENT_DESC constant", () => {
+      expect(APP_SUMMARY_CONTENT_DESC).toBe("a set of source file summaries");
     });
 
-    it("should always use the default contentDesc for all configurations", () => {
-      // The factory now uses a fixed contentDesc, which is the standard for all app summaries
-      const config = createAppSummaryConfig(testSchema, "test instruction");
-      expect(config.contentDesc).toBe("a set of source file summaries");
+    it("should export FILE_SUMMARIES_DATA_BLOCK_HEADER constant", () => {
+      expect(FILE_SUMMARIES_DATA_BLOCK_HEADER).toBe("FILE_SUMMARIES");
     });
   });
 
-  describe("field population", () => {
-    it("should correctly populate all fields", () => {
-      const schema = z.object({ result: z.array(z.string()) });
+  describe("appSummaryConfigMap structure", () => {
+    it("should have all required categories", () => {
+      const expectedCategories = [
+        "appDescription",
+        "technologies",
+        "businessProcesses",
+        "boundedContexts",
+        "potentialMicroservices",
+        "inferredArchitecture",
+      ];
 
-      const config = createAppSummaryConfig(schema, "do this", "do that");
-
-      expect(config.instructions).toEqual(["do this", "do that"]);
-      expect(config.responseSchema).toBe(schema);
-      expect(config.contentDesc).toBe("a set of source file summaries");
+      expectedCategories.forEach((category) => {
+        expect(appSummaryConfigMap).toHaveProperty(category);
+      });
     });
 
-    it("should collect rest parameters into instructions array", () => {
-      const config = createAppSummaryConfig(
-        testSchema,
-        "instruction 1",
-        "instruction 2",
-        "instruction 3",
-      );
+    it("should have valid AppSummaryConfigEntry structure for all entries", () => {
+      const categories = Object.keys(appSummaryConfigMap) as (keyof typeof appSummaryConfigMap)[];
 
-      expect(config.instructions).toEqual(["instruction 1", "instruction 2", "instruction 3"]);
-      expect(Array.isArray(config.instructions)).toBe(true);
+      categories.forEach((category) => {
+        const config = appSummaryConfigMap[category];
+
+        expect(Array.isArray(config.instructions)).toBe(true);
+        expect(config.instructions.length).toBeGreaterThan(0);
+        expect(config.responseSchema).toBeInstanceOf(z.ZodType);
+      });
+    });
+
+    it("should not contain presentation properties (handled by consumer)", () => {
+      const categories = Object.keys(appSummaryConfigMap) as (keyof typeof appSummaryConfigMap)[];
+
+      categories.forEach((category) => {
+        const config = appSummaryConfigMap[category];
+
+        expect("contentDesc" in config).toBe(false);
+        expect("dataBlockHeader" in config).toBe(false);
+        expect("wrapInCodeBlock" in config).toBe(false);
+      });
+    });
+
+    it("should have non-empty instruction strings", () => {
+      const categories = Object.keys(appSummaryConfigMap) as (keyof typeof appSummaryConfigMap)[];
+
+      categories.forEach((category) => {
+        const config = appSummaryConfigMap[category];
+
+        config.instructions.forEach((instruction) => {
+          expect(typeof instruction).toBe("string");
+          expect(instruction.length).toBeGreaterThan(0);
+        });
+      });
     });
   });
 
   describe("type safety", () => {
-    it("should return type-safe AppSummaryConfigEntry", () => {
+    it("should allow creating type-safe AppSummaryConfigEntry objects", () => {
       const specificSchema = z.object({
         specificField: z.number(),
       });
 
-      // Type assertion: The factory should return AppSummaryConfigEntry<typeof specificSchema>
-      const config: AppSummaryConfigEntry<typeof specificSchema> = createAppSummaryConfig(
-        specificSchema,
-        "typed instruction",
-      );
+      // Type should work with specific schema types
+      const config: AppSummaryConfigEntry<typeof specificSchema> = {
+        responseSchema: specificSchema,
+        instructions: ["typed instruction"],
+      };
 
       expect(config.responseSchema).toBe(specificSchema);
       // Verify schema works by parsing
@@ -75,12 +98,25 @@ describe("createAppSummaryConfig Factory", () => {
       expect(parseResult.success).toBe(true);
     });
 
-    it("should preserve generic schema type through the factory", () => {
+    it("should allow AppSummaryConfigEntry with default generic type", () => {
+      // Should accept any ZodType without specific parameter
+      const genericEntry: AppSummaryConfigEntry = {
+        responseSchema: z.string(),
+        instructions: [],
+      };
+
+      expect(genericEntry.responseSchema).toBeInstanceOf(z.ZodType);
+    });
+
+    it("should preserve schema type for validation", () => {
       const schema = z.object({
         items: z.array(z.object({ name: z.string() })),
       });
 
-      const config = createAppSummaryConfig(schema, "test");
+      const config: AppSummaryConfigEntry<typeof schema> = {
+        responseSchema: schema,
+        instructions: ["test"],
+      };
 
       // Verify schema type is preserved by parsing valid data
       const validData = { items: [{ name: "test" }] };
@@ -94,129 +130,31 @@ describe("createAppSummaryConfig Factory", () => {
     });
   });
 
-  describe("integration with appSummaryConfigMap", () => {
-    it("should produce configs compatible with existing map structure", () => {
-      // Verify that factory-created configs have the same structure as map entries
-      const factoryConfig = createAppSummaryConfig(
-        z.object({ test: z.string() }),
-        "test instruction",
-      );
-
-      // All configs in the map should have these required fields
-      const requiredFields = ["contentDesc", "instructions", "responseSchema"];
-
-      requiredFields.forEach((field) => {
-        expect(factoryConfig).toHaveProperty(field);
-      });
+  describe("specific category content", () => {
+    it("should have appDescription with correct schema", () => {
+      const config = appSummaryConfigMap.appDescription;
+      const shape = (config.responseSchema as z.ZodObject<z.ZodRawShape>).shape;
+      expect(shape).toHaveProperty("appDescription");
     });
 
-    it("should verify all appSummaryConfigMap entries have consistent contentDesc", () => {
-      const categories = Object.keys(appSummaryConfigMap) as (keyof typeof appSummaryConfigMap)[];
-
-      categories.forEach((category) => {
-        const config = appSummaryConfigMap[category];
-        expect(config.contentDesc).toBe("a set of source file summaries");
-      });
+    it("should have technologies with correct schema", () => {
+      const config = appSummaryConfigMap.technologies;
+      const shape = (config.responseSchema as z.ZodObject<z.ZodRawShape>).shape;
+      expect(shape).toHaveProperty("technologies");
     });
 
-    it("should verify appSummaryConfigMap entries are valid AppSummaryConfigEntry objects", () => {
-      const categories = Object.keys(appSummaryConfigMap) as (keyof typeof appSummaryConfigMap)[];
-
-      categories.forEach((category) => {
-        const config = appSummaryConfigMap[category];
-
-        expect(Array.isArray(config.instructions)).toBe(true);
-        expect(config.instructions.length).toBeGreaterThan(0);
-        expect(config.responseSchema).toBeInstanceOf(z.ZodType);
-        expect(typeof config.contentDesc).toBe("string");
-      });
-    });
-  });
-
-  describe("edge cases", () => {
-    it("should handle no instructions (empty rest params)", () => {
-      const config = createAppSummaryConfig(testSchema);
-
-      expect(config.instructions).toEqual([]);
+    it("should have boundedContexts with hierarchical domain model instructions", () => {
+      const config = appSummaryConfigMap.boundedContexts;
+      const instructionsText = config.instructions.join(" ");
+      expect(instructionsText.toLowerCase()).toContain("repository");
+      expect(instructionsText.toLowerCase()).toContain("aggregate");
     });
 
-    it("should handle single instruction", () => {
-      const config = createAppSummaryConfig(testSchema, "only one");
-
-      expect(config.instructions).toEqual(["only one"]);
-    });
-
-    it("should handle instructions with special characters", () => {
-      const config = createAppSummaryConfig(
-        testSchema,
-        "instruction with `code`",
-        'instruction with "quotes"',
-        "instruction with\nnewline",
-      );
-
-      expect(config.instructions).toEqual([
-        "instruction with `code`",
-        'instruction with "quotes"',
-        "instruction with\nnewline",
-      ]);
-    });
-
-    it("should handle multi-line instruction strings", () => {
-      const multiLineInstruction = `Line 1
-Line 2
-Line 3`;
-      const config = createAppSummaryConfig(testSchema, multiLineInstruction);
-
-      expect(config.instructions).toEqual([multiLineInstruction]);
-      expect(config.instructions[0]).toContain("Line 1");
-      expect(config.instructions[0]).toContain("Line 2");
-    });
-  });
-
-  describe("explicit presentation values", () => {
-    it("should explicitly set dataBlockHeader to FILE_SUMMARIES", () => {
-      const config = createAppSummaryConfig(testSchema, "instruction");
-
-      expect(config.dataBlockHeader).toBe(FILE_SUMMARIES_DATA_BLOCK_HEADER);
-    });
-
-    it("should explicitly set wrapInCodeBlock to false", () => {
-      const config = createAppSummaryConfig(testSchema, "instruction");
-
-      expect(config.wrapInCodeBlock).toBe(false);
-    });
-
-    it("should set consistent presentation values for all appSummaryConfigMap entries", () => {
-      const categories = Object.keys(appSummaryConfigMap) as (keyof typeof appSummaryConfigMap)[];
-
-      categories.forEach((category) => {
-        const config = appSummaryConfigMap[category];
-        expect(config.dataBlockHeader).toBe(FILE_SUMMARIES_DATA_BLOCK_HEADER);
-        expect(config.wrapInCodeBlock).toBe(false);
-      });
-    });
-  });
-
-  describe("rest parameter ergonomics", () => {
-    it("should allow cleaner call sites without array brackets", () => {
-      // New style: createAppSummaryConfig(schema, "instruction")
-      const config = createAppSummaryConfig(testSchema, "single instruction");
-
-      expect(config.instructions).toEqual(["single instruction"]);
-    });
-
-    it("should support multiple instructions without array syntax", () => {
-      const config = createAppSummaryConfig(
-        testSchema,
-        "first instruction",
-        "second instruction",
-        "third instruction",
-      );
-
-      expect(config.instructions).toHaveLength(3);
-      expect(config.instructions[0]).toBe("first instruction");
-      expect(config.instructions[1]).toBe("second instruction");
-      expect(config.instructions[2]).toBe("third instruction");
+    it("should have inferredArchitecture with business component guidance", () => {
+      const config = appSummaryConfigMap.inferredArchitecture;
+      const instructionsText = config.instructions.join(" ");
+      expect(instructionsText).toContain("BUSINESS CAPABILITY");
+      expect(instructionsText).toContain("INCORRECT examples");
     });
   });
 });

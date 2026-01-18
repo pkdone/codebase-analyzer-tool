@@ -1,6 +1,6 @@
-import { ANALYSIS_PROMPT_TEMPLATE } from "../../../../../src/app/prompts/app-templates";
-import { Prompt } from "../../../../../src/common/prompts/prompt";
-import { buildReduceInsightsContentDesc } from "../../../../../src/app/prompts/definitions/app-summaries/app-summaries.fragments";
+import { JSONSchemaPrompt } from "../../../../../src/common/prompts/json-schema-prompt";
+import { DEFAULT_PERSONA_INTRODUCTION } from "../../../../../src/app/prompts/prompt.config";
+import { buildReduceInsightsContentDesc } from "../../../../../src/app/prompts/app-summaries/app-summaries.fragments";
 import { z } from "zod";
 
 describe("MapReduceInsightStrategy - categoryKey parameter handling", () => {
@@ -10,16 +10,14 @@ describe("MapReduceInsightStrategy - categoryKey parameter handling", () => {
     const schema = z.object({ technologies: z.array(z.object({ name: z.string() })) });
 
     // Create a reduce prompt definition (JSON mode = responseSchema present)
-    const reducePrompt = new Prompt(
-      {
-        contentDesc: buildReduceInsightsContentDesc(categoryKey),
-        instructions: [`a consolidated list of '${categoryKey}'`],
-        responseSchema: schema,
-        dataBlockHeader: "FRAGMENTED_DATA",
-        wrapInCodeBlock: false,
-      },
-      ANALYSIS_PROMPT_TEMPLATE,
-    );
+    const reducePrompt = new JSONSchemaPrompt({
+      personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+      contentDesc: buildReduceInsightsContentDesc(categoryKey),
+      instructions: [`a consolidated list of '${categoryKey}'`],
+      responseSchema: schema,
+      dataBlockHeader: "FRAGMENTED_DATA",
+      wrapInCodeBlock: false,
+    });
 
     // Verify the categoryKey is embedded in contentDesc
     expect(reducePrompt.contentDesc).toContain(categoryKey);
@@ -35,16 +33,14 @@ describe("MapReduceInsightStrategy - categoryKey parameter handling", () => {
   it("should render reduce prompt with FRAGMENTED_DATA header", () => {
     const categoryKey = "technologies";
     const schema = z.object({ technologies: z.array(z.object({ name: z.string() })) });
-    const reducePrompt = new Prompt(
-      {
-        contentDesc: buildReduceInsightsContentDesc(categoryKey),
-        instructions: [`a consolidated list of '${categoryKey}'`],
-        responseSchema: schema,
-        dataBlockHeader: "FRAGMENTED_DATA",
-        wrapInCodeBlock: false,
-      },
-      ANALYSIS_PROMPT_TEMPLATE,
-    );
+    const reducePrompt = new JSONSchemaPrompt({
+      personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+      contentDesc: buildReduceInsightsContentDesc(categoryKey),
+      instructions: [`a consolidated list of '${categoryKey}'`],
+      responseSchema: schema,
+      dataBlockHeader: "FRAGMENTED_DATA",
+      wrapInCodeBlock: false,
+    });
 
     const content = JSON.stringify({ technologies: [{ name: "Test" }] }, null, 2);
     const rendered = reducePrompt.renderPrompt(content);
@@ -58,16 +54,14 @@ describe("MapReduceInsightStrategy - categoryKey parameter handling", () => {
   it("should work with pre-populated contentDesc (simulating inline definition)", () => {
     // This tests the pattern where factory pre-populates the contentDesc
     const categoryKey = "technologies";
-    const testPrompt = new Prompt(
-      {
-        contentDesc: `Test intro with ${categoryKey} in the section below.`,
-        instructions: ["a consolidated list"],
-        responseSchema: z.object({ technologies: z.array(z.object({ name: z.string() })) }),
-        dataBlockHeader: "FRAGMENTED_DATA",
-        wrapInCodeBlock: false,
-      },
-      ANALYSIS_PROMPT_TEMPLATE,
-    );
+    const testPrompt = new JSONSchemaPrompt({
+      personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+      contentDesc: `Test intro with ${categoryKey} in the section below.`,
+      instructions: ["a consolidated list"],
+      responseSchema: z.object({ technologies: z.array(z.object({ name: z.string() })) }),
+      dataBlockHeader: "FRAGMENTED_DATA",
+      wrapInCodeBlock: false,
+    });
 
     const content = JSON.stringify({ technologies: [{ name: "Test" }] }, null, 2);
     const rendered = testPrompt.renderPrompt(content);

@@ -1,24 +1,21 @@
-import { appPromptManager } from "../../../src/app/prompts/app-prompt-registry";
+import { appSummaryConfigMap } from "../../../src/app/prompts/app-summaries/app-summaries.definitions";
+import { fileTypePromptRegistry } from "../../../src/app/prompts/sources/sources.definitions";
 import { AppSummaryCategories } from "../../../src/app/schemas/app-summaries.schema";
+import { JSONSchemaPrompt } from "../../../src/common/prompts/json-schema-prompt";
+import { DEFAULT_PERSONA_INTRODUCTION } from "../../../src/app/prompts/prompt.config";
 import { z } from "zod";
 
-describe("Prompt Registry", () => {
+describe("JSONSchemaPrompt Configurations", () => {
   describe("Structure", () => {
-    it("should have all expected top-level properties", () => {
-      expect(appPromptManager).toHaveProperty("appSummaries");
-      expect(appPromptManager).toHaveProperty("sources");
-      expect(appPromptManager).toHaveProperty("codebaseQuery");
-    });
-
-    it("should have app summary prompts for all categories", () => {
+    it("should have app summary configs for all categories", () => {
       const categories = AppSummaryCategories.options;
       categories.forEach((category) => {
-        expect(appPromptManager.appSummaries).toHaveProperty(category);
-        expect(appPromptManager.appSummaries[category]).toBeDefined();
+        expect(appSummaryConfigMap).toHaveProperty(category);
+        expect(appSummaryConfigMap[category]).toBeDefined();
       });
     });
 
-    it("should have source prompts for all file types", () => {
+    it("should have source configs for all file types", () => {
       const expectedFileTypes = [
         "java",
         "javascript",
@@ -46,107 +43,71 @@ describe("Prompt Registry", () => {
       ] as const;
 
       expectedFileTypes.forEach((fileType) => {
-        expect(appPromptManager.sources).toHaveProperty(fileType);
-        expect(appPromptManager.sources[fileType]).toBeDefined();
+        expect(fileTypePromptRegistry).toHaveProperty(fileType);
+        expect(fileTypePromptRegistry[fileType]).toBeDefined();
       });
     });
   });
 
-  describe("App Summary Prompts", () => {
-    it("should have valid RenderablePrompt structure for each category", () => {
+  describe("App Summary Configs", () => {
+    it("should have valid config structure for each category", () => {
       const categories = AppSummaryCategories.options;
       categories.forEach((category) => {
-        const prompt = appPromptManager.appSummaries[category];
-        expect(prompt).toHaveProperty("contentDesc");
-        expect(prompt).toHaveProperty("instructions");
-        expect(prompt).toHaveProperty("responseSchema");
-        expect(prompt).toHaveProperty("template");
-        expect(prompt).toHaveProperty("dataBlockHeader");
-        expect(prompt).toHaveProperty("wrapInCodeBlock");
+        const config = appSummaryConfigMap[category];
+        // contentDesc, dataBlockHeader, and wrapInCodeBlock are no longer in the config entries;
+        // they are set at instantiation time by the consumer (InsightCompletionExecutor)
+        expect(config).toHaveProperty("instructions");
+        expect(config).toHaveProperty("responseSchema");
 
         // Verify types
-        expect(typeof prompt.contentDesc).toBe("string");
-        expect(Array.isArray(prompt.instructions)).toBe(true);
-        expect(prompt.responseSchema).toBeInstanceOf(z.ZodType);
-        expect(typeof prompt.template).toBe("string");
-        expect(typeof prompt.dataBlockHeader).toBe("string");
-        expect(typeof prompt.wrapInCodeBlock).toBe("boolean");
-      });
-    });
-
-    it("should use FILE_SUMMARIES as dataBlockHeader for app summaries", () => {
-      const categories = AppSummaryCategories.options;
-      categories.forEach((category) => {
-        expect(appPromptManager.appSummaries[category].dataBlockHeader).toBe("FILE_SUMMARIES");
-      });
-    });
-
-    it("should not wrap content in code blocks for app summaries", () => {
-      const categories = AppSummaryCategories.options;
-      categories.forEach((category) => {
-        expect(appPromptManager.appSummaries[category].wrapInCodeBlock).toBe(false);
+        expect(Array.isArray(config.instructions)).toBe(true);
+        expect(config.responseSchema).toBeInstanceOf(z.ZodType);
       });
     });
 
     it("should have non-empty instructions for each category", () => {
       const categories = AppSummaryCategories.options;
       categories.forEach((category) => {
-        const instructions = appPromptManager.appSummaries[category].instructions;
+        const instructions = appSummaryConfigMap[category].instructions;
         expect(instructions.length).toBeGreaterThan(0);
       });
     });
   });
 
-  describe("Source Prompts", () => {
-    it("should have valid RenderablePrompt structure for each file type", () => {
+  describe("Source Configs", () => {
+    it("should have valid config structure for each file type", () => {
       const fileType = "java"; // Test one as representative
-      const prompt = appPromptManager.sources[fileType];
+      const config = fileTypePromptRegistry[fileType];
 
-      expect(prompt).toHaveProperty("contentDesc");
-      expect(prompt).toHaveProperty("instructions");
-      expect(prompt).toHaveProperty("responseSchema");
-      expect(prompt).toHaveProperty("template");
-      expect(prompt).toHaveProperty("dataBlockHeader");
-      expect(prompt).toHaveProperty("wrapInCodeBlock");
-    });
-
-    it("should use CODE as dataBlockHeader for source prompts", () => {
-      expect(appPromptManager.sources.java.dataBlockHeader).toBe("CODE");
-      expect(appPromptManager.sources.javascript.dataBlockHeader).toBe("CODE");
-      expect(appPromptManager.sources.python.dataBlockHeader).toBe("CODE");
-    });
-
-    it("should wrap content in code blocks for source prompts", () => {
-      expect(appPromptManager.sources.java.wrapInCodeBlock).toBe(true);
-      expect(appPromptManager.sources.javascript.wrapInCodeBlock).toBe(true);
-      expect(appPromptManager.sources.python.wrapInCodeBlock).toBe(true);
+      expect(config).toHaveProperty("contentDesc");
+      expect(config).toHaveProperty("instructions");
+      expect(config).toHaveProperty("responseSchema");
+      // dataBlockHeader and wrapInCodeBlock are no longer in the registry entries;
+      // they are set at instantiation time by the consumer
     });
 
     it("should have non-empty instructions for code file types", () => {
       const codeFileTypes = ["java", "javascript", "python", "csharp", "ruby"] as const;
       codeFileTypes.forEach((fileType) => {
-        const instructions = appPromptManager.sources[fileType].instructions;
+        const instructions = fileTypePromptRegistry[fileType].instructions;
         expect(instructions.length).toBeGreaterThan(0);
       });
     });
-  });
 
-  describe("Codebase Query Prompt", () => {
-    it("should have valid structure", () => {
-      const prompt = appPromptManager.codebaseQuery;
+    it("should create valid JSONSchemaPrompt instances from configs when presentation values are added", () => {
+      const config = fileTypePromptRegistry.java;
+      // dataBlockHeader and wrapInCodeBlock must now be explicitly provided
+      const prompt = new JSONSchemaPrompt({
+        personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+        ...config,
+        dataBlockHeader: "CODE",
+        wrapInCodeBlock: true,
+      });
 
-      expect(prompt.contentDesc).toBe("source code files");
-      expect(prompt.instructions).toEqual([]);
-      // TEXT mode prompt = no responseSchema
-      expect(prompt.responseSchema).toBeUndefined();
+      expect(prompt.contentDesc).toBe(config.contentDesc);
+      expect(prompt.instructions).toEqual(config.instructions);
       expect(prompt.dataBlockHeader).toBe("CODE");
-      expect(prompt.wrapInCodeBlock).toBe(false);
-    });
-
-    it("should have a custom template (not ANALYSIS_PROMPT_TEMPLATE)", () => {
-      const prompt = appPromptManager.codebaseQuery;
-      expect(prompt.template).toContain("QUESTION");
-      expect(prompt.template).toContain("{{question}}");
+      expect(prompt.wrapInCodeBlock).toBe(true);
     });
   });
 
@@ -154,29 +115,23 @@ describe("Prompt Registry", () => {
     it("should have valid Zod schemas for all app summary categories", () => {
       const categories = AppSummaryCategories.options;
       categories.forEach((category) => {
-        const schema = appPromptManager.appSummaries[category].responseSchema;
+        const schema = appSummaryConfigMap[category].responseSchema;
         expect(schema).toBeInstanceOf(z.ZodType);
 
         // Verify the schema can be used for parsing
-        expect(() => schema!.safeParse({})).not.toThrow();
+        expect(() => schema.safeParse({})).not.toThrow();
       });
     });
 
     it("should have valid Zod schemas for all source file types", () => {
       const fileTypes = ["java", "javascript", "python"] as const;
       fileTypes.forEach((fileType) => {
-        const schema = appPromptManager.sources[fileType].responseSchema;
+        const schema = fileTypePromptRegistry[fileType].responseSchema;
         expect(schema).toBeInstanceOf(z.ZodType);
 
         // Verify the schema can be used for parsing
-        expect(() => schema!.safeParse({})).not.toThrow();
+        expect(() => schema.safeParse({})).not.toThrow();
       });
-    });
-  });
-
-  describe("Immutability", () => {
-    it("should be frozen (immutable)", () => {
-      expect(Object.isFrozen(appPromptManager)).toBe(true);
     });
   });
 });

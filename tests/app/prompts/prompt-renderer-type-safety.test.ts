@@ -1,15 +1,13 @@
 import { z } from "zod";
-import { Prompt } from "../../../src/common/prompts/prompt";
-import {
-  ANALYSIS_PROMPT_TEMPLATE,
-  PARTIAL_ANALYSIS_TEMPLATE,
-} from "../../../src/app/prompts/app-templates";
+import { JSONSchemaPrompt } from "../../../src/common/prompts/json-schema-prompt";
+import { DEFAULT_PERSONA_INTRODUCTION } from "../../../src/app/prompts/prompt.config";
 
-describe("Prompt Renderer Type Safety", () => {
+describe("JSONSchemaPrompt Renderer Type Safety", () => {
   /**
    * Base test definition used across tests
    */
   const testConfig = {
+    personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
     contentDesc: "test content description",
     instructions: ["instruction 1", "instruction 2"],
     responseSchema: z.object({ result: z.string(), count: z.number() }),
@@ -17,7 +15,7 @@ describe("Prompt Renderer Type Safety", () => {
     wrapInCodeBlock: false,
   } as const;
 
-  const testPrompt = new Prompt(testConfig, ANALYSIS_PROMPT_TEMPLATE);
+  const testPrompt = new JSONSchemaPrompt(testConfig);
 
   describe("Template Variable Rendering", () => {
     it("should render contentDesc from definition", () => {
@@ -55,9 +53,12 @@ describe("Prompt Renderer Type Safety", () => {
     });
   });
 
-  describe("PARTIAL_ANALYSIS_TEMPLATE Handling", () => {
-    it("should render partial analysis note when using PARTIAL_ANALYSIS_TEMPLATE", () => {
-      const partialPrompt = new Prompt(testConfig, PARTIAL_ANALYSIS_TEMPLATE);
+  describe("forPartialAnalysis Flag Handling", () => {
+    it("should render partial analysis note when forPartialAnalysis is true", () => {
+      const partialPrompt = new JSONSchemaPrompt({
+        ...testConfig,
+        forPartialAnalysis: true,
+      });
 
       const result = partialPrompt.renderPrompt("sample");
 
@@ -65,12 +66,12 @@ describe("Prompt Renderer Type Safety", () => {
       expect(result).toContain("focus on extracting insights from this subset");
     });
 
-    it("should handle ANALYSIS_PROMPT_TEMPLATE without partial analysis note", () => {
+    it("should NOT include partial analysis note when forPartialAnalysis is false", () => {
       const result = testPrompt.renderPrompt("sample");
 
       // Should not contain "undefined" anywhere in the output
       expect(result).not.toContain("undefined");
-      // Should not contain partial analysis note (it's not in ANALYSIS_PROMPT_TEMPLATE)
+      // Should not contain partial analysis note (forPartialAnalysis is not set)
       expect(result).not.toContain("partial analysis of a larger codebase");
     });
   });
@@ -86,10 +87,10 @@ describe("Prompt Renderer Type Safety", () => {
     });
 
     it("should wrap content when wrapInCodeBlock is true", () => {
-      const wrappedPrompt = new Prompt(
-        { ...testConfig, wrapInCodeBlock: true },
-        ANALYSIS_PROMPT_TEMPLATE,
-      );
+      const wrappedPrompt = new JSONSchemaPrompt({
+        ...testConfig,
+        wrapInCodeBlock: true,
+      });
 
       const result = wrappedPrompt.renderPrompt("wrapped content");
       expect(result).toContain("```\nwrapped content```");
@@ -103,20 +104,20 @@ describe("Prompt Renderer Type Safety", () => {
     });
 
     it("should handle FILE_SUMMARIES dataBlockHeader", () => {
-      const fileSummariesPrompt = new Prompt(
-        { ...testConfig, dataBlockHeader: "FILE_SUMMARIES" },
-        ANALYSIS_PROMPT_TEMPLATE,
-      );
+      const fileSummariesPrompt = new JSONSchemaPrompt({
+        ...testConfig,
+        dataBlockHeader: "FILE_SUMMARIES",
+      });
 
       const result = fileSummariesPrompt.renderPrompt("summaries");
       expect(result).toContain("FILE_SUMMARIES:");
     });
 
     it("should handle FRAGMENTED_DATA dataBlockHeader", () => {
-      const fragmentedPrompt = new Prompt(
-        { ...testConfig, dataBlockHeader: "FRAGMENTED_DATA" },
-        ANALYSIS_PROMPT_TEMPLATE,
-      );
+      const fragmentedPrompt = new JSONSchemaPrompt({
+        ...testConfig,
+        dataBlockHeader: "FRAGMENTED_DATA",
+      });
 
       const result = fragmentedPrompt.renderPrompt("fragmented data");
       expect(result).toContain("FRAGMENTED_DATA:");
@@ -130,30 +131,30 @@ describe("Prompt Renderer Type Safety", () => {
     });
 
     it("should handle array schema", () => {
-      const arrayPrompt = new Prompt(
-        { ...testConfig, responseSchema: z.array(z.object({ item: z.string() })) },
-        ANALYSIS_PROMPT_TEMPLATE,
-      );
+      const arrayPrompt = new JSONSchemaPrompt({
+        ...testConfig,
+        responseSchema: z.array(z.object({ item: z.string() })),
+      });
 
       const result = arrayPrompt.renderPrompt("sample");
       expect(result).toContain('"type": "array"');
     });
 
     it("should handle string schema", () => {
-      const stringPrompt = new Prompt(
-        { ...testConfig, responseSchema: z.string() },
-        ANALYSIS_PROMPT_TEMPLATE,
-      );
+      const stringPrompt = new JSONSchemaPrompt({
+        ...testConfig,
+        responseSchema: z.string(),
+      });
 
       const result = stringPrompt.renderPrompt("sample");
       expect(result).toContain('"type": "string"');
     });
 
     it("should handle z.unknown() schema", () => {
-      const unknownPrompt = new Prompt(
-        { ...testConfig, responseSchema: z.unknown() },
-        ANALYSIS_PROMPT_TEMPLATE,
-      );
+      const unknownPrompt = new JSONSchemaPrompt({
+        ...testConfig,
+        responseSchema: z.unknown(),
+      });
 
       const result = unknownPrompt.renderPrompt("sample");
 
@@ -163,17 +164,14 @@ describe("Prompt Renderer Type Safety", () => {
     });
 
     it("should handle nested schema", () => {
-      const nestedPrompt = new Prompt(
-        {
-          ...testConfig,
-          responseSchema: z.object({
-            outer: z.object({
-              inner: z.array(z.object({ deepField: z.string() })),
-            }),
+      const nestedPrompt = new JSONSchemaPrompt({
+        ...testConfig,
+        responseSchema: z.object({
+          outer: z.object({
+            inner: z.array(z.object({ deepField: z.string() })),
           }),
-        },
-        ANALYSIS_PROMPT_TEMPLATE,
-      );
+        }),
+      });
 
       const result = nestedPrompt.renderPrompt("sample");
       expect(result).toContain('"outer"');
@@ -191,20 +189,20 @@ describe("Prompt Renderer Type Safety", () => {
     });
 
     it("should handle single instruction", () => {
-      const singleInstructionPrompt = new Prompt(
-        { ...testConfig, instructions: ["only one instruction"] },
-        ANALYSIS_PROMPT_TEMPLATE,
-      );
+      const singleInstructionPrompt = new JSONSchemaPrompt({
+        ...testConfig,
+        instructions: ["only one instruction"],
+      });
 
       const result = singleInstructionPrompt.renderPrompt("sample");
       expect(result).toContain("only one instruction");
     });
 
     it("should handle empty instructions array", () => {
-      const noInstructionsPrompt = new Prompt(
-        { ...testConfig, instructions: [] },
-        ANALYSIS_PROMPT_TEMPLATE,
-      );
+      const noInstructionsPrompt = new JSONSchemaPrompt({
+        ...testConfig,
+        instructions: [],
+      });
 
       const result = noInstructionsPrompt.renderPrompt("sample");
       // Should render without errors
@@ -212,13 +210,10 @@ describe("Prompt Renderer Type Safety", () => {
     });
 
     it("should handle instructions with special characters", () => {
-      const specialCharPrompt = new Prompt(
-        {
-          ...testConfig,
-          instructions: ["__Title__\n- Point 1\n- Point 2", "Another instruction with `code`"],
-        },
-        ANALYSIS_PROMPT_TEMPLATE,
-      );
+      const specialCharPrompt = new JSONSchemaPrompt({
+        ...testConfig,
+        instructions: ["__Title__\n- Point 1\n- Point 2", "Another instruction with `code`"],
+      });
 
       const result = specialCharPrompt.renderPrompt("sample");
       expect(result).toContain("__Title__");
@@ -257,9 +252,12 @@ line 3`;
   });
 
   describe("Complete Output Structure", () => {
-    it("should produce a complete prompt with all sections", () => {
-      // Use PARTIAL_ANALYSIS_TEMPLATE to test with partial analysis note
-      const partialPrompt = new Prompt(testConfig, PARTIAL_ANALYSIS_TEMPLATE);
+    it("should produce a complete prompt with all sections including partial analysis note", () => {
+      // Use forPartialAnalysis flag to test with partial analysis note
+      const partialPrompt = new JSONSchemaPrompt({
+        ...testConfig,
+        forPartialAnalysis: true,
+      });
 
       const result = partialPrompt.renderPrompt("sample code");
 
@@ -267,7 +265,7 @@ line 3`;
       expect(result).toContain("Act as a senior developer"); // Template intro
       expect(result).toContain("test content description"); // contentDesc
       expect(result).toContain("instruction 1"); // instructions
-      expect(result).toContain("partial analysis"); // From PARTIAL_ANALYSIS_TEMPLATE
+      expect(result).toContain("partial analysis"); // From forPartialAnalysis flag
       expect(result).toContain("JSON schema"); // Schema section
       expect(result).toContain("CODE:"); // dataBlockHeader
       expect(result).toContain("sample code"); // content
