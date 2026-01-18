@@ -26,5 +26,5 @@ export const APP_SUMMARY_PROMPT_FRAGMENTS = {
  * @returns A formatted content description string for the reduce insights prompt
  */
 export function buildReduceInsightsContentDesc(categoryKey: string): string {
-  return `what has been merged from several JSON objects, where each contained a list of '${categoryKey}' generated from different parts of a codebase, your task is to consolidate these lists into a single, de-duplicated, and coherent final JSON object. Merge similar items, remove duplicates based on semantic similarity (not just exact name matches), and ensure the final list is comprehensive and well-organized. Given that the merged raw data is`;
+  return `what has been merged from several JSON objects, where each contained a list of '${categoryKey}' generated from different parts of a codebase, your task is to consolidate these lists into a single, de-duplicated, and coherent final JSON object. Merge similar items, remove duplicates based on semantic similarity (not just exact name matches), and ensure the final list is comprehensive and well-organized. Given that all the sets of raw data are`;
 }

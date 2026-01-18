@@ -247,7 +247,7 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
       const promptGenerator = new JSONSchemaPrompt({
         personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
         contentDesc: buildReduceInsightsContentDesc(categoryKey as string),
-        instructions: [`a consolidated list of '${String(categoryKey)}'`],
+        instructions: [`* A consolidated list of '${String(categoryKey)}'`],
         responseSchema: schema,
         dataBlockHeader: FRAGMENTED_DATA_BLOCK_HEADER,
         wrapInCodeBlock: false,
