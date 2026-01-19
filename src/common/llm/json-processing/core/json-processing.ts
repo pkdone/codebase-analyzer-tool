@@ -146,13 +146,25 @@ function validateContentInput(
 type SuccessfulParseResult = Extract<ParseResult, { success: true }>;
 
 /**
- * Builds the result for schema-less JSON parsing.
+ * Builds the result for schema-less JSON parsing (when no jsonSchema is provided).
  * Validates that the parsed data is an object or array, then constructs the success result.
+ *
+ * TYPE SAFETY NOTE:
+ * This function is only called when `completionOptions.jsonSchema` is undefined.
+ * In that case, the generic S defaults to `z.ZodType<unknown>` (from parseAndValidateLLMJson's
+ * default type parameter), making `z.infer<S>` resolve to `unknown`. This forces callers
+ * to explicitly handle the untyped data or cast it themselves.
+ *
+ * The cast to `z.infer<S>` is safe because:
+ * 1. When S defaults to `z.ZodType<unknown>`, the return type is `JsonProcessorResult<unknown>`
+ * 2. The runtime value (object or array) is assignable to `unknown`
+ * 3. Callers providing an explicit S without a schema are violating the API contract
+ *    (enforced at the provider level by BaseLLMProvider throwing BAD_CONFIGURATION error)
  *
  * @param parseResult - The successful parse result from the sanitization pipeline
  * @param context - Context information about the LLM request
  * @param loggingEnabled - Whether to enable repair logging
- * @returns A JsonProcessorResult with the parsed data or an error if not an object/array
+ * @returns A JsonProcessorResult with the parsed data (typed as unknown) or an error
  */
 function buildSchemalessResult<S extends z.ZodType>(
   parseResult: SuccessfulParseResult,
@@ -175,8 +187,8 @@ function buildSchemalessResult<S extends z.ZodType>(
   logRepairs(repairs, context, loggingEnabled);
   return {
     success: true,
-    // Cast is necessary because we can't infer the type without a schema.
-    // Callers should provide a schema for proper type inference.
+    // TYPE ASSERTION RATIONALE: See function JSDoc for type safety explanation.
+    // When no schema is provided, S defaults to z.ZodType<unknown>, making this cast to `unknown`.
     data: parseResult.data as z.infer<S>,
     repairs,
     pipelineSteps: parseResult.pipelineSteps,

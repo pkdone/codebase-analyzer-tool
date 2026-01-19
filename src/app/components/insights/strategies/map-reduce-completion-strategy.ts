@@ -12,6 +12,7 @@ import { IInsightGenerationStrategy } from "./completion-strategy.interface";
 import {
   AppSummaryCategoryEnum,
   CategoryInsightResult,
+  MapReduceIntermediateData,
   appSummaryCategorySchemas,
 } from "../insights.types";
 import { getLlmArtifactCorrections } from "../../../llm";
@@ -127,18 +128,24 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
   }
 
   /**
-   * Combines partial results from the map phase based on schema structure.
+   * Combines partial results from the MAP phase based on schema structure.
+   * Produces intermediate data for the REDUCE phase to consolidate.
+   *
    * Handles three schema shapes:
    * - Flat array: `{ categoryKey: [...] }` → flatMap all arrays
    * - Nested object: `{ categoryKey: { prop1: [], prop2: [] } }` → merge each nested array
    * - String value: `{ categoryKey: "..." }` → collect strings into array for reduce consolidation
    *
-   * @returns A CategoryInsightResult<C> with the combined data structure, ready for JSON serialization
+   * IMPORTANT: The return type `MapReduceIntermediateData<C>` explicitly documents that this
+   * function produces intermediate data that may NOT conform to the final CategoryInsightResult<C>.
+   * For string categories, it returns `{ key: string[] }` instead of `{ key: string }`.
+   *
+   * @returns MapReduceIntermediateData<C> - intermediate data for the REDUCE phase
    */
   private combinePartialResultsData<C extends AppSummaryCategoryEnum>(
     category: C,
     partialResults: CategoryInsightResult<C>[],
-  ): CategoryInsightResult<C> {
+  ): MapReduceIntermediateData<C> {
     const schema = appSummaryCategorySchemas[category];
     const schemaShape = (schema as z.ZodObject<z.ZodRawShape>).shape;
     const categoryKey = Object.keys(schemaShape)[0] as keyof CategoryInsightResult<C>;
@@ -152,12 +159,11 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
       });
       /**
        * TYPE ASSERTION RATIONALE:
-       * We construct the object using the exact categoryKey derived from the schema for C.
-       * The flatMap operation preserves the element type from CategoryInsightResult<C>[categoryKey].
-       * TypeScript cannot infer that { [categoryKey]: combinedArray } matches CategoryInsightResult<C>
-       * because the key is computed at runtime, but the structure is guaranteed by construction.
+       * For array categories, MapReduceIntermediateData<C> equals CategoryInsightResult<C>.
+       * The flatMap preserves element types. TypeScript cannot verify the computed key
+       * produces the correct structure, but it's guaranteed by construction.
        */
-      return { [categoryKey]: combinedArray } as CategoryInsightResult<C>;
+      return { [categoryKey]: combinedArray } as MapReduceIntermediateData<C>;
     }
 
     // Case 2: Nested object shape (e.g., inferredArchitecture)
@@ -188,17 +194,15 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
 
       /**
        * TYPE ASSERTION RATIONALE:
-       * The mergedObject is constructed by iterating over the schema's nested shape keys.
-       * Each array property in the schema is initialized and populated from the typed inputs.
-       * The runtime structure matches CategoryInsightResult<C> for nested object categories,
-       * but TypeScript cannot verify this due to the dynamic key iteration.
+       * For nested object categories, MapReduceIntermediateData<C> equals CategoryInsightResult<C>
+       * (no string fields at the nested level). The merged structure matches the schema,
+       * but TypeScript cannot verify due to dynamic key iteration.
        */
-      return { [categoryKey]: mergedObject } as CategoryInsightResult<C>;
+      return { [categoryKey]: mergedObject } as MapReduceIntermediateData<C>;
     }
 
     // Case 3: String value shape (e.g., appDescription)
-    // For string categories, we collect partial strings into an array for the reduce phase
-    // to consolidate. The reduce LLM prompt will merge these into a single description.
+    // Collect partial strings into an array for the reduce phase to consolidate.
     if (valueSchema instanceof z.ZodString) {
       const collectedStrings = partialResults
         .map((result) => {
@@ -208,23 +212,20 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
         .filter((s) => s.length > 0);
       /**
        * TYPE ASSERTION RATIONALE:
-       * For string-valued categories like appDescription, we return the collected strings
-       * as an array for the reduce phase to consolidate. This is an intermediate representation
-       * that differs from the final schema (which expects a single string), but the reduce
-       * prompt handles this transformation. The cast is necessary because we're providing
-       * reduce-phase input rather than final schema-conformant output.
+       * For string categories, MapReduceIntermediateData<C> transforms the string field
+       * to string[], matching our return value. The REDUCE phase LLM will consolidate
+       * these strings into the final single-string format required by CategoryInsightResult<C>.
+       * This intermediate representation is intentional and type-safe per MapReduceIntermediateData.
        */
-      return { [categoryKey]: collectedStrings } as unknown as CategoryInsightResult<C>;
+      return { [categoryKey]: collectedStrings } as MapReduceIntermediateData<C>;
     }
 
     /**
      * TYPE ASSERTION RATIONALE:
      * Fallback for unhandled schema shapes. Returns an empty array structure to prevent
-     * runtime errors. This should not occur with current AppSummaryCategoryEnum schemas,
-     * but provides a safe default. The cast is necessary because the empty array type
-     * cannot be inferred to match CategoryInsightResult<C>.
+     * runtime errors. This should not occur with current AppSummaryCategoryEnum schemas.
      */
-    return { [categoryKey]: [] } as unknown as CategoryInsightResult<C>;
+    return { [categoryKey]: [] } as unknown as MapReduceIntermediateData<C>;
   }
 
   /**
