@@ -7,7 +7,7 @@ import { describe, test, expect } from "@jest/globals";
 import { z } from "zod";
 import { buildSourcePrompt, buildInsightPrompt } from "../../../src/app/prompts/prompt-builders";
 import type { FileTypePromptRegistry } from "../../../src/app/prompts/sources/sources.definitions";
-import { DEFAULT_PERSONA_INTRODUCTION } from "../../../src/app/prompts/prompt.config";
+import { DEFAULT_PERSONA_INTRODUCTION } from "../../../src/app/prompts/prompt-builders";
 import {
   APP_SUMMARY_CONTENT_DESC,
   FILE_SUMMARIES_DATA_BLOCK_HEADER,

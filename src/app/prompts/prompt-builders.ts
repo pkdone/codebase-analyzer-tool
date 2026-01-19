@@ -11,13 +11,18 @@ import {
   JSONSchemaPrompt,
   type JSONSchemaPromptConfig,
 } from "../../common/prompts/json-schema-prompt";
-import { DEFAULT_PERSONA_INTRODUCTION } from "./prompt.config";
 import { type FileTypePromptRegistry, CODE_DATA_BLOCK_HEADER } from "./sources/sources.definitions";
 import {
   appSummaryConfigMap,
   type AppSummaryConfigMap,
 } from "./app-summaries/app-summaries.definitions";
 import type { CanonicalFileType } from "../schemas/canonical-file-types";
+
+/**
+ * Default persona introduction text for code analysis prompts.
+ */
+export const DEFAULT_PERSONA_INTRODUCTION =
+  "Act as a senior developer analyzing the code in an existing application.";
 
 /**
  * Result of building a source prompt, containing the rendered prompt string

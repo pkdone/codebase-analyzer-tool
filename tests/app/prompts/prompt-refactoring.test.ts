@@ -2,7 +2,7 @@ import {
   JSONSchemaPrompt,
   JSON_SCHEMA_PROMPT_TEMPLATE,
 } from "../../../src/common/prompts/json-schema-prompt";
-import { DEFAULT_PERSONA_INTRODUCTION } from "../../../src/app/prompts/prompt.config";
+import { DEFAULT_PERSONA_INTRODUCTION } from "../../../src/app/prompts/prompt-builders";
 import { z } from "zod";
 
 describe("JSONSchemaPrompt Refactoring", () => {

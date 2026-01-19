@@ -5,7 +5,7 @@ import {
 import { z } from "zod";
 import { CODE_DATA_BLOCK_HEADER } from "../../../src/app/prompts/sources/sources.definitions";
 import { FILE_SUMMARIES_DATA_BLOCK_HEADER } from "../../../src/app/prompts/app-summaries/app-summaries.fragments";
-import { DEFAULT_PERSONA_INTRODUCTION } from "../../../src/app/prompts/prompt.config";
+import { DEFAULT_PERSONA_INTRODUCTION } from "../../../src/app/prompts/prompt-builders";
 
 describe("JSONSchemaPrompt Class", () => {
   /**

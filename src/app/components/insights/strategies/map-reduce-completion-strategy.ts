@@ -21,7 +21,7 @@ import { chunkTextByTokenLimit } from "../../../../common/llm/utils/text-chunkin
 import { isOk } from "../../../../common/types/result.types";
 import { buildReduceInsightsContentDesc } from "../../../prompts/app-summaries/app-summaries.fragments";
 import { JSONSchemaPrompt } from "../../../../common/prompts/json-schema-prompt";
-import { DEFAULT_PERSONA_INTRODUCTION } from "../../../prompts/prompt.config";
+import { DEFAULT_PERSONA_INTRODUCTION } from "../../../prompts/prompt-builders";
 
 /**
  * Data block header for reduce insights prompts (consolidating fragmented data).

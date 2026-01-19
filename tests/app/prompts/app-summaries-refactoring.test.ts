@@ -8,7 +8,7 @@ import {
   JSON_SCHEMA_PROMPT_TEMPLATE,
   type JSONSchemaPromptConfig,
 } from "../../../src/common/prompts/json-schema-prompt";
-import { DEFAULT_PERSONA_INTRODUCTION } from "../../../src/app/prompts/prompt.config";
+import { DEFAULT_PERSONA_INTRODUCTION } from "../../../src/app/prompts/prompt-builders";
 
 /**
  * Helper to create a JSONSchemaPrompt from appSummaryConfigMap config.
