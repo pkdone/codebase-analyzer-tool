@@ -104,7 +104,11 @@ describe("LanguageSpecificFragments type", () => {
     });
 
     it("should use PUBLIC_METHODS for OOP languages", () => {
-      const oopLanguages = [JAVA_SPECIFIC_FRAGMENTS, CSHARP_SPECIFIC_FRAGMENTS, CPP_SPECIFIC_FRAGMENTS];
+      const oopLanguages = [
+        JAVA_SPECIFIC_FRAGMENTS,
+        CSHARP_SPECIFIC_FRAGMENTS,
+        CPP_SPECIFIC_FRAGMENTS,
+      ];
 
       oopLanguages.forEach((fragments) => {
         expect(fragments.PUBLIC_METHODS).toBeDefined();

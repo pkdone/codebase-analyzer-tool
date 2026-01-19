@@ -459,8 +459,4 @@ export const EMBEDDED_CONTENT_RULES: readonly ReplacementRule[] = [
       return `Removed config text '${configText}' before property: ${propertyWithQuote}`;
     },
   },
-
-  // Note: Java-specific rules (javaPackageInJson, javaImportInJson, javaPackageAfterJson,
-  // javaImportAfterJson, javaClassAfterJson) have been moved to java-specific-rules.ts
-  // and can be injected via LLMSanitizerConfig.customReplacementRules for Java codebases.
 ];

@@ -169,13 +169,10 @@ export function parseInferredArchitectureData(data: unknown): InferredArchitectu
 
 /**
  * Wraps the validated inferred architecture data in an array for compatibility with
- * the categorizedData interface. The ArchitectureAndDomainSection will use its own type guard
- * to validate the structure when extracting the data.
+ * the CategorizedSectionItem discriminated union interface.
  */
 export function wrapInferredArchitectureAsArray(
   validatedData: InferredArchitectureInner,
 ): InferredArchitectureInner[] {
-  // The data is validated by Zod schema; we wrap it in an array for interface compatibility
-  // The consuming code (ArchitectureAndDomainSection) validates this structure with its own type guard
   return [validatedData];
 }

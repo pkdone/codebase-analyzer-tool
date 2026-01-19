@@ -22,7 +22,7 @@ import { DatabaseSection } from "../../components/reporting/sections/database/da
 import { IntegrationPointsSection } from "../../components/reporting/sections/integration-points/integration-points-section";
 import { BusinessProcessesSection } from "../../components/reporting/sections/business-processes/business-processes-section";
 
-// Visualization sections (split from ArchitectureAndDomainSection following SRP)
+// Visualization sections
 import {
   DomainModelSection,
   MicroservicesArchitectureSection,
@@ -99,7 +99,7 @@ export function registerReportingComponents(): void {
   container.registerSingleton(reportingTokens.ReportSection, DatabaseSection);
   container.registerSingleton(reportingTokens.ReportSection, IntegrationPointsSection);
   container.registerSingleton(reportingTokens.ReportSection, BusinessProcessesSection);
-  // Visualization sections (split from ArchitectureAndDomainSection following SRP)
+  // Visualization sections
   container.registerSingleton(reportingTokens.ReportSection, DomainModelSection);
   container.registerSingleton(reportingTokens.ReportSection, MicroservicesArchitectureSection);
   container.registerSingleton(reportingTokens.ReportSection, CurrentArchitectureSection);
