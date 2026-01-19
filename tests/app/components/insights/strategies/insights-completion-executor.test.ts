@@ -562,5 +562,45 @@ describe("executeInsightCompletion - Type Inference", () => {
         expect(result.boundedContexts[0].aggregates[0].entities).toHaveLength(3);
       }
     });
+
+    test("should cast schema at parameter level allowing return type to flow without cast", async () => {
+      // This test validates the improved type flow where we cast the schema parameter
+      // instead of casting the return value. The schema cast allows executeCompletion's
+      // generic parameter S to be inferred as the specific category schema.
+      const mockResponse = {
+        inferredArchitecture: {
+          internalComponents: [{ name: "OrderService", description: "Handles orders" }],
+          externalDependencies: [{ name: "PostgreSQL", type: "Database", description: "Main DB" }],
+          dependencies: [{ from: "OrderService", to: "PostgreSQL", description: "Data storage" }],
+        },
+      };
+
+      (mockLLMRouter.executeCompletion as any).mockResolvedValue(ok(mockResponse));
+
+      const result = await executeInsightCompletion(
+        mockLLMRouter,
+        "inferredArchitecture",
+        ["* service.ts: order handling logic"],
+        undefined,
+      );
+
+      // Verify the schema passed matches the category's schema (validates our schema cast)
+      expect(mockLLMRouter.executeCompletion).toHaveBeenCalledWith(
+        "inferredArchitecture",
+        expect.any(String),
+        expect.objectContaining({
+          jsonSchema: appSummaryCategorySchemas.inferredArchitecture,
+        }),
+      );
+
+      // Verify result type flows correctly without requiring manual cast
+      expect(result).not.toBeNull();
+      if (result) {
+        // Type inference works - accessing nested properties without type assertion
+        expect(result.inferredArchitecture.internalComponents[0].name).toBe("OrderService");
+        expect(result.inferredArchitecture.externalDependencies[0].type).toBe("Database");
+        expect(result.inferredArchitecture.dependencies[0].from).toBe("OrderService");
+      }
+    });
   });
 });
