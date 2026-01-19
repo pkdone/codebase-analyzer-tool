@@ -22,6 +22,11 @@ export class CodeQualitySection implements ReportSection {
     return SECTION_NAMES.CODE_QUALITY;
   }
 
+  getRequiredAppSummaryFields(): string[] {
+    // This section does not require any app summary fields
+    return [];
+  }
+
   async getData(projectName: string): Promise<Partial<ReportData>> {
     const codeQualitySummary =
       await this.codeQualityDataProvider.getCodeQualitySummary(projectName);

@@ -7,7 +7,7 @@ import type {
 } from "../../sections/visualizations/domain-model-data-provider";
 import { BaseDiagramGenerator, type BaseDiagramOptions } from "./base-diagram-generator";
 import { domainModelConfig } from "./domain-model.config";
-import { MermaidFlowchartBuilder } from "../builders";
+import { createFlowchartBuilder } from "../builders";
 
 export type DomainDiagramOptions = BaseDiagramOptions;
 
@@ -58,7 +58,7 @@ export class DomainModelDiagramGenerator extends BaseDiagramGenerator<DomainDiag
    * using the type-safe MermaidFlowchartBuilder.
    */
   private buildContextDiagramDefinition(context: DomainBoundedContext): string {
-    const builder = new MermaidFlowchartBuilder("TB");
+    const builder = createFlowchartBuilder({ direction: "TB" });
 
     // Create context node at the top (hexagon shape with name only)
     const contextId = generateNodeId(context.name, 0);

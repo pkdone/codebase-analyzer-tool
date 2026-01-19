@@ -30,6 +30,11 @@ export class UiAnalysisSection implements ReportSection {
     return SECTION_NAMES.UI_ANALYSIS;
   }
 
+  getRequiredAppSummaryFields(): string[] {
+    // This section does not require any app summary fields
+    return [];
+  }
+
   async getData(projectName: string): Promise<Partial<ReportData>> {
     const uiTechnologyAnalysis =
       await this.serverSideUiDataProvider.getUiTechnologyAnalysis(projectName);

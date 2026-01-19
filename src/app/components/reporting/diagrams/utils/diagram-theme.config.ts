@@ -1,7 +1,7 @@
 /**
  * Theme configuration for Mermaid diagrams.
  * Centralizes visual styling constants used by diagram builders and generators.
- * Colors are sourced from the central theme configuration where applicable.
+ * Brand colors are sourced from the central theme configuration.
  */
 
 import { BRAND_COLORS } from "../../../../config/theme.config";
@@ -22,6 +22,41 @@ export const DIAGRAM_STYLES = {
   /** Text color for empty diagram placeholder messages */
   emptyDiagramTextColor: "#8b95a1",
 } as const;
+
+/**
+ * Semantic colors for diagram elements.
+ * Maps domain concepts to specific colors for consistent visualization.
+ * These are specific to reporting diagrams and not used elsewhere in the application.
+ */
+export const DIAGRAM_ELEMENT_COLORS = {
+  /** Bounded context fill color (light green) */
+  boundedContextFill: "#e8f5e8",
+  /** Aggregate fill color (light blue) */
+  aggregateFill: "#e3f2fd",
+  /** Aggregate stroke color (blue) */
+  aggregateStroke: "#1976d2",
+  /** Entity fill color (light purple) */
+  entityFill: "#f3e5f5",
+  /** Entity stroke color (purple) */
+  entityStroke: "#7b1fa2",
+  /** Repository fill color (light orange) */
+  repositoryFill: "#fff5f0",
+  /** Repository stroke color (orange) */
+  repositoryStroke: "#d2691e",
+  /** External component fill color (light orange) */
+  externalComponentFill: "#fff3e0",
+  /** External component stroke color (orange) */
+  externalComponentStroke: "#e65100",
+  /** Dependency fill color (light grey) */
+  dependencyFill: "#f8f9fa",
+  /** Dependency stroke color (grey) */
+  dependencyStroke: "#6c757d",
+} as const;
+
+/**
+ * Type representing the diagram element color keys.
+ */
+export type DiagramElementColorKey = keyof typeof DIAGRAM_ELEMENT_COLORS;
 
 // Re-export brand colors for consumers that need direct access
 export { BRAND_COLORS };

@@ -21,8 +21,9 @@ import type { BasePromptConfigEntry } from "../prompts.types";
  *
  * @template S - The Zod schema type for validating the LLM response.
  */
-export interface AppSummaryConfigEntry<S extends z.ZodType = z.ZodType>
-  extends BasePromptConfigEntry<S> {
+export interface AppSummaryConfigEntry<
+  S extends z.ZodType = z.ZodType,
+> extends BasePromptConfigEntry<S> {
   /** The data block header to use in the template (e.g., "FILE_SUMMARIES") */
   readonly dataBlockHeader: string;
 }

@@ -6,10 +6,7 @@
  * circular dependencies.
  */
 
-import {
-  INSTRUCTION_SECTION_TITLES,
-  type InstructionSectionTitle,
-} from "../../prompts.constants";
+import { INSTRUCTION_SECTION_TITLES, type InstructionSectionTitle } from "../../prompts.constants";
 
 // Re-export for consumers that import from this module
 export { INSTRUCTION_SECTION_TITLES, type InstructionSectionTitle };

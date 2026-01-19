@@ -1,68 +1,73 @@
 /**
- * Tests for createFlowchartBuilder factory.
- * These tests verify that the factory correctly injects app-specific styles and init directives.
+ * Tests for the generic MermaidFlowchartBuilder in the common module.
+ * These tests verify the core builder functionality without app-specific styles.
  */
 
 import {
-  createFlowchartBuilder,
   MermaidFlowchartBuilder,
   SubgraphBuilder,
   GraphValidationError,
-} from "../../../../../../src/app/components/reporting/diagrams/builders";
+} from "../../../../src/common/diagrams/mermaid";
 
-describe("createFlowchartBuilder factory", () => {
-  describe("basic construction with app styles", () => {
-    it("should create a flowchart with default direction TB", () => {
-      const builder = createFlowchartBuilder();
+describe("MermaidFlowchartBuilder (common module)", () => {
+  describe("basic construction", () => {
+    it("should create an empty flowchart with default direction TB", () => {
+      const builder = new MermaidFlowchartBuilder();
       const result = builder.render();
 
       expect(result).toContain("flowchart TB");
     });
 
     it("should create flowchart with specified direction", () => {
-      const builderLR = createFlowchartBuilder({ direction: "LR" });
+      const builderLR = new MermaidFlowchartBuilder({ direction: "LR" });
       expect(builderLR.render()).toContain("flowchart LR");
 
-      const builderBT = createFlowchartBuilder({ direction: "BT" });
+      const builderBT = new MermaidFlowchartBuilder({ direction: "BT" });
       expect(builderBT.render()).toContain("flowchart BT");
 
-      const builderRL = createFlowchartBuilder({ direction: "RL" });
+      const builderRL = new MermaidFlowchartBuilder({ direction: "RL" });
       expect(builderRL.render()).toContain("flowchart RL");
     });
 
-    it("should include standard init directive by default", () => {
-      const builder = createFlowchartBuilder();
+    it("should include init directive when provided", () => {
+      const builder = new MermaidFlowchartBuilder({
+        initDirective: "%%{init: {'flowchart': {'diagramPadding': 30}}}%%",
+      });
       const result = builder.render();
 
       expect(result).toContain("%%{init:");
       expect(result).toContain("diagramPadding");
     });
 
-    it("should include architecture init directive when specified", () => {
-      const builder = createFlowchartBuilder({ initDirectiveType: "architecture" });
+    it("should not include init directive when not provided", () => {
+      const builder = new MermaidFlowchartBuilder();
       const result = builder.render();
 
-      expect(result).toContain("%%{init:");
-      expect(result).toContain("nodeSpacing");
-      expect(result).toContain("rankSpacing");
+      expect(result).not.toContain("%%{init:");
     });
 
-    it("should include app-specific style definitions", () => {
-      const builder = createFlowchartBuilder();
+    it("should include style definitions when provided", () => {
+      const builder = new MermaidFlowchartBuilder({
+        styleDefinitions:
+          "classDef customStyle fill:#fff,stroke:#000\n    classDef anotherStyle fill:#f00",
+      });
       const result = builder.render();
 
-      // Verify app-specific styles are injected
-      expect(result).toContain("classDef boundedContext");
-      expect(result).toContain("classDef aggregate");
-      expect(result).toContain("classDef entity");
-      expect(result).toContain("classDef service");
-      expect(result).toContain("classDef repository");
+      expect(result).toContain("classDef customStyle");
+      expect(result).toContain("classDef anotherStyle");
+    });
+
+    it("should not include style definitions when not provided", () => {
+      const builder = new MermaidFlowchartBuilder();
+      const result = builder.render();
+
+      expect(result).not.toContain("classDef");
     });
   });
 
   describe("node creation", () => {
     it("should add a node with default rectangle shape", () => {
-      const builder = createFlowchartBuilder();
+      const builder = new MermaidFlowchartBuilder();
       builder.addNode("node1", "My Node");
       const result = builder.render();
 
@@ -70,7 +75,7 @@ describe("createFlowchartBuilder factory", () => {
     });
 
     it("should add nodes with different shapes", () => {
-      const builder = createFlowchartBuilder();
+      const builder = new MermaidFlowchartBuilder();
       builder
         .addNode("rect", "Rectangle", "rectangle")
         .addNode("round", "Rounded", "rounded")
@@ -90,7 +95,7 @@ describe("createFlowchartBuilder factory", () => {
     });
 
     it("should escape special characters in node labels", () => {
-      const builder = createFlowchartBuilder();
+      const builder = new MermaidFlowchartBuilder();
       builder.addNode("special", 'Label with <html> & "quotes"');
       const result = builder.render();
 
@@ -102,7 +107,7 @@ describe("createFlowchartBuilder factory", () => {
 
   describe("edge creation", () => {
     it("should add a solid edge by default", () => {
-      const builder = createFlowchartBuilder();
+      const builder = new MermaidFlowchartBuilder();
       builder.addNode("a", "A").addNode("b", "B").addEdge("a", "b");
 
       const result = builder.render();
@@ -111,7 +116,7 @@ describe("createFlowchartBuilder factory", () => {
     });
 
     it("should add edges with different types", () => {
-      const builder = createFlowchartBuilder();
+      const builder = new MermaidFlowchartBuilder();
       builder
         .addNode("a", "A")
         .addNode("b", "B")
@@ -132,7 +137,7 @@ describe("createFlowchartBuilder factory", () => {
     });
 
     it("should add edge with label", () => {
-      const builder = createFlowchartBuilder();
+      const builder = new MermaidFlowchartBuilder();
       builder.addNode("a", "A").addNode("b", "B").addEdge("a", "b", "connects to");
 
       const result = builder.render();
@@ -141,7 +146,7 @@ describe("createFlowchartBuilder factory", () => {
     });
 
     it("should escape special characters in edge labels", () => {
-      const builder = createFlowchartBuilder();
+      const builder = new MermaidFlowchartBuilder();
       builder.addNode("a", "A").addNode("b", "B").addEdge("a", "b", "Label <with> special");
 
       const result = builder.render();
@@ -152,7 +157,7 @@ describe("createFlowchartBuilder factory", () => {
 
   describe("style application", () => {
     it("should apply style to a node", () => {
-      const builder = createFlowchartBuilder();
+      const builder = new MermaidFlowchartBuilder();
       builder.addNode("svc", "My Service").applyStyle("svc", "service");
 
       const result = builder.render();
@@ -163,7 +168,7 @@ describe("createFlowchartBuilder factory", () => {
 
   describe("subgraph creation", () => {
     it("should create a basic subgraph", () => {
-      const builder = createFlowchartBuilder();
+      const builder = new MermaidFlowchartBuilder();
       builder.addSubgraph("sub1", "My Subgraph", (sub) => {
         sub.addNode("inner1", "Inner Node 1");
         sub.addNode("inner2", "Inner Node 2");
@@ -178,7 +183,7 @@ describe("createFlowchartBuilder factory", () => {
     });
 
     it("should create subgraph with direction override", () => {
-      const builder = createFlowchartBuilder({ direction: "TB" });
+      const builder = new MermaidFlowchartBuilder({ direction: "TB" });
       builder.addSubgraph(
         "horizontal",
         "Horizontal Layout",
@@ -194,7 +199,7 @@ describe("createFlowchartBuilder factory", () => {
     });
 
     it("should create subgraph with invisible label", () => {
-      const builder = createFlowchartBuilder();
+      const builder = new MermaidFlowchartBuilder();
       builder.addSubgraph("invisible", " ", (sub) => {
         sub.addNode("a", "A");
       });
@@ -205,7 +210,7 @@ describe("createFlowchartBuilder factory", () => {
     });
 
     it("should add edges within subgraph", () => {
-      const builder = createFlowchartBuilder();
+      const builder = new MermaidFlowchartBuilder();
       builder.addSubgraph("sub", "Subgraph", (sub) => {
         sub.addNode("a", "A").addNode("b", "B").addEdge("a", "b", undefined, "dashed");
       });
@@ -216,7 +221,7 @@ describe("createFlowchartBuilder factory", () => {
     });
 
     it("should apply styles within subgraph", () => {
-      const builder = createFlowchartBuilder();
+      const builder = new MermaidFlowchartBuilder();
       builder.addSubgraph("sub", "Subgraph", (sub) => {
         sub.addNode("svc", "Service").applyStyle("svc", "service");
       });
@@ -227,7 +232,7 @@ describe("createFlowchartBuilder factory", () => {
     });
 
     it("should style subgraph container", () => {
-      const builder = createFlowchartBuilder();
+      const builder = new MermaidFlowchartBuilder();
       builder
         .addSubgraph("sub", "Subgraph", (sub) => {
           sub.addNode("a", "A");
@@ -242,7 +247,13 @@ describe("createFlowchartBuilder factory", () => {
 
   describe("complex diagrams", () => {
     it("should create a complete architecture diagram", () => {
-      const builder = createFlowchartBuilder({ direction: "TB" });
+      const builder = new MermaidFlowchartBuilder({
+        direction: "TB",
+        styleDefinitions: `
+    classDef boundedContext fill:#e8f5e8,stroke:#00684A
+    classDef aggregate fill:#e3f2fd,stroke:#1976d2
+    classDef repository fill:#fff5f0,stroke:#d2691e`,
+      });
 
       builder
         .addNode("ctx", "Order Context", "hexagon")
@@ -281,7 +292,7 @@ describe("createFlowchartBuilder factory", () => {
     });
 
     it("should support method chaining throughout", () => {
-      const builder = createFlowchartBuilder()
+      const builder = new MermaidFlowchartBuilder()
         .addNode("a", "A")
         .addNode("b", "B")
         .addEdge("a", "b")
@@ -299,24 +310,107 @@ describe("createFlowchartBuilder factory", () => {
   });
 });
 
-describe("Re-exported types from common module", () => {
-  it("should re-export MermaidFlowchartBuilder class", () => {
-    expect(MermaidFlowchartBuilder).toBeDefined();
-    const builder = new MermaidFlowchartBuilder();
-    expect(builder.render()).toContain("flowchart TB");
-  });
-
-  it("should re-export SubgraphBuilder class", () => {
-    expect(SubgraphBuilder).toBeDefined();
+describe("SubgraphBuilder (common module)", () => {
+  it("should support method chaining", () => {
     const subBuilder = new SubgraphBuilder();
-    subBuilder.addNode("a", "A");
-    expect(subBuilder.getNodes()).toHaveLength(1);
+    subBuilder.addNode("a", "A").addNode("b", "B").addEdge("a", "b").applyStyle("a", "entity");
+
+    expect(subBuilder.getNodes()).toHaveLength(2);
+    expect(subBuilder.getEdges()).toHaveLength(1);
+    expect(subBuilder.getStyles()).toHaveLength(1);
+  });
+});
+
+describe("AbstractGraphBuilder validation (common module)", () => {
+  describe("duplicate node detection", () => {
+    it("should throw GraphValidationError when adding duplicate node ID", () => {
+      const builder = new MermaidFlowchartBuilder();
+      builder.addNode("node1", "First Node");
+
+      expect(() => builder.addNode("node1", "Duplicate Node")).toThrow(GraphValidationError);
+      expect(() => builder.addNode("node1", "Duplicate Node")).toThrow(
+        'Node with id "node1" already exists',
+      );
+    });
+
+    it("should allow different node IDs", () => {
+      const builder = new MermaidFlowchartBuilder();
+      expect(() => {
+        builder.addNode("node1", "First Node").addNode("node2", "Second Node");
+      }).not.toThrow();
+    });
   });
 
-  it("should re-export GraphValidationError class", () => {
-    expect(GraphValidationError).toBeDefined();
-    const builder = new MermaidFlowchartBuilder();
-    builder.addNode("a", "A");
-    expect(() => builder.addNode("a", "Duplicate")).toThrow(GraphValidationError);
+  describe("strict validation mode", () => {
+    it("should not validate edge endpoints by default", () => {
+      const builder = new MermaidFlowchartBuilder();
+
+      // This should not throw even though nodes don't exist
+      expect(() => {
+        builder.addEdge("nonExistentFrom", "nonExistentTo");
+      }).not.toThrow();
+    });
+
+    it("should throw when strict validation is enabled and from node missing", () => {
+      const builder = new MermaidFlowchartBuilder();
+      builder.setStrictValidation(true).addNode("target", "Target");
+
+      expect(() => builder.addEdge("nonExistent", "target")).toThrow(GraphValidationError);
+      expect(() => builder.addEdge("nonExistent", "target")).toThrow(
+        'Edge references non-existent "from" node: "nonExistent"',
+      );
+    });
+
+    it("should throw when strict validation is enabled and to node missing", () => {
+      const builder = new MermaidFlowchartBuilder();
+      builder.setStrictValidation(true).addNode("source", "Source");
+
+      expect(() => builder.addEdge("source", "nonExistent")).toThrow(GraphValidationError);
+      expect(() => builder.addEdge("source", "nonExistent")).toThrow(
+        'Edge references non-existent "to" node: "nonExistent"',
+      );
+    });
+
+    it("should allow valid edges when strict validation is enabled", () => {
+      const builder = new MermaidFlowchartBuilder();
+      builder.setStrictValidation(true).addNode("a", "A").addNode("b", "B");
+
+      expect(() => builder.addEdge("a", "b")).not.toThrow();
+    });
+
+    it("should support chaining setStrictValidation", () => {
+      const builder = new MermaidFlowchartBuilder();
+      const result = builder.setStrictValidation(true);
+
+      expect(result).toBe(builder);
+    });
+
+    it("should report validation status correctly", () => {
+      const builder = new MermaidFlowchartBuilder();
+
+      expect(builder.isStrictValidationEnabled()).toBe(false);
+
+      builder.setStrictValidation(true);
+      expect(builder.isStrictValidationEnabled()).toBe(true);
+
+      builder.setStrictValidation(false);
+      expect(builder.isStrictValidationEnabled()).toBe(false);
+    });
+  });
+
+  describe("SubgraphBuilder validation", () => {
+    it("should throw on duplicate node in subgraph", () => {
+      const subBuilder = new SubgraphBuilder();
+      subBuilder.addNode("inner1", "Inner 1");
+
+      expect(() => subBuilder.addNode("inner1", "Duplicate")).toThrow(GraphValidationError);
+    });
+
+    it("should support strict validation in subgraph", () => {
+      const subBuilder = new SubgraphBuilder();
+      subBuilder.setStrictValidation(true).addNode("a", "A");
+
+      expect(() => subBuilder.addEdge("a", "nonExistent")).toThrow(GraphValidationError);
+    });
   });
 });

@@ -178,5 +178,4 @@ ${jsonSchemaString}
 ${JSONSchemaPrompt.FORCE_JSON_FORMAT}
 `;
   }
-
 }

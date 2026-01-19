@@ -20,8 +20,14 @@ import AppReportGenerator from "../../components/reporting/app-report-generator"
 import { FileTypesSection } from "../../components/reporting/sections/file-types/file-types-section";
 import { DatabaseSection } from "../../components/reporting/sections/database/database-section";
 import { IntegrationPointsSection } from "../../components/reporting/sections/integration-points/integration-points-section";
-import { ArchitectureAndDomainSection } from "../../components/reporting/sections/visualizations/architecture-and-domain-section";
 import { BusinessProcessesSection } from "../../components/reporting/sections/business-processes/business-processes-section";
+
+// Visualization sections (split from ArchitectureAndDomainSection following SRP)
+import {
+  DomainModelSection,
+  MicroservicesArchitectureSection,
+  CurrentArchitectureSection,
+} from "../../components/reporting/sections/visualizations";
 
 // Focused report sections
 import { DependenciesSection } from "../../components/reporting/sections/dependencies/dependencies-section";
@@ -93,7 +99,10 @@ export function registerReportingComponents(): void {
   container.registerSingleton(reportingTokens.ReportSection, DatabaseSection);
   container.registerSingleton(reportingTokens.ReportSection, IntegrationPointsSection);
   container.registerSingleton(reportingTokens.ReportSection, BusinessProcessesSection);
-  container.registerSingleton(reportingTokens.ReportSection, ArchitectureAndDomainSection);
+  // Visualization sections (split from ArchitectureAndDomainSection following SRP)
+  container.registerSingleton(reportingTokens.ReportSection, DomainModelSection);
+  container.registerSingleton(reportingTokens.ReportSection, MicroservicesArchitectureSection);
+  container.registerSingleton(reportingTokens.ReportSection, CurrentArchitectureSection);
   // Focused analysis sections
   container.registerSingleton(reportingTokens.ReportSection, DependenciesSection);
   container.registerSingleton(reportingTokens.ReportSection, BackgroundProcessesSection);

@@ -22,8 +22,9 @@ import type { BasePromptConfigEntry } from "../../prompts.types";
  *
  * @template S - The Zod schema type for validating the LLM response. Defaults to z.ZodType for backward compatibility.
  */
-export interface SourceConfigEntry<S extends z.ZodType = z.ZodType>
-  extends BasePromptConfigEntry<S> {
+export interface SourceConfigEntry<
+  S extends z.ZodType = z.ZodType,
+> extends BasePromptConfigEntry<S> {
   /** Whether the schema is complex and incompatible with some LLM providers */
   readonly hasComplexSchema?: boolean;
 }

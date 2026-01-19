@@ -22,6 +22,12 @@ describe("FileTypesSection", () => {
     });
   });
 
+  describe("getRequiredAppSummaryFields", () => {
+    it("should return empty array as this section does not require app summary fields", () => {
+      expect(section.getRequiredAppSummaryFields()).toEqual([]);
+    });
+  });
+
   describe("getData", () => {
     it("should fetch file types data from sources repository", async () => {
       const mockData: ProjectedFileTypesCountAndLines[] = [

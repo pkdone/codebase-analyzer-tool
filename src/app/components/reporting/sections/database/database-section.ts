@@ -3,11 +3,14 @@ import type { ReportSection } from "../report-section.interface";
 import { reportingTokens } from "../../../../di/tokens";
 import { DatabaseReportDataProvider } from "./database-report-data-provider";
 import { TableViewModel } from "../../view-models/table-view-model";
-import { reportSectionsConfig } from "../../report-sections.config";
 import type { PreparedHtmlReportData } from "../../html-report-writer";
 import type { PreparedJsonData } from "../../json-report-writer";
 import type { ReportData } from "../../report-data.types";
 import { SECTION_NAMES } from "../../reporting.constants";
+
+/** JSON output filenames for database data */
+const JSON_FILENAME_DB_INTERACTIONS = "db-interactions.json";
+const JSON_FILENAME_PROCS_TRIGGERS = "procs-and-triggers.json";
 
 /**
  * Report section for database-related data (interactions, procedures, triggers).
@@ -21,6 +24,11 @@ export class DatabaseSection implements ReportSection {
 
   getName(): string {
     return SECTION_NAMES.DATABASE;
+  }
+
+  getRequiredAppSummaryFields(): string[] {
+    // This section does not require any app summary fields
+    return [];
   }
 
   async getData(projectName: string): Promise<Partial<ReportData>> {
@@ -71,11 +79,11 @@ export class DatabaseSection implements ReportSection {
 
     return [
       {
-        filename: reportSectionsConfig.jsonDataFiles.dbInteractions,
+        filename: JSON_FILENAME_DB_INTERACTIONS,
         data: dbInteractions,
       },
       {
-        filename: reportSectionsConfig.jsonDataFiles.procsAndTriggers,
+        filename: JSON_FILENAME_PROCS_TRIGGERS,
         data: procsAndTriggers,
       },
     ];

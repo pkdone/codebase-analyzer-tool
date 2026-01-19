@@ -1,4 +1,5 @@
-import { BRAND_COLORS, DIAGRAM_ELEMENT_COLORS } from "../../../src/app/config/theme.config";
+import { BRAND_COLORS } from "../../../src/app/config/theme.config";
+import { DIAGRAM_ELEMENT_COLORS } from "../../../src/app/components/reporting/diagrams/utils/diagram-theme.config";
 
 describe("BRAND_COLORS", () => {
   describe("color values", () => {

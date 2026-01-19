@@ -22,6 +22,11 @@ export class ArchitectureAnalysisSection implements ReportSection {
     return SECTION_NAMES.ARCHITECTURE_ANALYSIS;
   }
 
+  getRequiredAppSummaryFields(): string[] {
+    // This section does not require any app summary fields
+    return [];
+  }
+
   async getData(projectName: string): Promise<Partial<ReportData>> {
     const moduleCoupling = await this.moduleCouplingDataProvider.getModuleCoupling(projectName);
     return { moduleCoupling };

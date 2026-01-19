@@ -99,7 +99,9 @@ function createTestProviderInitWithSecondary(): ProviderInit {
       minRetryDelayMillis: 1000,
       maxRetryDelayMillis: 5000,
     },
-    implementation: GenericTypeFlowTestLLM as unknown as new (init: ProviderInit) => BaseLLMProvider,
+    implementation: GenericTypeFlowTestLLM as unknown as new (
+      init: ProviderInit,
+    ) => BaseLLMProvider,
   };
 
   return {

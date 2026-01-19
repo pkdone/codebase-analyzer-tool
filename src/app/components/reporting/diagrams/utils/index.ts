@@ -1,7 +1,11 @@
 /**
  * Mermaid diagram utilities - public API
  */
-export { DIAGRAM_STYLES } from "./diagram-theme.config";
+export {
+  DIAGRAM_STYLES,
+  DIAGRAM_ELEMENT_COLORS,
+  type DiagramElementColorKey,
+} from "./diagram-theme.config";
 
 export {
   buildMermaidInitDirective,

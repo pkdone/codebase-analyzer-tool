@@ -3,11 +3,13 @@ import type { ReportSection } from "../report-section.interface";
 import { reportingTokens } from "../../../../di/tokens";
 import { IntegrationPointsDataProvider } from "./integration-points-data-provider";
 import { TableViewModel } from "../../view-models/table-view-model";
-import { reportSectionsConfig } from "../../report-sections.config";
 import type { PreparedHtmlReportData } from "../../html-report-writer";
 import type { PreparedJsonData } from "../../json-report-writer";
 import type { ReportData } from "../../report-data.types";
 import { SECTION_NAMES } from "../../reporting.constants";
+
+/** JSON output filename for integration points data */
+const JSON_FILENAME = "integration-points.json";
 
 /**
  * Report section for integration points (APIs, queues, topics, SOAP services).
@@ -21,6 +23,11 @@ export class IntegrationPointsSection implements ReportSection {
 
   getName(): string {
     return SECTION_NAMES.INTEGRATION_POINTS;
+  }
+
+  getRequiredAppSummaryFields(): string[] {
+    // This section does not require any app summary fields
+    return [];
   }
 
   async getData(projectName: string): Promise<Partial<ReportData>> {
@@ -58,7 +65,7 @@ export class IntegrationPointsSection implements ReportSection {
 
     return [
       {
-        filename: reportSectionsConfig.jsonDataFiles.integrationPoints,
+        filename: JSON_FILENAME,
         data: integrationPoints,
       },
     ];

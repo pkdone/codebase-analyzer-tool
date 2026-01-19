@@ -4,7 +4,7 @@
  * visual styling to domain model elements like bounded contexts, entities, etc.
  */
 
-import { BRAND_COLORS, DIAGRAM_ELEMENT_COLORS } from "../../../../config/theme.config";
+import { BRAND_COLORS, DIAGRAM_ELEMENT_COLORS } from "./diagram-theme.config";
 
 /**
  * Build Mermaid classDef style definitions for domain model visualization.

@@ -2,7 +2,7 @@ import { injectable } from "tsyringe";
 import { generateNodeId } from "../utils";
 import { BaseDiagramGenerator, type BaseDiagramOptions } from "./base-diagram-generator";
 import { architectureConfig } from "./architecture.config";
-import { MermaidFlowchartBuilder } from "../builders";
+import { createFlowchartBuilder } from "../builders";
 
 export interface Microservice {
   name: string;
@@ -62,7 +62,7 @@ export class ArchitectureDiagramGenerator extends BaseDiagramGenerator<Architect
    * using the type-safe MermaidFlowchartBuilder.
    */
   private buildArchitectureDiagramDefinition(microservices: Microservice[]): string {
-    const builder = new MermaidFlowchartBuilder("TB");
+    const builder = createFlowchartBuilder({ direction: "TB" });
 
     // Group services into rows for grid layout
     const rows: string[][] = [];

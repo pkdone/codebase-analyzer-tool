@@ -1,6 +1,10 @@
 import "reflect-metadata";
-import { ArchitectureAndDomainSection } from "../../../../../src/app/components/reporting/sections/visualizations/architecture-and-domain-section";
-import { DomainModelDataProvider } from "../../../../../src/app/components/reporting/sections/visualizations/domain-model-data-provider";
+import {
+  DomainModelSection,
+  MicroservicesArchitectureSection,
+  CurrentArchitectureSection,
+  DomainModelDataProvider,
+} from "../../../../../src/app/components/reporting/sections/visualizations";
 import {
   DomainModelDiagramGenerator,
   ArchitectureDiagramGenerator,
@@ -14,12 +18,39 @@ import type {
 } from "../../../../../src/app/components/reporting/sections/overview/category-data-type-guards";
 import { AppSummaryCategories } from "../../../../../src/app/schemas/app-summaries.schema";
 
-describe("ArchitectureAndDomainSection", () => {
-  let section: ArchitectureAndDomainSection;
+/**
+ * Creates a minimal ReportData object for testing.
+ */
+function createMinimalReportData(categorizedData: CategorizedSectionItem[] = []): ReportData {
+  return {
+    appStats: {
+      projectName: "test",
+      currentDate: "2024-01-01",
+      llmProvider: "test",
+      fileCount: 100,
+      linesOfCode: 5000,
+      appDescription: "Test app",
+    },
+    fileTypesData: [],
+    categorizedData,
+    integrationPoints: [],
+    dbInteractions: [],
+    procsAndTriggers: {
+      procs: { total: 0, low: 0, medium: 0, high: 0, list: [] },
+      trigs: { total: 0, low: 0, medium: 0, high: 0, list: [] },
+    },
+    billOfMaterials: [],
+    codeQualitySummary: null,
+    scheduledJobsSummary: null,
+    moduleCoupling: null,
+    uiTechnologyAnalysis: null,
+  };
+}
+
+describe("DomainModelSection", () => {
+  let section: DomainModelSection;
   let mockDomainModelDataProvider: jest.Mocked<DomainModelDataProvider>;
   let mockDomainModelDiagramGenerator: jest.Mocked<DomainModelDiagramGenerator>;
-  let mockArchitectureDiagramGenerator: jest.Mocked<ArchitectureDiagramGenerator>;
-  let mockCurrentArchitectureDiagramGenerator: jest.Mocked<CurrentArchitectureDiagramGenerator>;
 
   beforeEach(() => {
     mockDomainModelDataProvider = {
@@ -32,30 +63,21 @@ describe("ArchitectureAndDomainSection", () => {
     } as unknown as jest.Mocked<DomainModelDataProvider>;
 
     mockDomainModelDiagramGenerator = {
-      generateMultipleContextDiagrams: jest.fn().mockResolvedValue([]),
+      generateMultipleContextDiagrams: jest.fn().mockReturnValue([]),
     } as unknown as jest.Mocked<DomainModelDiagramGenerator>;
 
-    mockArchitectureDiagramGenerator = {
-      generateArchitectureDiagram: jest.fn().mockResolvedValue("<svg>architecture</svg>"),
-    } as unknown as jest.Mocked<ArchitectureDiagramGenerator>;
-
-    mockCurrentArchitectureDiagramGenerator = {
-      generateCurrentArchitectureDiagram: jest
-        .fn()
-        .mockResolvedValue("<svg>current architecture</svg>"),
-    } as unknown as jest.Mocked<CurrentArchitectureDiagramGenerator>;
-
-    section = new ArchitectureAndDomainSection(
-      mockDomainModelDataProvider,
-      mockDomainModelDiagramGenerator,
-      mockArchitectureDiagramGenerator,
-      mockCurrentArchitectureDiagramGenerator,
-    );
+    section = new DomainModelSection(mockDomainModelDataProvider, mockDomainModelDiagramGenerator);
   });
 
   describe("getName", () => {
     it("should return the correct section name", () => {
       expect(section.getName()).toBe("visualizations");
+    });
+  });
+
+  describe("getRequiredAppSummaryFields", () => {
+    it("should return boundedContexts", () => {
+      expect(section.getRequiredAppSummaryFields()).toEqual(["boundedContexts"]);
     });
   });
 
@@ -67,78 +89,155 @@ describe("ArchitectureAndDomainSection", () => {
   });
 
   describe("prepareHtmlData", () => {
-    it("should call all generators and return prepared data", async () => {
-      const baseData: ReportData = {
-        appStats: {
-          projectName: "test",
-          currentDate: "2024-01-01",
-          llmProvider: "test",
-          fileCount: 100,
-          linesOfCode: 5000,
-          appDescription: "Test app",
-        },
-        fileTypesData: [],
-        categorizedData: [],
-        integrationPoints: [],
-        dbInteractions: [],
-        procsAndTriggers: {
-          procs: { total: 0, low: 0, medium: 0, high: 0, list: [] },
-          trigs: { total: 0, low: 0, medium: 0, high: 0, list: [] },
-        },
-        billOfMaterials: [],
-        codeQualitySummary: null,
-        scheduledJobsSummary: null,
-        moduleCoupling: null,
-        uiTechnologyAnalysis: null,
-      };
+    it("should call domain model data provider and diagram generator", async () => {
+      const baseData = createMinimalReportData();
 
       const result = await section.prepareHtmlData(baseData, {}, "/output");
 
-      // Business processes flowcharts are now handled by BusinessProcessesSection
+      expect(mockDomainModelDataProvider.getDomainModelData).toHaveBeenCalledWith(
+        baseData.categorizedData,
+      );
+      expect(mockDomainModelDiagramGenerator.generateMultipleContextDiagrams).toHaveBeenCalled();
       expect(result).toHaveProperty("domainModelData");
       expect(result).toHaveProperty("contextDiagramSvgs");
+    });
+  });
+
+  describe("prepareJsonData", () => {
+    it("should return empty array", () => {
+      const baseData = createMinimalReportData();
+      const result = section.prepareJsonData(baseData, {});
+      expect(result).toEqual([]);
+    });
+  });
+});
+
+describe("MicroservicesArchitectureSection", () => {
+  let section: MicroservicesArchitectureSection;
+  let mockArchitectureDiagramGenerator: jest.Mocked<ArchitectureDiagramGenerator>;
+
+  beforeEach(() => {
+    mockArchitectureDiagramGenerator = {
+      generateArchitectureDiagram: jest.fn().mockReturnValue("<svg>architecture</svg>"),
+    } as unknown as jest.Mocked<ArchitectureDiagramGenerator>;
+
+    section = new MicroservicesArchitectureSection(mockArchitectureDiagramGenerator);
+  });
+
+  describe("getName", () => {
+    it("should return the correct section name", () => {
+      expect(section.getName()).toBe("visualizations");
+    });
+  });
+
+  describe("getRequiredAppSummaryFields", () => {
+    it("should return potentialMicroservices", () => {
+      expect(section.getRequiredAppSummaryFields()).toEqual(["potentialMicroservices"]);
+    });
+  });
+
+  describe("getData", () => {
+    it("should return empty object", async () => {
+      const result = await section.getData("test-project");
+      expect(result).toEqual({});
+    });
+  });
+
+  describe("prepareHtmlData", () => {
+    it("should extract microservices and generate diagram", async () => {
+      const microservices = [
+        {
+          name: "User Service",
+          description: "Handles user management",
+          entities: [],
+          endpoints: [],
+          operations: [],
+        },
+      ];
+
+      const baseData = createMinimalReportData([
+        {
+          category: "potentialMicroservices",
+          label: "Potential Microservices",
+          data: microservices as PotentialMicroservicesArray,
+        },
+      ]);
+
+      const result = await section.prepareHtmlData(baseData, {}, "/output");
+
+      expect(mockArchitectureDiagramGenerator.generateArchitectureDiagram).toHaveBeenCalled();
       expect(result).toHaveProperty("microservicesData");
       expect(result).toHaveProperty("architectureDiagramSvg");
-      expect(result).toHaveProperty("inferredArchitectureData");
-      expect(result).toHaveProperty("currentArchitectureDiagramSvg");
+      expect(result?.microservicesData).toHaveLength(1);
+      expect(result?.microservicesData?.[0]?.name).toBe("User Service");
     });
 
-    it("should extract inferredArchitecture data from categorizedData", async () => {
+    it("should handle empty microservices data", async () => {
+      const baseData = createMinimalReportData([]);
+
+      const result = await section.prepareHtmlData(baseData, {}, "/output");
+
+      expect(result?.microservicesData).toEqual([]);
+    });
+  });
+
+  describe("prepareJsonData", () => {
+    it("should return empty array", () => {
+      const baseData = createMinimalReportData();
+      const result = section.prepareJsonData(baseData, {});
+      expect(result).toEqual([]);
+    });
+  });
+});
+
+describe("CurrentArchitectureSection", () => {
+  let section: CurrentArchitectureSection;
+  let mockCurrentArchitectureDiagramGenerator: jest.Mocked<CurrentArchitectureDiagramGenerator>;
+
+  beforeEach(() => {
+    mockCurrentArchitectureDiagramGenerator = {
+      generateCurrentArchitectureDiagram: jest
+        .fn()
+        .mockReturnValue("<svg>current architecture</svg>"),
+    } as unknown as jest.Mocked<CurrentArchitectureDiagramGenerator>;
+
+    section = new CurrentArchitectureSection(mockCurrentArchitectureDiagramGenerator);
+  });
+
+  describe("getName", () => {
+    it("should return the correct section name", () => {
+      expect(section.getName()).toBe("visualizations");
+    });
+  });
+
+  describe("getRequiredAppSummaryFields", () => {
+    it("should return inferredArchitecture", () => {
+      expect(section.getRequiredAppSummaryFields()).toEqual(["inferredArchitecture"]);
+    });
+  });
+
+  describe("getData", () => {
+    it("should return empty object", async () => {
+      const result = await section.getData("test-project");
+      expect(result).toEqual({});
+    });
+  });
+
+  describe("prepareHtmlData", () => {
+    it("should extract inferred architecture data and generate diagram", async () => {
       const inferredArchData = {
         internalComponents: [{ name: "Order Manager", description: "Handles orders" }],
         externalDependencies: [{ name: "PostgreSQL", type: "Database", description: "Primary DB" }],
         dependencies: [{ from: "Order Manager", to: "PostgreSQL", description: "Persists data" }],
       };
 
-      const baseData: ReportData = {
-        appStats: {
-          projectName: "test",
-          currentDate: "2024-01-01",
-          llmProvider: "test",
-          fileCount: 100,
-          linesOfCode: 5000,
-          appDescription: "Test app",
+      const baseData = createMinimalReportData([
+        {
+          category: "inferredArchitecture",
+          label: "Inferred Architecture",
+          data: [inferredArchData] as InferredArchitectureInner[],
         },
-        fileTypesData: [],
-        categorizedData: [
-          {
-            category: "inferredArchitecture",
-            label: "Inferred Architecture",
-            data: [inferredArchData] as InferredArchitectureInner[],
-          },
-        ] satisfies CategorizedSectionItem[],
-        integrationPoints: [],
-        dbInteractions: [],
-        procsAndTriggers: {
-          procs: { total: 0, low: 0, medium: 0, high: 0, list: [] },
-          trigs: { total: 0, low: 0, medium: 0, high: 0, list: [] },
-        },
-        billOfMaterials: [],
-        codeQualitySummary: null,
-        scheduledJobsSummary: null,
-        moduleCoupling: null,
-        uiTechnologyAnalysis: null,
-      };
+      ]);
 
       const result = await section.prepareHtmlData(baseData, {}, "/output");
 
@@ -158,6 +257,8 @@ describe("ArchitectureAndDomainSection", () => {
         }),
       );
 
+      expect(result).toHaveProperty("inferredArchitectureData");
+      expect(result).toHaveProperty("currentArchitectureDiagramSvg");
       expect(result?.inferredArchitectureData).toEqual({
         internalComponents: [{ name: "Order Manager", description: "Handles orders" }],
         externalDependencies: [{ name: "PostgreSQL", type: "Database", description: "Primary DB" }],
@@ -166,35 +267,13 @@ describe("ArchitectureAndDomainSection", () => {
     });
 
     it("should return null for inferredArchitectureData when not present", async () => {
-      const baseData: ReportData = {
-        appStats: {
-          projectName: "test",
-          currentDate: "2024-01-01",
-          llmProvider: "test",
-          fileCount: 100,
-          linesOfCode: 5000,
-          appDescription: "Test app",
+      const baseData = createMinimalReportData([
+        {
+          category: "technologies",
+          label: "Technologies",
+          data: [{ name: "Java", description: "Programming language" }],
         },
-        fileTypesData: [],
-        categorizedData: [
-          {
-            category: "technologies",
-            label: "Technologies",
-            data: [{ name: "Java", description: "Programming language" }],
-          },
-        ] satisfies CategorizedSectionItem[],
-        integrationPoints: [],
-        dbInteractions: [],
-        procsAndTriggers: {
-          procs: { total: 0, low: 0, medium: 0, high: 0, list: [] },
-          trigs: { total: 0, low: 0, medium: 0, high: 0, list: [] },
-        },
-        billOfMaterials: [],
-        codeQualitySummary: null,
-        scheduledJobsSummary: null,
-        moduleCoupling: null,
-        uiTechnologyAnalysis: null,
-      };
+      ]);
 
       const result = await section.prepareHtmlData(baseData, {}, "/output");
 
@@ -205,35 +284,13 @@ describe("ArchitectureAndDomainSection", () => {
     });
 
     it("should handle empty inferredArchitecture data array", async () => {
-      const baseData: ReportData = {
-        appStats: {
-          projectName: "test",
-          currentDate: "2024-01-01",
-          llmProvider: "test",
-          fileCount: 100,
-          linesOfCode: 5000,
-          appDescription: "Test app",
+      const baseData = createMinimalReportData([
+        {
+          category: "inferredArchitecture",
+          label: "Inferred Architecture",
+          data: [] as InferredArchitectureInner[],
         },
-        fileTypesData: [],
-        categorizedData: [
-          {
-            category: "inferredArchitecture",
-            label: "Inferred Architecture",
-            data: [] as InferredArchitectureInner[],
-          },
-        ] satisfies CategorizedSectionItem[],
-        integrationPoints: [],
-        dbInteractions: [],
-        procsAndTriggers: {
-          procs: { total: 0, low: 0, medium: 0, high: 0, list: [] },
-          trigs: { total: 0, low: 0, medium: 0, high: 0, list: [] },
-        },
-        billOfMaterials: [],
-        codeQualitySummary: null,
-        scheduledJobsSummary: null,
-        moduleCoupling: null,
-        uiTechnologyAnalysis: null,
-      };
+      ]);
 
       const result = await section.prepareHtmlData(baseData, {}, "/output");
 
@@ -243,136 +300,18 @@ describe("ArchitectureAndDomainSection", () => {
 
   describe("prepareJsonData", () => {
     it("should return empty array", () => {
-      const baseData: ReportData = {
-        appStats: {
-          projectName: "test",
-          currentDate: "2024-01-01",
-          llmProvider: "test",
-          fileCount: 100,
-          linesOfCode: 5000,
-          appDescription: "Test app",
-        },
-        fileTypesData: [],
-        categorizedData: [],
-        integrationPoints: [],
-        dbInteractions: [],
-        procsAndTriggers: {
-          procs: { total: 0, low: 0, medium: 0, high: 0, list: [] },
-          trigs: { total: 0, low: 0, medium: 0, high: 0, list: [] },
-        },
-        billOfMaterials: [],
-        codeQualitySummary: null,
-        scheduledJobsSummary: null,
-        moduleCoupling: null,
-        uiTechnologyAnalysis: null,
-      };
-
+      const baseData = createMinimalReportData();
       const result = section.prepareJsonData(baseData, {});
-
       expect(result).toEqual([]);
     });
   });
+});
 
-  describe("category lookups using AppSummaryCategories enum", () => {
-    it("should find potential microservices using enum value", async () => {
-      const microservices = [
-        {
-          name: "User Service",
-          description: "Handles user management",
-          entities: [],
-          endpoints: [],
-          operations: [],
-        },
-      ];
-
-      const baseData: ReportData = {
-        appStats: {
-          projectName: "test",
-          currentDate: "2024-01-01",
-          llmProvider: "test",
-          fileCount: 100,
-          linesOfCode: 5000,
-          appDescription: "Test app",
-        },
-        fileTypesData: [],
-        categorizedData: [
-          {
-            category: "potentialMicroservices",
-            label: "Potential Microservices",
-            data: microservices as PotentialMicroservicesArray,
-          },
-        ] satisfies CategorizedSectionItem[],
-        integrationPoints: [],
-        dbInteractions: [],
-        procsAndTriggers: {
-          procs: { total: 0, low: 0, medium: 0, high: 0, list: [] },
-          trigs: { total: 0, low: 0, medium: 0, high: 0, list: [] },
-        },
-        billOfMaterials: [],
-        codeQualitySummary: null,
-        scheduledJobsSummary: null,
-        moduleCoupling: null,
-        uiTechnologyAnalysis: null,
-      };
-
-      const result = await section.prepareHtmlData(baseData, {}, "/output");
-
-      expect(result?.microservicesData).toHaveLength(1);
-      expect(result?.microservicesData?.[0]?.name).toBe("User Service");
-    });
-
-    it("should find inferred architecture using enum value", async () => {
-      const inferredArchData = {
-        internalComponents: [{ name: "Payment Service", description: "Handles payments" }],
-        externalDependencies: [
-          { name: "Stripe", type: "External API", description: "Payment gateway" },
-        ],
-        dependencies: [
-          { from: "Payment Service", to: "Stripe", description: "Payment processing" },
-        ],
-      };
-
-      const baseData: ReportData = {
-        appStats: {
-          projectName: "test",
-          currentDate: "2024-01-01",
-          llmProvider: "test",
-          fileCount: 100,
-          linesOfCode: 5000,
-          appDescription: "Test app",
-        },
-        fileTypesData: [],
-        categorizedData: [
-          {
-            category: "inferredArchitecture",
-            label: "Inferred Architecture",
-            data: [inferredArchData] as InferredArchitectureInner[],
-          },
-        ] satisfies CategorizedSectionItem[],
-        integrationPoints: [],
-        dbInteractions: [],
-        procsAndTriggers: {
-          procs: { total: 0, low: 0, medium: 0, high: 0, list: [] },
-          trigs: { total: 0, low: 0, medium: 0, high: 0, list: [] },
-        },
-        billOfMaterials: [],
-        codeQualitySummary: null,
-        scheduledJobsSummary: null,
-        moduleCoupling: null,
-        uiTechnologyAnalysis: null,
-      };
-
-      const result = await section.prepareHtmlData(baseData, {}, "/output");
-
-      expect(result?.inferredArchitectureData).not.toBeNull();
-      expect(result?.inferredArchitectureData?.internalComponents).toHaveLength(1);
-    });
-
-    it("should verify AppSummaryCategories enum values match expected strings", () => {
-      // These tests ensure the enum values match what the code expects
-      expect(AppSummaryCategories.enum.businessProcesses).toBe("businessProcesses");
-      expect(AppSummaryCategories.enum.potentialMicroservices).toBe("potentialMicroservices");
-      expect(AppSummaryCategories.enum.inferredArchitecture).toBe("inferredArchitecture");
-    });
+describe("AppSummaryCategories enum values", () => {
+  it("should verify AppSummaryCategories enum values match expected strings", () => {
+    // These tests ensure the enum values match what the code expects
+    expect(AppSummaryCategories.enum.businessProcesses).toBe("businessProcesses");
+    expect(AppSummaryCategories.enum.potentialMicroservices).toBe("potentialMicroservices");
+    expect(AppSummaryCategories.enum.inferredArchitecture).toBe("inferredArchitecture");
   });
 });

@@ -22,6 +22,11 @@ export class BackgroundProcessesSection implements ReportSection {
     return SECTION_NAMES.BACKGROUND_PROCESSES;
   }
 
+  getRequiredAppSummaryFields(): string[] {
+    // This section does not require any app summary fields
+    return [];
+  }
+
   async getData(projectName: string): Promise<Partial<ReportData>> {
     const scheduledJobsSummary =
       await this.scheduledJobDataProvider.getScheduledJobsSummary(projectName);

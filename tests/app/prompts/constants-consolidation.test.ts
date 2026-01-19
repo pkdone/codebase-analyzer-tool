@@ -98,16 +98,19 @@ describe("Consolidated Prompt Constants", () => {
     });
 
     it("should work with constants from utils re-export", () => {
-      const block = buildInstructionBlock(
-        TITLES_FROM_UTILS.REFERENCES_AND_DEPS,
-        ["Internal refs", "External refs"],
-      );
+      const block = buildInstructionBlock(TITLES_FROM_UTILS.REFERENCES_AND_DEPS, [
+        "Internal refs",
+        "External refs",
+      ]);
 
       expect(block).toBe("__References and Dependencies__\nInternal refs\nExternal refs");
     });
 
     it("should format title with double underscores", () => {
-      const block = buildInstructionBlock(INSTRUCTION_SECTION_TITLES.CODE_QUALITY_METRICS, "Metric 1");
+      const block = buildInstructionBlock(
+        INSTRUCTION_SECTION_TITLES.CODE_QUALITY_METRICS,
+        "Metric 1",
+      );
 
       expect(block).toContain("__Code Quality Metrics__");
       expect(block).toContain("Metric 1");

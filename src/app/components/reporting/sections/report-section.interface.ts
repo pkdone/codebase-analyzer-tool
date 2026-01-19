@@ -5,15 +5,28 @@ import type { ReportData } from "../report-data.types";
 /**
  * Interface for report sections that encapsulate data fetching and processing for a specific part of the report.
  * Each section is responsible for:
+ * - Declaring its required app summary fields (for self-contained configuration)
  * - Fetching its own data
  * - Processing and transforming that data
  * - Contributing to both HTML and JSON report outputs
+ *
+ * This design follows the principle of colocation - each section declares its own requirements
+ * rather than relying on a centralized configuration file.
  */
 export interface ReportSection {
   /**
    * Get the unique name of this report section
    */
   getName(): string;
+
+  /**
+   * Get the app summary fields required by this section.
+   * The AppReportGenerator will aggregate these from all sections to fetch the necessary data.
+   * This allows sections to be self-contained and reduces the need for centralized configuration.
+   *
+   * @returns Array of field names required from the app summaries repository
+   */
+  getRequiredAppSummaryFields(): string[];
 
   /**
    * Fetch and process data needed for this section.

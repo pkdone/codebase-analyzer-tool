@@ -2,41 +2,33 @@ import { injectable, inject } from "tsyringe";
 import type { ReportSection } from "../report-section.interface";
 import { reportingTokens } from "../../../../di/tokens";
 import { DomainModelDataProvider } from "./domain-model-data-provider";
-import {
-  DomainModelDiagramGenerator,
-  ArchitectureDiagramGenerator,
-  CurrentArchitectureDiagramGenerator,
-} from "../../diagrams";
+import { DomainModelDiagramGenerator } from "../../diagrams";
 import type { PreparedHtmlReportData } from "../../html-report-writer";
 import type { PreparedJsonData } from "../../json-report-writer";
 import type { ReportData } from "../../report-data.types";
 import { SECTION_NAMES } from "../../reporting.constants";
-import {
-  extractMicroservicesData,
-  extractInferredArchitectureData,
-} from "./visualization-data-extractors";
 
 /**
- * Report section for architecture and domain visualizations (domain models, microservices architecture, current architecture diagrams).
+ * Report section for domain model visualizations.
+ * Generates Mermaid diagrams showing bounded contexts with their aggregates, entities, and repositories.
  * Diagrams are generated as Mermaid definitions and rendered client-side.
- *
- * Note: Business process flowcharts are handled by the separate BusinessProcessesSection.
  */
 @injectable()
-export class ArchitectureAndDomainSection implements ReportSection {
+export class DomainModelSection implements ReportSection {
   constructor(
     @inject(reportingTokens.DomainModelDataProvider)
     private readonly domainModelDataProvider: DomainModelDataProvider,
     @inject(reportingTokens.DomainModelDiagramGenerator)
     private readonly domainModelDiagramGenerator: DomainModelDiagramGenerator,
-    @inject(reportingTokens.ArchitectureDiagramGenerator)
-    private readonly architectureDiagramGenerator: ArchitectureDiagramGenerator,
-    @inject(reportingTokens.CurrentArchitectureDiagramGenerator)
-    private readonly currentArchitectureDiagramGenerator: CurrentArchitectureDiagramGenerator,
   ) {}
 
   getName(): string {
     return SECTION_NAMES.VISUALIZATIONS;
+  }
+
+  getRequiredAppSummaryFields(): string[] {
+    // This section requires bounded contexts data for domain model visualization
+    return ["boundedContexts"];
   }
 
   async getData(_projectName: string): Promise<Partial<ReportData>> {
@@ -58,26 +50,10 @@ export class ArchitectureAndDomainSection implements ReportSection {
       domainModelData.boundedContexts,
     );
 
-    // Extract microservices data and generate architecture diagram (synchronous - client-side rendering)
-    const microservicesData = extractMicroservicesData(baseData.categorizedData);
-    const architectureDiagramSvg =
-      this.architectureDiagramGenerator.generateArchitectureDiagram(microservicesData);
-
-    // Extract inferred architecture data and generate current architecture diagram (synchronous)
-    const inferredArchitectureData = extractInferredArchitectureData(baseData.categorizedData);
-    const currentArchitectureDiagramSvg =
-      this.currentArchitectureDiagramGenerator.generateCurrentArchitectureDiagram(
-        inferredArchitectureData,
-      );
-
     // Implementation of async interface - computation is synchronous but interface requires Promise
     return await Promise.resolve({
       domainModelData,
       contextDiagramSvgs,
-      microservicesData,
-      architectureDiagramSvg,
-      inferredArchitectureData,
-      currentArchitectureDiagramSvg,
     });
   }
 

@@ -15,11 +15,25 @@ import type { AppSummariesRepository } from "../../repositories/app-summaries/ap
 import type { ReportData } from "./report-data.types";
 import { TableViewModel, type DisplayableTableRow } from "./view-models/table-view-model";
 import { convertToDisplayName } from "../../../common/utils/text-utils";
-import { reportSectionsConfig } from "./report-sections.config";
 import type { ReportSection } from "./sections/report-section.interface";
 import path from "path";
 import type { OutputConfigType } from "../../config/output.config";
 import { HtmlReportAssetService } from "./services/html-report-asset.service";
+
+/**
+ * Core app summary fields required by the generator itself (for app statistics and categorized data).
+ * These are combined with fields requested by individual sections.
+ */
+const CORE_REQUIRED_APP_SUMMARY_FIELDS = ["appDescription", "llmProvider", "technologies"] as const;
+
+/**
+ * JSON output filenames for generator-level data files.
+ */
+const GENERATOR_JSON_FILES = {
+  completeReport: "codebase-report",
+  appStats: "app-stats.json",
+  appDescription: "app-description.json",
+} as const;
 
 /**
  * Class responsible for orchestrating report generation using a modular section-based architecture.
@@ -57,10 +71,13 @@ export default class AppReportGenerator {
     outputDir: string,
     outputFilename: string,
   ): Promise<void> {
+    // Aggregate required app summary fields from all sections plus core fields
+    const allRequiredFields = this.aggregateRequiredAppSummaryFields();
+
     // Fetch base app summary data required for all sections
     const appSummaryData = await this.appSummariesRepository.getProjectAppSummaryFields(
       projectName,
-      reportSectionsConfig.allRequiredAppSummaryFields,
+      allRequiredFields,
     );
 
     if (!appSummaryData) {
@@ -182,11 +199,16 @@ export default class AppReportGenerator {
       },
     };
 
+    // Create a minimal config for the HTML template
+    const jsonFilesConfig = {
+      getCategoryJSONFilename: (category: string): string => `${category}.json`,
+    };
+
     return {
       ...mergedHtmlData,
       appStats: reportData.appStats,
       categorizedData: categorizedDataWithViewModels,
-      jsonFilesConfig: reportSectionsConfig,
+      jsonFilesConfig,
       htmlReportConstants: templateConstants,
       convertToDisplayName,
     } as PreparedHtmlReportDataWithoutAssets;
@@ -216,15 +238,15 @@ export default class AppReportGenerator {
       moduleCoupling: reportData.moduleCoupling,
     };
     allJsonData.push({
-      filename: `${reportSectionsConfig.jsonDataFiles.completeReport}.json`,
+      filename: `${GENERATOR_JSON_FILES.completeReport}.json`,
       data: completeReportData,
     });
 
     // Add app stats and app description JSON files
     allJsonData.push(
-      { filename: reportSectionsConfig.jsonDataFiles.appStats, data: reportData.appStats },
+      { filename: GENERATOR_JSON_FILES.appStats, data: reportData.appStats },
       {
-        filename: reportSectionsConfig.jsonDataFiles.appDescription,
+        filename: GENERATOR_JSON_FILES.appDescription,
         data: { appDescription: reportData.appStats.appDescription },
       },
     );
@@ -239,11 +261,29 @@ export default class AppReportGenerator {
     // Add categorized data JSON files
     for (const categoryData of reportData.categorizedData) {
       allJsonData.push({
-        filename: reportSectionsConfig.getCategoryJSONFilename(categoryData.category),
+        filename: `${categoryData.category}.json`,
         data: categoryData.data,
       });
     }
 
     return allJsonData;
+  }
+
+  /**
+   * Aggregate all required app summary fields from sections and core requirements.
+   * This decentralizes configuration - each section declares its own requirements.
+   */
+  private aggregateRequiredAppSummaryFields(): string[] {
+    // Start with core fields needed by the generator
+    const allFields = new Set<string>(CORE_REQUIRED_APP_SUMMARY_FIELDS);
+
+    // Add fields required by each section
+    for (const section of this.sections) {
+      for (const field of section.getRequiredAppSummaryFields()) {
+        allFields.add(field);
+      }
+    }
+
+    return Array.from(allFields);
   }
 }

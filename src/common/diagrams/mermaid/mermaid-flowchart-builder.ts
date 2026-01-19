@@ -5,9 +5,18 @@
  * safety for node shapes, edge types, and subgraph nesting. It eliminates manual
  * string building and reduces the risk of syntax errors.
  *
+ * Styles and initialization directives are injectable to allow customization
+ * without coupling to specific application configurations.
+ *
  * @example
  * ```typescript
- * const builder = new MermaidFlowchartBuilder("TB")
+ * const builder = new MermaidFlowchartBuilder({
+ *   direction: "TB",
+ *   initDirective: "%%{init: {'flowchart': {'diagramPadding': 30}}}%%",
+ *   styleDefinitions: "classDef service fill:#fff,stroke:#00684A",
+ * });
+ *
+ * builder
  *   .addNode("svc1", "User Service", "stadium")
  *   .addNode("svc2", "Auth Service", "stadium")
  *   .addEdge("svc1", "svc2", "authenticates")
@@ -17,12 +26,7 @@
  * ```
  */
 
-import {
-  escapeMermaidLabel,
-  buildMermaidInitDirective,
-  buildArchitectureInitDirective,
-} from "../utils/mermaid-builders";
-import { buildStyleDefinitions, applyStyle as applyStyleClass } from "../utils/mermaid-styles";
+import { escapeMermaidLabel, applyStyleClass } from "./mermaid-utils";
 import {
   AbstractGraphBuilder,
   type NodeShape,
@@ -37,13 +41,32 @@ import {
  */
 export type FlowchartDirection = "TB" | "BT" | "LR" | "RL";
 
-/**
- * Type of initialization directive to use for the diagram.
- */
-export type InitDirectiveType = "standard" | "architecture";
-
-// Re-export types
+// Re-export types from abstract builder for convenience
 export type { NodeShape, EdgeType };
+
+/**
+ * Configuration options for MermaidFlowchartBuilder.
+ */
+export interface FlowchartBuilderOptions {
+  /**
+   * The flowchart direction (TB, BT, LR, RL).
+   * @default "TB"
+   */
+  direction?: FlowchartDirection;
+
+  /**
+   * The Mermaid init directive string (e.g., "%%{init: {...}}%%").
+   * If not provided, no init directive will be added.
+   */
+  initDirective?: string;
+
+  /**
+   * The style definitions to include in the flowchart.
+   * This should be Mermaid classDef statements.
+   * If not provided, no style definitions will be added.
+   */
+  styleDefinitions?: string;
+}
 
 /**
  * Internal representation of a subgraph.
@@ -87,23 +110,21 @@ const EDGE_SYNTAX: Readonly<Record<EdgeType, string>> = {
  */
 export class MermaidFlowchartBuilder extends AbstractGraphBuilder {
   private readonly direction: FlowchartDirection;
-  private readonly initDirectiveType: InitDirectiveType;
+  private readonly initDirective?: string;
+  private readonly styleDefinitions?: string;
   private readonly subgraphs: MermaidSubgraph[] = [];
   private readonly subgraphStyles: { subgraphId: string; styleString: string }[] = [];
 
   /**
    * Creates a new MermaidFlowchartBuilder.
    *
-   * @param direction - The flowchart direction (TB, BT, LR, RL)
-   * @param initDirectiveType - The type of init directive to use
+   * @param options - Configuration options for the builder
    */
-  constructor(
-    direction: FlowchartDirection = "TB",
-    initDirectiveType: InitDirectiveType = "standard",
-  ) {
+  constructor(options: FlowchartBuilderOptions = {}) {
     super();
-    this.direction = direction;
-    this.initDirectiveType = initDirectiveType;
+    this.direction = options.direction ?? "TB";
+    this.initDirective = options.initDirective;
+    this.styleDefinitions = options.styleDefinitions;
   }
 
   /**
@@ -168,18 +189,18 @@ export class MermaidFlowchartBuilder extends AbstractGraphBuilder {
   render(): string {
     const lines: string[] = [];
 
-    // Add init directive
-    const initDirective =
-      this.initDirectiveType === "architecture"
-        ? buildArchitectureInitDirective()
-        : buildMermaidInitDirective();
-    lines.push(initDirective);
+    // Add init directive if provided
+    if (this.initDirective) {
+      lines.push(this.initDirective);
+    }
 
     // Add flowchart declaration
     lines.push(`flowchart ${this.direction}`);
 
-    // Add style definitions
-    lines.push(buildStyleDefinitions());
+    // Add style definitions if provided
+    if (this.styleDefinitions) {
+      lines.push(this.styleDefinitions);
+    }
 
     // Add top-level nodes
     for (const node of this.getNodes()) {

@@ -3,7 +3,6 @@ import type { ReportSection } from "../report-section.interface";
 import { repositoryTokens } from "../../../../di/tokens";
 import type { SourcesRepository } from "../../../../repositories/sources/sources.repository.interface";
 import { htmlReportConstants } from "../../html-report.constants";
-import { reportSectionsConfig } from "../../report-sections.config";
 import { TableViewModel } from "../../view-models/table-view-model";
 import type { PreparedHtmlReportData } from "../../html-report-writer";
 import type { PreparedJsonData } from "../../json-report-writer";
@@ -11,6 +10,9 @@ import type { ReportData } from "../../report-data.types";
 import { SECTION_NAMES } from "../../reporting.constants";
 import { UNKNOWN_VALUE_PLACEHOLDER } from "../../config/placeholders.config";
 import { calculatePieChartData } from "./pie-chart-calculator";
+
+/** JSON output filename for file types data */
+const JSON_FILENAME = "file-types.json";
 
 /**
  * Report section for file types data.
@@ -25,6 +27,11 @@ export class FileTypesSection implements ReportSection {
 
   getName(): string {
     return SECTION_NAMES.FILE_TYPES;
+  }
+
+  getRequiredAppSummaryFields(): string[] {
+    // This section does not require any app summary fields
+    return [];
   }
 
   async getData(projectName: string): Promise<Partial<ReportData>> {
@@ -64,7 +71,7 @@ export class FileTypesSection implements ReportSection {
 
     return [
       {
-        filename: reportSectionsConfig.jsonDataFiles.fileTypes,
+        filename: JSON_FILENAME,
         data: fileTypesData,
       },
     ];

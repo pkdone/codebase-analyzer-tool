@@ -51,12 +51,14 @@ describe("AppReportGenerator", () => {
     mockSections = [
       {
         getName: jest.fn().mockReturnValue("section1"),
+        getRequiredAppSummaryFields: jest.fn().mockReturnValue(["customField1"]),
         getData: jest.fn().mockResolvedValue({ section1Data: "test" }),
         prepareHtmlData: jest.fn().mockResolvedValue({ section1Html: "html" }),
         prepareJsonData: jest.fn().mockReturnValue([{ filename: "section1.json", data: {} }]),
       },
       {
         getName: jest.fn().mockReturnValue("section2"),
+        getRequiredAppSummaryFields: jest.fn().mockReturnValue(["customField2"]),
         getData: jest.fn().mockResolvedValue({ section2Data: "test" }),
         prepareHtmlData: jest.fn().mockResolvedValue({ section2Html: "html" }),
         prepareJsonData: jest.fn().mockReturnValue([{ filename: "section2.json", data: {} }]),

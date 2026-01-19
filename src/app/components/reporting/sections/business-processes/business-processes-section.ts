@@ -23,6 +23,11 @@ export class BusinessProcessesSection implements ReportSection {
     return SECTION_NAMES.BUSINESS_PROCESSES;
   }
 
+  getRequiredAppSummaryFields(): string[] {
+    // This section requires business processes data from app summaries
+    return ["businessProcesses"];
+  }
+
   async getData(_projectName: string): Promise<Partial<ReportData>> {
     // This section uses categorized data that comes from baseData
     // Return empty object as the data is already in baseData
