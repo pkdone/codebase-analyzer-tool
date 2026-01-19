@@ -1,4 +1,5 @@
 import type { LLMSanitizerConfig } from "../../common/llm/config/llm-module-config.types";
+import { JAVA_SPECIFIC_RULES } from "../../common/llm/json-processing/sanitizers/rules";
 
 /**
  * LLM artifact corrections for handling output issues that cannot be derived from Zod schemas.
@@ -119,6 +120,9 @@ const PACKAGE_NAME_TYPO_PATTERNS: readonly PackageNameTypoPattern[] = [
  * `schemaMetadataToSanitizerConfig()`. The artifact corrections take precedence
  * over dynamic extraction for the mappings they define.
  *
+ * Includes Java-specific rules for handling Java code artifacts in JSON responses,
+ * as this application primarily analyzes Java codebases.
+ *
  * @returns Configuration containing LLM artifact correction mappings
  */
 export function getLlmArtifactCorrections(): LLMSanitizerConfig {
@@ -128,5 +132,10 @@ export function getLlmArtifactCorrections(): LLMSanitizerConfig {
     propertyTypoCorrections: PROPERTY_TYPO_CORRECTIONS,
     packageNamePrefixReplacements: PACKAGE_NAME_PREFIX_REPLACEMENTS,
     packageNameTypoPatterns: [...PACKAGE_NAME_TYPO_PATTERNS],
+
+    // Include Java-specific rules for handling Java code artifacts in LLM responses.
+    // These rules handle cases where LLMs include Java package/import declarations,
+    // class definitions, etc., in their JSON outputs when analyzing Java codebases.
+    customReplacementRules: JAVA_SPECIFIC_RULES,
   };
 }

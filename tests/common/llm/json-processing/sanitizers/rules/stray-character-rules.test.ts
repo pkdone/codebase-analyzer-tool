@@ -203,7 +203,7 @@ _MODULE"
   });
 
   describe("removePlaceholderText", () => {
-    it("should remove placeholder text like _INSERT_DATABASE_INTEGRATION_", () => {
+    it("should remove ALL_CAPS placeholder patterns surrounded by underscores", () => {
       const input = `{
   "name": "Test"
 },
@@ -212,6 +212,28 @@ _INSERT_DATABASE_INTEGRATION_
       const result = executeRules(input, STRAY_CHARACTER_RULES);
       expect(result.changed).toBe(true);
       expect(result.content).not.toContain("_INSERT_DATABASE_INTEGRATION_");
+    });
+
+    it("should remove generic placeholder patterns like _TODO_", () => {
+      const input = `{
+  "name": "Test"
+},
+_TODO_
+}`;
+      const result = executeRules(input, STRAY_CHARACTER_RULES);
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain("_TODO_");
+    });
+
+    it("should remove _PLACEHOLDER_ pattern", () => {
+      const input = `{
+  "name": "Test"
+},
+_PLACEHOLDER_
+}`;
+      const result = executeRules(input, STRAY_CHARACTER_RULES);
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain("_PLACEHOLDER_");
     });
   });
 

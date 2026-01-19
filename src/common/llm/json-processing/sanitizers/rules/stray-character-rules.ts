@@ -225,8 +225,10 @@ export const STRAY_CHARACTER_RULES: readonly ReplacementRule[] = [
     },
   },
 
-  // Rule: Remove placeholder text like _INSERT_DATABASE_INTEGRATION_
-  // Pattern: `_INSERT_DATABASE_INTEGRATION_` -> remove
+  // Rule: Remove ALL_CAPS placeholder patterns surrounded by underscores
+  // This catches generic placeholders LLMs may output, such as:
+  // _TODO_, _PLACEHOLDER_, _INSERT_CONTENT_, _FIXME_, etc.
+  // Pattern: `_ANY_PLACEHOLDER_TEXT_` -> remove
   {
     name: "removePlaceholderText",
     pattern: /([}\],]|\n|^)(\s*)_[A-Z_]+_(\s*)([}\],]|\n|$)/g,

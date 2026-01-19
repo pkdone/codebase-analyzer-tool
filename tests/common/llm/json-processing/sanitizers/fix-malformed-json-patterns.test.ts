@@ -1,4 +1,15 @@
 import { fixMalformedJsonPatterns } from "../../../../../src/common/llm/json-processing/sanitizers/index";
+import { JAVA_SPECIFIC_RULES } from "../../../../../src/common/llm/json-processing/sanitizers/rules/java-specific-rules";
+import type { LLMSanitizerConfig } from "../../../../../src/common/llm/config/llm-module-config.types";
+
+/**
+ * Config that includes Java-specific rules for tests that need them.
+ * Java rules were moved out of the default rule set to make the common library
+ * more portable. Tests for Java-specific patterns need to inject these rules.
+ */
+const configWithJavaRules: LLMSanitizerConfig = {
+  customReplacementRules: JAVA_SPECIFIC_RULES,
+};
 
 describe("fixMalformedJsonPatterns", () => {
   describe("Pattern: Asterisk before property names", () => {
@@ -285,7 +296,7 @@ propertyName": "com.example.POST",
   });
 
   describe("Pattern 69: Duplicate import statements", () => {
-    it("should remove duplicate Java import statements", () => {
+    it("should remove duplicate Java import statements (with Java rules injected)", () => {
       const input = `{
   "externalReferences": [
     "com.example.Mock"
@@ -299,7 +310,8 @@ import java.util.List;
   "publicConstants": []
 }`;
 
-      const result = fixMalformedJsonPatterns(input);
+      // Java rules must be injected via config since they're not in the default rule set
+      const result = fixMalformedJsonPatterns(input, configWithJavaRules);
 
       expect(result.changed).toBe(true);
       expect(result.content).not.toContain("package com.example.test;");
@@ -880,7 +892,7 @@ there are more methods, but I will stop here
     });
   });
 
-  describe("Pattern 82: Remove Java code after JSON closing brace", () => {
+  describe("Pattern 82: Remove Java code after JSON closing brace (requires Java rules)", () => {
     it("should remove Java package declaration after JSON", () => {
       const input = `{
   "name": "TestClass",
@@ -890,7 +902,8 @@ package org.apache.fineract.portfolio.account.service;
 
 import java.math.BigDecimal;`;
 
-      const result = fixMalformedJsonPatterns(input);
+      // Java rules must be injected via config since they're not in the default rule set
+      const result = fixMalformedJsonPatterns(input, configWithJavaRules);
 
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"name": "TestClass"');
@@ -908,7 +921,8 @@ import java.math.BigDecimal;`;
 import java.math.BigDecimal;
 import java.sql.ResultSet;`;
 
-      const result = fixMalformedJsonPatterns(input);
+      // Java rules must be injected via config since they're not in the default rule set
+      const result = fixMalformedJsonPatterns(input, configWithJavaRules);
 
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"name": "TestClass"');
@@ -924,7 +938,8 @@ import java.sql.ResultSet;`;
 }
 public class AccountTransfersReadPlatformServiceImpl {`;
 
-      const result = fixMalformedJsonPatterns(input);
+      // Java rules must be injected via config since they're not in the default rule set
+      const result = fixMalformedJsonPatterns(input, configWithJavaRules);
 
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"name": "TestClass"');
@@ -939,7 +954,8 @@ public class AccountTransfersReadPlatformServiceImpl {`;
   "codeExample": "package org.example;\\nimport java.util.List;"
 }`;
 
-      const result = fixMalformedJsonPatterns(input);
+      // Even with Java rules, keywords inside JSON strings should not be removed
+      const result = fixMalformedJsonPatterns(input, configWithJavaRules);
 
       expect(result.changed).toBe(false);
       expect(result.content).toContain("package");
@@ -958,7 +974,8 @@ public class AccountTransfersReadPlatformServiceImpl {`;
 }
 package org.example;`;
 
-      const result = fixMalformedJsonPatterns(input);
+      // Java rules must be injected via config since they're not in the default rule set
+      const result = fixMalformedJsonPatterns(input, configWithJavaRules);
 
       expect(result.changed).toBe(true);
       expect(result.content).not.toContain("package");

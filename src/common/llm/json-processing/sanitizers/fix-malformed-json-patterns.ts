@@ -1,6 +1,8 @@
 import type { Sanitizer, SanitizerResult } from "./sanitizers-types";
+import type { LLMSanitizerConfig } from "../../config/llm-module-config.types";
 import { logWarn } from "../../../utils/logging";
 import { executeRulesMultiPass, ALL_RULES } from "./rules";
+import type { ReplacementRule } from "./rules";
 
 /**
  * Pattern to detect obvious errors that need fixing even in valid JSON.
@@ -24,6 +26,20 @@ function hasObviousErrors(input: string): boolean {
 }
 
 /**
+ * Builds the complete rule set by merging ALL_RULES with any custom rules from config.
+ * Custom rules are appended after the built-in rules to allow domain-specific handling.
+ *
+ * @param config - Optional sanitizer configuration containing custom rules
+ * @returns The merged array of replacement rules
+ */
+function buildRuleSet(config?: LLMSanitizerConfig): readonly ReplacementRule[] {
+  if (!config?.customReplacementRules || config.customReplacementRules.length === 0) {
+    return ALL_RULES;
+  }
+  return [...ALL_RULES, ...config.customReplacementRules];
+}
+
+/**
  * Sanitizer that fixes various malformed JSON patterns found in LLM responses.
  *
  * This sanitizer uses a declarative rule-based system to handle:
@@ -35,8 +51,10 @@ function hasObviousErrors(input: string): boolean {
  * 6. Non-ASCII characters in string values that break JSON parsing
  * 7. Malformed JSON structures and stray text
  * 8. YAML-like blocks embedded in JSON
- * 9. Java code appearing after JSON
- * 10. Binary corruption markers
+ * 9. Binary corruption markers
+ *
+ * Domain-specific rules (e.g., Java code handling) can be injected via
+ * LLMSanitizerConfig.customReplacementRules for codebases that need them.
  *
  * The rule-based architecture eliminates code duplication by:
  * - Centralizing isInStringAt checking
@@ -45,9 +63,13 @@ function hasObviousErrors(input: string): boolean {
  * - Supporting multi-pass execution for complex fixes
  *
  * @param input - The raw string content to sanitize
+ * @param config - Optional sanitizer configuration with custom rules
  * @returns Sanitizer result with malformed patterns fixed
  */
-export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerResult => {
+export const fixMalformedJsonPatterns: Sanitizer = (
+  input: string,
+  config?: LLMSanitizerConfig,
+): SanitizerResult => {
   try {
     if (!input) {
       return { content: input, changed: false };
@@ -66,10 +88,14 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       // Not valid JSON, proceed with sanitization
     }
 
+    // Build the rule set, including any custom rules from config
+    const rules = buildRuleSet(config);
+
     // Execute all rules with multi-pass enabled for thorough sanitization
-    const result = executeRulesMultiPass(input, ALL_RULES, {
+    const result = executeRulesMultiPass(input, rules, {
       maxDiagnostics: 20,
       maxPasses: 5,
+      config,
     });
 
     if (!result.changed) {

@@ -4,6 +4,8 @@
  * standalone and independent of any specific DI framework or application structure.
  */
 
+import type { ReplacementRule } from "../json-processing/sanitizers/rules/replacement-rule.types";
+
 /**
  * Configuration for error logging behavior.
  */
@@ -89,6 +91,23 @@ export interface LLMSanitizerConfig {
     replacement: string;
     description: string;
   }[];
+
+  /**
+   * Custom replacement rules to be merged with the default sanitization rules.
+   * Use this to inject domain-specific rules (e.g., Java code handling, Python code handling)
+   * without modifying the core common library.
+   *
+   * These rules are appended to the default rule set and executed after the built-in rules.
+   *
+   * @example
+   * ```typescript
+   * import { JAVA_SPECIFIC_RULES } from "common/llm/json-processing/sanitizers/rules";
+   * const config: LLMSanitizerConfig = {
+   *   customReplacementRules: JAVA_SPECIFIC_RULES,
+   * };
+   * ```
+   */
+  readonly customReplacementRules?: readonly ReplacementRule[];
 }
 
 /**

@@ -7,6 +7,7 @@
  * - Rule executor engine
  * - Pre-defined rule sets organized by category
  * - Aggregated ALL_RULES constant for complete sanitization
+ * - Domain-specific rules (e.g., JAVA_SPECIFIC_RULES) for opt-in support
  */
 
 // Type exports
@@ -37,6 +38,9 @@ export { ARRAY_ELEMENT_RULES } from "./array-element-rules";
 export { STRUCTURAL_RULES } from "./structural-rules";
 export { EMBEDDED_CONTENT_RULES } from "./embedded-content-rules";
 
+// Domain-specific rule exports (opt-in for specific use cases)
+export { JAVA_SPECIFIC_RULES } from "./java-specific-rules";
+
 // Import all rules for aggregation
 import type { ReplacementRule } from "./replacement-rule.types";
 import { STRAY_CHARACTER_RULES } from "./stray-character-rules";
@@ -57,6 +61,10 @@ import { EMBEDDED_CONTENT_RULES } from "./embedded-content-rules";
  *
  * This ordering ensures that higher-level issues are resolved before
  * more specific pattern matching occurs.
+ *
+ * Note: Domain-specific rules (e.g., JAVA_SPECIFIC_RULES) are NOT included here.
+ * They should be injected via LLMSanitizerConfig.customReplacementRules by
+ * consuming applications that need them.
  */
 export const ALL_RULES: readonly ReplacementRule[] = [
   // First pass: Remove embedded non-JSON content
