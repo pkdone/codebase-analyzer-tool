@@ -1,5 +1,6 @@
 import "reflect-metadata";
 import { extractTriggerType } from "../../../../../src/app/components/reporting/sections/background-processes/job-trigger-parser";
+import { UNKNOWN_VALUE_PLACEHOLDER } from "../../../../../src/app/components/reporting/config/placeholders.config";
 
 describe("job-trigger-parser", () => {
   describe("extractTriggerType", () => {
@@ -86,9 +87,16 @@ describe("job-trigger-parser", () => {
       expect(extractTriggerType("boot, startup")).toBe("boot");
     });
 
-    it("should return 'unknown' for empty strings", () => {
-      expect(extractTriggerType("")).toBe("unknown");
-      expect(extractTriggerType("   ")).toBe("unknown");
+    it("should return UNKNOWN_VALUE_PLACEHOLDER for empty strings", () => {
+      expect(extractTriggerType("")).toBe(UNKNOWN_VALUE_PLACEHOLDER);
+      expect(extractTriggerType("   ")).toBe(UNKNOWN_VALUE_PLACEHOLDER);
+    });
+
+    it("should use the centralized placeholder constant value", () => {
+      // Verify the placeholder constant is being used (not a hardcoded string)
+      const result = extractTriggerType("");
+      expect(result).toBe(UNKNOWN_VALUE_PLACEHOLDER);
+      expect(UNKNOWN_VALUE_PLACEHOLDER).toBe("unknown"); // Verify the constant value
     });
 
     it("should prioritize more specific patterns", () => {

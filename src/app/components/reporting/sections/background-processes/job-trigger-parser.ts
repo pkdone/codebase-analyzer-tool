@@ -3,6 +3,8 @@
  * Handles various formats like "cron: 0 2 * * *", "schedule: daily", etc.
  */
 
+import { UNKNOWN_VALUE_PLACEHOLDER } from "../../config/placeholders.config";
+
 /**
  * Trigger type patterns ordered from most specific to least specific.
  * More specific patterns must come first to prevent false matches.
@@ -28,7 +30,7 @@ export function extractTriggerType(trigger: string): string {
 
   // Handle empty strings
   if (trimmed === "") {
-    return "unknown";
+    return UNKNOWN_VALUE_PLACEHOLDER;
   }
 
   const normalized = trimmed.toLowerCase();
