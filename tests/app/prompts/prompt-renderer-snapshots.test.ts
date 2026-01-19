@@ -4,14 +4,12 @@ import {
 } from "../../../src/common/prompts/json-schema-prompt";
 import { DEFAULT_PERSONA_INTRODUCTION } from "../../../src/app/prompts/prompt-builders";
 import {
-  appSummaryConfigMap,
-  FILE_SUMMARIES_DATA_BLOCK_HEADER,
-  APP_SUMMARY_CONTENT_DESC,
-} from "../../../src/app/prompts/app-summaries/app-summaries.definitions";
-import {
-  fileTypePromptRegistry,
   CODE_DATA_BLOCK_HEADER,
-} from "../../../src/app/prompts/sources/sources.definitions";
+  FILE_SUMMARIES_DATA_BLOCK_HEADER,
+} from "../../../src/app/prompts/prompts.constants";
+import { appSummaryConfigMap } from "../../../src/app/prompts/app-summaries/app-summaries.definitions";
+import { APP_SUMMARY_CONTENT_DESC } from "../../../src/app/prompts/app-summaries/app-summaries.fragments";
+import { fileTypePromptRegistry } from "../../../src/app/prompts/sources/sources.definitions";
 
 /**
  * Helper to create a JSONSchemaPrompt from fileTypePromptRegistry config.

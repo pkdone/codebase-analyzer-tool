@@ -5,14 +5,7 @@ import {
   type LanguageSpecificFragments,
 } from "../sources.fragments";
 import { sourceSummarySchema, commonSourceAnalysisSchema } from "../../../schemas/sources.schema";
-import {
-  INSTRUCTION_SECTION_TITLES,
-  type InstructionSectionTitle,
-  buildInstructionBlock,
-} from "../utils";
-
-// Re-export utilities from the new location for backward compatibility in this module's exports
-export { INSTRUCTION_SECTION_TITLES, type InstructionSectionTitle, buildInstructionBlock };
+import { INSTRUCTION_SECTION_TITLES, buildInstructionBlock } from "../utils";
 
 /**
  * Configuration entry for a source prompt definition.

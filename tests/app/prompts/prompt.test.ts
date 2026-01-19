@@ -3,12 +3,10 @@ import {
   type JSONSchemaPromptConfig,
 } from "../../../src/common/prompts/json-schema-prompt";
 import { DEFAULT_PERSONA_INTRODUCTION } from "../../../src/app/prompts/prompt-builders";
-import {
-  fileTypePromptRegistry,
-  CODE_DATA_BLOCK_HEADER,
-} from "../../../src/app/prompts/sources/sources.definitions";
+import { CODE_DATA_BLOCK_HEADER } from "../../../src/app/prompts/prompts.constants";
+import { fileTypePromptRegistry } from "../../../src/app/prompts/sources/sources.definitions";
 import { SOURCES_PROMPT_FRAGMENTS } from "../../../src/app/prompts/sources/sources.fragments";
-import { INSTRUCTION_SECTION_TITLES } from "../../../src/app/prompts/sources/definitions/source-config-factories";
+import { INSTRUCTION_SECTION_TITLES } from "../../../src/app/prompts/sources/utils";
 
 /**
  * Helper to create a JSONSchemaPrompt from fileTypePromptRegistry config.

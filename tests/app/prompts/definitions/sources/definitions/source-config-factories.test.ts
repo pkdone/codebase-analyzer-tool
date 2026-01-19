@@ -4,9 +4,11 @@ import {
   createScheduledJobConfig,
   createStandardCodeConfig,
   scheduledJobFileSchema,
+} from "../../../../../../src/app/prompts/sources/definitions/source-config-factories";
+import {
   INSTRUCTION_SECTION_TITLES,
   buildInstructionBlock,
-} from "../../../../../../src/app/prompts/sources/definitions/source-config-factories";
+} from "../../../../../../src/app/prompts/sources/utils";
 import { SOURCES_PROMPT_FRAGMENTS } from "../../../../../../src/app/prompts/sources/sources.fragments";
 
 describe("source-config-factories", () => {

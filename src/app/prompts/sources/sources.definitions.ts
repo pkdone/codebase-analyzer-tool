@@ -5,11 +5,6 @@ import { dependencyFileDefinitions } from "./definitions/dependency-files.defini
 import { specialFileDefinitions } from "./definitions/special-files.definitions";
 
 /**
- * Data block header for source code analysis prompts.
- */
-export const CODE_DATA_BLOCK_HEADER = "CODE" as const;
-
-/**
  * Centralized registry mapping file types to their prompt definitions and schemas.
  * Each entry directly defines its responseSchema using sourceSummarySchema.pick().
  *

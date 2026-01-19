@@ -1,8 +1,6 @@
 import "reflect-metadata";
-import {
-  fileTypePromptRegistry,
-  CODE_DATA_BLOCK_HEADER,
-} from "../../../../src/app/prompts/sources/sources.definitions";
+import { CODE_DATA_BLOCK_HEADER } from "../../../../src/app/prompts/prompts.constants";
+import { fileTypePromptRegistry } from "../../../../src/app/prompts/sources/sources.definitions";
 import {
   JSONSchemaPrompt,
   type JSONSchemaPromptConfig,

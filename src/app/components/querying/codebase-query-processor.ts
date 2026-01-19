@@ -1,4 +1,3 @@
-import { fillPrompt } from "type-safe-prompt";
 import LLMRouter from "../../../common/llm/llm-router";
 import { LLMOutputFormat } from "../../../common/llm/types/llm.types";
 import type { SourcesRepository } from "../../repositories/sources/sources.repository.interface";
@@ -6,31 +5,7 @@ import type { ProjectedSourceMetadataContentAndSummary } from "../../repositorie
 import { queryingInputConfig } from "./querying-input.config";
 import { formatFilesAsMarkdownCodeBlocks } from "../../../common/utils/markdown-formatter";
 import { isOk } from "../../../common/types/result.types";
-
-/**
- * Template for querying the codebase with a specific question.
- * Used for RAG (Retrieval-Augmented Generation) workflows where vector search results
- * are provided as context for answering developer questions about the codebase.
- */
-const CODEBASE_QUERY_TEMPLATE = `Act as a senior developer analyzing the code in an existing application. I've provided the content of some source code files below in the section marked 'CODE'. Using all that code for context, answer the question a developer has asked about the code, where their question is shown in the section marked 'QUESTION' below. Provide your answer in a few paragraphs, referring to specific evidence in the provided code.
-
-QUESTION:
-{{question}}
-
-CODE:
-{{content}}`;
-
-/**
- * Creates a prompt for querying the codebase with a specific question.
- * This prompt instructs the LLM to act as a programmer and answer questions about provided code.
- *
- * @param question - The developer's question about the code
- * @param codeContent - The formatted code content to use as context
- * @returns The filled prompt string
- */
-function createCodebaseQueryPrompt(question: string, codeContent: string): string {
-  return fillPrompt(CODEBASE_QUERY_TEMPLATE, { question, content: codeContent });
-}
+import { buildQueryPrompt } from "../../prompts/prompt-builders";
 
 /**
  * Formats source file metadata into markdown code blocks for LLM prompts.
@@ -93,7 +68,7 @@ export async function queryCodebaseWithQuestion(
 
   const codeBlocksAsText = formatSourcesForPrompt(bestMatchFiles);
   const resourceName = `Codebase query`;
-  const prompt = createCodebaseQueryPrompt(question, codeBlocksAsText);
+  const prompt = buildQueryPrompt(question, codeBlocksAsText);
   const result = await llmRouter.executeCompletion(resourceName, prompt, {
     outputFormat: LLMOutputFormat.TEXT,
   });

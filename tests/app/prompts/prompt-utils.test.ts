@@ -1,7 +1,7 @@
 import {
   buildInstructionBlock,
   INSTRUCTION_SECTION_TITLES,
-} from "../../../src/app/prompts/sources/definitions/source-config-factories";
+} from "../../../src/app/prompts/sources/utils";
 
 /**
  * Tests for buildInstructionBlock function.

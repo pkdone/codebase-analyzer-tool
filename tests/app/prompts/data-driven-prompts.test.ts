@@ -1,13 +1,11 @@
 import { z } from "zod";
 import {
-  appSummaryConfigMap,
-  FILE_SUMMARIES_DATA_BLOCK_HEADER,
-  APP_SUMMARY_CONTENT_DESC,
-} from "../../../src/app/prompts/app-summaries/app-summaries.definitions";
-import {
-  fileTypePromptRegistry,
   CODE_DATA_BLOCK_HEADER,
-} from "../../../src/app/prompts/sources/sources.definitions";
+  FILE_SUMMARIES_DATA_BLOCK_HEADER,
+} from "../../../src/app/prompts/prompts.constants";
+import { appSummaryConfigMap } from "../../../src/app/prompts/app-summaries/app-summaries.definitions";
+import { APP_SUMMARY_CONTENT_DESC } from "../../../src/app/prompts/app-summaries/app-summaries.fragments";
+import { fileTypePromptRegistry } from "../../../src/app/prompts/sources/sources.definitions";
 import {
   JSONSchemaPrompt,
   type JSONSchemaPromptConfig,

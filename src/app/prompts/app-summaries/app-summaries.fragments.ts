@@ -1,9 +1,4 @@
 /**
- * Data block header for file summary analysis prompts.
- */
-export const FILE_SUMMARIES_DATA_BLOCK_HEADER = "FILE_SUMMARIES" as const;
-
-/**
  * Default content description for app summary prompts.
  * All app summaries analyze file summaries from the codebase.
  */

@@ -5,14 +5,20 @@
 import "reflect-metadata";
 import { describe, test, expect } from "@jest/globals";
 import { z } from "zod";
-import { buildSourcePrompt, buildInsightPrompt } from "../../../src/app/prompts/prompt-builders";
-import type { FileTypePromptRegistry } from "../../../src/app/prompts/sources/sources.definitions";
-import { DEFAULT_PERSONA_INTRODUCTION } from "../../../src/app/prompts/prompt-builders";
 import {
-  APP_SUMMARY_CONTENT_DESC,
+  buildSourcePrompt,
+  buildInsightPrompt,
+  buildReducePrompt,
+  buildQueryPrompt,
+  DEFAULT_PERSONA_INTRODUCTION,
+} from "../../../src/app/prompts/prompt-builders";
+import type { FileTypePromptRegistry } from "../../../src/app/prompts/sources/sources.definitions";
+import {
+  FRAGMENTED_DATA_BLOCK_HEADER,
   FILE_SUMMARIES_DATA_BLOCK_HEADER,
-  appSummaryConfigMap,
-} from "../../../src/app/prompts/app-summaries/app-summaries.definitions";
+} from "../../../src/app/prompts/prompts.constants";
+import { APP_SUMMARY_CONTENT_DESC } from "../../../src/app/prompts/app-summaries/app-summaries.fragments";
+import { appSummaryConfigMap } from "../../../src/app/prompts/app-summaries/app-summaries.definitions";
 import type { AppSummaryConfigMap } from "../../../src/app/prompts/app-summaries/app-summaries.definitions";
 
 describe("buildSourcePrompt", () => {
@@ -249,5 +255,127 @@ describe("Prompt output consistency", () => {
     expect(result.prompt).toContain(APP_SUMMARY_CONTENT_DESC);
     expect(result.prompt).toContain(`${FILE_SUMMARIES_DATA_BLOCK_HEADER}:`);
     expect(result.prompt).toContain(content);
+  });
+});
+
+describe("buildReducePrompt", () => {
+  const mockSchema = z.object({
+    technologies: z.array(
+      z.object({
+        name: z.string(),
+        description: z.string(),
+      }),
+    ),
+  });
+
+  test("should return a ReducePromptResult with all required fields", () => {
+    const content = JSON.stringify({ technologies: [] });
+    const result = buildReducePrompt("technologies", content, mockSchema);
+
+    expect(result).toHaveProperty("prompt");
+    expect(result).toHaveProperty("schema");
+  });
+
+  test("should include DEFAULT_PERSONA_INTRODUCTION in the prompt", () => {
+    const content = JSON.stringify({ technologies: [] });
+    const result = buildReducePrompt("technologies", content, mockSchema);
+
+    expect(result.prompt).toContain(DEFAULT_PERSONA_INTRODUCTION);
+  });
+
+  test("should include FRAGMENTED_DATA data block header in the prompt", () => {
+    const content = JSON.stringify({ technologies: [] });
+    const result = buildReducePrompt("technologies", content, mockSchema);
+
+    expect(result.prompt).toContain(`${FRAGMENTED_DATA_BLOCK_HEADER}:`);
+  });
+
+  test("should include categoryKey in the instructions", () => {
+    const content = JSON.stringify({ technologies: [] });
+    const result = buildReducePrompt("technologies", content, mockSchema);
+
+    expect(result.prompt).toContain("technologies");
+  });
+
+  test("should include the content in the prompt", () => {
+    const content = JSON.stringify({
+      technologies: [{ name: "TypeScript", description: "Language" }],
+    });
+    const result = buildReducePrompt("technologies", content, mockSchema);
+
+    expect(result.prompt).toContain("TypeScript");
+  });
+
+  test("should return the provided schema", () => {
+    const content = JSON.stringify({ technologies: [] });
+    const result = buildReducePrompt("technologies", content, mockSchema);
+
+    expect(result.schema).toBe(mockSchema);
+  });
+
+  test("should include consolidation instructions", () => {
+    const content = JSON.stringify({ technologies: [] });
+    const result = buildReducePrompt("technologies", content, mockSchema);
+
+    expect(result.prompt).toContain("consolidated");
+  });
+
+  test("should include de-duplication context", () => {
+    const content = JSON.stringify({ technologies: [] });
+    const result = buildReducePrompt("technologies", content, mockSchema);
+
+    expect(result.prompt).toContain("de-duplicated");
+  });
+});
+
+describe("buildQueryPrompt", () => {
+  test("should return a non-empty string", () => {
+    const result = buildQueryPrompt("How does auth work?", "const auth = {};");
+
+    expect(typeof result).toBe("string");
+    expect(result.length).toBeGreaterThan(0);
+  });
+
+  test("should include DEFAULT_PERSONA_INTRODUCTION", () => {
+    const result = buildQueryPrompt("How does auth work?", "const auth = {};");
+
+    expect(result).toContain(DEFAULT_PERSONA_INTRODUCTION);
+  });
+
+  test("should include the question", () => {
+    const question = "How does authentication work?";
+    const result = buildQueryPrompt(question, "const auth = {};");
+
+    expect(result).toContain(question);
+  });
+
+  test("should include the code content", () => {
+    const codeContent = "export function authenticate() { return true; }";
+    const result = buildQueryPrompt("How does auth work?", codeContent);
+
+    expect(result).toContain(codeContent);
+  });
+
+  test("should include QUESTION section marker", () => {
+    const result = buildQueryPrompt("How does auth work?", "const auth = {};");
+
+    expect(result).toContain("QUESTION:");
+  });
+
+  test("should include CODE section marker", () => {
+    const result = buildQueryPrompt("How does auth work?", "const auth = {};");
+
+    expect(result).toContain("CODE:");
+  });
+
+  test("should format prompt in expected order", () => {
+    const result = buildQueryPrompt("Test question?", "test content");
+
+    const personaIndex = result.indexOf(DEFAULT_PERSONA_INTRODUCTION);
+    const questionIndex = result.indexOf("QUESTION:");
+    const codeIndex = result.indexOf("CODE:");
+
+    expect(personaIndex).toBeLessThan(questionIndex);
+    expect(questionIndex).toBeLessThan(codeIndex);
   });
 });

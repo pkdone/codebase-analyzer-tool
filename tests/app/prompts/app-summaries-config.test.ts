@@ -1,7 +1,5 @@
-import {
-  appSummaryConfigMap,
-  APP_SUMMARY_CONTENT_DESC,
-} from "../../../src/app/prompts/app-summaries/app-summaries.definitions";
+import { appSummaryConfigMap } from "../../../src/app/prompts/app-summaries/app-summaries.definitions";
+import { APP_SUMMARY_CONTENT_DESC } from "../../../src/app/prompts/app-summaries/app-summaries.fragments";
 import type { AppSummaryCategoryType } from "../../../src/app/components/insights/insights.types";
 
 const appSummaryPromptMetadata = appSummaryConfigMap;

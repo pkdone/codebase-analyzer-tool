@@ -1,7 +1,6 @@
 import { SOURCES_PROMPT_FRAGMENTS, COMPOSITES } from "../sources.fragments";
+import { INSTRUCTION_SECTION_TITLES, buildInstructionBlock } from "../utils";
 import {
-  INSTRUCTION_SECTION_TITLES,
-  buildInstructionBlock,
   createBasicInfoBlock,
   createCompositeSourceConfig,
   createScheduledJobConfig,

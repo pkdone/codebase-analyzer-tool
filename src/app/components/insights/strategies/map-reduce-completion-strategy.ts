@@ -19,14 +19,7 @@ import { getLlmArtifactCorrections } from "../../../llm";
 import { executeInsightCompletion } from "./insights-completion-executor";
 import { chunkTextByTokenLimit } from "../../../../common/llm/utils/text-chunking";
 import { isOk } from "../../../../common/types/result.types";
-import { buildReduceInsightsContentDesc } from "../../../prompts/app-summaries/app-summaries.fragments";
-import { JSONSchemaPrompt } from "../../../../common/prompts/json-schema-prompt";
-import { DEFAULT_PERSONA_INTRODUCTION } from "../../../prompts/prompt-builders";
-
-/**
- * Data block header for reduce insights prompts (consolidating fragmented data).
- */
-const FRAGMENTED_DATA_BLOCK_HEADER = "FRAGMENTED_DATA" as const;
+import { buildReducePrompt } from "../../../prompts/prompt-builders";
 
 /**
  * Map-reduce insight generation strategy for large codebases.
@@ -245,15 +238,7 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
       const categoryKey = Object.keys(schemaShape)[0] as keyof CategoryInsightResult<C>;
       const combinedData = this.combinePartialResultsData(category, partialResults);
       const content = JSON.stringify(combinedData, null, 2);
-      const promptGenerator = new JSONSchemaPrompt({
-        personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
-        contentDesc: buildReduceInsightsContentDesc(categoryKey as string),
-        instructions: [`* A consolidated list of '${String(categoryKey)}'`],
-        responseSchema: schema,
-        dataBlockHeader: FRAGMENTED_DATA_BLOCK_HEADER,
-        wrapInCodeBlock: false,
-      });
-      const renderedPrompt = promptGenerator.renderPrompt(content);
+      const { prompt: renderedPrompt } = buildReducePrompt(String(categoryKey), content, schema);
       const result = await this.llmRouter.executeCompletion(`${category}-reduce`, renderedPrompt, {
         outputFormat: LLMOutputFormat.JSON,
         jsonSchema: schema,
