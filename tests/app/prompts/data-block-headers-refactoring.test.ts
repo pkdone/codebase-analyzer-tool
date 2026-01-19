@@ -10,7 +10,7 @@ import {
 } from "../../../src/app/prompts/prompts.constants";
 import { fileTypePromptRegistry } from "../../../src/app/prompts/sources/sources.definitions";
 import { appSummaryConfigMap } from "../../../src/app/prompts/app-summaries/app-summaries.definitions";
-import { APP_SUMMARY_CONTENT_DESC } from "../../../src/app/prompts/app-summaries/app-summaries.fragments";
+import { APP_SUMMARY_CONTENT_DESC } from "../../../src/app/prompts/app-summaries/app-summaries.constants";
 
 /**
  * Helper to create a JSONSchemaPrompt from fileTypePromptRegistry config.

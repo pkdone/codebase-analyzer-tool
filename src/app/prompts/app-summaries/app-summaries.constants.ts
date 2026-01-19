@@ -1,11 +1,19 @@
 /**
+ * Constants and utility functions for app summary prompts.
+ *
+ * This module provides configuration values and helper functions used
+ * across app summary prompt definitions and reduce insight workflows.
+ */
+
+/**
  * Default content description for app summary prompts.
  * All app summaries analyze file summaries from the codebase.
  */
 export const APP_SUMMARY_CONTENT_DESC = "a set of source file summaries" as const;
 
 /**
- * Common instruction fragments used across multiple app summary templates
+ * Common instruction fragments used across multiple app summary templates.
+ * These fragments provide standardized prefixes for instruction lists.
  */
 export const APP_SUMMARY_PROMPT_FRAGMENTS = {
   DETAILED_DESC: "* A detailed description",

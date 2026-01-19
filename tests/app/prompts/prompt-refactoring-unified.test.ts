@@ -11,7 +11,7 @@ import { appSummaryConfigMap } from "../../../src/app/prompts/app-summaries/app-
 import {
   APP_SUMMARY_CONTENT_DESC,
   APP_SUMMARY_PROMPT_FRAGMENTS,
-} from "../../../src/app/prompts/app-summaries/app-summaries.fragments";
+} from "../../../src/app/prompts/app-summaries/app-summaries.constants";
 import { COMMON_FRAGMENTS } from "../../../src/app/prompts/sources/fragments";
 import { INSTRUCTION_SECTION_TITLES } from "../../../src/app/prompts/sources/utils";
 import { fileTypePromptRegistry } from "../../../src/app/prompts/sources/sources.definitions";

@@ -7,7 +7,7 @@ import {
   potentialMicroservicesSchema,
   technologiesSchema,
 } from "../../schemas/app-summaries.schema";
-import { APP_SUMMARY_PROMPT_FRAGMENTS, APP_SUMMARY_CONTENT_DESC } from "./app-summaries.fragments";
+import { APP_SUMMARY_PROMPT_FRAGMENTS, APP_SUMMARY_CONTENT_DESC } from "./app-summaries.constants";
 import { FILE_SUMMARIES_DATA_BLOCK_HEADER } from "../prompts.constants";
 import type { BasePromptConfigEntry } from "../prompts.types";
 

@@ -17,7 +17,7 @@ import {
   FRAGMENTED_DATA_BLOCK_HEADER,
   FILE_SUMMARIES_DATA_BLOCK_HEADER,
 } from "../../../src/app/prompts/prompts.constants";
-import { APP_SUMMARY_CONTENT_DESC } from "../../../src/app/prompts/app-summaries/app-summaries.fragments";
+import { APP_SUMMARY_CONTENT_DESC } from "../../../src/app/prompts/app-summaries/app-summaries.constants";
 import { appSummaryConfigMap } from "../../../src/app/prompts/app-summaries/app-summaries.definitions";
 import type { AppSummaryConfigMap } from "../../../src/app/prompts/app-summaries/app-summaries.definitions";
 

@@ -1,9 +1,11 @@
 /**
  * Tests verifying direct fragment imports work correctly after refactoring.
  * This ensures the barrel file exports all fragments correctly and they can be
- * imported directly without going through SOURCES_PROMPT_FRAGMENTS.
+ * imported directly without going through deprecated aggregation objects.
  */
 import {
+  // Type exports
+  type LanguageSpecificFragments,
   // Language-specific fragments
   JAVA_SPECIFIC_FRAGMENTS,
   JAVASCRIPT_SPECIFIC_FRAGMENTS,
@@ -34,6 +36,31 @@ import {
 } from "../../../../../src/app/prompts/sources/fragments";
 
 describe("Direct Fragment Imports", () => {
+  describe("Type exports", () => {
+    it("should export LanguageSpecificFragments type from barrel file", () => {
+      // This test verifies compile-time type availability
+      // The type assertion will fail at compile time if the type is not exported
+      const testFragment: LanguageSpecificFragments = {
+        INTERNAL_REFS: "test internal refs",
+        EXTERNAL_REFS: "test external refs",
+        PUBLIC_CONSTANTS: "test constants",
+        PUBLIC_FUNCTIONS: "test functions",
+        INTEGRATION_INSTRUCTIONS: "test integration",
+        DB_MECHANISM_MAPPING: "test db mapping",
+      };
+      expect(testFragment.INTERNAL_REFS).toBe("test internal refs");
+    });
+
+    it("should allow using LanguageSpecificFragments to type-check fragment objects", () => {
+      // Verify that existing fragment objects conform to the interface
+      const javaFragments: LanguageSpecificFragments = JAVA_SPECIFIC_FRAGMENTS;
+      const jsFragments: LanguageSpecificFragments = JAVASCRIPT_SPECIFIC_FRAGMENTS;
+
+      expect(javaFragments.INTERNAL_REFS).toBeDefined();
+      expect(jsFragments.PUBLIC_FUNCTIONS).toBeDefined();
+    });
+  });
+
   describe("Language-specific fragments", () => {
     it("should export JAVA_SPECIFIC_FRAGMENTS with required fields", () => {
       expect(JAVA_SPECIFIC_FRAGMENTS).toBeDefined();

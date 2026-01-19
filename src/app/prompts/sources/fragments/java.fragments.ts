@@ -1,5 +1,5 @@
 import { createDbMechanismInstructions } from "../utils";
-import type { LanguageSpecificFragments } from "../sources.fragments";
+import type { LanguageSpecificFragments } from "../sources.types";
 import { MECHANISM_DESCRIPTIONS } from "./common.fragments";
 
 /**

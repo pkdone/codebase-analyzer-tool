@@ -18,7 +18,7 @@ import {
   appSummaryConfigMap,
   type AppSummaryConfigMap,
 } from "./app-summaries/app-summaries.definitions";
-import { buildReduceInsightsContentDesc } from "./app-summaries/app-summaries.fragments";
+import { buildReduceInsightsContentDesc } from "./app-summaries/app-summaries.constants";
 import type { CanonicalFileType } from "../schemas/canonical-file-types";
 import {
   DEFAULT_PERSONA_INTRODUCTION,

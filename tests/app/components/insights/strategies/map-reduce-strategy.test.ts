@@ -1,6 +1,6 @@
 import { JSONSchemaPrompt } from "../../../../../src/common/prompts/json-schema-prompt";
 import { DEFAULT_PERSONA_INTRODUCTION } from "../../../../../src/app/prompts/prompt-builders";
-import { buildReduceInsightsContentDesc } from "../../../../../src/app/prompts/app-summaries/app-summaries.fragments";
+import { buildReduceInsightsContentDesc } from "../../../../../src/app/prompts/app-summaries/app-summaries.constants";
 import { z } from "zod";
 
 describe("MapReduceInsightStrategy - categoryKey parameter handling", () => {

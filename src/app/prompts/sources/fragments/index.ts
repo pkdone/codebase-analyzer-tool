@@ -3,6 +3,9 @@
  * This module aggregates fragments from language-specific and file-type-specific modules.
  */
 
+// Type exports
+export type { LanguageSpecificFragments } from "../sources.types";
+
 // Common fragments
 export {
   COMMON_FRAGMENTS,
