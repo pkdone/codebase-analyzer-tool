@@ -7,6 +7,7 @@ import {
   type FileTypeData,
 } from "../../../../../src/app/components/reporting/sections/file-types/pie-chart-calculator";
 import { pieChartConfig } from "../../../../../src/app/components/reporting/sections/file-types/pie-chart.config";
+import { UNKNOWN_VALUE_PLACEHOLDER } from "../../../../../src/app/components/reporting/config/placeholders.config";
 
 describe("pie-chart-calculator", () => {
   describe("calculatePieChartData", () => {
@@ -87,10 +88,10 @@ describe("pie-chart-calculator", () => {
       expect(result.slices[1].showLabel).toBe(false);
     });
 
-    it("should use 'unknown' for empty file type labels", () => {
+    it("should use UNKNOWN_VALUE_PLACEHOLDER for empty file type labels", () => {
       const data: FileTypeData[] = [{ fileType: "", files: 10, lines: 100 }];
       const result = calculatePieChartData(data);
-      expect(result.slices[0].label).toBe("unknown");
+      expect(result.slices[0].label).toBe(UNKNOWN_VALUE_PLACEHOLDER);
     });
 
     it("should include config values for template rendering", () => {

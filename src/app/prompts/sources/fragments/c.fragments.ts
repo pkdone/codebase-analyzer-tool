@@ -1,5 +1,6 @@
 import { createDbMechanismInstructions } from "../utils";
 import type { LanguageSpecificFragments } from "../sources.fragments";
+import { MECHANISM_DESCRIPTIONS } from "./common.fragments";
 
 /**
  * C-specific instruction fragments.
@@ -17,7 +18,7 @@ export const C_SPECIFIC_FRAGMENTS: LanguageSpecificFragments = {
   INTEGRATION_INSTRUCTIONS: `  * Socket programming (mechanism: 'OTHER' - describe as 'TCP/IP Sockets' or 'UDP Sockets'):
     - BSD socket API: socket(), bind(), listen(), accept(), connect(), send(), recv(), sendto(), recvfrom()
     - Include socket type (SOCK_STREAM for TCP, SOCK_DGRAM for UDP) and role (server/client)
-  * HTTP client libraries (mechanism: 'REST'):
+  * HTTP client libraries ${MECHANISM_DESCRIPTIONS.REST}:
     - libcurl usage: curl_easy_init(), curl_easy_setopt(), curl_easy_perform()
     - Include URL patterns and HTTP methods if identifiable
   * IPC mechanisms (mechanism: 'OTHER' - describe specific IPC type):

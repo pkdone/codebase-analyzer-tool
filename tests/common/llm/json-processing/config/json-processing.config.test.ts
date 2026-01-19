@@ -2,6 +2,7 @@ import {
   DELIMITERS,
   concatenationConfig,
   processingConfig,
+  strayContentDetectionConfig,
   sanitizationConfig,
 } from "../../../../../src/common/llm/json-processing/constants/json-processing.config";
 
@@ -50,6 +51,8 @@ describe("json-processing.config", () => {
     it("should contain all expected configuration values", () => {
       expect(processingConfig.TRUNCATION_SAFETY_BUFFER).toBe(100);
       expect(processingConfig.MAX_RECURSION_DEPTH).toBe(4);
+      expect(processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY).toBe(20);
+      expect(processingConfig.DIAGNOSTIC_TRUNCATION_LENGTH).toBe(30);
     });
 
     it("should be frozen to prevent mutations", () => {
@@ -59,10 +62,26 @@ describe("json-processing.config", () => {
     });
   });
 
+  describe("strayContentDetectionConfig", () => {
+    it("should contain all expected configuration values", () => {
+      expect(strayContentDetectionConfig.MAX_LENGTH).toBe(15);
+      expect(strayContentDetectionConfig.DETECT_SENTENCES).toBe(true);
+      expect(strayContentDetectionConfig.DETECT_YAML_PATTERNS).toBe(true);
+      expect(strayContentDetectionConfig.DETECT_ASSIGNMENT_PATTERNS).toBe(true);
+    });
+
+    it("should be frozen to prevent mutations", () => {
+      expect(() => {
+        (strayContentDetectionConfig as any).MAX_LENGTH = 100;
+      }).toThrow();
+    });
+  });
+
   describe("sanitizationConfig", () => {
-    it("should combine concatenation and processing configs", () => {
+    it("should combine all sub-configs", () => {
       expect(sanitizationConfig.concatenation).toBe(concatenationConfig);
       expect(sanitizationConfig.processing).toBe(processingConfig);
+      expect(sanitizationConfig.strayContentDetection).toBe(strayContentDetectionConfig);
     });
 
     it("should be frozen to prevent mutations", () => {

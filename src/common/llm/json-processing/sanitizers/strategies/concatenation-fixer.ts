@@ -6,9 +6,7 @@
 import type { LLMSanitizerConfig } from "../../../config/llm-module-config.types";
 import type { SanitizerStrategy, StrategyResult } from "../pipeline/sanitizer-pipeline.types";
 import { CONCATENATION_REGEXES } from "../../constants/regex.constants";
-
-/** Truncation length for diagnostic messages */
-const DIAGNOSTIC_TRUNCATION_LENGTH = 30;
+import { processingConfig } from "../../constants/json-processing.config";
 
 /**
  * Strategy that fixes concatenation chains in JSON values.
@@ -38,8 +36,8 @@ export const concatenationFixer: SanitizerStrategy = {
       CONCATENATION_REGEXES.IDENTIFIER_THEN_LITERAL,
       (_match: string, prefix: string, literal: string) => {
         const truncatedLiteral =
-          literal.length > DIAGNOSTIC_TRUNCATION_LENGTH
-            ? `${literal.substring(0, DIAGNOSTIC_TRUNCATION_LENGTH)}...`
+          literal.length > processingConfig.DIAGNOSTIC_TRUNCATION_LENGTH
+            ? `${literal.substring(0, processingConfig.DIAGNOSTIC_TRUNCATION_LENGTH)}...`
             : literal;
         repairs.push(`Kept literal "${truncatedLiteral}" from identifier chain`);
         changeCount++;
@@ -52,8 +50,8 @@ export const concatenationFixer: SanitizerStrategy = {
       CONCATENATION_REGEXES.LITERAL_THEN_IDENTIFIER,
       (_match: string, prefix: string, literal: string) => {
         const truncatedLiteral =
-          literal.length > DIAGNOSTIC_TRUNCATION_LENGTH
-            ? `${literal.substring(0, DIAGNOSTIC_TRUNCATION_LENGTH)}...`
+          literal.length > processingConfig.DIAGNOSTIC_TRUNCATION_LENGTH
+            ? `${literal.substring(0, processingConfig.DIAGNOSTIC_TRUNCATION_LENGTH)}...`
             : literal;
         repairs.push(`Removed trailing identifiers after literal "${truncatedLiteral}"`);
         changeCount++;

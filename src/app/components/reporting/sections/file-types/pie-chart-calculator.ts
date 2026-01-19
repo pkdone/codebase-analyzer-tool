@@ -5,6 +5,7 @@
 
 import { pieChartConfig } from "./pie-chart.config";
 import type { PieChartData, PieChartSlice } from "./pie-chart.types";
+import { UNKNOWN_VALUE_PLACEHOLDER } from "../../config/placeholders.config";
 
 /**
  * File type data structure expected as input.
@@ -103,7 +104,7 @@ export function calculatePieChartData(fileTypesData: FileTypeData[]): PieChartDa
     );
 
     const slice: PieChartSlice = {
-      label: item.fileType || "unknown",
+      label: item.fileType || UNKNOWN_VALUE_PLACEHOLDER,
       value: item.files,
       percentage,
       color: getSliceColor(index),

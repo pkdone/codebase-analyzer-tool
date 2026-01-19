@@ -152,6 +152,38 @@ export const processingConfig = Object.freeze({
    * Prevents excessive memory usage when processing large/malformed JSON.
    */
   MAX_DIAGNOSTICS_PER_STRATEGY: 20,
+
+  /**
+   * Truncation length for diagnostic messages in sanitizers.
+   * Limits string length in log/diagnostic output to keep messages readable.
+   */
+  DIAGNOSTIC_TRUNCATION_LENGTH: 30,
+});
+
+/**
+ * Configuration for stray content detection in the StrayContentRemover strategy.
+ * These are more permissive detection options compared to the general parsing heuristics.
+ */
+export const strayContentDetectionConfig = Object.freeze({
+  /**
+   * Maximum length of text to consider as stray content.
+   */
+  MAX_LENGTH: 15,
+
+  /**
+   * Whether to detect sentence fragments as stray content.
+   */
+  DETECT_SENTENCES: true,
+
+  /**
+   * Whether to detect YAML-like patterns as stray content.
+   */
+  DETECT_YAML_PATTERNS: true,
+
+  /**
+   * Whether to detect variable assignment patterns as stray content.
+   */
+  DETECT_ASSIGNMENT_PATTERNS: true,
 });
 
 /**
@@ -188,4 +220,5 @@ export const sanitizationConfig = Object.freeze({
   concatenation: concatenationConfig,
   processing: processingConfig,
   parsing: parsingHeuristics,
+  strayContentDetection: strayContentDetectionConfig,
 });

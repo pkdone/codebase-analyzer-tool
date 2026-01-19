@@ -1,5 +1,6 @@
 import { createDbMechanismInstructions } from "../utils";
 import type { LanguageSpecificFragments } from "../sources.fragments";
+import { MECHANISM_DESCRIPTIONS } from "./common.fragments";
 
 /**
  * C++-specific instruction fragments.
@@ -18,14 +19,14 @@ export const CPP_SPECIFIC_FRAGMENTS: LanguageSpecificFragments = {
   INTEGRATION_INSTRUCTIONS: `  * Socket programming (mechanism: 'OTHER' - describe as 'TCP/IP Sockets'):
     - BSD socket API or C++ wrappers: socket(), bind(), listen(), accept(), connect()
     - Boost.Asio: boost::asio::ip::tcp::socket, async_read, async_write
-  * HTTP client libraries (mechanism: 'REST'):
+  * HTTP client libraries ${MECHANISM_DESCRIPTIONS.REST}:
     - libcurl (C++ wrapper or direct): curl_easy_init(), CURLOPT_URL
     - C++ REST SDK (cpprestsdk): web::http::client::http_client
     - Boost.Beast: beast::http::request, beast::http::response
-  * Qt networking (mechanism: 'REST' or 'WEBSOCKET'):
+  * Qt networking ${MECHANISM_DESCRIPTIONS.REST} or ${MECHANISM_DESCRIPTIONS.WEBSOCKET}:
     - QNetworkAccessManager, QNetworkRequest, QNetworkReply
     - QTcpSocket, QUdpSocket, QWebSocket
-  * gRPC (mechanism: 'GRPC'):
+  * gRPC ${MECHANISM_DESCRIPTIONS.GRPC}:
     - grpc::Server, grpc::ServerBuilder
     - grpc::Channel, grpc::ClientContext, stub classes
   * Messaging (mechanism varies):

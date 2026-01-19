@@ -6,6 +6,7 @@
 import type { LLMSanitizerConfig } from "../../../config/llm-module-config.types";
 import type { SanitizerStrategy, StrategyResult } from "../pipeline/sanitizer-pipeline.types";
 import { isInStringAt } from "../../utils/parser-context-utils";
+import { isJsonKeyword } from "../../utils/stray-text-detection";
 import { DiagnosticCollector } from "../../utils/diagnostic-collector";
 import { processingConfig, parsingHeuristics } from "../../constants/json-processing.config";
 
@@ -200,8 +201,8 @@ export const assignmentSyntaxFixer: SanitizerStrategy = {
             return match;
           }
 
-          const lowerValue = valueStr.toLowerCase();
-          if (lowerValue === "true" || lowerValue === "false" || lowerValue === "null") {
+          // Skip JSON keywords (true, false, null, undefined)
+          if (isJsonKeyword(valueStr)) {
             return match;
           }
 
@@ -238,9 +239,8 @@ export const assignmentSyntaxFixer: SanitizerStrategy = {
           return match;
         }
 
-        const jsonKeywords = ["true", "false", "null", "undefined"];
-        const lowerValue = unquotedValueStr.toLowerCase();
-        if (jsonKeywords.includes(lowerValue)) {
+        // Skip JSON keywords (true, false, null, undefined)
+        if (isJsonKeyword(unquotedValueStr)) {
           return match;
         }
 

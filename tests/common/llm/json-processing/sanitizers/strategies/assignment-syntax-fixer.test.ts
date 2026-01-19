@@ -61,6 +61,13 @@ describe("assignmentSyntaxFixer", () => {
     expect(result.changed).toBe(false);
   });
 
+  it("should not change undefined literals", () => {
+    const input = '{"value": undefined}';
+    const result = assignmentSyntaxFixer.apply(input);
+    expect(result.content).toBe(input);
+    expect(result.changed).toBe(false);
+  });
+
   it("should not change numeric values", () => {
     const input = '{"count": 42}';
     const result = assignmentSyntaxFixer.apply(input);

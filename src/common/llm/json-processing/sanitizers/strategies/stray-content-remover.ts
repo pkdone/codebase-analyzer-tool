@@ -9,15 +9,11 @@ import type { SanitizerStrategy, StrategyResult } from "../pipeline/sanitizer-pi
 import { isInStringAt } from "../../utils/parser-context-utils";
 import { looksLikeStrayText } from "../../utils/stray-text-detection";
 import { DiagnosticCollector } from "../../utils/diagnostic-collector";
-import { processingConfig, parsingHeuristics } from "../../constants/json-processing.config";
-
-/** Options for stray content remover - more permissive detection */
-const STRAY_CONTENT_DETECTION_OPTIONS = {
-  maxLength: 15,
-  detectSentences: true,
-  detectYamlPatterns: true,
-  detectAssignmentPatterns: true,
-};
+import {
+  processingConfig,
+  parsingHeuristics,
+  strayContentDetectionConfig,
+} from "../../constants/json-processing.config";
 
 /**
  * Strategy that removes stray content from JSON.
@@ -174,7 +170,14 @@ export const strayContentRemover: SanitizerStrategy = {
         const strayTextStr = typeof strayText === "string" ? strayText : "";
 
         // Check if it looks like stray text (not a valid JSON element)
-        if (looksLikeStrayText(strayTextStr, STRAY_CONTENT_DETECTION_OPTIONS)) {
+        if (
+          looksLikeStrayText(strayTextStr, {
+            maxLength: strayContentDetectionConfig.MAX_LENGTH,
+            detectSentences: strayContentDetectionConfig.DETECT_SENTENCES,
+            detectYamlPatterns: strayContentDetectionConfig.DETECT_YAML_PATTERNS,
+            detectAssignmentPatterns: strayContentDetectionConfig.DETECT_ASSIGNMENT_PATTERNS,
+          })
+        ) {
           const delimiterStr = typeof delimiter === "string" ? delimiter : "";
           const continuationStr = typeof continuation === "string" ? continuation : "";
           hasChanges = true;
