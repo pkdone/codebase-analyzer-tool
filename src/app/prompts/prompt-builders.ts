@@ -66,6 +66,19 @@ export interface InsightPromptOptions {
 }
 
 /**
+ * Builds a contextual note for partial/chunked analysis prompts.
+ * This function constructs a standardized note that indicates to the LLM
+ * that the current content is a subset of a larger analysis.
+ *
+ * @param dataBlockHeader - The data block header (e.g., "FILE_SUMMARIES")
+ * @returns A formatted note string with trailing newlines for prompt formatting
+ */
+function buildPartialAnalysisNote(dataBlockHeader: string): string {
+  const formattedHeader = dataBlockHeader.toLowerCase().replace(/_/g, " ");
+  return `Note, this is a partial analysis of what is a much larger set of ${formattedHeader}; focus on extracting insights from this subset of ${formattedHeader} only.\n\n`;
+}
+
+/**
  * Builds a prompt for analyzing source code files.
  *
  * This function encapsulates the prompt construction logic for source file analysis,
@@ -133,6 +146,9 @@ export function buildInsightPrompt<C extends keyof AppSummaryConfigMap>(
   options?: InsightPromptOptions,
 ): InsightPromptResult<C> {
   const config = appSummaryConfigMap[category];
+  const contextNote = options?.forPartialAnalysis
+    ? buildPartialAnalysisNote(config.dataBlockHeader)
+    : undefined;
   const promptGenerator = new JSONSchemaPrompt({
     personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
     contentDesc: config.contentDesc,
@@ -140,7 +156,7 @@ export function buildInsightPrompt<C extends keyof AppSummaryConfigMap>(
     responseSchema: config.responseSchema,
     dataBlockHeader: config.dataBlockHeader,
     wrapInCodeBlock: false,
-    forPartialAnalysis: options?.forPartialAnalysis,
+    contextNote,
   });
   return {
     prompt: promptGenerator.renderPrompt(content),

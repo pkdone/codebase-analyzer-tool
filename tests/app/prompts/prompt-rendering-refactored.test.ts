@@ -80,7 +80,7 @@ describe("JSONSchemaPrompt Rendering Refactoring Tests", () => {
       expect(rendered).toContain("First instruction\n\nSecond instruction\n\nThird instruction");
     });
 
-    test("should render without partialAnalysisNote placeholder", () => {
+    test("should render without contextNote placeholder", () => {
       const prompt = new JSONSchemaPrompt({
         personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
         contentDesc: "JavaScript code",
@@ -93,11 +93,13 @@ describe("JSONSchemaPrompt Rendering Refactoring Tests", () => {
       const rendered = prompt.renderPrompt("const x = 1;");
 
       // Should not contain any placeholder
-      expect(rendered).not.toContain("{{partialAnalysisNote}}");
+      expect(rendered).not.toContain("{{contextNote}}");
       expect(rendered).toContain("The JSON response must follow this JSON schema:");
     });
 
-    test("should render with partial analysis note when forPartialAnalysis is true", () => {
+    test("should render with partial analysis note when contextNote is provided", () => {
+      const contextNote =
+        "Note, this is a partial analysis of what is a much larger set of code; focus on extracting insights from this subset of code only.\n\n";
       const prompt = new JSONSchemaPrompt({
         personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
         contentDesc: "Ruby code",
@@ -105,7 +107,7 @@ describe("JSONSchemaPrompt Rendering Refactoring Tests", () => {
         responseSchema: z.object({ className: z.string() }),
         dataBlockHeader: "CODE",
         wrapInCodeBlock: false,
-        forPartialAnalysis: true,
+        contextNote,
       });
 
       const rendered = prompt.renderPrompt("class Foo; end");

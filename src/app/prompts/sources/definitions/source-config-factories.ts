@@ -9,9 +9,12 @@ import {
 import type { LanguageSpecificFragments } from "../sources.fragments";
 import { sourceSummarySchema, commonSourceAnalysisSchema } from "../../../schemas/sources.schema";
 import { INSTRUCTION_SECTION_TITLES, buildInstructionBlock } from "../utils";
+import type { BasePromptConfigEntry } from "../../prompts.types";
 
 /**
  * Configuration entry for a source prompt definition.
+ * Extends BasePromptConfigEntry with source-specific fields.
+ *
  * Contains only the category-specific fields; presentation fields (dataBlockHeader,
  * wrapInCodeBlock) are provided by the consumer (FileSummarizerService) at instantiation time.
  * Each entry directly includes the responseSchema using sourceSummarySchema.pick(),
@@ -19,13 +22,8 @@ import { INSTRUCTION_SECTION_TITLES, buildInstructionBlock } from "../utils";
  *
  * @template S - The Zod schema type for validating the LLM response. Defaults to z.ZodType for backward compatibility.
  */
-export interface SourceConfigEntry<S extends z.ZodType = z.ZodType> {
-  /** Description of the content being analyzed */
-  readonly contentDesc: string;
-  /** Array of instruction strings for the LLM */
-  readonly instructions: readonly string[];
-  /** Zod schema for validating the LLM response */
-  readonly responseSchema: S;
+export interface SourceConfigEntry<S extends z.ZodType = z.ZodType>
+  extends BasePromptConfigEntry<S> {
   /** Whether the schema is complex and incompatible with some LLM providers */
   readonly hasComplexSchema?: boolean;
 }

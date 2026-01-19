@@ -19,7 +19,7 @@ describe("prompts/templates", () => {
       expect(JSON_SCHEMA_PROMPT_TEMPLATE).toContain("{{schemaSection}}");
       expect(JSON_SCHEMA_PROMPT_TEMPLATE).toContain("{{content}}");
       expect(JSON_SCHEMA_PROMPT_TEMPLATE).toContain("{{contentWrapper}}");
-      expect(JSON_SCHEMA_PROMPT_TEMPLATE).toContain("{{partialAnalysisNote}}");
+      expect(JSON_SCHEMA_PROMPT_TEMPLATE).toContain("{{contextNote}}");
     });
 
     it("should contain the persona introduction placeholder", () => {
@@ -27,7 +27,7 @@ describe("prompts/templates", () => {
     });
   });
 
-  describe("forPartialAnalysis flag", () => {
+  describe("contextNote handling", () => {
     const testConfig = {
       personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
       contentDesc: "test content",
@@ -37,23 +37,25 @@ describe("prompts/templates", () => {
       wrapInCodeBlock: false,
     };
 
-    it("should include partial analysis note when forPartialAnalysis is true", () => {
-      const prompt = new JSONSchemaPrompt({ ...testConfig, forPartialAnalysis: true });
+    it("should include context note when contextNote is provided", () => {
+      const contextNote =
+        "Note, this is a partial analysis of what is a much larger set of test; focus on extracting insights from this subset of test only.\n\n";
+      const prompt = new JSONSchemaPrompt({ ...testConfig, contextNote });
       const rendered = prompt.renderPrompt("test data");
 
       expect(rendered).toContain("partial analysis");
       expect(rendered).toContain("focus on extracting insights from this subset");
     });
 
-    it("should NOT include partial analysis note when forPartialAnalysis is false", () => {
-      const prompt = new JSONSchemaPrompt({ ...testConfig, forPartialAnalysis: false });
+    it("should NOT include context note when contextNote is empty string", () => {
+      const prompt = new JSONSchemaPrompt({ ...testConfig, contextNote: "" });
       const rendered = prompt.renderPrompt("test data");
 
       expect(rendered).not.toContain("partial analysis");
       expect(rendered).not.toContain("focus on extracting insights from this subset");
     });
 
-    it("should NOT include partial analysis note when forPartialAnalysis is omitted", () => {
+    it("should NOT include context note when contextNote is omitted", () => {
       const prompt = new JSONSchemaPrompt(testConfig);
       const rendered = prompt.renderPrompt("test data");
 

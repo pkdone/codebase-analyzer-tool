@@ -13,7 +13,7 @@ import type { z } from "zod";
  * Template for structured analysis prompts with JSON schema validation.
  * This template uses placeholders for customization:
  * - {{personaIntroduction}}: Introduction text establishing the AI persona
- * - {{partialAnalysisNote}}: Note for partial/chunked analysis (empty string if not partial)
+ * - {{contextNote}}: Optional contextual note prepended before the schema (empty string if not needed)
  * - {{contentDesc}}: Description of the content being analyzed
  * - {{dataBlockHeader}}: The section header (e.g., "CODE", "FILE_SUMMARIES")
  * - {{instructionsText}}: The joined instruction strings from the prompt
@@ -27,7 +27,7 @@ export const JSON_SCHEMA_PROMPT_TEMPLATE = `{{personaIntroduction}} Based on the
 
 {{instructionsText}}
 
-{{partialAnalysisNote}}{{schemaSection}}
+{{contextNote}}{{schemaSection}}
 {{dataBlockHeader}}:
 {{contentWrapper}}{{content}}{{contentWrapper}}`;
 
@@ -57,10 +57,12 @@ export interface JSONSchemaPromptConfig<S extends z.ZodType = z.ZodType> {
   /** Whether to wrap content in code blocks */
   wrapInCodeBlock: boolean;
   /**
-   * Whether this prompt is for partial/chunked analysis in map-reduce workflows.
-   * When true, a note is prepended indicating this is a partial analysis.
+   * Optional contextual note to prepend before the schema section.
+   * This is a generic mechanism for adding context-specific information to prompts,
+   * such as partial analysis notes in map-reduce workflows.
+   * The string should include any trailing newlines needed for formatting.
    */
-  forPartialAnalysis?: boolean;
+  contextNote?: string;
 }
 
 /**
@@ -117,8 +119,8 @@ export class JSONSchemaPrompt<S extends z.ZodType = z.ZodType> {
   readonly dataBlockHeader: string;
   /** Whether to wrap the content in code block markers (```) */
   readonly wrapInCodeBlock: boolean;
-  /** Whether this prompt is for partial/chunked analysis in map-reduce workflows */
-  readonly forPartialAnalysis: boolean;
+  /** Optional contextual note prepended before the schema section */
+  readonly contextNote: string;
 
   /**
    * Creates a new JSONSchemaPrompt instance from configuration.
@@ -132,7 +134,7 @@ export class JSONSchemaPrompt<S extends z.ZodType = z.ZodType> {
     this.responseSchema = config.responseSchema;
     this.dataBlockHeader = config.dataBlockHeader;
     this.wrapInCodeBlock = config.wrapInCodeBlock;
-    this.forPartialAnalysis = config.forPartialAnalysis ?? false;
+    this.contextNote = config.contextNote ?? "";
   }
 
   /**
@@ -144,7 +146,6 @@ export class JSONSchemaPrompt<S extends z.ZodType = z.ZodType> {
    * @returns The fully rendered prompt string
    */
   renderPrompt(content: string): string {
-    const partialAnalysisNote = this.buildPartialAnalysisNoteSection();
     const schemaSection = this.buildSchemaSection();
     const contentWrapper = this.wrapInCodeBlock ? "```\n" : "";
     const instructionsText = this.instructions.join("\n\n");
@@ -153,7 +154,7 @@ export class JSONSchemaPrompt<S extends z.ZodType = z.ZodType> {
       content,
       contentDesc: this.contentDesc,
       instructionsText,
-      partialAnalysisNote,
+      contextNote: this.contextNote,
       schemaSection,
       dataBlockHeader: this.dataBlockHeader,
       contentWrapper,
@@ -178,16 +179,4 @@ ${JSONSchemaPrompt.FORCE_JSON_FORMAT}
 `;
   }
 
-  /**
-   * Builds the note section for partial/chunked analysis prompts.
-   * This method returns a dynamically constructed partial analysis note when applicable,
-   * or an empty string otherwise.
-   *
-   * @returns The partial analysis note string or empty string
-   */
-  private buildPartialAnalysisNoteSection(): string {
-    if (!this.forPartialAnalysis) return "";
-    const formattedHeader = this.dataBlockHeader.toLowerCase().replace(/_/g, " ");
-    return `Note, this is a partial analysis of what is a much larger set of ${formattedHeader}; focus on extracting insights from this subset of ${formattedHeader} only.\n\n`;
-  }
 }

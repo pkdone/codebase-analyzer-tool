@@ -48,8 +48,10 @@ describe("JSONSchemaPrompt Constructor and Templates", () => {
       expect(rendered).toContain(testContent);
     });
 
-    it("should use forPartialAnalysis flag for partial analysis", () => {
-      const partialPrompt = new JSONSchemaPrompt({ ...appSummaryConfig, forPartialAnalysis: true });
+    it("should use contextNote for partial analysis", () => {
+      const contextNote =
+        "Note, this is a partial analysis of what is a much larger set of file summaries; focus on extracting insights from this subset of file summaries only.\n\n";
+      const partialPrompt = new JSONSchemaPrompt({ ...appSummaryConfig, contextNote });
       const rendered = partialPrompt.renderPrompt(testContent);
 
       expect(rendered).toContain("partial analysis");
@@ -69,7 +71,7 @@ describe("JSONSchemaPrompt Constructor and Templates", () => {
       expect(JSON_SCHEMA_PROMPT_TEMPLATE).toContain("{{dataBlockHeader}}");
       expect(JSON_SCHEMA_PROMPT_TEMPLATE).toContain("{{schemaSection}}");
       expect(JSON_SCHEMA_PROMPT_TEMPLATE).toContain("{{content}}");
-      expect(JSON_SCHEMA_PROMPT_TEMPLATE).toContain("{{partialAnalysisNote}}");
+      expect(JSON_SCHEMA_PROMPT_TEMPLATE).toContain("{{contextNote}}");
     });
 
     it("should handle reduce template with category key via inline definition", () => {

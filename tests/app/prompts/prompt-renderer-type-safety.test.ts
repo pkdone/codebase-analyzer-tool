@@ -53,11 +53,13 @@ describe("JSONSchemaPrompt Renderer Type Safety", () => {
     });
   });
 
-  describe("forPartialAnalysis Flag Handling", () => {
-    it("should render partial analysis note when forPartialAnalysis is true", () => {
+  describe("contextNote Handling", () => {
+    it("should render partial analysis note when contextNote is provided", () => {
+      const contextNote =
+        "Note, this is a partial analysis of what is a much larger set of code; focus on extracting insights from this subset of code only.\n\n";
       const partialPrompt = new JSONSchemaPrompt({
         ...testConfig,
-        forPartialAnalysis: true,
+        contextNote,
       });
 
       const result = partialPrompt.renderPrompt("sample");
@@ -66,12 +68,12 @@ describe("JSONSchemaPrompt Renderer Type Safety", () => {
       expect(result).toContain("focus on extracting insights from this subset");
     });
 
-    it("should NOT include partial analysis note when forPartialAnalysis is false", () => {
+    it("should NOT include partial analysis note when contextNote is not set", () => {
       const result = testPrompt.renderPrompt("sample");
 
       // Should not contain "undefined" anywhere in the output
       expect(result).not.toContain("undefined");
-      // Should not contain partial analysis note (forPartialAnalysis is not set)
+      // Should not contain partial analysis note (contextNote is not set)
       expect(result).not.toContain("partial analysis of a larger codebase");
     });
   });
@@ -253,10 +255,12 @@ line 3`;
 
   describe("Complete Output Structure", () => {
     it("should produce a complete prompt with all sections including partial analysis note", () => {
-      // Use forPartialAnalysis flag to test with partial analysis note
+      // Use contextNote to test with partial analysis note
+      const contextNote =
+        "Note, this is a partial analysis of what is a much larger set of code; focus on extracting insights from this subset of code only.\n\n";
       const partialPrompt = new JSONSchemaPrompt({
         ...testConfig,
-        forPartialAnalysis: true,
+        contextNote,
       });
 
       const result = partialPrompt.renderPrompt("sample code");
@@ -265,7 +269,7 @@ line 3`;
       expect(result).toContain("Act as a senior developer"); // Template intro
       expect(result).toContain("test content description"); // contentDesc
       expect(result).toContain("instruction 1"); // instructions
-      expect(result).toContain("partial analysis"); // From forPartialAnalysis flag
+      expect(result).toContain("partial analysis"); // From contextNote
       expect(result).toContain("JSON schema"); // Schema section
       expect(result).toContain("CODE:"); // dataBlockHeader
       expect(result).toContain("sample code"); // content

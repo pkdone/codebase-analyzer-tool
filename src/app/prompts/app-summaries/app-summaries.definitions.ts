@@ -9,24 +9,22 @@ import {
 } from "../../schemas/app-summaries.schema";
 import { APP_SUMMARY_PROMPT_FRAGMENTS, APP_SUMMARY_CONTENT_DESC } from "./app-summaries.fragments";
 import { FILE_SUMMARIES_DATA_BLOCK_HEADER } from "../prompts.constants";
+import type { BasePromptConfigEntry } from "../prompts.types";
 
 /**
  * Configuration entry for app summary prompts.
+ * Extends BasePromptConfigEntry with app-summary-specific fields.
+ *
  * Contains all fields necessary to construct a complete prompt, making each entry
  * self-describing. This design is consistent with SourceConfigEntry and eliminates
  * the need for consumers to provide presentation fields at instantiation time.
  *
  * @template S - The Zod schema type for validating the LLM response.
  */
-export interface AppSummaryConfigEntry<S extends z.ZodType = z.ZodType> {
-  /** Description of the content being analyzed (e.g., "a set of source file summaries") */
-  readonly contentDesc: string;
+export interface AppSummaryConfigEntry<S extends z.ZodType = z.ZodType>
+  extends BasePromptConfigEntry<S> {
   /** The data block header to use in the template (e.g., "FILE_SUMMARIES") */
   readonly dataBlockHeader: string;
-  /** Array of instruction strings for the LLM */
-  readonly instructions: readonly string[];
-  /** Zod schema for validating the LLM response */
-  readonly responseSchema: S;
 }
 
 /**

@@ -196,9 +196,11 @@ public abstract class AddressEJB implements EntityBean {
       expect(renderedPrompt).toContain("The response MUST be valid JSON");
     });
 
-    it("should render with partial analysis note when forPartialAnalysis is true", () => {
+    it("should render with partial analysis note when contextNote is provided", () => {
       const javaConfig = fileTypePromptRegistry.java;
-      // Use forPartialAnalysis flag for partial analysis scenarios
+      // Use contextNote for partial analysis scenarios
+      const contextNote =
+        "Note, this is a partial analysis of what is a much larger set of file summaries; focus on extracting insights from this subset of file summaries only.\n\n";
       const prompt = new JSONSchemaPrompt({
         personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
         contentDesc: "test code",
@@ -206,12 +208,12 @@ public abstract class AddressEJB implements EntityBean {
         responseSchema: javaConfig.responseSchema,
         dataBlockHeader: "FILE_SUMMARIES",
         wrapInCodeBlock: false,
-        forPartialAnalysis: true,
+        contextNote,
       });
 
       const renderedPrompt = prompt.renderPrompt(javaCodeSample);
 
-      // Verify partial analysis note is included (from the forPartialAnalysis flag)
+      // Verify partial analysis note is included (from the contextNote)
       expect(renderedPrompt).toContain("partial analysis");
       expect(renderedPrompt).toContain("focus on extracting insights from this subset");
 

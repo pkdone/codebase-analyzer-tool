@@ -112,14 +112,16 @@ describe("JSONSchemaPrompt Renderer", () => {
   });
 
   describe("Template Variables", () => {
-    it("should include all template variables in rendered output with forPartialAnalysis", () => {
-      // Use forPartialAnalysis flag to test the partial analysis note
-      const promptWithPartialFlag = new JSONSchemaPrompt({
+    it("should include all template variables in rendered output with contextNote", () => {
+      // Use contextNote to test the partial analysis note
+      const contextNote =
+        "Note, this is a partial analysis of what is a much larger set of code; focus on extracting insights from this subset of code only.\n\n";
+      const promptWithContextNote = new JSONSchemaPrompt({
         ...testConfig,
-        forPartialAnalysis: true,
+        contextNote,
       });
 
-      const result = promptWithPartialFlag.renderPrompt("sample code");
+      const result = promptWithContextNote.renderPrompt("sample code");
 
       expect(result).toContain("sample code");
       expect(result).toContain("partial analysis");

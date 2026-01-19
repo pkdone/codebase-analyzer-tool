@@ -79,13 +79,15 @@ describe("JSONSchemaPrompt Refactoring", () => {
       expect(rendered).toContain("point 3");
     });
 
-    it("should use forPartialAnalysis flag for partial analysis scenarios", () => {
-      // Use forPartialAnalysis flag for partial analysis
+    it("should use contextNote for partial analysis scenarios", () => {
+      // Use contextNote for partial analysis
+      const contextNote =
+        "Note, this is a partial analysis of what is a much larger set of file summaries; focus on extracting insights from this subset of file summaries only.\n\n";
       const appSummaryPrompt = new JSONSchemaPrompt({
         ...testConfig,
         dataBlockHeader: "FILE_SUMMARIES",
         wrapInCodeBlock: false,
-        forPartialAnalysis: true,
+        contextNote,
       });
       const rendered = appSummaryPrompt.renderPrompt(testContent);
 
@@ -112,7 +114,7 @@ describe("JSONSchemaPrompt Refactoring", () => {
       expect(JSON_SCHEMA_PROMPT_TEMPLATE).toContain("{{dataBlockHeader}}");
       expect(JSON_SCHEMA_PROMPT_TEMPLATE).toContain("{{schemaSection}}");
       expect(JSON_SCHEMA_PROMPT_TEMPLATE).toContain("{{content}}");
-      expect(JSON_SCHEMA_PROMPT_TEMPLATE).toContain("{{partialAnalysisNote}}");
+      expect(JSON_SCHEMA_PROMPT_TEMPLATE).toContain("{{contextNote}}");
     });
 
     it("should not have any placeholder syntax in rendered output", () => {

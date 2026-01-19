@@ -9,6 +9,14 @@ import {
 import { DEFAULT_PERSONA_INTRODUCTION } from "../../../src/app/prompts/prompt-builders";
 
 /**
+ * Builds a contextual note for partial/chunked analysis prompts.
+ */
+function buildPartialAnalysisNote(dataBlockHeader: string): string {
+  const formattedHeader = dataBlockHeader.toLowerCase().replace(/_/g, " ");
+  return `Note, this is a partial analysis of what is a much larger set of ${formattedHeader}; focus on extracting insights from this subset of ${formattedHeader} only.\n\n`;
+}
+
+/**
  * Helper to create a JSONSchemaPrompt from appSummaryConfigMap config.
  * Adds contentDesc, dataBlockHeader, and wrapInCodeBlock which are no longer in the config entries.
  */
@@ -17,13 +25,16 @@ function createAppSummaryPrompt(
   options?: { forPartialAnalysis?: boolean },
 ): JSONSchemaPrompt {
   const config = appSummaryConfigMap[category];
+  const contextNote = options?.forPartialAnalysis
+    ? buildPartialAnalysisNote(FILE_SUMMARIES_DATA_BLOCK_HEADER)
+    : undefined;
   return new JSONSchemaPrompt({
     personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
     ...config,
     contentDesc: APP_SUMMARY_CONTENT_DESC,
     dataBlockHeader: FILE_SUMMARIES_DATA_BLOCK_HEADER,
     wrapInCodeBlock: false,
-    forPartialAnalysis: options?.forPartialAnalysis,
+    contextNote,
   } as JSONSchemaPromptConfig);
 }
 
@@ -101,7 +112,7 @@ describe("App Summaries Refactoring", () => {
       expect(JSON_SCHEMA_PROMPT_TEMPLATE).toContain("{{dataBlockHeader}}");
       expect(JSON_SCHEMA_PROMPT_TEMPLATE).toContain("{{schemaSection}}");
       expect(JSON_SCHEMA_PROMPT_TEMPLATE).toContain("{{content}}");
-      expect(JSON_SCHEMA_PROMPT_TEMPLATE).toContain("{{partialAnalysisNote}}");
+      expect(JSON_SCHEMA_PROMPT_TEMPLATE).toContain("{{contextNote}}");
     });
 
     it("should verify prompt text structure with generic contentDesc and specific instructions", () => {

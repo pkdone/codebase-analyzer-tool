@@ -19,7 +19,7 @@ describe("Template Consolidation", () => {
       expect(JSON_SCHEMA_PROMPT_TEMPLATE).toContain("{{schemaSection}}");
       expect(JSON_SCHEMA_PROMPT_TEMPLATE).toContain("{{content}}");
       expect(JSON_SCHEMA_PROMPT_TEMPLATE).toContain("{{contentWrapper}}");
-      expect(JSON_SCHEMA_PROMPT_TEMPLATE).toContain("{{partialAnalysisNote}}");
+      expect(JSON_SCHEMA_PROMPT_TEMPLATE).toContain("{{contextNote}}");
     });
 
     it("should render correctly with sources configuration", () => {
@@ -69,7 +69,7 @@ describe("Template Consolidation", () => {
         "{{contentDesc}}",
         "{{instructionsText}}",
         "{{dataBlockHeader}}",
-        "{{partialAnalysisNote}}",
+        "{{contextNote}}",
         "{{schemaSection}}",
         "{{content}}",
         "{{contentWrapper}}",
@@ -81,8 +81,10 @@ describe("Template Consolidation", () => {
     });
   });
 
-  describe("forPartialAnalysis flag", () => {
-    it("should include partial analysis note when forPartialAnalysis is true", () => {
+  describe("contextNote handling", () => {
+    it("should include partial analysis note when contextNote is provided", () => {
+      const contextNote =
+        "Note, this is a partial analysis of what is a much larger set of file summaries; focus on extracting insights from this subset of file summaries only.\n\n";
       const prompt = new JSONSchemaPrompt({
         personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
         contentDesc: "a set of source file summaries",
@@ -90,14 +92,14 @@ describe("Template Consolidation", () => {
         responseSchema: z.string(),
         dataBlockHeader: "FILE_SUMMARIES",
         wrapInCodeBlock: false,
-        forPartialAnalysis: true,
+        contextNote,
       });
       const rendered = prompt.renderPrompt("test summaries");
       expect(rendered).toContain("partial analysis");
       expect(rendered).toContain("focus on extracting insights from this subset");
     });
 
-    it("should NOT include partial analysis note when forPartialAnalysis is false", () => {
+    it("should NOT include partial analysis note when contextNote is empty", () => {
       const prompt = new JSONSchemaPrompt({
         personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
         contentDesc: "a set of source file summaries",
@@ -105,7 +107,7 @@ describe("Template Consolidation", () => {
         responseSchema: z.string(),
         dataBlockHeader: "FILE_SUMMARIES",
         wrapInCodeBlock: false,
-        forPartialAnalysis: false,
+        contextNote: "",
       });
       const rendered = prompt.renderPrompt("test summaries");
       expect(rendered).not.toContain("partial analysis");
