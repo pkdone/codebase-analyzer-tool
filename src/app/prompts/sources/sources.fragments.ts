@@ -70,9 +70,18 @@ import {
 
 /**
  * Centralized collection of all source prompt fragments.
- * Provides convenient namespace-organized access to fragments from the modular
- * fragment files in the fragments subfolder. Use this aggregation for cleaner
- * imports when multiple fragment categories are needed.
+ *
+ * @deprecated Import fragments directly from "./fragments" instead of using this aggregation.
+ * This object is maintained for backward compatibility only.
+ *
+ * @example
+ * ```typescript
+ * // Preferred: Direct imports
+ * import { JAVA_SPECIFIC_FRAGMENTS, COMMON_FRAGMENTS } from "./fragments";
+ *
+ * // Deprecated: Using SOURCES_PROMPT_FRAGMENTS
+ * import { SOURCES_PROMPT_FRAGMENTS } from "./sources.fragments";
+ * ```
  */
 export const SOURCES_PROMPT_FRAGMENTS = {
   COMMON: COMMON_FRAGMENTS,
@@ -100,40 +109,5 @@ export const SOURCES_PROMPT_FRAGMENTS = {
   JCL_SPECIFIC: JCL_SPECIFIC_FRAGMENTS,
 } as const;
 
-/**
- * Composable instruction sets for common patterns across file types.
- * These pre-composed instruction blocks combine related fragments for convenience and consistency.
- *
- * @example
- * ```typescript
- * // Use in instruction blocks for better clarity
- * buildInstructionBlock(
- *   INSTRUCTION_SECTION_TITLES.CODE_QUALITY_METRICS,
- *   COMPOSITES.CODE_QUALITY,
- * )
- * ```
- */
-export const COMPOSITES = {
-  /** Pre-composed code quality analysis instructions including metrics and code smells */
-  CODE_QUALITY: [
-    SOURCES_PROMPT_FRAGMENTS.CODE_QUALITY.INTRO,
-    SOURCES_PROMPT_FRAGMENTS.CODE_QUALITY.FUNCTION_METRICS,
-    SOURCES_PROMPT_FRAGMENTS.CODE_QUALITY.FUNCTION_SMELLS,
-    SOURCES_PROMPT_FRAGMENTS.CODE_QUALITY.FILE_METRICS,
-  ] as const,
-
-  /** Pre-composed database integration analysis instructions */
-  DB_INTEGRATION: [
-    SOURCES_PROMPT_FRAGMENTS.DB_INTEGRATION.INTRO,
-    SOURCES_PROMPT_FRAGMENTS.DB_INTEGRATION.REQUIRED_FIELDS,
-  ] as const,
-
-  /** Pre-composed integration points instructions */
-  INTEGRATION_POINTS: [SOURCES_PROMPT_FRAGMENTS.INTEGRATION_POINTS.INTRO] as const,
-
-  /** Pre-composed scheduled jobs instructions */
-  SCHEDULED_JOBS: [
-    SOURCES_PROMPT_FRAGMENTS.SCHEDULED_JOBS.INTRO,
-    SOURCES_PROMPT_FRAGMENTS.SCHEDULED_JOBS.FIELDS,
-  ] as const,
-} as const;
+// Re-export COMPOSITES from its dedicated module
+export { COMPOSITES } from "./fragments/composites";

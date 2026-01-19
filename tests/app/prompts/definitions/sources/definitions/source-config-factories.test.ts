@@ -9,7 +9,14 @@ import {
   INSTRUCTION_SECTION_TITLES,
   buildInstructionBlock,
 } from "../../../../../../src/app/prompts/sources/utils";
-import { SOURCES_PROMPT_FRAGMENTS } from "../../../../../../src/app/prompts/sources/sources.fragments";
+import {
+  COMMON_FRAGMENTS,
+  SCHEDULED_JOBS_FRAGMENTS,
+  SHELL_SCRIPT_SPECIFIC_FRAGMENTS,
+  BATCH_SCRIPT_SPECIFIC_FRAGMENTS,
+  JCL_SPECIFIC_FRAGMENTS,
+  JAVA_SPECIFIC_FRAGMENTS,
+} from "../../../../../../src/app/prompts/sources/fragments";
 
 describe("source-config-factories", () => {
   describe("createBasicInfoBlock", () => {
@@ -17,15 +24,15 @@ describe("source-config-factories", () => {
       const result = createBasicInfoBlock();
 
       expect(result).toContain("__Basic Information__");
-      expect(result).toContain(SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE);
-      expect(result).toContain(SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION);
+      expect(result).toContain(COMMON_FRAGMENTS.PURPOSE);
+      expect(result).toContain(COMMON_FRAGMENTS.IMPLEMENTATION);
     });
 
     it("should match the manual construction pattern", () => {
       const manual = buildInstructionBlock(
         INSTRUCTION_SECTION_TITLES.BASIC_INFO,
-        SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
-        SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
+        COMMON_FRAGMENTS.PURPOSE,
+        COMMON_FRAGMENTS.IMPLEMENTATION,
       );
 
       expect(createBasicInfoBlock()).toBe(manual);
@@ -63,8 +70,8 @@ describe("source-config-factories", () => {
       const config = createDependencyConfig("test content", "dependency fragment");
       const expectedBasicInfo = buildInstructionBlock(
         INSTRUCTION_SECTION_TITLES.BASIC_INFO,
-        SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
-        SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
+        COMMON_FRAGMENTS.PURPOSE,
+        COMMON_FRAGMENTS.IMPLEMENTATION,
       );
 
       expect(config.instructions[0]).toBe(expectedBasicInfo);
@@ -75,7 +82,7 @@ describe("source-config-factories", () => {
     it("should use createBasicInfoBlock for Basic Info section", () => {
       const config = createScheduledJobConfig(
         "the Shell script (bash/sh)",
-        SOURCES_PROMPT_FRAGMENTS.SHELL_SCRIPT_SPECIFIC.CRON_EXPRESSIONS,
+        SHELL_SCRIPT_SPECIFIC_FRAGMENTS.CRON_EXPRESSIONS,
       );
 
       expect(config.instructions[0]).toBe(createBasicInfoBlock());
@@ -84,8 +91,8 @@ describe("source-config-factories", () => {
     it("should produce correct structure with Basic Info and Scheduled Jobs sections", () => {
       const config = createScheduledJobConfig(
         "the Shell script (bash/sh)",
-        SOURCES_PROMPT_FRAGMENTS.SHELL_SCRIPT_SPECIFIC.CRON_EXPRESSIONS,
-        SOURCES_PROMPT_FRAGMENTS.SHELL_SCRIPT_SPECIFIC.DATABASE_OPS,
+        SHELL_SCRIPT_SPECIFIC_FRAGMENTS.CRON_EXPRESSIONS,
+        SHELL_SCRIPT_SPECIFIC_FRAGMENTS.DATABASE_OPS,
       );
 
       expect(config.instructions).toHaveLength(2);
@@ -96,25 +103,23 @@ describe("source-config-factories", () => {
     it("should include common scheduled job fragments in the instruction block", () => {
       const config = createScheduledJobConfig("test script", "custom fragment");
 
-      expect(config.instructions[1]).toContain(SOURCES_PROMPT_FRAGMENTS.SCHEDULED_JOBS.INTRO);
-      expect(config.instructions[1]).toContain(SOURCES_PROMPT_FRAGMENTS.SCHEDULED_JOBS.FIELDS);
+      expect(config.instructions[1]).toContain(SCHEDULED_JOBS_FRAGMENTS.INTRO);
+      expect(config.instructions[1]).toContain(SCHEDULED_JOBS_FRAGMENTS.FIELDS);
       expect(config.instructions[1]).toContain("custom fragment");
     });
 
     it("should include all provided job-specific fragments", () => {
       const config = createScheduledJobConfig(
         "the Shell script (bash/sh)",
-        SOURCES_PROMPT_FRAGMENTS.SHELL_SCRIPT_SPECIFIC.CRON_EXPRESSIONS,
-        SOURCES_PROMPT_FRAGMENTS.SHELL_SCRIPT_SPECIFIC.DATABASE_OPS,
-        SOURCES_PROMPT_FRAGMENTS.SHELL_SCRIPT_SPECIFIC.EXTERNAL_API_CALLS,
+        SHELL_SCRIPT_SPECIFIC_FRAGMENTS.CRON_EXPRESSIONS,
+        SHELL_SCRIPT_SPECIFIC_FRAGMENTS.DATABASE_OPS,
+        SHELL_SCRIPT_SPECIFIC_FRAGMENTS.EXTERNAL_API_CALLS,
       );
 
       const jobsBlock = config.instructions[1];
-      expect(jobsBlock).toContain(SOURCES_PROMPT_FRAGMENTS.SHELL_SCRIPT_SPECIFIC.CRON_EXPRESSIONS);
-      expect(jobsBlock).toContain(SOURCES_PROMPT_FRAGMENTS.SHELL_SCRIPT_SPECIFIC.DATABASE_OPS);
-      expect(jobsBlock).toContain(
-        SOURCES_PROMPT_FRAGMENTS.SHELL_SCRIPT_SPECIFIC.EXTERNAL_API_CALLS,
-      );
+      expect(jobsBlock).toContain(SHELL_SCRIPT_SPECIFIC_FRAGMENTS.CRON_EXPRESSIONS);
+      expect(jobsBlock).toContain(SHELL_SCRIPT_SPECIFIC_FRAGMENTS.DATABASE_OPS);
+      expect(jobsBlock).toContain(SHELL_SCRIPT_SPECIFIC_FRAGMENTS.EXTERNAL_API_CALLS);
     });
 
     it("should have correct schema fields (purpose, implementation, scheduledJobs)", () => {
@@ -139,33 +144,33 @@ describe("source-config-factories", () => {
     it("should work with batch script specific fragments", () => {
       const config = createScheduledJobConfig(
         "the Windows batch script (.bat/.cmd)",
-        SOURCES_PROMPT_FRAGMENTS.BATCH_SCRIPT_SPECIFIC.TASK_SCHEDULER,
-        SOURCES_PROMPT_FRAGMENTS.BATCH_SCRIPT_SPECIFIC.DATABASE_OPS,
-        SOURCES_PROMPT_FRAGMENTS.BATCH_SCRIPT_SPECIFIC.NETWORK_OPS,
-        SOURCES_PROMPT_FRAGMENTS.BATCH_SCRIPT_SPECIFIC.SERVICE_OPS,
+        BATCH_SCRIPT_SPECIFIC_FRAGMENTS.TASK_SCHEDULER,
+        BATCH_SCRIPT_SPECIFIC_FRAGMENTS.DATABASE_OPS,
+        BATCH_SCRIPT_SPECIFIC_FRAGMENTS.NETWORK_OPS,
+        BATCH_SCRIPT_SPECIFIC_FRAGMENTS.SERVICE_OPS,
       );
 
       const jobsBlock = config.instructions[1];
-      expect(jobsBlock).toContain(SOURCES_PROMPT_FRAGMENTS.BATCH_SCRIPT_SPECIFIC.TASK_SCHEDULER);
-      expect(jobsBlock).toContain(SOURCES_PROMPT_FRAGMENTS.BATCH_SCRIPT_SPECIFIC.DATABASE_OPS);
-      expect(jobsBlock).toContain(SOURCES_PROMPT_FRAGMENTS.BATCH_SCRIPT_SPECIFIC.NETWORK_OPS);
-      expect(jobsBlock).toContain(SOURCES_PROMPT_FRAGMENTS.BATCH_SCRIPT_SPECIFIC.SERVICE_OPS);
+      expect(jobsBlock).toContain(BATCH_SCRIPT_SPECIFIC_FRAGMENTS.TASK_SCHEDULER);
+      expect(jobsBlock).toContain(BATCH_SCRIPT_SPECIFIC_FRAGMENTS.DATABASE_OPS);
+      expect(jobsBlock).toContain(BATCH_SCRIPT_SPECIFIC_FRAGMENTS.NETWORK_OPS);
+      expect(jobsBlock).toContain(BATCH_SCRIPT_SPECIFIC_FRAGMENTS.SERVICE_OPS);
     });
 
     it("should work with JCL specific fragments", () => {
       const config = createScheduledJobConfig(
         "the Mainframe JCL (Job Control Language)",
-        SOURCES_PROMPT_FRAGMENTS.JCL_SPECIFIC.EXEC_STATEMENTS,
-        SOURCES_PROMPT_FRAGMENTS.JCL_SPECIFIC.DD_STATEMENTS,
-        SOURCES_PROMPT_FRAGMENTS.JCL_SPECIFIC.COND_PARAMETERS,
-        SOURCES_PROMPT_FRAGMENTS.JCL_SPECIFIC.SORT_UTILITIES,
+        JCL_SPECIFIC_FRAGMENTS.EXEC_STATEMENTS,
+        JCL_SPECIFIC_FRAGMENTS.DD_STATEMENTS,
+        JCL_SPECIFIC_FRAGMENTS.COND_PARAMETERS,
+        JCL_SPECIFIC_FRAGMENTS.SORT_UTILITIES,
       );
 
       const jobsBlock = config.instructions[1];
-      expect(jobsBlock).toContain(SOURCES_PROMPT_FRAGMENTS.JCL_SPECIFIC.EXEC_STATEMENTS);
-      expect(jobsBlock).toContain(SOURCES_PROMPT_FRAGMENTS.JCL_SPECIFIC.DD_STATEMENTS);
-      expect(jobsBlock).toContain(SOURCES_PROMPT_FRAGMENTS.JCL_SPECIFIC.COND_PARAMETERS);
-      expect(jobsBlock).toContain(SOURCES_PROMPT_FRAGMENTS.JCL_SPECIFIC.SORT_UTILITIES);
+      expect(jobsBlock).toContain(JCL_SPECIFIC_FRAGMENTS.EXEC_STATEMENTS);
+      expect(jobsBlock).toContain(JCL_SPECIFIC_FRAGMENTS.DD_STATEMENTS);
+      expect(jobsBlock).toContain(JCL_SPECIFIC_FRAGMENTS.COND_PARAMETERS);
+      expect(jobsBlock).toContain(JCL_SPECIFIC_FRAGMENTS.SORT_UTILITIES);
     });
 
     it("should produce valid Zod schema that can parse data", () => {
@@ -198,10 +203,7 @@ describe("source-config-factories", () => {
 
   describe("createStandardCodeConfig", () => {
     it("should not set presentation values (handled by consumer)", () => {
-      const config = createStandardCodeConfig(
-        "the JVM code",
-        SOURCES_PROMPT_FRAGMENTS.JAVA_SPECIFIC,
-      );
+      const config = createStandardCodeConfig("the JVM code", JAVA_SPECIFIC_FRAGMENTS);
 
       // dataBlockHeader and wrapInCodeBlock are now set by the consumer
       // (e.g., FileSummarizerService) at instantiation time
@@ -210,10 +212,7 @@ describe("source-config-factories", () => {
     });
 
     it("should have required config fields", () => {
-      const config = createStandardCodeConfig(
-        "the JVM code",
-        SOURCES_PROMPT_FRAGMENTS.JAVA_SPECIFIC,
-      );
+      const config = createStandardCodeConfig("the JVM code", JAVA_SPECIFIC_FRAGMENTS);
 
       expect(config.contentDesc).toBe("the JVM code");
       expect(config.responseSchema).toBeDefined();

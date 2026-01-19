@@ -1,11 +1,17 @@
-import { SOURCES_PROMPT_FRAGMENTS } from "../../../../../src/app/prompts/sources/sources.fragments";
+import {
+  JAVA_SPECIFIC_FRAGMENTS,
+  JAVASCRIPT_SPECIFIC_FRAGMENTS,
+  CSHARP_SPECIFIC_FRAGMENTS,
+  PYTHON_SPECIFIC_FRAGMENTS,
+  RUBY_SPECIFIC_FRAGMENTS,
+} from "../../../../../src/app/prompts/sources/fragments";
 
 /**
  * Tests for the createDbMechanismInstructions function.
  *
  * This function is now located in src/app/prompts/definitions/instruction-utils.ts
  * as part of separating logic from data fragments. We test its behavior through
- * the DB_MECHANISM_MAPPING constants it generates in SOURCES_PROMPT_FRAGMENTS.
+ * the DB_MECHANISM_MAPPING constants it generates in the language-specific fragments.
  */
 describe("createDbMechanismInstructions (via DB_MECHANISM_MAPPING fragments)", () => {
   /**
@@ -16,7 +22,7 @@ describe("createDbMechanismInstructions (via DB_MECHANISM_MAPPING fragments)", (
   const BASE_SUFFIX = "=> mechanism: 'NONE'";
 
   describe("Java DB_MECHANISM_MAPPING", () => {
-    const javaMapping = SOURCES_PROMPT_FRAGMENTS.JAVA_SPECIFIC.DB_MECHANISM_MAPPING;
+    const javaMapping = JAVA_SPECIFIC_FRAGMENTS.DB_MECHANISM_MAPPING;
 
     it("should include the base prefix", () => {
       expect(javaMapping).toContain(BASE_PREFIX);
@@ -61,7 +67,7 @@ describe("createDbMechanismInstructions (via DB_MECHANISM_MAPPING fragments)", (
   });
 
   describe("JavaScript DB_MECHANISM_MAPPING", () => {
-    const jsMapping = SOURCES_PROMPT_FRAGMENTS.JAVASCRIPT_SPECIFIC.DB_MECHANISM_MAPPING;
+    const jsMapping = JAVASCRIPT_SPECIFIC_FRAGMENTS.DB_MECHANISM_MAPPING;
 
     it("should include the base prefix", () => {
       expect(jsMapping).toContain(BASE_PREFIX);
@@ -101,7 +107,7 @@ describe("createDbMechanismInstructions (via DB_MECHANISM_MAPPING fragments)", (
   });
 
   describe("C# DB_MECHANISM_MAPPING", () => {
-    const csharpMapping = SOURCES_PROMPT_FRAGMENTS.CSHARP_SPECIFIC.DB_MECHANISM_MAPPING;
+    const csharpMapping = CSHARP_SPECIFIC_FRAGMENTS.DB_MECHANISM_MAPPING;
 
     it("should include the base prefix", () => {
       expect(csharpMapping).toContain(BASE_PREFIX);
@@ -135,7 +141,7 @@ describe("createDbMechanismInstructions (via DB_MECHANISM_MAPPING fragments)", (
   });
 
   describe("Python DB_MECHANISM_MAPPING", () => {
-    const pythonMapping = SOURCES_PROMPT_FRAGMENTS.PYTHON_SPECIFIC.DB_MECHANISM_MAPPING;
+    const pythonMapping = PYTHON_SPECIFIC_FRAGMENTS.DB_MECHANISM_MAPPING;
 
     it("should include the base prefix", () => {
       expect(pythonMapping).toContain(BASE_PREFIX);
@@ -168,7 +174,7 @@ describe("createDbMechanismInstructions (via DB_MECHANISM_MAPPING fragments)", (
   });
 
   describe("Ruby DB_MECHANISM_MAPPING", () => {
-    const rubyMapping = SOURCES_PROMPT_FRAGMENTS.RUBY_SPECIFIC.DB_MECHANISM_MAPPING;
+    const rubyMapping = RUBY_SPECIFIC_FRAGMENTS.DB_MECHANISM_MAPPING;
 
     it("should include the base prefix", () => {
       expect(rubyMapping).toContain(BASE_PREFIX);
@@ -202,14 +208,14 @@ describe("createDbMechanismInstructions (via DB_MECHANISM_MAPPING fragments)", (
 
   describe("Cross-language consistency", () => {
     const allMappings = [
-      { name: "Java", mapping: SOURCES_PROMPT_FRAGMENTS.JAVA_SPECIFIC.DB_MECHANISM_MAPPING },
+      { name: "Java", mapping: JAVA_SPECIFIC_FRAGMENTS.DB_MECHANISM_MAPPING },
       {
         name: "JavaScript",
-        mapping: SOURCES_PROMPT_FRAGMENTS.JAVASCRIPT_SPECIFIC.DB_MECHANISM_MAPPING,
+        mapping: JAVASCRIPT_SPECIFIC_FRAGMENTS.DB_MECHANISM_MAPPING,
       },
-      { name: "C#", mapping: SOURCES_PROMPT_FRAGMENTS.CSHARP_SPECIFIC.DB_MECHANISM_MAPPING },
-      { name: "Python", mapping: SOURCES_PROMPT_FRAGMENTS.PYTHON_SPECIFIC.DB_MECHANISM_MAPPING },
-      { name: "Ruby", mapping: SOURCES_PROMPT_FRAGMENTS.RUBY_SPECIFIC.DB_MECHANISM_MAPPING },
+      { name: "C#", mapping: CSHARP_SPECIFIC_FRAGMENTS.DB_MECHANISM_MAPPING },
+      { name: "Python", mapping: PYTHON_SPECIFIC_FRAGMENTS.DB_MECHANISM_MAPPING },
+      { name: "Ruby", mapping: RUBY_SPECIFIC_FRAGMENTS.DB_MECHANISM_MAPPING },
     ];
 
     it("should have consistent base structure across all languages", () => {

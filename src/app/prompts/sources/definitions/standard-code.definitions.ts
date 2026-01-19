@@ -1,4 +1,13 @@
-import { SOURCES_PROMPT_FRAGMENTS } from "../sources.fragments";
+import {
+  JAVA_SPECIFIC_FRAGMENTS,
+  JAVASCRIPT_SPECIFIC_FRAGMENTS,
+  CSHARP_SPECIFIC_FRAGMENTS,
+  PYTHON_SPECIFIC_FRAGMENTS,
+  PYTHON_COMPLEXITY_METRICS,
+  RUBY_SPECIFIC_FRAGMENTS,
+  C_SPECIFIC_FRAGMENTS,
+  CPP_SPECIFIC_FRAGMENTS,
+} from "../fragments";
 import { createStandardCodeConfig, type SourceConfigEntry } from "./source-config-factories";
 
 /**
@@ -11,18 +20,18 @@ import { createStandardCodeConfig, type SourceConfigEntry } from "./source-confi
  * Note: hasComplexSchema defaults to false, so it's not explicitly set here.
  */
 export const standardCodeDefinitions = {
-  java: createStandardCodeConfig("the JVM code", SOURCES_PROMPT_FRAGMENTS.JAVA_SPECIFIC),
+  java: createStandardCodeConfig("the JVM code", JAVA_SPECIFIC_FRAGMENTS),
   javascript: createStandardCodeConfig(
     "the JavaScript/TypeScript code",
-    SOURCES_PROMPT_FRAGMENTS.JAVASCRIPT_SPECIFIC,
+    JAVASCRIPT_SPECIFIC_FRAGMENTS,
   ),
-  csharp: createStandardCodeConfig("the C# code", SOURCES_PROMPT_FRAGMENTS.CSHARP_SPECIFIC),
-  python: createStandardCodeConfig("the Python code", SOURCES_PROMPT_FRAGMENTS.PYTHON_SPECIFIC, {
-    extraComplexityMetrics: SOURCES_PROMPT_FRAGMENTS.PYTHON_SPECIFIC.PYTHON_COMPLEXITY_METRICS,
+  csharp: createStandardCodeConfig("the C# code", CSHARP_SPECIFIC_FRAGMENTS),
+  python: createStandardCodeConfig("the Python code", PYTHON_SPECIFIC_FRAGMENTS, {
+    extraComplexityMetrics: PYTHON_COMPLEXITY_METRICS,
   }),
-  ruby: createStandardCodeConfig("the Ruby code", SOURCES_PROMPT_FRAGMENTS.RUBY_SPECIFIC),
-  c: createStandardCodeConfig("the C source code", SOURCES_PROMPT_FRAGMENTS.C_SPECIFIC, {
+  ruby: createStandardCodeConfig("the Ruby code", RUBY_SPECIFIC_FRAGMENTS),
+  c: createStandardCodeConfig("the C source code", C_SPECIFIC_FRAGMENTS, {
     useModuleBase: true,
   }),
-  cpp: createStandardCodeConfig("the C++ source code", SOURCES_PROMPT_FRAGMENTS.CPP_SPECIFIC),
+  cpp: createStandardCodeConfig("the C++ source code", CPP_SPECIFIC_FRAGMENTS),
 } satisfies Record<string, SourceConfigEntry>;

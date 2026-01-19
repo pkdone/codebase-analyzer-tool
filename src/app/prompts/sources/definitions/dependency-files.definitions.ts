@@ -1,4 +1,4 @@
-import { SOURCES_PROMPT_FRAGMENTS } from "../sources.fragments";
+import { DEPENDENCY_EXTRACTION_FRAGMENTS } from "../fragments";
 import { createDependencyConfig, type SourceConfigEntry } from "./source-config-factories";
 
 /**
@@ -11,46 +11,43 @@ import { createDependencyConfig, type SourceConfigEntry } from "./source-config-
 export const dependencyFileDefinitions = {
   maven: createDependencyConfig(
     "the Maven POM (Project Object Model) build file",
-    SOURCES_PROMPT_FRAGMENTS.DEPENDENCY_EXTRACTION.MAVEN,
+    DEPENDENCY_EXTRACTION_FRAGMENTS.MAVEN,
   ),
   gradle: createDependencyConfig(
     "the Gradle build configuration file",
-    SOURCES_PROMPT_FRAGMENTS.DEPENDENCY_EXTRACTION.GRADLE,
+    DEPENDENCY_EXTRACTION_FRAGMENTS.GRADLE,
   ),
-  ant: createDependencyConfig(
-    "the Apache Ant build.xml file",
-    SOURCES_PROMPT_FRAGMENTS.DEPENDENCY_EXTRACTION.ANT,
-  ),
+  ant: createDependencyConfig("the Apache Ant build.xml file", DEPENDENCY_EXTRACTION_FRAGMENTS.ANT),
   npm: createDependencyConfig(
     "the npm package.json or lock file",
-    SOURCES_PROMPT_FRAGMENTS.DEPENDENCY_EXTRACTION.NPM,
+    DEPENDENCY_EXTRACTION_FRAGMENTS.NPM,
   ),
   "dotnet-proj": createDependencyConfig(
     "the .NET project file (.csproj, .vbproj, .fsproj)",
-    SOURCES_PROMPT_FRAGMENTS.DEPENDENCY_EXTRACTION.DOTNET,
+    DEPENDENCY_EXTRACTION_FRAGMENTS.DOTNET,
   ),
   nuget: createDependencyConfig(
     "the NuGet packages.config file (legacy .NET)",
-    SOURCES_PROMPT_FRAGMENTS.DEPENDENCY_EXTRACTION.NUGET,
+    DEPENDENCY_EXTRACTION_FRAGMENTS.NUGET,
   ),
   "ruby-bundler": createDependencyConfig(
     "the Ruby Gemfile or Gemfile.lock",
-    SOURCES_PROMPT_FRAGMENTS.DEPENDENCY_EXTRACTION.RUBY_BUNDLER,
+    DEPENDENCY_EXTRACTION_FRAGMENTS.RUBY_BUNDLER,
   ),
   "python-pip": createDependencyConfig(
     "the Python requirements.txt or Pipfile",
-    SOURCES_PROMPT_FRAGMENTS.DEPENDENCY_EXTRACTION.PYTHON_PIP,
+    DEPENDENCY_EXTRACTION_FRAGMENTS.PYTHON_PIP,
   ),
   "python-setup": createDependencyConfig(
     "the Python setup.py file",
-    SOURCES_PROMPT_FRAGMENTS.DEPENDENCY_EXTRACTION.PYTHON_SETUP,
+    DEPENDENCY_EXTRACTION_FRAGMENTS.PYTHON_SETUP,
   ),
   "python-poetry": createDependencyConfig(
     "the Python pyproject.toml (Poetry)",
-    SOURCES_PROMPT_FRAGMENTS.DEPENDENCY_EXTRACTION.PYTHON_POETRY,
+    DEPENDENCY_EXTRACTION_FRAGMENTS.PYTHON_POETRY,
   ),
   makefile: createDependencyConfig(
     "the C/C++ build configuration (CMake or Makefile)",
-    SOURCES_PROMPT_FRAGMENTS.DEPENDENCY_EXTRACTION.MAKEFILE,
+    DEPENDENCY_EXTRACTION_FRAGMENTS.MAKEFILE,
   ),
 } satisfies Record<string, SourceConfigEntry>;

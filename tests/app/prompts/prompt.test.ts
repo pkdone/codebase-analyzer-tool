@@ -5,7 +5,10 @@ import {
 import { DEFAULT_PERSONA_INTRODUCTION } from "../../../src/app/prompts/prompt-builders";
 import { CODE_DATA_BLOCK_HEADER } from "../../../src/app/prompts/prompts.constants";
 import { fileTypePromptRegistry } from "../../../src/app/prompts/sources/sources.definitions";
-import { SOURCES_PROMPT_FRAGMENTS } from "../../../src/app/prompts/sources/sources.fragments";
+import {
+  COMMON_FRAGMENTS,
+  JAVA_SPECIFIC_FRAGMENTS,
+} from "../../../src/app/prompts/sources/fragments";
 import { INSTRUCTION_SECTION_TITLES } from "../../../src/app/prompts/sources/utils";
 
 /**
@@ -130,10 +133,10 @@ public abstract class AddressEJB implements EntityBean {
       expect(renderedPrompt).toContain(`__${INSTRUCTION_SECTION_TITLES.CODE_QUALITY_METRICS}__`);
 
       // Verify instruction fragments are included
-      expect(renderedPrompt).toContain(SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE);
-      expect(renderedPrompt).toContain(SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION);
-      expect(renderedPrompt).toContain(SOURCES_PROMPT_FRAGMENTS.JAVA_SPECIFIC.INTERNAL_REFS);
-      expect(renderedPrompt).toContain(SOURCES_PROMPT_FRAGMENTS.JAVA_SPECIFIC.EXTERNAL_REFS);
+      expect(renderedPrompt).toContain(COMMON_FRAGMENTS.PURPOSE);
+      expect(renderedPrompt).toContain(COMMON_FRAGMENTS.IMPLEMENTATION);
+      expect(renderedPrompt).toContain(JAVA_SPECIFIC_FRAGMENTS.INTERNAL_REFS);
+      expect(renderedPrompt).toContain(JAVA_SPECIFIC_FRAGMENTS.EXTERNAL_REFS);
 
       // Verify JSON schema is present
       expect(renderedPrompt).toContain("```json");
@@ -175,8 +178,8 @@ public abstract class AddressEJB implements EntityBean {
       expect(refsIndex).toBeGreaterThan(basicInfoIndex);
 
       // Verify instruction points are included in sections
-      expect(renderedPrompt).toContain(SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE);
-      expect(renderedPrompt).toContain(SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION);
+      expect(renderedPrompt).toContain(COMMON_FRAGMENTS.PURPOSE);
+      expect(renderedPrompt).toContain(COMMON_FRAGMENTS.IMPLEMENTATION);
     });
 
     it("should include all template placeholders correctly", () => {

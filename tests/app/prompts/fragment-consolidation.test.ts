@@ -1,20 +1,30 @@
 import {
-  SOURCES_PROMPT_FRAGMENTS,
+  BASE_FRAGMENTS,
+  COMMON_FRAGMENTS,
+  CODE_QUALITY_FRAGMENTS,
+  DB_INTEGRATION_FRAGMENTS,
+  INTEGRATION_POINTS_FRAGMENTS,
+  SCHEDULED_JOBS_FRAGMENTS,
+  JAVA_SPECIFIC_FRAGMENTS,
+  JAVASCRIPT_SPECIFIC_FRAGMENTS,
+  CSHARP_SPECIFIC_FRAGMENTS,
+  PYTHON_SPECIFIC_FRAGMENTS,
+  RUBY_SPECIFIC_FRAGMENTS,
   COMPOSITES,
-} from "../../../src/app/prompts/sources/sources.fragments";
+} from "../../../src/app/prompts/sources/fragments";
 
 describe("Fragment Consolidation", () => {
   describe("BASE fragments", () => {
-    it("should have CLASS instructions in SOURCES_PROMPT_FRAGMENTS.BASE", () => {
-      expect(SOURCES_PROMPT_FRAGMENTS.BASE.CLASS).toBeDefined();
-      expect(SOURCES_PROMPT_FRAGMENTS.BASE.CLASS).toHaveLength(3);
-      expect(SOURCES_PROMPT_FRAGMENTS.BASE.CLASS[0]).toContain("name");
+    it("should have CLASS instructions in BASE_FRAGMENTS", () => {
+      expect(BASE_FRAGMENTS.CLASS).toBeDefined();
+      expect(BASE_FRAGMENTS.CLASS).toHaveLength(3);
+      expect(BASE_FRAGMENTS.CLASS[0]).toContain("name");
     });
 
-    it("should have MODULE instructions in SOURCES_PROMPT_FRAGMENTS.BASE", () => {
-      expect(SOURCES_PROMPT_FRAGMENTS.BASE.MODULE).toBeDefined();
-      expect(SOURCES_PROMPT_FRAGMENTS.BASE.MODULE).toHaveLength(3);
-      expect(SOURCES_PROMPT_FRAGMENTS.BASE.MODULE[0]).toContain("entity");
+    it("should have MODULE instructions in BASE_FRAGMENTS", () => {
+      expect(BASE_FRAGMENTS.MODULE).toBeDefined();
+      expect(BASE_FRAGMENTS.MODULE).toHaveLength(3);
+      expect(BASE_FRAGMENTS.MODULE[0]).toContain("entity");
     });
   });
 
@@ -22,13 +32,13 @@ describe("Fragment Consolidation", () => {
     it("should have CODE_QUALITY composite", () => {
       expect(COMPOSITES.CODE_QUALITY).toBeDefined();
       expect(COMPOSITES.CODE_QUALITY.length).toBeGreaterThan(0);
-      expect(COMPOSITES.CODE_QUALITY).toContain(SOURCES_PROMPT_FRAGMENTS.CODE_QUALITY.INTRO);
+      expect(COMPOSITES.CODE_QUALITY).toContain(CODE_QUALITY_FRAGMENTS.INTRO);
     });
 
     it("should have DB_INTEGRATION composite", () => {
       expect(COMPOSITES.DB_INTEGRATION).toBeDefined();
       expect(COMPOSITES.DB_INTEGRATION.length).toBeGreaterThan(0);
-      expect(COMPOSITES.DB_INTEGRATION).toContain(SOURCES_PROMPT_FRAGMENTS.DB_INTEGRATION.INTRO);
+      expect(COMPOSITES.DB_INTEGRATION).toContain(DB_INTEGRATION_FRAGMENTS.INTRO);
     });
 
     it("should have INTEGRATION_POINTS composite", () => {
@@ -44,20 +54,20 @@ describe("Fragment Consolidation", () => {
 
   describe("Fragment organization", () => {
     it("should have all main fragment categories", () => {
-      expect(SOURCES_PROMPT_FRAGMENTS.COMMON).toBeDefined();
-      expect(SOURCES_PROMPT_FRAGMENTS.CODE_QUALITY).toBeDefined();
-      expect(SOURCES_PROMPT_FRAGMENTS.DB_INTEGRATION).toBeDefined();
-      expect(SOURCES_PROMPT_FRAGMENTS.INTEGRATION_POINTS).toBeDefined();
-      expect(SOURCES_PROMPT_FRAGMENTS.SCHEDULED_JOBS).toBeDefined();
-      expect(SOURCES_PROMPT_FRAGMENTS.BASE).toBeDefined();
+      expect(COMMON_FRAGMENTS).toBeDefined();
+      expect(CODE_QUALITY_FRAGMENTS).toBeDefined();
+      expect(DB_INTEGRATION_FRAGMENTS).toBeDefined();
+      expect(INTEGRATION_POINTS_FRAGMENTS).toBeDefined();
+      expect(SCHEDULED_JOBS_FRAGMENTS).toBeDefined();
+      expect(BASE_FRAGMENTS).toBeDefined();
     });
 
     it("should have language-specific fragments", () => {
-      expect(SOURCES_PROMPT_FRAGMENTS.JAVA_SPECIFIC).toBeDefined();
-      expect(SOURCES_PROMPT_FRAGMENTS.JAVASCRIPT_SPECIFIC).toBeDefined();
-      expect(SOURCES_PROMPT_FRAGMENTS.CSHARP_SPECIFIC).toBeDefined();
-      expect(SOURCES_PROMPT_FRAGMENTS.PYTHON_SPECIFIC).toBeDefined();
-      expect(SOURCES_PROMPT_FRAGMENTS.RUBY_SPECIFIC).toBeDefined();
+      expect(JAVA_SPECIFIC_FRAGMENTS).toBeDefined();
+      expect(JAVASCRIPT_SPECIFIC_FRAGMENTS).toBeDefined();
+      expect(CSHARP_SPECIFIC_FRAGMENTS).toBeDefined();
+      expect(PYTHON_SPECIFIC_FRAGMENTS).toBeDefined();
+      expect(RUBY_SPECIFIC_FRAGMENTS).toBeDefined();
     });
   });
 });

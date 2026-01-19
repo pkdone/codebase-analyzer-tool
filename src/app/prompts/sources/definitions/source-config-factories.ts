@@ -1,9 +1,12 @@
 import { z } from "zod";
 import {
-  SOURCES_PROMPT_FRAGMENTS,
+  COMMON_FRAGMENTS,
+  BASE_FRAGMENTS,
+  SCHEDULED_JOBS_FRAGMENTS,
+  INTEGRATION_POINTS_FRAGMENTS,
   COMPOSITES,
-  type LanguageSpecificFragments,
-} from "../sources.fragments";
+} from "../fragments";
+import type { LanguageSpecificFragments } from "../sources.fragments";
 import { sourceSummarySchema, commonSourceAnalysisSchema } from "../../../schemas/sources.schema";
 import { INSTRUCTION_SECTION_TITLES, buildInstructionBlock } from "../utils";
 
@@ -60,8 +63,8 @@ export const scheduledJobFileSchema = sourceSummarySchema.pick({
 export function createBasicInfoBlock(): string {
   return buildInstructionBlock(
     INSTRUCTION_SECTION_TITLES.BASIC_INFO,
-    SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
-    SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
+    COMMON_FRAGMENTS.PURPOSE,
+    COMMON_FRAGMENTS.IMPLEMENTATION,
   );
 }
 
@@ -113,8 +116,8 @@ export function createScheduledJobConfig(
       createBasicInfoBlock(),
       buildInstructionBlock(
         INSTRUCTION_SECTION_TITLES.SCHEDULED_JOBS,
-        SOURCES_PROMPT_FRAGMENTS.SCHEDULED_JOBS.INTRO,
-        SOURCES_PROMPT_FRAGMENTS.SCHEDULED_JOBS.FIELDS,
+        SCHEDULED_JOBS_FRAGMENTS.INTRO,
+        SCHEDULED_JOBS_FRAGMENTS.FIELDS,
         ...jobFragments,
       ),
     ],
@@ -170,9 +173,9 @@ export function createStandardCodeConfig(
 
   // Build basic info block with appropriate base (class or module) and optional kind override
   const basicInfoParts: (string | readonly string[])[] = [
-    useModuleBase ? SOURCES_PROMPT_FRAGMENTS.BASE.MODULE : SOURCES_PROMPT_FRAGMENTS.BASE.CLASS,
-    SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
-    SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
+    useModuleBase ? BASE_FRAGMENTS.MODULE : BASE_FRAGMENTS.CLASS,
+    COMMON_FRAGMENTS.PURPOSE,
+    COMMON_FRAGMENTS.IMPLEMENTATION,
   ];
   if (fragments.KIND_OVERRIDE) {
     basicInfoParts.push(fragments.KIND_OVERRIDE);
@@ -201,7 +204,7 @@ export function createStandardCodeConfig(
       ),
       buildInstructionBlock(
         INSTRUCTION_SECTION_TITLES.INTEGRATION_POINTS,
-        SOURCES_PROMPT_FRAGMENTS.INTEGRATION_POINTS.INTRO,
+        INTEGRATION_POINTS_FRAGMENTS.INTRO,
         fragments.INTEGRATION_INSTRUCTIONS,
       ),
       buildInstructionBlock(

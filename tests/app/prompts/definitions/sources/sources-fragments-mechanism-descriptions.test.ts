@@ -6,7 +6,13 @@
  * rather than hardcoding mechanism strings.
  */
 
-import { SOURCES_PROMPT_FRAGMENTS } from "../../../../../src/app/prompts/sources/sources.fragments";
+import {
+  JAVA_SPECIFIC_FRAGMENTS,
+  JAVASCRIPT_SPECIFIC_FRAGMENTS,
+  CSHARP_SPECIFIC_FRAGMENTS,
+  C_SPECIFIC_FRAGMENTS,
+  CPP_SPECIFIC_FRAGMENTS,
+} from "../../../../../src/app/prompts/sources/fragments";
 import { MECHANISM_DESCRIPTIONS } from "../../../../../src/app/prompts/sources/fragments/common.fragments";
 
 describe("MECHANISM_DESCRIPTIONS usage in language-specific fragments", () => {
@@ -23,7 +29,7 @@ describe("MECHANISM_DESCRIPTIONS usage in language-specific fragments", () => {
   });
 
   describe("Java INTEGRATION_INSTRUCTIONS", () => {
-    const javaIntegration = SOURCES_PROMPT_FRAGMENTS.JAVA_SPECIFIC.INTEGRATION_INSTRUCTIONS;
+    const javaIntegration = JAVA_SPECIFIC_FRAGMENTS.INTEGRATION_INSTRUCTIONS;
 
     it("should use MECHANISM_DESCRIPTIONS.REST constant", () => {
       expect(javaIntegration).toContain(MECHANISM_DESCRIPTIONS.REST);
@@ -43,7 +49,7 @@ describe("MECHANISM_DESCRIPTIONS usage in language-specific fragments", () => {
   });
 
   describe("JavaScript INTEGRATION_INSTRUCTIONS", () => {
-    const jsIntegration = SOURCES_PROMPT_FRAGMENTS.JAVASCRIPT_SPECIFIC.INTEGRATION_INSTRUCTIONS;
+    const jsIntegration = JAVASCRIPT_SPECIFIC_FRAGMENTS.INTEGRATION_INSTRUCTIONS;
 
     it("should use MECHANISM_DESCRIPTIONS.REST constant", () => {
       expect(jsIntegration).toContain(MECHANISM_DESCRIPTIONS.REST);
@@ -71,7 +77,7 @@ describe("MECHANISM_DESCRIPTIONS usage in language-specific fragments", () => {
   });
 
   describe("C# INTEGRATION_INSTRUCTIONS", () => {
-    const csharpIntegration = SOURCES_PROMPT_FRAGMENTS.CSHARP_SPECIFIC.INTEGRATION_INSTRUCTIONS;
+    const csharpIntegration = CSHARP_SPECIFIC_FRAGMENTS.INTEGRATION_INSTRUCTIONS;
 
     it("should use MECHANISM_DESCRIPTIONS.REST constant", () => {
       expect(csharpIntegration).toContain(MECHANISM_DESCRIPTIONS.REST);
@@ -87,7 +93,7 @@ describe("MECHANISM_DESCRIPTIONS usage in language-specific fragments", () => {
   });
 
   describe("C INTEGRATION_INSTRUCTIONS", () => {
-    const cIntegration = SOURCES_PROMPT_FRAGMENTS.C_SPECIFIC.INTEGRATION_INSTRUCTIONS;
+    const cIntegration = C_SPECIFIC_FRAGMENTS.INTEGRATION_INSTRUCTIONS;
 
     it("should use MECHANISM_DESCRIPTIONS.REST constant", () => {
       expect(cIntegration).toContain(MECHANISM_DESCRIPTIONS.REST);
@@ -95,7 +101,7 @@ describe("MECHANISM_DESCRIPTIONS usage in language-specific fragments", () => {
   });
 
   describe("C++ INTEGRATION_INSTRUCTIONS", () => {
-    const cppIntegration = SOURCES_PROMPT_FRAGMENTS.CPP_SPECIFIC.INTEGRATION_INSTRUCTIONS;
+    const cppIntegration = CPP_SPECIFIC_FRAGMENTS.INTEGRATION_INSTRUCTIONS;
 
     it("should use MECHANISM_DESCRIPTIONS.REST constant", () => {
       expect(cppIntegration).toContain(MECHANISM_DESCRIPTIONS.REST);
@@ -114,18 +120,18 @@ describe("MECHANISM_DESCRIPTIONS usage in language-specific fragments", () => {
     const languagesWithRest = [
       {
         name: "Java",
-        integration: SOURCES_PROMPT_FRAGMENTS.JAVA_SPECIFIC.INTEGRATION_INSTRUCTIONS,
+        integration: JAVA_SPECIFIC_FRAGMENTS.INTEGRATION_INSTRUCTIONS,
       },
       {
         name: "JavaScript",
-        integration: SOURCES_PROMPT_FRAGMENTS.JAVASCRIPT_SPECIFIC.INTEGRATION_INSTRUCTIONS,
+        integration: JAVASCRIPT_SPECIFIC_FRAGMENTS.INTEGRATION_INSTRUCTIONS,
       },
       {
         name: "C#",
-        integration: SOURCES_PROMPT_FRAGMENTS.CSHARP_SPECIFIC.INTEGRATION_INSTRUCTIONS,
+        integration: CSHARP_SPECIFIC_FRAGMENTS.INTEGRATION_INSTRUCTIONS,
       },
-      { name: "C", integration: SOURCES_PROMPT_FRAGMENTS.C_SPECIFIC.INTEGRATION_INSTRUCTIONS },
-      { name: "C++", integration: SOURCES_PROMPT_FRAGMENTS.CPP_SPECIFIC.INTEGRATION_INSTRUCTIONS },
+      { name: "C", integration: C_SPECIFIC_FRAGMENTS.INTEGRATION_INSTRUCTIONS },
+      { name: "C++", integration: CPP_SPECIFIC_FRAGMENTS.INTEGRATION_INSTRUCTIONS },
     ];
 
     it("should have consistent REST mechanism format across all languages", () => {

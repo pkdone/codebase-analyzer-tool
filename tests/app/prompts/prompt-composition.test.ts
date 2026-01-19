@@ -1,4 +1,8 @@
-import { SOURCES_PROMPT_FRAGMENTS } from "../../../src/app/prompts/sources/sources.fragments";
+import {
+  COMMON_FRAGMENTS,
+  JAVA_SPECIFIC_FRAGMENTS,
+  JAVASCRIPT_SPECIFIC_FRAGMENTS,
+} from "../../../src/app/prompts/sources/fragments";
 import { fileTypePromptRegistry } from "../../../src/app/prompts/sources/sources.definitions";
 
 describe("prompt-composition", () => {
@@ -20,10 +24,10 @@ describe("prompt-composition", () => {
       // Instructions are now string array - fragments are embedded within formatted strings
       const allInstructions = javaInstructions.join(" ");
 
-      expect(allInstructions).toContain(SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE);
-      expect(allInstructions).toContain(SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION);
-      expect(allInstructions).toContain(SOURCES_PROMPT_FRAGMENTS.JAVA_SPECIFIC.INTERNAL_REFS);
-      expect(allInstructions).toContain(SOURCES_PROMPT_FRAGMENTS.JAVA_SPECIFIC.EXTERNAL_REFS);
+      expect(allInstructions).toContain(COMMON_FRAGMENTS.PURPOSE);
+      expect(allInstructions).toContain(COMMON_FRAGMENTS.IMPLEMENTATION);
+      expect(allInstructions).toContain(JAVA_SPECIFIC_FRAGMENTS.INTERNAL_REFS);
+      expect(allInstructions).toContain(JAVA_SPECIFIC_FRAGMENTS.EXTERNAL_REFS);
 
       // Check for DB integration and code quality
       expect(allInstructions).toContain("Database Integration Analysis");
@@ -36,14 +40,10 @@ describe("prompt-composition", () => {
       // Instructions are now string array - fragments are embedded within formatted strings
       const jsAllInstructions = jsInstructions.join(" ");
 
-      expect(jsAllInstructions).toContain(SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE);
-      expect(jsAllInstructions).toContain(SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION);
-      expect(jsAllInstructions).toContain(
-        SOURCES_PROMPT_FRAGMENTS.JAVASCRIPT_SPECIFIC.INTERNAL_REFS,
-      );
-      expect(jsAllInstructions).toContain(
-        SOURCES_PROMPT_FRAGMENTS.JAVASCRIPT_SPECIFIC.EXTERNAL_REFS,
-      );
+      expect(jsAllInstructions).toContain(COMMON_FRAGMENTS.PURPOSE);
+      expect(jsAllInstructions).toContain(COMMON_FRAGMENTS.IMPLEMENTATION);
+      expect(jsAllInstructions).toContain(JAVASCRIPT_SPECIFIC_FRAGMENTS.INTERNAL_REFS);
+      expect(jsAllInstructions).toContain(JAVASCRIPT_SPECIFIC_FRAGMENTS.EXTERNAL_REFS);
     });
 
     it("should compose simple file type instructions from fragments", () => {
@@ -54,11 +54,11 @@ describe("prompt-composition", () => {
       const markdownAllInstructions = markdownInstructions.join(" ");
       const sqlAllInstructions = sqlInstructions.join(" ");
 
-      expect(markdownAllInstructions).toContain(SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE);
-      expect(markdownAllInstructions).toContain(SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION);
+      expect(markdownAllInstructions).toContain(COMMON_FRAGMENTS.PURPOSE);
+      expect(markdownAllInstructions).toContain(COMMON_FRAGMENTS.IMPLEMENTATION);
 
-      expect(sqlAllInstructions).toContain(SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE);
-      expect(sqlAllInstructions).toContain(SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION);
+      expect(sqlAllInstructions).toContain(COMMON_FRAGMENTS.PURPOSE);
+      expect(sqlAllInstructions).toContain(COMMON_FRAGMENTS.IMPLEMENTATION);
     });
 
     it("should maintain backward compatibility for file types", () => {
@@ -109,18 +109,14 @@ describe("prompt-composition", () => {
       // Java should use Java-specific fragments
       const javaInstructions = fileTypePromptRegistry.java.instructions;
       const javaAllInstructions = javaInstructions.join(" ");
-      expect(javaAllInstructions).toContain(SOURCES_PROMPT_FRAGMENTS.JAVA_SPECIFIC.INTERNAL_REFS);
-      expect(javaAllInstructions).toContain(SOURCES_PROMPT_FRAGMENTS.JAVA_SPECIFIC.EXTERNAL_REFS);
+      expect(javaAllInstructions).toContain(JAVA_SPECIFIC_FRAGMENTS.INTERNAL_REFS);
+      expect(javaAllInstructions).toContain(JAVA_SPECIFIC_FRAGMENTS.EXTERNAL_REFS);
 
       // JavaScript should use JavaScript-specific fragments
       const jsInstructions = fileTypePromptRegistry.javascript.instructions;
       const jsAllInstructions = jsInstructions.join(" ");
-      expect(jsAllInstructions).toContain(
-        SOURCES_PROMPT_FRAGMENTS.JAVASCRIPT_SPECIFIC.INTERNAL_REFS,
-      );
-      expect(jsAllInstructions).toContain(
-        SOURCES_PROMPT_FRAGMENTS.JAVASCRIPT_SPECIFIC.EXTERNAL_REFS,
-      );
+      expect(jsAllInstructions).toContain(JAVASCRIPT_SPECIFIC_FRAGMENTS.INTERNAL_REFS);
+      expect(jsAllInstructions).toContain(JAVASCRIPT_SPECIFIC_FRAGMENTS.EXTERNAL_REFS);
     });
   });
 });

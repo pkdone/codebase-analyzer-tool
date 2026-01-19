@@ -12,7 +12,7 @@ import {
   APP_SUMMARY_CONTENT_DESC,
   APP_SUMMARY_PROMPT_FRAGMENTS,
 } from "../../../src/app/prompts/app-summaries/app-summaries.fragments";
-import { SOURCES_PROMPT_FRAGMENTS } from "../../../src/app/prompts/sources/sources.fragments";
+import { COMMON_FRAGMENTS } from "../../../src/app/prompts/sources/fragments";
 import { INSTRUCTION_SECTION_TITLES } from "../../../src/app/prompts/sources/utils";
 import { fileTypePromptRegistry } from "../../../src/app/prompts/sources/sources.definitions";
 import { z } from "zod";
@@ -67,7 +67,7 @@ describe("JSONSchemaPrompt Refactoring - Unified Configuration", () => {
       // Should contain section title
       expect(firstInstruction).toContain(`__${INSTRUCTION_SECTION_TITLES.BASIC_INFO}__`);
       // Should contain instruction content
-      expect(firstInstruction).toContain(SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE);
+      expect(firstInstruction).toContain(COMMON_FRAGMENTS.PURPOSE);
     });
 
     it("should render prompts correctly with new instruction format", () => {
@@ -81,8 +81,8 @@ describe("JSONSchemaPrompt Refactoring - Unified Configuration", () => {
       expect(rendered).toContain(`__${INSTRUCTION_SECTION_TITLES.REFERENCES_AND_DEPS}__`);
 
       // Verify instructions are properly joined
-      expect(rendered).toContain(SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE);
-      expect(rendered).toContain(SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION);
+      expect(rendered).toContain(COMMON_FRAGMENTS.PURPOSE);
+      expect(rendered).toContain(COMMON_FRAGMENTS.IMPLEMENTATION);
     });
 
     it("should maintain instruction separation with double newlines", () => {

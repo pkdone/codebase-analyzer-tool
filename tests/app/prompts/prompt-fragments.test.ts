@@ -1,9 +1,15 @@
-import { SOURCES_PROMPT_FRAGMENTS } from "../../../src/app/prompts/sources/sources.fragments";
+import {
+  JAVA_SPECIFIC_FRAGMENTS,
+  JAVASCRIPT_SPECIFIC_FRAGMENTS,
+  CSHARP_SPECIFIC_FRAGMENTS,
+  PYTHON_SPECIFIC_FRAGMENTS,
+  RUBY_SPECIFIC_FRAGMENTS,
+} from "../../../src/app/prompts/sources/fragments";
 
 describe("Fragment Factory Functions", () => {
   describe("DB_MECHANISM_MAPPING fragments", () => {
     test("Java DB_MECHANISM_MAPPING should contain expected structure", () => {
-      const javaMapping = SOURCES_PROMPT_FRAGMENTS.JAVA_SPECIFIC.DB_MECHANISM_MAPPING;
+      const javaMapping = JAVA_SPECIFIC_FRAGMENTS.DB_MECHANISM_MAPPING;
 
       // Should start with the common prefix
       expect(javaMapping).toContain(
@@ -27,7 +33,7 @@ describe("Fragment Factory Functions", () => {
     });
 
     test("JavaScript DB_MECHANISM_MAPPING should contain expected structure", () => {
-      const jsMapping = SOURCES_PROMPT_FRAGMENTS.JAVASCRIPT_SPECIFIC.DB_MECHANISM_MAPPING;
+      const jsMapping = JAVASCRIPT_SPECIFIC_FRAGMENTS.DB_MECHANISM_MAPPING;
 
       // Should start with the common prefix
       expect(jsMapping).toContain(
@@ -46,7 +52,7 @@ describe("Fragment Factory Functions", () => {
     });
 
     test("C# DB_MECHANISM_MAPPING should contain expected structure", () => {
-      const csharpMapping = SOURCES_PROMPT_FRAGMENTS.CSHARP_SPECIFIC.DB_MECHANISM_MAPPING;
+      const csharpMapping = CSHARP_SPECIFIC_FRAGMENTS.DB_MECHANISM_MAPPING;
 
       // Should start with the common prefix
       expect(csharpMapping).toContain(
@@ -65,7 +71,7 @@ describe("Fragment Factory Functions", () => {
     });
 
     test("Python DB_MECHANISM_MAPPING should contain expected structure", () => {
-      const pythonMapping = SOURCES_PROMPT_FRAGMENTS.PYTHON_SPECIFIC.DB_MECHANISM_MAPPING;
+      const pythonMapping = PYTHON_SPECIFIC_FRAGMENTS.DB_MECHANISM_MAPPING;
 
       // Should start with the common prefix
       expect(pythonMapping).toContain(
@@ -83,7 +89,7 @@ describe("Fragment Factory Functions", () => {
     });
 
     test("Ruby DB_MECHANISM_MAPPING should contain expected structure", () => {
-      const rubyMapping = SOURCES_PROMPT_FRAGMENTS.RUBY_SPECIFIC.DB_MECHANISM_MAPPING;
+      const rubyMapping = RUBY_SPECIFIC_FRAGMENTS.DB_MECHANISM_MAPPING;
 
       // Should start with the common prefix
       expect(rubyMapping).toContain(
@@ -102,11 +108,11 @@ describe("Fragment Factory Functions", () => {
 
     test("all DB_MECHANISM_MAPPING fragments should have consistent structure", () => {
       const mappings = [
-        SOURCES_PROMPT_FRAGMENTS.JAVA_SPECIFIC.DB_MECHANISM_MAPPING,
-        SOURCES_PROMPT_FRAGMENTS.JAVASCRIPT_SPECIFIC.DB_MECHANISM_MAPPING,
-        SOURCES_PROMPT_FRAGMENTS.CSHARP_SPECIFIC.DB_MECHANISM_MAPPING,
-        SOURCES_PROMPT_FRAGMENTS.PYTHON_SPECIFIC.DB_MECHANISM_MAPPING,
-        SOURCES_PROMPT_FRAGMENTS.RUBY_SPECIFIC.DB_MECHANISM_MAPPING,
+        JAVA_SPECIFIC_FRAGMENTS.DB_MECHANISM_MAPPING,
+        JAVASCRIPT_SPECIFIC_FRAGMENTS.DB_MECHANISM_MAPPING,
+        CSHARP_SPECIFIC_FRAGMENTS.DB_MECHANISM_MAPPING,
+        PYTHON_SPECIFIC_FRAGMENTS.DB_MECHANISM_MAPPING,
+        RUBY_SPECIFIC_FRAGMENTS.DB_MECHANISM_MAPPING,
       ];
 
       // All should start with the same prefix
@@ -123,8 +129,8 @@ describe("Fragment Factory Functions", () => {
     });
 
     test("DB_MECHANISM_MAPPING fragments should not have duplicate content", () => {
-      const javaMapping = SOURCES_PROMPT_FRAGMENTS.JAVA_SPECIFIC.DB_MECHANISM_MAPPING;
-      const jsMapping = SOURCES_PROMPT_FRAGMENTS.JAVASCRIPT_SPECIFIC.DB_MECHANISM_MAPPING;
+      const javaMapping = JAVA_SPECIFIC_FRAGMENTS.DB_MECHANISM_MAPPING;
+      const jsMapping = JAVASCRIPT_SPECIFIC_FRAGMENTS.DB_MECHANISM_MAPPING;
 
       // Java-specific content should not appear in JavaScript mapping
       expect(jsMapping).not.toContain("JDBC driver / JDBC API classes");
