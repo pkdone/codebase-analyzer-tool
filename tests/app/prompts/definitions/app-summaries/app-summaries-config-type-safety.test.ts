@@ -88,13 +88,14 @@ describe("appSummaryConfigMap Type Safety", () => {
   describe("AppSummaryConfigEntry Generic Interface", () => {
     it("should accept generic type parameter for specific schemas", () => {
       // Create a test entry with a specific schema type
-      // Note: contentDesc, dataBlockHeader, wrapInCodeBlock are now set at instantiation time
       const testSchema = z.object({
         testCategory: z.array(z.string()),
       });
 
       // This should compile without error, showing the generic works
       const testEntry: AppSummaryConfigEntry<typeof testSchema> = {
+        contentDesc: "test content description",
+        dataBlockHeader: "TEST_BLOCK",
         responseSchema: testSchema,
         instructions: ["Generate a test list"],
       };
@@ -104,8 +105,9 @@ describe("appSummaryConfigMap Type Safety", () => {
 
     it("should default to z.ZodType when no type parameter is provided", () => {
       // This should accept any ZodType without specific parameter
-      // Note: contentDesc, dataBlockHeader, wrapInCodeBlock are now set at instantiation time
       const genericEntry: AppSummaryConfigEntry = {
+        contentDesc: "generic content description",
+        dataBlockHeader: "GENERIC_BLOCK",
         responseSchema: z.string(),
         instructions: [],
       };
@@ -113,16 +115,17 @@ describe("appSummaryConfigMap Type Safety", () => {
       expect(genericEntry.responseSchema).toBeInstanceOf(z.ZodType);
     });
 
-    it("should not contain presentation properties (handled by consumer)", () => {
-      // AppSummaryConfigEntry no longer includes these properties
+    it("should contain contentDesc and dataBlockHeader properties", () => {
+      // AppSummaryConfigEntry now includes these properties for self-describing config
       const testEntry: AppSummaryConfigEntry = {
+        contentDesc: "test content",
+        dataBlockHeader: "TEST_BLOCK",
         responseSchema: z.string(),
         instructions: [],
       };
 
-      expect("contentDesc" in testEntry).toBe(false);
-      expect("dataBlockHeader" in testEntry).toBe(false);
-      expect("wrapInCodeBlock" in testEntry).toBe(false);
+      expect(testEntry.contentDesc).toBe("test content");
+      expect(testEntry.dataBlockHeader).toBe("TEST_BLOCK");
     });
   });
 

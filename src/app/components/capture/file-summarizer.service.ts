@@ -3,19 +3,12 @@ import { z } from "zod";
 import { logErr } from "../../../common/utils/logging";
 import type LLMRouter from "../../../common/llm/llm-router";
 import { LLMOutputFormat } from "../../../common/llm/types/llm.types";
-import {
-  JSONSchemaPrompt,
-  type JSONSchemaPromptConfig,
-} from "../../../common/prompts/json-schema-prompt";
-import { DEFAULT_PERSONA_INTRODUCTION } from "../../prompts/prompt.config";
 import { sourceSummarySchema } from "../../schemas/sources.schema";
 import { getCanonicalFileType } from "../../config/file-handling";
 import { getLlmArtifactCorrections } from "../../llm";
 import { llmTokens, captureTokens } from "../../di/tokens";
-import {
-  type FileTypePromptRegistry,
-  CODE_DATA_BLOCK_HEADER,
-} from "../../prompts/sources/sources.definitions";
+import { type FileTypePromptRegistry } from "../../prompts/sources/sources.definitions";
+import { buildSourcePrompt } from "../../prompts/prompt-builders";
 import { type Result, ok, err, isOk } from "../../../common/types/result.types";
 
 /**
@@ -68,27 +61,18 @@ export class FileSummarizerService {
     try {
       if (content.trim().length === 0) return err(new Error("File is empty"));
       const canonicalFileType = getCanonicalFileType(filepath, type);
-      const config = this.fileTypePromptRegistry[canonicalFileType];
-      const promptGenerator = new JSONSchemaPrompt({
-        personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
-        ...config,
-        dataBlockHeader: CODE_DATA_BLOCK_HEADER,
-        wrapInCodeBlock: true,
-      } as JSONSchemaPromptConfig);
-      const renderedPrompt = promptGenerator.renderPrompt(content);
-      const schema = config.responseSchema;
-      const hasComplexSchema = "hasComplexSchema" in config && Boolean(config.hasComplexSchema);
+      const { prompt, schema, hasComplexSchema } = buildSourcePrompt(
+        this.fileTypePromptRegistry,
+        canonicalFileType,
+        content,
+      );
       const completionOptions = {
         outputFormat: LLMOutputFormat.JSON,
         jsonSchema: schema,
         hasComplexSchema,
         sanitizerConfig: getLlmArtifactCorrections(),
       } as const;
-      const result = await this.llmRouter.executeCompletion(
-        filepath,
-        renderedPrompt,
-        completionOptions,
-      );
+      const result = await this.llmRouter.executeCompletion(filepath, prompt, completionOptions);
 
       if (!isOk(result)) {
         const errorMsg = `Failed to generate summary for '${filepath}'`;

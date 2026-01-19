@@ -12,8 +12,8 @@ import {
  * Unit tests for the app summary configuration structure.
  * Verifies that AppSummaryConfigEntry objects have proper structure and type safety.
  *
- * Note: contentDesc, dataBlockHeader, and wrapInCodeBlock are set by the consumer
- * (InsightCompletionExecutor) at instantiation time, not in the config entries.
+ * Each AppSummaryConfigEntry is self-describing with contentDesc and dataBlockHeader
+ * included directly in the configuration, consistent with SourceConfigEntry.
  */
 describe("App Summary Configuration", () => {
   describe("constant exports", () => {
@@ -54,15 +54,14 @@ describe("App Summary Configuration", () => {
       });
     });
 
-    it("should not contain presentation properties (handled by consumer)", () => {
+    it("should contain contentDesc and dataBlockHeader in each entry", () => {
       const categories = Object.keys(appSummaryConfigMap) as (keyof typeof appSummaryConfigMap)[];
 
       categories.forEach((category) => {
         const config = appSummaryConfigMap[category];
 
-        expect("contentDesc" in config).toBe(false);
-        expect("dataBlockHeader" in config).toBe(false);
-        expect("wrapInCodeBlock" in config).toBe(false);
+        expect(config.contentDesc).toBe(APP_SUMMARY_CONTENT_DESC);
+        expect(config.dataBlockHeader).toBe(FILE_SUMMARIES_DATA_BLOCK_HEADER);
       });
     });
 
@@ -88,6 +87,8 @@ describe("App Summary Configuration", () => {
 
       // Type should work with specific schema types
       const config: AppSummaryConfigEntry<typeof specificSchema> = {
+        contentDesc: "test content",
+        dataBlockHeader: "TEST_BLOCK",
         responseSchema: specificSchema,
         instructions: ["typed instruction"],
       };
@@ -101,6 +102,8 @@ describe("App Summary Configuration", () => {
     it("should allow AppSummaryConfigEntry with default generic type", () => {
       // Should accept any ZodType without specific parameter
       const genericEntry: AppSummaryConfigEntry = {
+        contentDesc: "generic content",
+        dataBlockHeader: "GENERIC_BLOCK",
         responseSchema: z.string(),
         instructions: [],
       };
@@ -114,6 +117,8 @@ describe("App Summary Configuration", () => {
       });
 
       const config: AppSummaryConfigEntry<typeof schema> = {
+        contentDesc: "items content",
+        dataBlockHeader: "ITEMS_BLOCK",
         responseSchema: schema,
         instructions: ["test"],
       };

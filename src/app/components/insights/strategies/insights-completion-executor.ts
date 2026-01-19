@@ -1,24 +1,11 @@
 import { z } from "zod";
 import LLMRouter from "../../../../common/llm/llm-router";
 import { LLMOutputFormat } from "../../../../common/llm/types/llm.types";
-import {
-  JSONSchemaPrompt,
-  type JSONSchemaPromptConfig,
-} from "../../../../common/prompts/json-schema-prompt";
-import { DEFAULT_PERSONA_INTRODUCTION } from "../../../prompts/prompt.config";
-import {
-  appSummaryConfigMap,
-  FILE_SUMMARIES_DATA_BLOCK_HEADER,
-  APP_SUMMARY_CONTENT_DESC,
-} from "../../../prompts/app-summaries/app-summaries.definitions";
+import { buildInsightPrompt } from "../../../prompts/prompt-builders";
 import { getCategoryLabel } from "../../../config/category-labels.config";
 import { logWarn } from "../../../../common/utils/logging";
 import { joinArrayWithSeparators } from "../../../../common/utils/text-utils";
-import {
-  AppSummaryCategoryEnum,
-  appSummaryCategorySchemas,
-  type AppSummaryCategorySchemas,
-} from "../insights.types";
+import { AppSummaryCategoryEnum, type AppSummaryCategorySchemas } from "../insights.types";
 import { getLlmArtifactCorrections } from "../../../llm";
 import { isOk } from "../../../../common/types/result.types";
 import { insightsConfig } from "../insights.config";
@@ -58,26 +45,11 @@ export async function executeInsightCompletion<C extends AppSummaryCategoryEnum>
 
   try {
     const taskCategory: string = options?.taskCategory ?? category;
-    const config = appSummaryConfigMap[category];
     const codeContent = joinArrayWithSeparators(sourceFileSummaries);
-    /**
-     * TYPE ASSERTION RATIONALE:
-     * The config from appSummaryConfigMap is a partial config (without presentation fields).
-     * We add personaIntroduction, contentDesc, dataBlockHeader, and wrapInCodeBlock
-     * at instantiation time per our architecture.
-     * TypeScript can't infer the combined type through the generic lookup, so we assert.
-     */
-    const promptGenerator = new JSONSchemaPrompt({
-      personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
-      ...config,
-      contentDesc: APP_SUMMARY_CONTENT_DESC,
-      dataBlockHeader: FILE_SUMMARIES_DATA_BLOCK_HEADER,
-      wrapInCodeBlock: false,
+    const { prompt, schema } = buildInsightPrompt(category, codeContent, {
       forPartialAnalysis: options?.forPartialAnalysis,
-    } as JSONSchemaPromptConfig);
-    const renderedPrompt = promptGenerator.renderPrompt(codeContent);
-    const schema = appSummaryCategorySchemas[category];
-    const result = await llmRouter.executeCompletion(taskCategory, renderedPrompt, {
+    });
+    const result = await llmRouter.executeCompletion(taskCategory, prompt, {
       outputFormat: LLMOutputFormat.JSON,
       jsonSchema: schema,
       hasComplexSchema: insightsConfig.IS_COMPLEX_SCHEMA,

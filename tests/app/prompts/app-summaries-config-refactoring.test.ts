@@ -3,25 +3,23 @@ import {
   FILE_SUMMARIES_DATA_BLOCK_HEADER,
   APP_SUMMARY_CONTENT_DESC,
 } from "../../../src/app/prompts/app-summaries/app-summaries.definitions";
-import {
-  JSONSchemaPrompt,
-  type JSONSchemaPromptConfig,
-} from "../../../src/common/prompts/json-schema-prompt";
+import { JSONSchemaPrompt } from "../../../src/common/prompts/json-schema-prompt";
 import { DEFAULT_PERSONA_INTRODUCTION } from "../../../src/app/prompts/prompt.config";
 
 /**
  * Helper to create a JSONSchemaPrompt from appSummaryConfigMap config.
- * Adds contentDesc, dataBlockHeader, and wrapInCodeBlock which are no longer in the config entries.
+ * Config entries are now self-describing with contentDesc and dataBlockHeader.
  */
 function createAppSummaryPrompt(category: keyof typeof appSummaryConfigMap): JSONSchemaPrompt {
   const config = appSummaryConfigMap[category];
   return new JSONSchemaPrompt({
     personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
-    ...config,
-    contentDesc: APP_SUMMARY_CONTENT_DESC,
-    dataBlockHeader: FILE_SUMMARIES_DATA_BLOCK_HEADER,
+    contentDesc: config.contentDesc,
+    instructions: config.instructions,
+    responseSchema: config.responseSchema,
+    dataBlockHeader: config.dataBlockHeader,
     wrapInCodeBlock: false,
-  } as JSONSchemaPromptConfig);
+  });
 }
 
 describe("App Summaries Config Refactoring", () => {
@@ -41,12 +39,11 @@ describe("App Summaries Config Refactoring", () => {
       });
     });
 
-    it("should not have presentation properties in config entries", () => {
-      // contentDesc, dataBlockHeader, wrapInCodeBlock are now set at instantiation time
+    it("should have contentDesc and dataBlockHeader in config entries", () => {
+      // Config entries are now self-describing with contentDesc and dataBlockHeader
       Object.values(appSummaryConfigMap).forEach((config) => {
-        expect("contentDesc" in config).toBe(false);
-        expect("dataBlockHeader" in config).toBe(false);
-        expect("wrapInCodeBlock" in config).toBe(false);
+        expect(config.contentDesc).toBe(APP_SUMMARY_CONTENT_DESC);
+        expect(config.dataBlockHeader).toBe(FILE_SUMMARIES_DATA_BLOCK_HEADER);
       });
     });
 

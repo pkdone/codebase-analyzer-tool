@@ -17,12 +17,17 @@ export { FILE_SUMMARIES_DATA_BLOCK_HEADER, APP_SUMMARY_CONTENT_DESC };
 
 /**
  * Configuration entry for app summary prompts.
- * Contains only the category-specific fields; presentation fields (contentDesc,
- * dataBlockHeader, wrapInCodeBlock) are provided by the consumer at instantiation time.
+ * Contains all fields necessary to construct a complete prompt, making each entry
+ * self-describing. This design is consistent with SourceConfigEntry and eliminates
+ * the need for consumers to provide presentation fields at instantiation time.
  *
  * @template S - The Zod schema type for validating the LLM response.
  */
 export interface AppSummaryConfigEntry<S extends z.ZodType = z.ZodType> {
+  /** Description of the content being analyzed (e.g., "a set of source file summaries") */
+  readonly contentDesc: string;
+  /** The data block header to use in the template (e.g., "FILE_SUMMARIES") */
+  readonly dataBlockHeader: string;
   /** Array of instruction strings for the LLM */
   readonly instructions: readonly string[];
   /** Zod schema for validating the LLM response */
@@ -32,9 +37,9 @@ export interface AppSummaryConfigEntry<S extends z.ZodType = z.ZodType> {
 /**
  * Centralized configuration for all app summary prompt definitions.
  *
- * Note: The `instructions` field contains the specific instruction text that will be used
- * in the Prompt. The contentDesc, dataBlockHeader, and wrapInCodeBlock fields are provided
- * by the consumer (InsightCompletionExecutor) at instantiation time.
+ * Each entry is self-describing with all fields needed to construct a complete prompt.
+ * This design is consistent with SourceConfigEntry and eliminates the need for consumers
+ * to provide presentation fields at instantiation time.
  *
  * Note: aggregates, entities, and repositories are captured within the boundedContexts
  * category as a hierarchical structure to ensure naming consistency across domain elements.
@@ -45,24 +50,32 @@ export interface AppSummaryConfigEntry<S extends z.ZodType = z.ZodType> {
  */
 export const appSummaryConfigMap = {
   appDescription: {
+    contentDesc: APP_SUMMARY_CONTENT_DESC,
+    dataBlockHeader: FILE_SUMMARIES_DATA_BLOCK_HEADER,
     responseSchema: appDescriptionSchema,
     instructions: [
       `${APP_SUMMARY_PROMPT_FRAGMENTS.DETAILED_DESC} of the application's purpose and implementation`,
     ],
   },
   technologies: {
+    contentDesc: APP_SUMMARY_CONTENT_DESC,
+    dataBlockHeader: FILE_SUMMARIES_DATA_BLOCK_HEADER,
     responseSchema: technologiesSchema,
     instructions: [
       `${APP_SUMMARY_PROMPT_FRAGMENTS.COMPREHENSIVE_LIST} of key external and host platform technologies (including the names of programming languages used) depended on by the application`,
     ],
   },
   businessProcesses: {
+    contentDesc: APP_SUMMARY_CONTENT_DESC,
+    dataBlockHeader: FILE_SUMMARIES_DATA_BLOCK_HEADER,
     responseSchema: businessProcessesSchema,
     instructions: [
       `${APP_SUMMARY_PROMPT_FRAGMENTS.CONCISE_LIST} of the application's main business processes with their key business activity steps that are linearly conducted by each process`,
     ],
   },
   boundedContexts: {
+    contentDesc: APP_SUMMARY_CONTENT_DESC,
+    dataBlockHeader: FILE_SUMMARIES_DATA_BLOCK_HEADER,
     responseSchema: boundedContextsSchema,
     instructions: [
       `${APP_SUMMARY_PROMPT_FRAGMENTS.CONCISE_LIST} of Domain-Driven Design Bounded Contexts that define explicit boundaries around related business capabilities. For each bounded context, include:
@@ -75,12 +88,16 @@ This hierarchical structure ensures consistent naming across all domain elements
     ],
   },
   potentialMicroservices: {
+    contentDesc: APP_SUMMARY_CONTENT_DESC,
+    dataBlockHeader: FILE_SUMMARIES_DATA_BLOCK_HEADER,
     responseSchema: potentialMicroservicesSchema,
     instructions: [
       `${APP_SUMMARY_PROMPT_FRAGMENTS.CONCISE_LIST} of recommended microservices to modernize the monolithic application architecture, each following the Single Responsibility Principle with detailed domain entities, defined CRUD operations, and REST API endpoints`,
     ],
   },
   inferredArchitecture: {
+    contentDesc: APP_SUMMARY_CONTENT_DESC,
+    dataBlockHeader: FILE_SUMMARIES_DATA_BLOCK_HEADER,
     responseSchema: inferredArchitectureSchema,
     instructions: [
       `${APP_SUMMARY_PROMPT_FRAGMENTS.CONCISE_LIST} of BUSINESS DOMAIN components inferred from the codebase.
