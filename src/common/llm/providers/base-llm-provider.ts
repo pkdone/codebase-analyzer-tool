@@ -135,8 +135,16 @@ export default abstract class BaseLLMProvider implements LLMProvider {
    * Execute the LLM function for the primary completion model.
    * Return type is inferred from options.jsonSchema at the call site.
    * Implemented as arrow function to preserve `this` context when passed to pipeline.
+   *
+   * Generic type parameter is explicitly declared to ensure type information flows
+   * correctly through to executeProviderFunction, preventing implicit widening to
+   * z.ZodType<any> within the implementation body.
    */
-  executeCompletionPrimary: LLMFunction = async (prompt, context, options) => {
+  executeCompletionPrimary: LLMFunction = async <S extends z.ZodType<unknown>>(
+    prompt: string,
+    context: LLMContext,
+    options?: LLMCompletionOptions<S>,
+  ): Promise<LLMFunctionResponse<z.infer<S>>> => {
     return this.executeProviderFunction(
       this.modelsKeys.primaryCompletionModelKey,
       LLMPurpose.COMPLETIONS,
@@ -150,8 +158,16 @@ export default abstract class BaseLLMProvider implements LLMProvider {
    * Execute the LLM function for the secondary completion model.
    * Return type is inferred from options.jsonSchema at the call site.
    * Implemented as arrow function to preserve `this` context when passed to pipeline.
+   *
+   * Generic type parameter is explicitly declared to ensure type information flows
+   * correctly through to executeProviderFunction, preventing implicit widening to
+   * z.ZodType<any> within the implementation body.
    */
-  executeCompletionSecondary: LLMFunction = async (prompt, context, options) => {
+  executeCompletionSecondary: LLMFunction = async <S extends z.ZodType<unknown>>(
+    prompt: string,
+    context: LLMContext,
+    options?: LLMCompletionOptions<S>,
+  ): Promise<LLMFunctionResponse<z.infer<S>>> => {
     const secondaryCompletion = this.modelsKeys.secondaryCompletionModelKey;
     if (!secondaryCompletion)
       throw new LLMError(
