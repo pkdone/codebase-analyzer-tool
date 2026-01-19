@@ -9,7 +9,7 @@ import {
   listDirectoryEntries,
   ensureDirectoryExists,
 } from "../../../../common/fs/directory-operations";
-import { logErr } from "../../../../common/utils/logging";
+import { logErr, logWarn } from "../../../../common/utils/logging";
 import { formatError } from "../../../../common/utils/error-formatters";
 import { llmTokens } from "../../../di/tokens";
 import LLMRouter from "../../../../common/llm/llm-router";
@@ -57,10 +57,14 @@ export class PromptFileInsightsGenerator {
         const result = await this.executePromptAgainstCodebase(prompt, codeBlocksContent);
         const outputFileName = `${prompt.filename}.result`;
         const outputFilePath = path.join(process.cwd(), outputConfig.OUTPUT_DIR, outputFileName);
-        await writeFile(
-          outputFilePath,
-          `GENERATED-BY: ${llmName}\n\nREQUIREMENT: ${prompt.question}\n\nRECOMENDATIONS:\n\n${result.trim()}\n`,
-        );
+
+        // Add indicator for empty responses
+        const isEmpty = !result.trim();
+        const content = isEmpty
+          ? `GENERATED-BY: ${llmName}\n\nREQUIREMENT: ${prompt.question}\n\nRECOMENDATIONS:\n\n[WARNING: LLM returned an empty response]\n`
+          : `GENERATED-BY: ${llmName}\n\nREQUIREMENT: ${prompt.question}\n\nRECOMENDATIONS:\n\n${result.trim()}\n`;
+
+        await writeFile(outputFilePath, content);
         return outputFilePath;
       });
     });
@@ -89,6 +93,10 @@ export class PromptFileInsightsGenerator {
       } else {
         // Type-safe: return type correctly infers string for TEXT output format
         response = result.value;
+        // Detect and warn about empty responses
+        if (!response.trim()) {
+          logWarn(`Empty LLM response received for prompt: ${resource}`);
+        }
       }
     } catch (error: unknown) {
       logErr("Problem introspecting and processing source files", error);

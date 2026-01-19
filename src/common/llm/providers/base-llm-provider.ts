@@ -23,6 +23,7 @@ import {
   ProviderInit,
 } from "./llm-provider.types";
 import { formatError } from "../../utils/error-formatters";
+import { logWarn } from "../../utils/logging";
 import { parseAndValidateLLMJson } from "../json-processing/core/json-processing";
 import { calculateTokenUsageFromError } from "../utils/error-parser";
 import { LLMError, LLMErrorCode } from "../types/llm-errors.types";
@@ -334,39 +335,7 @@ export default abstract class BaseLLMProvider implements LLMProvider {
 
     // Early return for non-JSON output format (TEXT mode)
     if (completionOptions.outputFormat !== LLMOutputFormat.JSON) {
-      // Configuration validation: TEXT format should not have a jsonSchema.
-      // If someone provides a schema but uses TEXT format, that's a configuration error
-      // that would cause type mismatches at runtime (schema expects object, TEXT returns string).
-      if (completionOptions.jsonSchema !== undefined) {
-        throw new LLMError(
-          LLMErrorCode.BAD_CONFIGURATION,
-          "Configuration error: jsonSchema was provided but outputFormat is TEXT. " +
-            "Use outputFormat: LLMOutputFormat.JSON when providing a schema, " +
-            "or remove the jsonSchema for TEXT output.",
-        );
-      }
-
-      // Runtime validation: TEXT format must return string.
-      // This validates the type before assignment to ensure type safety.
-      if (typeof responseContent !== "string") {
-        throw new LLMError(
-          LLMErrorCode.BAD_RESPONSE_CONTENT,
-          `Expected string response for TEXT output format, but received ${typeof responseContent}`,
-          responseContent,
-        );
-      }
-      // Type assertion explanation:
-      // For TEXT output, the generic S defaults to z.ZodType when no schema is provided,
-      // making z.infer<S> resolve to `any`. However, we've validated at runtime that
-      // responseContent is a string. The API boundary (LLMRouter.executeCompletion overloads)
-      // provides the correct type (string | null) to callers, so this internal `any` is
-      // safely bounded and doesn't leak to consumers.
-      // See: isTextOptions type guard in llm.types.ts for type-safe narrowing at call sites.
-      return {
-        ...skeletonResult,
-        status: LLMResponseStatus.COMPLETED,
-        generated: responseContent,
-      };
+      return this.validateTextResponse(skeletonResult, responseContent, completionOptions, context);
     }
 
     // Configuration validation: JSON format requires a jsonSchema.
@@ -410,6 +379,63 @@ export default abstract class BaseLLMProvider implements LLMProvider {
       );
       return { ...skeletonResult, status: LLMResponseStatus.INVALID };
     }
+  }
+
+  /**
+   * Validates and formats TEXT output responses.
+   * Returns a successful response, an INVALID response for empty content,
+   * or throws on configuration/type errors.
+   *
+   * Type assertion explanation:
+   * For TEXT output, the generic S defaults to z.ZodType when no schema is provided,
+   * making z.infer<S> resolve to `any`. However, we validate at runtime that
+   * responseContent is a string. The API boundary (LLMRouter.executeCompletion overloads)
+   * provides the correct type (string | null) to callers, so this internal `any` is
+   * safely bounded and doesn't leak to consumers.
+   * See: isTextOptions type guard in llm.types.ts for type-safe narrowing at call sites.
+   */
+  private validateTextResponse<S extends z.ZodType<unknown>>(
+    skeletonResult: Omit<LLMFunctionResponse, "generated" | "status" | "mutationSteps">,
+    responseContent: LLMGeneratedContent,
+    completionOptions: LLMCompletionOptions<S>,
+    context: LLMContext,
+  ): LLMFunctionResponse<z.infer<S>> {
+    // Configuration validation: TEXT format should not have a jsonSchema.
+    // If someone provides a schema but uses TEXT format, that's a configuration error
+    // that would cause type mismatches at runtime (schema expects object, TEXT returns string).
+    if (completionOptions.jsonSchema !== undefined) {
+      throw new LLMError(
+        LLMErrorCode.BAD_CONFIGURATION,
+        "Configuration error: jsonSchema was provided but outputFormat is TEXT. " +
+          "Use outputFormat: LLMOutputFormat.JSON when providing a schema, " +
+          "or remove the jsonSchema for TEXT output.",
+      );
+    }
+
+    // Runtime validation: TEXT format must return string.
+    if (typeof responseContent !== "string") {
+      throw new LLMError(
+        LLMErrorCode.BAD_RESPONSE_CONTENT,
+        `Expected string response for TEXT output format, but received ${typeof responseContent}`,
+        responseContent,
+      );
+    }
+
+    // Empty response validation for TEXT format.
+    // Return INVALID status to allow retry logic to attempt again.
+    if (!responseContent.trim()) {
+      logWarn("LLM returned empty TEXT response", context);
+      return {
+        ...skeletonResult,
+        status: LLMResponseStatus.INVALID,
+      };
+    }
+
+    return {
+      ...skeletonResult,
+      status: LLMResponseStatus.COMPLETED,
+      generated: responseContent,
+    };
   }
 
   /**
