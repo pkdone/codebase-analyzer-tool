@@ -1,6 +1,12 @@
 import { z } from "zod";
 import { sourceSummarySchema, scheduledJobSchema } from "../../../src/app/schemas/sources.schema";
-import { SOURCE_ENTITY_KIND_VALUES } from "../../../src/app/schemas/sources.enums";
+import {
+  SOURCE_ENTITY_KIND_VALUES,
+  COMPLEXITY_VALUES,
+  DEFAULT_COMPLEXITY,
+  COMPLEXITY_VALUES_SET,
+  type ComplexityValue,
+} from "../../../src/app/schemas/sources.enums";
 
 /**
  * Tests for source schema field names - NEW field names (after refactoring)
@@ -355,5 +361,76 @@ describe("Source Summary Schema - scheduledJobs field", () => {
       expect(result.data.scheduledJobs).toBeDefined();
       expect(result.data.scheduledJobs?.[0].jobName).toBe("PickedJob");
     }
+  });
+});
+
+/**
+ * Tests for COMPLEXITY_VALUES and DEFAULT_COMPLEXITY constants
+ */
+describe("Complexity Constants", () => {
+  describe("COMPLEXITY_VALUES", () => {
+    it("should define expected complexity levels", () => {
+      expect(COMPLEXITY_VALUES).toContain("LOW");
+      expect(COMPLEXITY_VALUES).toContain("MEDIUM");
+      expect(COMPLEXITY_VALUES).toContain("HIGH");
+      expect(COMPLEXITY_VALUES).toContain("INVALID");
+    });
+
+    it("should have exactly 4 complexity values", () => {
+      expect(COMPLEXITY_VALUES.length).toBe(4);
+    });
+
+    it("should be typed as a readonly tuple (compile-time check)", () => {
+      // TypeScript's 'as const' provides compile-time immutability
+      // This test verifies the expected values at runtime
+      const expectedValues = ["LOW", "MEDIUM", "HIGH", "INVALID"];
+      expect([...COMPLEXITY_VALUES]).toEqual(expectedValues);
+    });
+
+    it("should have LOW as the first element", () => {
+      expect(COMPLEXITY_VALUES[0]).toBe("LOW");
+    });
+  });
+
+  describe("DEFAULT_COMPLEXITY", () => {
+    it("should be a valid complexity value", () => {
+      expect(COMPLEXITY_VALUES).toContain(DEFAULT_COMPLEXITY);
+    });
+
+    it("should equal LOW", () => {
+      expect(DEFAULT_COMPLEXITY).toBe("LOW");
+    });
+
+    it("should be the first element of COMPLEXITY_VALUES (ensuring schema alignment)", () => {
+      expect(DEFAULT_COMPLEXITY).toBe(COMPLEXITY_VALUES[0]);
+    });
+
+    it("should be present in COMPLEXITY_VALUES_SET", () => {
+      expect(COMPLEXITY_VALUES_SET.has(DEFAULT_COMPLEXITY)).toBe(true);
+    });
+
+    it("should satisfy ComplexityValue type", () => {
+      // TypeScript type check - this compiles if the type is correct
+      const complexityValue: ComplexityValue = DEFAULT_COMPLEXITY;
+      expect(complexityValue).toBe("LOW");
+    });
+  });
+
+  describe("COMPLEXITY_VALUES_SET", () => {
+    it("should contain all COMPLEXITY_VALUES", () => {
+      for (const value of COMPLEXITY_VALUES) {
+        expect(COMPLEXITY_VALUES_SET.has(value)).toBe(true);
+      }
+    });
+
+    it("should have the same size as COMPLEXITY_VALUES array", () => {
+      expect(COMPLEXITY_VALUES_SET.size).toBe(COMPLEXITY_VALUES.length);
+    });
+
+    it("should not contain invalid values", () => {
+      expect(COMPLEXITY_VALUES_SET.has("VERY_HIGH")).toBe(false);
+      expect(COMPLEXITY_VALUES_SET.has("UNKNOWN")).toBe(false);
+      expect(COMPLEXITY_VALUES_SET.has("")).toBe(false);
+    });
   });
 });

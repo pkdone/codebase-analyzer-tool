@@ -2,7 +2,7 @@ import "reflect-metadata";
 import { BomDataProvider } from "../../../../../src/app/components/reporting/sections/dependencies/bom-data-provider";
 import type { SourcesRepository } from "../../../../../src/app/repositories/sources/sources.repository.interface";
 import type { ProjectedSourceSummaryFields } from "../../../../../src/app/repositories/sources/sources.model";
-import { fileProcessingRules } from "../../../../../src/app/config/file-handling/file-processing-rules";
+import type { FileProcessingRulesType } from "../../../../../src/app/config/file-handling";
 
 /**
  * Helper function to create mock source summary data for testing.
@@ -27,6 +27,7 @@ function createMockSourceSummary(
 describe("BomDataProvider", () => {
   let bomDataProvider: BomDataProvider;
   let mockSourcesRepository: jest.Mocked<SourcesRepository>;
+  let mockFileProcessingConfig: FileProcessingRulesType;
 
   beforeEach(() => {
     mockSourcesRepository = {
@@ -47,18 +48,28 @@ describe("BomDataProvider", () => {
       getCodeQualityStatistics: jest.fn(),
     } as jest.Mocked<SourcesRepository>;
 
-    bomDataProvider = new BomDataProvider(mockSourcesRepository);
+    mockFileProcessingConfig = {
+      FOLDER_IGNORE_LIST: ["node_modules", ".git"],
+      FILENAME_PREFIX_IGNORE: "test-",
+      FILENAME_IGNORE_LIST: ["package-lock.json"],
+      BINARY_FILE_EXTENSION_IGNORE_LIST: ["png", "jpg"],
+      CODE_FILE_EXTENSIONS: ["ts", "js", "java"],
+      BOM_DEPENDENCY_CANONICAL_TYPES: ["maven", "gradle", "npm"],
+      SCHEDULED_JOB_CANONICAL_TYPES: ["shell-script"],
+    } as unknown as FileProcessingRulesType;
+
+    bomDataProvider = new BomDataProvider(mockSourcesRepository, mockFileProcessingConfig);
   });
 
   describe("getBillOfMaterials", () => {
-    it("should fetch build files using BOM_DEPENDENCY_CANONICAL_TYPES from config", async () => {
+    it("should fetch build files using BOM_DEPENDENCY_CANONICAL_TYPES from injected config", async () => {
       mockSourcesRepository.getProjectSourcesSummariesByCanonicalType.mockResolvedValue([]);
 
       await bomDataProvider.getBillOfMaterials("test-project");
 
       expect(mockSourcesRepository.getProjectSourcesSummariesByCanonicalType).toHaveBeenCalledWith(
         "test-project",
-        expect.arrayContaining([...fileProcessingRules.BOM_DEPENDENCY_CANONICAL_TYPES]),
+        expect.arrayContaining([...mockFileProcessingConfig.BOM_DEPENDENCY_CANONICAL_TYPES]),
       );
     });
 

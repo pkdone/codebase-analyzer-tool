@@ -1,9 +1,9 @@
 import { procedureTriggerSchema } from "../../../../schemas/sources.schema";
-import { COMPLEXITY_VALUES, COMPLEXITY_VALUES_SET } from "../../../../schemas/sources.enums";
+import { COMPLEXITY_VALUES_SET, type ComplexityValue } from "../../../../schemas/sources.enums";
 import type { TypeOf } from "zod";
 
-// Complexity type derived from the enum definition
-export type Complexity = (typeof COMPLEXITY_VALUES)[number];
+// Re-export complexity type from centralized enums for backward compatibility
+export type Complexity = ComplexityValue;
 
 /**
  * Type guard to check if a value is a valid Complexity value

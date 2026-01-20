@@ -1,20 +1,17 @@
 import { injectable, inject } from "tsyringe";
 import LLMRouter from "../../../../common/llm/llm-router";
-import { fileProcessingRules as fileProcessingConfig } from "../../../config/file-handling";
+import type { FileProcessingRulesType } from "../../../config/file-handling";
 import { llmConcurrencyLimiter } from "../../../config/concurrency.config";
 import { logErr, logWarn } from "../../../../common/utils/logging";
 import type { AppSummariesRepository } from "../../../repositories/app-summaries/app-summaries.repository.interface";
 import type { SourcesRepository } from "../../../repositories/sources/sources.repository.interface";
-import { repositoryTokens } from "../../../di/tokens";
-import { llmTokens } from "../../../di/tokens";
-import { coreTokens } from "../../../di/tokens";
+import { repositoryTokens, llmTokens, coreTokens, configTokens, insightsTokens } from "../../../di/tokens";
 import { insightsConfig } from "../insights.config";
 import { getCategoryLabel } from "../../../config/category-labels.config";
 import { AppSummaryCategories } from "../../../schemas/app-summaries.schema";
 import { AppSummaryCategoryEnum } from "../insights.types";
 import type { IInsightGenerationStrategy } from "../strategies/completion-strategy.interface";
 import { chunkTextByTokenLimit } from "../../../../common/llm/utils/text-chunking";
-import { insightsTokens } from "../../../di/tokens";
 
 /**
  * Generates metadata in database collections to capture application information,
@@ -28,6 +25,13 @@ export default class InsightsFromDBGenerator {
 
   /**
    * Creates a new InsightsFromDBGenerator with strategy-based processing.
+   * @param appSummariesRepository - Repository for storing app summary data
+   * @param llmRouter - Router for LLM operations
+   * @param sourcesRepository - Repository for retrieving source file data
+   * @param projectName - Name of the project being analyzed
+   * @param singlePassStrategy - Strategy for single-pass insight generation
+   * @param mapReduceStrategy - Strategy for map-reduce insight generation
+   * @param fileProcessingConfig - Configuration for file processing rules
    */
   constructor(
     @inject(repositoryTokens.AppSummariesRepository)
@@ -40,6 +44,8 @@ export default class InsightsFromDBGenerator {
     private readonly singlePassStrategy: IInsightGenerationStrategy,
     @inject(insightsTokens.MapReduceInsightStrategy)
     private readonly mapReduceStrategy: IInsightGenerationStrategy,
+    @inject(configTokens.FileProcessingRules)
+    private readonly fileProcessingConfig: FileProcessingRulesType,
   ) {
     this.llmProviderDescription = this.llmRouter.getModelsUsedDescription();
     // Get the token limit from the manifest for chunking calculations
@@ -92,7 +98,7 @@ export default class InsightsFromDBGenerator {
     const srcFilesList: string[] = [];
     const records = await this.sourcesRepository.getProjectSourcesSummariesByFileType(
       this.projectName,
-      [...fileProcessingConfig.CODE_FILE_EXTENSIONS],
+      [...this.fileProcessingConfig.CODE_FILE_EXTENSIONS],
     );
 
     for (const record of records) {

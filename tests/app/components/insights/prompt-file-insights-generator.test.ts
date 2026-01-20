@@ -1,6 +1,7 @@
 import "reflect-metadata";
 import { PromptFileInsightsGenerator } from "../../../../src/app/components/insights/generators/prompt-file-insights-generator";
 import LLMRouter from "../../../../src/common/llm/llm-router";
+import type { FileProcessingRulesType } from "../../../../src/app/config/file-handling";
 
 jest.mock("../../../../src/common/fs/directory-operations", () => ({
   ensureDirectoryExists: jest.fn().mockResolvedValue(undefined),
@@ -20,12 +21,22 @@ jest.mock("../../../../src/common/fs/path-utils", () => ({
 jest.mock("../../../../src/common/llm/llm-router");
 
 describe("PromptFileInsightsGenerator", () => {
+  const mockFileProcessingConfig = {
+    FOLDER_IGNORE_LIST: ["node_modules", ".git"],
+    FILENAME_PREFIX_IGNORE: "test-",
+    FILENAME_IGNORE_LIST: ["package-lock.json"],
+    BINARY_FILE_EXTENSION_IGNORE_LIST: ["png", "jpg"],
+    CODE_FILE_EXTENSIONS: ["ts", "js", "java"],
+    BOM_DEPENDENCY_CANONICAL_TYPES: ["maven", "npm"],
+    SCHEDULED_JOB_CANONICAL_TYPES: ["shell-script"],
+  } as unknown as FileProcessingRulesType;
+
   it("loads prompts filtering only .prompt files and generates insights", async () => {
     const mockExecuteCompletion = jest.fn().mockResolvedValue("LLM Response");
     const mockLlMRouter = {
       executeCompletion: mockExecuteCompletion,
     } as unknown as LLMRouter;
-    const gen = new PromptFileInsightsGenerator(mockLlMRouter);
+    const gen = new PromptFileInsightsGenerator(mockLlMRouter, mockFileProcessingConfig);
     const result = await gen.generateInsightsToFiles("/test/path", "test-llm");
     expect(result).toHaveLength(1);
     expect(mockExecuteCompletion).toHaveBeenCalledTimes(1);

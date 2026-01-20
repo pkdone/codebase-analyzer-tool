@@ -1,7 +1,7 @@
 import { injectable, inject } from "tsyringe";
 import type { SourcesRepository } from "../../../../repositories/sources/sources.repository.interface";
-import { repositoryTokens } from "../../../../di/tokens";
-import { fileProcessingRules } from "../../../../config/file-handling/file-processing-rules";
+import { repositoryTokens, configTokens } from "../../../../di/tokens";
+import type { FileProcessingRulesType } from "../../../../config/file-handling";
 import type { ScheduledJobsSummary } from "./background-processes.types";
 import { extractTriggerType } from "./job-trigger-parser";
 
@@ -16,9 +16,16 @@ type ScheduledJobItem = ScheduledJobsSummary["jobs"][0];
  */
 @injectable()
 export class ScheduledJobDataProvider {
+  /**
+   * Constructor with dependency injection.
+   * @param sourcesRepository - Repository for retrieving source file data
+   * @param fileProcessingConfig - Configuration for file processing rules
+   */
   constructor(
     @inject(repositoryTokens.SourcesRepository)
     private readonly sourcesRepository: SourcesRepository,
+    @inject(configTokens.FileProcessingRules)
+    private readonly fileProcessingConfig: FileProcessingRulesType,
   ) {}
 
   /**
@@ -28,7 +35,7 @@ export class ScheduledJobDataProvider {
     // Fetch all script files with scheduled jobs
     const scriptFiles = await this.sourcesRepository.getProjectSourcesSummariesByCanonicalType(
       projectName,
-      [...fileProcessingRules.SCHEDULED_JOB_CANONICAL_TYPES],
+      [...this.fileProcessingConfig.SCHEDULED_JOB_CANONICAL_TYPES],
     );
 
     const jobsList: ScheduledJobItem[] = [];

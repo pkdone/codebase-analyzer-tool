@@ -1,7 +1,7 @@
 import { injectable, inject } from "tsyringe";
 import type { SourcesRepository } from "../../../../repositories/sources/sources.repository.interface";
-import { repositoryTokens } from "../../../../di/tokens";
-import { fileProcessingRules } from "../../../../config/file-handling/file-processing-rules";
+import { repositoryTokens, configTokens } from "../../../../di/tokens";
+import type { FileProcessingRulesType } from "../../../../config/file-handling";
 import type { BomDependency } from "./dependencies.types";
 
 interface AggregatedDependency {
@@ -28,9 +28,16 @@ export interface BomAggregationResult {
  */
 @injectable()
 export class BomDataProvider {
+  /**
+   * Constructor with dependency injection.
+   * @param sourcesRepository - Repository for retrieving source file data
+   * @param fileProcessingConfig - Configuration for file processing rules
+   */
   constructor(
     @inject(repositoryTokens.SourcesRepository)
     private readonly sourcesRepository: SourcesRepository,
+    @inject(configTokens.FileProcessingRules)
+    private readonly fileProcessingConfig: FileProcessingRulesType,
   ) {}
 
   /**
@@ -40,7 +47,7 @@ export class BomDataProvider {
     // Fetch all build files with dependencies
     const buildFiles = await this.sourcesRepository.getProjectSourcesSummariesByCanonicalType(
       projectName,
-      [...fileProcessingRules.BOM_DEPENDENCY_CANONICAL_TYPES],
+      [...this.fileProcessingConfig.BOM_DEPENDENCY_CANONICAL_TYPES],
     );
 
     const dependencyMap = new Map<string, AggregatedDependency>();

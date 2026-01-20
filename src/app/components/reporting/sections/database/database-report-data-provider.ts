@@ -9,16 +9,11 @@ import type {
 } from "./database.types";
 import { isComplexityLevel } from "./database.types";
 import { procedureTriggerSchema } from "../../../../schemas/sources.schema";
+import { DEFAULT_COMPLEXITY } from "../../../../schemas/sources.enums";
 import type { z } from "zod";
 import { logWarn } from "../../../../../common/utils/logging";
 import { DATABASE_OBJECT_TYPE_LABELS } from "../../reporting.constants";
 import { NOT_AVAILABLE_PLACEHOLDER } from "../../config/placeholders.config";
-
-/**
- * Default complexity level for database objects when complexity cannot be determined.
- * Used as a fallback when the LLM returns invalid or unrecognized complexity values.
- */
-const DEFAULT_COMPLEXITY = "LOW" as const;
 
 // Define a more specific type for the items
 type ProcOrTrigItem = z.infer<typeof procedureTriggerSchema> & { filepath: string };

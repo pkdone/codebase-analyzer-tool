@@ -1,7 +1,7 @@
 import path from "path";
 import os from "os";
 import { injectable, inject } from "tsyringe";
-import { fileProcessingRules as fileProcessingConfig } from "../../../config/file-handling";
+import type { FileProcessingRulesType } from "../../../config/file-handling";
 import { llmConcurrencyLimiter } from "../../../config/concurrency.config";
 import { outputConfig } from "../../../config/output.config";
 import { readFile, writeFile } from "../../../../common/fs/file-operations";
@@ -11,7 +11,7 @@ import {
 } from "../../../../common/fs/directory-operations";
 import { logErr, logWarn } from "../../../../common/utils/logging";
 import { formatError } from "../../../../common/utils/error-formatters";
-import { llmTokens } from "../../../di/tokens";
+import { llmTokens, configTokens } from "../../../di/tokens";
 import LLMRouter from "../../../../common/llm/llm-router";
 import { LLMOutputFormat } from "../../../../common/llm/types/llm-request.types";
 import { aggregateFilesToMarkdown } from "../../../../common/utils/file-content-aggregator";
@@ -36,8 +36,14 @@ interface FileRequirementPrompt {
 export class PromptFileInsightsGenerator {
   /**
    * Constructor with dependency injection.
+   * @param llmRouter - Router for LLM operations
+   * @param fileProcessingConfig - Configuration for file processing rules
    */
-  constructor(@inject(llmTokens.LLMRouter) private readonly llmRouter: LLMRouter) {}
+  constructor(
+    @inject(llmTokens.LLMRouter) private readonly llmRouter: LLMRouter,
+    @inject(configTokens.FileProcessingRules)
+    private readonly fileProcessingConfig: FileProcessingRulesType,
+  ) {}
 
   /**
    * Process source files with prompts and write individual output files.
@@ -46,10 +52,10 @@ export class PromptFileInsightsGenerator {
     const prompts = await this.loadPrompts();
     const codeBlocksContent = await aggregateFilesToMarkdown(
       srcDirPath,
-      fileProcessingConfig.FOLDER_IGNORE_LIST,
-      fileProcessingConfig.FILENAME_PREFIX_IGNORE,
-      fileProcessingConfig.BINARY_FILE_EXTENSION_IGNORE_LIST,
-      fileProcessingConfig.FILENAME_IGNORE_LIST,
+      this.fileProcessingConfig.FOLDER_IGNORE_LIST,
+      this.fileProcessingConfig.FILENAME_PREFIX_IGNORE,
+      this.fileProcessingConfig.BINARY_FILE_EXTENSION_IGNORE_LIST,
+      this.fileProcessingConfig.FILENAME_IGNORE_LIST,
     );
     await this.dumpCodeBlocksToTempFile(codeBlocksContent);
     const tasks = prompts.map(async (prompt) => {

@@ -5,6 +5,7 @@ import { SourcesRepository } from "../../../../../src/app/repositories/sources/s
 import LLMRouter from "../../../../../src/common/llm/llm-router";
 import { llmProviderConfig } from "../../../../../src/common/llm/config/llm.config";
 import type { IInsightGenerationStrategy } from "../../../../../src/app/components/insights/strategies/completion-strategy.interface";
+import type { FileProcessingRulesType } from "../../../../../src/app/config/file-handling";
 
 // Mock the logging utilities
 jest.mock("../../../../../src/common/utils/logging", () => ({
@@ -19,6 +20,7 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
   let mockLLMRouter: jest.Mocked<LLMRouter>;
   let mockSinglePassStrategy: jest.Mocked<IInsightGenerationStrategy>;
   let mockMapReduceStrategy: jest.Mocked<IInsightGenerationStrategy>;
+  let mockFileProcessingConfig: FileProcessingRulesType;
   let mockConsoleLog: jest.SpyInstance;
 
   const mockManifest = {
@@ -83,6 +85,16 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
       generateInsights: jest.fn(),
     } as unknown as jest.Mocked<IInsightGenerationStrategy>;
 
+    mockFileProcessingConfig = {
+      FOLDER_IGNORE_LIST: ["node_modules", ".git"],
+      FILENAME_PREFIX_IGNORE: "test-",
+      FILENAME_IGNORE_LIST: ["package-lock.json"],
+      BINARY_FILE_EXTENSION_IGNORE_LIST: ["png", "jpg"],
+      CODE_FILE_EXTENSIONS: ["ts", "js", "java"],
+      BOM_DEPENDENCY_CANONICAL_TYPES: ["maven", "npm"],
+      SCHEDULED_JOB_CANONICAL_TYPES: ["shell-script"],
+    } as unknown as FileProcessingRulesType;
+
     generator = new InsightsFromDBGenerator(
       mockAppSummaryRepository,
       mockLLMRouter,
@@ -90,6 +102,7 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
       "test-project",
       mockSinglePassStrategy,
       mockMapReduceStrategy,
+      mockFileProcessingConfig,
     );
   });
 

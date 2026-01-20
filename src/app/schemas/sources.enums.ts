@@ -180,6 +180,18 @@ export const SOURCE_ENTITY_KIND_VALUES = [
 export const COMPLEXITY_VALUES = ["LOW", "MEDIUM", "HIGH", "INVALID"] as const;
 
 /**
+ * Type alias for valid complexity values derived from the COMPLEXITY_VALUES tuple.
+ */
+export type ComplexityValue = (typeof COMPLEXITY_VALUES)[number];
+
+/**
+ * Default complexity level for database objects when complexity cannot be determined.
+ * Used as a fallback when the LLM returns invalid or unrecognized complexity values.
+ * References the first element of COMPLEXITY_VALUES to ensure schema alignment.
+ */
+export const DEFAULT_COMPLEXITY: ComplexityValue = COMPLEXITY_VALUES[0];
+
+/**
  * Set version of COMPLEXITY_VALUES for efficient membership checking.
  * Use Set.has() for O(1) lookup instead of Array.includes() O(n).
  * Typed as Set<string> to allow checking any string input.
