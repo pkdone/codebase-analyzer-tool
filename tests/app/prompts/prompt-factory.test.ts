@@ -7,7 +7,7 @@ import {
   CODE_DATA_BLOCK_HEADER,
   FILE_SUMMARIES_DATA_BLOCK_HEADER,
 } from "../../../src/app/prompts/prompts.constants";
-import { DEFAULT_PERSONA_INTRODUCTION } from "../../../src/app/prompts/prompt-builders";
+import { DEFAULT_PERSONA_INTRODUCTION } from "../../../src/app/prompts/prompts.constants";
 
 describe("JSONSchemaPrompt Class", () => {
   /**

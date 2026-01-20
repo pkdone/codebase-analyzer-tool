@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { JSONSchemaPrompt } from "../../../src/common/prompts/json-schema-prompt";
-import { DEFAULT_PERSONA_INTRODUCTION } from "../../../src/app/prompts/prompt-builders";
+import { DEFAULT_PERSONA_INTRODUCTION } from "../../../src/app/prompts/prompts.constants";
 import { buildReduceInsightsContentDesc } from "../../../src/app/prompts/app-summaries/app-summaries.constants";
 
 describe("JSONSchemaPrompt Renderer", () => {

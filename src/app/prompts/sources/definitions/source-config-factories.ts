@@ -20,7 +20,8 @@ import type { BasePromptConfigEntry } from "../../prompts.types";
  * Each entry directly includes the responseSchema using sourceSummarySchema.pick(),
  * making the schemas explicit and type-safe.
  *
- * @template S - The Zod schema type for validating the LLM response. Defaults to z.ZodType for backward compatibility.
+ * @template S - The Zod schema type for validating the LLM response. Defaults to z.ZodType to allow
+ * use as a constraint for heterogeneous collections where entries have different specific schema types.
  */
 export interface SourceConfigEntry<
   S extends z.ZodType = z.ZodType,

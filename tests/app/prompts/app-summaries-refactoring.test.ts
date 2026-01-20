@@ -6,7 +6,7 @@ import {
   JSON_SCHEMA_PROMPT_TEMPLATE,
   type JSONSchemaPromptConfig,
 } from "../../../src/common/prompts/json-schema-prompt";
-import { DEFAULT_PERSONA_INTRODUCTION } from "../../../src/app/prompts/prompt-builders";
+import { DEFAULT_PERSONA_INTRODUCTION } from "../../../src/app/prompts/prompts.constants";
 
 /**
  * Builds a contextual note for partial/chunked analysis prompts.

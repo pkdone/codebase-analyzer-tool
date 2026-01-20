@@ -2,7 +2,7 @@ import { FILE_SUMMARIES_DATA_BLOCK_HEADER } from "../../../src/app/prompts/promp
 import { appSummaryConfigMap } from "../../../src/app/prompts/app-summaries/app-summaries.definitions";
 import { APP_SUMMARY_CONTENT_DESC } from "../../../src/app/prompts/app-summaries/app-summaries.constants";
 import { JSONSchemaPrompt } from "../../../src/common/prompts/json-schema-prompt";
-import { DEFAULT_PERSONA_INTRODUCTION } from "../../../src/app/prompts/prompt-builders";
+import { DEFAULT_PERSONA_INTRODUCTION } from "../../../src/app/prompts/prompts.constants";
 
 /**
  * Helper to create a JSONSchemaPrompt from appSummaryConfigMap config.

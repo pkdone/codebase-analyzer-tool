@@ -3,7 +3,7 @@ import {
   JSONSchemaPrompt,
   type JSONSchemaPromptConfig,
 } from "../../../src/common/prompts/json-schema-prompt";
-import { DEFAULT_PERSONA_INTRODUCTION } from "../../../src/app/prompts/prompt-builders";
+import { DEFAULT_PERSONA_INTRODUCTION } from "../../../src/app/prompts/prompts.constants";
 import {
   CODE_DATA_BLOCK_HEADER,
   FILE_SUMMARIES_DATA_BLOCK_HEADER,

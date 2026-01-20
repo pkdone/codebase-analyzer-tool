@@ -3,7 +3,7 @@ import {
   JSONSchemaPrompt,
   type JSONSchemaPromptConfig,
 } from "../../../src/common/prompts/json-schema-prompt";
-import { DEFAULT_PERSONA_INTRODUCTION } from "../../../src/app/prompts/prompt-builders";
+import { DEFAULT_PERSONA_INTRODUCTION } from "../../../src/app/prompts/prompts.constants";
 import { fileTypePromptRegistry } from "../../../src/app/prompts/sources/sources.definitions";
 
 describe("JSONSchemaPrompt Refactoring Improvements", () => {

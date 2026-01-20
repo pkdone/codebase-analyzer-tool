@@ -10,10 +10,10 @@ import {
   buildInsightPrompt,
   buildReducePrompt,
   buildQueryPrompt,
-  DEFAULT_PERSONA_INTRODUCTION,
 } from "../../../src/app/prompts/prompt-builders";
 import type { FileTypePromptRegistry } from "../../../src/app/prompts/sources/sources.definitions";
 import {
+  DEFAULT_PERSONA_INTRODUCTION,
   FRAGMENTED_DATA_BLOCK_HEADER,
   FILE_SUMMARIES_DATA_BLOCK_HEADER,
 } from "../../../src/app/prompts/prompts.constants";

@@ -27,9 +27,6 @@ import {
   CODEBASE_QUERY_TEMPLATE,
 } from "./prompts.constants";
 
-// Re-export DEFAULT_PERSONA_INTRODUCTION for backward compatibility
-export { DEFAULT_PERSONA_INTRODUCTION } from "./prompts.constants";
-
 /**
  * Result of building a source prompt, containing the rendered prompt string
  * and metadata needed for LLM execution.

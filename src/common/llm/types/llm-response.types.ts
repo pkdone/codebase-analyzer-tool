@@ -99,7 +99,8 @@ export type InferResponseType<TOptions extends LLMCompletionOptions> = TOptions 
  * The generic type parameter T represents the type of the generated content,
  * which is inferred from the Zod schema when JSON validation is used.
  *
- * @template T - The type of the generated content. Defaults to LLMGeneratedContent for backward compatibility.
+ * @template T - The type of the generated content. Defaults to LLMGeneratedContent to allow
+ * use as a base type when the specific content type isn't relevant (e.g., error handling, status checking).
  */
 export interface LLMFunctionResponse<T = LLMGeneratedContent> {
   readonly status: LLMResponseStatus;

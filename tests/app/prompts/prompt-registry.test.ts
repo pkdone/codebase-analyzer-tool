@@ -2,7 +2,7 @@ import { appSummaryConfigMap } from "../../../src/app/prompts/app-summaries/app-
 import { fileTypePromptRegistry } from "../../../src/app/prompts/sources/sources.definitions";
 import { AppSummaryCategories } from "../../../src/app/schemas/app-summaries.schema";
 import { JSONSchemaPrompt } from "../../../src/common/prompts/json-schema-prompt";
-import { DEFAULT_PERSONA_INTRODUCTION } from "../../../src/app/prompts/prompt-builders";
+import { DEFAULT_PERSONA_INTRODUCTION } from "../../../src/app/prompts/prompts.constants";
 import { z } from "zod";
 
 describe("JSONSchemaPrompt Configurations", () => {
