@@ -4,15 +4,14 @@ import LLMRouter from "../../../../src/common/llm/llm-router";
 import { LLMExecutionPipeline } from "../../../../src/common/llm/llm-execution-pipeline";
 import LLMExecutionStats from "../../../../src/common/llm/tracking/llm-execution-stats";
 import { RetryStrategy } from "../../../../src/common/llm/strategies/retry-strategy";
+import { LLMPurpose, LLMOutputFormat } from "../../../../src/common/llm/types/llm-request.types";
+import { LLMResponseStatus } from "../../../../src/common/llm/types/llm-response.types";
+import type { LLMProvider } from "../../../../src/common/llm/types/llm-provider.interface";
 import {
-  LLMPurpose,
-  LLMResponseStatus,
-  LLMProvider,
   LLMModelTier,
   ResolvedLLMModelMetadata,
-  LLMOutputFormat,
-  ShutdownBehavior,
-} from "../../../../src/common/llm/types/llm.types";
+} from "../../../../src/common/llm/types/llm-model.types";
+import { ShutdownBehavior } from "../../../../src/common/llm/types/llm-shutdown.types";
 import type { LLMProviderManifest } from "../../../../src/common/llm/providers/llm-provider.types";
 import type { LLMModuleConfig } from "../../../../src/common/llm/config/llm-module-config.types";
 import * as manifestLoader from "../../../../src/common/llm/utils/manifest-loader";

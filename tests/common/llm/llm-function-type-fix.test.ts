@@ -1,16 +1,18 @@
 import { describe, test, expect } from "@jest/globals";
 import { z } from "zod";
 import {
-  LLMFunction,
   LLMCompletionOptions,
-  LLMFunctionResponse,
   LLMContext,
   LLMOutputFormat,
   LLMPurpose,
+} from "../../../src/common/llm/types/llm-request.types";
+import {
+  LLMFunctionResponse,
   LLMResponseStatus,
-  LLMModelTier,
   InferResponseType,
-} from "../../../src/common/llm/types/llm.types";
+} from "../../../src/common/llm/types/llm-response.types";
+import { LLMFunction } from "../../../src/common/llm/types/llm-function.types";
+import { LLMModelTier } from "../../../src/common/llm/types/llm-model.types";
 
 /**
  * Test suite verifying that the LLMFunction type fix properly preserves

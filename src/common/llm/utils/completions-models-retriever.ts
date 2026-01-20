@@ -1,4 +1,6 @@
-import { LLMModelTier, LLMCandidateFunction, LLMFunction, LLMProvider } from "../types/llm.types";
+import { LLMModelTier } from "../types/llm-model.types";
+import { LLMCandidateFunction, LLMFunction } from "../types/llm-function.types";
+import type { LLMProvider } from "../types/llm-provider.interface";
 import { LLMError, LLMErrorCode } from "../types/llm-errors.types";
 
 /**

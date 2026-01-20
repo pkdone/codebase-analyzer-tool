@@ -1,12 +1,11 @@
 import "reflect-metadata";
 import { determineNextAction } from "../../../../../src/common/llm/strategies/fallback-decision";
+import { LLMContext, LLMPurpose } from "../../../../../src/common/llm/types/llm-request.types";
 import {
   LLMFunctionResponse,
-  LLMContext,
   LLMResponseStatus,
-  LLMPurpose,
   LLMResponseTokensUsage,
-} from "../../../../../src/common/llm/types/llm.types";
+} from "../../../../../src/common/llm/types/llm-response.types";
 import { describe, test, expect, jest } from "@jest/globals";
 
 // Mock the logging module

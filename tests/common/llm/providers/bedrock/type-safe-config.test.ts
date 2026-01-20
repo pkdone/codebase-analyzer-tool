@@ -4,7 +4,7 @@ import type {
   LLMProviderSpecificConfig,
 } from "../../../../../src/common/llm/providers/llm-provider.types";
 import type { BedrockLlamaProviderConfig } from "../../../../../src/common/llm/providers/bedrock/llama/bedrock-llama.types";
-import { LLMPurpose } from "../../../../../src/common/llm/types/llm.types";
+import { LLMPurpose } from "../../../../../src/common/llm/types/llm-request.types";
 import { z } from "zod";
 
 /**

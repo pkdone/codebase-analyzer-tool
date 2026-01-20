@@ -3,12 +3,12 @@ import { describe, test, expect } from "@jest/globals";
 import {
   LLMOutputFormat,
   LLMCompletionOptions,
-  InferResponseType,
   isJsonOptionsWithSchema,
   isTextOptions,
   JsonCompletionOptions,
   TextCompletionOptions,
-} from "../../../../src/common/llm/types/llm.types";
+} from "../../../../src/common/llm/types/llm-request.types";
+import { InferResponseType } from "../../../../src/common/llm/types/llm-response.types";
 
 /**
  * Unit tests for LLM type safety utilities.

@@ -1,9 +1,9 @@
 import BaseBedrockLLM from "../../../../../../src/common/llm/providers/bedrock/common/base-bedrock-llm";
 import {
-  ResolvedLLMModelMetadata,
   LLMPurpose,
   type LLMCompletionOptions,
-} from "../../../../../../src/common/llm/types/llm.types";
+} from "../../../../../../src/common/llm/types/llm-request.types";
+import { ResolvedLLMModelMetadata } from "../../../../../../src/common/llm/types/llm-model.types";
 import {
   LLMProviderSpecificConfig,
   ProviderInit,

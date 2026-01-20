@@ -1,5 +1,6 @@
 import { z } from "zod";
-import { LLMGeneratedContent, LLMCompletionOptions, LLMContext } from "../../types/llm.types";
+import { LLMGeneratedContent } from "../../types/llm-response.types";
+import { LLMCompletionOptions, LLMContext } from "../../types/llm-request.types";
 import { JsonProcessingError, JsonProcessingErrorType } from "../types/json-processing.errors";
 import { JsonProcessorResult } from "../types/json-processing-result.types";
 import { logWarn } from "../../../utils/logging";

@@ -1,6 +1,6 @@
 import { describe, test, expect } from "@jest/globals";
 import { z } from "zod";
-import { LLMGeneratedContent } from "../../../../src/common/llm/types/llm.types";
+import { LLMGeneratedContent } from "../../../../src/common/llm/types/llm-response.types";
 
 /**
  * Unit tests for LLMGeneratedContent type.

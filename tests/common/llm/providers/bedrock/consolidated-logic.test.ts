@@ -5,7 +5,7 @@ import BedrockClaudeLLM from "../../../../../src/common/llm/providers/bedrock/cl
 import BedrockLlamaLLM from "../../../../../src/common/llm/providers/bedrock/llama/bedrock-llama-llm";
 import BedrockNovaLLM from "../../../../../src/common/llm/providers/bedrock/nova/bedrock-nova-llm";
 import type { ProviderInit } from "../../../../../src/common/llm/providers/llm-provider.types";
-import { LLMPurpose } from "../../../../../src/common/llm/types/llm.types";
+import { LLMPurpose } from "../../../../../src/common/llm/types/llm-request.types";
 import { z } from "zod";
 
 /**

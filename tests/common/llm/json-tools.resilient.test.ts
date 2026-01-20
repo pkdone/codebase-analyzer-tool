@@ -1,5 +1,5 @@
 import { parseAndValidateLLMJson } from "../../../src/common/llm/json-processing/core/json-processing";
-import { LLMOutputFormat, LLMPurpose } from "../../../src/common/llm/types/llm.types";
+import { LLMOutputFormat, LLMPurpose } from "../../../src/common/llm/types/llm-request.types";
 
 describe("json-tools resilient parsing", () => {
   const baseOptions = { outputFormat: LLMOutputFormat.JSON } as any; // schema optional

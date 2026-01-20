@@ -1,5 +1,5 @@
 import BaseOpenAILLM from "../../../../../src/common/llm/providers/openai/common/base-openai-llm";
-import { LLMPurpose, LLMOutputFormat } from "../../../../../src/common/llm/types/llm.types";
+import { LLMPurpose, LLMOutputFormat } from "../../../../../src/common/llm/types/llm-request.types";
 import {
   LLMProviderSpecificConfig,
   LLMProviderManifest,

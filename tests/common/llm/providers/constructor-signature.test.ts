@@ -1,4 +1,4 @@
-import { LLMPurpose } from "../../../../src/common/llm/types/llm.types";
+import { LLMPurpose } from "../../../../src/common/llm/types/llm-request.types";
 import type {
   LLMProviderSpecificConfig,
   ProviderInit,

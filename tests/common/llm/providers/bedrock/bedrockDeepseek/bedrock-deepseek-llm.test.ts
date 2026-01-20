@@ -1,10 +1,8 @@
 import "reflect-metadata";
 import BedrockDeepseekLLM from "../../../../../../src/common/llm/providers/bedrock/deepseek/bedrock-deepseek-llm";
 import { createMockErrorLoggingConfig } from "../../../../helpers/llm/mock-error-logger";
-import {
-  ResolvedLLMModelMetadata,
-  LLMPurpose,
-} from "../../../../../../src/common/llm/types/llm.types";
+import { LLMPurpose } from "../../../../../../src/common/llm/types/llm-request.types";
+import { ResolvedLLMModelMetadata } from "../../../../../../src/common/llm/types/llm-model.types";
 import {
   LLMProviderSpecificConfig,
   LLMProviderManifest,

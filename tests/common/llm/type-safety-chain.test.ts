@@ -1,11 +1,11 @@
 import { z } from "zod";
 import {
   LLMPurpose,
-  ResolvedLLMModelMetadata,
   LLMContext,
   LLMOutputFormat,
-  LLMResponseStatus,
-} from "../../../src/common/llm/types/llm.types";
+} from "../../../src/common/llm/types/llm-request.types";
+import { LLMResponseStatus } from "../../../src/common/llm/types/llm-response.types";
+import { ResolvedLLMModelMetadata } from "../../../src/common/llm/types/llm-model.types";
 import { LLMImplSpecificResponseSummary } from "../../../src/common/llm/providers/llm-provider.types";
 import BaseLLMProvider from "../../../src/common/llm/providers/base-llm-provider";
 import { createMockErrorLoggingConfig } from "../helpers/llm/mock-error-logger";

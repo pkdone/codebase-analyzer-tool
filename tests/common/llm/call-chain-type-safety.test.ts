@@ -4,11 +4,13 @@ import { z } from "zod";
 import {
   LLMOutputFormat,
   LLMPurpose,
-  LLMResponseStatus,
-  LLMModelTier,
-  type LLMFunctionResponse,
   type LLMContext,
-} from "../../../src/common/llm/types/llm.types";
+} from "../../../src/common/llm/types/llm-request.types";
+import {
+  LLMResponseStatus,
+  type LLMFunctionResponse,
+} from "../../../src/common/llm/types/llm-response.types";
+import { LLMModelTier } from "../../../src/common/llm/types/llm-model.types";
 
 // Mock dependencies
 jest.mock("../../../src/common/utils/logging", () => ({
@@ -374,7 +376,7 @@ describe("LLM Call Chain Type Safety", () => {
         outputFormat: LLMOutputFormat.TEXT;
       }
       type InferredType =
-        import("../../../src/common/llm/types/llm.types").InferResponseType<TextOptions>;
+        import("../../../src/common/llm/types/llm-response.types").InferResponseType<TextOptions>;
 
       const textValue: InferredType = "test string";
       expect(typeof textValue).toBe("string");
@@ -391,7 +393,7 @@ describe("LLM Call Chain Type Safety", () => {
         jsonSchema: typeof _userSchema;
       }
       type InferredType =
-        import("../../../src/common/llm/types/llm.types").InferResponseType<JsonOptions>;
+        import("../../../src/common/llm/types/llm-response.types").InferResponseType<JsonOptions>;
 
       const jsonValue: InferredType = { id: 1, name: "test" };
       expect(jsonValue.id).toBe(1);
@@ -402,7 +404,7 @@ describe("LLM Call Chain Type Safety", () => {
         outputFormat: LLMOutputFormat.JSON;
       }
       type InferredType =
-        import("../../../src/common/llm/types/llm.types").InferResponseType<JsonOptionsNoSchema>;
+        import("../../../src/common/llm/types/llm-response.types").InferResponseType<JsonOptionsNoSchema>;
 
       const jsonValue: InferredType = { any: "value" };
       expect(jsonValue.any).toBe("value");
@@ -419,7 +421,7 @@ describe("LLM Call Chain Type Safety", () => {
         jsonSchema: typeof _schema;
       }
       type InferredType =
-        import("../../../src/common/llm/types/llm.types").InferResponseType<Options>;
+        import("../../../src/common/llm/types/llm-response.types").InferResponseType<Options>;
 
       const response: LLMFunctionResponse<InferredType> = {
         status: LLMResponseStatus.COMPLETED,
@@ -451,24 +453,24 @@ describe("LLM Call Chain Type Safety", () => {
       });
 
       // Mock function matching the corrected LLMFunction signature
-      const mockLLMFunc: import("../../../src/common/llm/types/llm.types").LLMFunction = async <
-        S extends z.ZodType,
-      >(
-        _content: string,
-        _context: import("../../../src/common/llm/types/llm.types").LLMContext,
-        _options?: import("../../../src/common/llm/types/llm.types").LLMCompletionOptions<S>,
-      ) => {
-        type ReturnType = import("../../../src/common/llm/types/llm.types").InferResponseType<
-          import("../../../src/common/llm/types/llm.types").LLMCompletionOptions<S>
-        >;
-        return {
-          status: LLMResponseStatus.COMPLETED,
-          request: "test",
-          modelKey: "test",
-          context: mockContext,
-          generated: { value: "test", count: 42 } as ReturnType,
+      const mockLLMFunc: import("../../../src/common/llm/types/llm-function.types").LLMFunction =
+        async <S extends z.ZodType>(
+          _content: string,
+          _context: import("../../../src/common/llm/types/llm-request.types").LLMContext,
+          _options?: import("../../../src/common/llm/types/llm-request.types").LLMCompletionOptions<S>,
+        ) => {
+          type ReturnType =
+            import("../../../src/common/llm/types/llm-response.types").InferResponseType<
+              import("../../../src/common/llm/types/llm-request.types").LLMCompletionOptions<S>
+            >;
+          return {
+            status: LLMResponseStatus.COMPLETED,
+            request: "test",
+            modelKey: "test",
+            context: mockContext,
+            generated: { value: "test", count: 42 } as ReturnType,
+          };
         };
-      };
 
       const result = mockLLMFunc("test", mockContext, {
         outputFormat: LLMOutputFormat.JSON,
@@ -483,7 +485,7 @@ describe("LLM Call Chain Type Safety", () => {
       type ExtractGeneric<T> = T extends (...args: any[]) => Promise<infer R> ? R : never;
 
       type LLMFuncReturn = ExtractGeneric<
-        import("../../../src/common/llm/types/llm.types").LLMFunction
+        import("../../../src/common/llm/types/llm-function.types").LLMFunction
       >;
 
       // If the fix is correct, this should compile without errors
@@ -514,7 +516,7 @@ describe("LLM Call Chain Type Safety", () => {
       }
 
       type InferredType =
-        import("../../../src/common/llm/types/llm.types").InferResponseType<OptionsWithSchema>;
+        import("../../../src/common/llm/types/llm-response.types").InferResponseType<OptionsWithSchema>;
 
       // This should compile and match ComplexType
       const value: InferredType = {

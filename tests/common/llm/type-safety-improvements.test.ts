@@ -1,11 +1,8 @@
 import "reflect-metadata";
 import { describe, test, expect } from "@jest/globals";
 import { z } from "zod";
-import {
-  LLMOutputFormat,
-  LLMPurpose,
-  InferResponseType,
-} from "../../../src/common/llm/types/llm.types";
+import { LLMOutputFormat, LLMPurpose } from "../../../src/common/llm/types/llm-request.types";
+import { InferResponseType } from "../../../src/common/llm/types/llm-response.types";
 import { parseAndValidateLLMJson } from "../../../src/common/llm/json-processing/core/json-processing";
 
 // Mock dependencies

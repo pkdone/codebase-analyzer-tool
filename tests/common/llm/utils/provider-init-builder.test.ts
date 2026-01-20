@@ -2,7 +2,7 @@ import {
   buildModelsKeysSet,
   buildModelsMetadataFromResolvedUrns,
 } from "../../../../src/common/llm/utils/provider-init-builder";
-import { LLMPurpose } from "../../../../src/common/llm/types/llm.types";
+import { LLMPurpose } from "../../../../src/common/llm/types/llm-request.types";
 import type { LLMProviderManifest } from "../../../../src/common/llm/providers/llm-provider.types";
 import type { ResolvedModels } from "../../../../src/common/llm/config/llm-module-config.types";
 

@@ -1,4 +1,4 @@
-import type { LLMModelKeysSet, ResolvedLLMModelMetadata } from "../types/llm.types";
+import type { LLMModelKeysSet, ResolvedLLMModelMetadata } from "../types/llm-model.types";
 import type { LLMProviderManifest } from "../providers/llm-provider.types";
 import type { ResolvedModels } from "../config/llm-module-config.types";
 

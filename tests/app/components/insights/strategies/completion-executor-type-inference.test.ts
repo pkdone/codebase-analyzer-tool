@@ -1,6 +1,6 @@
 import { executeInsightCompletion } from "../../../../../src/app/components/insights/strategies/insights-completion-executor";
 import LLMRouter from "../../../../../src/common/llm/llm-router";
-import { LLMOutputFormat } from "../../../../../src/common/llm/types/llm.types";
+import { LLMOutputFormat } from "../../../../../src/common/llm/types/llm-request.types";
 import {
   AppSummaryCategoryEnum,
   appSummaryCategorySchemas,

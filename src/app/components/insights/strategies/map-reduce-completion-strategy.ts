@@ -1,7 +1,7 @@
 import { injectable, inject } from "tsyringe";
 import { z } from "zod";
 import LLMRouter from "../../../../common/llm/llm-router";
-import { LLMOutputFormat } from "../../../../common/llm/types/llm.types";
+import { LLMOutputFormat } from "../../../../common/llm/types/llm-request.types";
 import { insightsConfig } from "../insights.config";
 import { llmConcurrencyLimiter } from "../../../config/concurrency.config";
 import { getCategoryLabel } from "../../../config/category-labels.config";

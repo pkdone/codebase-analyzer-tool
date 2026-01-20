@@ -1,7 +1,11 @@
 import { z } from "zod";
 import { parseAndValidateLLMJson } from "../../../../src/common/llm/json-processing/core/json-processing";
-import { LLMOutputFormat, LLMPurpose } from "../../../../src/common/llm/types/llm.types";
-import type { LLMContext, LLMCompletionOptions } from "../../../../src/common/llm/types/llm.types";
+import {
+  LLMOutputFormat,
+  LLMPurpose,
+  type LLMContext,
+  type LLMCompletionOptions,
+} from "../../../../src/common/llm/types/llm-request.types";
 
 describe("Simplified Type Chain - parseAndValidateLLMJson", () => {
   const mockContext: LLMContext = {

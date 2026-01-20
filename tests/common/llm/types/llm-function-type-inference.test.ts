@@ -4,8 +4,8 @@ import { z } from "zod";
 import {
   LLMCompletionOptions,
   LLMOutputFormat,
-  InferResponseType,
-} from "../../../../src/common/llm/types/llm.types";
+} from "../../../../src/common/llm/types/llm-request.types";
+import { InferResponseType } from "../../../../src/common/llm/types/llm-response.types";
 
 /**
  * Tests for compile-time type inference of InferResponseType.

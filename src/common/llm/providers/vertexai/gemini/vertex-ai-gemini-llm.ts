@@ -11,12 +11,9 @@ import {
 import * as aiplatform from "@google-cloud/aiplatform";
 const { helpers } = aiplatform;
 import { llmConfig } from "../../../config/llm.config";
-import {
-  LLMCompletionOptions,
-  LLMOutputFormat,
-  ShutdownBehavior,
-  createTokenUsageRecord,
-} from "../../../types/llm.types";
+import { LLMCompletionOptions, LLMOutputFormat } from "../../../types/llm-request.types";
+import { ShutdownBehavior } from "../../../types/llm-shutdown.types";
+import { createTokenUsageRecord } from "../../../types/llm-response.types";
 import { logWarn, logErr } from "../../../../utils/logging";
 import { formatError } from "../../../../utils/error-formatters";
 import BaseLLMProvider from "../../base-llm-provider";

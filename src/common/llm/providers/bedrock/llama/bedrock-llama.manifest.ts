@@ -1,5 +1,5 @@
 import BedrockLlamaLLM from "./bedrock-llama-llm";
-import { LLMPurpose } from "../../../types/llm.types";
+import { LLMPurpose } from "../../../types/llm-request.types";
 import { z } from "zod";
 import { createTitanEmbeddingsConfig } from "../common/bedrock-models.constants";
 import { createBedrockManifest } from "../common/bedrock-manifest-factory";

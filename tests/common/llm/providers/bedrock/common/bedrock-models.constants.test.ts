@@ -5,7 +5,7 @@ import {
   createTitanEmbeddingsConfig,
   createBedrockEnvSchema,
 } from "../../../../../../src/common/llm/providers/bedrock/common/bedrock-models.constants";
-import { LLMPurpose } from "../../../../../../src/common/llm/types/llm.types";
+import { LLMPurpose } from "../../../../../../src/common/llm/types/llm-request.types";
 import { BEDROCK_CLAUDE_FAMILY } from "../../../../../../src/common/llm/providers/bedrock/claude/bedrock-claude.manifest";
 import { BEDROCK_LLAMA_FAMILY } from "../../../../../../src/common/llm/providers/bedrock/llama/bedrock-llama.manifest";
 import { BEDROCK_MISTRAL_FAMILY } from "../../../../../../src/common/llm/providers/bedrock/mistral/bedrock-mistral.manifest";

@@ -1,4 +1,4 @@
-import type { LLMContext } from "./llm.types";
+import type { LLMContext } from "./llm-request.types";
 
 /**
  * Error class for LLM execution pipeline failures

@@ -1,4 +1,4 @@
-import { createTokenUsageRecord } from "../../../../src/common/llm/types/llm.types";
+import { createTokenUsageRecord } from "../../../../src/common/llm/types/llm-response.types";
 
 describe("createTokenUsageRecord", () => {
   const DEFAULT_VALUE = -1;

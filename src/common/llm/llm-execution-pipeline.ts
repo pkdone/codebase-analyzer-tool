@@ -1,12 +1,8 @@
-import type {
-  LLMContext,
-  ResolvedLLMModelMetadata,
-  LLMCandidateFunction,
-  LLMFunctionResponse,
-  BoundLLMFunction,
-  LLMGeneratedContent,
-} from "./types/llm.types";
-import { LLMResponseStatus } from "./types/llm.types";
+import type { LLMContext } from "./types/llm-request.types";
+import type { ResolvedLLMModelMetadata } from "./types/llm-model.types";
+import type { LLMCandidateFunction, BoundLLMFunction } from "./types/llm-function.types";
+import type { LLMFunctionResponse, LLMGeneratedContent } from "./types/llm-response.types";
+import { LLMResponseStatus } from "./types/llm-response.types";
 import type { LLMRetryConfig } from "./providers/llm-provider.types";
 import { RetryStrategy } from "./strategies/retry-strategy";
 import { determineNextAction } from "./strategies/fallback-decision";

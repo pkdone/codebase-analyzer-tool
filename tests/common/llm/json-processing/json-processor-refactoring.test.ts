@@ -1,5 +1,5 @@
 import { parseAndValidateLLMJson } from "../../../../src/common/llm/json-processing/core/json-processing";
-import { LLMOutputFormat, LLMPurpose } from "../../../../src/common/llm/types/llm.types";
+import { LLMOutputFormat, LLMPurpose } from "../../../../src/common/llm/types/llm-request.types";
 import { JsonProcessingErrorType } from "../../../../src/common/llm/json-processing/types/json-processing.errors";
 import { REPAIR_STEP } from "../../../../src/common/llm/json-processing/constants/repair-steps.config";
 import { z } from "zod";

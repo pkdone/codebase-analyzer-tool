@@ -2,7 +2,7 @@ import { injectable, inject } from "tsyringe";
 import { z } from "zod";
 import { logErr } from "../../../common/utils/logging";
 import type LLMRouter from "../../../common/llm/llm-router";
-import { LLMOutputFormat } from "../../../common/llm/types/llm.types";
+import { LLMOutputFormat } from "../../../common/llm/types/llm-request.types";
 import { sourceSummarySchema } from "../../schemas/sources.schema";
 import { getCanonicalFileType } from "../../config/file-handling";
 import { getLlmArtifactCorrections } from "../../llm";

@@ -1,5 +1,5 @@
 import { llmConfig } from "../../../config/llm.config";
-import type { ResolvedLLMModelMetadata } from "../../../types/llm.types";
+import type { ResolvedLLMModelMetadata } from "../../../types/llm-model.types";
 import type { JsonObject } from "../../../types/json-value.types";
 
 /**

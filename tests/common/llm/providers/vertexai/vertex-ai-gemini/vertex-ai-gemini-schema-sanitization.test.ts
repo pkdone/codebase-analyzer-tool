@@ -3,11 +3,11 @@ import { VertexAI, FinishReason } from "@google-cloud/vertexai";
 import * as aiplatform from "@google-cloud/aiplatform";
 import {
   LLMPurpose,
-  ResolvedLLMModelMetadata,
   LLMOutputFormat,
-  LLMResponseStatus,
   LLMContext,
-} from "../../../../../../src/common/llm/types/llm.types";
+} from "../../../../../../src/common/llm/types/llm-request.types";
+import { ResolvedLLMModelMetadata } from "../../../../../../src/common/llm/types/llm-model.types";
+import { LLMResponseStatus } from "../../../../../../src/common/llm/types/llm-response.types";
 import { z } from "zod";
 import { createMockErrorLoggingConfig } from "../../../../helpers/llm/mock-error-logger";
 import type { ProviderInit } from "../../../../../../src/common/llm/providers/llm-provider.types";

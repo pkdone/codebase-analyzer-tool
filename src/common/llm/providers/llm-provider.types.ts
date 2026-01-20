@@ -1,11 +1,8 @@
 import { z } from "zod";
-import {
-  LLMProvider,
-  LLMModelMetadata,
-  LLMErrorMsgRegExPattern,
-  LLMGeneratedContent,
-  LLMResponseTokensUsage,
-} from "../types/llm.types";
+import type { LLMProvider } from "../types/llm-provider.interface";
+import { LLMModelMetadata } from "../types/llm-model.types";
+import { LLMErrorMsgRegExPattern } from "../types/llm-stats.types";
+import { LLMGeneratedContent, LLMResponseTokensUsage } from "../types/llm-response.types";
 import type { ResolvedModels, LLMErrorLoggingConfig } from "../config/llm-module-config.types";
 import type { JsonValue } from "../types/json-value.types";
 

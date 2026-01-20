@@ -1,10 +1,10 @@
 import {
   LLMPurpose,
-  ResolvedLLMModelMetadata,
   LLMContext,
   LLMOutputFormat,
-  LLMResponseStatus,
-} from "../../../../src/common/llm/types/llm.types";
+} from "../../../../src/common/llm/types/llm-request.types";
+import { ResolvedLLMModelMetadata } from "../../../../src/common/llm/types/llm-model.types";
+import { LLMResponseStatus } from "../../../../src/common/llm/types/llm-response.types";
 import {
   LLMImplSpecificResponseSummary,
   LLMProviderManifest,

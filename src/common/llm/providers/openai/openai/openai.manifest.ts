@@ -1,7 +1,8 @@
 import { z } from "zod";
 import { LLMProviderManifest } from "../../llm-provider.types";
 import OpenAILLM from "./openai-llm";
-import { LLMPurpose, LLMModelFeature } from "../../../types/llm.types";
+import { LLMPurpose } from "../../../types/llm-request.types";
+import { LLMModelFeature } from "../../../types/llm-model.types";
 import { OPENAI_COMMON_ERROR_PATTERNS } from "../common/openai-error-patterns";
 import { defaultOpenAIProviderConfig } from "../common/openai-defaults.config";
 

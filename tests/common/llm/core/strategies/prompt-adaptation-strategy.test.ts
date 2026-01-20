@@ -1,10 +1,10 @@
 import { adaptPromptFromResponse } from "../../../../../src/common/llm/strategies/prompt-adaptation-strategy";
+import { LLMPurpose } from "../../../../../src/common/llm/types/llm-request.types";
 import {
   LLMFunctionResponse,
   LLMResponseStatus,
-  LLMPurpose,
-  ResolvedLLMModelMetadata,
-} from "../../../../../src/common/llm/types/llm.types";
+} from "../../../../../src/common/llm/types/llm-response.types";
+import { ResolvedLLMModelMetadata } from "../../../../../src/common/llm/types/llm-model.types";
 import { describe, test, expect, jest, beforeEach } from "@jest/globals";
 
 // Mock the LLM config

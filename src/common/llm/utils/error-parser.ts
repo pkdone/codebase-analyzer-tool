@@ -1,8 +1,6 @@
-import {
-  ResolvedLLMModelMetadata,
-  LLMErrorMsgRegExPattern,
-  LLMResponseTokensUsage,
-} from "../types/llm.types";
+import { ResolvedLLMModelMetadata } from "../types/llm-model.types";
+import { LLMErrorMsgRegExPattern } from "../types/llm-stats.types";
+import { LLMResponseTokensUsage } from "../types/llm-response.types";
 import { llmProviderConfig } from "../config/llm.config";
 
 /**

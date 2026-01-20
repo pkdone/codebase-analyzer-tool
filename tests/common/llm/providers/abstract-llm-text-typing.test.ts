@@ -1,14 +1,16 @@
 import { describe, test, expect } from "@jest/globals";
 import {
   LLMPurpose,
-  LLMResponseStatus,
   LLMOutputFormat,
   LLMContext,
-  LLMFunctionResponse,
   isTextOptions,
   isJsonOptionsWithSchema,
   LLMCompletionOptions,
-} from "../../../../src/common/llm/types/llm.types";
+} from "../../../../src/common/llm/types/llm-request.types";
+import {
+  LLMResponseStatus,
+  LLMFunctionResponse,
+} from "../../../../src/common/llm/types/llm-response.types";
 import { LLMError, LLMErrorCode } from "../../../../src/common/llm/types/llm-errors.types";
 
 /**

@@ -1,7 +1,7 @@
 import LLMRouter from "../../../../src/common/llm/llm-router";
 import { LLMModuleConfig } from "../../../../src/common/llm/config/llm-module-config.types";
 import { LLMExecutionPipeline } from "../../../../src/common/llm/llm-execution-pipeline";
-import { ShutdownBehavior } from "../../../../src/common/llm/types/llm.types";
+import { ShutdownBehavior } from "../../../../src/common/llm/types/llm-shutdown.types";
 
 // Mock the manifest loader to avoid actual provider instantiation
 jest.mock("../../../../src/common/llm/utils/manifest-loader");

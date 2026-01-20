@@ -2,7 +2,7 @@ import "reflect-metadata";
 import { queryCodebaseWithQuestion } from "../../../../src/app/components/querying/codebase-query-processor";
 import type { SourcesRepository } from "../../../../src/app/repositories/sources/sources.repository.interface";
 import type LLMRouter from "../../../../src/common/llm/llm-router";
-import { LLMOutputFormat } from "../../../../src/common/llm/types/llm.types";
+import { LLMOutputFormat } from "../../../../src/common/llm/types/llm-request.types";
 import type { ProjectedSourceMetadataContentAndSummary } from "../../../../src/app/repositories/sources/sources.model";
 import { ok, err } from "../../../../src/common/types/result.types";
 import { LLMError, LLMErrorCode } from "../../../../src/common/llm/types/llm-errors.types";

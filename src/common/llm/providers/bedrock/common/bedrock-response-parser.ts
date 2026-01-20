@@ -2,7 +2,7 @@ import { z } from "zod";
 import { getNestedValue, getNestedValueWithFallbacks } from "../../../../utils/object-utils";
 import { isDefined } from "../../../../utils/type-guards";
 import { LLMError, LLMErrorCode } from "../../../types/llm-errors.types";
-import { LLMGeneratedContent, createTokenUsageRecord } from "../../../types/llm.types";
+import { LLMGeneratedContent, createTokenUsageRecord } from "../../../types/llm-response.types";
 import type { LLMImplSpecificResponseSummary } from "../../llm-provider.types";
 import type { JsonObject } from "../../../types/json-value.types";
 

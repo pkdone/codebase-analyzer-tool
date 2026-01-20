@@ -1,4 +1,4 @@
-import { LLMErrorMsgRegExPattern } from "../../../types/llm.types";
+import { LLMErrorMsgRegExPattern } from "../../../types/llm-stats.types";
 
 /**
  * Common error patterns for Vertex AI model providers

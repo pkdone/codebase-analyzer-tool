@@ -4,7 +4,7 @@
  * when the LLM provider signals it needs forced shutdown via ShutdownBehavior enum.
  */
 
-import { ShutdownBehavior } from "../../../src/common/llm/types/llm.types";
+import { ShutdownBehavior } from "../../../src/common/llm/types/llm-shutdown.types";
 
 describe("Application Runner Forced Exit", () => {
   let originalProcessExit: typeof process.exit;

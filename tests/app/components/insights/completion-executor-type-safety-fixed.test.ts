@@ -5,7 +5,7 @@ import { executeInsightCompletion } from "../../../../src/app/components/insight
 import { appSummaryCategorySchemas } from "../../../../src/app/components/insights/insights.types";
 import { AppSummaryCategories } from "../../../../src/app/schemas/app-summaries.schema";
 import LLMRouter from "../../../../src/common/llm/llm-router";
-import { LLMOutputFormat } from "../../../../src/common/llm/types/llm.types";
+import { LLMOutputFormat } from "../../../../src/common/llm/types/llm-request.types";
 import { ok, err } from "../../../../src/common/types/result.types";
 import { LLMError, LLMErrorCode } from "../../../../src/common/llm/types/llm-errors.types";
 

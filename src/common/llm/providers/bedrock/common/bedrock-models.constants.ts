@@ -4,7 +4,7 @@
  */
 
 import { z } from "zod";
-import { LLMPurpose } from "../../../types/llm.types";
+import { LLMPurpose } from "../../../types/llm-request.types";
 
 // Shared environment variable name constants
 export const BEDROCK_TITAN_EMBEDDINGS_MODEL_KEY = "BEDROCK_TITAN_EMBEDDINGS_MODEL";

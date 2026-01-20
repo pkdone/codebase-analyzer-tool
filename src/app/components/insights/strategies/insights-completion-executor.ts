@@ -1,6 +1,6 @@
 import { z } from "zod";
 import LLMRouter from "../../../../common/llm/llm-router";
-import { LLMOutputFormat } from "../../../../common/llm/types/llm.types";
+import { LLMOutputFormat } from "../../../../common/llm/types/llm-request.types";
 import { buildInsightPrompt } from "../../../prompts/prompt-builders";
 import { getCategoryLabel } from "../../../config/category-labels.config";
 import { logWarn } from "../../../../common/utils/logging";

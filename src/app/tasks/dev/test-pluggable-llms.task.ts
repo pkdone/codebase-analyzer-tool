@@ -1,7 +1,8 @@
 import "reflect-metadata";
 import { injectable, inject } from "tsyringe";
 import { readFile } from "../../../common/fs/file-operations";
-import { LLMModelTier, LLMOutputFormat } from "../../../common/llm/types/llm.types";
+import { LLMModelTier } from "../../../common/llm/types/llm-model.types";
+import { LLMOutputFormat } from "../../../common/llm/types/llm-request.types";
 import LLMRouter from "../../../common/llm/llm-router";
 import { Task } from "../task.types";
 import { llmTokens } from "../../di/tokens";

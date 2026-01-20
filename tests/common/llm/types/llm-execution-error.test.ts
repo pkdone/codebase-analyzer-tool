@@ -3,9 +3,9 @@ import { LLMExecutionError } from "../../../../src/common/llm/types/llm-executio
 import {
   LLMContext,
   LLMPurpose,
-  LLMModelTier,
   LLMOutputFormat,
-} from "../../../../src/common/llm/types/llm.types";
+} from "../../../../src/common/llm/types/llm-request.types";
+import { LLMModelTier } from "../../../../src/common/llm/types/llm-model.types";
 
 describe("LLMExecutionError", () => {
   describe("constructor", () => {

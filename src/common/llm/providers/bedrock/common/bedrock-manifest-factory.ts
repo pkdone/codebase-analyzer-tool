@@ -4,7 +4,7 @@ import type {
   LLMProviderSpecificConfig,
   ProviderInit,
 } from "../../llm-provider.types";
-import type { LLMProvider } from "../../../types/llm.types";
+import type { LLMProvider } from "../../../types/llm-provider.interface";
 import { BEDROCK_COMMON_ERROR_PATTERNS } from "./bedrock-error-patterns";
 import { createBedrockEnvSchema } from "./bedrock-models.constants";
 import { defaultBedrockProviderConfig } from "./bedrock-defaults.config";

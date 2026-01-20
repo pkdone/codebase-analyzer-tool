@@ -1,14 +1,9 @@
 import { z } from "zod";
-import {
-  LLMContext,
-  LLMModelTier,
-  LLMPurpose,
-  ResolvedLLMModelMetadata,
-  LLMCompletionOptions,
-  BoundLLMFunction,
-  ShutdownBehavior,
-} from "./types/llm.types";
-import type { LLMProvider, LLMCandidateFunction } from "./types/llm.types";
+import { LLMContext, LLMPurpose, LLMCompletionOptions } from "./types/llm-request.types";
+import { LLMModelTier, ResolvedLLMModelMetadata } from "./types/llm-model.types";
+import { BoundLLMFunction, LLMCandidateFunction } from "./types/llm-function.types";
+import { ShutdownBehavior } from "./types/llm-shutdown.types";
+import type { LLMProvider } from "./types/llm-provider.interface";
 import { LLMError, LLMErrorCode } from "./types/llm-errors.types";
 import { type Result, ok, err } from "../types/result.types";
 import type {

@@ -3,7 +3,7 @@ import type {
   ProviderInit,
   LLMImplSpecificResponseSummary,
 } from "../../../../src/common/llm/providers/llm-provider.types";
-import { LLMPurpose, LLMOutputFormat } from "../../../../src/common/llm/types/llm.types";
+import { LLMPurpose, LLMOutputFormat } from "../../../../src/common/llm/types/llm-request.types";
 import { z } from "zod";
 
 /**

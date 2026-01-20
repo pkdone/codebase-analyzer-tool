@@ -7,7 +7,7 @@ import {
   type AppSummaryCategorySchemas,
 } from "../../../../../src/app/components/insights/insights.types";
 import LLMRouter from "../../../../../src/common/llm/llm-router";
-import { LLMOutputFormat } from "../../../../../src/common/llm/types/llm.types";
+import { LLMOutputFormat } from "../../../../../src/common/llm/types/llm-request.types";
 import { appSummaryConfigMap } from "../../../../../src/app/prompts/app-summaries/app-summaries.definitions";
 const appSummaryPromptMetadata = appSummaryConfigMap;
 import { z } from "zod";

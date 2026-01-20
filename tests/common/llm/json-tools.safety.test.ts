@@ -1,5 +1,5 @@
 import { parseAndValidateLLMJson } from "../../../src/common/llm/json-processing/core/json-processing";
-import { LLMOutputFormat, LLMPurpose } from "../../../src/common/llm/types/llm.types";
+import { LLMOutputFormat, LLMPurpose } from "../../../src/common/llm/types/llm-request.types";
 
 // Tests for handling concatenated JSON objects through the public API.
 // The parsing pipeline includes sanitization that extracts the largest/first valid JSON span,

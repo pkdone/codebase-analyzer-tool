@@ -1,5 +1,5 @@
 import { parseAndValidateLLMJson } from "../../../../src/common/llm/json-processing/core/json-processing";
-import { LLMOutputFormat, LLMPurpose } from "../../../../src/common/llm/types/llm.types";
+import { LLMOutputFormat, LLMPurpose } from "../../../../src/common/llm/types/llm-request.types";
 import { REPAIR_STEP } from "../../../../src/common/llm/json-processing/constants/repair-steps.config";
 
 jest.mock("../../../../src/common/utils/logging", () => ({

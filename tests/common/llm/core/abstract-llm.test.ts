@@ -1,11 +1,13 @@
 import {
   LLMPurpose,
-  ResolvedLLMModelMetadata,
-  LLMResponseTokensUsage,
   LLMContext,
   LLMOutputFormat,
+} from "../../../../src/common/llm/types/llm-request.types";
+import {
+  LLMResponseTokensUsage,
   LLMResponseStatus,
-} from "../../../../src/common/llm/types/llm.types";
+} from "../../../../src/common/llm/types/llm-response.types";
+import { ResolvedLLMModelMetadata } from "../../../../src/common/llm/types/llm-model.types";
 import { REPAIR_STEP } from "../../../../src/common/llm/json-processing/sanitizers";
 import {
   LLMImplSpecificResponseSummary,

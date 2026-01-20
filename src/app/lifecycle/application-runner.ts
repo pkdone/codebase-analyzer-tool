@@ -5,7 +5,7 @@ import { formatDateForLogging } from "../../common/utils/date-utils";
 import { coreTokens, llmTokens } from "../di/tokens";
 import type { MongoDBConnectionManager } from "../../common/mongodb/mdb-connection-manager";
 import type LLMRouter from "../../common/llm/llm-router";
-import { ShutdownBehavior } from "../../common/llm/types/llm.types";
+import { ShutdownBehavior } from "../../common/llm/types/llm-shutdown.types";
 
 /**
  * Simplified application entry point that orchestrates the application lifecycle:

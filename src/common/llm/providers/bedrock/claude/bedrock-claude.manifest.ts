@@ -1,6 +1,6 @@
 import { z } from "zod";
 import BedrockClaudeLLM from "./bedrock-claude-llm";
-import { LLMPurpose } from "../../../types/llm.types";
+import { LLMPurpose } from "../../../types/llm-request.types";
 import { createTitanEmbeddingsConfig } from "../common/bedrock-models.constants";
 import { llmConfig } from "../../../config/llm.config";
 import { createBedrockManifest } from "../common/bedrock-manifest-factory";

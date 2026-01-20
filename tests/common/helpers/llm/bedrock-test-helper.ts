@@ -1,8 +1,8 @@
+import { LLMPurpose } from "../../../../src/common/llm/types/llm-request.types";
 import {
-  LLMPurpose,
   ResolvedLLMModelMetadata,
   LLMModelKeysSet,
-} from "../../../../src/common/llm/types/llm.types";
+} from "../../../../src/common/llm/types/llm-model.types";
 import {
   LLMProviderManifest,
   ProviderInit,

@@ -1,8 +1,8 @@
+import { LLMPurpose } from "../../../../src/common/llm/types/llm-request.types";
 import {
   LLMModelFeature,
   LLMModelMetadata,
-  LLMPurpose,
-} from "../../../../src/common/llm/types/llm.types";
+} from "../../../../src/common/llm/types/llm-model.types";
 
 describe("LLMModelFeature Type Safety", () => {
   describe("Type-safe feature flags", () => {

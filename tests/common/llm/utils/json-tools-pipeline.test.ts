@@ -1,4 +1,4 @@
-import { LLMOutputFormat, LLMPurpose } from "../../../../src/common/llm/types/llm.types";
+import { LLMOutputFormat, LLMPurpose } from "../../../../src/common/llm/types/llm-request.types";
 import { parseAndValidateLLMJson } from "../../../../src/common/llm/json-processing/core/json-processing";
 
 // We'll mock the logging utility to capture sanitation step logging

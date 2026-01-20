@@ -7,10 +7,8 @@
 import "reflect-metadata";
 import BedrockClaudeLLM from "../../../../../src/common/llm/providers/bedrock/claude/bedrock-claude-llm";
 import BedrockNovaLLM from "../../../../../src/common/llm/providers/bedrock/nova/bedrock-nova-llm";
-import {
-  ResolvedLLMModelMetadata,
-  LLMPurpose,
-} from "../../../../../src/common/llm/types/llm.types";
+import { LLMPurpose } from "../../../../../src/common/llm/types/llm-request.types";
+import { ResolvedLLMModelMetadata } from "../../../../../src/common/llm/types/llm-model.types";
 import {
   LLMProviderSpecificConfig,
   LLMProviderManifest,

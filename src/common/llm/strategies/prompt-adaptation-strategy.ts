@@ -1,5 +1,6 @@
 import { llmConfig } from "../config/llm.config";
-import { LLMFunctionResponse, ResolvedLLMModelMetadata } from "../types/llm.types";
+import { LLMFunctionResponse } from "../types/llm-response.types";
+import { ResolvedLLMModelMetadata } from "../types/llm-model.types";
 import { LLMError, LLMErrorCode } from "../types/llm-errors.types";
 
 /**

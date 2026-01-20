@@ -2,12 +2,11 @@ import "reflect-metadata";
 import { jest, describe, test, expect, beforeEach } from "@jest/globals";
 import { RetryStrategy } from "../../../../../src/common/llm/strategies/retry-strategy";
 import LLMExecutionStats from "../../../../../src/common/llm/tracking/llm-execution-stats";
+import { LLMContext, LLMPurpose } from "../../../../../src/common/llm/types/llm-request.types";
 import {
   LLMFunctionResponse,
-  LLMContext,
   LLMResponseStatus,
-  LLMPurpose,
-} from "../../../../../src/common/llm/types/llm.types";
+} from "../../../../../src/common/llm/types/llm-response.types";
 import { LLMRetryConfig } from "../../../../../src/common/llm/providers/llm-provider.types";
 
 // Mock p-retry

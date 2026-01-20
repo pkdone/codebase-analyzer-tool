@@ -1,7 +1,5 @@
-import {
-  LLMPurpose,
-  ResolvedLLMModelMetadata,
-} from "../../../../../../src/common/llm/types/llm.types";
+import { LLMPurpose } from "../../../../../../src/common/llm/types/llm-request.types";
+import { ResolvedLLMModelMetadata } from "../../../../../../src/common/llm/types/llm-model.types";
 import { calculateTokenUsageFromError } from "../../../../../../src/common/llm/utils/error-parser";
 import { azureOpenAIProviderManifest } from "../../../../../../src/common/llm/providers/openai/azure/azure-openai.manifest";
 import { loadBaseEnvVarsOnly } from "../../../../../../src/app/env/env";

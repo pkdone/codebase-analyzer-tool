@@ -1,5 +1,5 @@
 import { parseAndValidateLLMJson } from "../../../../src/common/llm/json-processing/core/json-processing";
-import { LLMOutputFormat, LLMPurpose } from "../../../../src/common/llm/types/llm.types";
+import { LLMOutputFormat, LLMPurpose } from "../../../../src/common/llm/types/llm-request.types";
 import { z } from "zod";
 
 describe("unwrapJsonSchema integration with JsonProcessor.parseAndValidate", () => {

@@ -12,7 +12,7 @@ import { loadManifestForModelFamily } from "../../../../src/common/llm/utils/man
 import { LLMProviderManifest } from "../../../../src/common/llm/providers/llm-provider.types";
 import { getBaseNameFromPath } from "../../../../src/common/fs/path-utils";
 import { loadBaseEnvVarsOnly } from "../../../../src/app/env/env";
-import { LLMPurpose } from "../../../../src/common/llm/types/llm.types";
+import { LLMPurpose } from "../../../../src/common/llm/types/llm-request.types";
 import dotenv from "dotenv";
 
 // Mock dependencies

@@ -3,7 +3,7 @@ import {
   LLMCompletionOptions,
   LLMOutputFormat,
   LLMPurpose,
-} from "../../../../src/common/llm/types/llm.types";
+} from "../../../../src/common/llm/types/llm-request.types";
 import { JsonProcessingErrorType } from "../../../../src/common/llm/json-processing/types/json-processing.errors";
 import { z } from "zod";
 

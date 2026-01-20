@@ -1,12 +1,13 @@
+import { LLMPurpose, LLMOutputFormat } from "../../../../src/common/llm/types/llm-request.types";
 import {
-  LLMPurpose,
   LLMResponseStatus,
-  LLMProvider,
+  LLMResponseTokensUsage,
+} from "../../../../src/common/llm/types/llm-response.types";
+import type { LLMProvider } from "../../../../src/common/llm/types/llm-provider.interface";
+import {
   LLMModelTier,
   ResolvedLLMModelMetadata,
-  LLMResponseTokensUsage,
-  LLMOutputFormat,
-} from "../../../../src/common/llm/types/llm.types";
+} from "../../../../src/common/llm/types/llm-model.types";
 
 import { z } from "zod";
 import LLMRouter from "../../../../src/common/llm/llm-router";

@@ -6,13 +6,15 @@ import { RetryStrategy } from "../../../../src/common/llm/strategies/retry-strat
 import {
   LLMContext,
   LLMPurpose,
-  LLMResponseStatus,
   LLMOutputFormat,
+} from "../../../../src/common/llm/types/llm-request.types";
+import {
+  LLMResponseStatus,
   LLMFunctionResponse,
-  BoundLLMFunction,
-  LLMModelTier,
   LLMGeneratedContent,
-} from "../../../../src/common/llm/types/llm.types";
+} from "../../../../src/common/llm/types/llm-response.types";
+import { BoundLLMFunction } from "../../../../src/common/llm/types/llm-function.types";
+import { LLMModelTier } from "../../../../src/common/llm/types/llm-model.types";
 import { REPAIR_STEP } from "../../../../src/common/llm/json-processing/sanitizers";
 
 /**

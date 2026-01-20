@@ -3,7 +3,7 @@ import {
   LLMCompletionOptions,
   LLMOutputFormat,
   LLMPurpose,
-} from "../../../../../src/common/llm/types/llm.types";
+} from "../../../../../src/common/llm/types/llm-request.types";
 import { z } from "zod";
 
 describe("JsonProcessor - Undefined Value Handling Integration", () => {

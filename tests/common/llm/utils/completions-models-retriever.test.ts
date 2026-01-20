@@ -5,18 +5,22 @@ import {
   getOverriddenCompletionCandidates,
 } from "../../../../src/common/llm/utils/completions-models-retriever";
 import {
-  LLMProvider,
-  LLMModelTier,
+  LLMContext,
+  LLMPurpose,
+  LLMOutputFormat,
+} from "../../../../src/common/llm/types/llm-request.types";
+import {
+  LLMResponseStatus,
+  LLMFunctionResponse,
+} from "../../../../src/common/llm/types/llm-response.types";
+import {
   LLMCandidateFunction,
   LLMFunction,
   LLMEmbeddingFunction,
-  LLMContext,
-  LLMResponseStatus,
-  LLMPurpose,
-  LLMOutputFormat,
-  LLMFunctionResponse,
-  ShutdownBehavior,
-} from "../../../../src/common/llm/types/llm.types";
+} from "../../../../src/common/llm/types/llm-function.types";
+import { LLMModelTier } from "../../../../src/common/llm/types/llm-model.types";
+import type { LLMProvider } from "../../../../src/common/llm/types/llm-provider.interface";
+import { ShutdownBehavior } from "../../../../src/common/llm/types/llm-shutdown.types";
 
 describe("completions-models-retriever", () => {
   describe("buildCompletionCandidates", () => {

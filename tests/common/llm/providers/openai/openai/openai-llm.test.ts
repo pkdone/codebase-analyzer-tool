@@ -1,10 +1,10 @@
 import { OpenAI } from "openai";
 import { jest, describe, test, expect, beforeEach } from "@jest/globals";
 import {
-  ResolvedLLMModelMetadata,
   LLMPurpose,
   LLMOutputFormat,
-} from "../../../../../../src/common/llm/types/llm.types";
+} from "../../../../../../src/common/llm/types/llm-request.types";
+import { ResolvedLLMModelMetadata } from "../../../../../../src/common/llm/types/llm-model.types";
 import OpenAILLM from "../../../../../../src/common/llm/providers/openai/openai/openai-llm";
 import { openAIProviderManifest } from "../../../../../../src/common/llm/providers/openai/openai/openai.manifest";
 import { createMockErrorLoggingConfig } from "../../../../helpers/llm/mock-error-logger";

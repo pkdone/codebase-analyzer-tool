@@ -2,7 +2,7 @@ import {
   LLMStatsCategoryStatus,
   LLMStatsCategoriesSummary,
   LLMStatsCategoriesBase,
-} from "../types/llm.types";
+} from "../types/llm-stats.types";
 
 /**
  * Immutable status definition containing static metadata about each status type.

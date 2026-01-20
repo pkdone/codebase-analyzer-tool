@@ -13,7 +13,7 @@ import { logErr, logWarn } from "../../../../common/utils/logging";
 import { formatError } from "../../../../common/utils/error-formatters";
 import { llmTokens } from "../../../di/tokens";
 import LLMRouter from "../../../../common/llm/llm-router";
-import { LLMOutputFormat } from "../../../../common/llm/types/llm.types";
+import { LLMOutputFormat } from "../../../../common/llm/types/llm-request.types";
 import { aggregateFilesToMarkdown } from "../../../../common/utils/file-content-aggregator";
 import { formatDateForFilename } from "../../../../common/utils/date-utils";
 import { inputConfig } from "../../../config/input.config";

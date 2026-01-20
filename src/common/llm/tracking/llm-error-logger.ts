@@ -3,7 +3,8 @@ import { ensureDirectoryExists } from "../../fs/directory-operations";
 import { formatErrorMessageAndDetail } from "../../utils/error-formatters";
 import { logWarn, logErr } from "../../utils/logging";
 import { LLMErrorLoggingConfig } from "../config/llm-module-config.types";
-import type { LLMContext, LLMGeneratedContent } from "../types/llm.types";
+import type { LLMContext } from "../types/llm-request.types";
+import type { LLMGeneratedContent } from "../types/llm-response.types";
 
 /**
  * Service responsible for logging LLM JSON processing errors to files.

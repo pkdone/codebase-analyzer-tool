@@ -1,11 +1,8 @@
 import { OpenAI, RateLimitError, InternalServerError } from "openai";
 import { APIError } from "openai/error";
-import {
-  LLMCompletionOptions,
-  LLMOutputFormat,
-  LLMModelFeature,
-  createTokenUsageRecord,
-} from "../../../types/llm.types";
+import { LLMCompletionOptions, LLMOutputFormat } from "../../../types/llm-request.types";
+import { LLMModelFeature } from "../../../types/llm-model.types";
+import { createTokenUsageRecord } from "../../../types/llm-response.types";
 import BaseLLMProvider from "../../base-llm-provider";
 import { llmConfig } from "../../../config/llm.config";
 import { LLMError, LLMErrorCode } from "../../../types/llm-errors.types";

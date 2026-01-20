@@ -5,7 +5,7 @@ import {
   LLMCompletionOptions,
   isJsonOptionsWithSchema,
   isTextOptions,
-} from "../../../../src/common/llm/types/llm.types";
+} from "../../../../src/common/llm/types/llm-request.types";
 import { parseAndValidateLLMJson } from "../../../../src/common/llm/json-processing/core/json-processing";
 import { validateJsonWithTransforms } from "../../../../src/common/llm/json-processing/core/json-validating";
 

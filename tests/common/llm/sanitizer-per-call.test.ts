@@ -1,4 +1,7 @@
-import { LLMCompletionOptions, LLMOutputFormat } from "../../../src/common/llm/types/llm.types";
+import {
+  LLMCompletionOptions,
+  LLMOutputFormat,
+} from "../../../src/common/llm/types/llm-request.types";
 import { z } from "zod";
 import { LLMSanitizerConfig } from "../../../src/common/llm/config/llm-module-config.types";
 

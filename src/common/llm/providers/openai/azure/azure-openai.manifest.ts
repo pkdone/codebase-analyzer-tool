@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { LLMProviderManifest } from "../../llm-provider.types";
 import AzureOpenAILLM from "./azure-openai-llm";
-import { LLMPurpose } from "../../../types/llm.types";
+import { LLMPurpose } from "../../../types/llm-request.types";
 import { OPENAI_COMMON_ERROR_PATTERNS } from "../common/openai-error-patterns";
 import { defaultOpenAIProviderConfig } from "../common/openai-defaults.config";
 import { llmConfig } from "../../../config/llm.config";

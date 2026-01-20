@@ -1,11 +1,8 @@
 import pRetry, { FailedAttemptError } from "p-retry";
-import type {
-  LLMFunctionResponse,
-  LLMContext,
-  BoundLLMFunction,
-  LLMGeneratedContent,
-} from "../types/llm.types";
-import { LLMResponseStatus } from "../types/llm.types";
+import type { LLMContext } from "../types/llm-request.types";
+import type { LLMFunctionResponse, LLMGeneratedContent } from "../types/llm-response.types";
+import type { BoundLLMFunction } from "../types/llm-function.types";
+import { LLMResponseStatus } from "../types/llm-response.types";
 import type { LLMRetryConfig } from "../providers/llm-provider.types";
 import LLMExecutionStats from "../tracking/llm-execution-stats";
 

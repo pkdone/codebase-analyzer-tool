@@ -1,5 +1,6 @@
-import type { LLMFunctionResponse, LLMContext } from "../types/llm.types";
-import { LLMResponseStatus } from "../types/llm.types";
+import type { LLMFunctionResponse } from "../types/llm-response.types";
+import type { LLMContext } from "../types/llm-request.types";
+import { LLMResponseStatus } from "../types/llm-response.types";
 import { logWarn } from "../../utils/logging";
 
 /**

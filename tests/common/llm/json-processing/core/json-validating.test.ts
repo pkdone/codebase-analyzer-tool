@@ -1,4 +1,4 @@
-import { LLMOutputFormat } from "../../../../../src/common/llm/types/llm.types";
+import { LLMOutputFormat } from "../../../../../src/common/llm/types/llm-request.types";
 import { z } from "zod";
 import {
   validateJsonWithTransforms,

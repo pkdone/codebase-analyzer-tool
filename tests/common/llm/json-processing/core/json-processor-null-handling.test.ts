@@ -3,7 +3,7 @@ import {
   LLMCompletionOptions,
   LLMOutputFormat,
   LLMPurpose,
-} from "../../../../../src/common/llm/types/llm.types";
+} from "../../../../../src/common/llm/types/llm-request.types";
 import { z } from "zod";
 
 // Define schema locally for testing (matches the structure of BomDependency)

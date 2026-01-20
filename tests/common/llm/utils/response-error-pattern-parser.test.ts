@@ -1,4 +1,4 @@
-import { LLMPurpose } from "../../../../src/common/llm/types/llm.types";
+import { LLMPurpose } from "../../../../src/common/llm/types/llm-request.types";
 import { calculateTokenUsageFromError } from "../../../../src/common/llm/utils/error-parser";
 import { BEDROCK_COMMON_ERROR_PATTERNS } from "../../../../src/common/llm/providers/bedrock/common/bedrock-error-patterns";
 import { OPENAI_COMMON_ERROR_PATTERNS } from "../../../../src/common/llm/providers/openai/common/openai-error-patterns";

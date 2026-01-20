@@ -1,17 +1,21 @@
 import { describe, test, expect, beforeEach } from "@jest/globals";
 import { z } from "zod";
 import {
-  LLMFunction,
   LLMCompletionOptions,
-  LLMFunctionResponse,
   LLMContext,
   LLMOutputFormat,
   LLMPurpose,
+} from "../../../src/common/llm/types/llm-request.types";
+import {
+  LLMFunctionResponse,
   LLMResponseStatus,
-  LLMModelTier,
   InferResponseType,
+} from "../../../src/common/llm/types/llm-response.types";
+import { LLMFunction } from "../../../src/common/llm/types/llm-function.types";
+import {
+  LLMModelTier,
   ResolvedLLMModelMetadata,
-} from "../../../src/common/llm/types/llm.types";
+} from "../../../src/common/llm/types/llm-model.types";
 import { RetryStrategy } from "../../../src/common/llm/strategies/retry-strategy";
 import { LLMExecutionPipeline } from "../../../src/common/llm/llm-execution-pipeline";
 import LLMExecutionStats from "../../../src/common/llm/tracking/llm-execution-stats";
