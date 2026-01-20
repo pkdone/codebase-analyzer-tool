@@ -5,7 +5,13 @@ import { llmConcurrencyLimiter } from "../../../config/concurrency.config";
 import { logErr, logWarn } from "../../../../common/utils/logging";
 import type { AppSummariesRepository } from "../../../repositories/app-summaries/app-summaries.repository.interface";
 import type { SourcesRepository } from "../../../repositories/sources/sources.repository.interface";
-import { repositoryTokens, llmTokens, coreTokens, configTokens, insightsTokens } from "../../../di/tokens";
+import {
+  repositoryTokens,
+  llmTokens,
+  coreTokens,
+  configTokens,
+  insightsTokens,
+} from "../../../di/tokens";
 import { insightsConfig } from "../insights.config";
 import { getCategoryLabel } from "../../../config/category-labels.config";
 import { AppSummaryCategories } from "../../../schemas/app-summaries.schema";

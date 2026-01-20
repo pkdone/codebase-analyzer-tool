@@ -27,23 +27,14 @@ export interface HtmlReportAssets {
  */
 @injectable()
 export class HtmlReportAssetService {
-  /** Cached assets to avoid redundant file reads */
-  private cachedAssets: HtmlReportAssets | null = null;
-
   constructor(@inject(coreTokens.OutputConfig) private readonly outputConfig: OutputConfigType) {}
 
   /**
    * Loads and returns the assets required for HTML report rendering.
-   * Assets are cached after the first load to improve performance.
    *
    * @returns Promise resolving to the HTML report assets
    */
   async loadAssets(): Promise<HtmlReportAssets> {
-    // Return cached assets if available
-    if (this.cachedAssets) {
-      return this.cachedAssets;
-    }
-
     const templatesDir = path.join(__dirname, "..", this.outputConfig.HTML_TEMPLATES_DIR);
     const cssPath = path.join(templatesDir, this.outputConfig.assets.CSS_FILENAME);
     const jsonIconPath = path.join(
@@ -57,20 +48,10 @@ export class HtmlReportAssetService {
       fs.readFile(jsonIconPath, "utf-8"),
     ]);
 
-    this.cachedAssets = {
+    return {
       inlineCss: cssContent,
       jsonIconSvg: jsonIconContent,
     };
-
-    return this.cachedAssets;
-  }
-
-  /**
-   * Clears the cached assets, forcing a reload on the next call to loadAssets().
-   * Useful for testing or when assets may have changed.
-   */
-  clearCache(): void {
-    this.cachedAssets = null;
   }
 
   /**

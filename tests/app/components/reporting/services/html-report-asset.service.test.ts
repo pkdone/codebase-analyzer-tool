@@ -67,72 +67,10 @@ describe("HtmlReportAssetService", () => {
       expect(mockReadFile).toHaveBeenCalledTimes(2);
     });
 
-    it("should cache assets after first load", async () => {
-      const mockCss = "body { color: blue; }";
-      const mockSvg = "<svg></svg>";
-
-      mockReadFile.mockImplementation(async (filePath: unknown) => {
-        const pathStr = String(filePath);
-        if (pathStr.includes("style.css")) {
-          return mockCss;
-        }
-        if (pathStr.includes("json-icon.svg")) {
-          return mockSvg;
-        }
-        throw new Error(`Unexpected file: ${pathStr}`);
-      });
-
-      // First call
-      const result1 = await service.loadAssets();
-      expect(result1.inlineCss).toBe(mockCss);
-
-      // Second call - should use cache
-      const result2 = await service.loadAssets();
-      expect(result2.inlineCss).toBe(mockCss);
-
-      // readFile should only be called twice (once for CSS, once for SVG) total
-      expect(mockReadFile).toHaveBeenCalledTimes(2);
-    });
-
     it("should propagate errors when file read fails", async () => {
       mockReadFile.mockRejectedValue(new Error("File not found"));
 
       await expect(service.loadAssets()).rejects.toThrow("File not found");
-    });
-  });
-
-  describe("clearCache", () => {
-    it("should clear cached assets and reload on next call", async () => {
-      const mockCss1 = "body { color: red; }";
-      const mockCss2 = "body { color: green; }";
-      const mockSvg = "<svg></svg>";
-      let callCount = 0;
-
-      mockReadFile.mockImplementation(async (filePath: unknown) => {
-        const pathStr = String(filePath);
-        if (pathStr.includes("style.css")) {
-          callCount++;
-          return callCount === 1 ? mockCss1 : mockCss2;
-        }
-        if (pathStr.includes("json-icon.svg")) {
-          return mockSvg;
-        }
-        throw new Error(`Unexpected file: ${pathStr}`);
-      });
-
-      // First load
-      const result1 = await service.loadAssets();
-      expect(result1.inlineCss).toBe(mockCss1);
-
-      // Clear cache
-      service.clearCache();
-
-      // Second load should read from file again
-      const result2 = await service.loadAssets();
-      expect(result2.inlineCss).toBe(mockCss2);
-
-      // readFile for CSS should have been called twice (two loads after cache clear)
-      expect(mockReadFile).toHaveBeenCalledTimes(4); // 2 per load × 2 loads
     });
   });
 

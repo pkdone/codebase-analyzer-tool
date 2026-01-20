@@ -3,26 +3,10 @@ import { LLMErrorMsgRegExPattern } from "../types/llm-stats.types";
 import { LLMResponseTokensUsage } from "../types/llm-response.types";
 import { llmProviderConfig } from "../config/llm.config";
 
-/**
- * Configuration for mapping regex capture groups to token usage properties.
- * Each property specifies which 1-based regex capture group index contains the value,
- * or 0 to indicate the value should use a fallback.
- */
-interface TokenExtractionConfig {
-  /** Index of capture group containing the first value */
-  firstValueIndex: number;
-  /** Index of capture group containing the second value */
-  secondValueIndex: number;
-  /** Index of capture group containing completion tokens (optional) */
-  completionTokensIndex: number;
-}
-
-/** Standard config for extracting values from regex matches */
-const STANDARD_EXTRACTION_CONFIG: TokenExtractionConfig = {
-  firstValueIndex: 1,
-  secondValueIndex: 2,
-  completionTokensIndex: 3,
-};
+/** Capture group indices for regex matches */
+const FIRST_VALUE_INDEX = 1;
+const SECOND_VALUE_INDEX = 2;
+const COMPLETION_TOKENS_INDEX = 3;
 
 /**
  * Default result when no pattern matches or parsing fails.
@@ -47,19 +31,18 @@ function extractMatchValue(matches: RegExpMatchArray, index: number, fallback: n
  */
 function extractTokenValues(
   matches: RegExpMatchArray,
-  config: TokenExtractionConfig,
   isMaxFirst: boolean,
   fallbackMaxTokens: number,
 ): LLMResponseTokensUsage {
-  const firstValue = extractMatchValue(matches, config.firstValueIndex, -1);
-  const secondValue = extractMatchValue(matches, config.secondValueIndex, fallbackMaxTokens);
-  const completionTokens = extractMatchValue(matches, config.completionTokensIndex, 0);
+  const firstValue = extractMatchValue(matches, FIRST_VALUE_INDEX, -1);
+  const secondValue = extractMatchValue(matches, SECOND_VALUE_INDEX, fallbackMaxTokens);
+  const completionTokens = extractMatchValue(matches, COMPLETION_TOKENS_INDEX, 0);
 
   return isMaxFirst
     ? {
         maxTotalTokens: firstValue,
         promptTokens:
-          secondValue === fallbackMaxTokens && matches.length <= config.secondValueIndex
+          secondValue === fallbackMaxTokens && matches.length <= SECOND_VALUE_INDEX
             ? -1
             : secondValue,
         completionTokens,
@@ -77,17 +60,16 @@ function extractTokenValues(
  */
 function extractCharValues(
   matches: RegExpMatchArray,
-  config: TokenExtractionConfig,
   isMaxFirst: boolean,
   modelKey: string,
   llmModelsMetadata: Record<string, ResolvedLLMModelMetadata>,
 ): LLMResponseTokensUsage {
-  if (matches.length <= config.secondValueIndex) {
+  if (matches.length <= SECOND_VALUE_INDEX) {
     return { ...DEFAULT_RESULT };
   }
 
-  const firstValue = parseInt(matches[config.firstValueIndex], 10);
-  const secondValue = parseInt(matches[config.secondValueIndex], 10);
+  const firstValue = parseInt(matches[FIRST_VALUE_INDEX], 10);
+  const secondValue = parseInt(matches[SECOND_VALUE_INDEX], 10);
 
   const charsLimit = isMaxFirst ? firstValue : secondValue;
   const charsPrompt = isMaxFirst ? secondValue : firstValue;
@@ -114,20 +96,9 @@ function parseTokenUsageFromLLMError(
     if (!matches || matches.length <= 1) continue;
 
     if (pattern.units === "tokens") {
-      return extractTokenValues(
-        matches,
-        STANDARD_EXTRACTION_CONFIG,
-        pattern.isMaxFirst,
-        fallbackMaxTokens,
-      );
+      return extractTokenValues(matches, pattern.isMaxFirst, fallbackMaxTokens);
     } else {
-      return extractCharValues(
-        matches,
-        STANDARD_EXTRACTION_CONFIG,
-        pattern.isMaxFirst,
-        modelKey,
-        llmModelsMetadata,
-      );
+      return extractCharValues(matches, pattern.isMaxFirst, modelKey, llmModelsMetadata);
     }
   }
 
