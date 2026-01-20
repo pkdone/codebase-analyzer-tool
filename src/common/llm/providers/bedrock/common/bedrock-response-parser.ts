@@ -15,6 +15,25 @@ const parseNumericOrDefault = (value: unknown): number | undefined =>
   typeof value === "number" ? value : undefined;
 
 /**
+ * Converts an unknown value to LLMGeneratedContent with proper type validation.
+ * LLMGeneratedContent accepts: string | Record<string, unknown> | unknown[] | null
+ *
+ * - undefined → null (LLMGeneratedContent doesn't include undefined)
+ * - null → null (preserved)
+ * - string → string (preserved)
+ * - object/array → preserved as-is (JSON-serializable)
+ * - number/boolean/other → converted to string for safety
+ */
+function convertToLLMGeneratedContent(value: unknown): LLMGeneratedContent {
+  if (value === undefined || value === null) return null;
+  if (typeof value === "string") return value;
+  if (typeof value === "object") return value as LLMGeneratedContent;
+  // Handle edge cases where the LLM response structure has unexpected type
+  if (typeof value === "number" || typeof value === "boolean") return String(value);
+  return null; // For other unexpected types, assume null content
+}
+
+/**
  * Zod schema for Bedrock embeddings response validation.
  * Supports both direct embedding format and results array format.
  */
@@ -118,8 +137,8 @@ export function extractGenericCompletionResponse(
   const responseContentRaw = getNestedValueWithFallbacks(response, contentPaths);
   // Preserve null values from LLM (null has different semantic meaning than empty string)
   // Convert undefined to null to match LLMGeneratedContent type (which doesn't include undefined)
-  const responseContent =
-    responseContentRaw === undefined ? null : (responseContentRaw as LLMGeneratedContent);
+  // Validate the extracted value is a valid LLMGeneratedContent type (string, object, array, or null)
+  const responseContent = convertToLLMGeneratedContent(responseContentRaw);
   const stopReasonPaths = [pathConfig.stopReasonPath, pathConfig.alternativeStopReasonPath].filter(
     isDefined,
   );

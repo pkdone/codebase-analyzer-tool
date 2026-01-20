@@ -417,4 +417,152 @@ describe("bedrock-response-parser", () => {
       expect(result.tokenUsage.completionTokens).toBe(100);
     });
   });
+
+  describe("responseContent type guard validation", () => {
+    /**
+     * These tests verify that the type guard in extractGenericCompletionResponse
+     * properly validates that extracted content is JSON-serializable before assignment.
+     */
+
+    it("should accept nested object content as valid LLMGeneratedContent", () => {
+      // Schema that allows any type for the text field (to simulate edge cases)
+      const flexibleSchema = z
+        .object({
+          content: z.array(z.object({ text: z.any() })).optional(),
+          stop_reason: z.string().optional(),
+          usage: z
+            .object({ input_tokens: z.number().optional(), output_tokens: z.number().optional() })
+            .optional(),
+        })
+        .passthrough();
+
+      const response = {
+        content: [{ text: { nested: "object", with: ["array", "values"] } }],
+        stop_reason: "end_turn",
+        usage: { input_tokens: 1, output_tokens: 2 },
+      };
+
+      const summary = extractGenericCompletionResponse(
+        response,
+        flexibleSchema,
+        {
+          contentPath: "content[0].text",
+          promptTokensPath: "usage.input_tokens",
+          completionTokensPath: "usage.output_tokens",
+          stopReasonPath: "stop_reason",
+          stopReasonValueForLength: "max_tokens",
+        },
+        "TestProvider",
+      );
+
+      // Objects are valid LLMGeneratedContent (JSON-serializable)
+      expect(summary.responseContent).toEqual({ nested: "object", with: ["array", "values"] });
+      expect(summary.isIncompleteResponse).toBe(false);
+    });
+
+    it("should accept array content as valid LLMGeneratedContent", () => {
+      const flexibleSchema = z
+        .object({
+          content: z.array(z.object({ text: z.any() })).optional(),
+          stop_reason: z.string().optional(),
+          usage: z
+            .object({ input_tokens: z.number().optional(), output_tokens: z.number().optional() })
+            .optional(),
+        })
+        .passthrough();
+
+      const response = {
+        content: [{ text: ["item1", "item2", "item3"] }],
+        stop_reason: "end_turn",
+        usage: { input_tokens: 1, output_tokens: 2 },
+      };
+
+      const summary = extractGenericCompletionResponse(
+        response,
+        flexibleSchema,
+        {
+          contentPath: "content[0].text",
+          promptTokensPath: "usage.input_tokens",
+          completionTokensPath: "usage.output_tokens",
+          stopReasonPath: "stop_reason",
+          stopReasonValueForLength: "max_tokens",
+        },
+        "TestProvider",
+      );
+
+      // Arrays are valid LLMGeneratedContent (JSON-serializable)
+      expect(summary.responseContent).toEqual(["item1", "item2", "item3"]);
+      expect(summary.isIncompleteResponse).toBe(false);
+    });
+
+    it("should convert numeric content to string when extracted directly", () => {
+      const flexibleSchema = z
+        .object({
+          content: z.array(z.object({ text: z.any() })).optional(),
+          stop_reason: z.string().optional(),
+          usage: z
+            .object({ input_tokens: z.number().optional(), output_tokens: z.number().optional() })
+            .optional(),
+        })
+        .passthrough();
+
+      const response = {
+        content: [{ text: 42 }], // Numeric value (edge case)
+        stop_reason: "end_turn",
+        usage: { input_tokens: 1, output_tokens: 2 },
+      };
+
+      const summary = extractGenericCompletionResponse(
+        response,
+        flexibleSchema,
+        {
+          contentPath: "content[0].text",
+          promptTokensPath: "usage.input_tokens",
+          completionTokensPath: "usage.output_tokens",
+          stopReasonPath: "stop_reason",
+          stopReasonValueForLength: "max_tokens",
+        },
+        "TestProvider",
+      );
+
+      // Numbers are not directly valid as LLMGeneratedContent (string | object | array | null)
+      // The type guard should convert to string for safety
+      expect(summary.responseContent).toBe("42");
+    });
+
+    it("should convert boolean content to string when extracted directly", () => {
+      const flexibleSchema = z
+        .object({
+          content: z.array(z.object({ text: z.any() })).optional(),
+          stop_reason: z.string().optional(),
+          usage: z
+            .object({ input_tokens: z.number().optional(), output_tokens: z.number().optional() })
+            .optional(),
+        })
+        .passthrough();
+
+      const response = {
+        content: [{ text: true }], // Boolean value (edge case)
+        stop_reason: "end_turn",
+        usage: { input_tokens: 1, output_tokens: 2 },
+      };
+
+      const summary = extractGenericCompletionResponse(
+        response,
+        flexibleSchema,
+        {
+          contentPath: "content[0].text",
+          promptTokensPath: "usage.input_tokens",
+          completionTokensPath: "usage.output_tokens",
+          stopReasonPath: "stop_reason",
+          stopReasonValueForLength: "max_tokens",
+        },
+        "TestProvider",
+      );
+
+      // Booleans are not directly valid as LLMGeneratedContent
+      // The type guard should convert to string for safety
+      expect(summary.responseContent).toBe("true");
+    });
+  });
 });

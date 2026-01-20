@@ -213,12 +213,12 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
       return { [categoryKey]: collectedStrings } as MapReduceIntermediateData<C>;
     }
 
-    /**
-     * TYPE ASSERTION RATIONALE:
-     * Fallback for unhandled schema shapes. Returns an empty array structure to prevent
-     * runtime errors. This should not occur with current AppSummaryCategoryEnum schemas.
-     */
-    return { [categoryKey]: [] } as unknown as MapReduceIntermediateData<C>;
+    // No silent fallback - if we reach here, the schema shape is unhandled and indicates
+    // a new category type was added without updating this function
+    throw new Error(
+      `Unhandled schema shape for category "${category}". ` +
+        `Map-reduce strategy requires explicit handling for Array, Object, or String schemas.`,
+    );
   }
 
   /**

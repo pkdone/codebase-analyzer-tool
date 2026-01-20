@@ -204,6 +204,19 @@ export default class AppReportGenerator {
       getCategoryJSONFilename: (category: string): string => `${category}.json`,
     };
 
+    /**
+     * TYPE ASSERTION RATIONALE:
+     * The spread of `mergedHtmlData` combines data from all report sections, each returning
+     * Partial<PreparedHtmlReportData>. TypeScript cannot verify that the combined partials
+     * plus the explicit properties below satisfy all required interface properties because:
+     * 1. Section contributions are determined dynamically at runtime via multi-injection
+     * 2. Object spread types don't narrow through reduce iteration
+     *
+     * The architecture ensures coverage: each section is responsible for populating its
+     * designated properties, and the explicit additions here cover core data (appStats,
+     * categorizedData, etc.). If a section fails (via Promise.allSettled), the HTML template
+     * handles missing optional data gracefully via conditional rendering.
+     */
     return {
       ...mergedHtmlData,
       appStats: reportData.appStats,

@@ -55,7 +55,17 @@ export default class SourcesRepositoryImpl
   }
 
   /**
-   * Insert a source file record into the database
+   * Insert a source file record into the database.
+   *
+   * TYPE ASSERTION RATIONALE:
+   * The cast to SourceRecordWithId is required due to TypeScript limitations with intersection types.
+   * Both `SourceRecord` and `OptionalUnlessRequiredId<SourceRecordWithId>` have `_id?: ObjectId`,
+   * making them semantically equivalent for MongoDB insertions. However, TypeScript cannot prove
+   * structural compatibility when `SourceRecordWithId` is defined as an intersection type
+   * (`z.infer<typeof sourceSchema> & { _id: ObjectId }`). The MongoDB driver's
+   * `OptionalUnlessRequiredId` utility type doesn't distribute across intersections as expected.
+   *
+   * This cast is safe because MongoDB's insertOne will auto-generate _id if not provided.
    */
   async insertSource(sourceFileData: SourceRecord): Promise<void> {
     await this.safeInsert(sourceFileData as SourceRecordWithId);
