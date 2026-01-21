@@ -12,7 +12,8 @@ import type { z } from "zod";
 import {
   JSONSchemaPrompt,
   type JSONSchemaPromptConfig,
-} from "../../common/prompts/json-schema-prompt";
+  type GeneratedPrompt,
+} from "../../common/prompts";
 import { type FileTypePromptRegistry } from "./sources/sources.definitions";
 import {
   appSummaryConfigMap,
@@ -28,28 +29,31 @@ import {
 } from "./prompts.constants";
 
 /**
- * Result of building a source prompt, containing the rendered prompt string
- * and metadata needed for LLM execution.
+ * Type alias for source prompt results.
+ * Uses the common GeneratedPrompt type with source-specific schema and required metadata.
  */
-export interface SourcePromptResult {
-  /** The fully rendered prompt string ready for LLM submission */
-  readonly prompt: string;
-  /** The Zod schema for validating the LLM response */
-  readonly schema: FileTypePromptRegistry[CanonicalFileType]["responseSchema"];
-  /** Whether the schema is complex and incompatible with some LLM providers */
-  readonly hasComplexSchema: boolean;
-}
+export type SourcePromptResult = GeneratedPrompt<
+  FileTypePromptRegistry[CanonicalFileType]["responseSchema"]
+> &
+  Required<Pick<GeneratedPrompt, "metadata">>;
 
 /**
- * Result of building an insight prompt, containing the rendered prompt string
- * and metadata needed for LLM execution.
+ * Type alias for insight prompt results.
+ * Uses the common GeneratedPrompt type with category-specific schema.
+ *
+ * @template C - The specific category type from AppSummaryConfigMap
  */
-export interface InsightPromptResult<C extends keyof AppSummaryConfigMap> {
-  /** The fully rendered prompt string ready for LLM submission */
-  readonly prompt: string;
-  /** The Zod schema for validating the LLM response */
-  readonly schema: AppSummaryConfigMap[C]["responseSchema"];
-}
+export type InsightPromptResult<C extends keyof AppSummaryConfigMap> = GeneratedPrompt<
+  AppSummaryConfigMap[C]["responseSchema"]
+>;
+
+/**
+ * Type alias for reduce prompt results.
+ * Uses the common GeneratedPrompt type with the provided schema.
+ *
+ * @template S - The Zod schema type for validating the LLM response
+ */
+export type ReducePromptResult<S extends z.ZodType> = GeneratedPrompt<S>;
 
 /**
  * Options for building an insight prompt.
@@ -92,7 +96,7 @@ function buildPartialAnalysisNote(dataBlockHeader: string): string {
  * const llmResponse = await llmRouter.executeCompletion(filepath, result.prompt, {
  *   outputFormat: LLMOutputFormat.JSON,
  *   jsonSchema: result.schema,
- *   hasComplexSchema: result.hasComplexSchema,
+ *   hasComplexSchema: result.metadata.hasComplexSchema,
  * });
  * ```
  */
@@ -112,7 +116,7 @@ export function buildSourcePrompt(
   return {
     prompt: promptGenerator.renderPrompt(content),
     schema: config.responseSchema,
-    hasComplexSchema,
+    metadata: { hasComplexSchema },
   };
 }
 
@@ -159,16 +163,6 @@ export function buildInsightPrompt<C extends keyof AppSummaryConfigMap>(
     prompt: promptGenerator.renderPrompt(content),
     schema: config.responseSchema,
   };
-}
-
-/**
- * Result of building a reduce prompt for map-reduce insight generation.
- */
-export interface ReducePromptResult<S extends z.ZodType> {
-  /** The fully rendered prompt string ready for LLM submission */
-  readonly prompt: string;
-  /** The Zod schema for validating the LLM response */
-  readonly schema: S;
 }
 
 /**

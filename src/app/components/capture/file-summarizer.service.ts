@@ -61,7 +61,7 @@ export class FileSummarizerService {
     try {
       if (content.trim().length === 0) return err(new Error("File is empty"));
       const canonicalFileType = getCanonicalFileType(filepath, type);
-      const { prompt, schema, hasComplexSchema } = buildSourcePrompt(
+      const { prompt, schema, metadata } = buildSourcePrompt(
         this.fileTypePromptRegistry,
         canonicalFileType,
         content,
@@ -69,7 +69,7 @@ export class FileSummarizerService {
       const completionOptions = {
         outputFormat: LLMOutputFormat.JSON,
         jsonSchema: schema,
-        hasComplexSchema,
+        hasComplexSchema: metadata.hasComplexSchema,
         sanitizerConfig: getLlmArtifactCorrections(),
       } as const;
       const result = await this.llmRouter.executeCompletion(filepath, prompt, completionOptions);

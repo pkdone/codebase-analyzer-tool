@@ -1,0 +1,13 @@
+/**
+ * Common prompts module - provides reusable prompt utilities and types.
+ *
+ * This module exports generic prompt-related functionality designed
+ * to be portable across projects.
+ */
+
+// Type exports
+export type { GeneratedPrompt, PromptMetadata } from "./types";
+
+// Class and template exports
+export { JSONSchemaPrompt, JSON_SCHEMA_PROMPT_TEMPLATE } from "./json-schema-prompt";
+export type { JSONSchemaPromptConfig } from "./json-schema-prompt";

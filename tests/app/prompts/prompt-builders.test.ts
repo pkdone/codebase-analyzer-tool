@@ -42,13 +42,14 @@ describe("buildSourcePrompt", () => {
     },
   } as unknown as FileTypePromptRegistry;
 
-  test("should return a SourcePromptResult with all required fields", () => {
+  test("should return a GeneratedPrompt with all required fields", () => {
     const content = "public class Test {}";
     const result = buildSourcePrompt(mockFileTypePromptRegistry, "java", content);
 
     expect(result).toHaveProperty("prompt");
     expect(result).toHaveProperty("schema");
-    expect(result).toHaveProperty("hasComplexSchema");
+    expect(result).toHaveProperty("metadata");
+    expect(result.metadata).toHaveProperty("hasComplexSchema");
   });
 
   test("should include DEFAULT_PERSONA_INTRODUCTION in the prompt", () => {
@@ -87,18 +88,18 @@ describe("buildSourcePrompt", () => {
     expect(result.schema).toBe(mockSchema);
   });
 
-  test("should return hasComplexSchema as false when not set in config", () => {
+  test("should return metadata.hasComplexSchema as false when not set in config", () => {
     const content = "public class Test {}";
     const result = buildSourcePrompt(mockFileTypePromptRegistry, "java", content);
 
-    expect(result.hasComplexSchema).toBe(false);
+    expect(result.metadata.hasComplexSchema).toBe(false);
   });
 
-  test("should return hasComplexSchema as true when set in config", () => {
+  test("should return metadata.hasComplexSchema as true when set in config", () => {
     const content = "const x = 1;";
     const result = buildSourcePrompt(mockFileTypePromptRegistry, "javascript", content);
 
-    expect(result.hasComplexSchema).toBe(true);
+    expect(result.metadata.hasComplexSchema).toBe(true);
   });
 
   test("should include instructions in the prompt", () => {
@@ -111,7 +112,7 @@ describe("buildSourcePrompt", () => {
 });
 
 describe("buildInsightPrompt", () => {
-  test("should return an InsightPromptResult with all required fields", () => {
+  test("should return a GeneratedPrompt with all required fields", () => {
     const content = "* TestClass.java: A test class";
     const result = buildInsightPrompt("technologies", content);
 
@@ -268,7 +269,7 @@ describe("buildReducePrompt", () => {
     ),
   });
 
-  test("should return a ReducePromptResult with all required fields", () => {
+  test("should return a GeneratedPrompt with all required fields", () => {
     const content = JSON.stringify({ technologies: [] });
     const result = buildReducePrompt("technologies", content, mockSchema);
 
@@ -377,5 +378,53 @@ describe("buildQueryPrompt", () => {
 
     expect(personaIndex).toBeLessThan(questionIndex);
     expect(questionIndex).toBeLessThan(codeIndex);
+  });
+});
+
+describe("GeneratedPrompt type consistency", () => {
+  /**
+   * These tests verify that all prompt builders return results that conform
+   * to the GeneratedPrompt interface structure.
+   */
+
+  test("buildSourcePrompt should return consistent GeneratedPrompt structure", () => {
+    const mockSchema = z.object({ purpose: z.string() });
+    const mockRegistry = {
+      java: {
+        contentDesc: "JVM code",
+        responseSchema: mockSchema,
+        instructions: ["Extract purpose"],
+        hasComplexSchema: true,
+      },
+    } as unknown as FileTypePromptRegistry;
+
+    const result = buildSourcePrompt(mockRegistry, "java", "code");
+
+    // Verify GeneratedPrompt structure
+    expect(typeof result.prompt).toBe("string");
+    expect(result.schema).toBeDefined();
+    expect(result.metadata).toBeDefined();
+    expect(typeof result.metadata.hasComplexSchema).toBe("boolean");
+  });
+
+  test("buildInsightPrompt should return consistent GeneratedPrompt structure", () => {
+    const result = buildInsightPrompt("technologies", "content");
+
+    // Verify GeneratedPrompt structure
+    expect(typeof result.prompt).toBe("string");
+    expect(result.schema).toBeDefined();
+    // InsightPromptResult has optional metadata
+    expect(result.metadata).toBeUndefined();
+  });
+
+  test("buildReducePrompt should return consistent GeneratedPrompt structure", () => {
+    const mockSchema = z.object({ data: z.array(z.string()) });
+    const result = buildReducePrompt("data", "content", mockSchema);
+
+    // Verify GeneratedPrompt structure
+    expect(typeof result.prompt).toBe("string");
+    expect(result.schema).toBe(mockSchema);
+    // ReducePromptResult has optional metadata
+    expect(result.metadata).toBeUndefined();
   });
 });
