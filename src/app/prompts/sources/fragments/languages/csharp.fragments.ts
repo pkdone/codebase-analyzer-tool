@@ -1,6 +1,6 @@
-import { createDbMechanismInstructions } from "../utils";
-import type { LanguageSpecificFragments } from "../sources.types";
-import { MECHANISM_DESCRIPTIONS } from "./common.fragments";
+import { createDbMechanismInstructions } from "../../utils";
+import type { LanguageSpecificFragments } from "../../sources.types";
+import { MECHANISM_DESCRIPTIONS } from "../features/common.fragments";
 
 /**
  * C#-specific instruction fragments.

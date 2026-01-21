@@ -1,28 +1,22 @@
 import { z } from "zod";
 import {
   appSummarySchema,
-  AppSummaryCategories,
   appSummaryCategorySchemas,
   type AppSummaryCategorySchemas,
+  type AppSummaryCategoryType,
+  type AppSummaryCategoryEnum,
 } from "../../schemas/app-summaries.schema";
 
 // Re-export for convenient access by consumers
 export { appSummaryCategorySchemas, type AppSummaryCategorySchemas };
 
+// Re-export category types for backwards compatibility
+export type { AppSummaryCategoryType, AppSummaryCategoryEnum };
+
 /**
  * Type for validating the LLM response for a specific category
  */
 export type PartialAppSummaryRecord = Partial<z.infer<typeof appSummarySchema>>;
-
-/**
- * Type for app summary categories
- */
-export type AppSummaryCategoryType = z.infer<typeof AppSummaryCategories>;
-
-/**
- * Type for the enum of app summary categories
- */
-export type AppSummaryCategoryEnum = AppSummaryCategoryType;
 
 /**
  * Type alias for category-specific insight result.

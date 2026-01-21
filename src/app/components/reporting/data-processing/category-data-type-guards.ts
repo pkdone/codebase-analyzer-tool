@@ -15,8 +15,8 @@ import {
   potentialMicroservicesSchema,
   boundedContextsSchema,
   businessProcessesSchema,
-} from "../../../../schemas/app-summaries.schema";
-import type { AppSummaryNameDescArray } from "../../../../repositories/app-summaries/app-summaries.model";
+} from "../../../schemas/app-summaries.schema";
+import type { AppSummaryNameDescArray } from "../../../repositories/app-summaries/app-summaries.model";
 
 // =============================================================================
 // Zod Schemas for Validation

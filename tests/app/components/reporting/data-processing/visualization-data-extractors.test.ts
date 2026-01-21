@@ -1,9 +1,10 @@
+import "reflect-metadata";
 import {
   extractMicroservicesData,
   extractInferredArchitectureData,
   isInferredArchitectureCategoryData,
-} from "../../../../../../src/app/components/reporting/sections/visualizations/visualization-data-extractors";
-import type { CategorizedSectionItem } from "../../../../../../src/app/components/reporting/sections/overview/categorized-section-data-builder";
+} from "../../../../../src/app/components/reporting/data-processing";
+import type { CategorizedSectionItem } from "../../../../../src/app/components/reporting/data-processing";
 
 /**
  * Helper to create a minimal categorized item for testing.

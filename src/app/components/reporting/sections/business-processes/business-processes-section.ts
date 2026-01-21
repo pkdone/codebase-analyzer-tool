@@ -6,7 +6,7 @@ import type { PreparedHtmlReportData } from "../../types/html-report-data.types"
 import type { PreparedJsonData } from "../../json-report-writer";
 import type { ReportData } from "../../report-data.types";
 import { SECTION_NAMES } from "../../reporting.constants";
-import { type CategorizedSectionItem } from "../overview/categorized-section-data-builder";
+import { type CategorizedSectionItem } from "../../data-processing";
 
 /**
  * Report section for business process flowcharts.

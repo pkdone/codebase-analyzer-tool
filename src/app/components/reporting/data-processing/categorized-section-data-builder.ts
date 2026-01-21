@@ -1,8 +1,8 @@
 import { injectable } from "tsyringe";
-import { getCategoryLabel } from "../../../../config/category-labels.config";
-import { AppSummaryCategories } from "../../../../schemas/app-summaries.schema";
-import type { AppSummaryCategoryType } from "../../../insights/insights.types";
-import type { AppSummaryRecordWithId } from "../../../../repositories/app-summaries/app-summaries.model";
+import { getCategoryLabel } from "../../../config/category-labels.config";
+import { AppSummaryCategories } from "../../../schemas/app-summaries.schema";
+import type { AppSummaryCategoryType } from "../../insights/insights.types";
+import type { AppSummaryRecordWithId } from "../../../repositories/app-summaries/app-summaries.model";
 import {
   type CategorizedSectionItem,
   isAppSummaryNameDescArray,

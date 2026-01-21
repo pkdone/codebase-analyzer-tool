@@ -7,10 +7,7 @@ import type {
 } from "./types/html-report-data.types";
 import { JsonReportWriter, type PreparedJsonData } from "./json-report-writer";
 import { AppStatisticsDataProvider } from "./sections/overview/app-statistics-data-provider";
-import {
-  CategorizedSectionDataBuilder,
-  isCategorizedDataNameDescArray,
-} from "./sections/overview/categorized-section-data-builder";
+import { CategorizedSectionDataBuilder, isCategorizedDataNameDescArray } from "./data-processing";
 import type { AppSummariesRepository } from "../../repositories/app-summaries/app-summaries.repository.interface";
 import type { ReportData } from "./report-data.types";
 import { TableViewModel, type DisplayableTableRow } from "./view-models/table-view-model";

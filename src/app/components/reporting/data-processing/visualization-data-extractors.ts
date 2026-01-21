@@ -13,16 +13,16 @@
  * - isInferredArchitectureCategoryData: Type guard for inferred architecture validation
  */
 import { z } from "zod";
-import type { AppSummaryNameDescArray } from "../../../../repositories/app-summaries/app-summaries.model";
+import type { AppSummaryNameDescArray } from "../../../repositories/app-summaries/app-summaries.model";
 import {
   businessProcessSchema,
   potentialMicroserviceSchema,
   inferredComponentSchema as coreInferredComponentSchema,
   externalDependencyComponentSchema,
   componentDependencySchema as coreComponentDependencySchema,
-} from "../../../../schemas/app-summaries.schema";
-import type { CategorizedSectionItem } from "../overview/categorized-section-data-builder";
-import type { Microservice, InferredArchitectureData } from "../../diagrams/generators";
+} from "../../../schemas/app-summaries.schema";
+import type { CategorizedSectionItem } from "./categorized-section-data-builder";
+import type { Microservice, InferredArchitectureData } from "../diagrams/generators";
 
 /**
  * Schema derived from core businessProcessSchema for data extraction.

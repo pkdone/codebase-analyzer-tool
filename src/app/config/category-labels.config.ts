@@ -1,4 +1,4 @@
-import type { AppSummaryCategoryEnum } from "../components/insights/insights.types";
+import type { AppSummaryCategoryEnum } from "../schemas/app-summaries.schema";
 
 /**
  * Display labels for app summary categories.

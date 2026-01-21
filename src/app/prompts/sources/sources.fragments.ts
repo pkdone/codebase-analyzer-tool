@@ -9,4 +9,4 @@
 export type { LanguageSpecificFragments } from "./sources.types";
 
 // Re-export COMPOSITES from its dedicated module
-export { COMPOSITES } from "./fragments/composites";
+export { COMPOSITES } from "./fragments";

@@ -13,7 +13,7 @@ import {
   C_SPECIFIC_FRAGMENTS,
   CPP_SPECIFIC_FRAGMENTS,
 } from "../../../../../src/app/prompts/sources/fragments";
-import { MECHANISM_DESCRIPTIONS } from "../../../../../src/app/prompts/sources/fragments/common.fragments";
+import { MECHANISM_DESCRIPTIONS } from "../../../../../src/app/prompts/sources/fragments";
 
 describe("MECHANISM_DESCRIPTIONS usage in language-specific fragments", () => {
   describe("MECHANISM_DESCRIPTIONS constants", () => {

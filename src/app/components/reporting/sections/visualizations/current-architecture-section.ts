@@ -6,7 +6,7 @@ import type { PreparedHtmlReportData } from "../../types/html-report-data.types"
 import type { PreparedJsonData } from "../../json-report-writer";
 import type { ReportData } from "../../report-data.types";
 import { SECTION_NAMES } from "../../reporting.constants";
-import { extractInferredArchitectureData } from "./visualization-data-extractors";
+import { extractInferredArchitectureData } from "../../data-processing";
 
 /**
  * Report section for current/inferred architecture visualizations.

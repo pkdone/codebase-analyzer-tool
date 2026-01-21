@@ -16,7 +16,7 @@ import type {
 import type { IntegrationPointInfo } from "../sections/integration-points/integration-points.types";
 import type { ProjectedFileTypesCountAndLines } from "../../../repositories/sources/sources.model";
 import type { TableViewModel } from "../view-models/table-view-model";
-import type { CategorizedSectionItem } from "../sections/overview/categorized-section-data-builder";
+import type { CategorizedSectionItem } from "../data-processing";
 import type { PieChartData } from "../sections/file-types/pie-chart.types";
 
 /**

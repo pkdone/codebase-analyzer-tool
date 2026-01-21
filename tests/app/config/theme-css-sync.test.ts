@@ -75,16 +75,13 @@ describe("Theme CSS Sync", () => {
   describe("CSS variable values match TypeScript brand colors", () => {
     const colorEntries = Object.entries(BRAND_COLORS) as [keyof typeof BRAND_COLORS, string][];
 
-    test.each(colorEntries)(
-      "BRAND_COLORS.%s matches CSS variable value",
-      (colorKey, tsValue) => {
-        const cssVarName = TS_TO_CSS_VAR_MAP[colorKey];
-        const cssValue = cssVariables.get(cssVarName);
+    test.each(colorEntries)("BRAND_COLORS.%s matches CSS variable value", (colorKey, tsValue) => {
+      const cssVarName = TS_TO_CSS_VAR_MAP[colorKey];
+      const cssValue = cssVariables.get(cssVarName);
 
-        expect(cssValue).toBeDefined();
-        expect(cssValue?.toUpperCase()).toBe(tsValue.toUpperCase());
-      },
-    );
+      expect(cssValue).toBeDefined();
+      expect(cssValue?.toUpperCase()).toBe(tsValue.toUpperCase());
+    });
   });
 
   describe("All MongoDB CSS color variables are accounted for", () => {

@@ -3,7 +3,7 @@ import { DomainModelDataProvider } from "../../../../../src/app/components/repor
 import type {
   CategorizedSectionItem,
   BoundedContextsArray,
-} from "../../../../../src/app/components/reporting/sections/overview/categorized-section-data-builder";
+} from "../../../../../src/app/components/reporting/data-processing";
 
 describe("DomainModelDataProvider", () => {
   let provider: DomainModelDataProvider;

@@ -1,5 +1,5 @@
-import { createDbMechanismInstructions } from "../utils";
-import type { LanguageSpecificFragments } from "../sources.types";
+import { createDbMechanismInstructions } from "../../utils";
+import type { LanguageSpecificFragments } from "../../sources.types";
 
 /**
  * Ruby-specific instruction fragments.

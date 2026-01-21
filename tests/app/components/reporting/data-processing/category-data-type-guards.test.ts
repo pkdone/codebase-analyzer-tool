@@ -12,8 +12,8 @@ import {
   type BoundedContextsArray,
   type BusinessProcessesArray,
   type InferredArchitectureInner,
-} from "../../../../../../src/app/components/reporting/sections/overview/category-data-type-guards";
-import type { AppSummaryNameDescArray } from "../../../../../../src/app/repositories/app-summaries/app-summaries.model";
+} from "../../../../../src/app/components/reporting/data-processing/category-data-type-guards";
+import type { AppSummaryNameDescArray } from "../../../../../src/app/repositories/app-summaries/app-summaries.model";
 
 describe("category-data-type-guards", () => {
   describe("isAppSummaryNameDescArray", () => {

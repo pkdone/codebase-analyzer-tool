@@ -4,7 +4,7 @@ import { AppSummariesRepository } from "../../../../src/app/repositories/app-sum
 import { HtmlReportWriter } from "../../../../src/app/components/reporting/html-report-writer";
 import { JsonReportWriter } from "../../../../src/app/components/reporting/json-report-writer";
 import { AppStatisticsDataProvider } from "../../../../src/app/components/reporting/sections/overview/app-statistics-data-provider";
-import { CategorizedSectionDataBuilder } from "../../../../src/app/components/reporting/sections/overview/categorized-section-data-builder";
+import { CategorizedSectionDataBuilder } from "../../../../src/app/components/reporting/data-processing";
 import { HtmlReportAssetService } from "../../../../src/app/components/reporting/services/html-report-asset.service";
 import type { ReportSection } from "../../../../src/app/components/reporting/sections/report-section.interface";
 // Import types for type checking only

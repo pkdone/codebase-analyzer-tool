@@ -1,7 +1,7 @@
 /**
  * Tests for COMPOSITES - pre-composed instruction sets for common patterns.
  */
-import { COMPOSITES } from "../../../../../src/app/prompts/sources/fragments/composites";
+import { COMPOSITES } from "../../../../../src/app/prompts/sources/fragments";
 import {
   CODE_QUALITY_FRAGMENTS,
   DB_INTEGRATION_FRAGMENTS,

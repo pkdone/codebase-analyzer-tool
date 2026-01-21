@@ -1,12 +1,13 @@
 /**
  * Central export for all source prompt fragments.
- * This module aggregates fragments from language-specific and file-type-specific modules.
+ * This module aggregates fragments from language-specific, file-type-specific,
+ * and feature-based modules organized into subfolders.
  */
 
 // Type exports
 export type { LanguageSpecificFragments } from "../sources.types";
 
-// Common fragments
+// Feature-based fragments (cross-cutting concerns)
 export {
   COMMON_FRAGMENTS,
   CODE_QUALITY_FRAGMENTS,
@@ -14,27 +15,29 @@ export {
   INTEGRATION_POINTS_FRAGMENTS,
   SCHEDULED_JOBS_FRAGMENTS,
   BASE_FRAGMENTS,
-} from "./common.fragments";
-
-// Dependency extraction fragments
-export { DEPENDENCY_EXTRACTION_FRAGMENTS } from "./dependency-extraction.fragments";
+  MECHANISM_DESCRIPTIONS,
+  DEPENDENCY_EXTRACTION_FRAGMENTS,
+  COMPOSITES,
+} from "./features";
 
 // Language-specific fragments
-export { JAVA_SPECIFIC_FRAGMENTS } from "./java.fragments";
-export { JAVASCRIPT_SPECIFIC_FRAGMENTS } from "./javascript.fragments";
-export { CSHARP_SPECIFIC_FRAGMENTS } from "./csharp.fragments";
-export { PYTHON_SPECIFIC_FRAGMENTS, PYTHON_COMPLEXITY_METRICS } from "./python.fragments";
-export { RUBY_SPECIFIC_FRAGMENTS } from "./ruby.fragments";
-export { C_SPECIFIC_FRAGMENTS } from "./c.fragments";
-export { CPP_SPECIFIC_FRAGMENTS } from "./cpp.fragments";
+export {
+  JAVA_SPECIFIC_FRAGMENTS,
+  JAVASCRIPT_SPECIFIC_FRAGMENTS,
+  CSHARP_SPECIFIC_FRAGMENTS,
+  PYTHON_SPECIFIC_FRAGMENTS,
+  PYTHON_COMPLEXITY_METRICS,
+  RUBY_SPECIFIC_FRAGMENTS,
+  C_SPECIFIC_FRAGMENTS,
+  CPP_SPECIFIC_FRAGMENTS,
+} from "./languages";
 
 // File-type-specific fragments
-export { SQL_SPECIFIC_FRAGMENTS } from "./sql.fragments";
-export { XML_SPECIFIC_FRAGMENTS } from "./xml.fragments";
-export { JSP_SPECIFIC_FRAGMENTS } from "./jsp.fragments";
-export { SHELL_SCRIPT_SPECIFIC_FRAGMENTS } from "./shell-script.fragments";
-export { BATCH_SCRIPT_SPECIFIC_FRAGMENTS } from "./batch-script.fragments";
-export { JCL_SPECIFIC_FRAGMENTS } from "./jcl.fragments";
-
-// Composites (pre-grouped instruction sets)
-export { COMPOSITES } from "./composites";
+export {
+  SQL_SPECIFIC_FRAGMENTS,
+  XML_SPECIFIC_FRAGMENTS,
+  JSP_SPECIFIC_FRAGMENTS,
+  SHELL_SCRIPT_SPECIFIC_FRAGMENTS,
+  BATCH_SCRIPT_SPECIFIC_FRAGMENTS,
+  JCL_SPECIFIC_FRAGMENTS,
+} from "./languages";

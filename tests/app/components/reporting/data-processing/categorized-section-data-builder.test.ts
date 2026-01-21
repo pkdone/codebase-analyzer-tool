@@ -1,7 +1,7 @@
 import "reflect-metadata";
-import { CategorizedSectionDataBuilder } from "../../../../../../src/app/components/reporting/sections/overview/categorized-section-data-builder";
-import { AppSummaryCategories } from "../../../../../../src/app/schemas/app-summaries.schema";
-import type { AppSummaryRecordWithId } from "../../../../../../src/app/repositories/app-summaries/app-summaries.model";
+import { CategorizedSectionDataBuilder } from "../../../../../src/app/components/reporting/data-processing";
+import { AppSummaryCategories } from "../../../../../src/app/schemas/app-summaries.schema";
+import type { AppSummaryRecordWithId } from "../../../../../src/app/repositories/app-summaries/app-summaries.model";
 
 describe("CategorizedSectionDataBuilder", () => {
   let categorizedDataBuilder: CategorizedSectionDataBuilder;

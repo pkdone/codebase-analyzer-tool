@@ -5,10 +5,7 @@ import type {
   NestedEntity,
   NestedRepository,
 } from "../../../../schemas/app-summaries.schema";
-import {
-  type CategorizedSectionItem,
-  type BoundedContextsArray,
-} from "../overview/categorized-section-data-builder";
+import { type CategorizedSectionItem, type BoundedContextsArray } from "../../data-processing";
 import type {
   DomainEntity,
   DomainRepository,

@@ -14,7 +14,7 @@ import {
 import { DatabaseReportDataProvider } from "../../components/reporting/sections/database/database-report-data-provider";
 import { IntegrationPointsDataProvider } from "../../components/reporting/sections/integration-points/integration-points-data-provider";
 import { AppStatisticsDataProvider } from "../../components/reporting/sections/overview/app-statistics-data-provider";
-import { CategorizedSectionDataBuilder } from "../../components/reporting/sections/overview/categorized-section-data-builder";
+import { CategorizedSectionDataBuilder } from "../../components/reporting/data-processing";
 import { DomainModelDataProvider } from "../../components/reporting/sections/visualizations/domain-model-data-provider";
 import AppReportGenerator from "../../components/reporting/app-report-generator";
 import { FileTypesSection } from "../../components/reporting/sections/file-types/file-types-section";

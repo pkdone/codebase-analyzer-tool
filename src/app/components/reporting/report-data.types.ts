@@ -13,7 +13,7 @@
  */
 
 import type { ProjectedFileTypesCountAndLines } from "../../repositories/sources/sources.model";
-import type { CategorizedSectionItem } from "./sections/overview/categorized-section-data-builder";
+import type { CategorizedSectionItem } from "./data-processing";
 
 /**
  * Unified data model for report generation.

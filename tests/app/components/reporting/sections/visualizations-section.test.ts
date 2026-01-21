@@ -15,7 +15,7 @@ import type {
   CategorizedSectionItem,
   InferredArchitectureInner,
   PotentialMicroservicesArray,
-} from "../../../../../src/app/components/reporting/sections/overview/category-data-type-guards";
+} from "../../../../../src/app/components/reporting/data-processing";
 import { AppSummaryCategories } from "../../../../../src/app/schemas/app-summaries.schema";
 
 /**
