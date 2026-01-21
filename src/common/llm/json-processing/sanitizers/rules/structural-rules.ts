@@ -9,7 +9,7 @@
  */
 
 import type { ReplacementRule, ContextInfo } from "./replacement-rule.types";
-import { isAfterJsonDelimiter, isInArrayContext } from "./rule-executor";
+import { isAfterJsonDelimiter, isInArrayContextSimple } from "../../utils/parser-context-utils";
 import { parsingHeuristics } from "../../constants/json-processing.config";
 
 /**
@@ -44,7 +44,7 @@ export const STRUCTURAL_RULES: readonly ReplacementRule[] = [
     pattern: /([}\]])\s*\n\s*(\]\s*\n\s*){2,}([}\]]|$)/g,
     replacement: (_match, groups, context) => {
       // Only remove if NOT in an array
-      if (isInArrayContext(context)) {
+      if (isInArrayContextSimple(context)) {
         return null;
       }
       const before = groups[0] ?? "";

@@ -2,11 +2,11 @@ import "reflect-metadata";
 import mockFs from "mock-fs";
 import path from "path";
 import ejs from "ejs";
-import {
-  HtmlReportWriter,
+import { HtmlReportWriter } from "../../../../src/app/components/reporting/html-report-writer";
+import type {
   PreparedHtmlReportData,
   PreparedHtmlReportDataWithoutAssets,
-} from "../../../../src/app/components/reporting/html-report-writer";
+} from "../../../../src/app/components/reporting/types/html-report-data.types";
 import { HtmlReportAssetService } from "../../../../src/app/components/reporting/services/html-report-asset.service";
 import { outputConfig } from "../../../../src/app/config/output.config";
 import { writeFile } from "../../../../src/common/fs/file-operations";

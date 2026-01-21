@@ -1,7 +1,5 @@
-import {
-  isComplexityLevel,
-  type Complexity,
-} from "../../../../src/app/components/reporting/sections/database/database.types";
+import { isComplexityLevel } from "../../../../src/app/components/reporting/sections/database/database.types";
+import type { ComplexityValue as Complexity } from "../../../../src/app/schemas/sources.enums";
 
 /**
  * Tests for report-data.types, specifically testing the Set-based membership
@@ -260,7 +258,11 @@ describe("report-data.types - Set-based membership testing", () => {
               return 3;
             case "INVALID":
               return 0;
-            // TypeScript will error if we don't handle all cases
+            default: {
+              // Exhaustive check - should never reach here for valid Complexity
+              const _exhaustiveCheck: never = complexity;
+              return _exhaustiveCheck;
+            }
           }
         };
 

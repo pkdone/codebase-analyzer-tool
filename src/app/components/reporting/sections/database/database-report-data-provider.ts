@@ -1,13 +1,9 @@
 import { injectable, inject } from "tsyringe";
 import type { SourcesRepository } from "../../../../repositories/sources/sources.repository.interface";
 import { repositoryTokens } from "../../../../di/tokens";
-import type {
-  ProcsAndTriggers,
-  DatabaseIntegrationInfo,
-  Complexity,
-  ProcsOrTrigsListItem,
-} from "./database.types";
+import type { ProcsAndTriggers, DatabaseIntegrationInfo, ProcsOrTrigsListItem } from "./database.types";
 import { isComplexityLevel } from "./database.types";
+import type { ComplexityValue } from "../../../../schemas/sources.enums";
 import { procedureTriggerSchema } from "../../../../schemas/sources.schema";
 import { DEFAULT_COMPLEXITY } from "../../../../schemas/sources.enums";
 import type { z } from "zod";
@@ -166,7 +162,7 @@ export class DatabaseReportDataProvider {
   /**
    * Normalize and validate complexity values, providing fallback for invalid values
    */
-  private normalizeComplexity(complexity: unknown, itemName: string): Complexity {
+  private normalizeComplexity(complexity: unknown, itemName: string): ComplexityValue {
     if (isComplexityLevel(complexity)) return complexity;
     logWarn(
       `Invalid complexity value '${String(complexity)}' found for ${itemName}. Defaulting to ${DEFAULT_COMPLEXITY}.`,

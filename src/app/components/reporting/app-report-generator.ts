@@ -1,10 +1,10 @@
 import { injectable, inject, injectAll } from "tsyringe";
 import { reportingTokens, repositoryTokens, coreTokens } from "../../di/tokens";
-import {
-  HtmlReportWriter,
-  type PreparedHtmlReportData,
-  type PreparedHtmlReportDataWithoutAssets,
-} from "./html-report-writer";
+import { HtmlReportWriter } from "./html-report-writer";
+import type {
+  PreparedHtmlReportData,
+  PreparedHtmlReportDataWithoutAssets,
+} from "./types/html-report-data.types";
 import { JsonReportWriter, type PreparedJsonData } from "./json-report-writer";
 import { AppStatisticsDataProvider } from "./sections/overview/app-statistics-data-provider";
 import {

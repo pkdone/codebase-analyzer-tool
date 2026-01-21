@@ -10,9 +10,6 @@ import type {
   PreparedHtmlReportDataWithoutAssets,
 } from "./types/html-report-data.types";
 
-// Re-export types for backwards compatibility
-export type { PreparedHtmlReportData, PreparedHtmlReportDataWithoutAssets };
-
 /**
  * Class responsible for rendering HTML reports from prepared template data.
  * This is a pure presentation component that handles template rendering, asset loading, and file writing.

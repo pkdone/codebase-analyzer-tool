@@ -11,7 +11,7 @@
  */
 
 import type { ReplacementRule } from "./replacement-rule.types";
-import { isAfterJsonDelimiter, isInPropertyContext } from "./rule-executor";
+import { isAfterJsonDelimiter, isInPropertyContext } from "../../utils/parser-context-utils";
 import { matchPropertyName, inferFromShortFragment } from "../../utils/property-name-matcher";
 
 /**

@@ -23,13 +23,12 @@ export type {
 } from "./replacement-rule.types";
 
 // Executor exports
+export { executeRules, executeRulesMultiPass } from "./rule-executor";
 export {
-  executeRules,
-  executeRulesMultiPass,
   isAfterJsonDelimiter,
   isInPropertyContext,
-  isInArrayContext,
-} from "./rule-executor";
+  isInArrayContextSimple,
+} from "../../utils/parser-context-utils";
 
 // Rule category exports
 export { STRAY_CHARACTER_RULES } from "./stray-character-rules";

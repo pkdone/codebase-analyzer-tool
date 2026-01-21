@@ -2,14 +2,11 @@ import { procedureTriggerSchema } from "../../../../schemas/sources.schema";
 import { COMPLEXITY_VALUES_SET, type ComplexityValue } from "../../../../schemas/sources.enums";
 import type { TypeOf } from "zod";
 
-// Re-export complexity type from centralized enums for backward compatibility
-export type Complexity = ComplexityValue;
-
 /**
  * Type guard to check if a value is a valid Complexity value
  */
-export function isComplexityLevel(value: unknown): value is Complexity {
-  return typeof value === "string" && COMPLEXITY_VALUES_SET.has(value.toUpperCase() as Complexity);
+export function isComplexityLevel(value: unknown): value is ComplexityValue {
+  return typeof value === "string" && COMPLEXITY_VALUES_SET.has(value.toUpperCase() as ComplexityValue);
 }
 
 export type ProcedureTrigger = TypeOf<typeof procedureTriggerSchema>;

@@ -3,7 +3,7 @@ import type { ReportSection } from "../report-section.interface";
 import { reportingTokens } from "../../../../di/tokens";
 import { DomainModelDataProvider } from "./domain-model-data-provider";
 import { DomainModelDiagramGenerator } from "../../diagrams";
-import type { PreparedHtmlReportData } from "../../html-report-writer";
+import type { PreparedHtmlReportData } from "../../types/html-report-data.types";
 import type { PreparedJsonData } from "../../json-report-writer";
 import type { ReportData } from "../../report-data.types";
 import { SECTION_NAMES } from "../../reporting.constants";

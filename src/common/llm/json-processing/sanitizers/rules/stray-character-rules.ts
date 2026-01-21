@@ -7,7 +7,11 @@
  */
 
 import type { ReplacementRule } from "./replacement-rule.types";
-import { isAfterJsonDelimiter, isInArrayContext, isDeepArrayContext } from "./rule-executor";
+import {
+  isAfterJsonDelimiter,
+  isInArrayContextSimple,
+  isDeepArrayContext,
+} from "../../utils/parser-context-utils";
 import { isJsonKeyword, looksLikeStrayText } from "../../utils/stray-text-detection";
 import { parsingHeuristics } from "../../constants/json-processing.config";
 
@@ -112,7 +116,7 @@ export const STRAY_CHARACTER_RULES: readonly ReplacementRule[] = [
     name: "genericStrayPrefixInArray",
     pattern: /([}\],]|\n|^)(\s*)([a-z]{1,10})"([^"]+)"(\s*,|\s*\])/g,
     replacement: (_match, groups, context) => {
-      if (!isInArrayContext(context)) {
+      if (!isInArrayContextSimple(context)) {
         return null;
       }
       const strayPrefix = groups[2] ?? "";
@@ -187,7 +191,7 @@ export const STRAY_CHARACTER_RULES: readonly ReplacementRule[] = [
       if (!/^[a-z]$/.test(strayChar)) {
         return null;
       }
-      if (!isInArrayContext(context)) {
+      if (!isInArrayContextSimple(context)) {
         return null;
       }
       const [delimiter, whitespace, , quotedString] = groups;

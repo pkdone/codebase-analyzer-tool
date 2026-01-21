@@ -1,4 +1,4 @@
-import type { PreparedHtmlReportData } from "../html-report-writer";
+import type { PreparedHtmlReportData } from "../types/html-report-data.types";
 import type { PreparedJsonData } from "../json-report-writer";
 import type { ReportData } from "../report-data.types";
 

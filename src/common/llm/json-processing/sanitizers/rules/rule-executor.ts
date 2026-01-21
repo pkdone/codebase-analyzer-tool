@@ -7,13 +7,7 @@
  * - Multi-pass execution support
  */
 
-import {
-  isInStringAt,
-  isAfterJsonDelimiter,
-  isInPropertyContext,
-  isInArrayContextSimple,
-  isDeepArrayContext,
-} from "../../utils/parser-context-utils";
+import { isInStringAt } from "../../utils/parser-context-utils";
 import { DiagnosticCollector } from "../../utils/diagnostic-collector";
 import { processingConfig, parsingHeuristics } from "../../constants/json-processing.config";
 import type {
@@ -22,14 +16,6 @@ import type {
   RuleExecutionResult,
   ContextInfo,
 } from "./replacement-rule.types";
-
-// Re-export context check functions for backwards compatibility
-// These are now defined in parser-context-utils.ts
-export { isAfterJsonDelimiter, isInPropertyContext, isDeepArrayContext };
-
-// Alias for backwards compatibility - isInArrayContext was renamed to isInArrayContextSimple
-// to distinguish from the position-based isInArrayContext in parser-context-utils
-export { isInArrayContextSimple as isInArrayContext };
 
 /** Default maximum number of passes for multi-pass execution */
 const DEFAULT_MAX_PASSES = 10;

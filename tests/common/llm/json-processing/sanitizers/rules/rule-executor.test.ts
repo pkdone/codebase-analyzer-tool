@@ -1,11 +1,13 @@
 import {
   executeRules,
   executeRulesMultiPass,
+} from "../../../../../../src/common/llm/json-processing/sanitizers/rules/rule-executor";
+import {
   isAfterJsonDelimiter,
   isInPropertyContext,
-  isInArrayContext,
+  isInArrayContextSimple,
   isDeepArrayContext,
-} from "../../../../../../src/common/llm/json-processing/sanitizers/rules/rule-executor";
+} from "../../../../../../src/common/llm/json-processing/utils/parser-context-utils";
 import type {
   ReplacementRule,
   ContextInfo,
@@ -313,14 +315,14 @@ describe("rule-executor", () => {
       });
     });
 
-    describe("isInArrayContext", () => {
+    describe("isInArrayContextSimple", () => {
       it("should return true after opening bracket", () => {
         const context = createTestContext({
           beforeMatch: "[ ",
           offset: 2,
           fullContent: '[ "item"]',
         });
-        expect(isInArrayContext(context)).toBe(true);
+        expect(isInArrayContextSimple(context)).toBe(true);
       });
 
       it("should return true after comma with newline", () => {
@@ -329,7 +331,7 @@ describe("rule-executor", () => {
           offset: 11,
           fullContent: '"item1",\n  "item2"',
         });
-        expect(isInArrayContext(context)).toBe(true);
+        expect(isInArrayContextSimple(context)).toBe(true);
       });
 
       it("should return true after string comma and newline", () => {
@@ -338,7 +340,7 @@ describe("rule-executor", () => {
           offset: 13,
           fullContent: '"value",\n    "next"',
         });
-        expect(isInArrayContext(context)).toBe(true);
+        expect(isInArrayContextSimple(context)).toBe(true);
       });
     });
 

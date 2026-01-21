@@ -8,7 +8,7 @@
  */
 
 import type { ReplacementRule } from "./replacement-rule.types";
-import { isInArrayContext, isDeepArrayContext } from "./rule-executor";
+import { isInArrayContextSimple, isDeepArrayContext } from "../../utils/parser-context-utils";
 
 /**
  * Rules for fixing array element issues in JSON content.
@@ -209,7 +209,7 @@ export const ARRAY_ELEMENT_RULES: readonly ReplacementRule[] = [
     name: "missingCommaAndQuoteBeforeArrayItem",
     pattern: /([}\],])\s*\n\s*([a-z]+)\.([a-z]+)\.([a-z.]+)"\s*,?\s*\n/g,
     replacement: (_match, groups, context) => {
-      if (!isInArrayContext(context)) {
+      if (!isInArrayContextSimple(context)) {
         return null;
       }
       const [delimiter, prefix, middle, suffix] = groups;
@@ -234,7 +234,7 @@ export const ARRAY_ELEMENT_RULES: readonly ReplacementRule[] = [
     name: "missingQuoteWithStrayText",
     pattern: /([}\],]|\n|^)(\s*)([a-zA-Z][a-zA-Z0-9_.]*\.)([a-zA-Z][a-zA-Z0-9_.]*)"\s*,/g,
     replacement: (_match, groups, context) => {
-      if (!isInArrayContext(context)) {
+      if (!isInArrayContextSimple(context)) {
         return null;
       }
       const [delimiter, whitespace, strayPrefix, stringValue] = groups;
@@ -307,7 +307,7 @@ export const ARRAY_ELEMENT_RULES: readonly ReplacementRule[] = [
     name: "stopBeforeString",
     pattern: /([}\],]|\n|^)(\s*)stop"([^"]+)"\s*,/g,
     replacement: (_match, groups, context) => {
-      if (!isInArrayContext(context)) {
+      if (!isInArrayContextSimple(context)) {
         return null;
       }
       const [delimiter, whitespace, stringValue] = groups;

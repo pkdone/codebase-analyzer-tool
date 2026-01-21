@@ -7,18 +7,19 @@
 
 // Core generators and writers
 export { default as AppReportGenerator } from "./app-report-generator";
-export { HtmlReportWriter, type PreparedHtmlReportData } from "./html-report-writer";
+export { HtmlReportWriter } from "./html-report-writer";
+export type { PreparedHtmlReportData } from "./types/html-report-data.types";
 export { JsonReportWriter, type PreparedJsonData } from "./json-report-writer";
 
 // Types
 export type { ReportData } from "./report-data.types";
 export {
-  type Complexity,
   isComplexityLevel,
   type ProcedureTrigger,
   type ProcsAndTriggers,
   type DatabaseIntegrationInfo,
 } from "./sections/database/database.types";
+export type { ComplexityValue as Complexity } from "../../schemas/sources.enums";
 export { type IntegrationPointInfo } from "./sections/integration-points/integration-points.types";
 
 // Types from focused sections
