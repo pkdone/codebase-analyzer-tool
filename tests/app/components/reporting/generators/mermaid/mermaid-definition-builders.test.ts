@@ -10,7 +10,7 @@ import {
   buildStyleDefinitions,
   applyStyle,
 } from "../../../../../../src/app/components/reporting/diagrams";
-import { currentArchitectureConfig } from "../../../../../../src/app/components/reporting/diagrams/generators/current-architecture.config";
+import { currentArchitectureConfig } from "../../../../../../src/app/components/reporting/diagrams/diagrams.config";
 
 describe("mermaid-definition-builders", () => {
   describe("DIAGRAM_STYLES", () => {

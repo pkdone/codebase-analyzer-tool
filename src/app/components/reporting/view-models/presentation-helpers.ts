@@ -6,6 +6,7 @@
 
 import { COUPLING_THRESHOLDS } from "../config/module-coupling.config";
 import { DEBT_THRESHOLDS, uiAnalysisConfig } from "../config/ui-analysis.config";
+import { LEVEL_LABELS, BADGE_CLASSES, WARNING_CLASSES } from "../config/presentation.config";
 
 /**
  * Result type for coupling level calculations.
@@ -47,22 +48,22 @@ export function calculateCouplingLevel(
 ): CouplingLevelResult {
   // Handle edge case where highest count is 0
   if (highestCouplingCount <= 0) {
-    return { level: "Low", cssClass: "badge-success" };
+    return { level: LEVEL_LABELS.LOW, cssClass: BADGE_CLASSES.SUCCESS };
   }
 
   if (referenceCount >= highestCouplingCount * COUPLING_THRESHOLDS.VERY_HIGH) {
-    return { level: "Very High", cssClass: "badge-danger" };
+    return { level: LEVEL_LABELS.VERY_HIGH, cssClass: BADGE_CLASSES.DANGER };
   }
 
   if (referenceCount >= highestCouplingCount * COUPLING_THRESHOLDS.HIGH) {
-    return { level: "High", cssClass: "badge-high" };
+    return { level: LEVEL_LABELS.HIGH, cssClass: BADGE_CLASSES.HIGH };
   }
 
   if (referenceCount >= highestCouplingCount * COUPLING_THRESHOLDS.MEDIUM) {
-    return { level: "Medium", cssClass: "badge-warning" };
+    return { level: LEVEL_LABELS.MEDIUM, cssClass: BADGE_CLASSES.WARNING };
   }
 
-  return { level: "Low", cssClass: "badge-success" };
+  return { level: LEVEL_LABELS.LOW, cssClass: BADGE_CLASSES.SUCCESS };
 }
 
 /**
@@ -80,18 +81,18 @@ export function calculateCouplingLevel(
  */
 export function calculateDebtLevel(totalScriptletBlocks: number): DebtLevelResult {
   if (totalScriptletBlocks > DEBT_THRESHOLDS.VERY_HIGH) {
-    return { level: "Very High", cssClass: "badge-danger" };
+    return { level: LEVEL_LABELS.VERY_HIGH, cssClass: BADGE_CLASSES.DANGER };
   }
 
   if (totalScriptletBlocks > DEBT_THRESHOLDS.HIGH) {
-    return { level: "High", cssClass: "badge-warning" };
+    return { level: LEVEL_LABELS.HIGH, cssClass: BADGE_CLASSES.WARNING };
   }
 
   if (totalScriptletBlocks > DEBT_THRESHOLDS.MODERATE) {
-    return { level: "Moderate", cssClass: "badge-info" };
+    return { level: LEVEL_LABELS.MODERATE, cssClass: BADGE_CLASSES.INFO };
   }
 
-  return { level: "Low", cssClass: "badge-success" };
+  return { level: LEVEL_LABELS.LOW, cssClass: BADGE_CLASSES.SUCCESS };
 }
 
 /**
@@ -103,7 +104,7 @@ export function calculateDebtLevel(totalScriptletBlocks: number): DebtLevelResul
  */
 export function getTotalScriptletsCssClass(totalScriptlets: number): string {
   return totalScriptlets > uiAnalysisConfig.HIGH_SCRIPTLET_WARNING_THRESHOLD
-    ? "high-scriptlet-warning"
+    ? WARNING_CLASSES.HIGH_SCRIPTLET
     : "";
 }
 
@@ -117,7 +118,7 @@ export function getTotalScriptletsCssClass(totalScriptlets: number): string {
 export function getFilesWithHighScriptletCountCssClass(
   filesWithHighScriptletCount: number,
 ): string {
-  return filesWithHighScriptletCount > 0 ? "warning-text" : "";
+  return filesWithHighScriptletCount > 0 ? WARNING_CLASSES.WARNING_TEXT : "";
 }
 
 /**
@@ -138,7 +139,7 @@ export function shouldShowHighDebtAlert(filesWithHighScriptletCount: number): bo
  * @returns CSS class name for styling
  */
 export function getBomConflictsCssClass(conflicts: number): string {
-  return conflicts > 0 ? "conflict-warning" : "no-conflicts";
+  return conflicts > 0 ? WARNING_CLASSES.CONFLICT : WARNING_CLASSES.NO_CONFLICTS;
 }
 
 // Re-export config for tests

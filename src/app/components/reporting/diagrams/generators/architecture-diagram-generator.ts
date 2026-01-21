@@ -1,7 +1,7 @@
 import { injectable } from "tsyringe";
 import { generateNodeId } from "../utils";
 import { BaseDiagramGenerator, type BaseDiagramOptions } from "./base-diagram-generator";
-import { architectureConfig } from "./architecture.config";
+import { architectureConfig } from "../diagrams.config";
 import { createFlowchartBuilder } from "../builders";
 
 export interface Microservice {

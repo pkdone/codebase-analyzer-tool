@@ -7,9 +7,7 @@ import type { PreparedHtmlReportData } from "../../types/html-report-data.types"
 import type { PreparedJsonData } from "../../json-report-writer";
 import type { ReportData } from "../../report-data.types";
 import { SECTION_NAMES } from "../../reporting.constants";
-
-/** JSON output filename for integration points data */
-const JSON_FILENAME = "integration-points.json";
+import { outputConfig } from "../../../../config/output.config";
 
 /**
  * Report section for integration points (APIs, queues, topics, SOAP services).
@@ -65,7 +63,7 @@ export class IntegrationPointsSection implements ReportSection {
 
     return [
       {
-        filename: JSON_FILENAME,
+        filename: outputConfig.jsonFiles.INTEGRATION_POINTS,
         data: integrationPoints,
       },
     ];

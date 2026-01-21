@@ -1,4 +1,5 @@
 import { databaseConfig } from "../../../src/app/components/database/database.config";
+import { SOURCE_FIELDS } from "../../../src/app/schemas/sources.constants";
 
 describe("databaseConfig", () => {
   describe("basic configuration", () => {
@@ -85,6 +86,24 @@ describe("databaseConfig", () => {
       );
       expect(summaryConfig).toBeDefined();
       expect(summaryConfig?.name).toBe(databaseConfig.SUMMARY_VECTOR_INDEX_NAME);
+    });
+  });
+
+  describe("SOURCE_FIELDS integration", () => {
+    it("should have CONTENT_VECTOR_FIELD matching SOURCE_FIELDS.CONTENT_VECTOR", () => {
+      expect(databaseConfig.CONTENT_VECTOR_FIELD).toBe(SOURCE_FIELDS.CONTENT_VECTOR);
+    });
+
+    it("should have SUMMARY_VECTOR_FIELD matching SOURCE_FIELDS.SUMMARY_VECTOR", () => {
+      expect(databaseConfig.SUMMARY_VECTOR_FIELD).toBe(SOURCE_FIELDS.SUMMARY_VECTOR);
+    });
+
+    it("should have vector index configs using SOURCE_FIELDS values", () => {
+      const contentConfig = databaseConfig.VECTOR_INDEX_CONFIGS[0];
+      expect(contentConfig.field).toBe(SOURCE_FIELDS.CONTENT_VECTOR);
+
+      const summaryConfig = databaseConfig.VECTOR_INDEX_CONFIGS[1];
+      expect(summaryConfig.field).toBe(SOURCE_FIELDS.SUMMARY_VECTOR);
     });
   });
 

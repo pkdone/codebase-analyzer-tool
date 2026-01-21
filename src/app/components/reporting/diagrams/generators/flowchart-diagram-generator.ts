@@ -1,7 +1,7 @@
 import { injectable } from "tsyringe";
 import { escapeMermaidLabel, generateNodeId, applyStyle } from "../utils";
 import { BaseDiagramGenerator, type BaseDiagramOptions } from "./base-diagram-generator";
-import { flowchartConfig } from "./flowchart.config";
+import { flowchartConfig } from "../diagrams.config";
 
 export interface BusinessProcessActivity {
   activity: string;

@@ -7,10 +7,7 @@ import type { PreparedHtmlReportData } from "../../types/html-report-data.types"
 import type { PreparedJsonData } from "../../json-report-writer";
 import type { ReportData } from "../../report-data.types";
 import { SECTION_NAMES } from "../../reporting.constants";
-
-/** JSON output filenames for database data */
-const JSON_FILENAME_DB_INTERACTIONS = "db-interactions.json";
-const JSON_FILENAME_PROCS_TRIGGERS = "procs-and-triggers.json";
+import { outputConfig } from "../../../../config/output.config";
 
 /**
  * Report section for database-related data (interactions, procedures, triggers).
@@ -79,11 +76,11 @@ export class DatabaseSection implements ReportSection {
 
     return [
       {
-        filename: JSON_FILENAME_DB_INTERACTIONS,
+        filename: outputConfig.jsonFiles.DB_INTERACTIONS,
         data: dbInteractions,
       },
       {
-        filename: JSON_FILENAME_PROCS_TRIGGERS,
+        filename: outputConfig.jsonFiles.PROCS_AND_TRIGGERS,
         data: procsAndTriggers,
       },
     ];

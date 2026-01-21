@@ -27,15 +27,6 @@ import { HtmlReportAssetService } from "./services/html-report-asset.service";
 const CORE_REQUIRED_APP_SUMMARY_FIELDS = ["appDescription", "llmModels", "technologies"] as const;
 
 /**
- * JSON output filenames for generator-level data files.
- */
-const GENERATOR_JSON_FILES = {
-  completeReport: "codebase-report",
-  appStats: "app-stats.json",
-  appDescription: "app-description.json",
-} as const;
-
-/**
  * Class responsible for orchestrating report generation using a modular section-based architecture.
  * Report sections are injected via multi-injection and handle their own data fetching, processing,
  * and preparation for both HTML and JSON outputs.
@@ -205,13 +196,13 @@ export default class AppReportGenerator {
     const jsonFilesConfig = {
       allRequiredAppSummaryFields: allRequiredFields,
       jsonDataFiles: {
-        completeReport: GENERATOR_JSON_FILES.completeReport,
-        appStats: GENERATOR_JSON_FILES.appStats,
-        appDescription: GENERATOR_JSON_FILES.appDescription,
-        fileTypes: "file-types.json",
-        procsAndTriggers: "procs-and-triggers.json",
-        dbInteractions: "db-interactions.json",
-        integrationPoints: "integration-points.json",
+        completeReport: this.outputConfig.jsonFiles.COMPLETE_REPORT,
+        appStats: this.outputConfig.jsonFiles.APP_STATS,
+        appDescription: this.outputConfig.jsonFiles.APP_DESCRIPTION,
+        fileTypes: this.outputConfig.jsonFiles.FILE_TYPES,
+        procsAndTriggers: this.outputConfig.jsonFiles.PROCS_AND_TRIGGERS,
+        dbInteractions: this.outputConfig.jsonFiles.DB_INTERACTIONS,
+        integrationPoints: this.outputConfig.jsonFiles.INTEGRATION_POINTS,
       },
       getCategoryJSONFilename: (category: string): string => `${category}.json`,
     };
@@ -263,15 +254,15 @@ export default class AppReportGenerator {
       moduleCoupling: reportData.moduleCoupling,
     };
     allJsonData.push({
-      filename: `${GENERATOR_JSON_FILES.completeReport}.json`,
+      filename: this.outputConfig.jsonFiles.COMPLETE_REPORT,
       data: completeReportData,
     });
 
     // Add app stats and app description JSON files
     allJsonData.push(
-      { filename: GENERATOR_JSON_FILES.appStats, data: reportData.appStats },
+      { filename: this.outputConfig.jsonFiles.APP_STATS, data: reportData.appStats },
       {
-        filename: GENERATOR_JSON_FILES.appDescription,
+        filename: this.outputConfig.jsonFiles.APP_DESCRIPTION,
         data: { appDescription: reportData.appStats.appDescription },
       },
     );

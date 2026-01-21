@@ -17,6 +17,16 @@ interface OutputConfig {
     readonly JSON_ICON_FILENAME: string;
     readonly ASSETS_SUBDIR: string;
   };
+  readonly jsonFiles: {
+    readonly COMPLETE_REPORT: string;
+    readonly APP_STATS: string;
+    readonly APP_DESCRIPTION: string;
+    readonly FILE_TYPES: string;
+    readonly DB_INTERACTIONS: string;
+    readonly PROCS_AND_TRIGGERS: string;
+    readonly INTEGRATION_POINTS: string;
+    readonly UI_TECHNOLOGY_ANALYSIS: string;
+  };
 }
 
 /**
@@ -53,5 +63,20 @@ export const outputConfig = {
     CSS_FILENAME: "style.css",
     JSON_ICON_FILENAME: "json-icon.svg",
     ASSETS_SUBDIR: "assets",
+  },
+
+  /**
+   * JSON output filenames for report data files.
+   * Centralized here to ensure consistent naming across all report sections.
+   */
+  jsonFiles: {
+    COMPLETE_REPORT: "codebase-report.json",
+    APP_STATS: "app-stats.json",
+    APP_DESCRIPTION: "app-description.json",
+    FILE_TYPES: "file-types.json",
+    DB_INTERACTIONS: "db-interactions.json",
+    PROCS_AND_TRIGGERS: "procs-and-triggers.json",
+    INTEGRATION_POINTS: "integration-points.json",
+    UI_TECHNOLOGY_ANALYSIS: "ui-technology-analysis.json",
   },
 } as const satisfies OutputConfig;

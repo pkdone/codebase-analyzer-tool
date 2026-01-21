@@ -10,9 +10,7 @@ import type { ReportData } from "../../report-data.types";
 import { SECTION_NAMES } from "../../reporting.constants";
 import { UNKNOWN_VALUE_PLACEHOLDER } from "../../config/placeholders.config";
 import { calculatePieChartData } from "./pie-chart-calculator";
-
-/** JSON output filename for file types data */
-const JSON_FILENAME = "file-types.json";
+import { outputConfig } from "../../../../config/output.config";
 
 /**
  * Report section for file types data.
@@ -71,7 +69,7 @@ export class FileTypesSection implements ReportSection {
 
     return [
       {
-        filename: JSON_FILENAME,
+        filename: outputConfig.jsonFiles.FILE_TYPES,
         data: fileTypesData,
       },
     ];

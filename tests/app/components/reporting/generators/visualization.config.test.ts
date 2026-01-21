@@ -1,12 +1,14 @@
 /**
  * Tests for visualization configuration modules.
- * Each diagram/chart type has its own co-located config file.
+ * Diagram configs are now consolidated in diagrams.config.ts.
  */
 
-import { architectureConfig } from "../../../../../src/app/components/reporting/diagrams/generators/architecture.config";
-import { domainModelConfig } from "../../../../../src/app/components/reporting/diagrams/generators/domain-model.config";
-import { flowchartConfig } from "../../../../../src/app/components/reporting/diagrams/generators/flowchart.config";
-import { currentArchitectureConfig } from "../../../../../src/app/components/reporting/diagrams/generators/current-architecture.config";
+import {
+  architectureConfig,
+  domainModelConfig,
+  flowchartConfig,
+  currentArchitectureConfig,
+} from "../../../../../src/app/components/reporting/diagrams/diagrams.config";
 import { pieChartConfig } from "../../../../../src/app/components/reporting/sections/file-types/pie-chart.config";
 
 describe("Visualization Configuration", () => {

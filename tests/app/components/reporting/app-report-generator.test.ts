@@ -80,6 +80,16 @@ describe("AppReportGenerator", () => {
         JSON_ICON_FILENAME: "json-icon.svg",
         ASSETS_SUBDIR: "assets",
       },
+      jsonFiles: {
+        COMPLETE_REPORT: "codebase-report.json",
+        APP_STATS: "app-stats.json",
+        APP_DESCRIPTION: "app-description.json",
+        FILE_TYPES: "file-types.json",
+        DB_INTERACTIONS: "db-interactions.json",
+        PROCS_AND_TRIGGERS: "procs-and-triggers.json",
+        INTEGRATION_POINTS: "integration-points.json",
+        UI_TECHNOLOGY_ANALYSIS: "ui-technology-analysis.json",
+      },
     } as const;
 
     generator = new AppReportGenerator(

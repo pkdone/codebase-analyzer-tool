@@ -3,7 +3,7 @@
  * Each builder converts a specific data structure into Mermaid syntax.
  */
 
-import { currentArchitectureConfig } from "../generators/current-architecture.config";
+import { currentArchitectureConfig } from "../diagrams.config";
 import { DIAGRAM_STYLES } from "./diagram-theme.config";
 
 /**

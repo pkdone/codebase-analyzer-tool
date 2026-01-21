@@ -14,6 +14,7 @@ import {
   getFilesWithHighScriptletCountCssClass,
   shouldShowHighDebtAlert,
 } from "../../view-models/presentation-helpers";
+import { outputConfig } from "../../../../config/output.config";
 
 /**
  * Report section for server-side UI technology analysis.
@@ -86,7 +87,9 @@ export class UiAnalysisSection implements ReportSection {
     const { uiTechnologyAnalysis } = sectionData;
 
     if (uiTechnologyAnalysis !== undefined) {
-      return [{ filename: "ui-technology-analysis.json", data: uiTechnologyAnalysis }];
+      return [
+        { filename: outputConfig.jsonFiles.UI_TECHNOLOGY_ANALYSIS, data: uiTechnologyAnalysis },
+      ];
     }
 
     return [];

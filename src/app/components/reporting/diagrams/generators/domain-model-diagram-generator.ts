@@ -6,7 +6,7 @@ import type {
   DomainEntity,
 } from "../../sections/visualizations/domain-model-data-provider";
 import { BaseDiagramGenerator, type BaseDiagramOptions } from "./base-diagram-generator";
-import { domainModelConfig } from "./domain-model.config";
+import { domainModelConfig } from "../diagrams.config";
 import { createFlowchartBuilder } from "../builders";
 
 export type DomainDiagramOptions = BaseDiagramOptions;

@@ -1,7 +1,7 @@
 import { injectable } from "tsyringe";
 import { escapeMermaidLabel, generateNodeId, buildArrow, applyStyle } from "../utils";
 import { BaseDiagramGenerator, type BaseDiagramOptions } from "./base-diagram-generator";
-import { currentArchitectureConfig } from "./current-architecture.config";
+import { currentArchitectureConfig } from "../diagrams.config";
 
 /**
  * Represents an internal business component inferred from the codebase.
