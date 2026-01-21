@@ -42,6 +42,7 @@ export class PluggableLLMsTestTask implements Task {
 
     // Test all completion models in the chain
     await this.testCompletionChain(prompt);
+    console.log("\n");
   }
 
   /**
