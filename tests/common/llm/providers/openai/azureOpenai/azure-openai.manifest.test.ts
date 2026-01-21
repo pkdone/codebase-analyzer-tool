@@ -14,12 +14,13 @@ const GPT_COMPLETIONS_GPT4_32k = "GPT_COMPLETIONS_GPT4_32k";
 const baseEnv = loadBaseEnvVarsOnly();
 
 // Mock environment specific to Azure OpenAI
+// Model keys are globally unique, so no provider prefix is needed
 const mockAzureOpenAIEnv: Record<string, string> = {
   MONGODB_URL: baseEnv.MONGODB_URL,
   CODEBASE_DIR_PATH: "/test/path",
   SKIP_ALREADY_PROCESSED_FILES: "false",
-  LLM_COMPLETIONS: "AzureOpenAI:azure-openai-gpt4o,AzureOpenAI:azure-openai-gpt4-turbo",
-  LLM_EMBEDDINGS: "AzureOpenAI:azure-openai-ada-embeddings",
+  LLM_COMPLETIONS: "azure-gpt-4o,azure-gpt-4-turbo",
+  LLM_EMBEDDINGS: "azure-text-embedding-ada-002",
   AZURE_OPENAI_LLM_API_KEY: "test-key",
   AZURE_OPENAI_ENDPOINT: "https://test.openai.azure.com/",
   AZURE_OPENAI_EMBEDDINGS_MODEL_DEPLOYMENT: "test-embeddings",

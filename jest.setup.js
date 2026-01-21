@@ -9,8 +9,9 @@ dotenv.config();
 process.env.NODE_ENV = 'test';
 // Note: LLM_COMPLETIONS and LLM_EMBEDDINGS should come from .env to ensure test consistency
 // with production configuration. Only set defaults if not already defined in .env
-process.env.LLM_COMPLETIONS ||= 'VertexAIGemini:gemini-3-pro';
-process.env.LLM_EMBEDDINGS ||= 'VertexAIGemini:gemini-embedding-001';
+// Format: comma-separated model keys (no provider prefix needed - model keys are globally unique)
+process.env.LLM_COMPLETIONS ||= 'vertexai-gemini-3-pro';
+process.env.LLM_EMBEDDINGS ||= 'vertexai-gemini-embedding-001';
 process.env.CODEBASE_DIR_PATH = "/test/path/petstore1.3.2";
 // Use MONGODB_URL from .env if it exists, otherwise use a default
 process.env.MONGODB_URL ||= "mongodb://localhost:27017/test";

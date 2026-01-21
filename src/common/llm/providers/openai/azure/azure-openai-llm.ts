@@ -7,9 +7,9 @@ import type { ProviderInit } from "../../llm-provider.types";
  * Azure OpenAI requires each model to have its own deployment.
  */
 const MODEL_TO_DEPLOYMENT_ENV_KEY: Record<string, string> = {
-  "text-embedding-ada-002": "AZURE_OPENAI_EMBEDDINGS_MODEL_DEPLOYMENT",
-  "gpt-4o": "AZURE_OPENAI_GPT4O_MODEL_DEPLOYMENT",
-  "gpt-4-turbo": "AZURE_OPENAI_GPT4_TURBO_MODEL_DEPLOYMENT",
+  "azure-text-embedding-ada-002": "AZURE_OPENAI_EMBEDDINGS_MODEL_DEPLOYMENT",
+  "azure-gpt-4o": "AZURE_OPENAI_GPT4O_MODEL_DEPLOYMENT",
+  "azure-gpt-4-turbo": "AZURE_OPENAI_GPT4_TURBO_MODEL_DEPLOYMENT",
 };
 
 /**

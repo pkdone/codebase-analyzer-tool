@@ -33,7 +33,7 @@ export const vertexAIGeminiProviderManifest: LLMProviderManifest = {
   models: {
     embeddings: [
       {
-        modelKey: "gemini-embedding-001",
+        modelKey: "vertexai-gemini-embedding-001",
         purpose: LLMPurpose.EMBEDDINGS,
         urnEnvKey: VERTEXAI_GEMINI_EMBEDDING_001_MODEL_URN_ID,
         dimensions: 3072, // Supports: 768, 1536, or 3072
@@ -42,14 +42,14 @@ export const vertexAIGeminiProviderManifest: LLMProviderManifest = {
     ],
     completions: [
       {
-        modelKey: "gemini-3-pro",
+        modelKey: "vertexai-gemini-3-pro",
         purpose: LLMPurpose.COMPLETIONS,
         urnEnvKey: VERTEXAI_GEMINI_3_PRO_MODEL_URN_ID,
         maxCompletionTokens: 65535,
         maxTotalTokens: 1048576,
       },
       {
-        modelKey: "gemini-2.5-pro",
+        modelKey: "vertexai-gemini-2.5-pro",
         purpose: LLMPurpose.COMPLETIONS,
         urnEnvKey: VERTEXAI_GEMINI_25_PRO_MODEL_URN_ID,
         maxCompletionTokens: 65535,

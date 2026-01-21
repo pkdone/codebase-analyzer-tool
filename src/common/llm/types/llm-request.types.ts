@@ -113,7 +113,7 @@ export interface LLMContext {
   resource: string;
   /** The LLM purpose (embeddings or completions) */
   purpose: LLMPurpose;
-  /** The model key being used (e.g., "gpt-4o", "bedrock-claude-opus-4.5") */
+  /** The model key being used (e.g., "openai-gpt-4o", "bedrock-claude-opus-4.5") */
   modelKey?: string;
   /** The desired output format */
   outputFormat?: LLMOutputFormat;

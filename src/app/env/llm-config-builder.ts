@@ -123,10 +123,11 @@ export function buildCombinedProviderEnvSchema(
  * This function bridges the application-specific configuration (EnvVars) with
  * the generic LLM module configuration interface.
  *
- * The new architecture uses model chain configuration:
- * - LLM_COMPLETIONS: Comma-separated list of "Provider:modelKey" entries
- * - LLM_EMBEDDINGS: Comma-separated list of "Provider:modelKey" entries
+ * The architecture uses model chain configuration with globally unique model keys:
+ * - LLM_COMPLETIONS: Comma-separated list of model keys (e.g., "vertexai-gemini-3-pro,bedrock-claude-opus-4.5")
+ * - LLM_EMBEDDINGS: Comma-separated list of model keys (e.g., "vertexai-gemini-embedding-001")
  *
+ * Provider families are automatically resolved from the global model registry.
  * Model URNs are resolved from provider-specific environment variables (urnEnvKey in manifests).
  *
  * @param envVars The application's environment variables

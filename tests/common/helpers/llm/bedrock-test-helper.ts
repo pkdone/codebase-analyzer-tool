@@ -34,26 +34,27 @@ export interface BedrockTestData {
  * Creates a test environment object for Bedrock providers.
  * Includes base environment variables, LLM chain configuration, and URNs.
  *
- * @param providerFamily - The LLM provider family (e.g., "BedrockClaude")
+ * @param _providerFamily - The LLM provider family (e.g., "BedrockClaude") - kept for backward compatibility but no longer used
  * @param embeddingsChain - Array of embedding model keys for the LLM_EMBEDDINGS chain
  * @param completionsChain - Array of completion model keys for the LLM_COMPLETIONS chain
  * @param urns - Record of URN environment variable keys to their values
  * @returns Mock environment object
  */
 export function createBedrockMockEnv(
-  providerFamily: string,
+  _providerFamily: string,
   embeddingsChain: string[],
   completionsChain: string[],
   urns: Record<string, string>,
 ): Record<string, string | boolean> {
   const baseEnv = loadBaseEnvVarsOnly();
 
+  // Model keys are globally unique, so no provider prefix is needed
   const mockEnv: Record<string, string | boolean> = {
     MONGODB_URL: baseEnv.MONGODB_URL,
     CODEBASE_DIR_PATH: "/test/path",
     SKIP_ALREADY_PROCESSED_FILES: false,
-    LLM_COMPLETIONS: completionsChain.map((key) => `${providerFamily}:${key}`).join(","),
-    LLM_EMBEDDINGS: embeddingsChain.map((key) => `${providerFamily}:${key}`).join(","),
+    LLM_COMPLETIONS: completionsChain.join(","),
+    LLM_EMBEDDINGS: embeddingsChain.join(","),
     ...urns,
   };
 

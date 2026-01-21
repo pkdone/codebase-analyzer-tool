@@ -59,7 +59,7 @@ export interface ResolvedLLMModelMetadata extends LLMModelMetadata {
 export interface ModelChainEntry {
   /** The provider family identifier (e.g., "VertexAIGemini", "BedrockClaude") */
   readonly providerFamily: string;
-  /** The model key within the provider (e.g., "gemini-2.5-pro", "bedrock-claude-opus-4.5") */
+  /** The model key within the provider (e.g., "vertexai-gemini-2.5-pro", "bedrock-claude-opus-4.5") */
   readonly modelKey: string;
   /** The resolved model URN/identifier for the provider API */
   readonly modelUrn: string;

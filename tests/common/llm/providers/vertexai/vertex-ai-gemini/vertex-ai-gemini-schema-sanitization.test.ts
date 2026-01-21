@@ -18,8 +18,8 @@ jest.mock("@google-cloud/vertexai");
 jest.mock("@google-cloud/aiplatform");
 
 // Model keys matching the manifest
-const GEMINI_EMBEDDING_KEY = "gemini-embedding-001";
-const GEMINI_COMPLETION_KEY = "gemini-3-pro";
+const GEMINI_EMBEDDING_KEY = "vertexai-gemini-embedding-001";
+const GEMINI_COMPLETION_KEY = "vertexai-gemini-3-pro";
 
 describe("VertexAIGeminiLLM Schema Sanitization", () => {
   const mockModelsMetadata: Record<string, ResolvedLLMModelMetadata> = {

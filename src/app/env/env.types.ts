@@ -1,8 +1,10 @@
 import { z } from "zod";
+import { getProviderFamilyForModelKey } from "../../common/llm/utils/model-registry";
 
 /**
- * Validates a comma-separated model chain format: "Provider:modelKey,Provider:modelKey,..."
- * Each entry must be in the format "ProviderFamily:modelKey".
+ * Validates a comma-separated model chain format: "modelKey,modelKey,..."
+ * Each entry must be a non-empty model key. Model keys must be globally unique
+ * across all providers, so no provider prefix is needed.
  */
 const modelChainSchema = z
   .string()
@@ -10,14 +12,11 @@ const modelChainSchema = z
   .refine(
     (val) => {
       const entries = val.split(",").map((s) => s.trim());
-      return entries.every((entry) => {
-        const parts = entry.split(":");
-        return parts.length === 2 && parts[0].length > 0 && parts[1].length > 0;
-      });
+      return entries.every((entry) => entry.length > 0);
     },
     {
       message:
-        'Invalid model chain format. Expected comma-separated "Provider:modelKey" entries (e.g., "VertexAIGemini:gemini-3-pro,BedrockClaude:claude-opus-4.5")',
+        'Invalid model chain format. Expected comma-separated model keys (e.g., "gemini-3-pro,bedrock-claude-opus-4.5")',
     },
   );
 
@@ -60,17 +59,20 @@ export interface ParsedModelChainEntry {
 
 /**
  * Parse a model chain string into an array of entries.
+ * Provider families are automatically looked up from the global model registry
+ * based on the unique model key.
  *
- * @param chainStr The chain string in format "Provider:modelKey,Provider:modelKey,..."
- * @returns Array of parsed chain entries
+ * @param chainStr The chain string in format "modelKey,modelKey,..."
+ * @returns Array of parsed chain entries with provider families resolved
+ * @throws {LLMError} If any model key is not found in the registry
  */
 export function parseModelChain(chainStr: string): ParsedModelChainEntry[] {
   return chainStr.split(",").map((entry) => {
-    const trimmed = entry.trim();
-    const colonIndex = trimmed.indexOf(":");
+    const modelKey = entry.trim();
+    const providerFamily = getProviderFamilyForModelKey(modelKey);
     return {
-      providerFamily: trimmed.substring(0, colonIndex),
-      modelKey: trimmed.substring(colonIndex + 1),
+      providerFamily,
+      modelKey,
     };
   });
 }

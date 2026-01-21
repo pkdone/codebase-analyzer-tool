@@ -29,7 +29,7 @@ export const openAIProviderManifest: LLMProviderManifest = {
   models: {
     embeddings: [
       {
-        modelKey: "text-embedding-3-small",
+        modelKey: "openai-text-embedding-3-small",
         purpose: LLMPurpose.EMBEDDINGS,
         urnEnvKey: OPENAI_EMBEDDING_3_SMALL_MODEL_URN_ID,
         dimensions: 1536,
@@ -38,7 +38,7 @@ export const openAIProviderManifest: LLMProviderManifest = {
     ],
     completions: [
       {
-        modelKey: "gpt-5",
+        modelKey: "openai-gpt-5",
         purpose: LLMPurpose.COMPLETIONS,
         urnEnvKey: OPENAI_GPT5_MODEL_URN_ID,
         maxCompletionTokens: 128_000,
@@ -49,7 +49,7 @@ export const openAIProviderManifest: LLMProviderManifest = {
         ],
       },
       {
-        modelKey: "gpt-4o",
+        modelKey: "openai-gpt-4o",
         purpose: LLMPurpose.COMPLETIONS,
         urnEnvKey: OPENAI_GPT4O_MODEL_URN_ID,
         maxCompletionTokens: 16_384,

@@ -40,7 +40,7 @@ export const azureOpenAIProviderManifest: LLMProviderManifest = {
   models: {
     embeddings: [
       {
-        modelKey: "text-embedding-ada-002",
+        modelKey: "azure-text-embedding-ada-002",
         purpose: LLMPurpose.EMBEDDINGS,
         urnEnvKey: AZURE_OPENAI_ADA_EMBEDDINGS_MODEL_URN_ID,
         dimensions: 1536,
@@ -49,14 +49,14 @@ export const azureOpenAIProviderManifest: LLMProviderManifest = {
     ],
     completions: [
       {
-        modelKey: "gpt-4o",
+        modelKey: "azure-gpt-4o",
         purpose: LLMPurpose.COMPLETIONS,
         urnEnvKey: AZURE_OPENAI_GPT4O_MODEL_URN_ID,
         maxCompletionTokens: 16384,
         maxTotalTokens: 128000,
       },
       {
-        modelKey: "gpt-4-turbo",
+        modelKey: "azure-gpt-4-turbo",
         purpose: LLMPurpose.COMPLETIONS,
         urnEnvKey: AZURE_OPENAI_GPT4_TURBO_MODEL_URN_ID,
         maxCompletionTokens: 4096,
