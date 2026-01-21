@@ -6,7 +6,9 @@ import type { TypeOf } from "zod";
  * Type guard to check if a value is a valid Complexity value
  */
 export function isComplexityLevel(value: unknown): value is ComplexityValue {
-  return typeof value === "string" && COMPLEXITY_VALUES_SET.has(value.toUpperCase() as ComplexityValue);
+  return (
+    typeof value === "string" && COMPLEXITY_VALUES_SET.has(value.toUpperCase() as ComplexityValue)
+  );
 }
 
 export type ProcedureTrigger = TypeOf<typeof procedureTriggerSchema>;

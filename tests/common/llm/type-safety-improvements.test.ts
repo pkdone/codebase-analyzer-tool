@@ -453,12 +453,14 @@ describe("Type Safety Improvements", () => {
         outputFormat: LLMOutputFormat.JSON;
       }
 
-      // Without explicit schema, should default to Record<string, unknown>
+      // Without explicit schema, should fall back to LLMGeneratedContent (string | object | null)
       type DefaultType = InferResponseType<DefaultOptions>;
 
+      // At runtime, JSON responses without schema are objects, so we cast for property access
       const result: DefaultType = { any: "data", here: 123 };
-      expect(result.any).toBe("data");
-      expect(result.here).toBe(123);
+      const asRecord = result as Record<string, unknown>;
+      expect(asRecord.any).toBe("data");
+      expect(asRecord.here).toBe(123);
     });
   });
 });

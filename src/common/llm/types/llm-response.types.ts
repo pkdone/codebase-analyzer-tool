@@ -58,19 +58,19 @@ export function createTokenUsageRecord(
  *
  * This union type covers:
  * - `string`: Raw text responses (TEXT output format)
- * - `Record<string, unknown>`: JSON object responses
- * - `unknown[]`: JSON array responses (e.g., from z.array() schemas)
+ * - `object`: JSON object or array responses (covers all typed objects and arrays)
  * - `null`: Absence of content (error cases, empty responses)
  *
- * Note: `unknown[]` covers all array types including `number[]` (embeddings),
- * `{ name: string }[]` (array of objects), etc. The generic `unknown[]` ensures
- * type compatibility with `T extends LLMGeneratedContent` constraints when T is
- * inferred as a specific array type from a Zod schema.
+ * Note: Using `object` instead of `Record<string, unknown> | unknown[]` provides broader
+ * type compatibility while maintaining the same runtime behavior. All JSON-serializable
+ * values (objects and arrays) extend `object`, and actual type safety is enforced through
+ * Zod schema validation at the call site. This enables strict Zod schemas (without
+ * `.passthrough()`) to satisfy the `T extends LLMGeneratedContent` constraint.
  *
  * For type-safe JSON value operations, use the type guards from json-value.types.ts
  * (isJsonPrimitive, isJsonObject, isJsonArray, isJsonValue) to narrow types.
  */
-export type LLMGeneratedContent = string | Record<string, unknown> | unknown[] | null;
+export type LLMGeneratedContent = string | object | null;
 
 /**
  * Helper type to infer the response data type from LLMCompletionOptions.

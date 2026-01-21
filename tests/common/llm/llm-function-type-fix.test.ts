@@ -333,10 +333,12 @@ describe("LLMFunction Type Fix - Generic Type Preservation", () => {
 
       type InferredType = InferResponseType<JsonNoSchemaOptions>;
 
-      // This should compile without errors and infer Record<string, unknown>
+      // Without jsonSchema, InferResponseType falls back to LLMGeneratedContent (string | object | null)
+      // At runtime, JSON responses without schema are objects, so we cast for property access
       const value: InferredType = { any: "value", count: 42 };
-      expect(value.any).toBe("value");
-      expect(value.count).toBe(42);
+      const asRecord = value as Record<string, unknown>;
+      expect(asRecord.any).toBe("value");
+      expect(asRecord.count).toBe(42);
     });
   });
 

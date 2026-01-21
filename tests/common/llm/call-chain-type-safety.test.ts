@@ -397,15 +397,18 @@ describe("LLM Call Chain Type Safety", () => {
       expect(jsonValue.id).toBe(1);
     });
 
-    test("should correctly infer Record<string, unknown> for JSON without schema", () => {
+    test("should fall back to LLMGeneratedContent for JSON without schema", () => {
       interface JsonOptionsNoSchema {
         outputFormat: LLMOutputFormat.JSON;
       }
       type InferredType =
         import("../../../src/common/llm/types/llm-response.types").InferResponseType<JsonOptionsNoSchema>;
 
+      // Without jsonSchema, InferResponseType falls back to LLMGeneratedContent (string | object | null)
+      // At runtime, JSON responses without schema are objects, so we cast for property access
       const jsonValue: InferredType = { any: "value" };
-      expect(jsonValue.any).toBe("value");
+      const asRecord = jsonValue as Record<string, unknown>;
+      expect(asRecord.any).toBe("value");
     });
 
     test("should maintain type safety through LLMFunctionResponse", () => {

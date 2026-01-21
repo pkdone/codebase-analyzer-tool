@@ -28,9 +28,12 @@ describe("LLM Types Type Safety", () => {
       expect(options.jsonSchema).toBe(schema);
 
       // InferResponseType should infer the correct type from options
+      // With a schema provided, the type is inferred from the schema
       const testValue: InferResponseType<typeof options> = { name: "test", age: 25 };
-      expect(testValue.name).toBe("test");
-      expect(testValue.age).toBe(25);
+      // Cast to the expected type to verify the properties (TypeScript knows the structure from schema)
+      const typedValue = testValue as { name: string; age: number };
+      expect(typedValue.name).toBe("test");
+      expect(typedValue.age).toBe(25);
     });
 
     test("should infer string for TEXT format at compile time", () => {

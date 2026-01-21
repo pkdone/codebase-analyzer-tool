@@ -16,18 +16,19 @@ const parseNumericOrDefault = (value: unknown): number | undefined =>
 
 /**
  * Converts an unknown value to LLMGeneratedContent with proper type validation.
- * LLMGeneratedContent accepts: string | Record<string, unknown> | unknown[] | null
+ * LLMGeneratedContent accepts: string | object | null
  *
  * - undefined → null (LLMGeneratedContent doesn't include undefined)
  * - null → null (preserved)
  * - string → string (preserved)
- * - object/array → preserved as-is (JSON-serializable)
+ * - object/array → preserved as-is (JSON-serializable, typeof "object" covers both)
  * - number/boolean/other → converted to string for safety
  */
 function convertToLLMGeneratedContent(value: unknown): LLMGeneratedContent {
   if (value === undefined || value === null) return null;
   if (typeof value === "string") return value;
-  if (typeof value === "object") return value as LLMGeneratedContent;
+  // typeof "object" covers both objects and arrays; null is already handled above
+  if (typeof value === "object") return value;
   // Handle edge cases where the LLM response structure has unexpected type
   if (typeof value === "number" || typeof value === "boolean") return String(value);
   return null; // For other unexpected types, assume null content

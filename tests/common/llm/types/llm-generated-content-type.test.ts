@@ -21,7 +21,7 @@ describe("LLMGeneratedContent Type", () => {
       expect(content).toBeNull();
     });
 
-    test("should accept Record<string, unknown> (object) values", () => {
+    test("should accept object values", () => {
       const content: LLMGeneratedContent = { name: "test", count: 42 };
       expect(content).toEqual({ name: "test", count: 42 });
     });
@@ -157,7 +157,7 @@ describe("LLMGeneratedContent Type", () => {
       expect(result).toBeNull();
     });
 
-    test("should satisfy extends constraint with Record<string, unknown>", () => {
+    test("should satisfy extends constraint with object", () => {
       const obj = { key: "value" };
       const result = acceptsGeneratedContent(obj);
       expect(result).toEqual({ key: "value" });
@@ -249,11 +249,11 @@ describe("LLMGeneratedContent Type", () => {
         // TypeScript narrows to null
         return "null";
       } else if (Array.isArray(content)) {
-        // TypeScript narrows to unknown[]
+        // TypeScript narrows to object (specifically array)
         return `array:${content.length}`;
       } else {
-        // TypeScript narrows to Record<string, unknown>
-        return `object:${Object.keys(content).length}`;
+        // TypeScript narrows to object; cast needed for Object.keys() since object has no index signature
+        return `object:${Object.keys(content as Record<string, unknown>).length}`;
       }
     }
 
