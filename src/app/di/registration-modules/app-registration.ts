@@ -28,6 +28,7 @@ import { InsightsGenerationTask } from "../../tasks/main/insights-generation.tas
 import { FileBasedInsightsGenerationTask } from "../../tasks/main/direct-insights-generation.task";
 import { MongoConnectionTestTask } from "../../tasks/dev/mdb-connection-test.task";
 import { PluggableLLMsTestTask } from "../../tasks/dev/test-pluggable-llms.task";
+import { ListAvailableModelsTask } from "../../tasks/dev/list-available-models.task";
 import { ReportGenerationTask } from "../../tasks/main/report-generation.task";
 
 // Configuration imports
@@ -115,6 +116,7 @@ function registerTasks(): void {
   // Report and utility tasks
   container.registerSingleton(taskTokens.ReportGenerationTask, ReportGenerationTask);
   container.registerSingleton(taskTokens.MongoConnectionTestTask, MongoConnectionTestTask);
+  container.registerSingleton(taskTokens.ListAvailableModelsTask, ListAvailableModelsTask);
 
   // LLM-powered tasks (dependencies resolved automatically by tsyringe)
   container.registerSingleton(taskTokens.CodebaseQueryTask, CodebaseQueryTask);
