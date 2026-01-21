@@ -62,8 +62,7 @@ const testModelsMetadata: Record<string, ResolvedLLMModelMetadata> = {
 // Helper function to create ProviderInit with both primary and secondary models
 function createTestProviderInitWithSecondary(): ProviderInit {
   const manifest: LLMProviderManifest = {
-    providerName: "Test Provider",
-    modelFamily: "test-provider",
+    providerFamily: "test-provider",
     envSchema: z.object({}),
     models: {
       embeddings: [

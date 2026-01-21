@@ -48,8 +48,7 @@ describe("Provider Constructor Signatures", () => {
 
   const createInit = (): ProviderInit => ({
     manifest: {
-      providerName: "Test Provider",
-      modelFamily: "test",
+      providerFamily: "test",
       envSchema: z.object({}),
       models: {
         embeddings: [

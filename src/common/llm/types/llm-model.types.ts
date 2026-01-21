@@ -27,7 +27,7 @@ export type LLMModelFeature =
  *    response is a fixed size array of numbers).
  */
 export interface LLMModelMetadata {
-  /** The string identifier for this model within its provider */
+  /** Globally unique identifier for this model (e.g., "vertexai-gemini-3-pro", "bedrock-claude-opus-4.5") */
   readonly modelKey: string;
   /** Whether this is an embedding or completion model */
   readonly purpose: LLMPurpose;

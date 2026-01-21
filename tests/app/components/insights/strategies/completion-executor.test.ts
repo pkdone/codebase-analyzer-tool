@@ -37,7 +37,7 @@ describe("executeInsightCompletion - Type Inference", () => {
       executeCompletion: jest.fn(),
       getModelsUsedDescription: jest.fn(),
       generateEmbeddings: jest.fn(),
-      getModelFamily: jest.fn(),
+      getProviderFamily: jest.fn(),
       getEmbeddingModelDimensions: jest.fn(),
       close: jest.fn(),
     } as unknown as jest.Mocked<LLMRouter>;

@@ -162,19 +162,19 @@ describe("OpenAI LLM Provider", () => {
       resolvedModelChain: {
         embeddings: [
           {
-            providerFamily: openAIProviderManifest.modelFamily,
+            providerFamily: openAIProviderManifest.providerFamily,
             modelKey: "GPT_EMBEDDINGS_ADA002",
             modelUrn: mockModelsMetadata.GPT_EMBEDDINGS_ADA002.urn,
           },
         ],
         completions: [
           {
-            providerFamily: openAIProviderManifest.modelFamily,
+            providerFamily: openAIProviderManifest.providerFamily,
             modelKey: "GPT_COMPLETIONS_GPT4",
             modelUrn: mockModelsMetadata.GPT_COMPLETIONS_GPT4.urn,
           },
           {
-            providerFamily: openAIProviderManifest.modelFamily,
+            providerFamily: openAIProviderManifest.providerFamily,
             modelKey: "GPT_COMPLETIONS_GPT35_TURBO",
             modelUrn: mockModelsMetadata.GPT_COMPLETIONS_GPT35_TURBO.urn,
           },
@@ -187,7 +187,7 @@ describe("OpenAI LLM Provider", () => {
 
   describe("Basic Provider Info", () => {
     test("should return correct model family", () => {
-      expect(openAILLM.getModelFamily()).toBe("OpenAI");
+      expect(openAILLM.getProviderFamily()).toBe("OpenAI");
     });
 
     test("should return correct model identifier from metadata URN", () => {

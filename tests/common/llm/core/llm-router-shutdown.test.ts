@@ -27,8 +27,7 @@ describe("LLMRouter Shutdown Behavior", () => {
   it("should not call process.exit() during shutdown", async () => {
     // Create a mock manifest that returns a provider needing forced shutdown
     const mockManifest = {
-      providerName: "Test Provider",
-      modelFamily: "test",
+      providerFamily: "test",
       envSchema: {} as any,
       models: {
         embeddings: [
@@ -67,7 +66,7 @@ describe("LLMRouter Shutdown Behavior", () => {
         getModelsMetadata() {
           return {};
         }
-        getModelFamily() {
+        getProviderFamily() {
           return "test";
         }
         async close() {}
@@ -117,8 +116,7 @@ describe("LLMRouter Shutdown Behavior", () => {
 
   it("should return REQUIRES_PROCESS_EXIT for providers that need forced shutdown", async () => {
     const mockManifest = {
-      providerName: "Test Provider Forced",
-      modelFamily: "test",
+      providerFamily: "test",
       envSchema: {} as any,
       models: {
         embeddings: [
@@ -157,7 +155,7 @@ describe("LLMRouter Shutdown Behavior", () => {
         getModelsMetadata() {
           return {};
         }
-        getModelFamily() {
+        getProviderFamily() {
           return "test-forced";
         }
         async close() {}
@@ -209,8 +207,7 @@ describe("LLMRouter Shutdown Behavior", () => {
 
   it("should return GRACEFUL for providers that support graceful shutdown", async () => {
     const mockManifest = {
-      providerName: "Test Provider No Forced",
-      modelFamily: "test",
+      providerFamily: "test",
       envSchema: {} as any,
       models: {
         embeddings: [
@@ -249,7 +246,7 @@ describe("LLMRouter Shutdown Behavior", () => {
         getModelsMetadata() {
           return {};
         }
-        getModelFamily() {
+        getProviderFamily() {
           return "test-no-forced";
         }
         async close() {}

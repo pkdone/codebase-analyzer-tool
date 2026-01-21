@@ -22,8 +22,7 @@ jest.mock("dotenv");
 
 describe("Environment Registration Module", () => {
   const mockManifest: LLMProviderManifest = {
-    providerName: "Test Provider",
-    modelFamily: "test",
+    providerFamily: "test",
     envSchema: z.object({
       TEST_API_KEY: z.string(),
       TEST_ENDPOINT: z.string().optional(),

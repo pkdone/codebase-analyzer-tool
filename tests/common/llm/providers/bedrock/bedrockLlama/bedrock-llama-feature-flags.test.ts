@@ -13,7 +13,7 @@ describe("Bedrock Llama Type-Safe Configuration", () => {
     resolvedModelChain: {
       embeddings: [],
       completions: bedrockLlamaProviderManifest.models.completions.map((model) => ({
-        providerFamily: bedrockLlamaProviderManifest.modelFamily,
+        providerFamily: bedrockLlamaProviderManifest.providerFamily,
         modelKey: model.modelKey,
         modelUrn: `test-urn-${model.modelKey}`,
       })),

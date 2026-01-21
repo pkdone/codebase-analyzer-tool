@@ -59,8 +59,7 @@ describe("StandardMessagesBedrockLLM", () => {
 
   function createTestProviderInit(): ProviderInit {
     const manifest: LLMProviderManifest = {
-      providerName: "Test Provider",
-      modelFamily: "test-standard",
+      providerFamily: "test-standard",
       envSchema: z.object({}),
       models: {
         embeddings: [

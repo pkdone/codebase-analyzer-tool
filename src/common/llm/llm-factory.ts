@@ -23,12 +23,15 @@ export interface LLMRouterComponents {
  * @example
  * ```typescript
  * const config: LLMModuleConfig = {
- *   modelFamily: "OpenAI",
  *   errorLogging: {
  *     errorLogDirectory: "output/errors",
  *     errorLogFilenameTemplate: "error-{timestamp}.log",
  *   },
- *   providerParameters: process.env as Record<string, string>,
+ *   providerParams: process.env as Record<string, string>,
+ *   resolvedModelChain: {
+ *     completions: [{ providerFamily: "OpenAI", modelKey: "openai-gpt-4o", modelUrn: "gpt-4o" }],
+ *     embeddings: [{ providerFamily: "OpenAI", modelKey: "openai-text-embedding-3-small", modelUrn: "..." }],
+ *   },
  * };
  *
  * const { router, stats } = createLLMRouter(config);

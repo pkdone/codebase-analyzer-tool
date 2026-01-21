@@ -10,7 +10,6 @@ export const BEDROCK_DEEPSEEK_FAMILY = "BedrockDeepseek";
 export const BEDROCK_DEEPSEEK_R1_MODEL_URN_ID = "BEDROCK_DEEPSEEK_R1_MODEL_URN";
 
 export const bedrockDeepseekProviderManifest = createBedrockManifest(
-  "Bedrock Deepseek",
   BEDROCK_DEEPSEEK_FAMILY,
   {
     embeddings: [],

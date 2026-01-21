@@ -77,8 +77,7 @@ describe("bedrock-test-helper", () => {
 
   describe("createBedrockTestData", () => {
     const mockManifest: LLMProviderManifest = {
-      providerName: "BedrockClaude",
-      modelFamily: "test",
+      providerFamily: "test",
       envSchema: {} as any,
       models: {
         embeddings: [
@@ -182,8 +181,7 @@ describe("bedrock-test-helper", () => {
 
   describe("createBedrockProviderInit", () => {
     const mockManifest: LLMProviderManifest = {
-      providerName: "Bedrock Claude",
-      modelFamily: "BedrockClaude",
+      providerFamily: "BedrockClaude",
       envSchema: {} as any,
       models: {
         embeddings: [

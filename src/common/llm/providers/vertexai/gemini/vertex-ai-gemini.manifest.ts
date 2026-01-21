@@ -11,8 +11,8 @@ const VERTEXAI_PROJECTID_KEY = "VERTEXAI_PROJECTID";
 const VERTEXAI_EMBEDDINGS_LOCATION_KEY = "VERTEXAI_EMBEDDINGS_LOCATION";
 const VERTEXAI_COMPLETIONS_LOCATION_KEY = "VERTEXAI_COMPLETIONS_LOCATION";
 
-// Model family constant - exported for use in provider registry
-export const VERTEX_GEMINI = "VertexAIGemini";
+// Provider family constant - exported for use in provider registry
+export const VERTEXAI_GEMINI_FAMILY = "VertexAIGemini";
 
 // Environment variable keys for model URNs
 export const VERTEXAI_GEMINI_EMBEDDING_001_MODEL_URN_ID = "VERTEXAI_GEMINI_EMBEDDING_001_MODEL_URN";
@@ -20,8 +20,7 @@ export const VERTEXAI_GEMINI_3_PRO_MODEL_URN_ID = "VERTEXAI_GEMINI_3_PRO_MODEL_U
 export const VERTEXAI_GEMINI_25_PRO_MODEL_URN_ID = "VERTEXAI_GEMINI_25_PRO_MODEL_URN";
 
 export const vertexAIGeminiProviderManifest: LLMProviderManifest = {
-  providerName: "VertexAI Gemini",
-  modelFamily: VERTEX_GEMINI,
+  providerFamily: VERTEXAI_GEMINI_FAMILY,
   envSchema: z.object({
     [VERTEXAI_PROJECTID_KEY]: z.string().min(1),
     [VERTEXAI_EMBEDDINGS_LOCATION_KEY]: z.string().min(1),

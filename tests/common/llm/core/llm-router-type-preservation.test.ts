@@ -82,7 +82,7 @@ describe("LLMRouter Type Preservation Tests", () => {
         completions: ["GPT-4"],
       })),
       getEmbeddingModelDimensions: jest.fn(() => 1536),
-      getModelFamily: jest.fn(() => "OpenAI GPT"),
+      getProviderFamily: jest.fn(() => "OpenAI GPT"),
       getModelsMetadata: jest.fn(() => ({
         GPT_COMPLETIONS_GPT4: mockPrimaryModelMetadata,
         GPT_EMBEDDINGS_ADA002: mockEmbeddingModelMetadata,
@@ -98,8 +98,7 @@ describe("LLMRouter Type Preservation Tests", () => {
     const mockProvider = createMockLLMProvider();
 
     const mockManifest: LLMProviderManifest = {
-      providerName: "Mock OpenAI",
-      modelFamily: "test",
+      providerFamily: "test",
       envSchema: {} as z.ZodObject<Record<string, z.ZodTypeAny>>,
       models: {
         embeddings: [

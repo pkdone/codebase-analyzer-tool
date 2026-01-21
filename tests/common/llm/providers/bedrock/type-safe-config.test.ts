@@ -14,8 +14,7 @@ import { z } from "zod";
 describe("Type-Safe Config Without Features Array", () => {
   const createInitWithConfig = (config: LLMProviderSpecificConfig): ProviderInit => ({
     manifest: {
-      providerName: "Bedrock Llama",
-      modelFamily: "bedrock-llama",
+      providerFamily: "bedrock-llama",
       envSchema: z.object({}),
       models: {
         embeddings: [

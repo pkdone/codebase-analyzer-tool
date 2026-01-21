@@ -14,8 +14,8 @@ const AZURE_OPENAI_EMBEDDINGS_MODEL_DEPLOYMENT_KEY = "AZURE_OPENAI_EMBEDDINGS_MO
 const AZURE_OPENAI_GPT4O_DEPLOYMENT_KEY = "AZURE_OPENAI_GPT4O_MODEL_DEPLOYMENT";
 const AZURE_OPENAI_GPT4_TURBO_DEPLOYMENT_KEY = "AZURE_OPENAI_GPT4_TURBO_MODEL_DEPLOYMENT";
 
-// Model family constant - exported for use in provider registry
-export const AZURE_OPENAI = "AzureOpenAI";
+// Provider family constant - exported for use in provider registry
+export const AZURE_OPENAI_FAMILY = "AzureOpenAI";
 
 // Environment variable keys for model URNs
 export const AZURE_OPENAI_ADA_EMBEDDINGS_MODEL_URN_ID = "AZURE_OPENAI_ADA_EMBEDDINGS_MODEL_URN";
@@ -23,8 +23,7 @@ export const AZURE_OPENAI_GPT4O_MODEL_URN_ID = "AZURE_OPENAI_GPT4O_MODEL_URN";
 export const AZURE_OPENAI_GPT4_TURBO_MODEL_URN_ID = "AZURE_OPENAI_GPT4_TURBO_MODEL_URN";
 
 export const azureOpenAIProviderManifest: LLMProviderManifest = {
-  providerName: "Azure OpenAI",
-  modelFamily: AZURE_OPENAI,
+  providerFamily: AZURE_OPENAI_FAMILY,
   envSchema: z.object({
     [AZURE_OPENAI_LLM_API_KEY]: z.string().min(1),
     [AZURE_OPENAI_ENDPOINT_KEY]: z.string().url(),

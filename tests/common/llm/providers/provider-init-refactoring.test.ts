@@ -39,8 +39,7 @@ describe("Provider Init Refactoring", () => {
 
   const createTestInit = (includeSecondary = false): ProviderInit => ({
     manifest: {
-      providerName: "Test Provider",
-      modelFamily: "test-provider",
+      providerFamily: "test-provider",
       envSchema: z.object({}),
       models: {
         embeddings: [
@@ -131,7 +130,7 @@ describe("Provider Init Refactoring", () => {
     const llmModelsMetadata = (provider as any).llmModelsMetadata;
     const providerSpecificConfig = (provider as any).providerSpecificConfig;
     const providerParams = (provider as any).providerParams;
-    const modelFamily = (provider as any).modelFamily;
+    const providerFamily = (provider as any).providerFamily;
 
     expect(llmModelsMetadata).toBeDefined();
     expect(llmModelsMetadata["test-embed"]).toBeDefined();
@@ -141,7 +140,7 @@ describe("Provider Init Refactoring", () => {
 
     expect(providerSpecificConfig).toEqual(init.manifest.providerSpecificConfig);
     expect(providerParams).toEqual(init.providerParams);
-    expect(modelFamily).toBe("test-provider");
+    expect(providerFamily).toBe("test-provider");
   });
 
   it("should work with secondary completion model", () => {

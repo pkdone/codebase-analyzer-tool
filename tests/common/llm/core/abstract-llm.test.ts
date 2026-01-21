@@ -57,8 +57,7 @@ class StubLLM extends BaseLLMProvider {
   constructor() {
     super({
       manifest: {
-        providerName: "Stub",
-        modelFamily: "stub",
+        providerFamily: "stub",
         envSchema: z.object({}),
         models: {
           embeddings: [
@@ -137,8 +136,7 @@ function createTestProviderInit(
   embeddingsKey: string = GPT_EMBEDDINGS_GPT4,
 ): ProviderInit {
   const manifest: LLMProviderManifest = {
-    providerName: "Test Provider",
-    modelFamily: "test",
+    providerFamily: "test",
     envSchema: z.object({}),
     models: {
       embeddings: [

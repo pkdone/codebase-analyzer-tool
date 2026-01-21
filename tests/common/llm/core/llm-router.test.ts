@@ -130,7 +130,7 @@ describe("LLM Router tests", () => {
         "GPT_COMPLETIONS_GPT35",
       ]),
       getEmbeddingModelDimensions: jest.fn(() => 1536),
-      getModelFamily: jest.fn(() => "OpenAI GPT"),
+      getProviderFamily: jest.fn(() => "OpenAI GPT"),
       getModelsMetadata: jest.fn(() => ({
         GPT_COMPLETIONS_GPT4: mockPrimaryModelMetadata,
         GPT_COMPLETIONS_GPT35: mockSecondaryModelMetadata,
@@ -174,8 +174,7 @@ describe("LLM Router tests", () => {
 
     // Create mock manifest
     const mockManifest: LLMProviderManifest = {
-      providerName: "Mock OpenAI",
-      modelFamily: "openai",
+      providerFamily: "openai",
       envSchema: {} as any,
       models: {
         embeddings: [

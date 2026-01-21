@@ -50,8 +50,7 @@ describe("Split Invoke Methods", () => {
 
   const createInit = (): ProviderInit => ({
     manifest: {
-      providerName: "Tracking Test Provider",
-      modelFamily: "test",
+      providerFamily: "test",
       envSchema: z.object({}),
       models: {
         embeddings: [

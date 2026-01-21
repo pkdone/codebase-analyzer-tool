@@ -36,7 +36,7 @@ function createMockProvider(): LLMProvider {
   return {
     executeCompletion: mockExecuteCompletion,
     generateEmbeddings: mockGenerateEmbeddings,
-    getModelFamily: jest.fn().mockReturnValue("TestProvider"),
+    getProviderFamily: jest.fn().mockReturnValue("TestProvider"),
     getModelsNames: jest.fn().mockReturnValue({
       [LLMPurpose.EMBEDDINGS]: ["embed-model"],
       [LLMPurpose.COMPLETIONS]: ["comp-model"],

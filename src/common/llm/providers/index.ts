@@ -3,11 +3,14 @@
  */
 
 import { LLMProviderManifest } from "./llm-provider.types";
-import { openAIProviderManifest, OPENAI } from "./openai/openai/openai.manifest";
-import { azureOpenAIProviderManifest, AZURE_OPENAI } from "./openai/azure/azure-openai.manifest";
+import { openAIProviderManifest, OPENAI_FAMILY } from "./openai/openai/openai.manifest";
+import {
+  azureOpenAIProviderManifest,
+  AZURE_OPENAI_FAMILY,
+} from "./openai/azure/azure-openai.manifest";
 import {
   vertexAIGeminiProviderManifest,
-  VERTEX_GEMINI,
+  VERTEXAI_GEMINI_FAMILY,
 } from "./vertexai/gemini/vertex-ai-gemini.manifest";
 import {
   bedrockClaudeProviderManifest,
@@ -31,13 +34,13 @@ import {
 } from "./bedrock/nova/bedrock-nova.manifest";
 
 /**
- * Map of model family names to their provider manifests.
- * The key is the model family identifier (case-insensitive matching is handled in manifest-loader).
+ * Map of provider family identifiers to their provider manifests.
+ * The key is the provider family identifier (case-insensitive matching is handled in manifest-loader).
  */
 export const LLM_PROVIDER_REGISTRY: ReadonlyMap<string, LLMProviderManifest> = new Map([
-  [OPENAI.toLowerCase(), openAIProviderManifest],
-  [AZURE_OPENAI.toLowerCase(), azureOpenAIProviderManifest],
-  [VERTEX_GEMINI.toLowerCase(), vertexAIGeminiProviderManifest],
+  [OPENAI_FAMILY.toLowerCase(), openAIProviderManifest],
+  [AZURE_OPENAI_FAMILY.toLowerCase(), azureOpenAIProviderManifest],
+  [VERTEXAI_GEMINI_FAMILY.toLowerCase(), vertexAIGeminiProviderManifest],
   [BEDROCK_CLAUDE_FAMILY.toLowerCase(), bedrockClaudeProviderManifest],
   [BEDROCK_DEEPSEEK_FAMILY.toLowerCase(), bedrockDeepseekProviderManifest],
   [BEDROCK_LLAMA_FAMILY.toLowerCase(), bedrockLlamaProviderManifest],

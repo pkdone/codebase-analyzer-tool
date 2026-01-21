@@ -11,13 +11,12 @@ import { z } from "zod";
 
 // Helper to create minimal manifest for testing
 function createTestManifest(
-  modelFamily: string,
+  providerFamily: string,
   embeddings: { modelKey: string; dimensions?: number; maxTotalTokens: number }[],
   completions: { modelKey: string; maxCompletionTokens: number; maxTotalTokens: number }[],
 ): LLMProviderManifest {
   return {
-    providerName: `Test ${modelFamily}`,
-    modelFamily,
+    providerFamily,
     envSchema: z.object({}),
     models: {
       embeddings: embeddings.map((e) => ({

@@ -15,8 +15,7 @@ import { z } from "zod";
 describe("Consolidated Bedrock Logic", () => {
   const createInit = (): ProviderInit => ({
     manifest: {
-      providerName: "Test Bedrock",
-      modelFamily: "test-bedrock",
+      providerFamily: "test-bedrock",
       envSchema: z.object({}),
       models: {
         embeddings: [

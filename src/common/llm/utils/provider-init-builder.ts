@@ -12,7 +12,7 @@ export function buildModelsMetadataFromChain(
   modelChain: ResolvedModelChain,
 ): Record<string, ResolvedLLMModelMetadata> {
   const result: Record<string, ResolvedLLMModelMetadata> = {};
-  const providerFamily = manifest.modelFamily;
+  const providerFamily = manifest.providerFamily;
 
   // Process completion models from the chain that belong to this provider
   for (const entry of modelChain.completions) {

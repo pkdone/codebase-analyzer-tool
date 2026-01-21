@@ -46,7 +46,7 @@ export default abstract class BaseLLMProvider implements LLMProvider {
   private readonly completionModelKeys: readonly string[];
   private readonly embeddingModelKeys: readonly string[];
   private readonly errorPatterns: readonly LLMErrorMsgRegExPattern[];
-  private readonly modelFamily: string;
+  private readonly providerFamily: string;
   private readonly errorLogger: LLMErrorLogger;
 
   /**
@@ -58,18 +58,18 @@ export default abstract class BaseLLMProvider implements LLMProvider {
     // Build derived values from manifest and resolved model chain
     this.llmModelsMetadata = buildModelsMetadataFromChain(manifest, resolvedModelChain);
     this.completionModelKeys = getCompletionModelKeysFromChain(
-      manifest.modelFamily,
+      manifest.providerFamily,
       resolvedModelChain,
     );
     this.embeddingModelKeys = getEmbeddingModelKeysFromChain(
-      manifest.modelFamily,
+      manifest.providerFamily,
       resolvedModelChain,
     );
 
     // Assign configuration values
     this.errorPatterns = manifest.errorPatterns;
     this.providerSpecificConfig = manifest.providerSpecificConfig;
-    this.modelFamily = manifest.modelFamily;
+    this.providerFamily = manifest.providerFamily;
     this.errorLogger = new LLMErrorLogger(errorLogging);
     this.providerParams = providerParams;
   }
@@ -114,10 +114,10 @@ export default abstract class BaseLLMProvider implements LLMProvider {
   }
 
   /**
-   * Get the model family for this LLM provider.
+   * Get the provider family identifier for this LLM provider.
    */
-  getModelFamily(): string {
-    return this.modelFamily;
+  getProviderFamily(): string {
+    return this.providerFamily;
   }
 
   /**
@@ -129,7 +129,7 @@ export default abstract class BaseLLMProvider implements LLMProvider {
     if (!this.embeddingModelKeys.includes(modelKey)) {
       throw new LLMError(
         LLMErrorCode.BAD_CONFIGURATION,
-        `Embedding model '${modelKey}' is not available in provider ${this.modelFamily}. ` +
+        `Embedding model '${modelKey}' is not available in provider ${this.providerFamily}. ` +
           `Available: ${this.embeddingModelKeys.join(", ")}`,
       );
     }
@@ -159,7 +159,7 @@ export default abstract class BaseLLMProvider implements LLMProvider {
     if (!this.completionModelKeys.includes(modelKey)) {
       throw new LLMError(
         LLMErrorCode.BAD_CONFIGURATION,
-        `Completion model '${modelKey}' is not available in provider ${this.modelFamily}. ` +
+        `Completion model '${modelKey}' is not available in provider ${this.providerFamily}. ` +
           `Available: ${this.completionModelKeys.join(", ")}`,
       );
     }

@@ -152,13 +152,13 @@ export function createBedrockProviderInit(
   };
 
   const resolvedCompletions: ModelChainEntry[] = manifest.models.completions.map((model) => ({
-    providerFamily: manifest.modelFamily,
+    providerFamily: manifest.providerFamily,
     modelKey: model.modelKey,
     modelUrn: resolveUrn(model.urnEnvKey),
   }));
 
   const resolvedEmbeddings: ModelChainEntry[] = manifest.models.embeddings.map((model) => ({
-    providerFamily: manifest.modelFamily,
+    providerFamily: manifest.providerFamily,
     modelKey: model.modelKey,
     modelUrn: resolveUrn(model.urnEnvKey),
   }));

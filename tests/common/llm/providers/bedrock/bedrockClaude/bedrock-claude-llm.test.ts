@@ -365,11 +365,11 @@ describe("BedrockClaudeLLM - Request Body Building", () => {
     });
   });
 
-  describe("getModelFamily", () => {
-    it("should return correct model family", () => {
+  describe("getProviderFamily", () => {
+    it("should return correct provider family", () => {
       const llm = new BedrockClaudeLLM(createTestProviderInit());
 
-      expect(llm.getModelFamily()).toBe("BedrockClaude");
+      expect(llm.getProviderFamily()).toBe("BedrockClaude");
     });
   });
 });

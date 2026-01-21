@@ -14,7 +14,6 @@ export const BEDROCK_LLAMA_33_70B_MODEL_URN_ID = "BEDROCK_LLAMA_33_70B_MODEL_URN
 export const BEDROCK_LLAMA_32_90B_MODEL_URN_ID = "BEDROCK_LLAMA_32_90B_MODEL_URN";
 
 export const bedrockLlamaProviderManifest = createBedrockManifest(
-  "Bedrock Llama",
   BEDROCK_LLAMA_FAMILY,
   {
     embeddings: [],

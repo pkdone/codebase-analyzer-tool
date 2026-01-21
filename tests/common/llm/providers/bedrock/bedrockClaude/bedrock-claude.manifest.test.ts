@@ -98,7 +98,7 @@ describe("Bedrock Claude Provider Tests", () => {
     test("verifies model family", () => {
       const init = createBedrockProviderInit(bedrockClaudeProviderManifest, mockBedrockClaudeEnv);
       const llm = new bedrockClaudeProviderManifest.implementation(init);
-      expect(llm.getModelFamily()).toBe("BedrockClaude");
+      expect(llm.getProviderFamily()).toBe("BedrockClaude");
     });
 
     test("counts available models", () => {

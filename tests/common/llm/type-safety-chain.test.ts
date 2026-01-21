@@ -47,8 +47,7 @@ class TypeSafetyChainTestLLM extends BaseLLMProvider {
   constructor() {
     super({
       manifest: {
-        providerName: "TypeSafetyChainTest",
-        modelFamily: "test",
+        providerFamily: "test",
         envSchema: z.object({}),
         models: {
           embeddings: [

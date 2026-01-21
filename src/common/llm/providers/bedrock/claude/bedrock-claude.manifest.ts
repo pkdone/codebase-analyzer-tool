@@ -12,7 +12,6 @@ export const BEDROCK_CLAUDE_OPUS_45_MODEL_URN_ID = "BEDROCK_CLAUDE_OPUS_45_MODEL
 export const BEDROCK_CLAUDE_SONNET_45_MODEL_URN_ID = "BEDROCK_CLAUDE_SONNET_45_MODEL_URN";
 
 export const bedrockClaudeProviderManifest = createBedrockManifest(
-  "Bedrock Claude",
   BEDROCK_CLAUDE_FAMILY,
   {
     embeddings: [],

@@ -155,7 +155,7 @@ describe("Azure OpenAI Provider Tests", () => {
     test("verifies model family", () => {
       const init = createTestProviderInit();
       const llm = new azureOpenAIProviderManifest.implementation(init);
-      expect(llm.getModelFamily()).toBe("AzureOpenAI");
+      expect(llm.getProviderFamily()).toBe("AzureOpenAI");
     });
   });
 });

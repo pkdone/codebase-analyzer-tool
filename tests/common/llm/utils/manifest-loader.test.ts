@@ -21,7 +21,7 @@ describe("manifest-loader", () => {
       // Test with a known provider from the registry
       const manifest = loadManifestForProviderFamily("openai");
       expect(manifest).toBeDefined();
-      expect(manifest.modelFamily.toLowerCase()).toBe("openai");
+      expect(manifest.providerFamily.toLowerCase()).toBe("openai");
 
       // Test case-insensitive matching
       const manifestUpper = loadManifestForProviderFamily("OPENAI");
@@ -57,8 +57,7 @@ describe("manifest-loader", () => {
       expect(manifest.providerSpecificConfig).toBeDefined();
       expect(manifest.implementation).toBeDefined();
       expect(typeof manifest.implementation).toBe("function");
-      expect(manifest.modelFamily).toBeDefined();
-      expect(manifest.providerName).toBeDefined();
+      expect(manifest.providerFamily).toBeDefined();
     });
   });
 });

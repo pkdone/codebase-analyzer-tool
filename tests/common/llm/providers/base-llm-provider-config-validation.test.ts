@@ -43,8 +43,7 @@ const testModelsMetadata: Record<string, ResolvedLLMModelMetadata> = {
 // Helper function to create ProviderInit for tests
 function createTestProviderInit(): ProviderInit {
   const manifest: LLMProviderManifest = {
-    providerName: "Test Provider",
-    modelFamily: "test",
+    providerFamily: "test",
     envSchema: z.object({}),
     models: {
       embeddings: [

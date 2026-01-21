@@ -12,7 +12,6 @@ export const BEDROCK_NOVA_LITE_MODEL_URN_ID = "BEDROCK_NOVA_LITE_MODEL_URN";
 export const BEDROCK_TITAN_EMBEDDINGS_MODEL_URN_ID = "BEDROCK_TITAN_EMBEDDINGS_MODEL_URN";
 
 export const bedrockNovaProviderManifest = createBedrockManifest(
-  "Bedrock Nova",
   BEDROCK_NOVA_FAMILY,
   {
     embeddings: [

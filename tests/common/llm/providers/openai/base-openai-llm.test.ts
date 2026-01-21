@@ -40,8 +40,7 @@ class TestOpenAILLM extends BaseOpenAILLM {
       maxRetryDelayMillis: 100,
     };
     const manifest: LLMProviderManifest = {
-      providerName: "Test OpenAI",
-      modelFamily: "test-openai",
+      providerFamily: "test-openai",
       envSchema: z.object({}),
       models: {
         embeddings: [

@@ -62,10 +62,8 @@ export interface ProviderInit {
  * by the model chain configuration in environment variables.
  */
 export interface LLMProviderManifest {
-  /** User-friendly name for the provider */
-  providerName: string;
-  /** Unique identifier for the provider/family */
-  modelFamily: string;
+  /** Unique identifier for the provider family (e.g., "VertexAIGemini", "AzureOpenAI") */
+  providerFamily: string;
   /** Zod schema for provider-specific environment variables (authentication only) */
   envSchema: z.ZodObject<z.ZodRawShape>;
   /** Model configurations available from this provider */

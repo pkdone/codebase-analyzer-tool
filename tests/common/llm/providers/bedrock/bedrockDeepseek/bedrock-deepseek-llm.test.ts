@@ -183,11 +183,11 @@ describe("BedrockDeepseekLLM - Request Body Building", () => {
     });
   });
 
-  describe("getModelFamily", () => {
-    it("should return correct model family", () => {
+  describe("getProviderFamily", () => {
+    it("should return correct provider family", () => {
       const llm = new BedrockDeepseekLLM(createTestProviderInit());
 
-      expect(llm.getModelFamily()).toBe("BedrockDeepseek");
+      expect(llm.getProviderFamily()).toBe("BedrockDeepseek");
     });
   });
 });

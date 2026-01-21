@@ -30,8 +30,7 @@ function createTestProviderInit(
   )!;
 
   const manifest: LLMProviderManifest = {
-    providerName: "Test Bedrock Provider",
-    modelFamily: "test-bedrock",
+    providerFamily: "test-bedrock",
     envSchema: z.object({}),
     models: {
       embeddings: [
@@ -345,8 +344,7 @@ describe("BaseBedrockLLM - validateCredentials", () => {
     const completionKey = "COMPLETION";
 
     const manifest: LLMProviderManifest = {
-      providerName: "Test Bedrock Provider",
-      modelFamily: "test-bedrock",
+      providerFamily: "test-bedrock",
       envSchema: z.object({}),
       models: {
         embeddings: [

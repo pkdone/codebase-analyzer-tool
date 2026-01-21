@@ -9,8 +9,8 @@ import { defaultOpenAIProviderConfig } from "../common/openai-defaults.config";
 // Environment variable name constants
 const OPENAI_LLM_API_KEY_KEY = "OPENAI_LLM_API_KEY";
 
-// Model family constant - exported for use in provider registry
-export const OPENAI = "OpenAI";
+// Provider family constant - exported for use in provider registry
+export const OPENAI_FAMILY = "OpenAI";
 
 // Environment variable keys for model URNs
 export const OPENAI_EMBEDDING_3_SMALL_MODEL_URN_ID = "OPENAI_EMBEDDING_3_SMALL_MODEL_URN";
@@ -18,8 +18,7 @@ export const OPENAI_GPT5_MODEL_URN_ID = "OPENAI_GPT5_MODEL_URN";
 export const OPENAI_GPT4O_MODEL_URN_ID = "OPENAI_GPT4O_MODEL_URN";
 
 export const openAIProviderManifest: LLMProviderManifest = {
-  providerName: "OpenAI GPT",
-  modelFamily: OPENAI,
+  providerFamily: OPENAI_FAMILY,
   envSchema: z.object({
     [OPENAI_LLM_API_KEY_KEY]: z.string().min(1),
     [OPENAI_EMBEDDING_3_SMALL_MODEL_URN_ID]: z.string().min(1),

@@ -57,9 +57,9 @@ export interface LLMProvider {
   getEmbeddingModelDimensions(modelKey: string): number | undefined;
 
   /**
-   * Get the model family identifier for this provider.
+   * Get the provider family identifier for this provider (e.g., "VertexAIGemini", "BedrockClaude").
    */
-  getModelFamily(): string;
+  getProviderFamily(): string;
 
   /**
    * Get metadata for all resolved models in this provider.

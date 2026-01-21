@@ -90,14 +90,14 @@ describe("Bedrock Type Safety Improvements", () => {
           resolvedModelChain: {
             embeddings: [
               {
-                providerFamily: manifest.modelFamily,
+                providerFamily: manifest.providerFamily,
                 modelKey: embeddingsKey,
                 modelUrn: modelsMetadata[embeddingsKey].urn,
               },
             ],
             completions: [
               {
-                providerFamily: manifest.modelFamily,
+                providerFamily: manifest.providerFamily,
                 modelKey: completionKey,
                 modelUrn: modelsMetadata[completionKey].urn,
               },
@@ -221,14 +221,14 @@ describe("Bedrock Type Safety Improvements", () => {
           resolvedModelChain: {
             embeddings: [
               {
-                providerFamily: manifest.modelFamily,
+                providerFamily: manifest.providerFamily,
                 modelKey: embeddingsKey,
                 modelUrn: modelsMetadata[embeddingsKey].urn,
               },
             ],
             completions: [
               {
-                providerFamily: manifest.modelFamily,
+                providerFamily: manifest.providerFamily,
                 modelKey: completionKey,
                 modelUrn: modelsMetadata[completionKey].urn,
               },

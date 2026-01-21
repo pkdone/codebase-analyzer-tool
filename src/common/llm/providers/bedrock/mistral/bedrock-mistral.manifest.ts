@@ -11,7 +11,6 @@ export const BEDROCK_MISTRAL_LARGE_2407_MODEL_URN_ID = "BEDROCK_MISTRAL_LARGE_24
 export const BEDROCK_MISTRAL_LARGE_2402_MODEL_URN_ID = "BEDROCK_MISTRAL_LARGE_2402_MODEL_URN";
 
 export const bedrockMistralProviderManifest = createBedrockManifest(
-  "Bedrock Mistral",
   BEDROCK_MISTRAL_FAMILY,
   {
     embeddings: [],

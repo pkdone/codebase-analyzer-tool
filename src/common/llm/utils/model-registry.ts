@@ -28,7 +28,7 @@ function buildRegistry(): Map<string, string> {
 
   // Iterate through all provider manifests
   for (const [, manifest] of LLM_PROVIDER_REGISTRY) {
-    const providerFamily = manifest.modelFamily;
+    const providerFamily = manifest.providerFamily;
 
     // Process embeddings models
     for (const model of manifest.models.embeddings) {

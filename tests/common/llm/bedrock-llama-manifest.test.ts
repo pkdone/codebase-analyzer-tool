@@ -38,8 +38,7 @@ describe("bedrockLlamaProviderManifest", () => {
 
   describe("manifest structure", () => {
     it("should have all required top-level properties", () => {
-      expect(bedrockLlamaProviderManifest.providerName).toBe("Bedrock Llama");
-      expect(bedrockLlamaProviderManifest.modelFamily).toBe("BedrockLlama");
+      expect(bedrockLlamaProviderManifest.providerFamily).toBe("BedrockLlama");
       expect(bedrockLlamaProviderManifest.envSchema).toBeDefined();
       expect(bedrockLlamaProviderManifest.models).toBeDefined();
       expect(bedrockLlamaProviderManifest.errorPatterns).toBeDefined();

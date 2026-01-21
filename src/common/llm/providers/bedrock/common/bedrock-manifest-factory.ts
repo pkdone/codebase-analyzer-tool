@@ -24,8 +24,7 @@ export interface BedrockModelsConfig {
  * This eliminates boilerplate code by consolidating the common structure
  * shared across all Bedrock provider manifests.
  *
- * @param providerName - User-friendly name for the provider (e.g., "Bedrock Claude")
- * @param modelFamily - Unique identifier for the provider/family (e.g., "BedrockClaude")
+ * @param providerFamily - Unique identifier for the provider family (e.g., "BedrockClaude")
  * @param models - Model configurations with embeddings[] and completions[] arrays
  * @param envSchemaFields - Additional environment variable fields (authentication only)
  * @param providerSpecificConfig - Provider-specific configuration overrides (merged with defaults)
@@ -33,16 +32,14 @@ export interface BedrockModelsConfig {
  * @returns A complete LLMProviderManifest for the Bedrock provider
  */
 export function createBedrockManifest(
-  providerName: string,
-  modelFamily: string,
+  providerFamily: string,
   models: BedrockModelsConfig,
   envSchemaFields: Record<string, z.ZodString> = {},
   providerSpecificConfig: Partial<LLMProviderSpecificConfig> = {},
   implementation: new (init: ProviderInit) => LLMProvider,
 ): LLMProviderManifest {
   return {
-    providerName,
-    modelFamily,
+    providerFamily,
     envSchema: z.object({ ...envSchemaFields }),
     models,
     errorPatterns: BEDROCK_COMMON_ERROR_PATTERNS,
