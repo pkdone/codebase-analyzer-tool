@@ -8,7 +8,6 @@ import {
 import type { ResolvedLLMModelMetadata } from "../types/llm-model.types";
 import {
   LLMResponseStatus,
-  LLMResponseTokensUsage,
   LLMGeneratedContent,
   LLMFunctionResponse,
 } from "../types/llm-response.types";
@@ -23,10 +22,10 @@ import {
 } from "./llm-provider.types";
 import { formatError } from "../../utils/error-formatters";
 import { logWarn } from "../../utils/logging";
-import { parseAndValidateLLMJson } from "../json-processing/core/json-processing";
+import { parseAndValidateLLMJson } from "../json-processing";
 import { calculateTokenUsageFromError } from "../utils/error-parser";
+import { normalizeTokenUsage } from "../utils/token-usage-normalizer";
 import { LLMError, LLMErrorCode } from "../types/llm-errors.types";
-import { llmProviderConfig } from "../config/llm.config";
 import { LLMErrorLogger } from "../tracking/llm-error-logger";
 import {
   buildModelsMetadataFromChain,
@@ -229,12 +228,7 @@ export default abstract class BaseLLMProvider implements LLMProvider {
         return {
           ...skeletonResponse,
           status: LLMResponseStatus.EXCEEDED,
-          tokensUsage: this.extractTokensAmountFromMetadataDefaultingMissingValues(
-            modelKey,
-            tokenUsage,
-            this.llmModelsMetadata,
-            request,
-          ),
+          tokensUsage: normalizeTokenUsage(modelKey, tokenUsage, this.llmModelsMetadata, request),
         };
       } else {
         return await this.formatAndValidateResponse(
@@ -272,28 +266,6 @@ export default abstract class BaseLLMProvider implements LLMProvider {
         };
       }
     }
-  }
-
-  /**
-   * Extract token usage information from LLM response metadata, defaulting missing values.
-   */
-  private extractTokensAmountFromMetadataDefaultingMissingValues(
-    modelKey: string,
-    tokenUsage: LLMResponseTokensUsage,
-    modelsMetadata: Record<string, ResolvedLLMModelMetadata>,
-    request: string,
-  ): LLMResponseTokensUsage {
-    let { promptTokens, completionTokens, maxTotalTokens } = tokenUsage;
-    if (completionTokens < 0) completionTokens = 0;
-    if (maxTotalTokens < 0) maxTotalTokens = modelsMetadata[modelKey].maxTotalTokens;
-    if (promptTokens < 0) {
-      const estimatedPromptTokensConsumed = Math.floor(
-        request.length / llmProviderConfig.AVERAGE_CHARS_PER_TOKEN,
-      );
-      promptTokens = Math.max(estimatedPromptTokensConsumed, maxTotalTokens + 1);
-    }
-
-    return { promptTokens, completionTokens, maxTotalTokens };
   }
 
   /**

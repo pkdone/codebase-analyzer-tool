@@ -8,7 +8,7 @@ import { RetryStrategy } from "./strategies/retry-strategy";
 import { determineNextAction } from "./strategies/fallback-decision";
 import { adaptPromptFromResponse } from "./strategies/prompt-adaptation-strategy";
 import LLMExecutionStats from "./tracking/llm-execution-stats";
-import { hasSignificantRepairs } from "./json-processing/sanitizers";
+import { hasSignificantRepairs } from "./json-processing";
 import type { LLMExecutionResult } from "./types/llm-execution-result.types";
 import { LLMExecutionError } from "./types/llm-execution-result.types";
 import { logWarn } from "../utils/logging";
