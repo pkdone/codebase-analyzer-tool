@@ -1,6 +1,9 @@
 import "reflect-metadata";
 import { jest, describe, test, expect, beforeEach, afterEach } from "@jest/globals";
-import { LLMExecutionPipeline } from "../../../../src/common/llm/llm-execution-pipeline";
+import {
+  LLMExecutionPipeline,
+  type LLMPipelineConfig,
+} from "../../../../src/common/llm/llm-execution-pipeline";
 import LLMExecutionStats from "../../../../src/common/llm/tracking/llm-execution-stats";
 import { RetryStrategy } from "../../../../src/common/llm/strategies/retry-strategy";
 import {
@@ -27,6 +30,21 @@ function createMockLLMFunction<T extends LLMGeneratedContent>(
   return async () => response;
 }
 
+/**
+ * Creates a mock pipeline configuration for testing.
+ */
+function createMockPipelineConfig(): LLMPipelineConfig {
+  return {
+    retryConfig: {
+      requestTimeoutMillis: 60000,
+      maxRetryAttempts: 3,
+      minRetryDelayMillis: 100,
+      maxRetryDelayMillis: 1000,
+    },
+    getModelsMetadata: () => ({}),
+  };
+}
+
 describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
   let llmStats: LLMExecutionStats;
   let retryStrategy: RetryStrategy;
@@ -43,8 +61,9 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
     llmStats = new LLMExecutionStats();
     retryStrategy = new RetryStrategy(llmStats);
 
-    // Create the pipeline (strategies are now pure functions, not classes)
-    pipeline = new LLMExecutionPipeline(retryStrategy, llmStats);
+    // Create the pipeline with mock config
+    const pipelineConfig = createMockPipelineConfig();
+    pipeline = new LLMExecutionPipeline(retryStrategy, llmStats, pipelineConfig);
 
     // Spy on the recordJsonMutated method
     recordJsonMutatedSpy = jest.spyOn(llmStats, "recordJsonMutated");
@@ -75,13 +94,6 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         content: "test prompt",
         context,
         llmFunctions: [mockLLMFunction],
-        providerRetryConfig: {
-          requestTimeoutMillis: 60000,
-          maxRetryAttempts: 3,
-          minRetryDelayMillis: 100,
-          maxRetryDelayMillis: 1000,
-        },
-        modelsMetadata: {},
         candidateModels: undefined,
       });
 
@@ -108,13 +120,6 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         content: "test prompt",
         context,
         llmFunctions: [mockLLMFunction],
-        providerRetryConfig: {
-          requestTimeoutMillis: 60000,
-          maxRetryAttempts: 3,
-          minRetryDelayMillis: 100,
-          maxRetryDelayMillis: 1000,
-        },
-        modelsMetadata: {},
         candidateModels: undefined,
       });
 
@@ -141,13 +146,6 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         content: "test prompt",
         context,
         llmFunctions: [mockLLMFunction],
-        providerRetryConfig: {
-          requestTimeoutMillis: 60000,
-          maxRetryAttempts: 3,
-          minRetryDelayMillis: 100,
-          maxRetryDelayMillis: 1000,
-        },
-        modelsMetadata: {},
         candidateModels: undefined,
       });
 
@@ -174,13 +172,6 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         content: "test prompt",
         context,
         llmFunctions: [mockLLMFunction],
-        providerRetryConfig: {
-          requestTimeoutMillis: 60000,
-          maxRetryAttempts: 3,
-          minRetryDelayMillis: 100,
-          maxRetryDelayMillis: 1000,
-        },
-        modelsMetadata: {},
         candidateModels: undefined,
       });
 
@@ -207,13 +198,6 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         content: "test prompt",
         context,
         llmFunctions: [mockLLMFunction],
-        providerRetryConfig: {
-          requestTimeoutMillis: 60000,
-          maxRetryAttempts: 3,
-          minRetryDelayMillis: 100,
-          maxRetryDelayMillis: 1000,
-        },
-        modelsMetadata: {},
         candidateModels: undefined,
       });
 
@@ -239,13 +223,6 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         content: "test prompt",
         context,
         llmFunctions: [mockLLMFunction],
-        providerRetryConfig: {
-          requestTimeoutMillis: 60000,
-          maxRetryAttempts: 3,
-          minRetryDelayMillis: 100,
-          maxRetryDelayMillis: 1000,
-        },
-        modelsMetadata: {},
         candidateModels: undefined,
       });
 
@@ -277,13 +254,6 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         content: "test prompt",
         context,
         llmFunctions: [mockLLMFunction],
-        providerRetryConfig: {
-          requestTimeoutMillis: 60000,
-          maxRetryAttempts: 3,
-          minRetryDelayMillis: 100,
-          maxRetryDelayMillis: 1000,
-        },
-        modelsMetadata: {},
         candidateModels: undefined,
       });
 
@@ -312,13 +282,6 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         content: "test prompt",
         context,
         llmFunctions: [mockLLMFunction],
-        providerRetryConfig: {
-          requestTimeoutMillis: 60000,
-          maxRetryAttempts: 3,
-          minRetryDelayMillis: 100,
-          maxRetryDelayMillis: 1000,
-        },
-        modelsMetadata: {},
         candidateModels: undefined,
       });
 
@@ -351,13 +314,6 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         content: "test prompt",
         context,
         llmFunctions: [mockLLMFunction],
-        providerRetryConfig: {
-          requestTimeoutMillis: 60000,
-          maxRetryAttempts: 3,
-          minRetryDelayMillis: 100,
-          maxRetryDelayMillis: 1000,
-        },
-        modelsMetadata: {},
         candidateModels: undefined,
       });
 
@@ -387,13 +343,6 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         content: "test prompt",
         context,
         llmFunctions: [mockLLMFunction],
-        providerRetryConfig: {
-          requestTimeoutMillis: 60000,
-          maxRetryAttempts: 3,
-          minRetryDelayMillis: 100,
-          maxRetryDelayMillis: 1000,
-        },
-        modelsMetadata: {},
         candidateModels: undefined,
       });
 
@@ -426,6 +375,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
       const testPipeline = new LLMExecutionPipeline(
         mockRetryStrategy as unknown as RetryStrategy,
         testLlmStats,
+        createMockPipelineConfig(),
       );
 
       const mockLLMFunction = createMockLLMFunction({
@@ -441,13 +391,6 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         content: "test prompt",
         context,
         llmFunctions: [mockLLMFunction],
-        providerRetryConfig: {
-          requestTimeoutMillis: 60000,
-          maxRetryAttempts: 3,
-          minRetryDelayMillis: 100,
-          maxRetryDelayMillis: 1000,
-        },
-        modelsMetadata: {},
         candidateModels: undefined,
       });
 
@@ -482,13 +425,6 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         content: "test prompt",
         context,
         llmFunctions: [mockLLMFunction],
-        providerRetryConfig: {
-          requestTimeoutMillis: 60000,
-          maxRetryAttempts: 3,
-          minRetryDelayMillis: 100,
-          maxRetryDelayMillis: 1000,
-        },
-        modelsMetadata: {},
         candidateModels: undefined,
       });
 
@@ -510,7 +446,8 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
       });
       llmStats = new LLMExecutionStats();
       retryStrategy = new RetryStrategy(llmStats);
-      pipeline = new LLMExecutionPipeline(retryStrategy, llmStats);
+      const pipelineConfig = createMockPipelineConfig();
+      pipeline = new LLMExecutionPipeline(retryStrategy, llmStats, pipelineConfig);
     });
 
     test("should preserve object type through pipeline execution", async () => {
@@ -532,13 +469,6 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         content: "test prompt",
         context,
         llmFunctions: [mockLLMFunction],
-        providerRetryConfig: {
-          requestTimeoutMillis: 60000,
-          maxRetryAttempts: 3,
-          minRetryDelayMillis: 100,
-          maxRetryDelayMillis: 1000,
-        },
-        modelsMetadata: {},
       });
 
       expect(result.success).toBe(true);
@@ -573,13 +503,6 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         content: "test prompt",
         context,
         llmFunctions: [mockLLMFunction],
-        providerRetryConfig: {
-          requestTimeoutMillis: 60000,
-          maxRetryAttempts: 3,
-          minRetryDelayMillis: 100,
-          maxRetryDelayMillis: 1000,
-        },
-        modelsMetadata: {},
       });
 
       expect(result.success).toBe(true);
@@ -623,13 +546,6 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         content: "test prompt",
         context,
         llmFunctions: [mockLLMFunction],
-        providerRetryConfig: {
-          requestTimeoutMillis: 60000,
-          maxRetryAttempts: 3,
-          minRetryDelayMillis: 100,
-          maxRetryDelayMillis: 1000,
-        },
-        modelsMetadata: {},
       });
 
       expect(result.success).toBe(true);
@@ -670,13 +586,6 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         content: "test prompt",
         context,
         llmFunctions: [mockLLMFunction],
-        providerRetryConfig: {
-          requestTimeoutMillis: 60000,
-          maxRetryAttempts: 3,
-          minRetryDelayMillis: 100,
-          maxRetryDelayMillis: 1000,
-        },
-        modelsMetadata: {},
       });
 
       // null is a valid response type in LLMGeneratedContent, should succeed
@@ -706,13 +615,6 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         content: "test prompt",
         context,
         llmFunctions: [mockLLMFunction],
-        providerRetryConfig: {
-          requestTimeoutMillis: 60000,
-          maxRetryAttempts: 3,
-          minRetryDelayMillis: 100,
-          maxRetryDelayMillis: 1000,
-        },
-        modelsMetadata: {},
       });
 
       expect(result.success).toBe(false);
@@ -741,13 +643,6 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         content: "test prompt",
         context,
         llmFunctions: [mockLLMFunction],
-        providerRetryConfig: {
-          requestTimeoutMillis: 60000,
-          maxRetryAttempts: 3,
-          minRetryDelayMillis: 100,
-          maxRetryDelayMillis: 1000,
-        },
-        modelsMetadata: {},
       });
 
       // Empty string is a valid string value, should succeed
@@ -777,13 +672,6 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         content: "test prompt",
         context,
         llmFunctions: [mockLLMFunction],
-        providerRetryConfig: {
-          requestTimeoutMillis: 60000,
-          maxRetryAttempts: 3,
-          minRetryDelayMillis: 100,
-          maxRetryDelayMillis: 1000,
-        },
-        modelsMetadata: {},
       });
 
       expect(result.success).toBe(true);
@@ -812,13 +700,6 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         content: "test prompt",
         context,
         llmFunctions: [mockLLMFunction],
-        providerRetryConfig: {
-          requestTimeoutMillis: 60000,
-          maxRetryAttempts: 3,
-          minRetryDelayMillis: 100,
-          maxRetryDelayMillis: 1000,
-        },
-        modelsMetadata: {},
       });
 
       expect(result.success).toBe(true);

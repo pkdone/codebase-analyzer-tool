@@ -14,7 +14,10 @@ import {
 import { LLMFunction } from "../../../src/common/llm/types/llm-function.types";
 import { ResolvedLLMModelMetadata } from "../../../src/common/llm/types/llm-model.types";
 import { RetryStrategy } from "../../../src/common/llm/strategies/retry-strategy";
-import { LLMExecutionPipeline } from "../../../src/common/llm/llm-execution-pipeline";
+import {
+  LLMExecutionPipeline,
+  type LLMPipelineConfig,
+} from "../../../src/common/llm/llm-execution-pipeline";
 import LLMExecutionStats from "../../../src/common/llm/tracking/llm-execution-stats";
 
 /**
@@ -283,7 +286,11 @@ describe("Type Safety Refactoring Validation", () => {
     beforeEach(() => {
       llmStats = new LLMExecutionStats();
       retryStrategy = new RetryStrategy(llmStats);
-      executionPipeline = new LLMExecutionPipeline(retryStrategy, llmStats);
+      const pipelineConfig: LLMPipelineConfig = {
+        retryConfig: mockRetryConfig,
+        getModelsMetadata: () => mockModelsMetadata,
+      };
+      executionPipeline = new LLMExecutionPipeline(retryStrategy, llmStats, pipelineConfig);
     });
 
     // Helper to create a bound function from mock data (cast to any for test flexibility)
@@ -326,8 +333,6 @@ describe("Type Safety Refactoring Validation", () => {
         content: "Analyze this",
         context: mockContext,
         llmFunctions: [createBoundFunction(mockAnalysis)],
-        providerRetryConfig: mockRetryConfig,
-        modelsMetadata: mockModelsMetadata,
       });
 
       expect(result.success).toBe(true);
@@ -369,8 +374,6 @@ describe("Type Safety Refactoring Validation", () => {
         content: "Execute operation",
         context: mockContext,
         llmFunctions: [createBoundFunction(mockResult)],
-        providerRetryConfig: mockRetryConfig,
-        modelsMetadata: mockModelsMetadata,
       });
 
       expect(result.success).toBe(true);
@@ -402,8 +405,6 @@ describe("Type Safety Refactoring Validation", () => {
         content: "test",
         context: mockContext,
         llmFunctions: [incompleteFunction as any],
-        providerRetryConfig: mockRetryConfig,
-        modelsMetadata: mockModelsMetadata,
       });
 
       expect(result.success).toBe(false);
@@ -454,7 +455,11 @@ describe("Type Safety Refactoring Validation", () => {
     beforeEach(() => {
       llmStats = new LLMExecutionStats();
       retryStrategy = new RetryStrategy(llmStats);
-      executionPipeline = new LLMExecutionPipeline(retryStrategy, llmStats);
+      const pipelineConfig: LLMPipelineConfig = {
+        retryConfig: mockRetryConfig,
+        getModelsMetadata: () => mockModelsMetadata,
+      };
+      executionPipeline = new LLMExecutionPipeline(retryStrategy, llmStats, pipelineConfig);
     });
 
     // Helper to create a bound function from mock data (cast to any for test flexibility)
@@ -504,8 +509,6 @@ describe("Type Safety Refactoring Validation", () => {
         content: "Analyze security",
         context: mockContext,
         llmFunctions: [createBoundFunction(expectedInsight)],
-        providerRetryConfig: mockRetryConfig,
-        modelsMetadata: mockModelsMetadata,
       });
 
       expect(result.success).toBe(true);
@@ -542,8 +545,6 @@ describe("Type Safety Refactoring Validation", () => {
         content: "test",
         context: mockContext,
         llmFunctions: [createBoundFunction(mockData)],
-        providerRetryConfig: mockRetryConfig,
-        modelsMetadata: mockModelsMetadata,
       });
 
       expect(result.success).toBe(true);
@@ -564,8 +565,6 @@ describe("Type Safety Refactoring Validation", () => {
         content: "Generate some text",
         context: { ...mockContext, outputFormat: LLMOutputFormat.TEXT },
         llmFunctions: [createBoundFunction("Generated text content")],
-        providerRetryConfig: mockRetryConfig,
-        modelsMetadata: mockModelsMetadata,
       });
 
       expect(result.success).toBe(true);

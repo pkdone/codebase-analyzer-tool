@@ -1,7 +1,5 @@
 import { LLMModuleConfig } from "./config/llm-module-config.types";
 import LLMRouter from "./llm-router";
-import { LLMExecutionPipeline } from "./llm-execution-pipeline";
-import { RetryStrategy } from "./strategies/retry-strategy";
 import LLMExecutionStats from "./tracking/llm-execution-stats";
 
 /**
@@ -40,13 +38,7 @@ export interface LLMRouterComponents {
  * ```
  */
 export function createLLMRouter(config: LLMModuleConfig): LLMRouterComponents {
-  // Instantiate dependencies in correct order (no circular dependencies)
-  const llmStats = new LLMExecutionStats();
-  const retryStrategy = new RetryStrategy(llmStats);
-
-  const executionPipeline = new LLMExecutionPipeline(retryStrategy, llmStats);
-
-  const router = new LLMRouter(config, executionPipeline);
-
-  return { router, stats: llmStats };
+  // The router now creates its own execution pipeline with the appropriate configuration
+  const router = new LLMRouter(config);
+  return { router, stats: router.stats };
 }

@@ -8,15 +8,11 @@ import { ResolvedLLMModelMetadata } from "../../../../src/common/llm/types/llm-m
 
 import { z } from "zod";
 import LLMRouter from "../../../../src/common/llm/llm-router";
-import LLMExecutionStats from "../../../../src/common/llm/tracking/llm-execution-stats";
-import { RetryStrategy } from "../../../../src/common/llm/strategies/retry-strategy";
-import { LLMExecutionPipeline } from "../../../../src/common/llm/llm-execution-pipeline";
 import type { EnvVars } from "../../../../src/app/env/env.types";
 import { describe, test, expect, jest } from "@jest/globals";
 import type { LLMProviderManifest } from "../../../../src/common/llm/providers/llm-provider.types";
 import * as manifestLoader from "../../../../src/common/llm/utils/manifest-loader";
 
-// Note: loadManifestForProviderFamily was renamed to loadManifestForProviderFamily
 import type { LLMModuleConfig } from "../../../../src/common/llm/config/llm-module-config.types";
 import { isOk } from "../../../../src/common/types/result.types";
 
@@ -220,15 +216,6 @@ describe("LLM Router tests", () => {
       OPENAI_GPT35_MODEL_URN: "gpt-3.5-turbo",
     };
 
-    // Create real instances for dependency injection testing
-    const mockLLMExecutionStats = new LLMExecutionStats();
-    const mockRetryStrategy = new RetryStrategy(mockLLMExecutionStats);
-    // Create execution pipeline (strategies are now pure functions, not classes)
-    const mockExecutionPipeline = new LLMExecutionPipeline(
-      mockRetryStrategy,
-      mockLLMExecutionStats,
-    );
-
     const mockConfig: LLMModuleConfig = {
       providerParams: mockEnvVars as unknown as Record<string, unknown>,
       resolvedModelChain: {
@@ -250,7 +237,8 @@ describe("LLM Router tests", () => {
       },
       errorLogging: { errorLogDirectory: "/tmp", errorLogFilenameTemplate: "error.log" },
     };
-    const router = new LLMRouter(mockConfig, mockExecutionPipeline);
+    // Router now creates its own execution pipeline internally
+    const router = new LLMRouter(mockConfig);
     return { router, mockProvider, mockManifest };
   };
 

@@ -10,7 +10,10 @@ import { LLMImplSpecificResponseSummary } from "../../../src/common/llm/provider
 import BaseLLMProvider from "../../../src/common/llm/providers/base-llm-provider";
 import { createMockErrorLoggingConfig } from "../helpers/llm/mock-error-logger";
 import { RetryStrategy } from "../../../src/common/llm/strategies/retry-strategy";
-import { LLMExecutionPipeline } from "../../../src/common/llm/llm-execution-pipeline";
+import {
+  LLMExecutionPipeline,
+  type LLMPipelineConfig,
+} from "../../../src/common/llm/llm-execution-pipeline";
 import LLMExecutionStats from "../../../src/common/llm/tracking/llm-execution-stats";
 
 // Test-only constants
@@ -143,7 +146,18 @@ describe("Type Safety Chain - End to End", () => {
     };
     llmStats = new LLMExecutionStats();
     retryStrategy = new RetryStrategy(llmStats);
-    executionPipeline = new LLMExecutionPipeline(retryStrategy, llmStats);
+
+    // Create pipeline config with test values
+    const pipelineConfig: LLMPipelineConfig = {
+      retryConfig: {
+        requestTimeoutMillis: 60000,
+        maxRetryAttempts: 3,
+        minRetryDelayMillis: 1000,
+        maxRetryDelayMillis: 5000,
+      },
+      getModelsMetadata: () => testModelsMetadata,
+    };
+    executionPipeline = new LLMExecutionPipeline(retryStrategy, llmStats, pipelineConfig);
   });
 
   describe("Type preservation through BaseLLMProvider", () => {
@@ -349,13 +363,6 @@ describe("Type Safety Chain - End to End", () => {
         content: "test prompt",
         context: testContext,
         llmFunctions: [boundFn],
-        providerRetryConfig: {
-          requestTimeoutMillis: 60000,
-          maxRetryAttempts: 3,
-          minRetryDelayMillis: 1000,
-          maxRetryDelayMillis: 5000,
-        },
-        modelsMetadata: testModelsMetadata,
       });
 
       expect(result.success).toBe(true);
@@ -388,13 +395,6 @@ describe("Type Safety Chain - End to End", () => {
         content: "test prompt",
         context: testContext,
         llmFunctions: [boundFn],
-        providerRetryConfig: {
-          requestTimeoutMillis: 60000,
-          maxRetryAttempts: 3,
-          minRetryDelayMillis: 1000,
-          maxRetryDelayMillis: 5000,
-        },
-        modelsMetadata: testModelsMetadata,
       });
 
       expect(result.success).toBe(true);
@@ -626,13 +626,6 @@ describe("Type Safety Chain - End to End", () => {
         content: "test",
         context: testContext,
         llmFunctions: [boundFn],
-        providerRetryConfig: {
-          requestTimeoutMillis: 60000,
-          maxRetryAttempts: 3,
-          minRetryDelayMillis: 1000,
-          maxRetryDelayMillis: 5000,
-        },
-        modelsMetadata: testModelsMetadata,
       });
 
       expect(result.success).toBe(true);

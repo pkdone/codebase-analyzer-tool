@@ -1,6 +1,5 @@
 import LLMRouter from "../../../../src/common/llm/llm-router";
 import { LLMModuleConfig } from "../../../../src/common/llm/config/llm-module-config.types";
-import { LLMExecutionPipeline } from "../../../../src/common/llm/llm-execution-pipeline";
 import { ShutdownBehavior } from "../../../../src/common/llm/types/llm-shutdown.types";
 
 // Mock the manifest loader to avoid actual provider instantiation
@@ -101,11 +100,8 @@ describe("LLMRouter Shutdown Behavior", () => {
       },
     };
 
-    const mockRetryStrategy = {} as any;
-    const mockStats = { recordSuccess: jest.fn(), recordFailure: jest.fn() } as any;
-    // Strategies are now pure functions, not classes
-    const pipeline = new LLMExecutionPipeline(mockRetryStrategy, mockStats);
-    const router = new LLMRouter(config, pipeline);
+    // Router now creates its own execution pipeline internally
+    const router = new LLMRouter(config);
 
     // Call shutdown
     await router.shutdown();
@@ -190,11 +186,8 @@ describe("LLMRouter Shutdown Behavior", () => {
       },
     };
 
-    const mockRetryStrategy = {} as any;
-    const mockStats = { recordSuccess: jest.fn(), recordFailure: jest.fn() } as any;
-    // Strategies are now pure functions, not classes
-    const pipeline = new LLMExecutionPipeline(mockRetryStrategy, mockStats);
-    const router = new LLMRouter(config, pipeline);
+    // Router now creates its own execution pipeline internally
+    const router = new LLMRouter(config);
 
     // Check that forced shutdown is signaled via enum
     expect(router.getProviderShutdownBehavior()).toBe(ShutdownBehavior.REQUIRES_PROCESS_EXIT);
@@ -281,11 +274,8 @@ describe("LLMRouter Shutdown Behavior", () => {
       },
     };
 
-    const mockRetryStrategy = {} as any;
-    const mockStats = { recordSuccess: jest.fn(), recordFailure: jest.fn() } as any;
-    // Strategies are now pure functions, not classes
-    const pipeline = new LLMExecutionPipeline(mockRetryStrategy, mockStats);
-    const router = new LLMRouter(config, pipeline);
+    // Router now creates its own execution pipeline internally
+    const router = new LLMRouter(config);
 
     expect(router.getProviderShutdownBehavior()).toBe(ShutdownBehavior.GRACEFUL);
   });

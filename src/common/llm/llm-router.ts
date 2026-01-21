@@ -1,19 +1,22 @@
 import { z } from "zod";
 import type { LLMContext, LLMCompletionOptions } from "./types/llm-request.types";
 import { LLMPurpose } from "./types/llm-request.types";
-import type { ResolvedLLMModelMetadata, ResolvedModelChain } from "./types/llm-model.types";
+import type { ResolvedModelChain } from "./types/llm-model.types";
 import type { BoundLLMFunction, LLMCandidateFunction } from "./types/llm-function.types";
 import { ShutdownBehavior } from "./types/llm-shutdown.types";
 import { LLMError, LLMErrorCode } from "./types/llm-errors.types";
 import { type Result, ok, err } from "../types/result.types";
-import type { LLMRetryConfig } from "./providers/llm-provider.types";
 import type { LLMModuleConfig } from "./config/llm-module-config.types";
-import { LLMExecutionPipeline } from "./llm-execution-pipeline";
+import type { LLMRetryConfig } from "./providers/llm-provider.types";
+import { LLMExecutionPipeline, type LLMPipelineConfig } from "./llm-execution-pipeline";
 import { ProviderManager } from "./provider-manager";
+import { RetryStrategy } from "./strategies/retry-strategy";
+import LLMExecutionStats from "./tracking/llm-execution-stats";
 import {
   buildCompletionCandidatesFromChain,
   buildEmbeddingCandidatesFromChain,
   getFilteredCompletionCandidates,
+  bindCompletionFunctions,
 } from "./utils/completions-models-retriever";
 import { logWarn } from "../utils/logging";
 
@@ -27,21 +30,21 @@ import { logWarn } from "../utils/logging";
  * - Non-functional concerns: Retries, cropping, statistics tracking are handled automatically
  */
 export default class LLMRouter {
+  /** Execution statistics for tracking LLM call metrics */
+  readonly stats: LLMExecutionStats;
+
   private readonly providerManager: ProviderManager;
   private readonly completionCandidates: LLMCandidateFunction[];
   private readonly embeddingCandidates: ReturnType<typeof buildEmbeddingCandidatesFromChain>;
   private readonly modelChain: ResolvedModelChain;
+  private readonly executionPipeline: LLMExecutionPipeline;
 
   /**
    * Constructor.
    *
    * @param config The LLM module configuration with resolved model chain
-   * @param executionPipeline The execution pipeline for orchestrating LLM calls
    */
-  constructor(
-    config: LLMModuleConfig,
-    private readonly executionPipeline: LLMExecutionPipeline,
-  ) {
+  constructor(config: LLMModuleConfig) {
     this.modelChain = config.resolvedModelChain;
 
     // Create provider manager with the configuration
@@ -74,6 +77,15 @@ export default class LLMRouter {
         "At least one embedding model must be configured in LLM_EMBEDDINGS",
       );
     }
+
+    // Create execution pipeline with injected configuration
+    this.stats = new LLMExecutionStats();
+    const retryStrategy = new RetryStrategy(this.stats);
+    const pipelineConfig: LLMPipelineConfig = {
+      retryConfig: this.getRetryConfig(),
+      getModelsMetadata: () => this.providerManager.getAllModelsMetadata(),
+    };
+    this.executionPipeline = new LLMExecutionPipeline(retryStrategy, this.stats, pipelineConfig);
 
     console.log(`LLMRouter initialized with: ${this.getModelsUsedDescription()}`);
   }
@@ -213,8 +225,6 @@ export default class LLMRouter {
       content,
       context,
       llmFunctions: embeddingFunctions,
-      providerRetryConfig: this.getRetryConfig(),
-      modelsMetadata: this.getModelsMetadata(),
       retryOnInvalid: false, // Embeddings don't have JSON parsing
       trackJsonMutations: false, // No JSON mutations for embeddings
     });
@@ -287,17 +297,13 @@ export default class LLMRouter {
     };
 
     // Bind options to create BoundLLMFunction<z.infer<S>>[] for the unified pipeline
-    const boundFunctions: BoundLLMFunction<z.infer<S>>[] = candidateFunctions.map(
-      (fn) => async (content: string, ctx: LLMContext) => fn(content, ctx, options),
-    );
+    const boundFunctions = bindCompletionFunctions(candidateFunctions, options);
 
     const result = await this.executionPipeline.execute<z.infer<S>>({
       resourceName,
       content: prompt,
       context,
       llmFunctions: boundFunctions,
-      providerRetryConfig: this.getRetryConfig(),
-      modelsMetadata: this.getModelsMetadata(),
       candidateModels: candidatesToUse,
       retryOnInvalid: true,
       trackJsonMutations: true,
@@ -321,10 +327,6 @@ export default class LLMRouter {
    * Used by the execution pipeline for retry behavior.
    */
   private getRetryConfig(): LLMRetryConfig {
-    if (this.completionCandidates.length === 0) {
-      throw new LLMError(LLMErrorCode.BAD_CONFIGURATION, "No completion candidates configured");
-    }
-
     const firstEntry = this.modelChain.completions[0];
     const manifest = this.providerManager.getManifest(firstEntry.providerFamily);
     if (!manifest) {
@@ -335,12 +337,5 @@ export default class LLMRouter {
     }
 
     return manifest.providerSpecificConfig;
-  }
-
-  /**
-   * Get aggregated model metadata from all providers.
-   */
-  private getModelsMetadata(): Record<string, ResolvedLLMModelMetadata> {
-    return this.providerManager.getAllModelsMetadata();
   }
 }

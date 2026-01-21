@@ -1,7 +1,12 @@
-import type { LLMCandidateFunction, LLMFunction } from "../types/llm-function.types";
+import { z } from "zod";
+import type {
+  LLMCandidateFunction,
+  LLMFunction,
+  BoundLLMFunction,
+} from "../types/llm-function.types";
 import type { ProviderManager } from "../provider-manager";
 import type { ResolvedModelChain } from "../types/llm-model.types";
-import type { LLMContext } from "../types/llm-request.types";
+import type { LLMContext, LLMCompletionOptions } from "../types/llm-request.types";
 import type { LLMFunctionResponse } from "../types/llm-response.types";
 import { LLMError, LLMErrorCode } from "../types/llm-errors.types";
 
@@ -121,4 +126,30 @@ export function getFilteredCompletionCandidates(
 
   const candidateFunctions: LLMFunction[] = candidatesToUse.map((candidate) => candidate.func);
   return { candidatesToUse, candidateFunctions };
+}
+
+/**
+ * Binds completion options to an array of LLM functions, creating named bound functions
+ * for better stack traces and debugging.
+ *
+ * This helper extracts the anonymous closure logic from LLMRouter.executeCompletion,
+ * giving each bound function a descriptive name that includes its index in the chain.
+ *
+ * @param candidateFunctions Array of LLM functions to bind options to
+ * @param options The completion options to bind to each function
+ * @returns Array of bound functions with debug-friendly names
+ */
+export function bindCompletionFunctions<S extends z.ZodType>(
+  candidateFunctions: LLMFunction[],
+  options: LLMCompletionOptions<S>,
+): BoundLLMFunction<z.infer<S>>[] {
+  return candidateFunctions.map((fn, index) => {
+    const boundFn: BoundLLMFunction<z.infer<S>> = async (
+      content: string,
+      ctx: LLMContext,
+    ): Promise<LLMFunctionResponse<z.infer<S>>> => fn(content, ctx, options);
+    // Add debug name for better stack traces
+    Object.defineProperty(boundFn, "name", { value: `boundCompletion_${index}` });
+    return boundFn;
+  });
 }

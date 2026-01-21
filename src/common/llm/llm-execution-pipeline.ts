@@ -14,6 +14,17 @@ import { LLMExecutionError } from "./types/llm-execution-result.types";
 import { logWarn } from "../utils/logging";
 
 /**
+ * Configuration for the LLM execution pipeline.
+ * Injected at construction time to avoid passing on every execute() call.
+ */
+export interface LLMPipelineConfig {
+  /** Retry configuration for handling overloaded/invalid responses */
+  readonly retryConfig: LLMRetryConfig;
+  /** Accessor function to retrieve aggregated model metadata from all providers */
+  readonly getModelsMetadata: () => Record<string, ResolvedLLMModelMetadata>;
+}
+
+/**
  * Parameters for executing LLM functions with the execution pipeline.
  * Generic over the response data type T, enabling unified handling of both
  * completions (T = z.infer<S>) and embeddings (T = number[]).
@@ -24,8 +35,6 @@ interface LLMExecutionParams<T extends LLMGeneratedContent> {
   readonly context: LLMContext;
   /** Bound functions ready for execution. For embeddings, pass a single-element array. */
   readonly llmFunctions: BoundLLMFunction<T>[];
-  readonly providerRetryConfig: LLMRetryConfig;
-  readonly modelsMetadata: Record<string, ResolvedLLMModelMetadata>;
   /** Candidate models for tracking model switches. Optional for embeddings. */
   readonly candidateModels?: LLMCandidateFunction[];
   /** Whether to retry on INVALID status. Default true (for completions). Set false for embeddings. */
@@ -46,6 +55,7 @@ export class LLMExecutionPipeline {
   constructor(
     private readonly retryStrategy: RetryStrategy,
     private readonly llmStats: LLMExecutionStats,
+    private readonly pipelineConfig: LLMPipelineConfig,
   ) {}
 
   /**
@@ -66,8 +76,6 @@ export class LLMExecutionPipeline {
       content,
       context,
       llmFunctions,
-      providerRetryConfig,
-      modelsMetadata,
       candidateModels,
       retryOnInvalid = true,
       trackJsonMutations = true,
@@ -79,8 +87,6 @@ export class LLMExecutionPipeline {
         content,
         context,
         llmFunctions,
-        providerRetryConfig,
-        modelsMetadata,
         candidateModels,
         retryOnInvalid,
       );
@@ -160,8 +166,6 @@ export class LLMExecutionPipeline {
     initialContent: string,
     context: LLMContext,
     llmFunctions: BoundLLMFunction<T>[],
-    providerRetryConfig: LLMRetryConfig,
-    modelsMetadata: Record<string, ResolvedLLMModelMetadata>,
     candidateModels?: LLMCandidateFunction[],
     retryOnInvalid = true,
   ): Promise<LLMFunctionResponse<T> | null> {
@@ -176,7 +180,7 @@ export class LLMExecutionPipeline {
         llmFunctions[llmFunctionIndex],
         currentContent,
         context,
-        providerRetryConfig,
+        this.pipelineConfig.retryConfig,
         retryOnInvalid,
       );
 
@@ -198,7 +202,11 @@ export class LLMExecutionPipeline {
       if (nextAction.shouldTerminate) break;
 
       if (nextAction.shouldCropPrompt && llmResponse) {
-        currentContent = adaptPromptFromResponse(currentContent, llmResponse, modelsMetadata);
+        currentContent = adaptPromptFromResponse(
+          currentContent,
+          llmResponse,
+          this.pipelineConfig.getModelsMetadata(),
+        );
         this.llmStats.recordCrop();
 
         if (currentContent.trim() === "") {

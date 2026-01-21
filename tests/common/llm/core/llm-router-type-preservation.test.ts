@@ -1,9 +1,6 @@
 import { z } from "zod";
 import { describe, test, expect, jest, beforeEach, afterEach } from "@jest/globals";
 import LLMRouter from "../../../../src/common/llm/llm-router";
-import { LLMExecutionPipeline } from "../../../../src/common/llm/llm-execution-pipeline";
-import LLMExecutionStats from "../../../../src/common/llm/tracking/llm-execution-stats";
-import { RetryStrategy } from "../../../../src/common/llm/strategies/retry-strategy";
 import { LLMPurpose, LLMOutputFormat } from "../../../../src/common/llm/types/llm-request.types";
 import { LLMResponseStatus } from "../../../../src/common/llm/types/llm-response.types";
 import type { LLMProvider } from "../../../../src/common/llm/types/llm-provider.interface";
@@ -134,12 +131,6 @@ describe("LLMRouter Type Preservation Tests", () => {
 
     jest.spyOn(manifestLoader, "loadManifestForProviderFamily").mockReturnValue(mockManifest);
 
-    const mockLLMExecutionStats = new LLMExecutionStats();
-    const mockRetryStrategy = new RetryStrategy(mockLLMExecutionStats);
-    const mockExecutionPipeline = new LLMExecutionPipeline(
-      mockRetryStrategy,
-      mockLLMExecutionStats,
-    );
     const mockConfig: LLMModuleConfig = {
       providerParams: {},
       resolvedModelChain: {
@@ -157,7 +148,8 @@ describe("LLMRouter Type Preservation Tests", () => {
       errorLogging: { errorLogDirectory: "/tmp", errorLogFilenameTemplate: "error.log" },
     };
 
-    const router = new LLMRouter(mockConfig, mockExecutionPipeline);
+    // Router now creates its own execution pipeline internally
+    const router = new LLMRouter(mockConfig);
     return { router, mockProvider };
   };
 
