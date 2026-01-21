@@ -7,10 +7,7 @@ import { RetryStrategy } from "../../../../src/common/llm/strategies/retry-strat
 import { LLMPurpose, LLMOutputFormat } from "../../../../src/common/llm/types/llm-request.types";
 import { LLMResponseStatus } from "../../../../src/common/llm/types/llm-response.types";
 import type { LLMProvider } from "../../../../src/common/llm/types/llm-provider.interface";
-import {
-  LLMModelTier,
-  ResolvedLLMModelMetadata,
-} from "../../../../src/common/llm/types/llm-model.types";
+import { ResolvedLLMModelMetadata } from "../../../../src/common/llm/types/llm-model.types";
 import { ShutdownBehavior } from "../../../../src/common/llm/types/llm-shutdown.types";
 import type { LLMProviderManifest } from "../../../../src/common/llm/providers/llm-provider.types";
 import type { LLMModuleConfig } from "../../../../src/common/llm/config/llm-module-config.types";
@@ -56,7 +53,7 @@ describe("LLMRouter Type Preservation Tests", () => {
 
   const mockEmbeddingModelMetadata: ResolvedLLMModelMetadata = {
     modelKey: "GPT_EMBEDDINGS_ADA002",
-    name: "text-embedding-ada-002",
+    urnEnvKey: "OPENAI_EMBEDDINGS_MODEL",
     urn: "text-embedding-ada-002",
     purpose: LLMPurpose.EMBEDDINGS,
     dimensions: 1536,
@@ -65,7 +62,7 @@ describe("LLMRouter Type Preservation Tests", () => {
 
   const mockPrimaryModelMetadata: ResolvedLLMModelMetadata = {
     modelKey: "GPT_COMPLETIONS_GPT4",
-    name: "GPT-4",
+    urnEnvKey: "OPENAI_COMPLETION_MODEL",
     urn: "gpt-4",
     purpose: LLMPurpose.COMPLETIONS,
     maxCompletionTokens: 4096,
@@ -75,17 +72,15 @@ describe("LLMRouter Type Preservation Tests", () => {
   const createMockLLMProvider = (): LLMProvider => {
     const mockProvider = {
       generateEmbeddings: jest.fn(),
-      executeCompletionPrimary: jest.fn(),
-      executeCompletionSecondary: jest.fn(),
+      executeCompletion: jest.fn(),
       getModelsNames: jest.fn(() => ({
-        embeddings: "text-embedding-ada-002",
-        primaryCompletion: "GPT-4",
-        secondaryCompletion: "GPT-3.5 Turbo",
+        embeddings: ["text-embedding-ada-002"],
+        completions: ["GPT-4"],
       })),
-      getAvailableCompletionModelTiers: jest.fn(() => [
-        LLMModelTier.PRIMARY,
-        LLMModelTier.SECONDARY,
-      ]),
+      getAvailableModelNames: jest.fn(() => ({
+        embeddings: ["text-embedding-ada-002"],
+        completions: ["GPT-4"],
+      })),
       getEmbeddingModelDimensions: jest.fn(() => 1536),
       getModelFamily: jest.fn(() => "OpenAI GPT"),
       getModelsMetadata: jest.fn(() => ({
@@ -103,25 +98,28 @@ describe("LLMRouter Type Preservation Tests", () => {
     const mockProvider = createMockLLMProvider();
 
     const mockManifest: LLMProviderManifest = {
-      modelFamily: "openai",
       providerName: "Mock OpenAI",
+      modelFamily: "test",
       envSchema: {} as z.ZodObject<Record<string, z.ZodTypeAny>>,
       models: {
-        embeddings: {
-          modelKey: "GPT_EMBEDDINGS_ADA002",
-          name: "text-embedding-ada-002",
-          purpose: LLMPurpose.EMBEDDINGS,
-          urnEnvKey: "OPENAI_EMBEDDINGS_MODEL",
-          maxTotalTokens: 8191,
-        },
-        primaryCompletion: {
-          modelKey: "GPT_COMPLETIONS_GPT4",
-          name: "GPT-4",
-          purpose: LLMPurpose.COMPLETIONS,
-          urnEnvKey: "OPENAI_COMPLETION_MODEL",
-          maxTotalTokens: 8192,
-          maxCompletionTokens: 4096,
-        },
+        embeddings: [
+          {
+            modelKey: "GPT_EMBEDDINGS_ADA002",
+            purpose: LLMPurpose.EMBEDDINGS,
+            urnEnvKey: "OPENAI_EMBEDDINGS_MODEL",
+            maxTotalTokens: 8191,
+            dimensions: 1536,
+          },
+        ],
+        completions: [
+          {
+            modelKey: "GPT_COMPLETIONS_GPT4",
+            purpose: LLMPurpose.COMPLETIONS,
+            urnEnvKey: "OPENAI_COMPLETION_MODEL",
+            maxTotalTokens: 8192,
+            maxCompletionTokens: 4096,
+          },
+        ],
       },
       implementation: jest.fn().mockImplementation(() => mockProvider) as unknown as new (
         init: import("../../../../src/common/llm/providers/llm-provider.types").ProviderInit,
@@ -135,7 +133,7 @@ describe("LLMRouter Type Preservation Tests", () => {
       },
     };
 
-    jest.spyOn(manifestLoader, "loadManifestForModelFamily").mockReturnValue(mockManifest);
+    jest.spyOn(manifestLoader, "loadManifestForProviderFamily").mockReturnValue(mockManifest);
 
     const mockLLMExecutionStats = new LLMExecutionStats();
     const mockRetryStrategy = new RetryStrategy(mockLLMExecutionStats);
@@ -144,11 +142,18 @@ describe("LLMRouter Type Preservation Tests", () => {
       mockLLMExecutionStats,
     );
     const mockConfig: LLMModuleConfig = {
-      modelFamily: "openai",
       providerParams: {},
-      resolvedModels: {
-        embeddings: "text-embedding-3-large",
-        primaryCompletion: "gpt-4o",
+      resolvedModelChain: {
+        embeddings: [
+          {
+            providerFamily: "test",
+            modelKey: "GPT_EMBEDDINGS_ADA002",
+            modelUrn: "text-embedding-3-large",
+          },
+        ],
+        completions: [
+          { providerFamily: "test", modelKey: "GPT_COMPLETIONS_GPT4", modelUrn: "gpt-4o" },
+        ],
       },
       errorLogging: { errorLogDirectory: "/tmp", errorLogFilenameTemplate: "error.log" },
     };
@@ -176,7 +181,7 @@ describe("LLMRouter Type Preservation Tests", () => {
         nestedObject: { innerField: true },
       };
 
-      (mockProvider.executeCompletionPrimary as any).mockResolvedValue({
+      (mockProvider.executeCompletion as any).mockResolvedValue({
         status: LLMResponseStatus.COMPLETED,
         generated: mockData,
         request: "test",
@@ -222,7 +227,7 @@ describe("LLMRouter Type Preservation Tests", () => {
         ],
       };
 
-      (mockProvider.executeCompletionPrimary as any).mockResolvedValue({
+      (mockProvider.executeCompletion as any).mockResolvedValue({
         status: LLMResponseStatus.COMPLETED,
         generated: mockData,
         request: "test",
@@ -267,7 +272,7 @@ describe("LLMRouter Type Preservation Tests", () => {
         response: { type: "success" as const, data: "result" },
       };
 
-      (mockProvider.executeCompletionPrimary as any).mockResolvedValue({
+      (mockProvider.executeCompletion as any).mockResolvedValue({
         status: LLMResponseStatus.COMPLETED,
         generated: mockData,
         request: "test",
@@ -295,7 +300,7 @@ describe("LLMRouter Type Preservation Tests", () => {
 
       const textResponse = "Plain text response content";
 
-      (mockProvider.executeCompletionPrimary as any).mockResolvedValue({
+      (mockProvider.executeCompletion as any).mockResolvedValue({
         status: LLMResponseStatus.COMPLETED,
         generated: textResponse,
         request: "test",
@@ -336,7 +341,7 @@ describe("LLMRouter Type Preservation Tests", () => {
         withDefault: 42,
       };
 
-      (mockProvider.executeCompletionPrimary as any).mockResolvedValue({
+      (mockProvider.executeCompletion as any).mockResolvedValue({
         status: LLMResponseStatus.COMPLETED,
         generated: mockData,
         request: "test",
@@ -377,7 +382,7 @@ describe("LLMRouter Type Preservation Tests", () => {
         priority: "high" as const,
       };
 
-      (mockProvider.executeCompletionPrimary as any).mockResolvedValue({
+      (mockProvider.executeCompletion as any).mockResolvedValue({
         status: LLMResponseStatus.COMPLETED,
         generated: mockData,
         request: "test",
@@ -426,7 +431,7 @@ describe("LLMRouter Type Preservation Tests", () => {
         },
       };
 
-      (mockProvider.executeCompletionPrimary as any).mockResolvedValue({
+      (mockProvider.executeCompletion as any).mockResolvedValue({
         status: LLMResponseStatus.COMPLETED,
         generated: mockData,
         request: "test",
@@ -461,7 +466,7 @@ describe("LLMRouter Type Preservation Tests", () => {
 
       const mockData = { testField: "value" };
 
-      (mockProvider.executeCompletionPrimary as any).mockResolvedValue({
+      (mockProvider.executeCompletion as any).mockResolvedValue({
         status: LLMResponseStatus.COMPLETED,
         generated: mockData,
         request: "test",

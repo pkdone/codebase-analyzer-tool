@@ -1,7 +1,7 @@
 import { container } from "tsyringe";
 import { createLLMRouter } from "../../../common/llm/llm-factory";
 import { buildLLMModuleConfig } from "../../env/llm-config-builder";
-import { EnvVars } from "../../env/env.types";
+import type { EnvVars } from "../../env/env.types";
 import { llmTokens, coreTokens } from "../tokens";
 
 /**
@@ -15,18 +15,11 @@ export async function initializeAndRegisterLLMComponents(): Promise<void> {
     return;
   }
 
-  // Only initialize if LLM model family is registered (i.e., LLM env vars were available)
-  if (!container.isRegistered(llmTokens.LLMModelFamily)) {
-    console.log("LLM model family not registered, skipping LLM component initialization.");
-    return;
-  }
-
   // Get configuration from DI container
   const envVars = container.resolve<EnvVars>(coreTokens.EnvVars);
-  const modelFamily = container.resolve<string>(llmTokens.LLMModelFamily);
 
-  // Build LLM module configuration
-  const llmConfig = buildLLMModuleConfig(envVars, modelFamily);
+  // Build LLM module configuration from chain-based env vars
+  const llmConfig = buildLLMModuleConfig(envVars);
 
   // Create LLM router using factory
   const { router, stats } = createLLMRouter(llmConfig);
@@ -35,9 +28,10 @@ export async function initializeAndRegisterLLMComponents(): Promise<void> {
   // This is especially important for AWS SSO where credentials expire and require `aws sso login`
   await router.validateCredentials();
 
-  // Register LLMRouter and LLMExecutionStats instances in DI container for application use
+  // Register LLMRouter, LLMExecutionStats, and LLMModuleConfig instances in DI container
   container.registerInstance(llmTokens.LLMRouter, router);
   container.registerInstance(llmTokens.LLMExecutionStats, stats);
+  container.registerInstance(llmTokens.LLMModuleConfig, llmConfig);
 
   console.log("LLMRouter registered as singleton");
 }

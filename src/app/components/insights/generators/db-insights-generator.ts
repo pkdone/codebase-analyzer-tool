@@ -26,7 +26,7 @@ import { chunkTextByTokenLimit } from "../../../../common/llm/utils/text-chunkin
  */
 @injectable()
 export default class InsightsFromDBGenerator {
-  private readonly llmProviderDescription: string;
+  private readonly llmModelsDescription: string;
   private readonly maxTokens: number;
 
   /**
@@ -35,6 +35,7 @@ export default class InsightsFromDBGenerator {
    * @param llmRouter - Router for LLM operations
    * @param sourcesRepository - Repository for retrieving source file data
    * @param projectName - Name of the project being analyzed
+   * @param llmConfig - LLM module configuration for token limits
    * @param singlePassStrategy - Strategy for single-pass insight generation
    * @param mapReduceStrategy - Strategy for map-reduce insight generation
    * @param fileProcessingConfig - Configuration for file processing rules
@@ -53,10 +54,9 @@ export default class InsightsFromDBGenerator {
     @inject(configTokens.FileProcessingRules)
     private readonly fileProcessingConfig: FileProcessingRulesType,
   ) {
-    this.llmProviderDescription = this.llmRouter.getModelsUsedDescription();
-    // Get the token limit from the manifest for chunking calculations
-    const manifest = this.llmRouter.getLLMManifest();
-    this.maxTokens = manifest.models.primaryCompletion.maxTotalTokens;
+    this.llmModelsDescription = this.llmRouter.getModelsUsedDescription();
+    // Get the token limit from the first completion model in the chain
+    this.maxTokens = this.llmRouter.getFirstCompletionModelMaxTokens();
   }
 
   /**
@@ -76,7 +76,7 @@ export default class InsightsFromDBGenerator {
 
     await this.appSummariesRepository.createOrReplaceAppSummary({
       projectName: this.projectName,
-      llmProvider: this.llmProviderDescription,
+      llmModels: this.llmModelsDescription,
     });
     const categories: AppSummaryCategoryEnum[] = AppSummaryCategories.options;
 

@@ -51,25 +51,27 @@ describe("Split Invoke Methods", () => {
   const createInit = (): ProviderInit => ({
     manifest: {
       providerName: "Tracking Test Provider",
-      modelFamily: "tracking-test",
+      modelFamily: "test",
       envSchema: z.object({}),
       models: {
-        embeddings: {
-          modelKey: "test-embed",
-          name: "Test Embeddings",
-          urnEnvKey: "TEST_EMBED",
-          purpose: LLMPurpose.EMBEDDINGS,
-          dimensions: 1536,
-          maxTotalTokens: 1000,
-        },
-        primaryCompletion: {
-          modelKey: "test-complete",
-          name: "Test Completion",
-          urnEnvKey: "TEST_COMPLETE",
-          purpose: LLMPurpose.COMPLETIONS,
-          maxCompletionTokens: 500,
-          maxTotalTokens: 2000,
-        },
+        embeddings: [
+          {
+            modelKey: "test-embed",
+            urnEnvKey: "TEST_EMBED",
+            purpose: LLMPurpose.EMBEDDINGS,
+            dimensions: 1536,
+            maxTotalTokens: 1000,
+          },
+        ],
+        completions: [
+          {
+            modelKey: "test-complete",
+            urnEnvKey: "TEST_COMPLETE",
+            purpose: LLMPurpose.COMPLETIONS,
+            maxCompletionTokens: 500,
+            maxTotalTokens: 2000,
+          },
+        ],
       },
       errorPatterns: [],
       providerSpecificConfig: {
@@ -81,9 +83,11 @@ describe("Split Invoke Methods", () => {
       implementation: TrackingTestProvider,
     },
     providerParams: {},
-    resolvedModels: {
-      embeddings: "test-embed-urn",
-      primaryCompletion: "test-complete-urn",
+    resolvedModelChain: {
+      embeddings: [{ providerFamily: "test", modelKey: "test-embed", modelUrn: "test-embed-urn" }],
+      completions: [
+        { providerFamily: "test", modelKey: "test-complete", modelUrn: "test-complete-urn" },
+      ],
     },
     errorLogging: {
       errorLogDirectory: "/tmp/test-errors",
@@ -95,7 +99,7 @@ describe("Split Invoke Methods", () => {
     const provider = new TrackingTestProvider(createInit());
     const context = { resource: "test-resource", purpose: LLMPurpose.EMBEDDINGS };
 
-    await provider.generateEmbeddings("test prompt", context);
+    await provider.generateEmbeddings("test-embed", "test prompt", context);
 
     expect(provider.embeddingProviderCalls).toBe(1);
     expect(provider.completionProviderCalls).toBe(0);
@@ -104,7 +108,8 @@ describe("Split Invoke Methods", () => {
   it("should call invokeCompletionProvider for completion requests", async () => {
     const provider = new TrackingTestProvider(createInit());
 
-    await provider.executeCompletionPrimary(
+    await provider.executeCompletion(
+      "test-complete",
       "test prompt",
       { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
       { outputFormat: LLMOutputFormat.TEXT },
@@ -120,9 +125,9 @@ describe("Split Invoke Methods", () => {
     const context2 = { resource: "resource2", purpose: LLMPurpose.EMBEDDINGS };
     const context3 = { resource: "resource3", purpose: LLMPurpose.EMBEDDINGS };
 
-    await provider.generateEmbeddings("prompt1", context1);
-    await provider.generateEmbeddings("prompt2", context2);
-    await provider.generateEmbeddings("prompt3", context3);
+    await provider.generateEmbeddings("test-embed", "prompt1", context1);
+    await provider.generateEmbeddings("test-embed", "prompt2", context2);
+    await provider.generateEmbeddings("test-embed", "prompt3", context3);
 
     expect(provider.embeddingProviderCalls).toBe(3);
     expect(provider.completionProviderCalls).toBe(0);
@@ -134,8 +139,8 @@ describe("Split Invoke Methods", () => {
     const context = { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS };
     const options = { outputFormat: LLMOutputFormat.TEXT };
 
-    await provider.executeCompletionPrimary("prompt1", context, options);
-    await provider.executeCompletionPrimary("prompt2", context, options);
+    await provider.executeCompletion("test-complete", "prompt1", context, options);
+    await provider.executeCompletion("test-complete", "prompt2", context, options);
 
     expect(provider.embeddingProviderCalls).toBe(0);
     expect(provider.completionProviderCalls).toBe(2);
@@ -149,11 +154,11 @@ describe("Split Invoke Methods", () => {
     const embeddingContext3 = { resource: "resource3", purpose: LLMPurpose.EMBEDDINGS };
     const options = { outputFormat: LLMOutputFormat.TEXT };
 
-    await provider.generateEmbeddings("prompt1", embeddingContext1);
-    await provider.executeCompletionPrimary("prompt2", completionContext, options);
-    await provider.generateEmbeddings("prompt3", embeddingContext2);
-    await provider.executeCompletionPrimary("prompt4", completionContext, options);
-    await provider.generateEmbeddings("prompt5", embeddingContext3);
+    await provider.generateEmbeddings("test-embed", "prompt1", embeddingContext1);
+    await provider.executeCompletion("test-complete", "prompt2", completionContext, options);
+    await provider.generateEmbeddings("test-embed", "prompt3", embeddingContext2);
+    await provider.executeCompletion("test-complete", "prompt4", completionContext, options);
+    await provider.generateEmbeddings("test-embed", "prompt5", embeddingContext3);
 
     expect(provider.embeddingProviderCalls).toBe(3);
     expect(provider.completionProviderCalls).toBe(2);

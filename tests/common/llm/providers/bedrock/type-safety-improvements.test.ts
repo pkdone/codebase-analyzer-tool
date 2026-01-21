@@ -59,24 +59,49 @@ describe("Bedrock Type Safety Improvements", () => {
           ...bedrockClaudeProviderManifest,
           providerSpecificConfig: baseConfig,
           models: {
-            embeddings: {
-              ...bedrockClaudeProviderManifest.models.embeddings,
-              modelKey: embeddingsKey,
-            },
-            primaryCompletion: {
-              ...bedrockClaudeProviderManifest.models.primaryCompletion,
-              modelKey: completionKey,
-              maxCompletionTokens: modelsMetadata[completionKey].maxCompletionTokens,
-            },
+            embeddings:
+              bedrockClaudeProviderManifest.models.embeddings.length > 0
+                ? bedrockClaudeProviderManifest.models.embeddings.map((e) => ({
+                    ...e,
+                    modelKey: embeddingsKey,
+                  }))
+                : [
+                    {
+                      modelKey: embeddingsKey,
+                      urnEnvKey: "TEST_EMBED_URN",
+                      purpose: LLMPurpose.EMBEDDINGS,
+                      dimensions: 1024,
+                      maxTotalTokens: 8192,
+                    },
+                  ],
+            completions: [
+              {
+                ...bedrockClaudeProviderManifest.models.completions[0],
+                modelKey: completionKey,
+                maxCompletionTokens: modelsMetadata[completionKey].maxCompletionTokens,
+              },
+            ],
           },
         };
 
         return {
           manifest,
           providerParams: {},
-          resolvedModels: {
-            embeddings: modelsMetadata[embeddingsKey].urn,
-            primaryCompletion: modelsMetadata[completionKey].urn,
+          resolvedModelChain: {
+            embeddings: [
+              {
+                providerFamily: manifest.modelFamily,
+                modelKey: embeddingsKey,
+                modelUrn: modelsMetadata[embeddingsKey].urn,
+              },
+            ],
+            completions: [
+              {
+                providerFamily: manifest.modelFamily,
+                modelKey: completionKey,
+                modelUrn: modelsMetadata[completionKey].urn,
+              },
+            ],
           },
           errorLogging: createMockErrorLoggingConfig(),
         };
@@ -86,7 +111,7 @@ describe("Bedrock Type Safety Improvements", () => {
         const modelsMetadata: Record<string, ResolvedLLMModelMetadata> = {
           EMBEDDINGS: {
             modelKey: "EMBEDDINGS",
-            name: "Titan Embeddings",
+            urnEnvKey: "TEST_EMBED_URN",
             urn: "amazon.titan-embed-text-v2:0",
             purpose: LLMPurpose.EMBEDDINGS,
             dimensions: 1024,
@@ -94,7 +119,7 @@ describe("Bedrock Type Safety Improvements", () => {
           },
           COMPLETIONS: {
             modelKey: "COMPLETIONS",
-            name: "Claude",
+            urnEnvKey: "TEST_COMPLETIONS_URN",
             urn: "anthropic.claude-3-sonnet",
             purpose: LLMPurpose.COMPLETIONS,
             // maxCompletionTokens intentionally undefined
@@ -121,7 +146,7 @@ describe("Bedrock Type Safety Improvements", () => {
         const modelsMetadata: Record<string, ResolvedLLMModelMetadata> = {
           EMBEDDINGS: {
             modelKey: "EMBEDDINGS",
-            name: "Titan Embeddings",
+            urnEnvKey: "TEST_EMBED_URN",
             urn: "amazon.titan-embed-text-v2:0",
             purpose: LLMPurpose.EMBEDDINGS,
             dimensions: 1024,
@@ -129,7 +154,7 @@ describe("Bedrock Type Safety Improvements", () => {
           },
           COMPLETIONS: {
             modelKey: "COMPLETIONS",
-            name: "Claude",
+            urnEnvKey: "TEST_COMPLETIONS_URN",
             urn: "anthropic.claude-3-sonnet",
             purpose: LLMPurpose.COMPLETIONS,
             maxCompletionTokens: 8192,
@@ -165,24 +190,49 @@ describe("Bedrock Type Safety Improvements", () => {
           ...bedrockNovaProviderManifest,
           providerSpecificConfig: baseConfig,
           models: {
-            embeddings: {
-              ...bedrockNovaProviderManifest.models.embeddings,
-              modelKey: embeddingsKey,
-            },
-            primaryCompletion: {
-              ...bedrockNovaProviderManifest.models.primaryCompletion,
-              modelKey: completionKey,
-              maxCompletionTokens: modelsMetadata[completionKey].maxCompletionTokens,
-            },
+            embeddings:
+              bedrockNovaProviderManifest.models.embeddings.length > 0
+                ? bedrockNovaProviderManifest.models.embeddings.map((e) => ({
+                    ...e,
+                    modelKey: embeddingsKey,
+                  }))
+                : [
+                    {
+                      modelKey: embeddingsKey,
+                      urnEnvKey: "TEST_EMBED_URN",
+                      purpose: LLMPurpose.EMBEDDINGS,
+                      dimensions: 1024,
+                      maxTotalTokens: 8192,
+                    },
+                  ],
+            completions: [
+              {
+                ...bedrockNovaProviderManifest.models.completions[0],
+                modelKey: completionKey,
+                maxCompletionTokens: modelsMetadata[completionKey].maxCompletionTokens,
+              },
+            ],
           },
         };
 
         return {
           manifest,
           providerParams: {},
-          resolvedModels: {
-            embeddings: modelsMetadata[embeddingsKey].urn,
-            primaryCompletion: modelsMetadata[completionKey].urn,
+          resolvedModelChain: {
+            embeddings: [
+              {
+                providerFamily: manifest.modelFamily,
+                modelKey: embeddingsKey,
+                modelUrn: modelsMetadata[embeddingsKey].urn,
+              },
+            ],
+            completions: [
+              {
+                providerFamily: manifest.modelFamily,
+                modelKey: completionKey,
+                modelUrn: modelsMetadata[completionKey].urn,
+              },
+            ],
           },
           errorLogging: createMockErrorLoggingConfig(),
         };
@@ -192,7 +242,7 @@ describe("Bedrock Type Safety Improvements", () => {
         const modelsMetadata: Record<string, ResolvedLLMModelMetadata> = {
           EMBEDDINGS: {
             modelKey: "EMBEDDINGS",
-            name: "Titan Embeddings",
+            urnEnvKey: "TEST_EMBED_URN",
             urn: "amazon.titan-embed-text-v2:0",
             purpose: LLMPurpose.EMBEDDINGS,
             dimensions: 1024,
@@ -200,7 +250,7 @@ describe("Bedrock Type Safety Improvements", () => {
           },
           COMPLETIONS: {
             modelKey: "COMPLETIONS",
-            name: "Nova",
+            urnEnvKey: "TEST_COMPLETIONS_URN",
             urn: "amazon.nova-pro-v1:0",
             purpose: LLMPurpose.COMPLETIONS,
             // maxCompletionTokens intentionally undefined
@@ -227,7 +277,7 @@ describe("Bedrock Type Safety Improvements", () => {
         const modelsMetadata: Record<string, ResolvedLLMModelMetadata> = {
           EMBEDDINGS: {
             modelKey: "EMBEDDINGS",
-            name: "Titan Embeddings",
+            urnEnvKey: "TEST_EMBED_URN",
             urn: "amazon.titan-embed-text-v2:0",
             purpose: LLMPurpose.EMBEDDINGS,
             dimensions: 1024,
@@ -235,7 +285,7 @@ describe("Bedrock Type Safety Improvements", () => {
           },
           COMPLETIONS: {
             modelKey: "COMPLETIONS",
-            name: "Nova",
+            urnEnvKey: "TEST_COMPLETIONS_URN",
             urn: "amazon.nova-pro-v1:0",
             purpose: LLMPurpose.COMPLETIONS,
             maxCompletionTokens: 5000,

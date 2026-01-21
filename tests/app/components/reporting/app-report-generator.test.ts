@@ -110,7 +110,7 @@ describe("AppReportGenerator", () => {
       const mockAppStats = {
         projectName: "test",
         currentDate: "2024-01-01",
-        llmProvider: "test",
+        llmModels: "test",
         fileCount: 100,
         linesOfCode: 5000,
         appDescription: "Test app",
@@ -149,7 +149,7 @@ describe("AppReportGenerator", () => {
       const mockAppStats = {
         projectName: "test",
         currentDate: "2024-01-01",
-        llmProvider: "test",
+        llmModels: "test",
         fileCount: 100,
         linesOfCode: 5000,
         appDescription: "Test app",
@@ -174,7 +174,7 @@ describe("AppReportGenerator", () => {
       const mockAppStats = {
         projectName: "test",
         currentDate: "2024-01-01",
-        llmProvider: "test",
+        llmModels: "test",
         fileCount: 100,
         linesOfCode: 5000,
         appDescription: "Test app",

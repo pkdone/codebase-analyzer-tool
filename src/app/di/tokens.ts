@@ -9,7 +9,6 @@ export const coreTokens = {
   DatabaseName: Symbol("DatabaseName"),
   MongoDBConnectionManager: Symbol("MongoDBConnectionManager"),
   LLMRouter: Symbol("LLMRouter"),
-  LLMModelFamily: Symbol("LLMModelFamily"),
   EnvVars: Symbol("EnvVars"),
   ProjectName: Symbol("ProjectName"),
   DatabaseInitializer: Symbol("DatabaseInitializer"),
@@ -65,7 +64,7 @@ export type InsightsToken = keyof typeof insightsTokens;
 export const llmTokens = {
   LLMExecutionStats: Symbol("LLMExecutionStats"),
   LLMRouter: Symbol("LLMRouter"),
-  LLMModelFamily: Symbol("LLMModelFamily"),
+  LLMModuleConfig: Symbol("LLMModuleConfig"),
   LLMErrorLogger: Symbol("LLMErrorLogger"),
 } as const;
 

@@ -1,8 +1,8 @@
 import { container, DependencyContainer } from "tsyringe";
 import { coreTokens } from "../tokens";
-import { llmTokens } from "../tokens";
-import { EnvVars, baseEnvVarsSchema } from "../../env/env.types";
-import { loadManifestForModelFamily } from "../../../common/llm/utils/manifest-loader";
+import type { EnvVars } from "../../env/env.types";
+import { baseEnvVarsSchema, parseModelChain, getUniqueProviderFamilies } from "../../env/env.types";
+import { loadManifestForProviderFamily } from "../../../common/llm/utils/manifest-loader";
 import { loadBaseEnvVarsOnly } from "../../env/env";
 import { z } from "zod";
 import { LLMError, LLMErrorCode } from "../../../common/llm/types/llm-errors.types";
@@ -29,12 +29,6 @@ export function registerLlmEnvDependencies(): void {
       const envVars = loadEnvIncludingLLMVars();
       container.registerInstance(coreTokens.EnvVars, envVars);
       console.log("LLM environment variables loaded and registered.");
-
-      // Register LLM model family if configured (inlined to avoid Service Locator pattern)
-      if (envVars.LLM && !container.isRegistered(llmTokens.LLMModelFamily)) {
-        container.registerInstance(llmTokens.LLMModelFamily, envVars.LLM);
-        console.log(`LLM model family '${envVars.LLM}' registered.`);
-      }
     } catch {
       // If LLM env vars aren't available, fall back to base env vars
       // This allows the container to be bootstrapped even when LLM isn't configured
@@ -88,30 +82,41 @@ export function resetProjectNameCache(): void {
 
 /**
  * Load environment variables including LLM-specific ones.
+ * The new architecture uses model chain configuration via LLM_COMPLETIONS and LLM_EMBEDDINGS.
  */
 function loadEnvIncludingLLMVars(): EnvVars {
   try {
     dotenv.config();
-    const LlmSelectorSchema = z.object({ LLM: z.string().optional() });
     const rawEnv = process.env;
-    const selectedLlmContainer = LlmSelectorSchema.safeParse(rawEnv);
-    if (!selectedLlmContainer.success || !selectedLlmContainer.data.LLM) {
-      throw new Error("LLM environment variable is not set or is empty in your .env file.");
-    }
-    const selectedLlmModelFamily = selectedLlmContainer.data.LLM;
-    const manifest = loadManifestForModelFamily(selectedLlmModelFamily);
-    const finalSchema = baseEnvVarsSchema.merge(manifest.envSchema).passthrough();
-    const parsedEnv = finalSchema.parse(rawEnv);
 
-    const llmValue = String(parsedEnv.LLM);
-    if (llmValue.toLowerCase() !== manifest.modelFamily.toLowerCase()) {
-      throw new LLMError(
-        LLMErrorCode.BAD_CONFIGURATION,
-        `Warning: LLM environment variable ('${llmValue}') does not precisely match ` +
-          `modelFamily ('${manifest.modelFamily}') in the manifest for ${manifest.providerName}. `,
-      );
+    // First, parse just the base schema to get the model chains
+    const baseResult = baseEnvVarsSchema.safeParse(rawEnv);
+    if (!baseResult.success) {
+      throw baseResult.error;
     }
 
+    const { LLM_COMPLETIONS, LLM_EMBEDDINGS } = baseResult.data;
+
+    // Parse chains to get unique provider families
+    const completionsChain = parseModelChain(LLM_COMPLETIONS);
+    const embeddingsChain = parseModelChain(LLM_EMBEDDINGS);
+    const allFamilies = getUniqueProviderFamilies([...completionsChain, ...embeddingsChain]);
+
+    console.log(
+      `Loading environment for providers: ${allFamilies.join(", ")} ` +
+        `(from chains: completions=${completionsChain.length} models, embeddings=${embeddingsChain.length} models)`,
+    );
+
+    // Build combined schema from all required provider manifests
+    // Use z.object with passthrough for flexible schema merging
+    let combinedShape: z.ZodRawShape = { ...baseEnvVarsSchema.shape };
+    for (const family of allFamilies) {
+      const manifest = loadManifestForProviderFamily(family);
+      combinedShape = { ...combinedShape, ...manifest.envSchema.shape };
+    }
+
+    const combinedSchema = z.object(combinedShape).passthrough();
+    const parsedEnv = combinedSchema.parse(rawEnv);
     return parsedEnv as EnvVars;
   } catch (error: unknown) {
     if (error instanceof LLMError && error.code === LLMErrorCode.BAD_CONFIGURATION) throw error;
@@ -122,11 +127,10 @@ function loadEnvIncludingLLMVars(): EnvVars {
         .map((issue) => issue.path.join("."));
 
       if (missingEnvVars.length > 0) {
-        const selectedLlmModelFamily = process.env.LLM ?? "unknown";
         throw new LLMError(
           LLMErrorCode.BAD_CONFIGURATION,
-          `Missing required environment variables for ${selectedLlmModelFamily} provider: ${missingEnvVars.join(", ")}. ` +
-            `Please add these variables to your .env file. See EXAMPLE.env for guidance on provider-specific variables.`,
+          `Missing required environment variables: ${missingEnvVars.join(", ")}. ` +
+            `Please add these variables to your .env file. See EXAMPLE.env for guidance.`,
         );
       }
     }

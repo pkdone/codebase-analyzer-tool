@@ -8,21 +8,19 @@ import {
   ProviderInit,
 } from "../../../../../../src/common/llm/providers/llm-provider.types";
 import { llmConfig } from "../../../../../../src/common/llm/config/llm.config";
-import {
-  AWS_COMPLETIONS_CLAUDE_OPUS_V45,
-  AWS_COMPLETIONS_CLAUDE_SONNET_V45,
-  bedrockClaudeProviderManifest,
-} from "../../../../../../src/common/llm/providers/bedrock/claude/bedrock-claude.manifest";
+import { bedrockClaudeProviderManifest } from "../../../../../../src/common/llm/providers/bedrock/claude/bedrock-claude.manifest";
 import { createMockErrorLoggingConfig } from "../../../../helpers/llm/mock-error-logger";
 
-// Define model keys used in tests (matching the manifest internal constants)
+// Define model keys used in tests (matching the manifest model keys)
 const AWS_COMPLETIONS_CLAUDE_V37 = "AWS_COMPLETIONS_CLAUDE_V37";
+const BEDROCK_CLAUDE_OPUS_V45 = "bedrock-claude-opus-4.5";
+const BEDROCK_CLAUDE_SONNET_V45 = "bedrock-claude-sonnet-4.5";
 
 describe("BedrockClaudeLLM - Request Body Building", () => {
   const mockModelsMetadata: Record<string, ResolvedLLMModelMetadata> = {
     EMBEDDINGS: {
       modelKey: "EMBEDDINGS",
-      name: "Titan Embeddings v1",
+      urnEnvKey: "EMBEDDINGS_URN",
       urn: "amazon.titan-embed-text-v2:0",
       purpose: LLMPurpose.EMBEDDINGS,
       dimensions: 1024,
@@ -30,23 +28,23 @@ describe("BedrockClaudeLLM - Request Body Building", () => {
     },
     [AWS_COMPLETIONS_CLAUDE_V37]: {
       modelKey: AWS_COMPLETIONS_CLAUDE_V37,
-      name: "Claude 3.7 Sonnet",
+      urnEnvKey: "CLAUDE_V37_URN",
       urn: "us.anthropic.claude-3-5-sonnet-20241022-v2:0",
       purpose: LLMPurpose.COMPLETIONS,
       maxCompletionTokens: 8192,
       maxTotalTokens: 200000,
     },
-    [AWS_COMPLETIONS_CLAUDE_OPUS_V45]: {
-      modelKey: AWS_COMPLETIONS_CLAUDE_OPUS_V45,
-      name: "Claude Opus 4.5",
+    [BEDROCK_CLAUDE_OPUS_V45]: {
+      modelKey: BEDROCK_CLAUDE_OPUS_V45,
+      urnEnvKey: "CLAUDE_OPUS_V45_URN",
       urn: "global.anthropic.claude-opus-4-5-20251101-v1:0",
       purpose: LLMPurpose.COMPLETIONS,
       maxCompletionTokens: 64000,
       maxTotalTokens: 1000000,
     },
-    [AWS_COMPLETIONS_CLAUDE_SONNET_V45]: {
-      modelKey: AWS_COMPLETIONS_CLAUDE_SONNET_V45,
-      name: "Claude Sonnet 4.5",
+    [BEDROCK_CLAUDE_SONNET_V45]: {
+      modelKey: BEDROCK_CLAUDE_SONNET_V45,
+      urnEnvKey: "CLAUDE_SONNET_V45_URN",
       urn: "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
       purpose: LLMPurpose.COMPLETIONS,
       maxCompletionTokens: 64000,
@@ -71,32 +69,49 @@ describe("BedrockClaudeLLM - Request Body Building", () => {
       ...bedrockClaudeProviderManifest,
       providerSpecificConfig: mockConfig,
       models: {
-        ...bedrockClaudeProviderManifest.models,
-        primaryCompletion: {
-          ...bedrockClaudeProviderManifest.models.primaryCompletion,
-          modelKey: AWS_COMPLETIONS_CLAUDE_V37,
-          maxCompletionTokens: mockModelsMetadata[AWS_COMPLETIONS_CLAUDE_V37].maxCompletionTokens,
-          maxTotalTokens: mockModelsMetadata[AWS_COMPLETIONS_CLAUDE_V37].maxTotalTokens,
-        },
-        secondaryCompletion: {
-          modelKey: AWS_COMPLETIONS_CLAUDE_SONNET_V45,
-          name: mockModelsMetadata[AWS_COMPLETIONS_CLAUDE_SONNET_V45].name,
-          urnEnvKey: "TEST_SONNET_V45_MODEL",
-          purpose: LLMPurpose.COMPLETIONS,
-          maxCompletionTokens:
-            mockModelsMetadata[AWS_COMPLETIONS_CLAUDE_SONNET_V45].maxCompletionTokens,
-          maxTotalTokens: mockModelsMetadata[AWS_COMPLETIONS_CLAUDE_SONNET_V45].maxTotalTokens,
-        },
+        embeddings: [],
+        completions: [
+          {
+            modelKey: AWS_COMPLETIONS_CLAUDE_V37,
+            urnEnvKey: "CLAUDE_V37_URN",
+            purpose: LLMPurpose.COMPLETIONS,
+            maxCompletionTokens: mockModelsMetadata[AWS_COMPLETIONS_CLAUDE_V37].maxCompletionTokens,
+            maxTotalTokens: mockModelsMetadata[AWS_COMPLETIONS_CLAUDE_V37].maxTotalTokens,
+          },
+          {
+            modelKey: BEDROCK_CLAUDE_SONNET_V45,
+            urnEnvKey: "TEST_SONNET_V45_MODEL",
+            purpose: LLMPurpose.COMPLETIONS,
+            maxCompletionTokens: mockModelsMetadata[BEDROCK_CLAUDE_SONNET_V45].maxCompletionTokens,
+            maxTotalTokens: mockModelsMetadata[BEDROCK_CLAUDE_SONNET_V45].maxTotalTokens,
+          },
+        ],
       },
     };
 
     return {
       manifest,
       providerParams: {},
-      resolvedModels: {
-        embeddings: mockModelsMetadata.EMBEDDINGS.urn,
-        primaryCompletion: mockModelsMetadata[AWS_COMPLETIONS_CLAUDE_V37].urn,
-        secondaryCompletion: mockModelsMetadata[AWS_COMPLETIONS_CLAUDE_SONNET_V45].urn,
+      resolvedModelChain: {
+        embeddings: [
+          {
+            providerFamily: "BedrockClaude",
+            modelKey: "EMBEDDINGS",
+            modelUrn: mockModelsMetadata.EMBEDDINGS.urn,
+          },
+        ],
+        completions: [
+          {
+            providerFamily: "BedrockClaude",
+            modelKey: AWS_COMPLETIONS_CLAUDE_V37,
+            modelUrn: mockModelsMetadata[AWS_COMPLETIONS_CLAUDE_V37].urn,
+          },
+          {
+            providerFamily: "BedrockClaude",
+            modelKey: BEDROCK_CLAUDE_SONNET_V45,
+            modelUrn: mockModelsMetadata[BEDROCK_CLAUDE_SONNET_V45].urn,
+          },
+        ],
       },
       errorLogging: createMockErrorLoggingConfig(),
     };
@@ -108,33 +123,49 @@ describe("BedrockClaudeLLM - Request Body Building", () => {
       ...bedrockClaudeProviderManifest,
       providerSpecificConfig: mockConfig,
       models: {
-        ...bedrockClaudeProviderManifest.models,
-        primaryCompletion: {
-          ...bedrockClaudeProviderManifest.models.primaryCompletion,
-          modelKey: AWS_COMPLETIONS_CLAUDE_OPUS_V45,
-          maxCompletionTokens:
-            mockModelsMetadata[AWS_COMPLETIONS_CLAUDE_OPUS_V45].maxCompletionTokens,
-          maxTotalTokens: mockModelsMetadata[AWS_COMPLETIONS_CLAUDE_OPUS_V45].maxTotalTokens,
-        },
-        secondaryCompletion: {
-          modelKey: AWS_COMPLETIONS_CLAUDE_SONNET_V45,
-          name: mockModelsMetadata[AWS_COMPLETIONS_CLAUDE_SONNET_V45].name,
-          urnEnvKey: "TEST_SONNET_V45_MODEL",
-          purpose: LLMPurpose.COMPLETIONS,
-          maxCompletionTokens:
-            mockModelsMetadata[AWS_COMPLETIONS_CLAUDE_SONNET_V45].maxCompletionTokens,
-          maxTotalTokens: mockModelsMetadata[AWS_COMPLETIONS_CLAUDE_SONNET_V45].maxTotalTokens,
-        },
+        embeddings: [],
+        completions: [
+          {
+            modelKey: BEDROCK_CLAUDE_OPUS_V45,
+            urnEnvKey: "CLAUDE_OPUS_V45_URN",
+            purpose: LLMPurpose.COMPLETIONS,
+            maxCompletionTokens: mockModelsMetadata[BEDROCK_CLAUDE_OPUS_V45].maxCompletionTokens,
+            maxTotalTokens: mockModelsMetadata[BEDROCK_CLAUDE_OPUS_V45].maxTotalTokens,
+          },
+          {
+            modelKey: BEDROCK_CLAUDE_SONNET_V45,
+            urnEnvKey: "TEST_SONNET_V45_MODEL",
+            purpose: LLMPurpose.COMPLETIONS,
+            maxCompletionTokens: mockModelsMetadata[BEDROCK_CLAUDE_SONNET_V45].maxCompletionTokens,
+            maxTotalTokens: mockModelsMetadata[BEDROCK_CLAUDE_SONNET_V45].maxTotalTokens,
+          },
+        ],
       },
     };
 
     return {
       manifest,
       providerParams: {},
-      resolvedModels: {
-        embeddings: mockModelsMetadata.EMBEDDINGS.urn,
-        primaryCompletion: mockModelsMetadata[AWS_COMPLETIONS_CLAUDE_OPUS_V45].urn,
-        secondaryCompletion: mockModelsMetadata[AWS_COMPLETIONS_CLAUDE_SONNET_V45].urn,
+      resolvedModelChain: {
+        embeddings: [
+          {
+            providerFamily: "BedrockClaude",
+            modelKey: "EMBEDDINGS",
+            modelUrn: mockModelsMetadata.EMBEDDINGS.urn,
+          },
+        ],
+        completions: [
+          {
+            providerFamily: "BedrockClaude",
+            modelKey: BEDROCK_CLAUDE_OPUS_V45,
+            modelUrn: mockModelsMetadata[BEDROCK_CLAUDE_OPUS_V45].urn,
+          },
+          {
+            providerFamily: "BedrockClaude",
+            modelKey: BEDROCK_CLAUDE_SONNET_V45,
+            modelUrn: mockModelsMetadata[BEDROCK_CLAUDE_SONNET_V45].urn,
+          },
+        ],
       },
       errorLogging: createMockErrorLoggingConfig(),
     };
@@ -178,10 +209,7 @@ describe("BedrockClaudeLLM - Request Body Building", () => {
 
       const testPrompt = "Analyze large codebase";
       // eslint-disable-next-line @typescript-eslint/dot-notation
-      const requestBody = llm["buildCompletionRequestBody"](
-        AWS_COMPLETIONS_CLAUDE_OPUS_V45,
-        testPrompt,
-      );
+      const requestBody = llm["buildCompletionRequestBody"](BEDROCK_CLAUDE_OPUS_V45, testPrompt);
 
       // Verify structure includes beta header for 1M context
       expect(requestBody).toHaveProperty("anthropic_beta");
@@ -199,10 +227,7 @@ describe("BedrockClaudeLLM - Request Body Building", () => {
 
       const testPrompt = "Analyze large codebase";
       // eslint-disable-next-line @typescript-eslint/dot-notation
-      const requestBody = llm["buildCompletionRequestBody"](
-        AWS_COMPLETIONS_CLAUDE_SONNET_V45,
-        testPrompt,
-      );
+      const requestBody = llm["buildCompletionRequestBody"](BEDROCK_CLAUDE_SONNET_V45, testPrompt);
 
       // Verify structure includes beta header for 1M context
       expect(requestBody).toHaveProperty("anthropic_beta");
@@ -225,25 +250,41 @@ describe("BedrockClaudeLLM - Request Body Building", () => {
         // temperature, topK intentionally omitted
       };
 
-      const minimalManifest = {
+      const minimalManifest: LLMProviderManifest = {
         ...bedrockClaudeProviderManifest,
         providerSpecificConfig: minimalConfig,
         models: {
-          ...bedrockClaudeProviderManifest.models,
-          primaryCompletion: {
-            ...bedrockClaudeProviderManifest.models.primaryCompletion,
-            modelKey: AWS_COMPLETIONS_CLAUDE_V37,
-            maxCompletionTokens: mockModelsMetadata[AWS_COMPLETIONS_CLAUDE_V37].maxCompletionTokens,
-            maxTotalTokens: mockModelsMetadata[AWS_COMPLETIONS_CLAUDE_V37].maxTotalTokens,
-          },
+          embeddings: [],
+          completions: [
+            {
+              modelKey: AWS_COMPLETIONS_CLAUDE_V37,
+              urnEnvKey: "CLAUDE_V37_URN",
+              purpose: LLMPurpose.COMPLETIONS,
+              maxCompletionTokens:
+                mockModelsMetadata[AWS_COMPLETIONS_CLAUDE_V37].maxCompletionTokens,
+              maxTotalTokens: mockModelsMetadata[AWS_COMPLETIONS_CLAUDE_V37].maxTotalTokens,
+            },
+          ],
         },
       };
       const minimalInit: ProviderInit = {
-        manifest: minimalManifest as any,
+        manifest: minimalManifest,
         providerParams: {},
-        resolvedModels: {
-          embeddings: mockModelsMetadata.EMBEDDINGS.urn,
-          primaryCompletion: mockModelsMetadata[AWS_COMPLETIONS_CLAUDE_V37].urn,
+        resolvedModelChain: {
+          embeddings: [
+            {
+              providerFamily: "BedrockClaude",
+              modelKey: "EMBEDDINGS",
+              modelUrn: mockModelsMetadata.EMBEDDINGS.urn,
+            },
+          ],
+          completions: [
+            {
+              providerFamily: "BedrockClaude",
+              modelKey: AWS_COMPLETIONS_CLAUDE_V37,
+              modelUrn: mockModelsMetadata[AWS_COMPLETIONS_CLAUDE_V37].urn,
+            },
+          ],
         },
         errorLogging: createMockErrorLoggingConfig(),
       };
@@ -284,7 +325,7 @@ describe("BedrockClaudeLLM - Request Body Building", () => {
       const llmOpus45 = new BedrockClaudeLLM(createTestProviderInitWithOpus45());
       // eslint-disable-next-line @typescript-eslint/dot-notation
       const requestBodyOpus45 = llmOpus45["buildCompletionRequestBody"](
-        AWS_COMPLETIONS_CLAUDE_OPUS_V45,
+        BEDROCK_CLAUDE_OPUS_V45,
         "test",
       );
       expect((requestBodyOpus45 as any).max_tokens).toBe(64000);
@@ -328,7 +369,7 @@ describe("BedrockClaudeLLM - Request Body Building", () => {
     it("should return correct model family", () => {
       const llm = new BedrockClaudeLLM(createTestProviderInit());
 
-      expect(llm.getModelFamily()).toBe("Bedrock Claude");
+      expect(llm.getModelFamily()).toBe("BedrockClaude");
     });
   });
 });

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { LLMProviderManifest } from "../../llm-provider.types";
+import type { LLMProviderManifest } from "../../llm-provider.types";
 import AzureOpenAILLM from "./azure-openai-llm";
 import { LLMPurpose } from "../../../types/llm-request.types";
 import { OPENAI_COMMON_ERROR_PATTERNS } from "../common/openai-error-patterns";
@@ -9,21 +9,18 @@ import { llmConfig } from "../../../config/llm.config";
 // Environment variable name constants
 const AZURE_OPENAI_LLM_API_KEY = "AZURE_OPENAI_LLM_API_KEY";
 const AZURE_OPENAI_ENDPOINT_KEY = "AZURE_OPENAI_ENDPOINT";
+// Azure-specific: each model needs its own deployment name for routing
 const AZURE_OPENAI_EMBEDDINGS_MODEL_DEPLOYMENT_KEY = "AZURE_OPENAI_EMBEDDINGS_MODEL_DEPLOYMENT";
-const AZURE_OPENAI_COMPLETIONS_MODEL_DEPLOYMENT_PRIMARY_KEY =
-  "AZURE_OPENAI_COMPLETIONS_MODEL_DEPLOYMENT_PRIMARY";
-const AZURE_OPENAI_COMPLETIONS_MODEL_DEPLOYMENT_SECONDARY_KEY =
-  "AZURE_OPENAI_COMPLETIONS_MODEL_DEPLOYMENT_SECONDARY";
-const AZURE_OPENAI_ADA_EMBEDDINGS_MODEL_KEY = "AZURE_OPENAI_ADA_EMBEDDINGS_MODEL";
-const AZURE_OPENAI_GPT_COMPLETIONS_MODEL_PRIMARY_KEY = "AZURE_OPENAI_GPT_COMPLETIONS_MODEL_PRIMARY";
-const AZURE_OPENAI_GPT_COMPLETIONS_MODEL_SECONDARY_KEY =
-  "AZURE_OPENAI_GPT_COMPLETIONS_MODEL_SECONDARY";
+const AZURE_OPENAI_GPT4O_DEPLOYMENT_KEY = "AZURE_OPENAI_GPT4O_MODEL_DEPLOYMENT";
+const AZURE_OPENAI_GPT4_TURBO_DEPLOYMENT_KEY = "AZURE_OPENAI_GPT4_TURBO_MODEL_DEPLOYMENT";
 
-// Model constants
+// Model family constant - exported for use in provider registry
 export const AZURE_OPENAI = "AzureOpenAI";
-const GPT_EMBEDDINGS_ADA002 = "GPT_EMBEDDINGS_ADA002";
-const GPT_COMPLETIONS_GPT4_O = "GPT_COMPLETIONS_GPT4_O";
-const GPT_COMPLETIONS_GPT4_TURBO = "GPT_COMPLETIONS_GPT4_TURBO";
+
+// Environment variable keys for model URNs
+export const AZURE_OPENAI_ADA_EMBEDDINGS_MODEL_URN_ID = "AZURE_OPENAI_ADA_EMBEDDINGS_MODEL_URN";
+export const AZURE_OPENAI_GPT4O_MODEL_URN_ID = "AZURE_OPENAI_GPT4O_MODEL_URN";
+export const AZURE_OPENAI_GPT4_TURBO_MODEL_URN_ID = "AZURE_OPENAI_GPT4_TURBO_MODEL_URN";
 
 export const azureOpenAIProviderManifest: LLMProviderManifest = {
   providerName: "Azure OpenAI",
@@ -31,38 +28,41 @@ export const azureOpenAIProviderManifest: LLMProviderManifest = {
   envSchema: z.object({
     [AZURE_OPENAI_LLM_API_KEY]: z.string().min(1),
     [AZURE_OPENAI_ENDPOINT_KEY]: z.string().url(),
+    // Deployment names - each model needs its own deployment
     [AZURE_OPENAI_EMBEDDINGS_MODEL_DEPLOYMENT_KEY]: z.string().min(1),
-    [AZURE_OPENAI_COMPLETIONS_MODEL_DEPLOYMENT_PRIMARY_KEY]: z.string().min(1),
-    [AZURE_OPENAI_COMPLETIONS_MODEL_DEPLOYMENT_SECONDARY_KEY]: z.string().min(1),
-    [AZURE_OPENAI_ADA_EMBEDDINGS_MODEL_KEY]: z.string().min(1),
-    [AZURE_OPENAI_GPT_COMPLETIONS_MODEL_PRIMARY_KEY]: z.string().min(1),
-    [AZURE_OPENAI_GPT_COMPLETIONS_MODEL_SECONDARY_KEY]: z.string().min(1),
+    [AZURE_OPENAI_GPT4O_DEPLOYMENT_KEY]: z.string().min(1),
+    [AZURE_OPENAI_GPT4_TURBO_DEPLOYMENT_KEY]: z.string().min(1),
+    // Model URNs
+    [AZURE_OPENAI_ADA_EMBEDDINGS_MODEL_URN_ID]: z.string().min(1),
+    [AZURE_OPENAI_GPT4O_MODEL_URN_ID]: z.string().min(1),
+    [AZURE_OPENAI_GPT4_TURBO_MODEL_URN_ID]: z.string().min(1),
   }),
   models: {
-    embeddings: {
-      modelKey: GPT_EMBEDDINGS_ADA002,
-      name: "text-embedding-ada-002",
-      urnEnvKey: AZURE_OPENAI_ADA_EMBEDDINGS_MODEL_KEY,
-      purpose: LLMPurpose.EMBEDDINGS,
-      dimensions: 1536,
-      maxTotalTokens: 8191,
-    },
-    primaryCompletion: {
-      modelKey: GPT_COMPLETIONS_GPT4_O,
-      name: "GPT-4o",
-      urnEnvKey: AZURE_OPENAI_GPT_COMPLETIONS_MODEL_PRIMARY_KEY,
-      purpose: LLMPurpose.COMPLETIONS,
-      maxCompletionTokens: 16384,
-      maxTotalTokens: 128000,
-    },
-    secondaryCompletion: {
-      modelKey: GPT_COMPLETIONS_GPT4_TURBO,
-      name: "GPT-4 Turbo",
-      urnEnvKey: AZURE_OPENAI_GPT_COMPLETIONS_MODEL_SECONDARY_KEY,
-      purpose: LLMPurpose.COMPLETIONS,
-      maxCompletionTokens: 4096,
-      maxTotalTokens: 128000,
-    },
+    embeddings: [
+      {
+        modelKey: "text-embedding-ada-002",
+        purpose: LLMPurpose.EMBEDDINGS,
+        urnEnvKey: AZURE_OPENAI_ADA_EMBEDDINGS_MODEL_URN_ID,
+        dimensions: 1536,
+        maxTotalTokens: 8191,
+      },
+    ],
+    completions: [
+      {
+        modelKey: "gpt-4o",
+        purpose: LLMPurpose.COMPLETIONS,
+        urnEnvKey: AZURE_OPENAI_GPT4O_MODEL_URN_ID,
+        maxCompletionTokens: 16384,
+        maxTotalTokens: 128000,
+      },
+      {
+        modelKey: "gpt-4-turbo",
+        purpose: LLMPurpose.COMPLETIONS,
+        urnEnvKey: AZURE_OPENAI_GPT4_TURBO_MODEL_URN_ID,
+        maxCompletionTokens: 4096,
+        maxTotalTokens: 128000,
+      },
+    ],
   },
   errorPatterns: OPENAI_COMMON_ERROR_PATTERNS,
   providerSpecificConfig: {

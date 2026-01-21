@@ -5,7 +5,6 @@ import { formatDateForLogging } from "../../common/utils/date-utils";
 import { coreTokens, llmTokens } from "../di/tokens";
 import type { MongoDBConnectionManager } from "../../common/mongodb/mdb-connection-manager";
 import type LLMRouter from "../../common/llm/llm-router";
-import { ShutdownBehavior } from "../../common/llm/types/llm-shutdown.types";
 
 /**
  * Simplified application entry point that orchestrates the application lifecycle:
@@ -45,14 +44,21 @@ export async function runApplication(taskToken: symbol): Promise<void> {
       }
       if (container.isRegistered(llmTokens.LLMRouter)) {
         const llmRouter = container.resolve<LLMRouter>(llmTokens.LLMRouter);
+
+        // Check shutdown behavior BEFORE shutdown (shutdown clears the provider cache,
+        // and getProvidersRequiringProcessExit() would re-instantiate providers if called after)
+        const providersRequiringExit = llmRouter.getProvidersRequiringProcessExit();
+
         await llmRouter.shutdown();
 
-        // Check if the LLM provider requires special shutdown handling
         // Known Google Cloud Node.js client limitation:
         // VertexAI SDK doesn't have explicit close() method and HTTP connections may persist
         // This is documented behavior - see: https://github.com/googleapis/nodejs-pubsub/issues/1190
-        if (llmRouter.getProviderShutdownBehavior() === ShutdownBehavior.REQUIRES_PROCESS_EXIT) {
-          console.log("LLM provider requires forced exit - terminating process");
+        if (providersRequiringExit.length > 0) {
+          const providerNames = providersRequiringExit.join(", ");
+          console.log(
+            `LLM provider(s) require forced exit (${providerNames}) - terminating process`,
+          );
           process.exit(0);
         }
       }

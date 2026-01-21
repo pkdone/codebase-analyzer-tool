@@ -42,7 +42,7 @@ describe("AppSummaryRepository Integration Tests", () => {
       const testRecord: AppSummaryRecord = {
         projectName: testProjectName,
         appDescription: "Test application for integration testing",
-        llmProvider: "openai",
+        llmModels: "openai",
         technologies: [
           { name: "TypeScript", description: "JavaScript with static types" },
           { name: "Node.ts", description: "JavaScript runtime for server-side development" },
@@ -101,11 +101,11 @@ describe("AppSummaryRepository Integration Tests", () => {
       // Assert: Verify the record was inserted
       const retrieved = await appSummariesRepository.getProjectAppSummaryFields(testProjectName, [
         "appDescription",
-        "llmProvider",
+        "llmModels",
       ]);
       expect(retrieved).not.toBeNull();
       expect(retrieved!.appDescription).toBe("Test application for integration testing");
-      expect(retrieved!.llmProvider).toBe("openai");
+      expect(retrieved!.llmModels).toBe("openai");
     }, 30000);
 
     it("should replace existing app summary record with upsert", async () => {
@@ -113,7 +113,7 @@ describe("AppSummaryRepository Integration Tests", () => {
       const initialRecord: AppSummaryRecord = {
         projectName: testProjectName,
         appDescription: "Initial description",
-        llmProvider: "claude",
+        llmModels: "claude",
         technologies: [{ name: "JavaScript", description: "Dynamic programming language" }],
       };
 
@@ -122,16 +122,16 @@ describe("AppSummaryRepository Integration Tests", () => {
       // Verify initial record exists
       let retrieved = await appSummariesRepository.getProjectAppSummaryFields(testProjectName, [
         "appDescription",
-        "llmProvider",
+        "llmModels",
       ]);
       expect(retrieved!.appDescription).toBe("Initial description");
-      expect(retrieved!.llmProvider).toBe("claude");
+      expect(retrieved!.llmModels).toBe("claude");
 
       // Act: Replace with new record
       const replacementRecord: AppSummaryRecord = {
         projectName: testProjectName,
         appDescription: "Updated description",
-        llmProvider: "openai",
+        llmModels: "openai",
         technologies: [
           { name: "TypeScript", description: "JavaScript with static types" },
           { name: "React", description: "JavaScript library for building user interfaces" },
@@ -144,10 +144,10 @@ describe("AppSummaryRepository Integration Tests", () => {
       // Assert: Verify the record was replaced completely
       retrieved = await appSummariesRepository.getProjectAppSummaryFields(testProjectName, [
         "appDescription",
-        "llmProvider",
+        "llmModels",
       ]);
       expect(retrieved!.appDescription).toBe("Updated description");
-      expect(retrieved!.llmProvider).toBe("openai");
+      expect(retrieved!.llmModels).toBe("openai");
 
       // Check that the full record was replaced by getting technologies
       const technologiesField = await appSummariesRepository.getProjectAppSummaryField(
@@ -165,7 +165,7 @@ describe("AppSummaryRepository Integration Tests", () => {
       const initialRecord: AppSummaryRecord = {
         projectName: testProjectName,
         appDescription: "Initial description",
-        llmProvider: "claude",
+        llmModels: "claude",
         technologies: [{ name: "JavaScript", description: "Dynamic language" }],
         boundedContexts: [
           {
@@ -199,10 +199,10 @@ describe("AppSummaryRepository Integration Tests", () => {
       // Assert: Verify updated fields
       const retrieved = await appSummariesRepository.getProjectAppSummaryFields(testProjectName, [
         "appDescription",
-        "llmProvider",
+        "llmModels",
       ]);
       expect(retrieved!.appDescription).toBe("Updated description via partial update");
-      expect(retrieved!.llmProvider).toBe("claude"); // Should remain unchanged
+      expect(retrieved!.llmModels).toBe("claude"); // Should remain unchanged
 
       const technologiesField = await appSummariesRepository.getProjectAppSummaryField(
         testProjectName,
@@ -225,7 +225,7 @@ describe("AppSummaryRepository Integration Tests", () => {
       const initialRecord: AppSummaryRecord = {
         projectName: testProjectName,
         appDescription: "Initial description",
-        llmProvider: "openai",
+        llmModels: "openai",
       };
 
       await appSummariesRepository.createOrReplaceAppSummary(initialRecord);
@@ -236,10 +236,10 @@ describe("AppSummaryRepository Integration Tests", () => {
       // Assert: Record should remain unchanged
       const retrieved = await appSummariesRepository.getProjectAppSummaryFields(testProjectName, [
         "appDescription",
-        "llmProvider",
+        "llmModels",
       ]);
       expect(retrieved!.appDescription).toBe("Initial description");
-      expect(retrieved!.llmProvider).toBe("openai");
+      expect(retrieved!.llmModels).toBe("openai");
     }, 30000);
   });
 
@@ -249,7 +249,7 @@ describe("AppSummaryRepository Integration Tests", () => {
       const testRecord: AppSummaryRecord = {
         projectName: testProjectName,
         appDescription: "Comprehensive test application",
-        llmProvider: "openai",
+        llmModels: "openai",
         technologies: [
           { name: "TypeScript", description: "JavaScript with static types" },
           { name: "Node.ts", description: "JavaScript runtime" },
@@ -327,23 +327,23 @@ describe("AppSummaryRepository Integration Tests", () => {
       // Act
       const result = await appSummariesRepository.getProjectAppSummaryFields(testProjectName, [
         "appDescription",
-        "llmProvider",
+        "llmModels",
       ]);
 
       // Assert
       expect(result).not.toBeNull();
       expect(result!.appDescription).toBe("Comprehensive test application");
-      expect(result!.llmProvider).toBe("openai");
+      expect(result!.llmModels).toBe("openai");
 
       // Should only contain the projected fields
-      expect(Object.keys(result!)).toEqual(["appDescription", "llmProvider"]);
+      expect(Object.keys(result!)).toEqual(["appDescription", "llmModels"]);
     }, 30000);
 
     it("should return null for non-existent project", async () => {
       // Act
       const result = await appSummariesRepository.getProjectAppSummaryFields(
         "nonexistent-project",
-        ["appDescription", "llmProvider"],
+        ["appDescription", "llmModels"],
       );
 
       // Assert
@@ -358,11 +358,11 @@ describe("AppSummaryRepository Integration Tests", () => {
       );
       expect(appDescription).toBe("Comprehensive test application");
 
-      const llmProvider = await appSummariesRepository.getProjectAppSummaryField(
+      const llmModels = await appSummariesRepository.getProjectAppSummaryField(
         testProjectName,
-        "llmProvider",
+        "llmModels",
       );
-      expect(llmProvider).toBe("openai");
+      expect(llmModels).toBe("openai");
 
       const technologies = await appSummariesRepository.getProjectAppSummaryField(
         testProjectName,
@@ -394,7 +394,7 @@ describe("AppSummaryRepository Integration Tests", () => {
       // Act
       const fields = [
         "appDescription",
-        "llmProvider",
+        "llmModels",
         "technologies",
         "technologies",
       ] as (keyof AppSummaryRecord)[];
@@ -406,14 +406,14 @@ describe("AppSummaryRepository Integration Tests", () => {
       // Assert
       expect(result).not.toBeNull();
       expect(result!.appDescription).toBe("Comprehensive test application");
-      expect(result!.llmProvider).toBe("openai");
+      expect(result!.llmModels).toBe("openai");
       expect(result!.technologies).toHaveLength(3);
 
       // Should only contain the requested fields (order not guaranteed by MongoDB)
       const keys = Object.keys(result!);
       expect(keys).toHaveLength(3);
       expect(keys).toContain("appDescription");
-      expect(keys).toContain("llmProvider");
+      expect(keys).toContain("llmModels");
       expect(keys).toContain("technologies");
     }, 30000);
 
@@ -441,7 +441,7 @@ describe("AppSummaryRepository Integration Tests", () => {
       const partialRecord: AppSummaryRecord = {
         projectName: `partial-${testProjectName}`,
         appDescription: "Partial record",
-        llmProvider: "claude",
+        llmModels: "claude",
         // Missing technologies, entities, etc.
       };
 
@@ -450,7 +450,7 @@ describe("AppSummaryRepository Integration Tests", () => {
       // Act: Request fields including some that don't exist
       const fields = [
         "appDescription",
-        "llmProvider",
+        "llmModels",
         "technologies",
         "technologies",
       ] as (keyof AppSummaryRecord)[];
@@ -462,7 +462,7 @@ describe("AppSummaryRepository Integration Tests", () => {
       // Assert: Should return only the fields that exist
       expect(result).not.toBeNull();
       expect(result!.appDescription).toBe("Partial record");
-      expect(result!.llmProvider).toBe("claude");
+      expect(result!.llmModels).toBe("claude");
       expect(result!.technologies).toBeUndefined();
       expect(result!.technologies).toBeUndefined();
 
@@ -479,7 +479,7 @@ describe("AppSummaryRepository Integration Tests", () => {
       const testRecord: AppSummaryRecord = {
         projectName: testProjectName,
         appDescription: "Test for projection building",
-        llmProvider: "openai",
+        llmModels: "openai",
         technologies: [{ name: "TypeScript", description: "Static typing" }],
         entities: [{ name: "User", description: "User entity" }],
         businessProcesses: [
@@ -514,8 +514,8 @@ describe("AppSummaryRepository Integration Tests", () => {
       expect(result!.technologies).toBeDefined();
       expect(result!.businessProcesses).toBeDefined();
 
-      // Should not include llmProvider (not requested)
-      expect(result!.llmProvider).toBeUndefined();
+      // Should not include llmModels (not requested)
+      expect(result!.llmModels).toBeUndefined();
 
       // Should not include _id (always excluded)
       expect((result as any)._id).toBeUndefined();

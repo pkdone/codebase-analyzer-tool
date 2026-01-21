@@ -1,46 +1,41 @@
 import { z } from "zod";
 import BedrockClaudeLLM from "./bedrock-claude-llm";
 import { LLMPurpose } from "../../../types/llm-request.types";
-import { createTitanEmbeddingsConfig } from "../common/bedrock-models.constants";
 import { llmConfig } from "../../../config/llm.config";
 import { createBedrockManifest } from "../common/bedrock-manifest-factory";
 
 // Model family constant - exported for use in provider registry
 export const BEDROCK_CLAUDE_FAMILY = "BedrockClaude";
 
-// Environment variable name constants
-const BEDROCK_CLAUDE_COMPLETIONS_MODEL_PRIMARY_KEY = "BEDROCK_CLAUDE_COMPLETIONS_MODEL_PRIMARY";
-const BEDROCK_CLAUDE_COMPLETIONS_MODEL_SECONDARY_KEY = "BEDROCK_CLAUDE_COMPLETIONS_MODEL_SECONDARY";
-
-// Model constants
-export const AWS_COMPLETIONS_CLAUDE_OPUS_V45 = "AWS_COMPLETIONS_CLAUDE_OPUS_V45";
-export const AWS_COMPLETIONS_CLAUDE_SONNET_V45 = "AWS_COMPLETIONS_CLAUDE_SONNET_V45";
+// Environment variable keys for model URNs
+export const BEDROCK_CLAUDE_OPUS_45_MODEL_URN_ID = "BEDROCK_CLAUDE_OPUS_45_MODEL_URN";
+export const BEDROCK_CLAUDE_SONNET_45_MODEL_URN_ID = "BEDROCK_CLAUDE_SONNET_45_MODEL_URN";
 
 export const bedrockClaudeProviderManifest = createBedrockManifest(
   "Bedrock Claude",
   BEDROCK_CLAUDE_FAMILY,
   {
-    embeddings: createTitanEmbeddingsConfig(),
-    primaryCompletion: {
-      modelKey: AWS_COMPLETIONS_CLAUDE_OPUS_V45,
-      name: "Claude Opus 4.5",
-      urnEnvKey: BEDROCK_CLAUDE_COMPLETIONS_MODEL_PRIMARY_KEY,
-      purpose: LLMPurpose.COMPLETIONS,
-      maxCompletionTokens: 64000,
-      maxTotalTokens: 200_000,
-    },
-    secondaryCompletion: {
-      modelKey: AWS_COMPLETIONS_CLAUDE_SONNET_V45,
-      name: "Claude Sonnet 4.5",
-      urnEnvKey: BEDROCK_CLAUDE_COMPLETIONS_MODEL_SECONDARY_KEY,
-      purpose: LLMPurpose.COMPLETIONS,
-      maxCompletionTokens: 64000,
-      maxTotalTokens: 1_000_000,
-    },
+    embeddings: [],
+    completions: [
+      {
+        modelKey: "bedrock-claude-opus-4.5",
+        purpose: LLMPurpose.COMPLETIONS,
+        urnEnvKey: BEDROCK_CLAUDE_OPUS_45_MODEL_URN_ID,
+        maxCompletionTokens: 64000,
+        maxTotalTokens: 200_000,
+      },
+      {
+        modelKey: "bedrock-claude-sonnet-4.5",
+        purpose: LLMPurpose.COMPLETIONS,
+        urnEnvKey: BEDROCK_CLAUDE_SONNET_45_MODEL_URN_ID,
+        maxCompletionTokens: 64000,
+        maxTotalTokens: 1_000_000,
+      },
+    ],
   },
   {
-    [BEDROCK_CLAUDE_COMPLETIONS_MODEL_PRIMARY_KEY]: z.string().min(1),
-    [BEDROCK_CLAUDE_COMPLETIONS_MODEL_SECONDARY_KEY]: z.string().min(1),
+    [BEDROCK_CLAUDE_OPUS_45_MODEL_URN_ID]: z.string().min(1),
+    [BEDROCK_CLAUDE_SONNET_45_MODEL_URN_ID]: z.string().min(1),
   },
   {
     apiVersion: "bedrock-2023-05-31",

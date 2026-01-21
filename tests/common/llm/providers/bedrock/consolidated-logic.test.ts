@@ -19,21 +19,24 @@ describe("Consolidated Bedrock Logic", () => {
       modelFamily: "test-bedrock",
       envSchema: z.object({}),
       models: {
-        embeddings: {
-          modelKey: "test-embed",
-          name: "Test Embeddings",
-          urnEnvKey: "TEST_EMBED",
-          purpose: LLMPurpose.EMBEDDINGS,
-          maxTotalTokens: 8192,
-        },
-        primaryCompletion: {
-          modelKey: "test-complete",
-          name: "Test Completion",
-          urnEnvKey: "TEST_COMPLETE",
-          purpose: LLMPurpose.COMPLETIONS,
-          maxCompletionTokens: 4096,
-          maxTotalTokens: 128000,
-        },
+        embeddings: [
+          {
+            modelKey: "test-embed",
+            urnEnvKey: "TEST_EMBED",
+            purpose: LLMPurpose.EMBEDDINGS,
+            maxTotalTokens: 8192,
+            dimensions: 1024,
+          },
+        ],
+        completions: [
+          {
+            modelKey: "test-complete",
+            urnEnvKey: "TEST_COMPLETE",
+            purpose: LLMPurpose.COMPLETIONS,
+            maxCompletionTokens: 4096,
+            maxTotalTokens: 128000,
+          },
+        ],
       },
       errorPatterns: [],
       providerSpecificConfig: {
@@ -45,9 +48,17 @@ describe("Consolidated Bedrock Logic", () => {
       implementation: BaseBedrockLLM as any,
     },
     providerParams: {},
-    resolvedModels: {
-      embeddings: "test-embed-urn",
-      primaryCompletion: "test-complete-urn",
+    resolvedModelChain: {
+      embeddings: [
+        { providerFamily: "test-bedrock", modelKey: "test-embed", modelUrn: "test-embed-urn" },
+      ],
+      completions: [
+        {
+          providerFamily: "test-bedrock",
+          modelKey: "test-complete",
+          modelUrn: "test-complete-urn",
+        },
+      ],
     },
     errorLogging: {
       errorLogDirectory: "/tmp/test-errors",

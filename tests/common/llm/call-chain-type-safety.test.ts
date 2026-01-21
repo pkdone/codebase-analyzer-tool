@@ -10,7 +10,6 @@ import {
   LLMResponseStatus,
   type LLMFunctionResponse,
 } from "../../../src/common/llm/types/llm-response.types";
-import { LLMModelTier } from "../../../src/common/llm/types/llm-model.types";
 
 // Mock dependencies
 jest.mock("../../../src/common/utils/logging", () => ({
@@ -30,7 +29,6 @@ describe("LLM Call Chain Type Safety", () => {
   const mockContext: LLMContext = {
     resource: "test-resource",
     purpose: LLMPurpose.COMPLETIONS,
-    modelTier: LLMModelTier.PRIMARY,
     outputFormat: LLMOutputFormat.JSON,
   };
 

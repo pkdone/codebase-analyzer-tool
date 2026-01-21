@@ -5,15 +5,15 @@ import {
   LLMCompletionOptions,
   LLMOutputFormat,
 } from "../types/llm-request.types";
-import { LLMModelTier, LLMModelKeysSet, ResolvedLLMModelMetadata } from "../types/llm-model.types";
+import type { ResolvedLLMModelMetadata } from "../types/llm-model.types";
 import {
   LLMResponseStatus,
   LLMResponseTokensUsage,
   LLMGeneratedContent,
   LLMFunctionResponse,
 } from "../types/llm-response.types";
-import { LLMFunction, LLMEmbeddingFunction } from "../types/llm-function.types";
-import { LLMErrorMsgRegExPattern } from "../types/llm-stats.types";
+import type { LLMModelKeyFunction, LLMEmbeddingFunction } from "../types/llm-function.types";
+import type { LLMErrorMsgRegExPattern } from "../types/llm-stats.types";
 import type { LLMProvider } from "../types/llm-provider.interface";
 import { ShutdownBehavior } from "../types/llm-shutdown.types";
 import {
@@ -29,8 +29,9 @@ import { LLMError, LLMErrorCode } from "../types/llm-errors.types";
 import { llmProviderConfig } from "../config/llm.config";
 import { LLMErrorLogger } from "../tracking/llm-error-logger";
 import {
-  buildModelsKeysSet,
-  buildModelsMetadataFromResolvedUrns,
+  buildModelsMetadataFromChain,
+  getCompletionModelKeysFromChain,
+  getEmbeddingModelKeysFromChain,
 } from "../utils/provider-init-builder";
 
 /**
@@ -42,7 +43,8 @@ export default abstract class BaseLLMProvider implements LLMProvider {
   protected readonly llmModelsMetadata: Record<string, ResolvedLLMModelMetadata>;
   protected readonly providerSpecificConfig: LLMProviderSpecificConfig;
   protected readonly providerParams: Record<string, unknown>;
-  private readonly modelsKeys: LLMModelKeysSet;
+  private readonly completionModelKeys: readonly string[];
+  private readonly embeddingModelKeys: readonly string[];
   private readonly errorPatterns: readonly LLMErrorMsgRegExPattern[];
   private readonly modelFamily: string;
   private readonly errorLogger: LLMErrorLogger;
@@ -51,16 +53,23 @@ export default abstract class BaseLLMProvider implements LLMProvider {
    * Constructor accepting a ProviderInit configuration object.
    */
   constructor(init: ProviderInit) {
-    const { manifest, providerParams, resolvedModels, errorLogging } = init;
+    const { manifest, providerParams, resolvedModelChain, errorLogging } = init;
 
-    // Build derived values from manifest and resolved models
-    this.modelsKeys = buildModelsKeysSet(manifest);
-    this.llmModelsMetadata = buildModelsMetadataFromResolvedUrns(manifest, resolvedModels);
+    // Build derived values from manifest and resolved model chain
+    this.llmModelsMetadata = buildModelsMetadataFromChain(manifest, resolvedModelChain);
+    this.completionModelKeys = getCompletionModelKeysFromChain(
+      manifest.modelFamily,
+      resolvedModelChain,
+    );
+    this.embeddingModelKeys = getEmbeddingModelKeysFromChain(
+      manifest.modelFamily,
+      resolvedModelChain,
+    );
 
     // Assign configuration values
     this.errorPatterns = manifest.errorPatterns;
     this.providerSpecificConfig = manifest.providerSpecificConfig;
-    this.modelFamily = manifest.providerName;
+    this.modelFamily = manifest.modelFamily;
     this.errorLogger = new LLMErrorLogger(errorLogging);
     this.providerParams = providerParams;
   }
@@ -69,42 +78,39 @@ export default abstract class BaseLLMProvider implements LLMProvider {
    * Get the models metadata in a readonly format to prevent modifications by the caller.
    * Uses structuredClone for deep immutability.
    */
-  getModelsMetadata() {
+  getModelsMetadata(): Readonly<Record<string, ResolvedLLMModelMetadata>> {
     return Object.freeze(structuredClone(this.llmModelsMetadata));
   }
 
   /**
-   * Get the available model tiers for completions.
+   * Get the model keys available for completion operations.
    */
-  getAvailableCompletionModelTiers(): LLMModelTier[] {
-    return [
-      LLMModelTier.PRIMARY,
-      ...(this.modelsKeys.secondaryCompletionModelKey ? [LLMModelTier.SECONDARY] : []),
-    ];
+  getAvailableCompletionModelKeys(): readonly string[] {
+    return this.completionModelKeys;
   }
 
   /**
-   * Get the model key for the embeddings model.
+   * Get the model keys available for embedding operations.
    */
-  getModelsNames() {
-    const embeddingsMetadata = this.llmModelsMetadata[this.modelsKeys.embeddingsModelKey];
-    const primaryCompletionMetadata =
-      this.llmModelsMetadata[this.modelsKeys.primaryCompletionModelKey];
+  getAvailableEmbeddingModelKeys(): readonly string[] {
+    return this.embeddingModelKeys;
+  }
+
+  /**
+   * Get the model keys of all available models from this provider.
+   */
+  getAvailableModelNames(): { embeddings: readonly string[]; completions: readonly string[] } {
     return {
-      embeddings: embeddingsMetadata.name,
-      primaryCompletion: primaryCompletionMetadata.name,
-      ...(this.modelsKeys.secondaryCompletionModelKey && {
-        secondaryCompletion:
-          this.llmModelsMetadata[this.modelsKeys.secondaryCompletionModelKey].name,
-      }),
+      embeddings: this.embeddingModelKeys,
+      completions: this.completionModelKeys,
     };
   }
 
   /**
-   * Get the dimensions for the embeddings model.
+   * Get the dimensions for a specific embedding model.
    */
-  getEmbeddingModelDimensions() {
-    return this.llmModelsMetadata[this.modelsKeys.embeddingsModelKey].dimensions;
+  getEmbeddingModelDimensions(modelKey: string): number | undefined {
+    return this.llmModelsMetadata[modelKey].dimensions;
   }
 
   /**
@@ -115,71 +121,50 @@ export default abstract class BaseLLMProvider implements LLMProvider {
   }
 
   /**
-   * Generate embeddings for the given content.
+   * Generate embeddings for the given content using the specified model.
    * Uses arrow function to enable easier binding of `this` context.
    */
-  generateEmbeddings: LLMEmbeddingFunction = async (content, context, options) => {
+  generateEmbeddings: LLMEmbeddingFunction = async (modelKey, content, context, options) => {
+    // Validate that the model key is available
+    if (!this.embeddingModelKeys.includes(modelKey)) {
+      throw new LLMError(
+        LLMErrorCode.BAD_CONFIGURATION,
+        `Embedding model '${modelKey}' is not available in provider ${this.modelFamily}. ` +
+          `Available: ${this.embeddingModelKeys.join(", ")}`,
+      );
+    }
+
     const result = await this.executeProviderFunction<z.ZodType<number[]>>(
-      this.modelsKeys.embeddingsModelKey,
+      modelKey,
       LLMPurpose.EMBEDDINGS,
       content,
       context,
       options as LLMCompletionOptions<z.ZodType<number[]>>,
     );
-    // Return type is correctly inferred as LLMFunctionResponse<number[]> from the generic
     return result;
   };
 
   /**
-   * Execute the LLM function for the primary completion model.
+   * Execute completion using the specified model.
    * Return type is inferred from options.jsonSchema at the call site.
    * Implemented as arrow function to preserve `this` context when passed to pipeline.
-   *
-   * Generic type parameter is explicitly declared to ensure type information flows
-   * correctly through to executeProviderFunction, preventing implicit widening to
-   * z.ZodType<any> within the implementation body.
    */
-  executeCompletionPrimary: LLMFunction = async <S extends z.ZodType<unknown>>(
+  executeCompletion: LLMModelKeyFunction = async <S extends z.ZodType<unknown>>(
+    modelKey: string,
     prompt: string,
     context: LLMContext,
     options?: LLMCompletionOptions<S>,
   ): Promise<LLMFunctionResponse<z.infer<S>>> => {
-    return this.executeProviderFunction(
-      this.modelsKeys.primaryCompletionModelKey,
-      LLMPurpose.COMPLETIONS,
-      prompt,
-      context,
-      options,
-    );
-  };
-
-  /**
-   * Execute the LLM function for the secondary completion model.
-   * Return type is inferred from options.jsonSchema at the call site.
-   * Implemented as arrow function to preserve `this` context when passed to pipeline.
-   *
-   * Generic type parameter is explicitly declared to ensure type information flows
-   * correctly through to executeProviderFunction, preventing implicit widening to
-   * z.ZodType<any> within the implementation body.
-   */
-  executeCompletionSecondary: LLMFunction = async <S extends z.ZodType<unknown>>(
-    prompt: string,
-    context: LLMContext,
-    options?: LLMCompletionOptions<S>,
-  ): Promise<LLMFunctionResponse<z.infer<S>>> => {
-    const secondaryCompletion = this.modelsKeys.secondaryCompletionModelKey;
-    if (!secondaryCompletion)
+    // Validate that the model key is available
+    if (!this.completionModelKeys.includes(modelKey)) {
       throw new LLMError(
         LLMErrorCode.BAD_CONFIGURATION,
-        `'Secondary' text model for ${this.constructor.name} was not defined`,
+        `Completion model '${modelKey}' is not available in provider ${this.modelFamily}. ` +
+          `Available: ${this.completionModelKeys.join(", ")}`,
       );
-    return this.executeProviderFunction(
-      secondaryCompletion,
-      LLMPurpose.COMPLETIONS,
-      prompt,
-      context,
-      options,
-    );
+    }
+
+    return this.executeProviderFunction(modelKey, LLMPurpose.COMPLETIONS, prompt, context, options);
   };
 
   /**
@@ -212,9 +197,6 @@ export default abstract class BaseLLMProvider implements LLMProvider {
    * Type safety is enforced through generic schema type propagation.
    * Generic over the schema type S directly to simplify type inference.
    * Return type uses z.infer<S> for schema-based type inference.
-   *
-   * The generic constraint `z.ZodType<unknown>` prevents implicit `any` when
-   * no schema is provided, ensuring type safety throughout the call chain.
    */
   private async executeProviderFunction<S extends z.ZodType<unknown>>(
     modelKey: string,
@@ -222,7 +204,7 @@ export default abstract class BaseLLMProvider implements LLMProvider {
     request: string,
     context: LLMContext,
     completionOptions?: LLMCompletionOptions<S>,
-    doDeburErrorLogging = false,
+    doDebugErrorLogging = false,
   ): Promise<LLMFunctionResponse<z.infer<S>>> {
     const skeletonResponse: Omit<LLMFunctionResponse, "generated" | "status" | "mutationSteps"> = {
       request,
@@ -231,11 +213,6 @@ export default abstract class BaseLLMProvider implements LLMProvider {
     };
 
     // Default to TEXT mode when no options provided.
-    // Type safety note: When completionOptions is undefined, the generic S defaults to z.ZodType
-    // at the call site (due to LLMFunction's signature), making z.infer<S> resolve to `unknown`.
-    // TEXT mode returns string which is assignable to unknown, so this default is type-safe.
-    // The cast is necessary because TypeScript cannot infer that { outputFormat: TEXT }
-    // satisfies LLMCompletionOptions<S> for arbitrary S.
     const finalOptions: LLMCompletionOptions<S> =
       completionOptions ??
       ({
@@ -249,7 +226,6 @@ export default abstract class BaseLLMProvider implements LLMProvider {
           : await this.invokeCompletionProvider(modelKey, request, finalOptions);
 
       if (isIncompleteResponse) {
-        // Often occurs if combination of prompt + generated completion execeed the max token limit (e.g. actual internal LLM completion has been executed and the completion has been cut short)
         return {
           ...skeletonResponse,
           status: LLMResponseStatus.EXCEEDED,
@@ -276,7 +252,6 @@ export default abstract class BaseLLMProvider implements LLMProvider {
           status: LLMResponseStatus.OVERLOADED,
         };
       } else if (this.isTokenLimitExceeded(error)) {
-        // Often occurs if the prompt on its own execeeds the max token limit (e.g. actual internal LLM completion generation was not even initiated by the LLM)
         return {
           ...skeletonResponse,
           status: LLMResponseStatus.EXCEEDED,
@@ -289,7 +264,7 @@ export default abstract class BaseLLMProvider implements LLMProvider {
           ),
         };
       } else {
-        if (doDeburErrorLogging) this.debugUnhandledError(error, modelKey);
+        if (doDebugErrorLogging) this.debugUnhandledError(error, modelKey);
         return {
           ...skeletonResponse,
           status: LLMResponseStatus.ERRORED,
@@ -300,8 +275,7 @@ export default abstract class BaseLLMProvider implements LLMProvider {
   }
 
   /**
-   * Extract token usage information from LLM response metadata, defaulting missing
-   * values.
+   * Extract token usage information from LLM response metadata, defaulting missing values.
    */
   private extractTokensAmountFromMetadataDefaultingMissingValues(
     modelKey: string,
@@ -325,12 +299,6 @@ export default abstract class BaseLLMProvider implements LLMProvider {
   /**
    * Post-process the LLM response, converting it to JSON if necessary, and build the
    * response metadata object with type-safe JSON validation.
-   * Type safety is enforced through generic schema type propagation.
-   * Generic over the schema type S directly to simplify type inference.
-   * Return type uses z.infer<S> for schema-based type inference.
-   *
-   * The generic constraint `z.ZodType<unknown>` prevents implicit `any` when
-   * no schema is provided, ensuring type safety throughout the call chain.
    */
   private async formatAndValidateResponse<S extends z.ZodType<unknown>>(
     skeletonResult: Omit<LLMFunctionResponse, "generated" | "status" | "mutationSteps">,
@@ -354,9 +322,6 @@ export default abstract class BaseLLMProvider implements LLMProvider {
     }
 
     // Configuration validation: JSON format requires a jsonSchema.
-    // This enforces the public API contract (LLMRouter.executeCompletion overloads) at the
-    // internal boundary, providing defense-in-depth type safety. Without a schema, we cannot
-    // provide meaningful type inference, so JSON output requires explicit schema validation.
     if (!completionOptions.jsonSchema) {
       throw new LLMError(
         LLMErrorCode.BAD_CONFIGURATION,
@@ -366,8 +331,6 @@ export default abstract class BaseLLMProvider implements LLMProvider {
     }
 
     // Process JSON with schema-aware type inference.
-    // After the runtime check above, we know jsonSchema is defined.
-    // The type information flows through the generic parameter S from completionOptions.
     const jsonProcessingResult = parseAndValidateLLMJson(
       responseContent,
       context,
@@ -380,7 +343,6 @@ export default abstract class BaseLLMProvider implements LLMProvider {
       return {
         ...skeletonResult,
         status: LLMResponseStatus.COMPLETED,
-        // Type is correctly inferred through InferResponseType helper
         generated: jsonProcessingResult.data,
         repairs: jsonProcessingResult.repairs,
         pipelineSteps: jsonProcessingResult.pipelineSteps,
@@ -398,16 +360,6 @@ export default abstract class BaseLLMProvider implements LLMProvider {
 
   /**
    * Validates and formats TEXT output responses.
-   * Returns a successful response, an INVALID response for empty content,
-   * or throws on configuration/type errors.
-   *
-   * Type assertion explanation:
-   * For TEXT output, the generic S defaults to z.ZodType when no schema is provided,
-   * making z.infer<S> resolve to `any`. However, we validate at runtime that
-   * responseContent is a string. The API boundary (LLMRouter.executeCompletion overloads)
-   * provides the correct type (string | null) to callers, so this internal `any` is
-   * safely bounded and doesn't leak to consumers.
-   * See: isTextOptions type guard in llm.types.ts for type-safe narrowing at call sites.
    */
   private validateTextResponse<S extends z.ZodType<unknown>>(
     skeletonResult: Omit<LLMFunctionResponse, "generated" | "status" | "mutationSteps">,
@@ -416,8 +368,6 @@ export default abstract class BaseLLMProvider implements LLMProvider {
     context: LLMContext,
   ): LLMFunctionResponse<z.infer<S>> {
     // Configuration validation: TEXT format should not have a jsonSchema.
-    // If someone provides a schema but uses TEXT format, that's a configuration error
-    // that would cause type mismatches at runtime (schema expects object, TEXT returns string).
     if (completionOptions.jsonSchema !== undefined) {
       throw new LLMError(
         LLMErrorCode.BAD_CONFIGURATION,
@@ -437,7 +387,6 @@ export default abstract class BaseLLMProvider implements LLMProvider {
     }
 
     // Empty response validation for TEXT format.
-    // Return INVALID status to allow retry logic to attempt again.
     if (!responseContent.trim()) {
       logWarn("LLM returned empty TEXT response", context);
       return {
@@ -461,11 +410,8 @@ export default abstract class BaseLLMProvider implements LLMProvider {
     const details = formatError(error);
 
     if (error instanceof Error) {
-      const errorName = error.name;
-      const constructorName = error.constructor.name;
-
       console.log(
-        `[DEBUG] Error Name: ${errorName}, Constructor: ${constructorName}, ` +
+        `[DEBUG] Error Name: ${error.name}, Constructor: ${error.constructor.name}, ` +
           `Details: ${details}, URN: ${urn}`,
       );
     } else {

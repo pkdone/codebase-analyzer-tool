@@ -23,7 +23,7 @@ const TEST_EMBEDDINGS_MODEL = "TEST_EMBEDDINGS_MODEL";
 const testModelsMetadata: Record<string, ResolvedLLMModelMetadata> = {
   [TEST_COMPLETIONS_MODEL]: {
     modelKey: TEST_COMPLETIONS_MODEL,
-    name: "Test Completions Model",
+    urnEnvKey: "TEST_PRIMARY_MODEL",
     urn: "test-completions",
     purpose: LLMPurpose.COMPLETIONS,
     maxCompletionTokens: 4096,
@@ -31,7 +31,7 @@ const testModelsMetadata: Record<string, ResolvedLLMModelMetadata> = {
   },
   [TEST_EMBEDDINGS_MODEL]: {
     modelKey: TEST_EMBEDDINGS_MODEL,
-    name: "Test Embeddings Model",
+    urnEnvKey: "TEST_EMBEDDINGS_MODEL",
     urn: "test-embeddings",
     purpose: LLMPurpose.EMBEDDINGS,
     maxCompletionTokens: 0,
@@ -47,22 +47,24 @@ function createTestProviderInit(): ProviderInit {
     modelFamily: "test",
     envSchema: z.object({}),
     models: {
-      embeddings: {
-        modelKey: TEST_EMBEDDINGS_MODEL,
-        name: testModelsMetadata[TEST_EMBEDDINGS_MODEL].name,
-        urnEnvKey: "TEST_EMBEDDINGS_MODEL",
-        purpose: LLMPurpose.EMBEDDINGS,
-        maxTotalTokens: testModelsMetadata[TEST_EMBEDDINGS_MODEL].maxTotalTokens,
-        dimensions: testModelsMetadata[TEST_EMBEDDINGS_MODEL].dimensions,
-      },
-      primaryCompletion: {
-        modelKey: TEST_COMPLETIONS_MODEL,
-        name: testModelsMetadata[TEST_COMPLETIONS_MODEL].name,
-        urnEnvKey: "TEST_PRIMARY_MODEL",
-        purpose: LLMPurpose.COMPLETIONS,
-        maxCompletionTokens: testModelsMetadata[TEST_COMPLETIONS_MODEL].maxCompletionTokens,
-        maxTotalTokens: testModelsMetadata[TEST_COMPLETIONS_MODEL].maxTotalTokens,
-      },
+      embeddings: [
+        {
+          modelKey: TEST_EMBEDDINGS_MODEL,
+          urnEnvKey: "TEST_EMBEDDINGS_MODEL",
+          purpose: LLMPurpose.EMBEDDINGS,
+          maxTotalTokens: testModelsMetadata[TEST_EMBEDDINGS_MODEL].maxTotalTokens,
+          dimensions: testModelsMetadata[TEST_EMBEDDINGS_MODEL].dimensions,
+        },
+      ],
+      completions: [
+        {
+          modelKey: TEST_COMPLETIONS_MODEL,
+          urnEnvKey: "TEST_PRIMARY_MODEL",
+          purpose: LLMPurpose.COMPLETIONS,
+          maxCompletionTokens: testModelsMetadata[TEST_COMPLETIONS_MODEL].maxCompletionTokens,
+          maxTotalTokens: testModelsMetadata[TEST_COMPLETIONS_MODEL].maxTotalTokens,
+        },
+      ],
     },
     errorPatterns: [],
     providerSpecificConfig: {
@@ -79,9 +81,21 @@ function createTestProviderInit(): ProviderInit {
   return {
     manifest,
     providerParams: {},
-    resolvedModels: {
-      embeddings: testModelsMetadata[TEST_EMBEDDINGS_MODEL].urn,
-      primaryCompletion: testModelsMetadata[TEST_COMPLETIONS_MODEL].urn,
+    resolvedModelChain: {
+      embeddings: [
+        {
+          providerFamily: "test",
+          modelKey: TEST_EMBEDDINGS_MODEL,
+          modelUrn: testModelsMetadata[TEST_EMBEDDINGS_MODEL].urn,
+        },
+      ],
+      completions: [
+        {
+          providerFamily: "test",
+          modelKey: TEST_COMPLETIONS_MODEL,
+          modelUrn: testModelsMetadata[TEST_COMPLETIONS_MODEL].urn,
+        },
+      ],
     },
     errorLogging: createMockErrorLoggingConfig(),
   };
@@ -157,10 +171,15 @@ describe("BaseLLMProvider Configuration Validation", () => {
 
       // Providing jsonSchema with TEXT format is a configuration error
       // The provider returns ERRORED status rather than throwing
-      const result = await testLLM.executeCompletionPrimary("test prompt", testContext, {
-        outputFormat: LLMOutputFormat.TEXT,
-        jsonSchema: testSchema,
-      });
+      const result = await testLLM.executeCompletion(
+        TEST_COMPLETIONS_MODEL,
+        "test prompt",
+        testContext,
+        {
+          outputFormat: LLMOutputFormat.TEXT,
+          jsonSchema: testSchema,
+        },
+      );
 
       expect(result.status).toBe(LLMResponseStatus.ERRORED);
       expect(result.error).toBeDefined();
@@ -175,10 +194,15 @@ describe("BaseLLMProvider Configuration Validation", () => {
       const schema = z.object({ data: z.string() });
       testLLM.setMockResponse("text response");
 
-      const result = await testLLM.executeCompletionPrimary("prompt", testContext, {
-        outputFormat: LLMOutputFormat.TEXT,
-        jsonSchema: schema,
-      });
+      const result = await testLLM.executeCompletion(
+        TEST_COMPLETIONS_MODEL,
+        "prompt",
+        testContext,
+        {
+          outputFormat: LLMOutputFormat.TEXT,
+          jsonSchema: schema,
+        },
+      );
 
       expect(result.status).toBe(LLMResponseStatus.ERRORED);
       expect(result.error).toBeInstanceOf(LLMError);
@@ -193,9 +217,14 @@ describe("BaseLLMProvider Configuration Validation", () => {
     it("should accept TEXT format without jsonSchema", async () => {
       testLLM.setMockResponse("Plain text response");
 
-      const result = await testLLM.executeCompletionPrimary("test prompt", testContext, {
-        outputFormat: LLMOutputFormat.TEXT,
-      });
+      const result = await testLLM.executeCompletion(
+        TEST_COMPLETIONS_MODEL,
+        "test prompt",
+        testContext,
+        {
+          outputFormat: LLMOutputFormat.TEXT,
+        },
+      );
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
       expect(result.generated).toBe("Plain text response");
@@ -209,10 +238,15 @@ describe("BaseLLMProvider Configuration Validation", () => {
 
       testLLM.setMockResponse('{"name": "test", "count": 42}');
 
-      const result = await testLLM.executeCompletionPrimary("test prompt", testContext, {
-        outputFormat: LLMOutputFormat.JSON,
-        jsonSchema: testSchema,
-      });
+      const result = await testLLM.executeCompletion(
+        TEST_COMPLETIONS_MODEL,
+        "test prompt",
+        testContext,
+        {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: testSchema,
+        },
+      );
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
       expect(result.generated).toBeDefined();
@@ -226,9 +260,14 @@ describe("BaseLLMProvider Configuration Validation", () => {
       // JSON format now requires a schema for type-safe validation
       testLLM.setMockResponse('{"key": "value", "number": 123}');
 
-      const result = await testLLM.executeCompletionPrimary("test prompt", testContext, {
-        outputFormat: LLMOutputFormat.JSON,
-      });
+      const result = await testLLM.executeCompletion(
+        TEST_COMPLETIONS_MODEL,
+        "test prompt",
+        testContext,
+        {
+          outputFormat: LLMOutputFormat.JSON,
+        },
+      );
 
       // Error is returned in status, not thrown
       expect(result.status).toBe(LLMResponseStatus.ERRORED);
@@ -241,7 +280,11 @@ describe("BaseLLMProvider Configuration Validation", () => {
     it("should accept no options (defaults to TEXT)", async () => {
       testLLM.setMockResponse("Default text response");
 
-      const result = await testLLM.executeCompletionPrimary("test prompt", testContext);
+      const result = await testLLM.executeCompletion(
+        TEST_COMPLETIONS_MODEL,
+        "test prompt",
+        testContext,
+      );
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
       expect(result.generated).toBe("Default text response");
@@ -253,10 +296,15 @@ describe("BaseLLMProvider Configuration Validation", () => {
       testLLM.setMockResponse("text response");
 
       // Explicitly setting jsonSchema to undefined should be fine
-      const result = await testLLM.executeCompletionPrimary("prompt", testContext, {
-        outputFormat: LLMOutputFormat.TEXT,
-        jsonSchema: undefined,
-      });
+      const result = await testLLM.executeCompletion(
+        TEST_COMPLETIONS_MODEL,
+        "prompt",
+        testContext,
+        {
+          outputFormat: LLMOutputFormat.TEXT,
+          jsonSchema: undefined,
+        },
+      );
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
       expect(result.generated).toBe("text response");
@@ -294,10 +342,15 @@ describe("BaseLLMProvider Configuration Validation", () => {
 
       testLLM.setMockResponse(jsonResponse);
 
-      const result = await testLLM.executeCompletionPrimary("prompt", testContext, {
-        outputFormat: LLMOutputFormat.JSON,
-        jsonSchema: complexSchema,
-      });
+      const result = await testLLM.executeCompletion(
+        TEST_COMPLETIONS_MODEL,
+        "prompt",
+        testContext,
+        {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: complexSchema,
+        },
+      );
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
       expect(result.generated).toBeDefined();

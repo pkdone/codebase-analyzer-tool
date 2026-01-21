@@ -11,22 +11,14 @@ import {
 import { llmConfig } from "../../../../../../src/common/llm/config/llm.config";
 import { bedrockDeepseekProviderManifest } from "../../../../../../src/common/llm/providers/bedrock/deepseek/bedrock-deepseek.manifest";
 
-// Define model key used in tests (matching the manifest internal constant)
-const AWS_COMPLETIONS_DEEPSEEK_R1 = "AWS_COMPLETIONS_DEEPSEEK_R1";
+// Define model key used in tests (matching the manifest)
+const BEDROCK_DEEPSEEK_R1 = "bedrock-deepseek-r1";
 
 describe("BedrockDeepseekLLM - Request Body Building", () => {
   const mockModelsMetadata: Record<string, ResolvedLLMModelMetadata> = {
-    EMBEDDINGS: {
-      modelKey: "EMBEDDINGS",
-      name: "Titan Embeddings v1",
-      urn: "amazon.titan-embed-text-v2:0",
-      purpose: LLMPurpose.EMBEDDINGS,
-      dimensions: 1024,
-      maxTotalTokens: 8192,
-    },
-    [AWS_COMPLETIONS_DEEPSEEK_R1]: {
-      modelKey: AWS_COMPLETIONS_DEEPSEEK_R1,
-      name: "Deepseek R1",
+    [BEDROCK_DEEPSEEK_R1]: {
+      modelKey: BEDROCK_DEEPSEEK_R1,
+      urnEnvKey: "BEDROCK_DEEPSEEK_R1_MODEL_URN",
       urn: "us.amazon.deepseek-r1-distill-qwen-32b-v1:0",
       purpose: LLMPurpose.COMPLETIONS,
       maxCompletionTokens: 8192,
@@ -53,9 +45,15 @@ describe("BedrockDeepseekLLM - Request Body Building", () => {
     return {
       manifest,
       providerParams: {},
-      resolvedModels: {
-        embeddings: mockModelsMetadata.EMBEDDINGS.urn,
-        primaryCompletion: mockModelsMetadata[AWS_COMPLETIONS_DEEPSEEK_R1].urn,
+      resolvedModelChain: {
+        embeddings: [],
+        completions: [
+          {
+            providerFamily: "BedrockDeepseek",
+            modelKey: BEDROCK_DEEPSEEK_R1,
+            modelUrn: mockModelsMetadata[BEDROCK_DEEPSEEK_R1].urn,
+          },
+        ],
       },
       errorLogging: createMockErrorLoggingConfig(),
     };
@@ -68,10 +66,7 @@ describe("BedrockDeepseekLLM - Request Body Building", () => {
       const testPrompt = "Analyze this code with reasoning";
       // Access private method for testing
       // eslint-disable-next-line @typescript-eslint/dot-notation
-      const requestBody = llm["buildCompletionRequestBody"](
-        AWS_COMPLETIONS_DEEPSEEK_R1,
-        testPrompt,
-      );
+      const requestBody = llm["buildCompletionRequestBody"](BEDROCK_DEEPSEEK_R1, testPrompt);
 
       // Verify structure
       expect(requestBody).toHaveProperty("messages");
@@ -92,7 +87,7 @@ describe("BedrockDeepseekLLM - Request Body Building", () => {
       const llm = new BedrockDeepseekLLM(createTestProviderInit());
 
       // eslint-disable-next-line @typescript-eslint/dot-notation
-      const requestBody = llm["buildCompletionRequestBody"](AWS_COMPLETIONS_DEEPSEEK_R1, "test");
+      const requestBody = llm["buildCompletionRequestBody"](BEDROCK_DEEPSEEK_R1, "test");
       expect((requestBody as any).max_tokens).toBe(16384);
     });
 
@@ -100,7 +95,7 @@ describe("BedrockDeepseekLLM - Request Body Building", () => {
       const llm = new BedrockDeepseekLLM(createTestProviderInit());
 
       // eslint-disable-next-line @typescript-eslint/dot-notation
-      const requestBody = llm["buildCompletionRequestBody"](AWS_COMPLETIONS_DEEPSEEK_R1, "test");
+      const requestBody = llm["buildCompletionRequestBody"](BEDROCK_DEEPSEEK_R1, "test");
 
       // Deepseek doesn't use anthropic_version
       expect(requestBody).not.toHaveProperty("anthropic_version");
@@ -112,10 +107,7 @@ describe("BedrockDeepseekLLM - Request Body Building", () => {
 
       const testPrompt = "Direct content test";
       // eslint-disable-next-line @typescript-eslint/dot-notation
-      const requestBody = llm["buildCompletionRequestBody"](
-        AWS_COMPLETIONS_DEEPSEEK_R1,
-        testPrompt,
-      );
+      const requestBody = llm["buildCompletionRequestBody"](BEDROCK_DEEPSEEK_R1, testPrompt);
 
       const body = requestBody as any;
       // Content should be a direct string, not an array of objects
@@ -128,10 +120,7 @@ describe("BedrockDeepseekLLM - Request Body Building", () => {
 
       const complexPrompt = "Special chars: <>&\"'\nNewlines\tTabs";
       // eslint-disable-next-line @typescript-eslint/dot-notation
-      const requestBody = llm["buildCompletionRequestBody"](
-        AWS_COMPLETIONS_DEEPSEEK_R1,
-        complexPrompt,
-      );
+      const requestBody = llm["buildCompletionRequestBody"](BEDROCK_DEEPSEEK_R1, complexPrompt);
 
       const body = requestBody as any;
       expect(body.messages[0].content).toBe(complexPrompt);
@@ -141,7 +130,7 @@ describe("BedrockDeepseekLLM - Request Body Building", () => {
       const llm = new BedrockDeepseekLLM(createTestProviderInit());
 
       // eslint-disable-next-line @typescript-eslint/dot-notation
-      const requestBody = llm["buildCompletionRequestBody"](AWS_COMPLETIONS_DEEPSEEK_R1, "test");
+      const requestBody = llm["buildCompletionRequestBody"](BEDROCK_DEEPSEEK_R1, "test");
 
       // Deepseek uses hardcoded defaults, not config values
       const body = requestBody as any;
@@ -153,7 +142,7 @@ describe("BedrockDeepseekLLM - Request Body Building", () => {
       const llm = new BedrockDeepseekLLM(createTestProviderInit());
 
       // eslint-disable-next-line @typescript-eslint/dot-notation
-      const requestBody = llm["buildCompletionRequestBody"](AWS_COMPLETIONS_DEEPSEEK_R1, "test");
+      const requestBody = llm["buildCompletionRequestBody"](BEDROCK_DEEPSEEK_R1, "test");
 
       expect(typeof requestBody).toBe("object");
       expect(requestBody).not.toBeNull();
@@ -198,7 +187,7 @@ describe("BedrockDeepseekLLM - Request Body Building", () => {
     it("should return correct model family", () => {
       const llm = new BedrockDeepseekLLM(createTestProviderInit());
 
-      expect(llm.getModelFamily()).toBe("Bedrock Deepseek");
+      expect(llm.getModelFamily()).toBe("BedrockDeepseek");
     });
   });
 });

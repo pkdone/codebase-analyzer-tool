@@ -30,7 +30,7 @@ describe("HtmlReportWriter", () => {
     appStats: {
       projectName: "test-project",
       currentDate: "2025-10-09",
-      llmProvider: "test-provider",
+      llmModels: "test-provider",
       fileCount: 100,
       linesOfCode: 5000,
       appDescription: "Test application",
@@ -111,7 +111,7 @@ describe("HtmlReportWriter", () => {
       },
     ],
     jsonFilesConfig: {
-      allRequiredAppSummaryFields: ["appDescription", "llmProvider"],
+      allRequiredAppSummaryFields: ["appDescription", "llmModels"],
       jsonDataFiles: {
         completeReport: "complete-report",
         appStats: "app-stats.json",

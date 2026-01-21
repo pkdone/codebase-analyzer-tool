@@ -40,8 +40,8 @@ describe("DI Tokens Cleanup", () => {
       // Verify that essential LLM tokens are still present
       expect(llmTokens).toHaveProperty("LLMExecutionStats");
       expect(llmTokens).toHaveProperty("LLMRouter");
-      expect(llmTokens).toHaveProperty("LLMModelFamily");
       expect(llmTokens).toHaveProperty("LLMErrorLogger");
+      // Note: LLMModelFamily was removed in favor of ProviderManager approach
     });
   });
 

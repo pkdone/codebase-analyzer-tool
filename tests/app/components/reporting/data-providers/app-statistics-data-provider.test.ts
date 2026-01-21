@@ -20,9 +20,9 @@ describe("AppStatisticsDataProvider", () => {
 
   describe("getAppStatistics", () => {
     it("should return app statistics with all fields populated", async () => {
-      const mockAppSummaryData: Pick<AppSummaryRecordWithId, "appDescription" | "llmProvider"> = {
+      const mockAppSummaryData: Pick<AppSummaryRecordWithId, "appDescription" | "llmModels"> = {
         appDescription: "Test application description",
-        llmProvider: "openai",
+        llmModels: "openai",
       };
 
       mockSourcesRepository.getProjectFileAndLineStats.mockResolvedValue({
@@ -33,16 +33,16 @@ describe("AppStatisticsDataProvider", () => {
       const result = await dataProvider.getAppStatistics("test-project", mockAppSummaryData);
 
       expect(result.projectName).toBe("test-project");
-      expect(result.llmProvider).toBe("openai");
+      expect(result.llmModels).toBe("openai");
       expect(result.fileCount).toBe(100);
       expect(result.linesOfCode).toBe(5000);
       expect(result.appDescription).toBe("Test application description");
     });
 
     it("should use nullish coalescing operator (??) for default app description when undefined", async () => {
-      const mockAppSummaryData: Pick<AppSummaryRecordWithId, "appDescription" | "llmProvider"> = {
+      const mockAppSummaryData: Pick<AppSummaryRecordWithId, "appDescription" | "llmModels"> = {
         appDescription: undefined,
-        llmProvider: "openai",
+        llmModels: "openai",
       };
 
       mockSourcesRepository.getProjectFileAndLineStats.mockResolvedValue({
@@ -59,9 +59,9 @@ describe("AppStatisticsDataProvider", () => {
     });
 
     it("should use nullish coalescing operator (??) for default app description when null", async () => {
-      const mockAppSummaryData: Pick<AppSummaryRecordWithId, "appDescription" | "llmProvider"> = {
+      const mockAppSummaryData: Pick<AppSummaryRecordWithId, "appDescription" | "llmModels"> = {
         appDescription: null as any,
-        llmProvider: "azure-openai",
+        llmModels: "azure-openai",
       };
 
       mockSourcesRepository.getProjectFileAndLineStats.mockResolvedValue({
@@ -73,13 +73,13 @@ describe("AppStatisticsDataProvider", () => {
 
       // Verify nullish coalescing operator handles null using constant
       expect(result.appDescription).toBe(NO_DESCRIPTION_PLACEHOLDER);
-      expect(result.llmProvider).toBe("azure-openai");
+      expect(result.llmModels).toBe("azure-openai");
     });
 
     it("should NOT use default when description is an empty string (nullish coalescing behavior)", async () => {
-      const mockAppSummaryData: Pick<AppSummaryRecordWithId, "appDescription" | "llmProvider"> = {
+      const mockAppSummaryData: Pick<AppSummaryRecordWithId, "appDescription" | "llmModels"> = {
         appDescription: "",
-        llmProvider: "bedrock",
+        llmModels: "bedrock",
       };
 
       mockSourcesRepository.getProjectFileAndLineStats.mockResolvedValue({
@@ -94,9 +94,9 @@ describe("AppStatisticsDataProvider", () => {
     });
 
     it("should call getProjectFileAndLineStats with correct project name", async () => {
-      const mockAppSummaryData: Pick<AppSummaryRecordWithId, "appDescription" | "llmProvider"> = {
+      const mockAppSummaryData: Pick<AppSummaryRecordWithId, "appDescription" | "llmModels"> = {
         appDescription: "My app",
-        llmProvider: "vertex-ai",
+        llmModels: "vertex-ai",
       };
 
       mockSourcesRepository.getProjectFileAndLineStats.mockResolvedValue({
@@ -113,9 +113,9 @@ describe("AppStatisticsDataProvider", () => {
     });
 
     it("should include current date in statistics", async () => {
-      const mockAppSummaryData: Pick<AppSummaryRecordWithId, "appDescription" | "llmProvider"> = {
+      const mockAppSummaryData: Pick<AppSummaryRecordWithId, "appDescription" | "llmModels"> = {
         appDescription: "Test app",
-        llmProvider: "openai",
+        llmModels: "openai",
       };
 
       mockSourcesRepository.getProjectFileAndLineStats.mockResolvedValue({

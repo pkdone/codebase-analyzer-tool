@@ -3,7 +3,6 @@
  */
 
 import { z } from "zod";
-import type { LLMModelTier } from "./llm-model.types";
 
 /**
  * Enum to define the LLM task type
@@ -114,8 +113,8 @@ export interface LLMContext {
   resource: string;
   /** The LLM purpose (embeddings or completions) */
   purpose: LLMPurpose;
-  /** The model tier being used (primary or secondary) */
-  modelTier?: LLMModelTier;
+  /** The model key being used (e.g., "gpt-4o", "bedrock-claude-opus-4.5") */
+  modelKey?: string;
   /** The desired output format */
   outputFormat?: LLMOutputFormat;
   /** Error text when JSON parsing / validating fails during response processing */

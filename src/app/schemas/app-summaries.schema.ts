@@ -344,7 +344,7 @@ export const inferredArchitectureSchema = z
 export const appSummarySchema = z
   .object({
     projectName: z.string(),
-    llmProvider: z.string(),
+    llmModels: z.string(),
     appDescription: appDescriptionSchema.shape.appDescription.optional(),
     businessProcesses: businessProcessesSchema.shape.businessProcesses.optional(),
     technologies: technologiesSchema.shape.technologies.optional(),

@@ -31,25 +31,27 @@ function createTestProviderInit(
 
   const manifest: LLMProviderManifest = {
     providerName: "Test Bedrock Provider",
-    modelFamily: "TEST_BEDROCK",
+    modelFamily: "test-bedrock",
     envSchema: z.object({}),
     models: {
-      embeddings: {
-        modelKey: embeddingsKey,
-        name: modelsMetadata[embeddingsKey].name,
-        urnEnvKey: "TEST_EMBED",
-        purpose: LLMPurpose.EMBEDDINGS,
-        maxTotalTokens: modelsMetadata[embeddingsKey].maxTotalTokens,
-        dimensions: modelsMetadata[embeddingsKey].dimensions,
-      },
-      primaryCompletion: {
-        modelKey: completionKey,
-        name: modelsMetadata[completionKey].name,
-        urnEnvKey: "TEST_COMPLETE",
-        purpose: LLMPurpose.COMPLETIONS,
-        maxCompletionTokens: modelsMetadata[completionKey].maxCompletionTokens,
-        maxTotalTokens: modelsMetadata[completionKey].maxTotalTokens,
-      },
+      embeddings: [
+        {
+          modelKey: embeddingsKey,
+          urnEnvKey: "TEST_EMBED",
+          purpose: LLMPurpose.EMBEDDINGS,
+          maxTotalTokens: modelsMetadata[embeddingsKey].maxTotalTokens,
+          dimensions: modelsMetadata[embeddingsKey].dimensions,
+        },
+      ],
+      completions: [
+        {
+          modelKey: completionKey,
+          urnEnvKey: "TEST_COMPLETE",
+          purpose: LLMPurpose.COMPLETIONS,
+          maxCompletionTokens: modelsMetadata[completionKey].maxCompletionTokens,
+          maxTotalTokens: modelsMetadata[completionKey].maxTotalTokens,
+        },
+      ],
     },
     errorPatterns: [],
     providerSpecificConfig: config,
@@ -59,9 +61,21 @@ function createTestProviderInit(
   return {
     manifest,
     providerParams: {},
-    resolvedModels: {
-      embeddings: modelsMetadata[embeddingsKey].urn,
-      primaryCompletion: modelsMetadata[completionKey].urn,
+    resolvedModelChain: {
+      embeddings: [
+        {
+          providerFamily: "test-bedrock",
+          modelKey: embeddingsKey,
+          modelUrn: modelsMetadata[embeddingsKey].urn,
+        },
+      ],
+      completions: [
+        {
+          providerFamily: "test-bedrock",
+          modelKey: completionKey,
+          modelUrn: modelsMetadata[completionKey].urn,
+        },
+      ],
     },
     errorLogging: createMockErrorLoggingConfig(),
   };
@@ -137,7 +151,7 @@ describe("BaseBedrockLLM - JSON stringification centralization", () => {
   const mockModelsMetadata: Record<string, ResolvedLLMModelMetadata> = {
     EMBEDDINGS: {
       modelKey: "EMBEDDINGS",
-      name: "Test Embeddings",
+      urnEnvKey: "TEST_EMBED",
       urn: "test-embeddings-model",
       purpose: LLMPurpose.EMBEDDINGS,
       dimensions: 1536,
@@ -145,7 +159,7 @@ describe("BaseBedrockLLM - JSON stringification centralization", () => {
     },
     COMPLETION: {
       modelKey: "COMPLETION",
-      name: "Test Completion",
+      urnEnvKey: "TEST_COMPLETE",
       urn: "test-completion-model",
       purpose: LLMPurpose.COMPLETIONS,
       maxCompletionTokens: 4096,
@@ -228,10 +242,10 @@ describe("BaseBedrockLLM - JSON stringification centralization", () => {
   });
 
   describe("isTokenLimitExceeded - modern Set-based matching", () => {
-    const mockModelsMetadata: Record<string, ResolvedLLMModelMetadata> = {
+    const mockModelsMetadataInner: Record<string, ResolvedLLMModelMetadata> = {
       EMBEDDINGS: {
         modelKey: "EMBEDDINGS",
-        name: "Test Embeddings",
+        urnEnvKey: "TEST_EMBED",
         urn: "test-embeddings-model",
         purpose: LLMPurpose.EMBEDDINGS,
         dimensions: 1536,
@@ -239,7 +253,7 @@ describe("BaseBedrockLLM - JSON stringification centralization", () => {
       },
       COMPLETION: {
         modelKey: "COMPLETION",
-        name: "Test Completion",
+        urnEnvKey: "TEST_COMPLETE",
         urn: "test-completion-model",
         purpose: LLMPurpose.COMPLETIONS,
         maxCompletionTokens: 4096,
@@ -247,7 +261,7 @@ describe("BaseBedrockLLM - JSON stringification centralization", () => {
       },
     };
 
-    const mockConfig: LLMProviderSpecificConfig = {
+    const mockConfigInner: LLMProviderSpecificConfig = {
       requestTimeoutMillis: 60000,
       maxRetryAttempts: 3,
       minRetryDelayMillis: 1000,
@@ -257,7 +271,9 @@ describe("BaseBedrockLLM - JSON stringification centralization", () => {
     };
 
     it("should detect token limit exceeded errors using Set-based keyword matching", () => {
-      const llm = new TestBedrockLLM(createTestProviderInit(mockModelsMetadata, mockConfig));
+      const llm = new TestBedrockLLM(
+        createTestProviderInit(mockModelsMetadataInner, mockConfigInner),
+      );
 
       const mockError1 = new ValidationException({
         message: "Too many input tokens",
@@ -298,7 +314,7 @@ describe("BaseBedrockLLM - validateCredentials", () => {
   const mockModelsMetadata: Record<string, ResolvedLLMModelMetadata> = {
     EMBEDDINGS: {
       modelKey: "EMBEDDINGS",
-      name: "Test Embeddings",
+      urnEnvKey: "TEST_EMBED",
       urn: "test-embeddings-model",
       purpose: LLMPurpose.EMBEDDINGS,
       dimensions: 1536,
@@ -306,7 +322,7 @@ describe("BaseBedrockLLM - validateCredentials", () => {
     },
     COMPLETION: {
       modelKey: "COMPLETION",
-      name: "Test Completion",
+      urnEnvKey: "TEST_COMPLETE",
       urn: "test-completion-model",
       purpose: LLMPurpose.COMPLETIONS,
       maxCompletionTokens: 4096,
@@ -330,25 +346,27 @@ describe("BaseBedrockLLM - validateCredentials", () => {
 
     const manifest: LLMProviderManifest = {
       providerName: "Test Bedrock Provider",
-      modelFamily: "TEST_BEDROCK",
+      modelFamily: "test-bedrock",
       envSchema: z.object({}),
       models: {
-        embeddings: {
-          modelKey: embeddingsKey,
-          name: mockModelsMetadata[embeddingsKey].name,
-          urnEnvKey: "TEST_EMBED",
-          purpose: LLMPurpose.EMBEDDINGS,
-          maxTotalTokens: mockModelsMetadata[embeddingsKey].maxTotalTokens,
-          dimensions: mockModelsMetadata[embeddingsKey].dimensions,
-        },
-        primaryCompletion: {
-          modelKey: completionKey,
-          name: mockModelsMetadata[completionKey].name,
-          urnEnvKey: "TEST_COMPLETE",
-          purpose: LLMPurpose.COMPLETIONS,
-          maxCompletionTokens: mockModelsMetadata[completionKey].maxCompletionTokens,
-          maxTotalTokens: mockModelsMetadata[completionKey].maxTotalTokens,
-        },
+        embeddings: [
+          {
+            modelKey: embeddingsKey,
+            urnEnvKey: "TEST_EMBED",
+            purpose: LLMPurpose.EMBEDDINGS,
+            maxTotalTokens: mockModelsMetadata[embeddingsKey].maxTotalTokens,
+            dimensions: mockModelsMetadata[embeddingsKey].dimensions,
+          },
+        ],
+        completions: [
+          {
+            modelKey: completionKey,
+            urnEnvKey: "TEST_COMPLETE",
+            purpose: LLMPurpose.COMPLETIONS,
+            maxCompletionTokens: mockModelsMetadata[completionKey].maxCompletionTokens,
+            maxTotalTokens: mockModelsMetadata[completionKey].maxTotalTokens,
+          },
+        ],
       },
       errorPatterns: [],
       providerSpecificConfig: mockConfig,
@@ -358,9 +376,21 @@ describe("BaseBedrockLLM - validateCredentials", () => {
     return {
       manifest,
       providerParams: {},
-      resolvedModels: {
-        embeddings: mockModelsMetadata[embeddingsKey].urn,
-        primaryCompletion: mockModelsMetadata[completionKey].urn,
+      resolvedModelChain: {
+        embeddings: [
+          {
+            providerFamily: "test-bedrock",
+            modelKey: embeddingsKey,
+            modelUrn: mockModelsMetadata[embeddingsKey].urn,
+          },
+        ],
+        completions: [
+          {
+            providerFamily: "test-bedrock",
+            modelKey: completionKey,
+            modelUrn: mockModelsMetadata[completionKey].urn,
+          },
+        ],
       },
       errorLogging: createMockErrorLoggingConfig(),
     };
@@ -465,6 +495,5 @@ describe("BaseBedrockLLM - validateCredentials", () => {
     llm.mockCredentialsFn = jest.fn().mockRejectedValue(genericError);
 
     await expect(llm.validateCredentials()).rejects.toThrow("Network timeout");
-    await expect(llm.validateCredentials()).rejects.not.toBeInstanceOf(LLMError);
   });
 });

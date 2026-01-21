@@ -1,226 +1,272 @@
 import "reflect-metadata";
 import { jest, describe, test, expect } from "@jest/globals";
 import {
-  buildCompletionCandidates,
-  getOverriddenCompletionCandidates,
+  buildCompletionCandidatesFromChain,
+  buildEmbeddingCandidatesFromChain,
+  getFilteredCompletionCandidates,
 } from "../../../../src/common/llm/utils/completions-models-retriever";
-import {
-  LLMContext,
-  LLMPurpose,
-  LLMOutputFormat,
-} from "../../../../src/common/llm/types/llm-request.types";
-import {
-  LLMResponseStatus,
-  LLMFunctionResponse,
-} from "../../../../src/common/llm/types/llm-response.types";
-import {
-  LLMCandidateFunction,
-  LLMFunction,
-  LLMEmbeddingFunction,
-} from "../../../../src/common/llm/types/llm-function.types";
-import { LLMModelTier } from "../../../../src/common/llm/types/llm-model.types";
+import { LLMPurpose } from "../../../../src/common/llm/types/llm-request.types";
+import { LLMResponseStatus } from "../../../../src/common/llm/types/llm-response.types";
+import type { LLMCandidateFunction } from "../../../../src/common/llm/types/llm-function.types";
+import type { ProviderManager } from "../../../../src/common/llm/provider-manager";
+import type { ResolvedModelChain } from "../../../../src/common/llm/types/llm-model.types";
 import type { LLMProvider } from "../../../../src/common/llm/types/llm-provider.interface";
-import { ShutdownBehavior } from "../../../../src/common/llm/types/llm-shutdown.types";
+import { LLMError, LLMErrorCode } from "../../../../src/common/llm/types/llm-errors.types";
+
+// Mock provider for testing
+function createMockProvider(): LLMProvider {
+  const mockExecuteCompletion = jest.fn<() => Promise<{ generated: string; status: string }>>();
+  mockExecuteCompletion.mockResolvedValue({
+    generated: "test response",
+    status: LLMResponseStatus.COMPLETED,
+  });
+
+  const mockGenerateEmbeddings = jest.fn<() => Promise<{ generated: number[]; status: string }>>();
+  mockGenerateEmbeddings.mockResolvedValue({
+    generated: [0.1, 0.2, 0.3],
+    status: LLMResponseStatus.COMPLETED,
+  });
+
+  const mockClose = jest.fn<() => Promise<void>>();
+  mockClose.mockResolvedValue(undefined);
+
+  const mockValidateCredentials = jest.fn<() => Promise<void>>();
+  mockValidateCredentials.mockResolvedValue(undefined);
+
+  return {
+    executeCompletion: mockExecuteCompletion,
+    generateEmbeddings: mockGenerateEmbeddings,
+    getModelFamily: jest.fn().mockReturnValue("TestProvider"),
+    getModelsNames: jest.fn().mockReturnValue({
+      [LLMPurpose.EMBEDDINGS]: ["embed-model"],
+      [LLMPurpose.COMPLETIONS]: ["comp-model"],
+    }),
+    getAvailableModelNames: jest.fn().mockReturnValue({
+      embeddings: ["embed-model"],
+      completions: ["comp-model"],
+    }),
+    getModelsMetadata: jest.fn().mockReturnValue({}),
+    getEmbeddingModelDimensions: jest.fn().mockReturnValue(1536),
+    close: mockClose,
+    getShutdownBehavior: jest.fn().mockReturnValue("graceful"),
+    validateCredentials: mockValidateCredentials,
+  } as unknown as LLMProvider;
+}
+
+// Mock provider manager for testing
+function createMockProviderManager(providers: Record<string, LLMProvider>): ProviderManager {
+  return {
+    getProvider: jest.fn((family: string) => {
+      if (!(family in providers)) {
+        throw new Error(`Provider not found: ${family}`);
+      }
+      return providers[family];
+    }),
+    getAllProviders: jest.fn(() => Object.values(providers)),
+    hasProvider: jest.fn((family: string) => family in providers),
+    getAllModelsMetadata: jest.fn(() => ({})),
+    shutdown: jest.fn<() => Promise<void>>().mockResolvedValue(undefined),
+  } as unknown as ProviderManager;
+}
 
 describe("completions-models-retriever", () => {
-  describe("buildCompletionCandidates", () => {
-    test("should build candidates with bound methods preserving generic signatures", () => {
-      const mockExecutePrimary = jest.fn() as unknown as LLMFunction;
-      const mockExecuteSecondary = jest.fn() as unknown as LLMFunction;
-      const mockLLM: LLMProvider = {
-        generateEmbeddings: jest.fn() as unknown as LLMEmbeddingFunction,
-        executeCompletionPrimary: mockExecutePrimary,
-        executeCompletionSecondary: mockExecuteSecondary,
-        getModelsNames: jest.fn(() => ({
-          embeddings: "test-embeddings",
-          primaryCompletion: "test-primary",
-          secondaryCompletion: "test-secondary",
-        })),
-        getAvailableCompletionModelTiers: jest.fn(() => [
-          LLMModelTier.PRIMARY,
-          LLMModelTier.SECONDARY,
-        ]),
-        getEmbeddingModelDimensions: jest.fn(() => 1536),
-        getModelFamily: jest.fn(() => "test-family"),
-        getModelsMetadata: jest.fn(() => ({})),
-        close: jest.fn<() => Promise<void>>().mockResolvedValue(undefined),
-        getShutdownBehavior: jest.fn(() => ShutdownBehavior.GRACEFUL),
-        validateCredentials: jest.fn<() => Promise<void>>().mockResolvedValue(undefined),
-      };
-
-      const candidates = buildCompletionCandidates(mockLLM);
-
-      expect(candidates).toHaveLength(2);
-      expect(candidates[0].modelTier).toBe(LLMModelTier.PRIMARY);
-      expect(candidates[0].description).toBe("Primary completion model");
-      expect(candidates[1].modelTier).toBe(LLMModelTier.SECONDARY);
-      expect(candidates[1].description).toBe("Secondary completion model (fallback)");
-
-      // Verify that the functions are bound methods (not wrapped async functions)
-      // Note: .bind() creates a new function, so we verify it's callable and preserves context
-      expect(typeof candidates[0].func).toBe("function");
-      expect(typeof candidates[1].func).toBe("function");
-    });
-
-    test("should only include primary candidate when secondary is not available", () => {
-      const mockLLM: LLMProvider = {
-        generateEmbeddings: jest.fn() as unknown as LLMEmbeddingFunction,
-        executeCompletionPrimary: jest.fn() as unknown as LLMFunction,
-        executeCompletionSecondary: jest.fn() as unknown as LLMFunction,
-        getModelsNames: jest.fn(() => ({
-          embeddings: "test-embeddings",
-          primaryCompletion: "test-primary",
-        })),
-        getAvailableCompletionModelTiers: jest.fn(() => [LLMModelTier.PRIMARY]),
-        getEmbeddingModelDimensions: jest.fn(() => 1536),
-        getModelFamily: jest.fn(() => "test-family"),
-        getModelsMetadata: jest.fn(() => ({})),
-        close: jest.fn<() => Promise<void>>().mockResolvedValue(undefined),
-        getShutdownBehavior: jest.fn(() => ShutdownBehavior.GRACEFUL),
-        validateCredentials: jest.fn<() => Promise<void>>().mockResolvedValue(undefined),
-      };
-
-      const candidates = buildCompletionCandidates(mockLLM);
-
-      expect(candidates).toHaveLength(1);
-      expect(candidates[0].modelTier).toBe(LLMModelTier.PRIMARY);
-    });
-
-    test("should preserve type information in bound methods", async () => {
-      const mockResponse: LLMFunctionResponse<string> = {
-        status: LLMResponseStatus.COMPLETED,
-        request: "test",
-        modelKey: "test-model",
-        context: { resource: "test", purpose: LLMPurpose.COMPLETIONS },
-        generated: "test response",
-      };
-
-      // Create a trackable mock by wrapping with jest.fn
-      let capturedArgs: unknown[] = [];
-      const mockExecutePrimaryTyped = (async (...args: unknown[]) => {
-        capturedArgs = args;
-        return mockResponse;
-      }) as unknown as LLMFunction;
-
-      const mockLLM: LLMProvider = {
-        generateEmbeddings: jest.fn() as unknown as LLMEmbeddingFunction,
-        executeCompletionPrimary: mockExecutePrimaryTyped,
-        executeCompletionSecondary: jest.fn() as unknown as LLMFunction,
-        getModelsNames: jest.fn(() => ({
-          embeddings: "test-embeddings",
-          primaryCompletion: "test-primary",
-        })),
-        getAvailableCompletionModelTiers: jest.fn(() => [LLMModelTier.PRIMARY]),
-        getEmbeddingModelDimensions: jest.fn(() => 1536),
-        getModelFamily: jest.fn(() => "test-family"),
-        getModelsMetadata: jest.fn(() => ({})),
-        close: jest.fn<() => Promise<void>>().mockResolvedValue(undefined),
-        getShutdownBehavior: jest.fn(() => ShutdownBehavior.GRACEFUL),
-        validateCredentials: jest.fn<() => Promise<void>>().mockResolvedValue(undefined),
-      };
-
-      const candidates = buildCompletionCandidates(mockLLM);
-      const context: LLMContext = {
-        resource: "test",
-        purpose: LLMPurpose.COMPLETIONS,
-      };
-
-      const result = await candidates[0].func("test prompt", context, {
-        outputFormat: LLMOutputFormat.TEXT,
+  describe("buildCompletionCandidatesFromChain", () => {
+    test("should build candidates for each model in the chain", () => {
+      const mockProvider = createMockProvider();
+      const providerManager = createMockProviderManager({
+        TestProvider: mockProvider,
       });
 
-      expect(result).toEqual(mockResponse);
-      // Verify the function was called with correct arguments
-      expect(capturedArgs[0]).toBe("test prompt");
-      expect(capturedArgs[1]).toEqual(context);
-      expect(capturedArgs[2]).toEqual({ outputFormat: LLMOutputFormat.TEXT });
+      const modelChain: ResolvedModelChain = {
+        embeddings: [],
+        completions: [
+          { providerFamily: "TestProvider", modelKey: "comp-model-1", modelUrn: "urn-1" },
+          { providerFamily: "TestProvider", modelKey: "comp-model-2", modelUrn: "urn-2" },
+        ],
+      };
+
+      const candidates = buildCompletionCandidatesFromChain(providerManager, modelChain);
+
+      expect(candidates).toHaveLength(2);
+      expect(candidates[0].modelKey).toBe("comp-model-1");
+      expect(candidates[0].providerFamily).toBe("TestProvider");
+      expect(candidates[0].priority).toBe(0);
+      expect(candidates[1].modelKey).toBe("comp-model-2");
+      expect(candidates[1].providerFamily).toBe("TestProvider");
+      expect(candidates[1].priority).toBe(1);
+    });
+
+    test("should build candidates from multiple providers", () => {
+      const mockProviderA = createMockProvider();
+      const mockProviderB = createMockProvider();
+      const providerManager = createMockProviderManager({
+        ProviderA: mockProviderA,
+        ProviderB: mockProviderB,
+      });
+
+      const modelChain: ResolvedModelChain = {
+        embeddings: [],
+        completions: [
+          { providerFamily: "ProviderA", modelKey: "model-a", modelUrn: "urn-a" },
+          { providerFamily: "ProviderB", modelKey: "model-b", modelUrn: "urn-b" },
+          { providerFamily: "ProviderA", modelKey: "model-a2", modelUrn: "urn-a2" },
+        ],
+      };
+
+      const candidates = buildCompletionCandidatesFromChain(providerManager, modelChain);
+
+      expect(candidates).toHaveLength(3);
+      expect(candidates[0].providerFamily).toBe("ProviderA");
+      expect(candidates[0].modelKey).toBe("model-a");
+      expect(candidates[1].providerFamily).toBe("ProviderB");
+      expect(candidates[1].modelKey).toBe("model-b");
+      expect(candidates[2].providerFamily).toBe("ProviderA");
+      expect(candidates[2].modelKey).toBe("model-a2");
+    });
+
+    test("should create bound functions that route to correct provider", async () => {
+      const mockProvider = createMockProvider();
+      const providerManager = createMockProviderManager({
+        TestProvider: mockProvider,
+      });
+
+      const modelChain: ResolvedModelChain = {
+        embeddings: [],
+        completions: [{ providerFamily: "TestProvider", modelKey: "test-model", modelUrn: "urn" }],
+      };
+
+      const candidates = buildCompletionCandidatesFromChain(providerManager, modelChain);
+      expect(candidates).toHaveLength(1);
+
+      // Call the bound function
+      const context = { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS };
+      await candidates[0].func("test prompt", context);
+
+      // Verify it called the provider's executeCompletion with the correct model key
+      expect(mockProvider.executeCompletion).toHaveBeenCalledWith(
+        "test-model",
+        "test prompt",
+        context,
+        undefined,
+      );
     });
   });
 
-  describe("getOverriddenCompletionCandidates", () => {
-    test("should filter candidates by model tier override", () => {
-      const candidates: LLMCandidateFunction[] = [
-        {
-          func: jest.fn() as LLMFunction,
-          modelTier: LLMModelTier.PRIMARY,
-          description: "Primary",
-        },
-        {
-          func: jest.fn() as LLMFunction,
-          modelTier: LLMModelTier.SECONDARY,
-          description: "Secondary",
-        },
-      ];
+  describe("buildEmbeddingCandidatesFromChain", () => {
+    test("should build embedding candidates for each model in the chain", () => {
+      const mockProvider = createMockProvider();
+      const providerManager = createMockProviderManager({
+        TestProvider: mockProvider,
+      });
 
-      const result = getOverriddenCompletionCandidates(candidates, LLMModelTier.SECONDARY);
+      const modelChain: ResolvedModelChain = {
+        embeddings: [
+          { providerFamily: "TestProvider", modelKey: "embed-1", modelUrn: "urn-1" },
+          { providerFamily: "TestProvider", modelKey: "embed-2", modelUrn: "urn-2" },
+        ],
+        completions: [],
+      };
+
+      const candidates = buildEmbeddingCandidatesFromChain(providerManager, modelChain);
+
+      expect(candidates).toHaveLength(2);
+      expect(candidates[0].modelKey).toBe("embed-1");
+      expect(candidates[0].providerFamily).toBe("TestProvider");
+      expect(candidates[0].priority).toBe(0);
+      expect(candidates[1].modelKey).toBe("embed-2");
+      expect(candidates[1].priority).toBe(1);
+    });
+
+    test("should create bound functions that route to correct provider", async () => {
+      const mockProvider = createMockProvider();
+      const providerManager = createMockProviderManager({
+        TestProvider: mockProvider,
+      });
+
+      const modelChain: ResolvedModelChain = {
+        embeddings: [{ providerFamily: "TestProvider", modelKey: "embed-model", modelUrn: "urn" }],
+        completions: [],
+      };
+
+      const candidates = buildEmbeddingCandidatesFromChain(providerManager, modelChain);
+      expect(candidates).toHaveLength(1);
+
+      // Call the bound function
+      const context = { resource: "test-resource", purpose: LLMPurpose.EMBEDDINGS };
+      await candidates[0].func("test content", context);
+
+      // Verify it called the provider's generateEmbeddings with the correct model key
+      expect(mockProvider.generateEmbeddings).toHaveBeenCalledWith(
+        "embed-model",
+        "test content",
+        context,
+      );
+    });
+  });
+
+  describe("getFilteredCompletionCandidates", () => {
+    const mockCandidates: LLMCandidateFunction[] = [
+      {
+        func: jest.fn() as unknown as LLMCandidateFunction["func"],
+        providerFamily: "Provider1",
+        modelKey: "model-1",
+        description: "Model 1",
+        priority: 0,
+      },
+      {
+        func: jest.fn() as unknown as LLMCandidateFunction["func"],
+        providerFamily: "Provider2",
+        modelKey: "model-2",
+        description: "Model 2",
+        priority: 1,
+      },
+      {
+        func: jest.fn() as unknown as LLMCandidateFunction["func"],
+        providerFamily: "Provider1",
+        modelKey: "model-3",
+        description: "Model 3",
+        priority: 2,
+      },
+    ];
+
+    test("should return all candidates when no index override", () => {
+      const result = getFilteredCompletionCandidates(mockCandidates);
+
+      expect(result.candidatesToUse).toHaveLength(3);
+      expect(result.candidateFunctions).toHaveLength(3);
+    });
+
+    test("should return single candidate when index override is provided", () => {
+      const result = getFilteredCompletionCandidates(mockCandidates, 1);
 
       expect(result.candidatesToUse).toHaveLength(1);
-      expect(result.candidatesToUse[0].modelTier).toBe(LLMModelTier.SECONDARY);
+      expect(result.candidatesToUse[0].modelKey).toBe("model-2");
       expect(result.candidateFunctions).toHaveLength(1);
     });
 
-    test("should return all candidates when override is null", () => {
-      const candidates: LLMCandidateFunction[] = [
-        {
-          func: jest.fn() as LLMFunction,
-          modelTier: LLMModelTier.PRIMARY,
-          description: "Primary",
-        },
-        {
-          func: jest.fn() as LLMFunction,
-          modelTier: LLMModelTier.SECONDARY,
-          description: "Secondary",
-        },
-      ];
+    test("should throw error for invalid index", () => {
+      expect(() => getFilteredCompletionCandidates(mockCandidates, -1)).toThrow(LLMError);
+      expect(() => getFilteredCompletionCandidates(mockCandidates, 3)).toThrow(LLMError);
+      expect(() => getFilteredCompletionCandidates(mockCandidates, 100)).toThrow(LLMError);
 
-      const result = getOverriddenCompletionCandidates(candidates, null);
-
-      expect(result.candidatesToUse).toHaveLength(2);
-      expect(result.candidateFunctions).toHaveLength(2);
-    });
-
-    test("should throw error when no candidates match override", () => {
-      const candidates: LLMCandidateFunction[] = [
-        {
-          func: jest.fn() as LLMFunction,
-          modelTier: LLMModelTier.PRIMARY,
-          description: "Primary",
-        },
-      ];
-
-      expect(() => {
-        getOverriddenCompletionCandidates(candidates, LLMModelTier.SECONDARY);
-      }).toThrow("No completion candidates found for model tier: secondary");
+      try {
+        getFilteredCompletionCandidates(mockCandidates, 5);
+      } catch (error) {
+        expect(error).toBeInstanceOf(LLMError);
+        expect((error as LLMError).code).toBe(LLMErrorCode.BAD_CONFIGURATION);
+      }
     });
 
     test("should throw error when no candidates available", () => {
-      const candidates: LLMCandidateFunction[] = [];
+      expect(() => getFilteredCompletionCandidates([])).toThrow(LLMError);
 
-      expect(() => {
-        getOverriddenCompletionCandidates(candidates, null);
-      }).toThrow("No completion candidates available");
-    });
-
-    test("should preserve function references in candidateFunctions", () => {
-      const func1 = jest.fn() as LLMFunction;
-      const func2 = jest.fn() as LLMFunction;
-      const candidates: LLMCandidateFunction[] = [
-        {
-          func: func1,
-          modelTier: LLMModelTier.PRIMARY,
-          description: "Primary",
-        },
-        {
-          func: func2,
-          modelTier: LLMModelTier.SECONDARY,
-          description: "Secondary",
-        },
-      ];
-
-      const result = getOverriddenCompletionCandidates(candidates, null);
-
-      expect(result.candidateFunctions[0]).toBe(func1);
-      expect(result.candidateFunctions[1]).toBe(func2);
+      try {
+        getFilteredCompletionCandidates([]);
+      } catch (error) {
+        expect(error).toBeInstanceOf(LLMError);
+        expect((error as LLMError).code).toBe(LLMErrorCode.BAD_CONFIGURATION);
+        expect((error as Error).message).toContain("No completion candidates available");
+      }
     });
   });
 });

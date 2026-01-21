@@ -41,25 +41,27 @@ class TestOpenAILLM extends BaseOpenAILLM {
     };
     const manifest: LLMProviderManifest = {
       providerName: "Test OpenAI",
-      modelFamily: "openai-test",
+      modelFamily: "test-openai",
       envSchema: z.object({}),
       models: {
-        embeddings: {
-          modelKey: "EMBED",
-          name: "Test Embeddings",
-          urnEnvKey: "EMBED_URN",
-          purpose: LLMPurpose.EMBEDDINGS,
-          maxTotalTokens: 8191,
-          dimensions: 1536,
-        },
-        primaryCompletion: {
-          modelKey: "COMPLETE",
-          name: "Test Completion",
-          urnEnvKey: "COMPLETE_URN",
-          purpose: LLMPurpose.COMPLETIONS,
-          maxCompletionTokens: 32,
-          maxTotalTokens: 4096,
-        },
+        embeddings: [
+          {
+            modelKey: "EMBED",
+            urnEnvKey: "EMBED_URN",
+            purpose: LLMPurpose.EMBEDDINGS,
+            maxTotalTokens: 8191,
+            dimensions: 1536,
+          },
+        ],
+        completions: [
+          {
+            modelKey: "COMPLETE",
+            urnEnvKey: "COMPLETE_URN",
+            purpose: LLMPurpose.COMPLETIONS,
+            maxCompletionTokens: 32,
+            maxTotalTokens: 4096,
+          },
+        ],
       },
       errorPatterns: [],
       providerSpecificConfig: providerConfig,
@@ -68,9 +70,11 @@ class TestOpenAILLM extends BaseOpenAILLM {
     const init: ProviderInit = {
       manifest,
       providerParams: {},
-      resolvedModels: {
-        embeddings: "embed-model",
-        primaryCompletion: "complete-model",
+      resolvedModelChain: {
+        embeddings: [{ providerFamily: "test-openai", modelKey: "EMBED", modelUrn: "embed-model" }],
+        completions: [
+          { providerFamily: "test-openai", modelKey: "COMPLETE", modelUrn: "complete-model" },
+        ],
       },
       errorLogging: createMockErrorLoggingConfig(),
     };

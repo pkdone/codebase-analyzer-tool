@@ -5,7 +5,7 @@ import { randomUUID } from "crypto";
 import { coreTokens } from "../../../../src/app/di/tokens";
 import { databaseConfig } from "../../../../src/app/components/database/database.config";
 import { registerAppDependencies } from "../../../../src/app/di/registration-modules";
-import { loadManifestForModelFamily } from "../../../../src/common/llm/utils/manifest-loader";
+import { loadManifestForProviderFamily } from "../../../../src/common/llm/utils/manifest-loader";
 
 // Store client and dbName to be accessible in teardown
 let testMongoClient: MongoClient | null = null;
@@ -16,21 +16,27 @@ let testDbName: string | null = null;
  * Exported for reuse in integration tests that need to create test vectors.
  */
 export async function getVectorDimensions(): Promise<number> {
-  const modelFamily = process.env.LLM;
-  if (!modelFamily) {
-    console.warn("LLM environment variable is not set. Using default 1536 dimensions.");
+  // Parse the LLM_EMBEDDINGS chain to get the first provider family
+  const embeddingsChain = process.env.LLM_EMBEDDINGS;
+  if (!embeddingsChain) {
+    console.warn("LLM_EMBEDDINGS environment variable is not set. Using default 1536 dimensions.");
     return databaseConfig.DEFAULT_VECTOR_DIMENSIONS;
   }
 
   try {
-    const manifest = loadManifestForModelFamily(modelFamily);
-    const dimensions =
-      manifest.models.embeddings.dimensions ?? databaseConfig.DEFAULT_VECTOR_DIMENSIONS;
-    console.log(`Using ${dimensions} vector dimensions for model family: ${modelFamily}`);
+    // Extract the first provider family from the chain (format: "ProviderFamily:modelKey")
+    const firstEntry = embeddingsChain.split(",")[0];
+    const [providerFamily] = firstEntry.split(":");
+
+    const manifest = loadManifestForProviderFamily(providerFamily);
+    // embeddings is now an array - get dimensions from first embedding model
+    const firstEmbedding = manifest.models.embeddings[0];
+    const dimensions = firstEmbedding.dimensions ?? databaseConfig.DEFAULT_VECTOR_DIMENSIONS;
+    console.log(`Using ${dimensions} vector dimensions for provider family: ${providerFamily}`);
     return dimensions;
   } catch (error) {
     console.warn(
-      `Failed to load manifest for ${modelFamily}, using default ${databaseConfig.DEFAULT_VECTOR_DIMENSIONS} dimensions:`,
+      `Failed to get embedding dimensions, using default ${databaseConfig.DEFAULT_VECTOR_DIMENSIONS} dimensions:`,
       error,
     );
     return databaseConfig.DEFAULT_VECTOR_DIMENSIONS;

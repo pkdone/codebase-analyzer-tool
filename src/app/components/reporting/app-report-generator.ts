@@ -24,7 +24,7 @@ import { HtmlReportAssetService } from "./services/html-report-asset.service";
  * Core app summary fields required by the generator itself (for app statistics and categorized data).
  * These are combined with fields requested by individual sections.
  */
-const CORE_REQUIRED_APP_SUMMARY_FIELDS = ["appDescription", "llmProvider", "technologies"] as const;
+const CORE_REQUIRED_APP_SUMMARY_FIELDS = ["appDescription", "llmModels", "technologies"] as const;
 
 /**
  * JSON output filenames for generator-level data files.
@@ -137,6 +137,7 @@ export default class AppReportGenerator {
       reportData,
       sectionDataMap,
       htmlFilePath,
+      allRequiredFields,
     );
 
     const preparedJsonData = this.prepareJsonDataFromSections(reportData, sectionDataMap);
@@ -158,6 +159,7 @@ export default class AppReportGenerator {
     reportData: ReportData,
     sectionDataMap: Map<string, Partial<ReportData>>,
     htmlFilePath: string,
+    allRequiredFields: string[],
   ): Promise<PreparedHtmlReportDataWithoutAssets> {
     const htmlDir = path.dirname(htmlFilePath);
 
@@ -199,8 +201,18 @@ export default class AppReportGenerator {
       },
     };
 
-    // Create a minimal config for the HTML template
+    // Create the config for the HTML template with all required JSON file references
     const jsonFilesConfig = {
+      allRequiredAppSummaryFields: allRequiredFields,
+      jsonDataFiles: {
+        completeReport: GENERATOR_JSON_FILES.completeReport,
+        appStats: GENERATOR_JSON_FILES.appStats,
+        appDescription: GENERATOR_JSON_FILES.appDescription,
+        fileTypes: "file-types.json",
+        procsAndTriggers: "procs-and-triggers.json",
+        dbInteractions: "db-interactions.json",
+        integrationPoints: "integration-points.json",
+      },
       getCategoryJSONFilename: (category: string): string => `${category}.json`,
     };
 

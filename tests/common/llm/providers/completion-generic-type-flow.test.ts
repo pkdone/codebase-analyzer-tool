@@ -2,8 +2,8 @@
  * Tests for explicit generic type parameter propagation in completion methods.
  *
  * These tests verify that the explicit generic type parameters added to
- * executeCompletionPrimary and executeCompletionSecondary correctly propagate
- * type information through the call chain to executeProviderFunction.
+ * executeCompletion correctly propagate type information through the call chain
+ * to executeProviderFunction.
  *
  * The change addresses implicit type widening that occurred when arrow functions
  * were assigned to LLMFunction type without explicit generic declarations.
@@ -14,10 +14,7 @@ import {
   LLMContext,
   LLMOutputFormat,
 } from "../../../../src/common/llm/types/llm-request.types";
-import {
-  ResolvedLLMModelMetadata,
-  LLMModelTier,
-} from "../../../../src/common/llm/types/llm-model.types";
+import { ResolvedLLMModelMetadata } from "../../../../src/common/llm/types/llm-model.types";
 import { LLMResponseStatus } from "../../../../src/common/llm/types/llm-response.types";
 import {
   LLMImplSpecificResponseSummary,
@@ -37,7 +34,7 @@ const TEST_EMBEDDINGS_MODEL = "TEST_EMBEDDINGS_MODEL";
 const testModelsMetadata: Record<string, ResolvedLLMModelMetadata> = {
   [TEST_PRIMARY_MODEL]: {
     modelKey: TEST_PRIMARY_MODEL,
-    name: "Test Primary Model",
+    urnEnvKey: "TEST_PRIMARY_MODEL_URN",
     urn: "test-primary",
     purpose: LLMPurpose.COMPLETIONS,
     maxCompletionTokens: 4096,
@@ -45,7 +42,7 @@ const testModelsMetadata: Record<string, ResolvedLLMModelMetadata> = {
   },
   [TEST_SECONDARY_MODEL]: {
     modelKey: TEST_SECONDARY_MODEL,
-    name: "Test Secondary Model",
+    urnEnvKey: "TEST_SECONDARY_MODEL_URN",
     urn: "test-secondary",
     purpose: LLMPurpose.COMPLETIONS,
     maxCompletionTokens: 2048,
@@ -53,7 +50,7 @@ const testModelsMetadata: Record<string, ResolvedLLMModelMetadata> = {
   },
   [TEST_EMBEDDINGS_MODEL]: {
     modelKey: TEST_EMBEDDINGS_MODEL,
-    name: "Test Embeddings Model",
+    urnEnvKey: "TEST_EMBEDDINGS_MODEL_URN",
     urn: "test-embeddings",
     purpose: LLMPurpose.EMBEDDINGS,
     maxCompletionTokens: 0,
@@ -66,33 +63,34 @@ const testModelsMetadata: Record<string, ResolvedLLMModelMetadata> = {
 function createTestProviderInitWithSecondary(): ProviderInit {
   const manifest: LLMProviderManifest = {
     providerName: "Test Provider",
-    modelFamily: "test",
+    modelFamily: "test-provider",
     envSchema: z.object({}),
     models: {
-      embeddings: {
-        modelKey: TEST_EMBEDDINGS_MODEL,
-        name: testModelsMetadata[TEST_EMBEDDINGS_MODEL].name,
-        urnEnvKey: "TEST_EMBEDDINGS_MODEL",
-        purpose: LLMPurpose.EMBEDDINGS,
-        maxTotalTokens: testModelsMetadata[TEST_EMBEDDINGS_MODEL].maxTotalTokens,
-        dimensions: testModelsMetadata[TEST_EMBEDDINGS_MODEL].dimensions,
-      },
-      primaryCompletion: {
-        modelKey: TEST_PRIMARY_MODEL,
-        name: testModelsMetadata[TEST_PRIMARY_MODEL].name,
-        urnEnvKey: "TEST_PRIMARY_MODEL",
-        purpose: LLMPurpose.COMPLETIONS,
-        maxCompletionTokens: testModelsMetadata[TEST_PRIMARY_MODEL].maxCompletionTokens,
-        maxTotalTokens: testModelsMetadata[TEST_PRIMARY_MODEL].maxTotalTokens,
-      },
-      secondaryCompletion: {
-        modelKey: TEST_SECONDARY_MODEL,
-        name: testModelsMetadata[TEST_SECONDARY_MODEL].name,
-        urnEnvKey: "TEST_SECONDARY_MODEL",
-        purpose: LLMPurpose.COMPLETIONS,
-        maxCompletionTokens: testModelsMetadata[TEST_SECONDARY_MODEL].maxCompletionTokens,
-        maxTotalTokens: testModelsMetadata[TEST_SECONDARY_MODEL].maxTotalTokens,
-      },
+      embeddings: [
+        {
+          modelKey: TEST_EMBEDDINGS_MODEL,
+          urnEnvKey: "TEST_EMBEDDINGS_MODEL_URN",
+          purpose: LLMPurpose.EMBEDDINGS,
+          maxTotalTokens: testModelsMetadata[TEST_EMBEDDINGS_MODEL].maxTotalTokens,
+          dimensions: testModelsMetadata[TEST_EMBEDDINGS_MODEL].dimensions,
+        },
+      ],
+      completions: [
+        {
+          modelKey: TEST_PRIMARY_MODEL,
+          urnEnvKey: "TEST_PRIMARY_MODEL_URN",
+          purpose: LLMPurpose.COMPLETIONS,
+          maxCompletionTokens: testModelsMetadata[TEST_PRIMARY_MODEL].maxCompletionTokens,
+          maxTotalTokens: testModelsMetadata[TEST_PRIMARY_MODEL].maxTotalTokens,
+        },
+        {
+          modelKey: TEST_SECONDARY_MODEL,
+          urnEnvKey: "TEST_SECONDARY_MODEL_URN",
+          purpose: LLMPurpose.COMPLETIONS,
+          maxCompletionTokens: testModelsMetadata[TEST_SECONDARY_MODEL].maxCompletionTokens,
+          maxTotalTokens: testModelsMetadata[TEST_SECONDARY_MODEL].maxTotalTokens,
+        },
+      ],
     },
     errorPatterns: [],
     providerSpecificConfig: {
@@ -109,10 +107,26 @@ function createTestProviderInitWithSecondary(): ProviderInit {
   return {
     manifest,
     providerParams: {},
-    resolvedModels: {
-      embeddings: testModelsMetadata[TEST_EMBEDDINGS_MODEL].urn,
-      primaryCompletion: testModelsMetadata[TEST_PRIMARY_MODEL].urn,
-      secondaryCompletion: testModelsMetadata[TEST_SECONDARY_MODEL].urn,
+    resolvedModelChain: {
+      embeddings: [
+        {
+          providerFamily: "test-provider",
+          modelKey: TEST_EMBEDDINGS_MODEL,
+          modelUrn: testModelsMetadata[TEST_EMBEDDINGS_MODEL].urn,
+        },
+      ],
+      completions: [
+        {
+          providerFamily: "test-provider",
+          modelKey: TEST_PRIMARY_MODEL,
+          modelUrn: testModelsMetadata[TEST_PRIMARY_MODEL].urn,
+        },
+        {
+          providerFamily: "test-provider",
+          modelKey: TEST_SECONDARY_MODEL,
+          modelUrn: testModelsMetadata[TEST_SECONDARY_MODEL].urn,
+        },
+      ],
     },
     errorLogging: createMockErrorLoggingConfig(),
   };
@@ -177,7 +191,7 @@ describe("Completion Method Generic Type Flow", () => {
     };
   });
 
-  describe("executeCompletionPrimary generic type propagation", () => {
+  describe("executeCompletion generic type propagation", () => {
     it("should preserve specific schema type through call chain", async () => {
       const specificSchema = z.object({
         id: z.number(),
@@ -187,10 +201,15 @@ describe("Completion Method Generic Type Flow", () => {
 
       testLLM.setMockResponse('{"id": 1, "name": "Test Item", "tags": ["a", "b"]}');
 
-      const result = await testLLM.executeCompletionPrimary("test prompt", testContext, {
-        outputFormat: LLMOutputFormat.JSON,
-        jsonSchema: specificSchema,
-      });
+      const result = await testLLM.executeCompletion(
+        TEST_PRIMARY_MODEL,
+        "test prompt",
+        testContext,
+        {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: specificSchema,
+        },
+      );
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
       expect(result.generated).toBeDefined();
@@ -215,10 +234,15 @@ describe("Completion Method Generic Type Flow", () => {
 
       testLLM.setMockResponse('{"level1": {"level2": {"level3": {"value": "deep"}}}}');
 
-      const result = await testLLM.executeCompletionPrimary("test prompt", testContext, {
-        outputFormat: LLMOutputFormat.JSON,
-        jsonSchema: deepSchema,
-      });
+      const result = await testLLM.executeCompletion(
+        TEST_PRIMARY_MODEL,
+        "test prompt",
+        testContext,
+        {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: deepSchema,
+        },
+      );
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
       const data = result.generated!;
@@ -235,10 +259,15 @@ describe("Completion Method Generic Type Flow", () => {
 
       testLLM.setMockResponse('[{"id": 1, "active": true}, {"id": 2, "active": false}]');
 
-      const result = await testLLM.executeCompletionPrimary("test prompt", testContext, {
-        outputFormat: LLMOutputFormat.JSON,
-        jsonSchema: arraySchema,
-      });
+      const result = await testLLM.executeCompletion(
+        TEST_PRIMARY_MODEL,
+        "test prompt",
+        testContext,
+        {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: arraySchema,
+        },
+      );
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
       const data = result.generated!;
@@ -250,7 +279,7 @@ describe("Completion Method Generic Type Flow", () => {
     });
   });
 
-  describe("executeCompletionSecondary generic type propagation", () => {
+  describe("executeCompletion generic type propagation with secondary model", () => {
     it("should preserve specific schema type through call chain for secondary model", async () => {
       const specificSchema = z.object({
         status: z.enum(["success", "error"]),
@@ -259,10 +288,15 @@ describe("Completion Method Generic Type Flow", () => {
 
       testLLM.setMockResponse('{"status": "success", "message": "Operation completed"}');
 
-      const result = await testLLM.executeCompletionSecondary("test prompt", testContext, {
-        outputFormat: LLMOutputFormat.JSON,
-        jsonSchema: specificSchema,
-      });
+      const result = await testLLM.executeCompletion(
+        TEST_SECONDARY_MODEL,
+        "test prompt",
+        testContext,
+        {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: specificSchema,
+        },
+      );
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
       expect(result.generated).toBeDefined();
@@ -280,10 +314,15 @@ describe("Completion Method Generic Type Flow", () => {
 
       testLLM.setMockResponse('{"type": "user", "userId": 42}');
 
-      const result = await testLLM.executeCompletionSecondary("test prompt", testContext, {
-        outputFormat: LLMOutputFormat.JSON,
-        jsonSchema: unionSchema,
-      });
+      const result = await testLLM.executeCompletion(
+        TEST_PRIMARY_MODEL,
+        "test prompt",
+        testContext,
+        {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: unionSchema,
+        },
+      );
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
       const data = result.generated!;
@@ -303,17 +342,27 @@ describe("Completion Method Generic Type Flow", () => {
 
       // Test primary
       testLLM.setMockResponse('{"code": 200, "description": "OK"}');
-      const primaryResult = await testLLM.executeCompletionPrimary("prompt", testContext, {
-        outputFormat: LLMOutputFormat.JSON,
-        jsonSchema: sharedSchema,
-      });
+      const primaryResult = await testLLM.executeCompletion(
+        TEST_PRIMARY_MODEL,
+        "prompt",
+        testContext,
+        {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: sharedSchema,
+        },
+      );
 
       // Test secondary with same schema
       testLLM.setMockResponse('{"code": 404, "description": "Not Found"}');
-      const secondaryResult = await testLLM.executeCompletionSecondary("prompt", testContext, {
-        outputFormat: LLMOutputFormat.JSON,
-        jsonSchema: sharedSchema,
-      });
+      const secondaryResult = await testLLM.executeCompletion(
+        TEST_SECONDARY_MODEL,
+        "prompt",
+        testContext,
+        {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: sharedSchema,
+        },
+      );
 
       expect(primaryResult.status).toBe(LLMResponseStatus.COMPLETED);
       expect(secondaryResult.status).toBe(LLMResponseStatus.COMPLETED);
@@ -333,7 +382,7 @@ describe("Completion Method Generic Type Flow", () => {
     it("should handle TEXT output without schema for primary", async () => {
       testLLM.setMockResponse("Plain text response from primary");
 
-      const result = await testLLM.executeCompletionPrimary("prompt", testContext, {
+      const result = await testLLM.executeCompletion(TEST_PRIMARY_MODEL, "prompt", testContext, {
         outputFormat: LLMOutputFormat.TEXT,
       });
 
@@ -344,7 +393,7 @@ describe("Completion Method Generic Type Flow", () => {
     it("should handle TEXT output without schema for secondary", async () => {
       testLLM.setMockResponse("Plain text response from secondary");
 
-      const result = await testLLM.executeCompletionSecondary("prompt", testContext, {
+      const result = await testLLM.executeCompletion(TEST_SECONDARY_MODEL, "prompt", testContext, {
         outputFormat: LLMOutputFormat.TEXT,
       });
 
@@ -353,13 +402,13 @@ describe("Completion Method Generic Type Flow", () => {
     });
   });
 
-  describe("Available model tiers verification", () => {
-    it("should include both PRIMARY and SECONDARY tiers when secondary is configured", () => {
-      const tiers = testLLM.getAvailableCompletionModelTiers();
+  describe("Available completion model keys verification", () => {
+    it("should include both completion models when configured", () => {
+      const modelKeys = testLLM.getAvailableCompletionModelKeys();
 
-      expect(tiers).toContain(LLMModelTier.PRIMARY);
-      expect(tiers).toContain(LLMModelTier.SECONDARY);
-      expect(tiers).toHaveLength(2);
+      expect(modelKeys).toContain(TEST_PRIMARY_MODEL);
+      expect(modelKeys).toContain(TEST_SECONDARY_MODEL);
+      expect(modelKeys).toHaveLength(2);
     });
   });
 });

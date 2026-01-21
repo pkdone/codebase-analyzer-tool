@@ -302,7 +302,7 @@ describe("UI Technology Analysis Integration Test", () => {
     // Create app summary
     await appSummaryRepository.createOrReplaceAppSummary({
       projectName,
-      llmProvider: "test-provider",
+      llmModels: "test-provider",
     });
 
     // Act: Run data provider

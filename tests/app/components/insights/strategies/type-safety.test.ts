@@ -121,13 +121,7 @@ describe("Type Safety Tests", () => {
     beforeEach(() => {
       mockLLMRouter = {
         executeCompletion: jest.fn(),
-        getLLMManifest: jest.fn().mockReturnValue({
-          models: {
-            primaryCompletion: {
-              maxTotalTokens: 100000,
-            },
-          },
-        }),
+        getFirstCompletionModelMaxTokens: jest.fn().mockReturnValue(100000),
       } as unknown as jest.Mocked<LLMRouter>;
       strategy = new MapReduceInsightStrategy(mockLLMRouter);
     });

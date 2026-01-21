@@ -9,6 +9,10 @@ import {
   createBedrockMockEnv,
 } from "../../../../helpers/llm/bedrock-test-helper";
 
+// Model keys used in tests (matching the manifest)
+const BEDROCK_META_LLAMA3_3_70B_INSTRUCT = "bedrock-meta-llama3-3-70b-instruct";
+const BEDROCK_META_LLAMA3_2_90B_INSTRUCT = "bedrock-meta-llama3-2-90b-instruct";
+
 /**
  * Unit tests for BedrockLlamaLLM - Type Safety Improvements
  *
@@ -18,9 +22,12 @@ import {
 describe("BedrockLlamaLLM - Type Safety", () => {
   const mockEnv = createBedrockMockEnv(
     "BedrockLlama",
-    "amazon.titan-embed-text-v1",
-    "meta.llama3-3-70b-instruct-v1:0",
-    "meta.llama3-2-90b-instruct-v1:0",
+    [], // No embeddings for Llama
+    [BEDROCK_META_LLAMA3_3_70B_INSTRUCT, BEDROCK_META_LLAMA3_2_90B_INSTRUCT],
+    {
+      BEDROCK_LLAMA_33_70B_MODEL_URN: "meta.llama3-3-70b-instruct-v1:0",
+      BEDROCK_LLAMA_32_90B_MODEL_URN: "meta.llama3-2-90b-instruct-v1:0",
+    },
   );
 
   it("should apply maxGenLenCap from typed config", () => {
@@ -29,7 +36,7 @@ describe("BedrockLlamaLLM - Type Safety", () => {
 
     // Access the protected method via type assertion to test it
     const requestBody = (llm as any).buildCompletionRequestBody(
-      bedrockLlamaProviderManifest.models.primaryCompletion.modelKey,
+      bedrockLlamaProviderManifest.models.completions[0].modelKey,
       "test prompt",
     );
 
@@ -46,18 +53,21 @@ describe("BedrockLlamaLLM - Type Safety", () => {
       ...bedrockLlamaProviderManifest,
       models: {
         ...bedrockLlamaProviderManifest.models,
-        primaryCompletion: {
-          ...bedrockLlamaProviderManifest.models.primaryCompletion,
-          maxCompletionTokens: 1024, // Lower than maxGenLenCap (2048)
-        },
+        completions: [
+          {
+            ...bedrockLlamaProviderManifest.models.completions[0],
+            maxCompletionTokens: 1024, // Lower than maxGenLenCap (2048)
+          },
+          ...bedrockLlamaProviderManifest.models.completions.slice(1),
+        ],
       },
     };
 
-    const init = createBedrockProviderInit(modifiedManifest, mockEnv);
+    const init = createBedrockProviderInit(modifiedManifest as any, mockEnv);
     const llm = new BedrockLlamaLLM(init);
 
     const requestBody = (llm as any).buildCompletionRequestBody(
-      bedrockLlamaProviderManifest.models.primaryCompletion.modelKey,
+      bedrockLlamaProviderManifest.models.completions[0].modelKey,
       "test prompt",
     );
 

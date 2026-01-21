@@ -17,23 +17,27 @@ import { vertexAIGeminiProviderManifest } from "../../../../../../src/common/llm
 jest.mock("@google-cloud/vertexai");
 jest.mock("@google-cloud/aiplatform");
 
+// Model keys matching the manifest
+const GEMINI_EMBEDDING_KEY = "gemini-embedding-001";
+const GEMINI_COMPLETION_KEY = "gemini-3-pro";
+
 describe("VertexAIGeminiLLM Schema Sanitization", () => {
   const mockModelsMetadata: Record<string, ResolvedLLMModelMetadata> = {
-    GEMINI_EMBEDDINGS: {
-      modelKey: "GEMINI_EMBEDDINGS",
-      name: "Gemini Embeddings",
+    [GEMINI_EMBEDDING_KEY]: {
+      modelKey: GEMINI_EMBEDDING_KEY,
+      urnEnvKey: "VERTEXAI_GEMINI_EMBEDDING_001_MODEL_URN",
       urn: "text-embedding-004",
       purpose: LLMPurpose.EMBEDDINGS,
-      dimensions: 768,
+      dimensions: 3072,
       maxTotalTokens: 2048,
     },
-    GEMINI_COMPLETIONS: {
-      modelKey: "GEMINI_COMPLETIONS",
-      name: "Gemini Pro",
+    [GEMINI_COMPLETION_KEY]: {
+      modelKey: GEMINI_COMPLETION_KEY,
+      urnEnvKey: "VERTEXAI_GEMINI_3_PRO_MODEL_URN",
       urn: "gemini-1.5-pro",
       purpose: LLMPurpose.COMPLETIONS,
-      maxCompletionTokens: 8192,
-      maxTotalTokens: 32768,
+      maxCompletionTokens: 65535,
+      maxTotalTokens: 1048576,
     },
   };
 
@@ -97,9 +101,21 @@ describe("VertexAIGeminiLLM Schema Sanitization", () => {
         VERTEXAI_EMBEDDINGS_LOCATION: "us-central1",
         VERTEXAI_COMPLETIONS_LOCATION: "us-central1",
       },
-      resolvedModels: {
-        embeddings: mockModelsMetadata.GEMINI_EMBEDDINGS.urn,
-        primaryCompletion: mockModelsMetadata.GEMINI_COMPLETIONS.urn,
+      resolvedModelChain: {
+        embeddings: [
+          {
+            providerFamily: "VertexAIGemini",
+            modelKey: GEMINI_EMBEDDING_KEY,
+            modelUrn: mockModelsMetadata[GEMINI_EMBEDDING_KEY].urn,
+          },
+        ],
+        completions: [
+          {
+            providerFamily: "VertexAIGemini",
+            modelKey: GEMINI_COMPLETION_KEY,
+            modelUrn: mockModelsMetadata[GEMINI_COMPLETION_KEY].urn,
+          },
+        ],
       },
       errorLogging: createMockErrorLoggingConfig(),
     };
@@ -112,7 +128,7 @@ describe("VertexAIGeminiLLM Schema Sanitization", () => {
         status: z.literal("active").describe("Status must be active"),
       });
 
-      await vertexAIGeminiLLM.executeCompletionPrimary("test prompt", mockContext, {
+      await vertexAIGeminiLLM.executeCompletion(GEMINI_COMPLETION_KEY, "test prompt", mockContext, {
         outputFormat: LLMOutputFormat.JSON,
         jsonSchema: schemaWithConst,
         hasComplexSchema: false,
@@ -151,7 +167,7 @@ describe("VertexAIGeminiLLM Schema Sanitization", () => {
         }),
       });
 
-      await vertexAIGeminiLLM.executeCompletionPrimary("test prompt", mockContext, {
+      await vertexAIGeminiLLM.executeCompletion(GEMINI_COMPLETION_KEY, "test prompt", mockContext, {
         outputFormat: LLMOutputFormat.JSON,
         jsonSchema: schemaWithNestedConst,
         hasComplexSchema: false,
@@ -180,7 +196,7 @@ describe("VertexAIGeminiLLM Schema Sanitization", () => {
         items: z.array(z.literal("fixed-value")),
       });
 
-      await vertexAIGeminiLLM.executeCompletionPrimary("test prompt", mockContext, {
+      await vertexAIGeminiLLM.executeCompletion(GEMINI_COMPLETION_KEY, "test prompt", mockContext, {
         outputFormat: LLMOutputFormat.JSON,
         jsonSchema: schemaWithArrayConst,
         hasComplexSchema: false,
@@ -208,7 +224,7 @@ describe("VertexAIGeminiLLM Schema Sanitization", () => {
         value: z.union([z.string(), z.literal("specific-value")]),
       });
 
-      await vertexAIGeminiLLM.executeCompletionPrimary("test prompt", mockContext, {
+      await vertexAIGeminiLLM.executeCompletion(GEMINI_COMPLETION_KEY, "test prompt", mockContext, {
         outputFormat: LLMOutputFormat.JSON,
         jsonSchema: schemaWithAnyOf,
         hasComplexSchema: false,
@@ -242,7 +258,7 @@ describe("VertexAIGeminiLLM Schema Sanitization", () => {
         age: z.number(),
       });
 
-      await vertexAIGeminiLLM.executeCompletionPrimary("test prompt", mockContext, {
+      await vertexAIGeminiLLM.executeCompletion(GEMINI_COMPLETION_KEY, "test prompt", mockContext, {
         outputFormat: LLMOutputFormat.JSON,
         jsonSchema: schemaWithMultipleFields,
         hasComplexSchema: false,
@@ -283,7 +299,7 @@ describe("VertexAIGeminiLLM Schema Sanitization", () => {
         ),
       });
 
-      await vertexAIGeminiLLM.executeCompletionPrimary("test prompt", mockContext, {
+      await vertexAIGeminiLLM.executeCompletion(GEMINI_COMPLETION_KEY, "test prompt", mockContext, {
         outputFormat: LLMOutputFormat.JSON,
         jsonSchema: complexSchema,
         hasComplexSchema: false,
@@ -317,7 +333,7 @@ describe("VertexAIGeminiLLM Schema Sanitization", () => {
         status: z.literal("active"),
       });
 
-      await vertexAIGeminiLLM.executeCompletionPrimary("test prompt", mockContext, {
+      await vertexAIGeminiLLM.executeCompletion(GEMINI_COMPLETION_KEY, "test prompt", mockContext, {
         outputFormat: LLMOutputFormat.JSON,
         jsonSchema: originalSchema,
         hasComplexSchema: false,
@@ -334,7 +350,7 @@ describe("VertexAIGeminiLLM Schema Sanitization", () => {
         age: z.number(),
       });
 
-      await vertexAIGeminiLLM.executeCompletionPrimary("test prompt", mockContext, {
+      await vertexAIGeminiLLM.executeCompletion(GEMINI_COMPLETION_KEY, "test prompt", mockContext, {
         outputFormat: LLMOutputFormat.JSON,
         jsonSchema: schemaWithoutConst,
         hasComplexSchema: false,
@@ -373,11 +389,16 @@ describe("VertexAIGeminiLLM Schema Sanitization", () => {
         },
       });
 
-      const result = await vertexAIGeminiLLM.executeCompletionPrimary("test prompt", mockContext, {
-        outputFormat: LLMOutputFormat.JSON,
-        jsonSchema: schemaWithConst,
-        hasComplexSchema: false,
-      });
+      const result = await vertexAIGeminiLLM.executeCompletion(
+        GEMINI_COMPLETION_KEY,
+        "test prompt",
+        mockContext,
+        {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: schemaWithConst,
+          hasComplexSchema: false,
+        },
+      );
 
       // Verify the request completed successfully
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);

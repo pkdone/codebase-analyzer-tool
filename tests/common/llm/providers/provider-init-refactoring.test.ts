@@ -40,34 +40,44 @@ describe("Provider Init Refactoring", () => {
   const createTestInit = (includeSecondary = false): ProviderInit => ({
     manifest: {
       providerName: "Test Provider",
-      modelFamily: "test-family",
+      modelFamily: "test-provider",
       envSchema: z.object({}),
       models: {
-        embeddings: {
-          modelKey: "test-embed",
-          name: "Test Embeddings",
-          urnEnvKey: "TEST_EMBED_URN",
-          purpose: LLMPurpose.EMBEDDINGS,
-          maxTotalTokens: 1000,
-        },
-        primaryCompletion: {
-          modelKey: "test-primary",
-          name: "Test Primary",
-          urnEnvKey: "TEST_PRIMARY_URN",
-          purpose: LLMPurpose.COMPLETIONS,
-          maxCompletionTokens: 500,
-          maxTotalTokens: 2000,
-        },
-        ...(includeSecondary && {
-          secondaryCompletion: {
-            modelKey: "test-secondary",
-            name: "Test Secondary",
-            urnEnvKey: "TEST_SECONDARY_URN",
-            purpose: LLMPurpose.COMPLETIONS,
-            maxCompletionTokens: 250,
+        embeddings: [
+          {
+            modelKey: "test-embed",
+            urnEnvKey: "TEST_EMBED_URN",
+            purpose: LLMPurpose.EMBEDDINGS,
             maxTotalTokens: 1000,
+            dimensions: 1536,
           },
-        }),
+        ],
+        completions: includeSecondary
+          ? [
+              {
+                modelKey: "test-primary",
+                urnEnvKey: "TEST_PRIMARY_URN",
+                purpose: LLMPurpose.COMPLETIONS,
+                maxCompletionTokens: 500,
+                maxTotalTokens: 2000,
+              },
+              {
+                modelKey: "test-secondary",
+                urnEnvKey: "TEST_SECONDARY_URN",
+                purpose: LLMPurpose.COMPLETIONS,
+                maxCompletionTokens: 250,
+                maxTotalTokens: 1000,
+              },
+            ]
+          : [
+              {
+                modelKey: "test-primary",
+                urnEnvKey: "TEST_PRIMARY_URN",
+                purpose: LLMPurpose.COMPLETIONS,
+                maxCompletionTokens: 500,
+                maxTotalTokens: 2000,
+              },
+            ],
       },
       errorPatterns: [],
       providerSpecificConfig: {
@@ -82,10 +92,22 @@ describe("Provider Init Refactoring", () => {
     providerParams: {
       API_KEY: "test-api-key",
     },
-    resolvedModels: {
-      embeddings: "test-embed-urn",
-      primaryCompletion: "test-primary-urn",
-      ...(includeSecondary && { secondaryCompletion: "test-secondary-urn" }),
+    resolvedModelChain: {
+      embeddings: [
+        { providerFamily: "test-provider", modelKey: "test-embed", modelUrn: "test-embed-urn" },
+      ],
+      completions: [
+        { providerFamily: "test-provider", modelKey: "test-primary", modelUrn: "test-primary-urn" },
+        ...(includeSecondary
+          ? [
+              {
+                providerFamily: "test-provider",
+                modelKey: "test-secondary",
+                modelUrn: "test-secondary-urn",
+              },
+            ]
+          : []),
+      ],
     },
     errorLogging: {
       errorLogDirectory: "/tmp/test-errors",
@@ -109,7 +131,6 @@ describe("Provider Init Refactoring", () => {
     const llmModelsMetadata = (provider as any).llmModelsMetadata;
     const providerSpecificConfig = (provider as any).providerSpecificConfig;
     const providerParams = (provider as any).providerParams;
-    const modelsKeys = (provider as any).modelsKeys;
     const modelFamily = (provider as any).modelFamily;
 
     expect(llmModelsMetadata).toBeDefined();
@@ -120,10 +141,7 @@ describe("Provider Init Refactoring", () => {
 
     expect(providerSpecificConfig).toEqual(init.manifest.providerSpecificConfig);
     expect(providerParams).toEqual(init.providerParams);
-    expect(modelFamily).toBe("Test Provider");
-
-    expect(modelsKeys.embeddingsModelKey).toBe("test-embed");
-    expect(modelsKeys.primaryCompletionModelKey).toBe("test-primary");
+    expect(modelFamily).toBe("test-provider");
   });
 
   it("should work with secondary completion model", () => {
@@ -131,11 +149,9 @@ describe("Provider Init Refactoring", () => {
     const provider = new TestProvider(init);
 
     const llmModelsMetadata = (provider as any).llmModelsMetadata;
-    const modelsKeys = (provider as any).modelsKeys;
 
     expect(llmModelsMetadata["test-secondary"]).toBeDefined();
     expect(llmModelsMetadata["test-secondary"].urn).toBe("test-secondary-urn");
-    expect(modelsKeys.secondaryCompletionModelKey).toBe("test-secondary");
   });
 
   it("should work without secondary completion model", () => {
@@ -143,10 +159,8 @@ describe("Provider Init Refactoring", () => {
     const provider = new TestProvider(init);
 
     const llmModelsMetadata = (provider as any).llmModelsMetadata;
-    const modelsKeys = (provider as any).modelsKeys;
 
     expect(llmModelsMetadata["test-secondary"]).toBeUndefined();
-    expect(modelsKeys.secondaryCompletionModelKey).toBeUndefined();
   });
 
   it("should store provider params for access by subclasses", () => {
@@ -157,19 +171,6 @@ describe("Provider Init Refactoring", () => {
 
     expect(providerParams).toBeDefined();
     expect(providerParams.API_KEY).toBe("test-api-key");
-  });
-
-  it("should correctly derive models keys from manifest", () => {
-    const init = createTestInit(true);
-    const provider = new TestProvider(init);
-
-    const modelsKeys = (provider as any).modelsKeys;
-
-    expect(modelsKeys).toEqual({
-      embeddingsModelKey: "test-embed",
-      primaryCompletionModelKey: "test-primary",
-      secondaryCompletionModelKey: "test-secondary",
-    });
   });
 
   it("should provide access to model metadata through getModelsMetadata", () => {
@@ -184,14 +185,14 @@ describe("Provider Init Refactoring", () => {
     expect(metadata["test-primary"].urn).toBe("test-primary-urn");
   });
 
-  it("should provide access to available completion tiers", () => {
+  it("should provide access to available completion model keys", () => {
     const init = createTestInit(true);
     const provider = new TestProvider(init);
 
-    const tiers = provider.getAvailableCompletionModelTiers();
+    const keys = provider.getAvailableCompletionModelKeys();
 
-    expect(tiers).toContain("primary");
-    expect(tiers).toContain("secondary");
+    expect(keys).toContain("test-primary");
+    expect(keys).toContain("test-secondary");
   });
 
   it("should handle manifest without features array", () => {

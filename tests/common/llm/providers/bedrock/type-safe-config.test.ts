@@ -18,30 +18,41 @@ describe("Type-Safe Config Without Features Array", () => {
       modelFamily: "bedrock-llama",
       envSchema: z.object({}),
       models: {
-        embeddings: {
-          modelKey: "test-embed",
-          name: "Test Embeddings",
-          urnEnvKey: "TEST_EMBED",
-          purpose: LLMPurpose.EMBEDDINGS,
-          maxTotalTokens: 8192,
-        },
-        primaryCompletion: {
-          modelKey: "llama-complete",
-          name: "Llama Completion",
-          urnEnvKey: "LLAMA_COMPLETE",
-          purpose: LLMPurpose.COMPLETIONS,
-          maxCompletionTokens: 8192,
-          maxTotalTokens: 128000,
-        },
+        embeddings: [
+          {
+            modelKey: "test-embed",
+            urnEnvKey: "TEST_EMBED",
+            purpose: LLMPurpose.EMBEDDINGS,
+            maxTotalTokens: 8192,
+            dimensions: 1024,
+          },
+        ],
+        completions: [
+          {
+            modelKey: "llama-complete",
+            urnEnvKey: "LLAMA_COMPLETE",
+            purpose: LLMPurpose.COMPLETIONS,
+            maxCompletionTokens: 8192,
+            maxTotalTokens: 128000,
+          },
+        ],
       },
       errorPatterns: [],
       providerSpecificConfig: config,
       implementation: BedrockLlamaLLM,
     },
     providerParams: {},
-    resolvedModels: {
-      embeddings: "test-embed-urn",
-      primaryCompletion: "llama-complete-urn",
+    resolvedModelChain: {
+      embeddings: [
+        { providerFamily: "bedrock-llama", modelKey: "test-embed", modelUrn: "test-embed-urn" },
+      ],
+      completions: [
+        {
+          providerFamily: "bedrock-llama",
+          modelKey: "llama-complete",
+          modelUrn: "llama-complete-urn",
+        },
+      ],
     },
     errorLogging: {
       errorLogDirectory: "/tmp/test-errors",

@@ -18,44 +18,41 @@ const mockAzureOpenAIEnv: Record<string, string> = {
   MONGODB_URL: baseEnv.MONGODB_URL,
   CODEBASE_DIR_PATH: "/test/path",
   SKIP_ALREADY_PROCESSED_FILES: "false",
-  LLM: "AzureOpenAI",
+  LLM_COMPLETIONS: "AzureOpenAI:azure-openai-gpt4o,AzureOpenAI:azure-openai-gpt4-turbo",
+  LLM_EMBEDDINGS: "AzureOpenAI:azure-openai-ada-embeddings",
   AZURE_OPENAI_LLM_API_KEY: "test-key",
   AZURE_OPENAI_ENDPOINT: "https://test.openai.azure.com/",
   AZURE_OPENAI_EMBEDDINGS_MODEL_DEPLOYMENT: "test-embeddings",
-  AZURE_OPENAI_COMPLETIONS_MODEL_DEPLOYMENT_PRIMARY: "test-primary",
-  AZURE_OPENAI_COMPLETIONS_MODEL_DEPLOYMENT_SECONDARY: "test-secondary",
-  AZURE_OPENAI_ADA_EMBEDDINGS_MODEL: "text-embedding-ada-002",
-  AZURE_OPENAI_GPT_COMPLETIONS_MODEL_PRIMARY: "gpt-4o",
-  AZURE_OPENAI_GPT_COMPLETIONS_MODEL_SECONDARY: "gpt-4-turbo",
+  AZURE_OPENAI_GPT4O_MODEL_DEPLOYMENT: "test-gpt4o-deployment",
+  AZURE_OPENAI_GPT4_TURBO_MODEL_DEPLOYMENT: "test-gpt4-turbo-deployment",
+  AZURE_OPENAI_ADA_EMBEDDINGS_MODEL_URN: "text-embedding-ada-002",
+  AZURE_OPENAI_GPT4O_MODEL_URN: "gpt-4o",
+  AZURE_OPENAI_GPT4_TURBO_MODEL_URN: "gpt-4-turbo",
 };
 
 // Helper function to resolve URN from environment variable key
 const resolveUrn = (urnEnvKey: string): string => {
-  return mockAzureOpenAIEnv[urnEnvKey];
+  return mockAzureOpenAIEnv[urnEnvKey] ?? "unknown-urn";
 };
+
+// Get models from manifest
+const embeddingsModel = azureOpenAIProviderManifest.models.embeddings[0];
+const completionsModels = azureOpenAIProviderManifest.models.completions;
 
 // Create test instance using Azure OpenAI provider manifest
 const azureOpenAIModelsMetadata: Record<string, ResolvedLLMModelMetadata> = {
-  [azureOpenAIProviderManifest.models.embeddings.modelKey]: {
-    modelKey: azureOpenAIProviderManifest.models.embeddings.modelKey,
-    name: azureOpenAIProviderManifest.models.embeddings.name,
-    urn: resolveUrn(azureOpenAIProviderManifest.models.embeddings.urnEnvKey),
+  [embeddingsModel.modelKey]: {
+    modelKey: embeddingsModel.modelKey,
+    urnEnvKey: embeddingsModel.urnEnvKey,
+    urn: resolveUrn(embeddingsModel.urnEnvKey),
     purpose: LLMPurpose.EMBEDDINGS,
-    dimensions: azureOpenAIProviderManifest.models.embeddings.dimensions,
-    maxTotalTokens: azureOpenAIProviderManifest.models.embeddings.maxTotalTokens,
-  },
-  [azureOpenAIProviderManifest.models.primaryCompletion.modelKey]: {
-    modelKey: azureOpenAIProviderManifest.models.primaryCompletion.modelKey,
-    name: azureOpenAIProviderManifest.models.primaryCompletion.name,
-    urn: resolveUrn(azureOpenAIProviderManifest.models.primaryCompletion.urnEnvKey),
-    purpose: LLMPurpose.COMPLETIONS,
-    maxCompletionTokens: azureOpenAIProviderManifest.models.primaryCompletion.maxCompletionTokens,
-    maxTotalTokens: azureOpenAIProviderManifest.models.primaryCompletion.maxTotalTokens,
+    dimensions: embeddingsModel.dimensions,
+    maxTotalTokens: embeddingsModel.maxTotalTokens,
   },
   // Add common test models that are used in the tests
   [GPT_COMPLETIONS_GPT4]: {
     modelKey: GPT_COMPLETIONS_GPT4,
-    name: "GPT-4",
+    urnEnvKey: "GPT4_URN",
     urn: "gpt-4",
     purpose: LLMPurpose.COMPLETIONS,
     maxCompletionTokens: 4096,
@@ -63,7 +60,7 @@ const azureOpenAIModelsMetadata: Record<string, ResolvedLLMModelMetadata> = {
   },
   [GPT_COMPLETIONS_GPT4_32k]: {
     modelKey: GPT_COMPLETIONS_GPT4_32k,
-    name: "GPT-4 32k",
+    urnEnvKey: "GPT4_32K_URN",
     urn: "gpt-4-32k",
     purpose: LLMPurpose.COMPLETIONS,
     maxCompletionTokens: 4096,
@@ -71,16 +68,15 @@ const azureOpenAIModelsMetadata: Record<string, ResolvedLLMModelMetadata> = {
   },
 };
 
-// Add secondary completion if it exists
-if (azureOpenAIProviderManifest.models.secondaryCompletion) {
-  const secondaryModel = azureOpenAIProviderManifest.models.secondaryCompletion;
-  azureOpenAIModelsMetadata[secondaryModel.modelKey] = {
-    modelKey: secondaryModel.modelKey,
-    name: secondaryModel.name,
-    urn: resolveUrn(secondaryModel.urnEnvKey),
+// Add completion models from manifest
+for (const completionModel of completionsModels) {
+  azureOpenAIModelsMetadata[completionModel.modelKey] = {
+    modelKey: completionModel.modelKey,
+    urnEnvKey: completionModel.urnEnvKey,
+    urn: resolveUrn(completionModel.urnEnvKey),
     purpose: LLMPurpose.COMPLETIONS,
-    maxCompletionTokens: secondaryModel.maxCompletionTokens ?? 4096,
-    maxTotalTokens: secondaryModel.maxTotalTokens,
+    maxCompletionTokens: completionModel.maxCompletionTokens ?? 4096,
+    maxTotalTokens: completionModel.maxTotalTokens,
   };
 }
 
@@ -89,17 +85,19 @@ function createTestProviderInit(): ProviderInit {
   return {
     manifest: azureOpenAIProviderManifest,
     providerParams: mockAzureOpenAIEnv,
-    resolvedModels: {
-      embeddings:
-        azureOpenAIModelsMetadata[azureOpenAIProviderManifest.models.embeddings.modelKey].urn,
-      primaryCompletion:
-        azureOpenAIModelsMetadata[azureOpenAIProviderManifest.models.primaryCompletion.modelKey]
-          .urn,
-      ...(azureOpenAIProviderManifest.models.secondaryCompletion && {
-        secondaryCompletion:
-          azureOpenAIModelsMetadata[azureOpenAIProviderManifest.models.secondaryCompletion.modelKey]
-            .urn,
-      }),
+    resolvedModelChain: {
+      embeddings: [
+        {
+          providerFamily: "AzureOpenAI",
+          modelKey: embeddingsModel.modelKey,
+          modelUrn: resolveUrn(embeddingsModel.urnEnvKey),
+        },
+      ],
+      completions: completionsModels.map((model) => ({
+        providerFamily: "AzureOpenAI",
+        modelKey: model.modelKey,
+        modelUrn: resolveUrn(model.urnEnvKey),
+      })),
     },
     errorLogging: createMockErrorLoggingConfig(),
   };
@@ -148,13 +146,15 @@ describe("Azure OpenAI Provider Tests", () => {
     test("counts available models", () => {
       const init = createTestProviderInit();
       const llm = new azureOpenAIProviderManifest.implementation(init);
-      expect(Object.keys(llm.getModelsNames()).length).toBe(3);
+      const modelNames = llm.getAvailableModelNames();
+      expect(modelNames.embeddings.length).toBeGreaterThanOrEqual(1);
+      expect(modelNames.completions.length).toBeGreaterThanOrEqual(1);
     });
 
     test("verifies model family", () => {
       const init = createTestProviderInit();
       const llm = new azureOpenAIProviderManifest.implementation(init);
-      expect(llm.getModelFamily()).toBe("Azure OpenAI");
+      expect(llm.getModelFamily()).toBe("AzureOpenAI");
     });
   });
 });

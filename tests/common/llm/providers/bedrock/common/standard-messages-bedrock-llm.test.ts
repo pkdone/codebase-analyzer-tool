@@ -34,7 +34,7 @@ describe("StandardMessagesBedrockLLM", () => {
   const mockModelsMetadata: Record<string, ResolvedLLMModelMetadata> = {
     EMBEDDINGS: {
       modelKey: "EMBEDDINGS",
-      name: "Test Embeddings",
+      urnEnvKey: "TEST_EMBEDDINGS_KEY",
       urn: "test.embeddings",
       purpose: LLMPurpose.EMBEDDINGS,
       dimensions: 1024,
@@ -42,7 +42,7 @@ describe("StandardMessagesBedrockLLM", () => {
     },
     [TEST_MODEL_KEY]: {
       modelKey: TEST_MODEL_KEY,
-      name: "Test Completion Model",
+      urnEnvKey: "TEST_COMPLETION_KEY",
       urn: "test.completion",
       purpose: LLMPurpose.COMPLETIONS,
       maxCompletionTokens: 4096,
@@ -60,25 +60,27 @@ describe("StandardMessagesBedrockLLM", () => {
   function createTestProviderInit(): ProviderInit {
     const manifest: LLMProviderManifest = {
       providerName: "Test Provider",
-      modelFamily: "TestFamily",
+      modelFamily: "test-standard",
       envSchema: z.object({}),
       models: {
-        embeddings: {
-          modelKey: "EMBEDDINGS",
-          name: "Test Embeddings",
-          urnEnvKey: "TEST_EMBEDDINGS_KEY",
-          purpose: LLMPurpose.EMBEDDINGS,
-          dimensions: 1024,
-          maxTotalTokens: 8192,
-        },
-        primaryCompletion: {
-          modelKey: TEST_MODEL_KEY,
-          name: "Test Completion Model",
-          urnEnvKey: "TEST_COMPLETION_KEY",
-          purpose: LLMPurpose.COMPLETIONS,
-          maxCompletionTokens: 4096,
-          maxTotalTokens: 128000,
-        },
+        embeddings: [
+          {
+            modelKey: "EMBEDDINGS",
+            urnEnvKey: "TEST_EMBEDDINGS_KEY",
+            purpose: LLMPurpose.EMBEDDINGS,
+            dimensions: 1024,
+            maxTotalTokens: 8192,
+          },
+        ],
+        completions: [
+          {
+            modelKey: TEST_MODEL_KEY,
+            urnEnvKey: "TEST_COMPLETION_KEY",
+            purpose: LLMPurpose.COMPLETIONS,
+            maxCompletionTokens: 4096,
+            maxTotalTokens: 128000,
+          },
+        ],
       },
       errorPatterns: [],
       providerSpecificConfig: mockConfig,
@@ -88,9 +90,21 @@ describe("StandardMessagesBedrockLLM", () => {
     return {
       manifest,
       providerParams: {},
-      resolvedModels: {
-        embeddings: mockModelsMetadata.EMBEDDINGS.urn,
-        primaryCompletion: mockModelsMetadata[TEST_MODEL_KEY].urn,
+      resolvedModelChain: {
+        embeddings: [
+          {
+            providerFamily: "test-standard",
+            modelKey: "EMBEDDINGS",
+            modelUrn: mockModelsMetadata.EMBEDDINGS.urn,
+          },
+        ],
+        completions: [
+          {
+            providerFamily: "test-standard",
+            modelKey: TEST_MODEL_KEY,
+            modelUrn: mockModelsMetadata[TEST_MODEL_KEY].urn,
+          },
+        ],
       },
       errorLogging: createMockErrorLoggingConfig(),
     };

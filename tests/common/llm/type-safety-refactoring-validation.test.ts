@@ -12,10 +12,7 @@ import {
   InferResponseType,
 } from "../../../src/common/llm/types/llm-response.types";
 import { LLMFunction } from "../../../src/common/llm/types/llm-function.types";
-import {
-  LLMModelTier,
-  ResolvedLLMModelMetadata,
-} from "../../../src/common/llm/types/llm-model.types";
+import { ResolvedLLMModelMetadata } from "../../../src/common/llm/types/llm-model.types";
 import { RetryStrategy } from "../../../src/common/llm/strategies/retry-strategy";
 import { LLMExecutionPipeline } from "../../../src/common/llm/llm-execution-pipeline";
 import LLMExecutionStats from "../../../src/common/llm/tracking/llm-execution-stats";
@@ -35,7 +32,6 @@ describe("Type Safety Refactoring Validation", () => {
   const mockContext: LLMContext = {
     resource: "test-resource",
     purpose: LLMPurpose.COMPLETIONS,
-    modelTier: LLMModelTier.PRIMARY,
     outputFormat: LLMOutputFormat.JSON,
   };
 
@@ -49,7 +45,7 @@ describe("Type Safety Refactoring Validation", () => {
   const mockModelsMetadata: Record<string, ResolvedLLMModelMetadata> = {
     "test-model": {
       modelKey: "test-model",
-      name: "Test Model",
+      urnEnvKey: "TEST_MODEL_URN",
       urn: "test-model-urn",
       purpose: LLMPurpose.COMPLETIONS,
       maxTotalTokens: 8192,
@@ -290,6 +286,18 @@ describe("Type Safety Refactoring Validation", () => {
       executionPipeline = new LLMExecutionPipeline(retryStrategy, llmStats);
     });
 
+    // Helper to create a bound function from mock data (cast to any for test flexibility)
+    const createBoundFunction = (mockData: unknown) =>
+      (async (content: string, context: LLMContext) => {
+        return {
+          status: LLMResponseStatus.COMPLETED,
+          request: content,
+          modelKey: "test-model",
+          context,
+          generated: mockData,
+        };
+      }) as any;
+
     test("should propagate schema type through execute method", async () => {
       const _analysisSchema = z.object({
         summary: z.string(),
@@ -313,13 +321,11 @@ describe("Type Safety Refactoring Validation", () => {
         },
       };
 
-      const mockLLMFunction = createTypedMockLLMFunction(mockAnalysis);
-
       const result = await executionPipeline.execute({
         resourceName: "test-resource",
         content: "Analyze this",
         context: mockContext,
-        llmFunctions: [mockLLMFunction],
+        llmFunctions: [createBoundFunction(mockAnalysis)],
         providerRetryConfig: mockRetryConfig,
         modelsMetadata: mockModelsMetadata,
       });
@@ -358,13 +364,11 @@ describe("Type Safety Refactoring Validation", () => {
         timestamp: "2024-01-01T12:00:00Z",
       };
 
-      const mockLLMFunction = createTypedMockLLMFunction(mockResult);
-
       const result = await executionPipeline.execute({
         resourceName: "test-resource",
         content: "Execute operation",
         context: mockContext,
-        llmFunctions: [mockLLMFunction],
+        llmFunctions: [createBoundFunction(mockResult)],
         providerRetryConfig: mockRetryConfig,
         modelsMetadata: mockModelsMetadata,
       });
@@ -383,16 +387,12 @@ describe("Type Safety Refactoring Validation", () => {
 
     test("should return failure when LLM returns undefined generated content", async () => {
       // Create a function that returns COMPLETED but no generated content
-      const incompleteFunction: LLMFunction = async <S extends z.ZodType>(
-        _content: string,
-        _context: LLMContext,
-        _options?: LLMCompletionOptions<S>,
-      ): Promise<LLMFunctionResponse<z.infer<S>>> => {
+      const incompleteFunction = async (content: string, context: LLMContext) => {
         return {
           status: LLMResponseStatus.COMPLETED,
-          request: "test",
+          request: content,
           modelKey: "test-model",
-          context: mockContext,
+          context,
           // generated is undefined
         };
       };
@@ -401,7 +401,7 @@ describe("Type Safety Refactoring Validation", () => {
         resourceName: "test-resource",
         content: "test",
         context: mockContext,
-        llmFunctions: [incompleteFunction as any], // Type cast for test - mock function with undefined generated
+        llmFunctions: [incompleteFunction as any],
         providerRetryConfig: mockRetryConfig,
         modelsMetadata: mockModelsMetadata,
       });
@@ -457,6 +457,18 @@ describe("Type Safety Refactoring Validation", () => {
       executionPipeline = new LLMExecutionPipeline(retryStrategy, llmStats);
     });
 
+    // Helper to create a bound function from mock data (cast to any for test flexibility)
+    const createBoundFunction = (mockData: unknown) =>
+      (async (content: string, context: LLMContext) => {
+        return {
+          status: LLMResponseStatus.COMPLETED,
+          request: content,
+          modelKey: "test-model",
+          context,
+          generated: mockData,
+        };
+      }) as any;
+
     test("should maintain type safety through entire call chain", async () => {
       // Define a complex schema that represents a real-world use case
       const _insightSchema = z.object({
@@ -487,13 +499,11 @@ describe("Type Safety Refactoring Validation", () => {
         recommendations: ["Use parameterized queries", "Validate input"],
       };
 
-      const mockLLMFunction = createTypedMockLLMFunction(expectedInsight);
-
       const result = await executionPipeline.execute({
         resourceName: "security-analysis",
         content: "Analyze security",
         context: mockContext,
-        llmFunctions: [mockLLMFunction],
+        llmFunctions: [createBoundFunction(expectedInsight)],
         providerRetryConfig: mockRetryConfig,
         modelsMetadata: mockModelsMetadata,
       });
@@ -527,13 +537,11 @@ describe("Type Safety Refactoring Validation", () => {
         nullable: null,
       };
 
-      const mockLLMFunction = createTypedMockLLMFunction(mockData);
-
       const result = await executionPipeline.execute({
         resourceName: "test",
         content: "test",
         context: mockContext,
-        llmFunctions: [mockLLMFunction],
+        llmFunctions: [createBoundFunction(mockData)],
         providerRetryConfig: mockRetryConfig,
         modelsMetadata: mockModelsMetadata,
       });
@@ -551,13 +559,11 @@ describe("Type Safety Refactoring Validation", () => {
     });
 
     test("should handle TEXT format through pipeline", async () => {
-      const mockLLMFunction = createTypedMockLLMFunction("Generated text content");
-
       const result = await executionPipeline.execute({
         resourceName: "text-generation",
         content: "Generate some text",
         context: { ...mockContext, outputFormat: LLMOutputFormat.TEXT },
-        llmFunctions: [mockLLMFunction],
+        llmFunctions: [createBoundFunction("Generated text content")],
         providerRetryConfig: mockRetryConfig,
         modelsMetadata: mockModelsMetadata,
       });

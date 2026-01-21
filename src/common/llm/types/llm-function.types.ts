@@ -5,10 +5,25 @@
 import { z } from "zod";
 import type { LLMContext, LLMCompletionOptions } from "./llm-request.types";
 import type { LLMFunctionResponse } from "./llm-response.types";
-import type { LLMModelTier } from "./llm-model.types";
 
 /**
- * Type for LLM completion functions (text generation with optional JSON schema).
+ * Type for LLM completion functions that require a model key.
+ *
+ * This is a generic function type where the return type is inferred from the
+ * `options.jsonSchema` at the call site, enabling type-safe responses.
+ *
+ * Generic over the schema type S directly to simplify type inference through
+ * the async call chain.
+ */
+export type LLMModelKeyFunction = <S extends z.ZodType>(
+  modelKey: string,
+  content: string,
+  context: LLMContext,
+  options?: LLMCompletionOptions<S>,
+) => Promise<LLMFunctionResponse<z.infer<S>>>;
+
+/**
+ * Type for LLM completion functions (without model key - used for bound functions).
  *
  * This is a generic function type (not a generic type with a function).
  * The return type is inferred from the `options.jsonSchema` at the call site,
@@ -35,6 +50,7 @@ export type LLMFunction = <S extends z.ZodType>(
  * Embeddings don't use the schema-based type inference.
  */
 export type LLMEmbeddingFunction = (
+  modelKey: string,
   content: string,
   context: LLMContext,
   options?: LLMCompletionOptions,
@@ -59,9 +75,17 @@ export type BoundLLMFunction<T> = (
 /**
  * Type to define a candidate LLM function with its associated metadata.
  * The function uses call-site type inference from options.jsonSchema.
+ * Priority is determined by position in the chain (index 0 = highest priority).
  */
 export interface LLMCandidateFunction {
+  /** The completion function bound to a specific model */
   readonly func: LLMFunction;
-  readonly modelTier: LLMModelTier;
+  /** Provider family this model belongs to */
+  readonly providerFamily: string;
+  /** Model key within the provider */
+  readonly modelKey: string;
+  /** Human-readable description of this candidate */
   readonly description: string;
+  /** Priority index in the fallback chain (0 = highest priority) */
+  readonly priority: number;
 }

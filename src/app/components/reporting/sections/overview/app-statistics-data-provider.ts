@@ -25,7 +25,7 @@ export class AppStatisticsDataProvider {
    */
   async getAppStatistics(
     projectName: string,
-    appSummaryData: Pick<AppSummaryRecordWithId, "appDescription" | "llmProvider">,
+    appSummaryData: Pick<AppSummaryRecordWithId, "appDescription" | "llmModels">,
   ): Promise<AppStatistics> {
     // Use single database query instead of two separate queries for better performance
     const { fileCount, linesOfCode } =
@@ -34,7 +34,7 @@ export class AppStatisticsDataProvider {
     return {
       projectName: projectName,
       currentDate: this.currentDate,
-      llmProvider: appSummaryData.llmProvider,
+      llmModels: appSummaryData.llmModels,
       fileCount,
       linesOfCode,
       appDescription: appSummaryData.appDescription ?? NO_DESCRIPTION_PLACEHOLDER,

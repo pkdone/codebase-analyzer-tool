@@ -5,9 +5,19 @@ import type {
   ProviderInit,
 } from "../../llm-provider.types";
 import type { LLMProvider } from "../../../types/llm-provider.interface";
+import type { LLMModelMetadata } from "../../../types/llm-model.types";
 import { BEDROCK_COMMON_ERROR_PATTERNS } from "./bedrock-error-patterns";
-import { createBedrockEnvSchema } from "./bedrock-models.constants";
 import { defaultBedrockProviderConfig } from "./bedrock-defaults.config";
+
+/**
+ * Model configuration for a Bedrock provider.
+ */
+export interface BedrockModelsConfig {
+  /** Available embedding models (array) */
+  embeddings: readonly LLMModelMetadata[];
+  /** Available completion models (array) */
+  completions: readonly LLMModelMetadata[];
+}
 
 /**
  * Factory function to create a Bedrock provider manifest.
@@ -16,8 +26,8 @@ import { defaultBedrockProviderConfig } from "./bedrock-defaults.config";
  *
  * @param providerName - User-friendly name for the provider (e.g., "Bedrock Claude")
  * @param modelFamily - Unique identifier for the provider/family (e.g., "BedrockClaude")
- * @param models - Model configurations (embeddings, primaryCompletion, optional secondaryCompletion)
- * @param envSchemaFields - Additional environment variable fields to add to the base Bedrock schema
+ * @param models - Model configurations with embeddings[] and completions[] arrays
+ * @param envSchemaFields - Additional environment variable fields (authentication only)
  * @param providerSpecificConfig - Provider-specific configuration overrides (merged with defaults)
  * @param implementation - The LLM provider implementation class
  * @returns A complete LLMProviderManifest for the Bedrock provider
@@ -25,15 +35,15 @@ import { defaultBedrockProviderConfig } from "./bedrock-defaults.config";
 export function createBedrockManifest(
   providerName: string,
   modelFamily: string,
-  models: LLMProviderManifest["models"],
-  envSchemaFields: Record<string, z.ZodString>,
+  models: BedrockModelsConfig,
+  envSchemaFields: Record<string, z.ZodString> = {},
   providerSpecificConfig: Partial<LLMProviderSpecificConfig> = {},
   implementation: new (init: ProviderInit) => LLMProvider,
 ): LLMProviderManifest {
   return {
     providerName,
     modelFamily,
-    envSchema: createBedrockEnvSchema(envSchemaFields),
+    envSchema: z.object({ ...envSchemaFields }),
     models,
     errorPatterns: BEDROCK_COMMON_ERROR_PATTERNS,
     providerSpecificConfig: {

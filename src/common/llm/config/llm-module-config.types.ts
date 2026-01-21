@@ -5,6 +5,10 @@
  */
 
 import type { ReplacementRule } from "../json-processing/sanitizers/rules/replacement-rule.types";
+import type { ModelChainEntry, ResolvedModelChain } from "../types/llm-model.types";
+
+// Re-export for convenience
+export type { ModelChainEntry, ResolvedModelChain };
 
 /**
  * Configuration for error logging behavior.
@@ -111,16 +115,6 @@ export interface LLMSanitizerConfig {
 }
 
 /**
- * Resolved model URNs (identifiers) for the LLM provider.
- * These are the actual model identifiers that will be used by the provider.
- */
-export interface ResolvedModels {
-  readonly embeddings: string;
-  readonly primaryCompletion: string;
-  readonly secondaryCompletion?: string;
-}
-
-/**
  * Main configuration object for the LLM module.
  * This is the primary interface that consuming applications use to configure
  * the LLM module for their specific needs.
@@ -129,8 +123,10 @@ export interface ResolvedModels {
  * before passing to the LLM module.
  */
 export interface LLMModuleConfig {
-  readonly modelFamily: string;
+  /** Error logging configuration */
   readonly errorLogging: LLMErrorLoggingConfig;
+  /** Provider-specific parameters (e.g., API keys, endpoints) for all providers in use */
   readonly providerParams: Record<string, unknown>;
-  readonly resolvedModels: ResolvedModels;
+  /** Resolved model chain for completions and embeddings */
+  readonly resolvedModelChain: ResolvedModelChain;
 }

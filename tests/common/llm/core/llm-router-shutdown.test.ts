@@ -31,19 +31,24 @@ describe("LLMRouter Shutdown Behavior", () => {
       modelFamily: "test",
       envSchema: {} as any,
       models: {
-        embeddings: {
-          modelKey: "test-embed",
-          urnEnvKey: "TEST_EMBED",
-          purpose: "embeddings" as const,
-          maxTotalTokens: 1000,
-        },
-        primaryCompletion: {
-          modelKey: "test-primary",
-          urnEnvKey: "TEST_PRIMARY",
-          purpose: "completions" as const,
-          maxCompletionTokens: 500,
-          maxTotalTokens: 2000,
-        },
+        embeddings: [
+          {
+            modelKey: "test-embed",
+            urnEnvKey: "TEST_EMBED",
+            purpose: "embeddings" as const,
+            maxTotalTokens: 1000,
+            dimensions: 1536,
+          },
+        ],
+        completions: [
+          {
+            modelKey: "test-primary",
+            urnEnvKey: "TEST_PRIMARY",
+            purpose: "completions" as const,
+            maxCompletionTokens: 500,
+            maxTotalTokens: 2000,
+          },
+        ],
       },
       errorPatterns: [],
       providerSpecificConfig: {
@@ -53,11 +58,11 @@ describe("LLMRouter Shutdown Behavior", () => {
         maxRetryDelayMillis: 5000,
       },
       implementation: class MockProvider {
-        getAvailableCompletionModelTiers() {
-          return ["primary"];
+        getAvailableModelNames() {
+          return { embeddings: ["test-embed"], completions: ["test-primary"] };
         }
         getModelsNames() {
-          return { embeddings: "test-embed", primaryCompletion: "test-primary" };
+          return { embeddings: ["test-embed"], completions: ["test-primary"] };
         }
         getModelsMetadata() {
           return {};
@@ -73,13 +78,12 @@ describe("LLMRouter Shutdown Behavior", () => {
     };
 
     const {
-      loadManifestForModelFamily,
+      loadManifestForProviderFamily,
       // eslint-disable-next-line @typescript-eslint/no-require-imports
     } = require("../../../../src/common/llm/utils/manifest-loader");
-    loadManifestForModelFamily.mockReturnValue(mockManifest);
+    loadManifestForProviderFamily.mockReturnValue(mockManifest);
 
     const config: LLMModuleConfig = {
-      modelFamily: "test",
       errorLogging: {
         errorLogDirectory: "test",
         errorLogFilenameTemplate: "test-{timestamp}.log",
@@ -88,9 +92,13 @@ describe("LLMRouter Shutdown Behavior", () => {
         TEST_EMBED: "test-embed-model",
         TEST_PRIMARY: "test-primary-model",
       },
-      resolvedModels: {
-        embeddings: "test-embed-model",
-        primaryCompletion: "test-primary-model",
+      resolvedModelChain: {
+        embeddings: [
+          { providerFamily: "test", modelKey: "test-embed", modelUrn: "test-embed-model" },
+        ],
+        completions: [
+          { providerFamily: "test", modelKey: "test-primary", modelUrn: "test-primary-model" },
+        ],
       },
     };
 
@@ -110,22 +118,27 @@ describe("LLMRouter Shutdown Behavior", () => {
   it("should return REQUIRES_PROCESS_EXIT for providers that need forced shutdown", async () => {
     const mockManifest = {
       providerName: "Test Provider Forced",
-      modelFamily: "test-forced",
+      modelFamily: "test",
       envSchema: {} as any,
       models: {
-        embeddings: {
-          modelKey: "test-embed",
-          urnEnvKey: "TEST_EMBED",
-          purpose: "embeddings" as const,
-          maxTotalTokens: 1000,
-        },
-        primaryCompletion: {
-          modelKey: "test-primary",
-          urnEnvKey: "TEST_PRIMARY",
-          purpose: "completions" as const,
-          maxCompletionTokens: 500,
-          maxTotalTokens: 2000,
-        },
+        embeddings: [
+          {
+            modelKey: "test-embed",
+            urnEnvKey: "TEST_EMBED",
+            purpose: "embeddings" as const,
+            maxTotalTokens: 1000,
+            dimensions: 1536,
+          },
+        ],
+        completions: [
+          {
+            modelKey: "test-primary",
+            urnEnvKey: "TEST_PRIMARY",
+            purpose: "completions" as const,
+            maxCompletionTokens: 500,
+            maxTotalTokens: 2000,
+          },
+        ],
       },
       errorPatterns: [],
       providerSpecificConfig: {
@@ -135,11 +148,11 @@ describe("LLMRouter Shutdown Behavior", () => {
         maxRetryDelayMillis: 5000,
       },
       implementation: class MockProviderForced {
-        getAvailableCompletionModelTiers() {
-          return ["primary"];
+        getAvailableModelNames() {
+          return { embeddings: ["test-embed"], completions: ["test-primary"] };
         }
         getModelsNames() {
-          return { embeddings: "test-embed", primaryCompletion: "test-primary" };
+          return { embeddings: ["test-embed"], completions: ["test-primary"] };
         }
         getModelsMetadata() {
           return {};
@@ -155,13 +168,12 @@ describe("LLMRouter Shutdown Behavior", () => {
     };
 
     const {
-      loadManifestForModelFamily,
+      loadManifestForProviderFamily,
       // eslint-disable-next-line @typescript-eslint/no-require-imports
     } = require("../../../../src/common/llm/utils/manifest-loader");
-    loadManifestForModelFamily.mockReturnValue(mockManifest);
+    loadManifestForProviderFamily.mockReturnValue(mockManifest);
 
     const config: LLMModuleConfig = {
-      modelFamily: "test-forced",
       errorLogging: {
         errorLogDirectory: "test",
         errorLogFilenameTemplate: "test-{timestamp}.log",
@@ -170,9 +182,13 @@ describe("LLMRouter Shutdown Behavior", () => {
         TEST_EMBED: "test-embed-model",
         TEST_PRIMARY: "test-primary-model",
       },
-      resolvedModels: {
-        embeddings: "test-embed-model",
-        primaryCompletion: "test-primary-model",
+      resolvedModelChain: {
+        embeddings: [
+          { providerFamily: "test", modelKey: "test-embed", modelUrn: "test-embed-model" },
+        ],
+        completions: [
+          { providerFamily: "test", modelKey: "test-primary", modelUrn: "test-primary-model" },
+        ],
       },
     };
 
@@ -194,22 +210,27 @@ describe("LLMRouter Shutdown Behavior", () => {
   it("should return GRACEFUL for providers that support graceful shutdown", async () => {
     const mockManifest = {
       providerName: "Test Provider No Forced",
-      modelFamily: "test-no-forced",
+      modelFamily: "test",
       envSchema: {} as any,
       models: {
-        embeddings: {
-          modelKey: "test-embed",
-          urnEnvKey: "TEST_EMBED",
-          purpose: "embeddings" as const,
-          maxTotalTokens: 1000,
-        },
-        primaryCompletion: {
-          modelKey: "test-primary",
-          urnEnvKey: "TEST_PRIMARY",
-          purpose: "completions" as const,
-          maxCompletionTokens: 500,
-          maxTotalTokens: 2000,
-        },
+        embeddings: [
+          {
+            modelKey: "test-embed",
+            urnEnvKey: "TEST_EMBED",
+            purpose: "embeddings" as const,
+            maxTotalTokens: 1000,
+            dimensions: 1536,
+          },
+        ],
+        completions: [
+          {
+            modelKey: "test-primary",
+            urnEnvKey: "TEST_PRIMARY",
+            purpose: "completions" as const,
+            maxCompletionTokens: 500,
+            maxTotalTokens: 2000,
+          },
+        ],
       },
       errorPatterns: [],
       providerSpecificConfig: {
@@ -219,11 +240,11 @@ describe("LLMRouter Shutdown Behavior", () => {
         maxRetryDelayMillis: 5000,
       },
       implementation: class MockProviderNoForced {
-        getAvailableCompletionModelTiers() {
-          return ["primary"];
+        getAvailableModelNames() {
+          return { embeddings: ["test-embed"], completions: ["test-primary"] };
         }
         getModelsNames() {
-          return { embeddings: "test-embed", primaryCompletion: "test-primary" };
+          return { embeddings: ["test-embed"], completions: ["test-primary"] };
         }
         getModelsMetadata() {
           return {};
@@ -239,13 +260,12 @@ describe("LLMRouter Shutdown Behavior", () => {
     };
 
     const {
-      loadManifestForModelFamily,
+      loadManifestForProviderFamily,
       // eslint-disable-next-line @typescript-eslint/no-require-imports
     } = require("../../../../src/common/llm/utils/manifest-loader");
-    loadManifestForModelFamily.mockReturnValue(mockManifest);
+    loadManifestForProviderFamily.mockReturnValue(mockManifest);
 
     const config: LLMModuleConfig = {
-      modelFamily: "test-no-forced",
       errorLogging: {
         errorLogDirectory: "test",
         errorLogFilenameTemplate: "test-{timestamp}.log",
@@ -254,9 +274,13 @@ describe("LLMRouter Shutdown Behavior", () => {
         TEST_EMBED: "test-embed-model",
         TEST_PRIMARY: "test-primary-model",
       },
-      resolvedModels: {
-        embeddings: "test-embed-model",
-        primaryCompletion: "test-primary-model",
+      resolvedModelChain: {
+        embeddings: [
+          { providerFamily: "test", modelKey: "test-embed", modelUrn: "test-embed-model" },
+        ],
+        completions: [
+          { providerFamily: "test", modelKey: "test-primary", modelUrn: "test-primary-model" },
+        ],
       },
     };
 

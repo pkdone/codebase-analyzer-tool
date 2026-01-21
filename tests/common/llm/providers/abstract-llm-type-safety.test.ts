@@ -22,7 +22,7 @@ const GPT_EMBEDDINGS_GPT4 = "GPT_EMBEDDINGS_GPT4";
 const testModelsMetadata: Record<string, ResolvedLLMModelMetadata> = {
   [GPT_COMPLETIONS_GPT4_32k]: {
     modelKey: GPT_COMPLETIONS_GPT4_32k,
-    name: "GPT-4 32k",
+    urnEnvKey: "TEST_GPT4_32K_URN",
     urn: "gpt-4-32k",
     purpose: LLMPurpose.COMPLETIONS,
     maxCompletionTokens: 4096,
@@ -30,10 +30,9 @@ const testModelsMetadata: Record<string, ResolvedLLMModelMetadata> = {
   },
   [GPT_EMBEDDINGS_GPT4]: {
     modelKey: GPT_EMBEDDINGS_GPT4,
-    name: "text-embedding-ada-002",
+    urnEnvKey: "TEST_EMBEDDINGS_URN",
     urn: "text-embedding-ada-002",
     purpose: LLMPurpose.EMBEDDINGS,
-    maxCompletionTokens: 0,
     maxTotalTokens: 8191,
     dimensions: 1536,
   },
@@ -48,22 +47,24 @@ class StubLLM extends BaseLLMProvider {
         modelFamily: "stub",
         envSchema: z.object({}),
         models: {
-          embeddings: {
-            modelKey: GPT_EMBEDDINGS_GPT4,
-            name: testModelsMetadata[GPT_EMBEDDINGS_GPT4].name,
-            urnEnvKey: "STUB_EMBED",
-            purpose: LLMPurpose.EMBEDDINGS,
-            maxTotalTokens: 8191,
-            dimensions: 1536,
-          },
-          primaryCompletion: {
-            modelKey: GPT_COMPLETIONS_GPT4_32k,
-            name: testModelsMetadata[GPT_COMPLETIONS_GPT4_32k].name,
-            urnEnvKey: "STUB_COMPLETE",
-            purpose: LLMPurpose.COMPLETIONS,
-            maxCompletionTokens: 4096,
-            maxTotalTokens: 32768,
-          },
+          embeddings: [
+            {
+              modelKey: GPT_EMBEDDINGS_GPT4,
+              urnEnvKey: "STUB_EMBED",
+              purpose: LLMPurpose.EMBEDDINGS,
+              maxTotalTokens: 8191,
+              dimensions: 1536,
+            },
+          ],
+          completions: [
+            {
+              modelKey: GPT_COMPLETIONS_GPT4_32k,
+              urnEnvKey: "STUB_COMPLETE",
+              purpose: LLMPurpose.COMPLETIONS,
+              maxCompletionTokens: 4096,
+              maxTotalTokens: 32768,
+            },
+          ],
         },
         errorPatterns: [],
         providerSpecificConfig: {
@@ -75,9 +76,13 @@ class StubLLM extends BaseLLMProvider {
         implementation: StubLLM as any,
       },
       providerParams: {},
-      resolvedModels: {
-        embeddings: "stub-embed",
-        primaryCompletion: "stub-complete",
+      resolvedModelChain: {
+        embeddings: [
+          { providerFamily: "stub", modelKey: GPT_EMBEDDINGS_GPT4, modelUrn: "stub-embed" },
+        ],
+        completions: [
+          { providerFamily: "stub", modelKey: GPT_COMPLETIONS_GPT4_32k, modelUrn: "stub-complete" },
+        ],
       },
       errorLogging: createMockErrorLoggingConfig(),
     });
@@ -111,22 +116,24 @@ function createTestProviderInit(): ProviderInit {
     modelFamily: "test",
     envSchema: z.object({}),
     models: {
-      embeddings: {
-        modelKey: GPT_EMBEDDINGS_GPT4,
-        name: testModelsMetadata[GPT_EMBEDDINGS_GPT4].name,
-        urnEnvKey: "TEST_EMBEDDINGS_MODEL",
-        purpose: LLMPurpose.EMBEDDINGS,
-        maxTotalTokens: testModelsMetadata[GPT_EMBEDDINGS_GPT4].maxTotalTokens,
-        dimensions: testModelsMetadata[GPT_EMBEDDINGS_GPT4].dimensions,
-      },
-      primaryCompletion: {
-        modelKey: GPT_COMPLETIONS_GPT4_32k,
-        name: testModelsMetadata[GPT_COMPLETIONS_GPT4_32k].name,
-        urnEnvKey: "TEST_PRIMARY_MODEL",
-        purpose: LLMPurpose.COMPLETIONS,
-        maxCompletionTokens: testModelsMetadata[GPT_COMPLETIONS_GPT4_32k].maxCompletionTokens,
-        maxTotalTokens: testModelsMetadata[GPT_COMPLETIONS_GPT4_32k].maxTotalTokens,
-      },
+      embeddings: [
+        {
+          modelKey: GPT_EMBEDDINGS_GPT4,
+          urnEnvKey: "TEST_EMBEDDINGS_MODEL",
+          purpose: LLMPurpose.EMBEDDINGS,
+          maxTotalTokens: testModelsMetadata[GPT_EMBEDDINGS_GPT4].maxTotalTokens,
+          dimensions: testModelsMetadata[GPT_EMBEDDINGS_GPT4].dimensions,
+        },
+      ],
+      completions: [
+        {
+          modelKey: GPT_COMPLETIONS_GPT4_32k,
+          urnEnvKey: "TEST_PRIMARY_MODEL",
+          purpose: LLMPurpose.COMPLETIONS,
+          maxCompletionTokens: testModelsMetadata[GPT_COMPLETIONS_GPT4_32k].maxCompletionTokens,
+          maxTotalTokens: testModelsMetadata[GPT_COMPLETIONS_GPT4_32k].maxTotalTokens,
+        },
+      ],
     },
     errorPatterns: [],
     providerSpecificConfig: {
@@ -141,9 +148,21 @@ function createTestProviderInit(): ProviderInit {
   return {
     manifest,
     providerParams: {},
-    resolvedModels: {
-      embeddings: testModelsMetadata[GPT_EMBEDDINGS_GPT4].urn,
-      primaryCompletion: testModelsMetadata[GPT_COMPLETIONS_GPT4_32k].urn,
+    resolvedModelChain: {
+      embeddings: [
+        {
+          providerFamily: "test",
+          modelKey: GPT_EMBEDDINGS_GPT4,
+          modelUrn: testModelsMetadata[GPT_EMBEDDINGS_GPT4].urn,
+        },
+      ],
+      completions: [
+        {
+          providerFamily: "test",
+          modelKey: GPT_COMPLETIONS_GPT4_32k,
+          modelUrn: testModelsMetadata[GPT_COMPLETIONS_GPT4_32k].urn,
+        },
+      ],
     },
     errorLogging: createMockErrorLoggingConfig(),
   };
@@ -216,10 +235,15 @@ describe("Abstract LLM Type Safety", () => {
 
       testLLM.setMockResponse('{"name": "John Doe", "age": 30, "email": "john@example.com"}');
 
-      const result = await testLLM.executeCompletionPrimary("test prompt", testContext, {
-        outputFormat: LLMOutputFormat.JSON,
-        jsonSchema: userSchema,
-      });
+      const result = await testLLM.executeCompletion(
+        "GPT_COMPLETIONS_GPT4_32k",
+        "test prompt",
+        testContext,
+        {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: userSchema,
+        },
+      );
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
       expect(result.generated).toBeDefined();
@@ -245,10 +269,15 @@ describe("Abstract LLM Type Safety", () => {
 
       testLLM.setMockResponse('[{"id": 1, "value": "first"}, {"id": 2, "value": "second"}]');
 
-      const result = await testLLM.executeCompletionPrimary("test prompt", testContext, {
-        outputFormat: LLMOutputFormat.JSON,
-        jsonSchema: itemsSchema,
-      });
+      const result = await testLLM.executeCompletion(
+        "GPT_COMPLETIONS_GPT4_32k",
+        "test prompt",
+        testContext,
+        {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: itemsSchema,
+        },
+      );
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
       expect(result.generated).toBeDefined();
@@ -271,10 +300,15 @@ describe("Abstract LLM Type Safety", () => {
 
       testLLM.setMockResponse('{"type": "success", "data": "operation completed"}');
 
-      const result = await testLLM.executeCompletionPrimary("test prompt", testContext, {
-        outputFormat: LLMOutputFormat.JSON,
-        jsonSchema: unionSchema,
-      });
+      const result = await testLLM.executeCompletion(
+        "GPT_COMPLETIONS_GPT4_32k",
+        "test prompt",
+        testContext,
+        {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: unionSchema,
+        },
+      );
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
       expect(result.generated).toBeDefined();
@@ -311,10 +345,15 @@ describe("Abstract LLM Type Safety", () => {
         '{"user": {"id": 123, "profile": {"name": "Alice", "bio": "Developer"}}, "metadata": {"createdAt": "2024-01-01", "updatedAt": "2024-01-02"}}',
       );
 
-      const result = await testLLM.executeCompletionPrimary("test prompt", testContext, {
-        outputFormat: LLMOutputFormat.JSON,
-        jsonSchema: nestedSchema,
-      });
+      const result = await testLLM.executeCompletion(
+        "GPT_COMPLETIONS_GPT4_32k",
+        "test prompt",
+        testContext,
+        {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: nestedSchema,
+        },
+      );
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
       expect(result.generated).toBeDefined();
@@ -338,9 +377,14 @@ describe("Abstract LLM Type Safety", () => {
 
       // JSON output format now requires a jsonSchema for type-safe validation.
       // This enforces the API contract that typed JSON output needs a schema.
-      const result = await testLLM.executeCompletionPrimary("test prompt", testContext, {
-        outputFormat: LLMOutputFormat.JSON,
-      });
+      const result = await testLLM.executeCompletion(
+        "GPT_COMPLETIONS_GPT4_32k",
+        "test prompt",
+        testContext,
+        {
+          outputFormat: LLMOutputFormat.JSON,
+        },
+      );
 
       // Error is returned in the response status, not thrown
       expect(result.status).toBe(LLMResponseStatus.ERRORED);
@@ -362,11 +406,16 @@ describe("Abstract LLM Type Safety", () => {
 
       testLLM.setMockResponse('{"id": 1, "name": "Widget", "price": 19.99, "inStock": true}');
 
-      // Call through executeCompletionPrimary which should preserve the type
-      const result = await testLLM.executeCompletionPrimary("test prompt", testContext, {
-        outputFormat: LLMOutputFormat.JSON,
-        jsonSchema: productSchema,
-      });
+      // Call through executeCompletion which should preserve the type
+      const result = await testLLM.executeCompletion(
+        "GPT_COMPLETIONS_GPT4_32k",
+        "test prompt",
+        testContext,
+        {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: productSchema,
+        },
+      );
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
 
@@ -396,10 +445,15 @@ describe("Abstract LLM Type Safety", () => {
         '{"required": "present", "optional": "also present", "nullable": null}',
       );
 
-      const result = await testLLM.executeCompletionPrimary("test prompt", testContext, {
-        outputFormat: LLMOutputFormat.JSON,
-        jsonSchema: schemaWithOptional,
-      });
+      const result = await testLLM.executeCompletion(
+        "GPT_COMPLETIONS_GPT4_32k",
+        "test prompt",
+        testContext,
+        {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: schemaWithOptional,
+        },
+      );
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
 
@@ -428,10 +482,15 @@ describe("Abstract LLM Type Safety", () => {
 
       // When jsonSchema is provided, type narrowing should work correctly
       // The completionOptions should be properly narrowed within formatAndValidateResponse
-      const result = await testLLM.executeCompletionPrimary("test prompt", testContext, {
-        outputFormat: LLMOutputFormat.JSON,
-        jsonSchema: testSchema,
-      });
+      const result = await testLLM.executeCompletion(
+        "GPT_COMPLETIONS_GPT4_32k",
+        "test prompt",
+        testContext,
+        {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: testSchema,
+        },
+      );
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
       if (result.status === LLMResponseStatus.COMPLETED && result.generated) {
@@ -449,9 +508,14 @@ describe("Abstract LLM Type Safety", () => {
 
       // JSON output format requires a jsonSchema for type-safe validation.
       // This enforces the public API contract at the internal boundary.
-      const result = await testLLM.executeCompletionPrimary("test prompt", testContext, {
-        outputFormat: LLMOutputFormat.JSON,
-      });
+      const result = await testLLM.executeCompletion(
+        "GPT_COMPLETIONS_GPT4_32k",
+        "test prompt",
+        testContext,
+        {
+          outputFormat: LLMOutputFormat.JSON,
+        },
+      );
 
       expect(result.status).toBe(LLMResponseStatus.ERRORED);
       expect(result.error).toBeDefined();
@@ -465,9 +529,14 @@ describe("Abstract LLM Type Safety", () => {
     test("should return error for JSON output without schema", async () => {
       testLLM.setMockResponse('{"key": "value"}');
 
-      const result = await testLLM.executeCompletionPrimary("test prompt", testContext, {
-        outputFormat: LLMOutputFormat.JSON,
-      });
+      const result = await testLLM.executeCompletion(
+        "GPT_COMPLETIONS_GPT4_32k",
+        "test prompt",
+        testContext,
+        {
+          outputFormat: LLMOutputFormat.JSON,
+        },
+      );
 
       expect(result.status).toBe(LLMResponseStatus.ERRORED);
       expect(result.error).toBeDefined();
@@ -478,10 +547,15 @@ describe("Abstract LLM Type Safety", () => {
       const schema = z.object({ key: z.string() });
       testLLM.setMockResponse("plain text response");
 
-      const result = await testLLM.executeCompletionPrimary("test prompt", testContext, {
-        outputFormat: LLMOutputFormat.TEXT,
-        jsonSchema: schema,
-      });
+      const result = await testLLM.executeCompletion(
+        "GPT_COMPLETIONS_GPT4_32k",
+        "test prompt",
+        testContext,
+        {
+          outputFormat: LLMOutputFormat.TEXT,
+          jsonSchema: schema,
+        },
+      );
 
       expect(result.status).toBe(LLMResponseStatus.ERRORED);
       expect(result.error).toBeDefined();
@@ -491,9 +565,14 @@ describe("Abstract LLM Type Safety", () => {
     test("should succeed for TEXT output without schema", async () => {
       testLLM.setMockResponse("plain text response");
 
-      const result = await testLLM.executeCompletionPrimary("test prompt", testContext, {
-        outputFormat: LLMOutputFormat.TEXT,
-      });
+      const result = await testLLM.executeCompletion(
+        "GPT_COMPLETIONS_GPT4_32k",
+        "test prompt",
+        testContext,
+        {
+          outputFormat: LLMOutputFormat.TEXT,
+        },
+      );
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
       expect(result.generated).toBe("plain text response");
@@ -503,10 +582,15 @@ describe("Abstract LLM Type Safety", () => {
       const schema = z.object({ key: z.string(), value: z.number() });
       testLLM.setMockResponse('{"key": "test", "value": 42}');
 
-      const result = await testLLM.executeCompletionPrimary("test prompt", testContext, {
-        outputFormat: LLMOutputFormat.JSON,
-        jsonSchema: schema,
-      });
+      const result = await testLLM.executeCompletion(
+        "GPT_COMPLETIONS_GPT4_32k",
+        "test prompt",
+        testContext,
+        {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: schema,
+        },
+      );
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
       if (result.status === LLMResponseStatus.COMPLETED && result.generated) {

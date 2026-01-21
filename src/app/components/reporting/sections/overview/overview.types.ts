@@ -9,7 +9,7 @@
 export interface AppStatistics {
   projectName: string;
   currentDate: string;
-  llmProvider: string;
+  llmModels: string;
   fileCount: number;
   linesOfCode: number;
   appDescription: string;

@@ -14,7 +14,6 @@ import {
   LLMGeneratedContent,
 } from "../../../../src/common/llm/types/llm-response.types";
 import { BoundLLMFunction } from "../../../../src/common/llm/types/llm-function.types";
-import { LLMModelTier } from "../../../../src/common/llm/types/llm-model.types";
 import { REPAIR_STEP } from "../../../../src/common/llm/json-processing/sanitizers";
 
 /**
@@ -305,7 +304,6 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
       const context: LLMContext = {
         resource: "test-resource",
         purpose: LLMPurpose.COMPLETIONS,
-        modelTier: LLMModelTier.PRIMARY,
         outputFormat: LLMOutputFormat.JSON,
       };
 
@@ -330,7 +328,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         expect(result.error.context).toEqual(context);
         expect(result.error.context?.resource).toBe("test-resource");
         expect(result.error.context?.purpose).toBe(LLMPurpose.COMPLETIONS);
-        expect(result.error.context?.modelTier).toBe(LLMModelTier.PRIMARY);
+        // modelTier has been removed from LLMContext
         expect(result.error.context?.outputFormat).toBe(LLMOutputFormat.JSON);
       }
     });
@@ -346,7 +344,6 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
       const context: LLMContext = {
         resource: "failed-resource",
         purpose: LLMPurpose.COMPLETIONS,
-        modelTier: LLMModelTier.SECONDARY,
       };
 
       const result = await pipeline.execute({
@@ -370,7 +367,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         expect(result.error.context).toEqual(context);
         expect(result.error.context?.resource).toBe("failed-resource");
         expect(result.error.context?.purpose).toBe(LLMPurpose.COMPLETIONS);
-        expect(result.error.context?.modelTier).toBe(LLMModelTier.SECONDARY);
+        // modelTier has been removed from LLMContext
       }
     });
 

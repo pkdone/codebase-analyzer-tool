@@ -1,58 +1,163 @@
-import { LLMModuleConfig } from "../../common/llm/config/llm-module-config.types";
-import { EnvVars } from "../env/env.types";
-import { loadManifestForModelFamily } from "../../common/llm/utils/manifest-loader";
+import type {
+  LLMModuleConfig,
+  ModelChainEntry,
+} from "../../common/llm/config/llm-module-config.types";
+import type { EnvVars } from "../env/env.types";
+import { parseModelChain, getUniqueProviderFamilies } from "../env/env.types";
+import { loadManifestForProviderFamily } from "../../common/llm/utils/manifest-loader";
 import { LLMError, LLMErrorCode } from "../../common/llm/types/llm-errors.types";
+import type { LLMModelMetadata } from "../../common/llm/types/llm-model.types";
+import { z } from "zod";
+
+/**
+ * Finds a model in the provider's manifest and returns its metadata.
+ *
+ * @param providerFamily The provider family name
+ * @param modelKey The model key to find
+ * @param modelType "completions" or "embeddings"
+ * @returns The model metadata if found
+ * @throws LLMError if the model key is not found
+ */
+function findModelMetadata(
+  providerFamily: string,
+  modelKey: string,
+  modelType: "completions" | "embeddings",
+): LLMModelMetadata {
+  const manifest = loadManifestForProviderFamily(providerFamily);
+  const availableModels = manifest.models[modelType];
+  const model = availableModels.find((m) => m.modelKey === modelKey);
+
+  if (!model) {
+    const validKeys = availableModels.map((m) => m.modelKey);
+    throw new LLMError(
+      LLMErrorCode.BAD_CONFIGURATION,
+      `Model key '${modelKey}' not found in ${providerFamily} ${modelType} models. ` +
+        `Available: ${validKeys.join(", ")}`,
+    );
+  }
+
+  return model;
+}
+
+/**
+ * Resolves the model URN from the environment variable specified by urnEnvKey.
+ *
+ * @param urnEnvKey The environment variable key containing the model URN
+ * @param envVars The environment variables
+ * @param modelKey The model key (for error messages)
+ * @returns The resolved URN string
+ * @throws LLMError if the environment variable is not set
+ */
+function resolveModelUrn(
+  urnEnvKey: string,
+  envVars: Record<string, unknown>,
+  modelKey: string,
+): string {
+  const urn = envVars[urnEnvKey];
+  if (typeof urn !== "string" || urn.length === 0) {
+    throw new LLMError(
+      LLMErrorCode.BAD_CONFIGURATION,
+      `Environment variable '${urnEnvKey}' for model '${modelKey}' is not set or empty.`,
+    );
+  }
+  return urn;
+}
+
+/**
+ * Builds a resolved model chain from the parsed chain entries.
+ * Validates that all referenced models exist in their provider manifests
+ * and resolves URNs from environment variables.
+ *
+ * @param parsedEntries The parsed chain entries
+ * @param modelType "completions" or "embeddings"
+ * @param envVars The environment variables for URN resolution
+ * @returns Array of ModelChainEntry with resolved URNs
+ */
+function buildResolvedChain(
+  parsedEntries: ReturnType<typeof parseModelChain>,
+  modelType: "completions" | "embeddings",
+  envVars: Record<string, unknown>,
+): ModelChainEntry[] {
+  return parsedEntries.map((entry) => {
+    const modelMetadata = findModelMetadata(entry.providerFamily, entry.modelKey, modelType);
+    const modelUrn = resolveModelUrn(modelMetadata.urnEnvKey, envVars, entry.modelKey);
+
+    return {
+      providerFamily: entry.providerFamily,
+      modelKey: entry.modelKey,
+      modelUrn,
+    };
+  });
+}
+
+/**
+ * Builds a combined environment schema from all provider manifests in the chains.
+ * This merges the env schemas from all required providers.
+ *
+ * @param completionsChain The parsed completions chain
+ * @param embeddingsChain The parsed embeddings chain
+ * @returns A combined Zod schema for all provider env vars
+ */
+export function buildCombinedProviderEnvSchema(
+  completionsChain: ReturnType<typeof parseModelChain>,
+  embeddingsChain: ReturnType<typeof parseModelChain>,
+): z.ZodObject<z.ZodRawShape> {
+  // Get unique provider families from both chains
+  const completionFamilies = getUniqueProviderFamilies(completionsChain);
+  const embeddingFamilies = getUniqueProviderFamilies(embeddingsChain);
+  const allFamilies = [...new Set([...completionFamilies, ...embeddingFamilies])];
+
+  // Merge all provider env schemas by combining shapes
+  let combinedShape: z.ZodRawShape = {};
+
+  for (const family of allFamilies) {
+    const manifest = loadManifestForProviderFamily(family);
+    combinedShape = { ...combinedShape, ...manifest.envSchema.shape };
+  }
+
+  return z.object(combinedShape);
+}
 
 /**
  * Builds the LLM module configuration from application environment variables.
  * This function bridges the application-specific configuration (EnvVars) with
  * the generic LLM module configuration interface.
  *
- * This function resolves all environment-specific values (like model URNs)
- * before passing them to the generic LLM module, decoupling the module from
- * knowledge of environment variable keys.
+ * The new architecture uses model chain configuration:
+ * - LLM_COMPLETIONS: Comma-separated list of "Provider:modelKey" entries
+ * - LLM_EMBEDDINGS: Comma-separated list of "Provider:modelKey" entries
  *
- * Note: Sanitizer configuration is passed per-call in completion options,
- * allowing different calls to use different sanitization rules if needed.
+ * Model URNs are resolved from provider-specific environment variables (urnEnvKey in manifests).
  *
  * @param envVars The application's environment variables
- * @param modelFamily The LLM model family to use
- * @returns LLM module configuration
+ * @returns LLM module configuration with resolved model chains
  */
-export function buildLLMModuleConfig(envVars: EnvVars, modelFamily: string): LLMModuleConfig {
-  // Load the manifest to get model URN keys
-  const manifest = loadManifestForModelFamily(modelFamily);
+export function buildLLMModuleConfig(envVars: EnvVars): LLMModuleConfig {
+  // Parse the model chains from environment variables
+  const completionsChain = parseModelChain(envVars.LLM_COMPLETIONS);
+  const embeddingsChain = parseModelChain(envVars.LLM_EMBEDDINGS);
 
-  // Helper to resolve URN from environment variable key
-  const resolveUrn = (urnEnvKey: string): string => {
-    const value = (envVars as Record<string, unknown>)[urnEnvKey];
-
-    if (typeof value !== "string" || value.length === 0) {
-      throw new LLMError(
-        LLMErrorCode.BAD_CONFIGURATION,
-        `Required environment variable ${urnEnvKey} is not set, is empty, or is not a string. Found: ${String(value)}`,
-      );
-    }
-
-    return value;
-  };
-
-  // Resolve all model URNs from environment variables
-  const resolvedModels = {
-    embeddings: resolveUrn(manifest.models.embeddings.urnEnvKey),
-    primaryCompletion: resolveUrn(manifest.models.primaryCompletion.urnEnvKey),
-    ...(manifest.models.secondaryCompletion && {
-      secondaryCompletion: resolveUrn(manifest.models.secondaryCompletion.urnEnvKey),
-    }),
-  };
+  // Validate and build resolved chains with URNs from environment variables
+  const resolvedCompletions = buildResolvedChain(
+    completionsChain,
+    "completions",
+    envVars as Record<string, unknown>,
+  );
+  const resolvedEmbeddings = buildResolvedChain(
+    embeddingsChain,
+    "embeddings",
+    envVars as Record<string, unknown>,
+  );
 
   return {
-    modelFamily,
     errorLogging: {
       errorLogDirectory: "output/errors",
       errorLogFilenameTemplate: "response-error-{timestamp}.log",
     },
     providerParams: envVars as Record<string, unknown>,
-    resolvedModels,
+    resolvedModelChain: {
+      completions: resolvedCompletions,
+      embeddings: resolvedEmbeddings,
+    },
   };
 }

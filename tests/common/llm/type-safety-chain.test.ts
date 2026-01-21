@@ -21,7 +21,7 @@ const TEST_EMBEDDINGS_MODEL = "TEST_EMBEDDINGS_MODEL";
 const testModelsMetadata: Record<string, ResolvedLLMModelMetadata> = {
   [TEST_COMPLETIONS_MODEL]: {
     modelKey: TEST_COMPLETIONS_MODEL,
-    name: "Test Completions",
+    urnEnvKey: "TEST_COMPLETIONS_URN",
     urn: "test-completion-model",
     purpose: LLMPurpose.COMPLETIONS,
     maxCompletionTokens: 4096,
@@ -29,10 +29,9 @@ const testModelsMetadata: Record<string, ResolvedLLMModelMetadata> = {
   },
   [TEST_EMBEDDINGS_MODEL]: {
     modelKey: TEST_EMBEDDINGS_MODEL,
-    name: "Test Embeddings",
+    urnEnvKey: "TEST_EMBEDDINGS_URN",
     urn: "test-embedding-model",
     purpose: LLMPurpose.EMBEDDINGS,
-    maxCompletionTokens: 0,
     maxTotalTokens: 8191,
     dimensions: 1536,
   },
@@ -49,25 +48,27 @@ class TypeSafetyChainTestLLM extends BaseLLMProvider {
     super({
       manifest: {
         providerName: "TypeSafetyChainTest",
-        modelFamily: "test-chain",
+        modelFamily: "test",
         envSchema: z.object({}),
         models: {
-          embeddings: {
-            modelKey: TEST_EMBEDDINGS_MODEL,
-            name: "Test Embeddings",
-            urnEnvKey: "TEST_EMBED",
-            purpose: LLMPurpose.EMBEDDINGS,
-            maxTotalTokens: 8191,
-            dimensions: 1536,
-          },
-          primaryCompletion: {
-            modelKey: TEST_COMPLETIONS_MODEL,
-            name: "Test Completions",
-            urnEnvKey: "TEST_COMPLETE",
-            purpose: LLMPurpose.COMPLETIONS,
-            maxCompletionTokens: 4096,
-            maxTotalTokens: 8192,
-          },
+          embeddings: [
+            {
+              modelKey: TEST_EMBEDDINGS_MODEL,
+              urnEnvKey: "TEST_EMBED",
+              purpose: LLMPurpose.EMBEDDINGS,
+              maxTotalTokens: 8191,
+              dimensions: 1536,
+            },
+          ],
+          completions: [
+            {
+              modelKey: TEST_COMPLETIONS_MODEL,
+              urnEnvKey: "TEST_COMPLETE",
+              purpose: LLMPurpose.COMPLETIONS,
+              maxCompletionTokens: 4096,
+              maxTotalTokens: 8192,
+            },
+          ],
         },
         errorPatterns: [],
         providerSpecificConfig: {
@@ -79,9 +80,13 @@ class TypeSafetyChainTestLLM extends BaseLLMProvider {
         implementation: TypeSafetyChainTestLLM as any,
       },
       providerParams: {},
-      resolvedModels: {
-        embeddings: "test-embed",
-        primaryCompletion: "test-complete",
+      resolvedModelChain: {
+        embeddings: [
+          { providerFamily: "test", modelKey: TEST_EMBEDDINGS_MODEL, modelUrn: "test-embed" },
+        ],
+        completions: [
+          { providerFamily: "test", modelKey: TEST_COMPLETIONS_MODEL, modelUrn: "test-complete" },
+        ],
       },
       errorLogging: createMockErrorLoggingConfig(),
     });
@@ -152,10 +157,15 @@ describe("Type Safety Chain - End to End", () => {
 
       testLLM.setMockResponse('{"name": "Alice", "age": 30, "isActive": true}');
 
-      const result = await testLLM.executeCompletionPrimary("test prompt", testContext, {
-        outputFormat: LLMOutputFormat.JSON,
-        jsonSchema: userSchema,
-      });
+      const result = await testLLM.executeCompletion(
+        TEST_COMPLETIONS_MODEL,
+        "test prompt",
+        testContext,
+        {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: userSchema,
+        },
+      );
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
       expect(result.generated).toBeDefined();
@@ -175,10 +185,15 @@ describe("Type Safety Chain - End to End", () => {
 
       testLLM.setMockResponse('[{"id": 1, "value": "first"}, {"id": 2, "value": "second"}]');
 
-      const result = await testLLM.executeCompletionPrimary("test prompt", testContext, {
-        outputFormat: LLMOutputFormat.JSON,
-        jsonSchema: itemsSchema,
-      });
+      const result = await testLLM.executeCompletion(
+        TEST_COMPLETIONS_MODEL,
+        "test prompt",
+        testContext,
+        {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: itemsSchema,
+        },
+      );
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
       expect(result.generated).toBeDefined();
@@ -208,10 +223,15 @@ describe("Type Safety Chain - End to End", () => {
         '{"user": {"id": 1, "profile": {"name": "Bob"}}, "metadata": {"createdAt": "2024-01-01"}}',
       );
 
-      const result = await testLLM.executeCompletionPrimary("test prompt", testContext, {
-        outputFormat: LLMOutputFormat.JSON,
-        jsonSchema: nestedSchema,
-      });
+      const result = await testLLM.executeCompletion(
+        TEST_COMPLETIONS_MODEL,
+        "test prompt",
+        testContext,
+        {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: nestedSchema,
+        },
+      );
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
       expect(result.generated).toBeDefined();
@@ -236,7 +256,7 @@ describe("Type Safety Chain - End to End", () => {
 
       // Bind options to create BoundLLMFunction
       const boundFn = async (content: string, ctx: LLMContext) =>
-        testLLM.executeCompletionPrimary(content, ctx, {
+        testLLM.executeCompletion(TEST_COMPLETIONS_MODEL, content, ctx, {
           outputFormat: LLMOutputFormat.JSON,
           jsonSchema: productSchema,
         });
@@ -273,7 +293,7 @@ describe("Type Safety Chain - End to End", () => {
 
       // Bind options to create BoundLLMFunction
       const boundFn = async (content: string, ctx: LLMContext) =>
-        testLLM.executeCompletionPrimary(content, ctx, {
+        testLLM.executeCompletion(TEST_COMPLETIONS_MODEL, content, ctx, {
           outputFormat: LLMOutputFormat.JSON,
           jsonSchema: numbersSchema,
         });
@@ -320,7 +340,7 @@ describe("Type Safety Chain - End to End", () => {
 
       // Bind options to create BoundLLMFunction
       const boundFn = async (content: string, ctx: LLMContext) =>
-        testLLM.executeCompletionPrimary(content, ctx, {
+        testLLM.executeCompletion(TEST_COMPLETIONS_MODEL, content, ctx, {
           outputFormat: LLMOutputFormat.JSON,
           jsonSchema: complexSchema,
         });
@@ -359,7 +379,7 @@ describe("Type Safety Chain - End to End", () => {
 
       // Bind options to create BoundLLMFunction
       const boundFn = async (content: string, ctx: LLMContext) =>
-        testLLM.executeCompletionPrimary(content, ctx, {
+        testLLM.executeCompletion(TEST_COMPLETIONS_MODEL, content, ctx, {
           outputFormat: LLMOutputFormat.JSON,
           jsonSchema: unionSchema,
         });
@@ -403,7 +423,7 @@ describe("Type Safety Chain - End to End", () => {
       // In real usage with a router, the type inference would work end-to-end.
 
       // Type check: this should compile without errors
-      const result = await testLLM.executeCompletionPrimary("test", testContext, {
+      const result = await testLLM.executeCompletion(TEST_COMPLETIONS_MODEL, "test", testContext, {
         outputFormat: LLMOutputFormat.JSON,
         jsonSchema: configSchema,
       });
@@ -414,9 +434,14 @@ describe("Type Safety Chain - End to End", () => {
     test("should handle TEXT format without schema", async () => {
       testLLM.setMockResponse("Plain text response");
 
-      const result = await testLLM.executeCompletionPrimary("test prompt", testContext, {
-        outputFormat: LLMOutputFormat.TEXT,
-      });
+      const result = await testLLM.executeCompletion(
+        TEST_COMPLETIONS_MODEL,
+        "test prompt",
+        testContext,
+        {
+          outputFormat: LLMOutputFormat.TEXT,
+        },
+      );
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
       expect(result.generated).toBeDefined();
@@ -438,10 +463,15 @@ describe("Type Safety Chain - End to End", () => {
 
       testLLM.setMockResponse('{"required": "present"}');
 
-      const result = await testLLM.executeCompletionPrimary("test prompt", testContext, {
-        outputFormat: LLMOutputFormat.JSON,
-        jsonSchema: schemaWithOptional,
-      });
+      const result = await testLLM.executeCompletion(
+        TEST_COMPLETIONS_MODEL,
+        "test prompt",
+        testContext,
+        {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: schemaWithOptional,
+        },
+      );
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
       expect(result.generated).toBeDefined();
@@ -461,10 +491,15 @@ describe("Type Safety Chain - End to End", () => {
 
       testLLM.setMockResponse('{"value": null, "count": 42}');
 
-      const result = await testLLM.executeCompletionPrimary("test prompt", testContext, {
-        outputFormat: LLMOutputFormat.JSON,
-        jsonSchema: schemaWithNullable,
-      });
+      const result = await testLLM.executeCompletion(
+        TEST_COMPLETIONS_MODEL,
+        "test prompt",
+        testContext,
+        {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: schemaWithNullable,
+        },
+      );
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
       expect(result.generated).toBeDefined();
@@ -489,10 +524,15 @@ describe("Type Safety Chain - End to End", () => {
       // Response with null that will be converted to undefined by transforms
       testLLM.setMockResponse('{"items": ["a", "b"], "metadata": {"count": 2}}');
 
-      const result = await testLLM.executeCompletionPrimary("test prompt", testContext, {
-        outputFormat: LLMOutputFormat.JSON,
-        jsonSchema: schema,
-      });
+      const result = await testLLM.executeCompletion(
+        TEST_COMPLETIONS_MODEL,
+        "test prompt",
+        testContext,
+        {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: schema,
+        },
+      );
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
       expect(result.generated).toBeDefined();
@@ -515,7 +555,7 @@ describe("Type Safety Chain - End to End", () => {
 
       testLLM.setMockResponse('{"id": 1, "data": "test"}');
 
-      const result = await testLLM.executeCompletionPrimary("test", testContext, {
+      const result = await testLLM.executeCompletion(TEST_COMPLETIONS_MODEL, "test", testContext, {
         outputFormat: LLMOutputFormat.JSON,
         jsonSchema: strictSchema,
       });
@@ -541,7 +581,7 @@ describe("Type Safety Chain - End to End", () => {
 
       // Bind options to create BoundLLMFunction
       const boundFn = async (content: string, ctx: LLMContext) =>
-        testLLM.executeCompletionPrimary(content, ctx, {
+        testLLM.executeCompletion(TEST_COMPLETIONS_MODEL, content, ctx, {
           outputFormat: LLMOutputFormat.JSON,
           jsonSchema: verificationSchema,
         });
@@ -577,7 +617,7 @@ describe("Type Safety Chain - End to End", () => {
 
       // Bind options to create BoundLLMFunction
       const boundFn = async (content: string, ctx: LLMContext) =>
-        testLLM.executeCompletionPrimary(content, ctx, {
+        testLLM.executeCompletion(TEST_COMPLETIONS_MODEL, content, ctx, {
           outputFormat: LLMOutputFormat.JSON,
           jsonSchema: pipelineSchema,
         });
@@ -619,7 +659,7 @@ describe("Type Safety Chain - End to End", () => {
 
       testLLM.setMockResponse('{"level1": {"level2": {"level3": {"value": "deep"}}}}');
 
-      const result = await testLLM.executeCompletionPrimary("test", testContext, {
+      const result = await testLLM.executeCompletion(TEST_COMPLETIONS_MODEL, "test", testContext, {
         outputFormat: LLMOutputFormat.JSON,
         jsonSchema: deepSchema,
       });
@@ -647,7 +687,7 @@ describe("Type Safety Chain - End to End", () => {
         '[{"id": "1", "metadata": {"created": "2024-01-01"}, "tags": ["tag1"]}]',
       );
 
-      const result = await testLLM.executeCompletionPrimary("test", testContext, {
+      const result = await testLLM.executeCompletion(TEST_COMPLETIONS_MODEL, "test", testContext, {
         outputFormat: LLMOutputFormat.JSON,
         jsonSchema: arraySchema,
       });
@@ -668,7 +708,7 @@ describe("Type Safety Chain - End to End", () => {
 
       testLLM.setMockResponse('{"value": "test", "result": "success"}');
 
-      const result = await testLLM.executeCompletionPrimary("test", testContext, {
+      const result = await testLLM.executeCompletion(TEST_COMPLETIONS_MODEL, "test", testContext, {
         outputFormat: LLMOutputFormat.JSON,
         jsonSchema: unionSchema,
       });
@@ -694,7 +734,7 @@ describe("Type Safety Chain - End to End", () => {
 
       testLLM.setMockResponse('{"email": "test@example.com", "age": 25, "username": "testuser"}');
 
-      const result = await testLLM.executeCompletionPrimary("test", testContext, {
+      const result = await testLLM.executeCompletion(TEST_COMPLETIONS_MODEL, "test", testContext, {
         outputFormat: LLMOutputFormat.JSON,
         jsonSchema: refinedSchema,
       });
@@ -720,7 +760,7 @@ describe("Type Safety Chain - End to End", () => {
 
       testLLM.setMockResponse('{"count": "42", "flag": "true"}');
 
-      const result = await testLLM.executeCompletionPrimary("test", testContext, {
+      const result = await testLLM.executeCompletion(TEST_COMPLETIONS_MODEL, "test", testContext, {
         outputFormat: LLMOutputFormat.JSON,
         jsonSchema: transformSchema,
       });
@@ -739,7 +779,7 @@ describe("Type Safety Chain - End to End", () => {
 
       testLLM.setMockResponse('{"key1": 10, "key2": 20, "key3": 30}');
 
-      const result = await testLLM.executeCompletionPrimary("test", testContext, {
+      const result = await testLLM.executeCompletion(TEST_COMPLETIONS_MODEL, "test", testContext, {
         outputFormat: LLMOutputFormat.JSON,
         jsonSchema: recordSchema,
       });
@@ -758,7 +798,7 @@ describe("Type Safety Chain - End to End", () => {
 
       testLLM.setMockResponse('["test", 42, true]');
 
-      const result = await testLLM.executeCompletionPrimary("test", testContext, {
+      const result = await testLLM.executeCompletion(TEST_COMPLETIONS_MODEL, "test", testContext, {
         outputFormat: LLMOutputFormat.JSON,
         jsonSchema: tupleSchema,
       });

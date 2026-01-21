@@ -7,10 +7,7 @@ import { RetryStrategy } from "../../../../src/common/llm/strategies/retry-strat
 import { LLMPurpose, LLMOutputFormat } from "../../../../src/common/llm/types/llm-request.types";
 import { LLMResponseStatus } from "../../../../src/common/llm/types/llm-response.types";
 import type { LLMProvider } from "../../../../src/common/llm/types/llm-provider.interface";
-import {
-  LLMModelTier,
-  ResolvedLLMModelMetadata,
-} from "../../../../src/common/llm/types/llm-model.types";
+import { ResolvedLLMModelMetadata } from "../../../../src/common/llm/types/llm-model.types";
 import { ShutdownBehavior } from "../../../../src/common/llm/types/llm-shutdown.types";
 import type { LLMProviderManifest } from "../../../../src/common/llm/providers/llm-provider.types";
 import type { LLMModuleConfig } from "../../../../src/common/llm/config/llm-module-config.types";
@@ -50,7 +47,7 @@ describe("LLMRouter Function Overloads - Type Safety Tests", () => {
   // Mock model metadata
   const mockEmbeddingModelMetadata: ResolvedLLMModelMetadata = {
     modelKey: "GPT_EMBEDDINGS_ADA002",
-    name: "text-embedding-ada-002",
+    urnEnvKey: "OPENAI_EMBEDDINGS_MODEL",
     urn: "text-embedding-ada-002",
     purpose: LLMPurpose.EMBEDDINGS,
     dimensions: 1536,
@@ -59,7 +56,7 @@ describe("LLMRouter Function Overloads - Type Safety Tests", () => {
 
   const mockPrimaryModelMetadata: ResolvedLLMModelMetadata = {
     modelKey: "GPT_COMPLETIONS_GPT4",
-    name: "GPT-4",
+    urnEnvKey: "OPENAI_COMPLETION_MODEL",
     urn: "gpt-4",
     purpose: LLMPurpose.COMPLETIONS,
     maxCompletionTokens: 4096,
@@ -70,17 +67,15 @@ describe("LLMRouter Function Overloads - Type Safety Tests", () => {
   const createMockLLMProvider = (): LLMProvider => {
     const mockProvider = {
       generateEmbeddings: jest.fn(),
-      executeCompletionPrimary: jest.fn(),
-      executeCompletionSecondary: jest.fn(),
+      executeCompletion: jest.fn(),
       getModelsNames: jest.fn(() => ({
-        embeddings: "text-embedding-ada-002",
-        primaryCompletion: "GPT-4",
-        secondaryCompletion: "GPT-3.5 Turbo",
+        embeddings: ["text-embedding-ada-002"],
+        completions: ["GPT-4"],
       })),
-      getAvailableCompletionModelTiers: jest.fn(() => [
-        LLMModelTier.PRIMARY,
-        LLMModelTier.SECONDARY,
-      ]),
+      getAvailableModelNames: jest.fn(() => ({
+        embeddings: ["text-embedding-ada-002"],
+        completions: ["GPT-4"],
+      })),
       getEmbeddingModelDimensions: jest.fn(() => 1536),
       getModelFamily: jest.fn(() => "OpenAI GPT"),
       getModelsMetadata: jest.fn(() => ({
@@ -91,7 +86,7 @@ describe("LLMRouter Function Overloads - Type Safety Tests", () => {
       getShutdownBehavior: jest.fn(() => ShutdownBehavior.GRACEFUL),
     } as unknown as LLMProvider;
 
-    (mockProvider.executeCompletionPrimary as any).mockResolvedValue({
+    (mockProvider.executeCompletion as any).mockResolvedValue({
       status: LLMResponseStatus.COMPLETED,
       generated: "Default test completion",
       request: "default test prompt",
@@ -107,33 +102,28 @@ describe("LLMRouter Function Overloads - Type Safety Tests", () => {
     const mockProvider = createMockLLMProvider();
 
     const mockManifest: LLMProviderManifest = {
-      modelFamily: "openai",
       providerName: "Mock OpenAI",
+      modelFamily: "test",
       envSchema: {} as any,
       models: {
-        embeddings: {
-          modelKey: "GPT_EMBEDDINGS_ADA002",
-          name: "text-embedding-ada-002",
-          purpose: LLMPurpose.EMBEDDINGS,
-          urnEnvKey: "OPENAI_EMBEDDINGS_MODEL",
-          maxTotalTokens: 8191,
-        },
-        primaryCompletion: {
-          modelKey: "GPT_COMPLETIONS_GPT4",
-          name: "GPT-4",
-          purpose: LLMPurpose.COMPLETIONS,
-          urnEnvKey: "OPENAI_COMPLETION_MODEL",
-          maxTotalTokens: 8192,
-          maxCompletionTokens: 4096,
-        },
-        secondaryCompletion: {
-          modelKey: "GPT_COMPLETIONS_GPT35",
-          name: "GPT-3.5 Turbo",
-          purpose: LLMPurpose.COMPLETIONS,
-          urnEnvKey: "OPENAI_SECONDARY_MODEL",
-          maxTotalTokens: 4096,
-          maxCompletionTokens: 2048,
-        },
+        embeddings: [
+          {
+            modelKey: "GPT_EMBEDDINGS_ADA002",
+            purpose: LLMPurpose.EMBEDDINGS,
+            urnEnvKey: "OPENAI_EMBEDDINGS_MODEL",
+            maxTotalTokens: 8191,
+            dimensions: 1536,
+          },
+        ],
+        completions: [
+          {
+            modelKey: "GPT_COMPLETIONS_GPT4",
+            purpose: LLMPurpose.COMPLETIONS,
+            urnEnvKey: "OPENAI_COMPLETION_MODEL",
+            maxTotalTokens: 8192,
+            maxCompletionTokens: 4096,
+          },
+        ],
       },
       implementation: jest.fn().mockImplementation(() => mockProvider) as any,
       errorPatterns: [],
@@ -145,7 +135,7 @@ describe("LLMRouter Function Overloads - Type Safety Tests", () => {
       },
     };
 
-    jest.spyOn(manifestLoader, "loadManifestForModelFamily").mockReturnValue(mockManifest);
+    jest.spyOn(manifestLoader, "loadManifestForProviderFamily").mockReturnValue(mockManifest);
 
     const mockLLMExecutionStats = new LLMExecutionStats();
     const mockRetryStrategy = new RetryStrategy(mockLLMExecutionStats);
@@ -154,11 +144,18 @@ describe("LLMRouter Function Overloads - Type Safety Tests", () => {
       mockLLMExecutionStats,
     );
     const mockConfig: LLMModuleConfig = {
-      modelFamily: "openai",
       providerParams: {},
-      resolvedModels: {
-        embeddings: "text-embedding-3-large",
-        primaryCompletion: "gpt-4o",
+      resolvedModelChain: {
+        embeddings: [
+          {
+            providerFamily: "test",
+            modelKey: "GPT_EMBEDDINGS_ADA002",
+            modelUrn: "text-embedding-3-large",
+          },
+        ],
+        completions: [
+          { providerFamily: "test", modelKey: "GPT_COMPLETIONS_GPT4", modelUrn: "gpt-4o" },
+        ],
       },
       errorLogging: { errorLogDirectory: "/tmp", errorLogFilenameTemplate: "error.log" },
     };
@@ -173,7 +170,7 @@ describe("LLMRouter Function Overloads - Type Safety Tests", () => {
       const testSchema = z.object({ message: z.string() });
       const mockResponse = { message: "test response" };
 
-      (mockProvider.executeCompletionPrimary as any).mockResolvedValue({
+      (mockProvider.executeCompletion as any).mockResolvedValue({
         status: LLMResponseStatus.COMPLETED,
         generated: mockResponse,
         request: "test",
@@ -198,7 +195,7 @@ describe("LLMRouter Function Overloads - Type Safety Tests", () => {
       const { router, mockProvider } = createLLMRouter();
       const mockResponse = "Plain text response";
 
-      (mockProvider.executeCompletionPrimary as any).mockResolvedValue({
+      (mockProvider.executeCompletion as any).mockResolvedValue({
         status: LLMResponseStatus.COMPLETED,
         generated: mockResponse,
         request: "test",
@@ -227,7 +224,7 @@ describe("LLMRouter Function Overloads - Type Safety Tests", () => {
       });
       const mockUser = { id: 1, name: "Alice", active: true };
 
-      (mockProvider.executeCompletionPrimary as any).mockResolvedValue({
+      (mockProvider.executeCompletion as any).mockResolvedValue({
         status: LLMResponseStatus.COMPLETED,
         generated: mockUser,
         request: "test",
@@ -278,7 +275,7 @@ describe("LLMRouter Function Overloads - Type Safety Tests", () => {
         metadata: { created: "2024-01-01", updated: "2024-01-02" },
       };
 
-      (mockProvider.executeCompletionPrimary as any).mockResolvedValue({
+      (mockProvider.executeCompletion as any).mockResolvedValue({
         status: LLMResponseStatus.COMPLETED,
         generated: mockData,
         request: "test",
@@ -315,7 +312,7 @@ describe("LLMRouter Function Overloads - Type Safety Tests", () => {
         ],
       };
 
-      (mockProvider.executeCompletionPrimary as any).mockResolvedValue({
+      (mockProvider.executeCompletion as any).mockResolvedValue({
         status: LLMResponseStatus.COMPLETED,
         generated: mockData,
         request: "test",
@@ -346,14 +343,14 @@ describe("LLMRouter Function Overloads - Type Safety Tests", () => {
       const { router, mockProvider } = createLLMRouter();
       const schema = z.object({ value: z.string() });
 
-      (mockProvider.executeCompletionPrimary as any).mockResolvedValue({
+      (mockProvider.executeCompletion as any).mockResolvedValue({
         status: LLMResponseStatus.INVALID,
         request: "test",
         modelKey: "GPT_COMPLETIONS_GPT4",
         context: {},
       });
 
-      (mockProvider.executeCompletionSecondary as any).mockResolvedValue({
+      (mockProvider.executeCompletion as any).mockResolvedValue({
         status: LLMResponseStatus.INVALID,
         request: "test",
         modelKey: "GPT_COMPLETIONS_GPT35",
@@ -374,7 +371,7 @@ describe("LLMRouter Function Overloads - Type Safety Tests", () => {
     test("should return Err result for failed TEXT completion", async () => {
       const { router, mockProvider } = createLLMRouter();
 
-      (mockProvider.executeCompletionPrimary as any).mockResolvedValue({
+      (mockProvider.executeCompletion as any).mockResolvedValue({
         status: LLMResponseStatus.ERRORED,
         request: "test",
         modelKey: "GPT_COMPLETIONS_GPT4",
@@ -395,7 +392,7 @@ describe("LLMRouter Function Overloads - Type Safety Tests", () => {
       const { router, mockProvider } = createLLMRouter();
       const textResponse = "This is plain text";
 
-      (mockProvider.executeCompletionPrimary as any).mockResolvedValue({
+      (mockProvider.executeCompletion as any).mockResolvedValue({
         status: LLMResponseStatus.COMPLETED,
         generated: textResponse,
         request: "test",
@@ -425,7 +422,7 @@ describe("LLMRouter Function Overloads - Type Safety Tests", () => {
       const schema = z.object({ count: z.number() });
       const mockData = { count: 42 };
 
-      (mockProvider.executeCompletionPrimary as any).mockResolvedValue({
+      (mockProvider.executeCompletion as any).mockResolvedValue({
         status: LLMResponseStatus.COMPLETED,
         generated: mockData,
         request: "test",
@@ -451,7 +448,7 @@ describe("LLMRouter Function Overloads - Type Safety Tests", () => {
     test("isErr narrows Result type correctly", async () => {
       const { router, mockProvider } = createLLMRouter();
 
-      (mockProvider.executeCompletionPrimary as any).mockResolvedValue({
+      (mockProvider.executeCompletion as any).mockResolvedValue({
         status: LLMResponseStatus.ERRORED,
         request: "test",
         modelKey: "GPT_COMPLETIONS_GPT4",

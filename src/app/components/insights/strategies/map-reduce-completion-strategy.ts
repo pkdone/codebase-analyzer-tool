@@ -30,9 +30,8 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
   private readonly maxTokens: number;
 
   constructor(@inject(llmTokens.LLMRouter) private readonly llmRouter: LLMRouter) {
-    // Get the token limit from the manifest for chunking calculations
-    const manifest = this.llmRouter.getLLMManifest();
-    this.maxTokens = manifest.models.primaryCompletion.maxTotalTokens;
+    // Get the token limit from the first completion model in the chain for chunking calculations
+    this.maxTokens = this.llmRouter.getFirstCompletionModelMaxTokens();
   }
 
   /**

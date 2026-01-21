@@ -1,9 +1,9 @@
 import { z } from "zod";
 import type { LLMProvider } from "../types/llm-provider.interface";
-import { LLMModelMetadata } from "../types/llm-model.types";
-import { LLMErrorMsgRegExPattern } from "../types/llm-stats.types";
-import { LLMGeneratedContent, LLMResponseTokensUsage } from "../types/llm-response.types";
-import type { ResolvedModels, LLMErrorLoggingConfig } from "../config/llm-module-config.types";
+import type { LLMModelMetadata } from "../types/llm-model.types";
+import type { LLMErrorMsgRegExPattern } from "../types/llm-stats.types";
+import type { LLMGeneratedContent, LLMResponseTokensUsage } from "../types/llm-response.types";
+import type { LLMErrorLoggingConfig, ResolvedModelChain } from "../config/llm-module-config.types";
 import type { JsonValue } from "../types/json-value.types";
 
 /**
@@ -50,33 +50,36 @@ export interface ProviderInit {
   manifest: LLMProviderManifest;
   /** Provider-specific parameters (e.g., API keys, endpoints) */
   providerParams: Record<string, unknown>;
-  /** Resolved model URNs for this provider */
-  resolvedModels: ResolvedModels;
+  /** Resolved model chain entries for models from this provider */
+  resolvedModelChain: ResolvedModelChain;
   /** Error logging configuration for recording JSON processing issues */
   errorLogging: LLMErrorLoggingConfig;
 }
 
 /**
- * Complete manifest defining a provider's configuration
+ * Complete manifest defining a provider's configuration.
+ * Each provider declares the models it supports; actual usage is determined
+ * by the model chain configuration in environment variables.
  */
 export interface LLMProviderManifest {
   /** User-friendly name for the provider */
   providerName: string;
   /** Unique identifier for the provider/family */
   modelFamily: string;
-  /** Zod schema for provider-specific environment variables */
+  /** Zod schema for provider-specific environment variables (authentication only) */
   envSchema: z.ZodObject<z.ZodRawShape>;
-  /** Model configurations for this provider */
+  /** Model configurations available from this provider */
   models: {
-    embeddings: LLMModelMetadata;
-    primaryCompletion: LLMModelMetadata;
-    secondaryCompletion?: LLMModelMetadata;
+    /** Available embedding models (typically 1, but supports multiple) */
+    embeddings: readonly LLMModelMetadata[];
+    /** Available completion models */
+    completions: readonly LLMModelMetadata[];
   };
   /** Provider-specific error patterns for token limits/overload */
   errorPatterns: readonly LLMErrorMsgRegExPattern[];
   /** Provider-specific operational configuration */
   providerSpecificConfig: LLMProviderSpecificConfig;
-  /** Required implementation constructor (modern approach) */
+  /** Required implementation constructor */
   implementation: new (init: ProviderInit) => LLMProvider;
 }
 

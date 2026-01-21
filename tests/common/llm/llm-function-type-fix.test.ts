@@ -12,7 +12,6 @@ import {
   InferResponseType,
 } from "../../../src/common/llm/types/llm-response.types";
 import { LLMFunction } from "../../../src/common/llm/types/llm-function.types";
-import { LLMModelTier } from "../../../src/common/llm/types/llm-model.types";
 
 /**
  * Test suite verifying that the LLMFunction type fix properly preserves
@@ -25,7 +24,6 @@ describe("LLMFunction Type Fix - Generic Type Preservation", () => {
   const mockContext: LLMContext = {
     resource: "test-resource",
     purpose: LLMPurpose.COMPLETIONS,
-    modelTier: LLMModelTier.PRIMARY,
     outputFormat: LLMOutputFormat.JSON,
   };
 

@@ -49,33 +49,38 @@ describe("Provider Constructor Signatures", () => {
   const createInit = (): ProviderInit => ({
     manifest: {
       providerName: "Test Provider",
-      modelFamily: "test-family",
+      modelFamily: "test",
       envSchema: z.object({}),
       models: {
-        embeddings: {
-          modelKey: "test-embed",
-          name: "Test Embeddings",
-          urnEnvKey: "TEST_EMBED",
-          purpose: LLMPurpose.EMBEDDINGS,
-          maxTotalTokens: 1000,
-        },
-        primaryCompletion: {
-          modelKey: "test-primary",
-          name: "Test Primary",
-          urnEnvKey: "TEST_PRIMARY",
-          purpose: LLMPurpose.COMPLETIONS,
-          maxCompletionTokens: 500,
-          maxTotalTokens: 2000,
-        },
+        embeddings: [
+          {
+            modelKey: "test-embed",
+            urnEnvKey: "TEST_EMBED",
+            purpose: LLMPurpose.EMBEDDINGS,
+            maxTotalTokens: 1000,
+            dimensions: 1536,
+          },
+        ],
+        completions: [
+          {
+            modelKey: "test-primary",
+            urnEnvKey: "TEST_PRIMARY",
+            purpose: LLMPurpose.COMPLETIONS,
+            maxCompletionTokens: 500,
+            maxTotalTokens: 2000,
+          },
+        ],
       },
       errorPatterns: [],
       providerSpecificConfig,
       implementation: TestProvider,
     },
     providerParams: {},
-    resolvedModels: {
-      embeddings: "test-embed-urn",
-      primaryCompletion: "test-primary-urn",
+    resolvedModelChain: {
+      embeddings: [{ providerFamily: "test", modelKey: "test-embed", modelUrn: "test-embed-urn" }],
+      completions: [
+        { providerFamily: "test", modelKey: "test-primary", modelUrn: "test-primary-urn" },
+      ],
     },
     errorLogging: {
       errorLogDirectory: "/tmp/test-errors",

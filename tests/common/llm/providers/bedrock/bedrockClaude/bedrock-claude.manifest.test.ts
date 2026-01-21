@@ -6,15 +6,21 @@ import {
   createBedrockProviderInit,
   type AdditionalTestModel,
 } from "../../../../helpers/llm/bedrock-test-helper";
+
 // Test-only constants
 const AWS_COMPLETIONS_CLAUDE_V35 = "AWS_COMPLETIONS_CLAUDE_V35";
+const BEDROCK_CLAUDE_OPUS_V45 = "bedrock-claude-opus-4.5";
+const BEDROCK_CLAUDE_SONNET_V45 = "bedrock-claude-sonnet-4.5";
 
 // Create mock environment and test data using helpers
 const mockBedrockClaudeEnv = createBedrockMockEnv(
   "BedrockClaude",
-  "amazon.titan-embed-text-v1",
-  "anthropic.claude-3-5-sonnet-20240620-v1:0",
-  "anthropic.claude-3-haiku-20240307-v1:0",
+  [], // No embeddings for Claude
+  [BEDROCK_CLAUDE_OPUS_V45, BEDROCK_CLAUDE_SONNET_V45],
+  {
+    BEDROCK_CLAUDE_OPUS_45_MODEL_URN: "global.anthropic.claude-opus-4-5-20251101-v1:0",
+    BEDROCK_CLAUDE_SONNET_45_MODEL_URN: "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+  },
 );
 
 const additionalTestModels: AdditionalTestModel[] = [
@@ -92,13 +98,16 @@ describe("Bedrock Claude Provider Tests", () => {
     test("verifies model family", () => {
       const init = createBedrockProviderInit(bedrockClaudeProviderManifest, mockBedrockClaudeEnv);
       const llm = new bedrockClaudeProviderManifest.implementation(init);
-      expect(llm.getModelFamily()).toBe("Bedrock Claude");
+      expect(llm.getModelFamily()).toBe("BedrockClaude");
     });
 
     test("counts available models", () => {
       const init = createBedrockProviderInit(bedrockClaudeProviderManifest, mockBedrockClaudeEnv);
       const llm = new bedrockClaudeProviderManifest.implementation(init);
-      expect(Object.keys(llm.getModelsNames()).length).toBe(3);
+      const modelNames = llm.getAvailableModelNames();
+      // Claude has no embeddings (empty array) and 2 completion models
+      expect(modelNames.embeddings.length).toBe(0);
+      expect(modelNames.completions.length).toBe(2);
     });
   });
 });

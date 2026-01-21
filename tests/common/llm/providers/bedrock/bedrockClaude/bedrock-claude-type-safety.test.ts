@@ -1,12 +1,12 @@
 import BedrockClaudeLLM from "../../../../../../src/common/llm/providers/bedrock/claude/bedrock-claude-llm";
-import {
-  bedrockClaudeProviderManifest,
-  AWS_COMPLETIONS_CLAUDE_OPUS_V45,
-} from "../../../../../../src/common/llm/providers/bedrock/claude/bedrock-claude.manifest";
+import { bedrockClaudeProviderManifest } from "../../../../../../src/common/llm/providers/bedrock/claude/bedrock-claude.manifest";
 import {
   createBedrockMockEnv,
   createBedrockProviderInit,
 } from "../../../../helpers/llm/bedrock-test-helper";
+
+// Test-only constant for Claude Opus 4.5 model key
+const BEDROCK_CLAUDE_OPUS_V45 = "bedrock-claude-opus-4.5";
 
 /**
  * Unit tests for BedrockClaudeLLM - Type Safety Improvements
@@ -17,9 +17,12 @@ import {
 describe("BedrockClaudeLLM - Type Safety", () => {
   const mockEnv = createBedrockMockEnv(
     "BedrockClaude",
-    "amazon.titan-embed-text-v1",
-    "anthropic.claude-3-5-sonnet-20250620-v4:0",
-    "anthropic.claude-3-7-sonnet-20250219-v1:0",
+    [], // No embeddings for this test
+    [BEDROCK_CLAUDE_OPUS_V45, "bedrock-claude-sonnet-4.5"],
+    {
+      BEDROCK_CLAUDE_OPUS_45_MODEL_URN: "global.anthropic.claude-opus-4-5-20251101-v1:0",
+      BEDROCK_CLAUDE_SONNET_45_MODEL_URN: "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+    },
   );
 
   it("should safely access anthropicBetaFlags from provider config for Claude Opus 4.5", () => {
@@ -34,7 +37,7 @@ describe("BedrockClaudeLLM - Type Safety", () => {
     const llm = new BedrockClaudeLLM(init);
 
     const requestBody = (llm as any).buildCompletionRequestBody(
-      AWS_COMPLETIONS_CLAUDE_OPUS_V45,
+      BEDROCK_CLAUDE_OPUS_V45,
       "test prompt",
     );
 
@@ -56,7 +59,7 @@ describe("BedrockClaudeLLM - Type Safety", () => {
     const llm = new BedrockClaudeLLM(init);
 
     const requestBody = (llm as any).buildCompletionRequestBody(
-      AWS_COMPLETIONS_CLAUDE_OPUS_V45,
+      BEDROCK_CLAUDE_OPUS_V45,
       "test prompt",
     );
 
@@ -70,20 +73,22 @@ describe("BedrockClaudeLLM - Type Safety", () => {
       ...bedrockClaudeProviderManifest,
       models: {
         ...bedrockClaudeProviderManifest.models,
-        primaryCompletion: {
-          ...bedrockClaudeProviderManifest.models.primaryCompletion,
-          modelKey: "AWS_COMPLETIONS_CLAUDE_V37",
-        },
+        completions: [
+          {
+            ...bedrockClaudeProviderManifest.models.completions[0],
+            modelKey: "AWS_COMPLETIONS_CLAUDE_V37",
+            urnEnvKey: "BEDROCK_CLAUDE_V37_MODEL_URN",
+          },
+        ],
       },
       providerSpecificConfig: {
         ...bedrockClaudeProviderManifest.providerSpecificConfig,
         anthropicBetaFlags: ["context-1m-2025-08-07"],
       },
     };
-    const customEnv = {
-      ...mockEnv,
-      BEDROCK_CLAUDE_COMPLETIONS_MODEL_PRIMARY: "anthropic.claude-3-7-sonnet-20250219-v1:0",
-    };
+    const customEnv = createBedrockMockEnv("BedrockClaude", [], ["AWS_COMPLETIONS_CLAUDE_V37"], {
+      BEDROCK_CLAUDE_V37_MODEL_URN: "anthropic.claude-3-7-sonnet-20250219-v1:0",
+    });
     const init = createBedrockProviderInit(customManifest as any, customEnv);
     const llm = new BedrockClaudeLLM(init);
 
@@ -123,7 +128,7 @@ describe("BedrockClaudeLLM - Type Safety", () => {
     const llm = new BedrockClaudeLLM(init);
 
     const requestBody = (llm as any).buildCompletionRequestBody(
-      AWS_COMPLETIONS_CLAUDE_OPUS_V45,
+      BEDROCK_CLAUDE_OPUS_V45,
       "test prompt",
     );
 

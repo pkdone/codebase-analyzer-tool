@@ -69,7 +69,7 @@ describe("OpenAI LLM Provider", () => {
   const mockModelsMetadata: Record<string, ResolvedLLMModelMetadata> = {
     GPT_EMBEDDINGS_ADA002: {
       modelKey: "GPT_EMBEDDINGS_ADA002",
-      name: "text-embedding-ada-002",
+      urnEnvKey: "OPENAI_EMBEDDINGS_MODEL_URN",
       urn: "text-embedding-ada-002",
       purpose: LLMPurpose.EMBEDDINGS,
       dimensions: 1536,
@@ -77,7 +77,7 @@ describe("OpenAI LLM Provider", () => {
     },
     GPT_COMPLETIONS_GPT4: {
       modelKey: "GPT_COMPLETIONS_GPT4",
-      name: "GPT-4",
+      urnEnvKey: "OPENAI_GPT4_MODEL_URN",
       urn: "gpt-4",
       purpose: LLMPurpose.COMPLETIONS,
       maxCompletionTokens: 4096,
@@ -85,7 +85,7 @@ describe("OpenAI LLM Provider", () => {
     },
     GPT_COMPLETIONS_GPT3_5: {
       modelKey: "GPT_COMPLETIONS_GPT3_5",
-      name: "GPT-3.5 Turbo",
+      urnEnvKey: "OPENAI_GPT35_MODEL_URN",
       urn: "gpt-3.5-turbo",
       purpose: LLMPurpose.COMPLETIONS,
       maxCompletionTokens: 2048,
@@ -93,7 +93,7 @@ describe("OpenAI LLM Provider", () => {
     },
     GPT_COMPLETIONS_GPT35_TURBO: {
       modelKey: "GPT_COMPLETIONS_GPT35_TURBO",
-      name: "GPT-3.5 Turbo",
+      urnEnvKey: "OPENAI_GPT35_TURBO_MODEL_URN",
       urn: "gpt-3.5-turbo",
       purpose: LLMPurpose.COMPLETIONS,
       maxCompletionTokens: 2048,
@@ -125,34 +125,60 @@ describe("OpenAI LLM Provider", () => {
     (OpenAI as jest.MockedClass<typeof OpenAI>).mockImplementation(() => mockOpenAIClient);
 
     // Create custom manifest that includes test models
+    // Note: We intentionally don't spread from the manifest models to avoid inheriting features
     const customManifest = {
       ...openAIProviderManifest,
       models: {
-        ...openAIProviderManifest.models,
-        embeddings: {
-          ...openAIProviderManifest.models.embeddings,
-          modelKey: "GPT_EMBEDDINGS_ADA002",
-        },
-        primaryCompletion: {
-          ...openAIProviderManifest.models.primaryCompletion,
-          modelKey: "GPT_COMPLETIONS_GPT4",
-          maxCompletionTokens: mockModelsMetadata.GPT_COMPLETIONS_GPT4.maxCompletionTokens,
-          maxTotalTokens: mockModelsMetadata.GPT_COMPLETIONS_GPT4.maxTotalTokens,
-          features: [], // Remove features to use max_tokens instead of max_completion_tokens
-        },
-        secondaryCompletion: {
-          ...openAIProviderManifest.models.secondaryCompletion,
-          modelKey: "GPT_COMPLETIONS_GPT35_TURBO",
-        },
+        embeddings: [
+          {
+            modelKey: "GPT_EMBEDDINGS_ADA002",
+            purpose: mockModelsMetadata.GPT_EMBEDDINGS_ADA002.purpose,
+            urnEnvKey: mockModelsMetadata.GPT_EMBEDDINGS_ADA002.urnEnvKey,
+            dimensions: mockModelsMetadata.GPT_EMBEDDINGS_ADA002.dimensions,
+            maxTotalTokens: mockModelsMetadata.GPT_EMBEDDINGS_ADA002.maxTotalTokens,
+          },
+        ],
+        completions: [
+          {
+            modelKey: "GPT_COMPLETIONS_GPT4",
+            purpose: mockModelsMetadata.GPT_COMPLETIONS_GPT4.purpose,
+            urnEnvKey: mockModelsMetadata.GPT_COMPLETIONS_GPT4.urnEnvKey,
+            maxCompletionTokens: mockModelsMetadata.GPT_COMPLETIONS_GPT4.maxCompletionTokens,
+            maxTotalTokens: mockModelsMetadata.GPT_COMPLETIONS_GPT4.maxTotalTokens,
+          },
+          {
+            modelKey: "GPT_COMPLETIONS_GPT35_TURBO",
+            purpose: mockModelsMetadata.GPT_COMPLETIONS_GPT35_TURBO.purpose,
+            urnEnvKey: mockModelsMetadata.GPT_COMPLETIONS_GPT35_TURBO.urnEnvKey,
+            maxCompletionTokens: mockModelsMetadata.GPT_COMPLETIONS_GPT35_TURBO.maxCompletionTokens,
+            maxTotalTokens: mockModelsMetadata.GPT_COMPLETIONS_GPT35_TURBO.maxTotalTokens,
+          },
+        ],
       },
     };
     const init: ProviderInit = {
       manifest: customManifest as any,
       providerParams: { OPENAI_LLM_API_KEY: mockApiKey },
-      resolvedModels: {
-        embeddings: mockModelsMetadata.GPT_EMBEDDINGS_ADA002.urn,
-        primaryCompletion: mockModelsMetadata.GPT_COMPLETIONS_GPT4.urn,
-        secondaryCompletion: mockModelsMetadata.GPT_COMPLETIONS_GPT35_TURBO.urn,
+      resolvedModelChain: {
+        embeddings: [
+          {
+            providerFamily: openAIProviderManifest.modelFamily,
+            modelKey: "GPT_EMBEDDINGS_ADA002",
+            modelUrn: mockModelsMetadata.GPT_EMBEDDINGS_ADA002.urn,
+          },
+        ],
+        completions: [
+          {
+            providerFamily: openAIProviderManifest.modelFamily,
+            modelKey: "GPT_COMPLETIONS_GPT4",
+            modelUrn: mockModelsMetadata.GPT_COMPLETIONS_GPT4.urn,
+          },
+          {
+            providerFamily: openAIProviderManifest.modelFamily,
+            modelKey: "GPT_COMPLETIONS_GPT35_TURBO",
+            modelUrn: mockModelsMetadata.GPT_COMPLETIONS_GPT35_TURBO.urn,
+          },
+        ],
       },
       errorLogging: createMockErrorLoggingConfig(),
     };
@@ -161,7 +187,7 @@ describe("OpenAI LLM Provider", () => {
 
   describe("Basic Provider Info", () => {
     test("should return correct model family", () => {
-      expect(openAILLM.getModelFamily()).toBe("OpenAI GPT");
+      expect(openAILLM.getModelFamily()).toBe("OpenAI");
     });
 
     test("should return correct model identifier from metadata URN", () => {

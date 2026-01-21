@@ -23,17 +23,7 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
   let mockFileProcessingConfig: FileProcessingRulesType;
   let mockConsoleLog: jest.SpyInstance;
 
-  const mockManifest = {
-    modelFamily: "TestFamily",
-    providerName: "TestProvider",
-    models: {
-      embeddings: { modelKey: "embed-1", maxTotalTokens: 8192 },
-      primaryCompletion: { modelKey: "gpt-4", maxTotalTokens: 128000 },
-      secondaryCompletion: { modelKey: "gpt-3.5", maxTotalTokens: 16000 },
-    },
-    envSchema: {},
-    factory: jest.fn(),
-  };
+  const mockMaxTokens = 128000;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -74,7 +64,7 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
     mockLLMRouter = {
       getModelsUsedDescription: jest.fn().mockReturnValue("TestLLM (GPT-4)"),
       executeCompletion: jest.fn(),
-      getLLMManifest: jest.fn().mockReturnValue(mockManifest),
+      getFirstCompletionModelMaxTokens: jest.fn().mockReturnValue(mockMaxTokens),
     } as unknown as jest.Mocked<LLMRouter>;
 
     mockSinglePassStrategy = {
@@ -111,11 +101,11 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
   });
 
   describe("Constructor", () => {
-    it("should initialize with correct max token limit from manifest", () => {
-      expect(mockLLMRouter.getLLMManifest).toHaveBeenCalled();
+    it("should initialize with correct max token limit from router", () => {
+      expect(mockLLMRouter.getFirstCompletionModelMaxTokens).toHaveBeenCalled();
       // Access private field for testing
       const maxTokens = (generator as any).maxTokens;
-      expect(maxTokens).toBe(128000);
+      expect(maxTokens).toBe(mockMaxTokens);
     });
   });
 
@@ -275,7 +265,7 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
       // Verify app summary was created
       expect(mockAppSummaryRepository.createOrReplaceAppSummary).toHaveBeenCalledWith({
         projectName: "test-project",
-        llmProvider: "TestLLM (GPT-4)",
+        llmModels: "TestLLM (GPT-4)",
       });
 
       // Verify updates were made for categories (8 categories total)

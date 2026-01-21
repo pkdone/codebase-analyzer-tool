@@ -10,10 +10,13 @@ describe("Bedrock Llama Type-Safe Configuration", () => {
   const createInit = (): ProviderInit => ({
     manifest: bedrockLlamaProviderManifest,
     providerParams: {},
-    resolvedModels: {
-      embeddings: "llama-embed-urn",
-      primaryCompletion: "llama-primary-urn",
-      secondaryCompletion: "llama-secondary-urn",
+    resolvedModelChain: {
+      embeddings: [],
+      completions: bedrockLlamaProviderManifest.models.completions.map((model) => ({
+        providerFamily: bedrockLlamaProviderManifest.modelFamily,
+        modelKey: model.modelKey,
+        modelUrn: `test-urn-${model.modelKey}`,
+      })),
     },
     errorLogging: createMockErrorLoggingConfig(),
   });
@@ -23,7 +26,7 @@ describe("Bedrock Llama Type-Safe Configuration", () => {
     const instance = new BedrockLlamaLLM(init);
 
     const body = (instance as any).buildCompletionRequestBody(
-      bedrockLlamaProviderManifest.models.primaryCompletion.modelKey,
+      bedrockLlamaProviderManifest.models.completions[0].modelKey,
       "Test prompt",
     );
 

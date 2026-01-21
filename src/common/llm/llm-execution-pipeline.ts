@@ -26,7 +26,7 @@ interface LLMExecutionParams<T extends LLMGeneratedContent> {
   readonly llmFunctions: BoundLLMFunction<T>[];
   readonly providerRetryConfig: LLMRetryConfig;
   readonly modelsMetadata: Record<string, ResolvedLLMModelMetadata>;
-  /** Candidate models for tracking model quality switches. Optional for embeddings. */
+  /** Candidate models for tracking model switches. Optional for embeddings. */
   readonly candidateModels?: LLMCandidateFunction[];
   /** Whether to retry on INVALID status. Default true (for completions). Set false for embeddings. */
   readonly retryOnInvalid?: boolean;
@@ -50,7 +50,7 @@ export class LLMExecutionPipeline {
 
   /**
    * Executes LLM functions applying a series of before and after non-functional aspects
-   * (e.g. retries, switching LLM qualities, truncating large prompts).
+   * (e.g. retries, switching between models in the fallback chain, truncating large prompts).
    *
    * This unified method handles both completions and embeddings:
    * - For completions: Pass bound functions with options, set retryOnInvalid=true
@@ -150,7 +150,7 @@ export class LLMExecutionPipeline {
    * Tries each LLM function in the fallback chain until one succeeds or all are exhausted.
    *
    * This unified method works for both completions and embeddings:
-   * - Completions with multiple functions: Full fallback support
+   * - Completions with multiple functions: Full fallback support across N models
    * - Embeddings with single function: No fallback (naturally handled by array length check)
    *
    * Generic over the response data type T.
@@ -168,8 +168,9 @@ export class LLMExecutionPipeline {
     let currentContent = initialContent;
     let llmFunctionIndex = 0;
 
-    // Don't want to increment 'llmFuncIndex' before looping again, if going to crop prompt
-    // (to enable us to try cropped prompt with same size LLM as last iteration)
+    // Loop through all available LLM functions in priority order
+    // Don't increment index before looping again if going to crop prompt
+    // (to enable trying cropped prompt with same model as last iteration)
     while (llmFunctionIndex < llmFunctions.length) {
       const llmResponse = await this.retryStrategy.executeWithRetries(
         llmFunctions[llmFunctionIndex],
@@ -212,8 +213,9 @@ export class LLMExecutionPipeline {
       }
 
       if (nextAction.shouldSwitchToNextLLM) {
+        // Update context with next model's key for logging purposes
         if (candidateModels && llmFunctionIndex + 1 < candidateModels.length) {
-          context.modelTier = candidateModels[llmFunctionIndex + 1].modelTier;
+          context.modelKey = candidateModels[llmFunctionIndex + 1].modelKey;
         }
 
         this.llmStats.recordSwitch();
