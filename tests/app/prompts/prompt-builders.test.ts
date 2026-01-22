@@ -342,54 +342,66 @@ describe("buildReducePrompt", () => {
 });
 
 describe("buildQueryPrompt", () => {
-  test("should return a non-empty string", () => {
+  test("should return a TextGeneratedPrompt object", () => {
     const result = buildQueryPrompt("How does auth work?", "const auth = {};");
 
-    expect(typeof result).toBe("string");
-    expect(result.length).toBeGreaterThan(0);
+    expect(result).toHaveProperty("prompt");
+    expect(typeof result.prompt).toBe("string");
+  });
+
+  test("should return a non-empty prompt string", () => {
+    const result = buildQueryPrompt("How does auth work?", "const auth = {};");
+
+    expect(result.prompt.length).toBeGreaterThan(0);
   });
 
   test("should include DEFAULT_PERSONA_INTRODUCTION", () => {
     const result = buildQueryPrompt("How does auth work?", "const auth = {};");
 
-    expect(result).toContain(DEFAULT_PERSONA_INTRODUCTION);
+    expect(result.prompt).toContain(DEFAULT_PERSONA_INTRODUCTION);
   });
 
   test("should include the question", () => {
     const question = "How does authentication work?";
     const result = buildQueryPrompt(question, "const auth = {};");
 
-    expect(result).toContain(question);
+    expect(result.prompt).toContain(question);
   });
 
   test("should include the code content", () => {
     const codeContent = "export function authenticate() { return true; }";
     const result = buildQueryPrompt("How does auth work?", codeContent);
 
-    expect(result).toContain(codeContent);
+    expect(result.prompt).toContain(codeContent);
   });
 
   test("should include QUESTION section marker", () => {
     const result = buildQueryPrompt("How does auth work?", "const auth = {};");
 
-    expect(result).toContain("QUESTION:");
+    expect(result.prompt).toContain("QUESTION:");
   });
 
   test("should include CODE section marker", () => {
     const result = buildQueryPrompt("How does auth work?", "const auth = {};");
 
-    expect(result).toContain("CODE:");
+    expect(result.prompt).toContain("CODE:");
   });
 
   test("should format prompt in expected order", () => {
     const result = buildQueryPrompt("Test question?", "test content");
 
-    const personaIndex = result.indexOf(DEFAULT_PERSONA_INTRODUCTION);
-    const questionIndex = result.indexOf("QUESTION:");
-    const codeIndex = result.indexOf("CODE:");
+    const personaIndex = result.prompt.indexOf(DEFAULT_PERSONA_INTRODUCTION);
+    const questionIndex = result.prompt.indexOf("QUESTION:");
+    const codeIndex = result.prompt.indexOf("CODE:");
 
     expect(personaIndex).toBeLessThan(questionIndex);
     expect(questionIndex).toBeLessThan(codeIndex);
+  });
+
+  test("should not include metadata by default", () => {
+    const result = buildQueryPrompt("Test question?", "test content");
+
+    expect(result.metadata).toBeUndefined();
   });
 });
 

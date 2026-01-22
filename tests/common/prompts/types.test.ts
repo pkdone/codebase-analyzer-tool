@@ -7,7 +7,11 @@
 
 import { describe, test, expect } from "@jest/globals";
 import { z } from "zod";
-import type { GeneratedPrompt, PromptMetadata } from "../../../src/common/prompts";
+import type {
+  GeneratedPrompt,
+  TextGeneratedPrompt,
+  PromptMetadata,
+} from "../../../src/common/prompts";
 
 describe("GeneratedPrompt type", () => {
   const testSchema = z.object({
@@ -130,5 +134,57 @@ describe("PromptMetadata type", () => {
 
     expect(metadata.hasComplexSchema).toBeUndefined();
     expect(Object.keys(metadata)).toHaveLength(0);
+  });
+});
+
+describe("TextGeneratedPrompt type", () => {
+  describe("structure validation", () => {
+    test("should allow creating a TextGeneratedPrompt with required prompt field only", () => {
+      const prompt: TextGeneratedPrompt = {
+        prompt: "Answer this question about the code...",
+      };
+
+      expect(prompt.prompt).toBe("Answer this question about the code...");
+      expect(prompt.metadata).toBeUndefined();
+    });
+
+    test("should allow creating a TextGeneratedPrompt with optional metadata", () => {
+      const prompt: TextGeneratedPrompt = {
+        prompt: "Answer this question...",
+        metadata: {
+          estimatedTokens: 1000,
+        },
+      };
+
+      expect(prompt.prompt).toBe("Answer this question...");
+      expect(prompt.metadata?.estimatedTokens).toBe(1000);
+    });
+
+    test("should allow custom metadata fields", () => {
+      const prompt: TextGeneratedPrompt = {
+        prompt: "Test prompt",
+        metadata: {
+          customField: "value",
+          anotherField: 42,
+        },
+      };
+
+      expect(prompt.metadata?.customField).toBe("value");
+      expect(prompt.metadata?.anotherField).toBe(42);
+    });
+  });
+
+  describe("type compatibility", () => {
+    test("should be structurally compatible with minimal GeneratedPrompt usage", () => {
+      // Both types share the 'prompt' and 'metadata' fields
+      const textPrompt: TextGeneratedPrompt = {
+        prompt: "Test prompt",
+        metadata: { hasComplexSchema: false },
+      };
+
+      // Accessing common fields works the same way
+      expect(textPrompt.prompt).toBe("Test prompt");
+      expect(textPrompt.metadata?.hasComplexSchema).toBe(false);
+    });
   });
 });

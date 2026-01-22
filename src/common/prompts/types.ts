@@ -32,6 +32,32 @@ export interface PromptMetadata {
 }
 
 /**
+ * Represents the result of generating a text-only prompt (no JSON schema).
+ * Used for prompts that expect unstructured text responses from the LLM,
+ * such as codebase query prompts.
+ *
+ * This type provides consistency with GeneratedPrompt for non-structured interactions,
+ * enabling uniform handling of all prompt builder outputs.
+ *
+ * @example
+ * ```typescript
+ * const result: TextGeneratedPrompt = {
+ *   prompt: "Answer this question about the code...",
+ * };
+ *
+ * const llmResponse = await llmRouter.executeCompletion(taskId, result.prompt, {
+ *   outputFormat: LLMOutputFormat.TEXT,
+ * });
+ * ```
+ */
+export interface TextGeneratedPrompt {
+  /** The fully rendered prompt string ready for LLM submission */
+  readonly prompt: string;
+  /** Optional metadata for LLM provider configuration */
+  readonly metadata?: PromptMetadata;
+}
+
+/**
  * Represents the result of generating a prompt for LLM submission.
  *
  * This generic type provides a consistent structure for all prompt builder

@@ -68,7 +68,7 @@ export async function queryCodebaseWithQuestion(
 
   const codeBlocksAsText = formatSourcesForPrompt(bestMatchFiles);
   const resourceName = `Codebase query`;
-  const prompt = buildQueryPrompt(question, codeBlocksAsText);
+  const { prompt } = buildQueryPrompt(question, codeBlocksAsText);
   const result = await llmRouter.executeCompletion(resourceName, prompt, {
     outputFormat: LLMOutputFormat.TEXT,
   });

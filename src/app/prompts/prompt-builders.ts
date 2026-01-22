@@ -13,6 +13,7 @@ import {
   JSONSchemaPrompt,
   type JSONSchemaPromptConfig,
   type GeneratedPrompt,
+  type TextGeneratedPrompt,
 } from "../../common/prompts";
 import { type FileTypePromptRegistry } from "./sources/sources.definitions";
 import { type AppSummaryConfigMap } from "./app-summaries/app-summaries.definitions";
@@ -214,21 +215,22 @@ export function buildReducePrompt<S extends z.ZodType>(
  *
  * @param question - The developer's question about the code
  * @param codeContent - The formatted code content from vector search results
- * @returns The fully rendered prompt string ready for LLM submission
+ * @returns The generated prompt object ready for LLM submission
  *
  * @example
  * ```typescript
  * const codeContent = formatSourcesForPrompt(vectorSearchResults);
- * const prompt = buildQueryPrompt("How does authentication work?", codeContent);
+ * const { prompt } = buildQueryPrompt("How does authentication work?", codeContent);
  * const result = await llmRouter.executeCompletion("Codebase query", prompt, {
  *   outputFormat: LLMOutputFormat.TEXT,
  * });
  * ```
  */
-export function buildQueryPrompt(question: string, codeContent: string): string {
-  return fillPrompt(CODEBASE_QUERY_TEMPLATE, {
+export function buildQueryPrompt(question: string, codeContent: string): TextGeneratedPrompt {
+  const prompt = fillPrompt(CODEBASE_QUERY_TEMPLATE, {
     personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
     question,
     content: codeContent,
   });
+  return { prompt };
 }

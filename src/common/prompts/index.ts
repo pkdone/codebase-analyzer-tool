@@ -6,7 +6,7 @@
  */
 
 // Type exports
-export type { GeneratedPrompt, PromptMetadata } from "./types";
+export type { GeneratedPrompt, TextGeneratedPrompt, PromptMetadata } from "./types";
 
 // Class and template exports
 export { JSONSchemaPrompt, JSON_SCHEMA_PROMPT_TEMPLATE } from "./json-schema-prompt";
