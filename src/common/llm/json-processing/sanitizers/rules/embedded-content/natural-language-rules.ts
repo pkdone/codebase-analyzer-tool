@@ -1,0 +1,137 @@
+/**
+ * Replacement rules for handling natural language text embedded in JSON.
+ * This module handles:
+ * - Generic stray text lines
+ * - Sentence-like text before properties
+ * - Stray English text from LLM responses
+ * - Config-like text before properties
+ */
+
+import type { ReplacementRule, ContextInfo } from "../replacement-rule.types";
+import { parsingHeuristics } from "../../../constants/json-processing.config";
+import { looksLikeSentenceStructure } from "../../../utils/stray-text-detection";
+
+/**
+ * Checks if a context is valid for embedded content removal.
+ */
+function isValidEmbeddedContentContext(context: ContextInfo): boolean {
+  const { beforeMatch, offset } = context;
+  return (
+    /[}\],]\s*$/.test(beforeMatch) ||
+    /^\s*$/.test(beforeMatch) ||
+    offset < parsingHeuristics.START_OF_FILE_OFFSET_LIMIT
+  );
+}
+
+/**
+ * Rules for removing natural language text from JSON.
+ */
+export const NATURAL_LANGUAGE_RULES: readonly ReplacementRule[] = [
+  // Rule: Remove generic stray text on its own line between JSON elements
+  // Pattern: `],\ntrib\n  "property":` -> `],\n  "property":`
+  {
+    name: "genericStrayTextLine",
+    pattern: /([}\],])\s*\n\s*([a-zA-Z_][a-zA-Z0-9_-]{1,30})\s*\n(\s*"|\s*[}\]])/g,
+    replacement: (_match, groups) => {
+      const strayText = groups[1] ?? "";
+      // Check if it looks like stray text
+      const jsonKeywords = ["true", "false", "null"];
+      if (jsonKeywords.includes(strayText.toLowerCase())) {
+        return null;
+      }
+      // Short words or words with dashes/underscores are likely stray
+      const isStray =
+        strayText.length <= 15 ||
+        strayText.includes("-") ||
+        strayText.includes("_") ||
+        /^[a-z]+$/.test(strayText);
+      if (!isStray) {
+        return null;
+      }
+      const [delimiter, , continuation] = groups;
+      const delimiterStr = delimiter ?? "";
+      const continuationStr = continuation ?? "";
+      return `${delimiterStr}\n${continuationStr}`;
+    },
+    diagnosticMessage: (_match, groups) => {
+      const strayText = groups[1] ?? "";
+      return `Removed stray text '${strayText}'`;
+    },
+  },
+
+  // Rule: Remove sentence-like text before properties
+  // Pattern: `],\nthere are more methods, but...\n  "property":` -> `],\n  "property":`
+  {
+    name: "sentenceLikeTextBeforeProperty",
+    pattern: /([}\],])\s*\n\s*([a-z][a-z\s,.'!?-]{10,60})\s*\n(\s*"[a-zA-Z_$])/gi,
+    replacement: (_match, groups) => {
+      const sentenceText = (groups[1] ?? "").trim();
+      // Check if it looks like a sentence (contains spaces, doesn't look like JSON)
+      if (!sentenceText.includes(" ") || sentenceText.length <= 10) {
+        return null;
+      }
+      const [delimiter, , continuation] = groups;
+      const delimiterStr = delimiter ?? "";
+      const continuationStr = continuation ?? "";
+      return `${delimiterStr}\n${continuationStr}`;
+    },
+    diagnosticMessage: (_match, groups) => {
+      const sentenceText = (groups[1] ?? "").trim().substring(0, 30);
+      return `Removed LLM commentary: "${sentenceText}..."`;
+    },
+  },
+
+  // Rule: Remove stray text/comments from JSON using structural sentence detection
+  // Pattern: `],\nthis is some text...\n  {` -> `],\n  {`
+  // Uses structural detection (word count, punctuation) instead of hardcoded word lists
+  {
+    name: "strayEnglishText",
+    pattern: /([}\],])\s*\n\s*([a-z][a-z\s,.'!?-]{5,100}?)\s*\n\s*([{[]|")/gi,
+    replacement: (_match, groups, context) => {
+      const { beforeMatch } = context;
+      const isAfterDelimiter = /[}\],]\s*\n\s*$/.test(beforeMatch);
+      if (!isAfterDelimiter && context.offset > parsingHeuristics.PROPERTY_CONTEXT_OFFSET_LIMIT) {
+        return null;
+      }
+
+      const strayText = (groups[1] ?? "").trim();
+
+      // Use structural detection: check if it looks like sentence-like content
+      if (!looksLikeSentenceStructure(strayText)) {
+        return null;
+      }
+
+      const [delimiter, , nextChar] = groups;
+      const delimiterStr = delimiter ?? "";
+      const nextCharStr = nextChar ?? "";
+      return `${delimiterStr}\n${nextCharStr}`;
+    },
+    diagnosticMessage: (_match, groups) => {
+      const strayText = (groups[1] ?? "").trim();
+      return `Removed stray text: "${strayText}"`;
+    },
+  },
+
+  // Rule: Remove config-like text before properties
+  // Pattern: `post_max_size = 20M    "purpose":` -> `"purpose":`
+  {
+    name: "configTextBeforeProperty",
+    pattern:
+      /([}\],]|\n|^)(\s*)([a-zA-Z_][a-zA-Z0-9_]*\s*=\s*[^\s"]{1,20})\s+("([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:)/g,
+    replacement: (_match, groups, context) => {
+      if (!isValidEmbeddedContentContext(context)) {
+        return null;
+      }
+      const [delimiter, whitespace, , propertyWithQuote] = groups;
+      const delimiterStr = delimiter ?? "";
+      const whitespaceStr = whitespace ?? "";
+      const propertyWithQuoteStr = propertyWithQuote ?? "";
+      return `${delimiterStr}${whitespaceStr}${propertyWithQuoteStr}`;
+    },
+    diagnosticMessage: (_match, groups) => {
+      const configText = groups[2] ?? "";
+      const propertyWithQuote = groups[3] ?? "";
+      return `Removed config text '${configText}' before property: ${propertyWithQuote}`;
+    },
+  },
+];

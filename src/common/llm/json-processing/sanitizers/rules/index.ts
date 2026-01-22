@@ -35,7 +35,13 @@ export { STRAY_CHARACTER_RULES } from "./stray-character-rules";
 export { PROPERTY_NAME_RULES } from "./property-name-rules";
 export { ARRAY_ELEMENT_RULES } from "./array-element-rules";
 export { STRUCTURAL_RULES } from "./structural-rules";
-export { EMBEDDED_CONTENT_RULES } from "./embedded-content-rules";
+export {
+  EMBEDDED_CONTENT_RULES,
+  YAML_CONTENT_RULES,
+  EXTRA_PROPERTY_RULES,
+  LLM_ARTIFACT_RULES,
+  NATURAL_LANGUAGE_RULES,
+} from "./embedded-content";
 
 // Domain-specific rule exports (opt-in for specific use cases)
 export { JAVA_SPECIFIC_RULES } from "./java-specific-rules";
@@ -46,7 +52,7 @@ import { STRAY_CHARACTER_RULES } from "./stray-character-rules";
 import { PROPERTY_NAME_RULES } from "./property-name-rules";
 import { ARRAY_ELEMENT_RULES } from "./array-element-rules";
 import { STRUCTURAL_RULES } from "./structural-rules";
-import { EMBEDDED_CONTENT_RULES } from "./embedded-content-rules";
+import { EMBEDDED_CONTENT_RULES } from "./embedded-content";
 
 /**
  * All replacement rules aggregated in the recommended execution order.
