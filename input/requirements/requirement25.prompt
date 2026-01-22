@@ -1,1 +1,5 @@
 Vestigal Comments About Old Code Refactored Out: Act as a senior programmer analyzing the code in a TypeScript application where the content of each file in the application's codebase is shown below in a code block. Identify if there are any vestigal comments in the codebase highlighting code or behaviour that used to exist but has been refactored out, and therefore the comments aren't needed in the code anymore to avoid confusing developers. Provide references to the specific part(s) of the code that has these vestigal comments with suggestions on what to remove. Include the list or relative file paths of each source file affected.
+
+Do NOT include any of the following topics in your recommendations:
+
+ * Any recommendations relating to the file `NOTES.txt`

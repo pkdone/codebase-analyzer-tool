@@ -2,6 +2,6 @@ Poor Dependency Injection: Act as a senior programmer analyzing the code in a Ty
 
 Note: Any code hanging off `src/common/` should not use "tsyringe" or any other dependency framework internally, to enable the code to be portable to other projects in the future.
 
-Do NOT inlude any of the following topics in your recommendations:
+Do NOT include any of the following topics in your recommendations:
 
  * Using the asyncFactory feature to encapsulate the asynchronous initialization logic

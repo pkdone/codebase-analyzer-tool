@@ -7,10 +7,10 @@ import {
   type AppSummaryCategoryEnum,
 } from "../../schemas/app-summaries.schema";
 
-// Re-export for convenient access by consumers
+// Re-export schema utilities for convenient access within the insights module
 export { appSummaryCategorySchemas, type AppSummaryCategorySchemas };
 
-// Re-export category types for backwards compatibility
+// Re-export category types for use by insight strategies and generators
 export type { AppSummaryCategoryType, AppSummaryCategoryEnum };
 
 /**
