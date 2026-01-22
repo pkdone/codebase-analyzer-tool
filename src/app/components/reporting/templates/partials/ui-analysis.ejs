@@ -37,7 +37,7 @@
         <% uiData.frameworks.forEach(function(framework) { %>
           <tr>
             <td class="framework-name"><%= framework.name %></td>
-            <td class="framework-version"><%= framework.version || 'Unknown' %></td>
+            <td class="framework-version"><%= framework.version %></td>
             <td class="config-files">
               <% if (framework.configFiles.length === 1) { %>
                 <%= framework.configFiles[0] %>

@@ -1,6 +1,7 @@
 import {
   SECTION_NAMES,
   DATABASE_OBJECT_TYPE_LABELS,
+  CORE_REQUIRED_APP_SUMMARY_FIELDS,
 } from "../../../../src/app/components/reporting/reporting.constants";
 
 describe("reporting.constants", () => {
@@ -80,6 +81,42 @@ describe("reporting.constants", () => {
     it("should be a const object", () => {
       // TypeScript enforces immutability at compile time with 'as const'
       expect(SECTION_NAMES).toBeDefined();
+    });
+  });
+
+  describe("CORE_REQUIRED_APP_SUMMARY_FIELDS", () => {
+    it("should be defined", () => {
+      expect(CORE_REQUIRED_APP_SUMMARY_FIELDS).toBeDefined();
+    });
+
+    it("should be an array", () => {
+      expect(Array.isArray(CORE_REQUIRED_APP_SUMMARY_FIELDS)).toBe(true);
+    });
+
+    it("should contain appDescription field", () => {
+      expect(CORE_REQUIRED_APP_SUMMARY_FIELDS).toContain("appDescription");
+    });
+
+    it("should contain llmModels field", () => {
+      expect(CORE_REQUIRED_APP_SUMMARY_FIELDS).toContain("llmModels");
+    });
+
+    it("should contain technologies field", () => {
+      expect(CORE_REQUIRED_APP_SUMMARY_FIELDS).toContain("technologies");
+    });
+
+    it("should contain exactly the expected core fields", () => {
+      expect(CORE_REQUIRED_APP_SUMMARY_FIELDS).toHaveLength(3);
+      expect([...CORE_REQUIRED_APP_SUMMARY_FIELDS].sort()).toEqual(
+        ["appDescription", "llmModels", "technologies"].sort(),
+      );
+    });
+
+    it("should contain only string values", () => {
+      CORE_REQUIRED_APP_SUMMARY_FIELDS.forEach((field) => {
+        expect(typeof field).toBe("string");
+        expect(field.length).toBeGreaterThan(0);
+      });
     });
   });
 });

@@ -3,20 +3,11 @@ import BaseOpenAILLM from "../common/base-openai-llm";
 import type { ProviderInit } from "../../llm-provider.types";
 
 /**
- * Mapping of model keys to their deployment environment variable keys.
- * Azure OpenAI requires each model to have its own deployment.
- */
-const MODEL_TO_DEPLOYMENT_ENV_KEY: Record<string, string> = {
-  "azure-text-embedding-ada-002": "AZURE_OPENAI_EMBEDDINGS_MODEL_DEPLOYMENT",
-  "azure-gpt-4o": "AZURE_OPENAI_GPT4O_MODEL_DEPLOYMENT",
-  "azure-gpt-4-turbo": "AZURE_OPENAI_GPT4_TURBO_MODEL_DEPLOYMENT",
-};
-
-/**
  * Class for Azure's own managed version of the OpenAI service.
  *
  * Azure OpenAI uses deployment names to route to models. Each model
  * requires its own deployment, configured via environment variables.
+ * The deployment-to-model mapping is defined in the manifest's providerSpecificConfig.
  */
 export default class AzureOpenAILLM extends BaseOpenAILLM {
   // Private fields
@@ -32,9 +23,20 @@ export default class AzureOpenAILLM extends BaseOpenAILLM {
     const apiKey = providerParams.AZURE_OPENAI_LLM_API_KEY as string;
     const endpoint = providerParams.AZURE_OPENAI_ENDPOINT as string;
 
-    // Build deployment mapping from environment variables
+    // Get deployment env key mapping from manifest configuration
+    const deploymentEnvKeys = manifest.providerSpecificConfig.deploymentEnvKeys as
+      | Record<string, string>
+      | undefined;
+
+    if (!deploymentEnvKeys) {
+      throw new Error(
+        "Azure OpenAI manifest is missing 'deploymentEnvKeys' in providerSpecificConfig",
+      );
+    }
+
+    // Build deployment mapping from environment variables using manifest config
     this.deployments = {};
-    for (const [modelKey, envKey] of Object.entries(MODEL_TO_DEPLOYMENT_ENV_KEY)) {
+    for (const [modelKey, envKey] of Object.entries(deploymentEnvKeys)) {
       const deployment = providerParams[envKey];
       if (deployment) {
         this.deployments[modelKey] = deployment as string;

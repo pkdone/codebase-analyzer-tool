@@ -1,3 +1,5 @@
+import { ENCODING_UTF8 } from "../../constants";
+
 /**
  * LLM (Large Language Model) configuration.
  */
@@ -15,7 +17,7 @@ export const llmConfig = {
   // HTTP/MIME constants for LLM provider interactions
   MIME_TYPE_JSON: "application/json",
   MIME_TYPE_ANY: "*/*",
-  UTF8_ENCODING: "utf8",
+  UTF8_ENCODING: ENCODING_UTF8,
 } as const;
 
 /**

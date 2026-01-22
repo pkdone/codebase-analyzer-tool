@@ -1,7 +1,10 @@
 import { LLMPurpose } from "../../../../../../src/common/llm/types/llm-request.types";
 import { ResolvedLLMModelMetadata } from "../../../../../../src/common/llm/types/llm-model.types";
 import { calculateTokenUsageFromError } from "../../../../../../src/common/llm/utils/error-parser";
-import { azureOpenAIProviderManifest } from "../../../../../../src/common/llm/providers/openai/azure/azure-openai.manifest";
+import {
+  azureOpenAIProviderManifest,
+  AZURE_DEPLOYMENT_ENV_KEYS,
+} from "../../../../../../src/common/llm/providers/openai/azure/azure-openai.manifest";
 import { loadBaseEnvVarsOnly } from "../../../../../../src/app/env/env";
 import { createMockErrorLoggingConfig } from "../../../../helpers/llm/mock-error-logger";
 import type { ProviderInit } from "../../../../../../src/common/llm/providers/llm-provider.types";
@@ -105,6 +108,42 @@ function createTestProviderInit(): ProviderInit {
 }
 
 describe("Azure OpenAI Provider Tests", () => {
+  describe("Deployment environment key configuration", () => {
+    test("manifest contains deploymentEnvKeys in providerSpecificConfig", () => {
+      const config = azureOpenAIProviderManifest.providerSpecificConfig;
+      expect(config.deploymentEnvKeys).toBeDefined();
+      expect(typeof config.deploymentEnvKeys).toBe("object");
+    });
+
+    test("AZURE_DEPLOYMENT_ENV_KEYS maps all manifest models to deployment env keys", () => {
+      // Collect all model keys from the manifest
+      const allModelKeys = [
+        ...azureOpenAIProviderManifest.models.embeddings.map((m) => m.modelKey),
+        ...azureOpenAIProviderManifest.models.completions.map((m) => m.modelKey),
+      ];
+
+      // Verify each model key has a corresponding deployment env key
+      allModelKeys.forEach((modelKey) => {
+        expect(AZURE_DEPLOYMENT_ENV_KEYS[modelKey]).toBeDefined();
+        expect(typeof AZURE_DEPLOYMENT_ENV_KEYS[modelKey]).toBe("string");
+        expect(AZURE_DEPLOYMENT_ENV_KEYS[modelKey].length).toBeGreaterThan(0);
+      });
+    });
+
+    test("deployment env keys follow consistent naming convention", () => {
+      Object.values(AZURE_DEPLOYMENT_ENV_KEYS).forEach((envKey) => {
+        // Azure deployment env keys should start with AZURE_OPENAI_ and end with _DEPLOYMENT
+        expect(envKey).toMatch(/^AZURE_OPENAI_.*_DEPLOYMENT$/);
+      });
+    });
+
+    test("manifest providerSpecificConfig.deploymentEnvKeys matches exported constant", () => {
+      const configDeploymentKeys = azureOpenAIProviderManifest.providerSpecificConfig
+        .deploymentEnvKeys as Record<string, string>;
+      expect(configDeploymentKeys).toEqual(AZURE_DEPLOYMENT_ENV_KEYS);
+    });
+  });
+
   describe("Token extraction from error messages", () => {
     test("extracts tokens from error message with completion tokens", () => {
       const errorMsg =

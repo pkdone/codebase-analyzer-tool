@@ -16,12 +16,7 @@ import type { ReportSection } from "./sections/report-section.interface";
 import path from "path";
 import type { OutputConfigType } from "../../config/output.config";
 import { HtmlReportAssetService } from "./services/html-report-asset.service";
-
-/**
- * Core app summary fields required by the generator itself (for app statistics and categorized data).
- * These are combined with fields requested by individual sections.
- */
-const CORE_REQUIRED_APP_SUMMARY_FIELDS = ["appDescription", "llmModels", "technologies"] as const;
+import { CORE_REQUIRED_APP_SUMMARY_FIELDS } from "./reporting.constants";
 
 /**
  * Class responsible for orchestrating report generation using a modular section-based architecture.

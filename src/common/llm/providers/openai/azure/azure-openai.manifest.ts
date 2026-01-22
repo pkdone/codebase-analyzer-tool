@@ -22,6 +22,18 @@ export const AZURE_OPENAI_ADA_EMBEDDINGS_MODEL_URN_ID = "AZURE_OPENAI_ADA_EMBEDD
 export const AZURE_OPENAI_GPT4O_MODEL_URN_ID = "AZURE_OPENAI_GPT4O_MODEL_URN";
 export const AZURE_OPENAI_GPT4_TURBO_MODEL_URN_ID = "AZURE_OPENAI_GPT4_TURBO_MODEL_URN";
 
+/**
+ * Mapping of Azure model keys to their deployment environment variable keys.
+ * Azure OpenAI requires each model to have its own deployment name configured
+ * via environment variables. This mapping is used by AzureOpenAILLM to resolve
+ * deployment names at runtime.
+ */
+export const AZURE_DEPLOYMENT_ENV_KEYS: Record<string, string> = {
+  "azure-text-embedding-ada-002": AZURE_OPENAI_EMBEDDINGS_MODEL_DEPLOYMENT_KEY,
+  "azure-gpt-4o": AZURE_OPENAI_GPT4O_DEPLOYMENT_KEY,
+  "azure-gpt-4-turbo": AZURE_OPENAI_GPT4_TURBO_DEPLOYMENT_KEY,
+} as const;
+
 export const azureOpenAIProviderManifest: LLMProviderManifest = {
   providerFamily: AZURE_OPENAI_FAMILY,
   envSchema: z.object({
@@ -72,6 +84,8 @@ export const azureOpenAIProviderManifest: LLMProviderManifest = {
     requestTimeoutMillis: 7 * 60 * 1000,
     minRetryDelayMillis: 15 * 1000,
     maxRetryDelayMillis: 120 * 1000,
+    // Azure deployment mapping - maps model keys to deployment env var keys
+    deploymentEnvKeys: AZURE_DEPLOYMENT_ENV_KEYS,
   },
   implementation: AzureOpenAILLM,
 };

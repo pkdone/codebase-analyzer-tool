@@ -23,3 +23,17 @@ export const DATABASE_OBJECT_TYPE_LABELS = {
   STORED_PROCEDURE: "STORED PROCEDURE",
   TRIGGER: "TRIGGER",
 } as const;
+
+/**
+ * Core app summary fields required by the report generator itself.
+ * These fields are needed for app statistics and categorized data generation,
+ * and are combined with fields requested by individual report sections.
+ *
+ * Note: Individual sections declare their own required fields via getRequiredAppSummaryFields().
+ * This constant represents the generator's core dependencies only.
+ */
+export const CORE_REQUIRED_APP_SUMMARY_FIELDS = [
+  "appDescription",
+  "llmModels",
+  "technologies",
+] as const;

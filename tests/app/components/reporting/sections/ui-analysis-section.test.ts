@@ -3,6 +3,7 @@ import { UiAnalysisSection } from "../../../../../src/app/components/reporting/s
 import { ServerSideUiDataProvider } from "../../../../../src/app/components/reporting/sections/ui-analysis/server-side-ui-data-provider";
 import type { ReportData } from "../../../../../src/app/components/reporting/report-data.types";
 import type { UiTechnologyAnalysisData } from "../../../../../src/app/components/reporting/sections/ui-analysis/ui-analysis.types";
+import { UNKNOWN_VALUE_PLACEHOLDER } from "../../../../../src/app/components/reporting/config/placeholders.config";
 
 /**
  * Creates mock raw UI technology analysis data (without presentation fields).
@@ -220,6 +221,53 @@ describe("UiAnalysisSection", () => {
       expect(prepared?.totalDeclarations).toBe(5);
       expect(prepared?.averageScriptletsPerFile).toBe(5);
       expect(prepared?.filesWithHighScriptletCount).toBe(2);
+    });
+
+    it("should normalize undefined framework versions to placeholder value", async () => {
+      const rawData = createMockUiAnalysisData({
+        frameworks: [
+          { name: "Struts", version: "1.3", configFiles: ["struts-config.xml"] },
+          { name: "JSF", version: undefined, configFiles: ["faces-config.xml"] },
+          { name: "Spring MVC", configFiles: ["spring-mvc.xml"] }, // version not provided
+        ],
+      });
+
+      const result = await section.prepareHtmlData(
+        mockBaseData,
+        { uiTechnologyAnalysis: rawData },
+        "/tmp",
+      );
+
+      const frameworks = result?.uiTechnologyAnalysis?.frameworks ?? [];
+      expect(frameworks).toHaveLength(3);
+      // Existing version should be preserved
+      expect(frameworks[0].version).toBe("1.3");
+      // Undefined versions should use the placeholder
+      expect(frameworks[1].version).toBe(UNKNOWN_VALUE_PLACEHOLDER);
+      expect(frameworks[2].version).toBe(UNKNOWN_VALUE_PLACEHOLDER);
+    });
+
+    it("should ensure all frameworks have a defined version for template rendering", async () => {
+      const rawData = createMockUiAnalysisData({
+        frameworks: [
+          { name: "Framework1", version: undefined, configFiles: ["config1.xml"] },
+          { name: "Framework2", configFiles: ["config2.xml"] },
+        ],
+      });
+
+      const result = await section.prepareHtmlData(
+        mockBaseData,
+        { uiTechnologyAnalysis: rawData },
+        "/tmp",
+      );
+
+      const frameworks = result?.uiTechnologyAnalysis?.frameworks ?? [];
+      // All frameworks should have a defined version string (no undefined)
+      frameworks.forEach((framework) => {
+        expect(framework.version).toBeDefined();
+        expect(typeof framework.version).toBe("string");
+        expect(framework.version?.length).toBeGreaterThan(0);
+      });
     });
   });
 

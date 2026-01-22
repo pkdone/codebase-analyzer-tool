@@ -15,6 +15,7 @@ import {
   shouldShowHighDebtAlert,
 } from "../../view-models/presentation-helpers";
 import { outputConfig } from "../../../../config/output.config";
+import { UNKNOWN_VALUE_PLACEHOLDER } from "../../config/placeholders.config";
 
 /**
  * Report section for server-side UI technology analysis.
@@ -56,6 +57,11 @@ export class UiAnalysisSection implements ReportSection {
     // Transform raw data to HTML-ready data with presentation fields
     const uiTechnologyAnalysis: UiTechnologyAnalysis = {
       ...rawData,
+      // Normalize framework versions to ensure display consistency
+      frameworks: rawData.frameworks.map((framework) => ({
+        ...framework,
+        version: framework.version ?? UNKNOWN_VALUE_PLACEHOLDER,
+      })),
       // Add CSS classes to tag libraries
       customTagLibraries: rawData.customTagLibraries.map((tagLib) => ({
         ...tagLib,
