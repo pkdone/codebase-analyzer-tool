@@ -4,7 +4,6 @@ import { isDefined } from "../../../../utils/type-guards";
 import { LLMError, LLMErrorCode } from "../../../types/llm-errors.types";
 import { LLMGeneratedContent, createTokenUsageRecord } from "../../../types/llm-response.types";
 import type { LLMImplSpecificResponseSummary } from "../../llm-provider.types";
-import type { JsonObject } from "../../../types/json-value.types";
 
 /**
  * Parses a value as a number, returning undefined if the value is not a number.
@@ -130,8 +129,8 @@ export function extractGenericCompletionResponse(
       `Invalid ${providerName} response structure`,
       llmResponse,
     );
-  // Cast to JsonObject for type-safe property access - validation.data is validated JSON
-  const response = validation.data as JsonObject;
+  // Cast to unknown: z.ZodType without params gives 'any', explicit cast satisfies strict linting
+  const response = validation.data as unknown;
   const contentPaths = [pathConfig.contentPath, pathConfig.alternativeContentPath].filter(
     isDefined,
   );

@@ -165,8 +165,9 @@ export function coerceStringToArray(
       }
 
       // Handle arrays - return as-is (already processed by deepMap)
+      // Cast required: Array.isArray() narrows unknown to any[], explicit cast satisfies strict linting
       if (Array.isArray(val)) {
-        return val as unknown;
+        return val as unknown[];
       }
 
       // Handle plain objects - transform string values for configured properties
