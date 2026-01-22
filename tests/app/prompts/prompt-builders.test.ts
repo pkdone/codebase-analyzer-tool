@@ -114,7 +114,7 @@ describe("buildSourcePrompt", () => {
 describe("buildInsightPrompt", () => {
   test("should return a GeneratedPrompt with all required fields", () => {
     const content = "* TestClass.java: A test class";
-    const result = buildInsightPrompt("technologies", content);
+    const result = buildInsightPrompt(appSummaryConfigMap, "technologies", content);
 
     expect(result).toHaveProperty("prompt");
     expect(result).toHaveProperty("schema");
@@ -122,35 +122,35 @@ describe("buildInsightPrompt", () => {
 
   test("should include DEFAULT_PERSONA_INTRODUCTION in the prompt", () => {
     const content = "* TestClass.java: A test class";
-    const result = buildInsightPrompt("technologies", content);
+    const result = buildInsightPrompt(appSummaryConfigMap, "technologies", content);
 
     expect(result.prompt).toContain(DEFAULT_PERSONA_INTRODUCTION);
   });
 
   test("should include APP_SUMMARY_CONTENT_DESC in the prompt", () => {
     const content = "* TestClass.java: A test class";
-    const result = buildInsightPrompt("technologies", content);
+    const result = buildInsightPrompt(appSummaryConfigMap, "technologies", content);
 
     expect(result.prompt).toContain(APP_SUMMARY_CONTENT_DESC);
   });
 
   test("should include FILE_SUMMARIES_DATA_BLOCK_HEADER in the prompt", () => {
     const content = "* TestClass.java: A test class";
-    const result = buildInsightPrompt("technologies", content);
+    const result = buildInsightPrompt(appSummaryConfigMap, "technologies", content);
 
     expect(result.prompt).toContain(`${FILE_SUMMARIES_DATA_BLOCK_HEADER}:`);
   });
 
   test("should include the content in the prompt", () => {
     const content = "* TestClass.java: A test class";
-    const result = buildInsightPrompt("technologies", content);
+    const result = buildInsightPrompt(appSummaryConfigMap, "technologies", content);
 
     expect(result.prompt).toContain(content);
   });
 
   test("should NOT wrap content in code blocks", () => {
     const content = "* TestClass.java: A test class";
-    const result = buildInsightPrompt("technologies", content);
+    const result = buildInsightPrompt(appSummaryConfigMap, "technologies", content);
 
     // Count occurrences of triple backticks - should only be for JSON schema
     const codeBlockCount = (result.prompt.match(/```/g) ?? []).length;
@@ -169,14 +169,14 @@ describe("buildInsightPrompt", () => {
     ];
 
     for (const category of categories) {
-      const result = buildInsightPrompt(category, "test content");
+      const result = buildInsightPrompt(appSummaryConfigMap, category, "test content");
       expect(result.schema).toBe(appSummaryConfigMap[category].responseSchema);
     }
   });
 
   test("should include category-specific instructions in the prompt", () => {
     const content = "* TestClass.java: A test class";
-    const result = buildInsightPrompt("technologies", content);
+    const result = buildInsightPrompt(appSummaryConfigMap, "technologies", content);
 
     // Check that at least one instruction from the technologies config is present
     expect(result.prompt).toContain("technologies");
@@ -185,21 +185,25 @@ describe("buildInsightPrompt", () => {
   describe("forPartialAnalysis option", () => {
     test("should NOT include partial analysis note by default", () => {
       const content = "* TestClass.java: A test class";
-      const result = buildInsightPrompt("technologies", content);
+      const result = buildInsightPrompt(appSummaryConfigMap, "technologies", content);
 
       expect(result.prompt).not.toContain("partial analysis");
     });
 
     test("should NOT include partial analysis note when forPartialAnalysis is false", () => {
       const content = "* TestClass.java: A test class";
-      const result = buildInsightPrompt("technologies", content, { forPartialAnalysis: false });
+      const result = buildInsightPrompt(appSummaryConfigMap, "technologies", content, {
+        forPartialAnalysis: false,
+      });
 
       expect(result.prompt).not.toContain("partial analysis");
     });
 
     test("should include partial analysis note when forPartialAnalysis is true", () => {
       const content = "* TestClass.java: A test class";
-      const result = buildInsightPrompt("technologies", content, { forPartialAnalysis: true });
+      const result = buildInsightPrompt(appSummaryConfigMap, "technologies", content, {
+        forPartialAnalysis: true,
+      });
 
       expect(result.prompt).toContain("partial analysis");
     });
@@ -208,9 +212,17 @@ describe("buildInsightPrompt", () => {
   describe("type safety", () => {
     test("should preserve schema type for each category", () => {
       // This test verifies compile-time type safety
-      const technologiesResult = buildInsightPrompt("technologies", "content");
-      const appDescriptionResult = buildInsightPrompt("appDescription", "content");
-      const boundedContextsResult = buildInsightPrompt("boundedContexts", "content");
+      const technologiesResult = buildInsightPrompt(appSummaryConfigMap, "technologies", "content");
+      const appDescriptionResult = buildInsightPrompt(
+        appSummaryConfigMap,
+        "appDescription",
+        "content",
+      );
+      const boundedContextsResult = buildInsightPrompt(
+        appSummaryConfigMap,
+        "boundedContexts",
+        "content",
+      );
 
       // Each result's schema property should match the category's schema
       expect(technologiesResult.schema).toBe(appSummaryConfigMap.technologies.responseSchema);
@@ -249,7 +261,7 @@ describe("Prompt output consistency", () => {
 
   test("buildInsightPrompt should produce consistent prompt structure", () => {
     const content = "* File summaries here";
-    const result = buildInsightPrompt("technologies", content);
+    const result = buildInsightPrompt(appSummaryConfigMap, "technologies", content);
 
     // Verify the prompt has the expected structure
     expect(result.prompt).toMatch(/^Act as a senior developer/);
@@ -408,7 +420,7 @@ describe("GeneratedPrompt type consistency", () => {
   });
 
   test("buildInsightPrompt should return consistent GeneratedPrompt structure", () => {
-    const result = buildInsightPrompt("technologies", "content");
+    const result = buildInsightPrompt(appSummaryConfigMap, "technologies", "content");
 
     // Verify GeneratedPrompt structure
     expect(typeof result.prompt).toBe("string");
@@ -426,5 +438,85 @@ describe("GeneratedPrompt type consistency", () => {
     expect(result.schema).toBe(mockSchema);
     // ReducePromptResult has optional metadata
     expect(result.metadata).toBeUndefined();
+  });
+});
+
+describe("buildInsightPrompt with custom config", () => {
+  /**
+   * Tests that verify the dependency injection benefit of passing configMap as a parameter.
+   * This enables better testability and allows consumers to use custom configurations.
+   */
+
+  test("should use the provided config map instead of global state", () => {
+    const customSchema = z.object({ customField: z.string() });
+    const customConfigMap = {
+      technologies: {
+        contentDesc: "custom content description",
+        dataBlockHeader: "CUSTOM_HEADER",
+        responseSchema: customSchema,
+        instructions: ["Custom instruction for testing"],
+      },
+    } as unknown as AppSummaryConfigMap;
+
+    const result = buildInsightPrompt(customConfigMap, "technologies", "test content");
+
+    expect(result.prompt).toContain("custom content description");
+    expect(result.prompt).toContain("CUSTOM_HEADER:");
+    expect(result.prompt).toContain("Custom instruction for testing");
+    expect(result.schema).toBe(customSchema);
+  });
+
+  test("should use custom dataBlockHeader in partial analysis note", () => {
+    const customSchema = z.object({ items: z.array(z.string()) });
+    const customConfigMap = {
+      technologies: {
+        contentDesc: "test description",
+        dataBlockHeader: "MY_CUSTOM_BLOCK",
+        responseSchema: customSchema,
+        instructions: ["Test instruction"],
+      },
+    } as unknown as AppSummaryConfigMap;
+
+    const result = buildInsightPrompt(customConfigMap, "technologies", "content", {
+      forPartialAnalysis: true,
+    });
+
+    // The partial analysis note should use the custom header (converted to lowercase with spaces)
+    expect(result.prompt).toContain("my custom block");
+    expect(result.prompt).toContain("partial analysis");
+  });
+
+  test("should allow different config maps for different test scenarios", () => {
+    const schemaA = z.object({ fieldA: z.string() });
+    const schemaB = z.object({ fieldB: z.number() });
+
+    const configMapA = {
+      technologies: {
+        contentDesc: "description A",
+        dataBlockHeader: "HEADER_A",
+        responseSchema: schemaA,
+        instructions: ["Instruction A"],
+      },
+    } as unknown as AppSummaryConfigMap;
+
+    const configMapB = {
+      technologies: {
+        contentDesc: "description B",
+        dataBlockHeader: "HEADER_B",
+        responseSchema: schemaB,
+        instructions: ["Instruction B"],
+      },
+    } as unknown as AppSummaryConfigMap;
+
+    const resultA = buildInsightPrompt(configMapA, "technologies", "content");
+    const resultB = buildInsightPrompt(configMapB, "technologies", "content");
+
+    expect(resultA.prompt).toContain("description A");
+    expect(resultA.prompt).toContain("HEADER_A:");
+    expect(resultA.schema).toBe(schemaA);
+
+    expect(resultB.prompt).toContain("description B");
+    expect(resultB.prompt).toContain("HEADER_B:");
+    expect(resultB.schema).toBe(schemaB);
   });
 });

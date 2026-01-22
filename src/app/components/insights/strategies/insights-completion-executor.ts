@@ -2,6 +2,7 @@ import { z } from "zod";
 import LLMRouter from "../../../../common/llm/llm-router";
 import { LLMOutputFormat } from "../../../../common/llm/types/llm-request.types";
 import { buildInsightPrompt } from "../../../prompts/prompt-builders";
+import { appSummaryConfigMap } from "../../../prompts/app-summaries/app-summaries.definitions";
 import { getCategoryLabel } from "../../../config/category-labels.config";
 import { logWarn } from "../../../../common/utils/logging";
 import { joinArrayWithSeparators } from "../../../../common/utils/text-utils";
@@ -46,7 +47,7 @@ export async function executeInsightCompletion<C extends AppSummaryCategoryEnum>
   try {
     const taskCategory: string = options?.taskCategory ?? category;
     const codeContent = joinArrayWithSeparators(sourceFileSummaries);
-    const { prompt, schema } = buildInsightPrompt(category, codeContent, {
+    const { prompt, schema } = buildInsightPrompt(appSummaryConfigMap, category, codeContent, {
       forPartialAnalysis: options?.forPartialAnalysis,
     });
     const result = await llmRouter.executeCompletion(taskCategory, prompt, {

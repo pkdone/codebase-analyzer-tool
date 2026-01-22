@@ -15,10 +15,7 @@ import {
   type GeneratedPrompt,
 } from "../../common/prompts";
 import { type FileTypePromptRegistry } from "./sources/sources.definitions";
-import {
-  appSummaryConfigMap,
-  type AppSummaryConfigMap,
-} from "./app-summaries/app-summaries.definitions";
+import { type AppSummaryConfigMap } from "./app-summaries/app-summaries.definitions";
 import { buildReduceInsightsContentDesc } from "./app-summaries/app-summaries.constants";
 import type { CanonicalFileType } from "../schemas/canonical-file-types";
 import {
@@ -124,9 +121,10 @@ export function buildSourcePrompt(
  * Builds a prompt for generating app-level insights from source file summaries.
  *
  * This function encapsulates the prompt construction logic for insight generation,
- * using the self-describing configuration from appSummaryConfigMap.
+ * using the self-describing configuration from the provided config map.
  *
  * @template C - The specific category type (inferred from the category parameter)
+ * @param configMap - The app summary configuration map containing prompt definitions
  * @param category - The app summary category to build a prompt for
  * @param content - The joined source file summaries to analyze
  * @param options - Optional configuration for the prompt
@@ -134,7 +132,8 @@ export function buildSourcePrompt(
  *
  * @example
  * ```typescript
- * const result = buildInsightPrompt("technologies", joinedSummaries);
+ * import { appSummaryConfigMap } from "./app-summaries/app-summaries.definitions";
+ * const result = buildInsightPrompt(appSummaryConfigMap, "technologies", joinedSummaries);
  * const llmResponse = await llmRouter.executeCompletion(category, result.prompt, {
  *   outputFormat: LLMOutputFormat.JSON,
  *   jsonSchema: result.schema,
@@ -142,11 +141,12 @@ export function buildSourcePrompt(
  * ```
  */
 export function buildInsightPrompt<C extends keyof AppSummaryConfigMap>(
+  configMap: AppSummaryConfigMap,
   category: C,
   content: string,
   options?: InsightPromptOptions,
 ): InsightPromptResult<C> {
-  const config = appSummaryConfigMap[category];
+  const config = configMap[category];
   const contextNote = options?.forPartialAnalysis
     ? buildPartialAnalysisNote(config.dataBlockHeader)
     : undefined;
