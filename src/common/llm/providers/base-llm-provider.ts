@@ -320,13 +320,13 @@ export default abstract class BaseLLMProvider implements LLMProvider {
         pipelineSteps: jsonProcessingResult.pipelineSteps,
       };
     } else {
-      context.responseContentParseError = formatError(jsonProcessingResult.error);
+      const parseError = formatError(jsonProcessingResult.error);
       await this.errorLogger.recordJsonProcessingError(
         jsonProcessingResult.error,
         responseContent,
         context,
       );
-      return { ...skeletonResult, status: LLMResponseStatus.INVALID };
+      return { ...skeletonResult, status: LLMResponseStatus.INVALID, error: parseError };
     }
   }
 

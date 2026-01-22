@@ -51,7 +51,7 @@ export function determineNextAction(
     case LLMResponseStatus.INVALID:
       logWarn(
         `Unable to extract a valid response from the current LLM model - invalid response format even after retries`,
-        context,
+        { ...context, parseError: llmResponse.error },
       );
       return {
         shouldTerminate: !canSwitchModel,

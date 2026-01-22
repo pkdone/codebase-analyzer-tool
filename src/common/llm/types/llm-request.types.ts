@@ -106,7 +106,7 @@ export function isTextOptions(
 }
 
 /**
- * Interface to define the context object that is passed to and from the LLM provider
+ * Interface to define the context object that is passed to and from the LLM provider.
  */
 export interface LLMContext {
   /** The resource name being processed */
@@ -117,6 +117,4 @@ export interface LLMContext {
   modelKey?: string;
   /** The desired output format */
   outputFormat?: LLMOutputFormat;
-  /** Error text when JSON parsing / validating fails during response processing */
-  responseContentParseError?: string;
 }

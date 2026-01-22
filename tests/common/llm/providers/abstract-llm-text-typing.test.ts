@@ -252,22 +252,23 @@ Line 3`;
       expect(response.context.resource).toBe("text-output-test");
     });
 
-    test("should handle context with responseContentParseError for TEXT", () => {
+    test("should handle INVALID response with error field for TEXT", () => {
       const context: LLMContext = {
         resource: "text-output-test",
         purpose: LLMPurpose.COMPLETIONS,
         outputFormat: LLMOutputFormat.TEXT,
-        responseContentParseError: "Unexpected non-string response",
       };
 
+      // Parse errors are now returned in the response.error field instead of context
       const response: LLMFunctionResponse<string> = {
         status: LLMResponseStatus.INVALID,
         request: "test",
         modelKey: "test-model",
         context,
+        error: "Unexpected non-string response",
       };
 
-      expect(response.context.responseContentParseError).toBe("Unexpected non-string response");
+      expect(response.error).toBe("Unexpected non-string response");
       expect(response.status).toBe(LLMResponseStatus.INVALID);
     });
   });

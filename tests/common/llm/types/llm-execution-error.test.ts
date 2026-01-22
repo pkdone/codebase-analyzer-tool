@@ -54,7 +54,7 @@ describe("LLMExecutionError", () => {
         resource: "test-resource",
         purpose: LLMPurpose.COMPLETIONS,
         outputFormat: LLMOutputFormat.TEXT,
-        responseContentParseError: "Failed to parse JSON",
+        modelKey: "test-model",
       };
 
       const error = new LLMExecutionError("Test error message", "test-resource", context);
@@ -63,7 +63,7 @@ describe("LLMExecutionError", () => {
       expect(error.context?.resource).toBe("test-resource");
       expect(error.context?.purpose).toBe(LLMPurpose.COMPLETIONS);
       expect(error.context?.outputFormat).toBe(LLMOutputFormat.TEXT);
-      expect(error.context?.responseContentParseError).toBe("Failed to parse JSON");
+      expect(error.context?.modelKey).toBe("test-model");
     });
   });
 
@@ -97,7 +97,7 @@ describe("LLMExecutionError", () => {
       expect(error.context?.resource).toBe("minimal-resource");
       expect(error.context?.purpose).toBe(LLMPurpose.EMBEDDINGS);
       expect(error.context?.outputFormat).toBeUndefined();
-      expect(error.context?.responseContentParseError).toBeUndefined();
+      expect(error.context?.modelKey).toBeUndefined();
     });
   });
 

@@ -1,6 +1,6 @@
 import type { LLMContext } from "./types/llm-request.types";
 import type { ResolvedLLMModelMetadata } from "./types/llm-model.types";
-import type { LLMCandidateFunction, BoundLLMFunction } from "./types/llm-function.types";
+import type { ExecutableCandidate } from "./types/llm-function.types";
 import type { LLMFunctionResponse, LLMGeneratedContent } from "./types/llm-response.types";
 import { LLMResponseStatus } from "./types/llm-response.types";
 import type { LLMRetryConfig } from "./providers/llm-provider.types";
@@ -33,10 +33,8 @@ interface LLMExecutionParams<T extends LLMGeneratedContent> {
   readonly resourceName: string;
   readonly content: string;
   readonly context: LLMContext;
-  /** Bound functions ready for execution. For embeddings, pass a single-element array. */
-  readonly llmFunctions: BoundLLMFunction<T>[];
-  /** Candidate models for tracking model switches. Optional for embeddings. */
-  readonly candidateModels?: LLMCandidateFunction[];
+  /** Unified candidates with bound functions and metadata. For embeddings, pass a single-element array. */
+  readonly candidates: ExecutableCandidate<T>[];
   /** Whether to retry on INVALID status. Default true (for completions). Set false for embeddings. */
   readonly retryOnInvalid?: boolean;
   /** Whether to track JSON mutation stats. Default true (for completions). Set false for embeddings. */
@@ -75,8 +73,7 @@ export class LLMExecutionPipeline {
       resourceName,
       content,
       context,
-      llmFunctions,
-      candidateModels,
+      candidates,
       retryOnInvalid = true,
       trackJsonMutations = true,
     } = params;
@@ -86,8 +83,7 @@ export class LLMExecutionPipeline {
         resourceName,
         content,
         context,
-        llmFunctions,
-        candidateModels,
+        candidates,
         retryOnInvalid,
       );
 
@@ -153,11 +149,11 @@ export class LLMExecutionPipeline {
   }
 
   /**
-   * Tries each LLM function in the fallback chain until one succeeds or all are exhausted.
+   * Tries each candidate in the fallback chain until one succeeds or all are exhausted.
    *
    * This unified method works for both completions and embeddings:
-   * - Completions with multiple functions: Full fallback support across N models
-   * - Embeddings with single function: No fallback (naturally handled by array length check)
+   * - Completions with multiple candidates: Full fallback support across N models
+   * - Embeddings with single candidate: No fallback (naturally handled by array length check)
    *
    * Generic over the response data type T.
    */
@@ -165,19 +161,19 @@ export class LLMExecutionPipeline {
     resourceName: string,
     initialContent: string,
     context: LLMContext,
-    llmFunctions: BoundLLMFunction<T>[],
-    candidateModels?: LLMCandidateFunction[],
+    candidates: ExecutableCandidate<T>[],
     retryOnInvalid = true,
   ): Promise<LLMFunctionResponse<T> | null> {
     let currentContent = initialContent;
-    let llmFunctionIndex = 0;
+    let candidateIndex = 0;
 
-    // Loop through all available LLM functions in priority order
+    // Loop through all available candidates in priority order
     // Don't increment index before looping again if going to crop prompt
     // (to enable trying cropped prompt with same model as last iteration)
-    while (llmFunctionIndex < llmFunctions.length) {
+    while (candidateIndex < candidates.length) {
+      const candidate = candidates[candidateIndex];
       const llmResponse = await this.retryStrategy.executeWithRetries(
-        llmFunctions[llmFunctionIndex],
+        candidate.execute,
         currentContent,
         context,
         this.pipelineConfig.retryConfig,
@@ -194,8 +190,8 @@ export class LLMExecutionPipeline {
 
       const nextAction = determineNextAction(
         llmResponse,
-        llmFunctionIndex,
-        llmFunctions.length,
+        candidateIndex,
+        candidates.length,
         context,
         resourceName,
       );
@@ -217,17 +213,17 @@ export class LLMExecutionPipeline {
           break;
         }
 
-        continue; // Try again with same LLM function but cropped prompt
+        continue; // Try again with same candidate but cropped prompt
       }
 
       if (nextAction.shouldSwitchToNextLLM) {
-        // Update context with next model's key for logging purposes
-        if (candidateModels && llmFunctionIndex + 1 < candidateModels.length) {
-          context.modelKey = candidateModels[llmFunctionIndex + 1].modelKey;
+        // Update context with next model's key for logging purposes - safe access via unified candidate
+        if (candidateIndex + 1 < candidates.length) {
+          context.modelKey = candidates[candidateIndex + 1].modelKey;
         }
 
         this.llmStats.recordSwitch();
-        llmFunctionIndex++;
+        candidateIndex++;
       }
     }
 

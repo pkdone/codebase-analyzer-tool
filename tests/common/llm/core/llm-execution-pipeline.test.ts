@@ -16,7 +16,10 @@ import {
   LLMFunctionResponse,
   LLMGeneratedContent,
 } from "../../../../src/common/llm/types/llm-response.types";
-import { BoundLLMFunction } from "../../../../src/common/llm/types/llm-function.types";
+import {
+  BoundLLMFunction,
+  ExecutableCandidate,
+} from "../../../../src/common/llm/types/llm-function.types";
 import { REPAIR_STEP } from "../../../../src/common/llm/json-processing/sanitizers";
 
 /**
@@ -28,6 +31,21 @@ function createMockLLMFunction<T extends LLMGeneratedContent>(
 ): BoundLLMFunction<T> {
   // Use explicit async function to avoid Jest mock type inference issues
   return async () => response;
+}
+
+/**
+ * Helper to create a mock ExecutableCandidate for unified pipeline testing.
+ */
+function createMockCandidate<T extends LLMGeneratedContent>(
+  response: LLMFunctionResponse<T>,
+  modelKey = "test-model",
+): ExecutableCandidate<T> {
+  return {
+    execute: createMockLLMFunction(response),
+    providerFamily: "test-provider",
+    modelKey,
+    description: `test-provider/${modelKey}`,
+  };
 }
 
 /**
@@ -75,7 +93,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
 
   describe("Significant mutation detection", () => {
     test("should record JSON mutation for significant sanitization steps", async () => {
-      const mockLLMFunction = createMockLLMFunction({
+      const candidate = createMockCandidate({
         status: LLMResponseStatus.COMPLETED,
         request: "test",
         modelKey: "test-model",
@@ -93,15 +111,14 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         resourceName: "test-resource",
         content: "test prompt",
         context,
-        llmFunctions: [mockLLMFunction],
-        candidateModels: undefined,
+        candidates: [candidate],
       });
 
       expect(recordJsonMutatedSpy).toHaveBeenCalledTimes(1);
     });
 
     test("should NOT record JSON mutation for only whitespace trimming", async () => {
-      const mockLLMFunction = createMockLLMFunction({
+      const candidate = createMockCandidate({
         status: LLMResponseStatus.COMPLETED,
         request: "test",
         modelKey: "test-model",
@@ -119,15 +136,14 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         resourceName: "test-resource",
         content: "test prompt",
         context,
-        llmFunctions: [mockLLMFunction],
-        candidateModels: undefined,
+        candidates: [candidate],
       });
 
       expect(recordJsonMutatedSpy).not.toHaveBeenCalled();
     });
 
     test("should NOT record JSON mutation for only code fence removal", async () => {
-      const mockLLMFunction = createMockLLMFunction({
+      const candidate = createMockCandidate({
         status: LLMResponseStatus.COMPLETED,
         request: "test",
         modelKey: "test-model",
@@ -145,15 +161,14 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         resourceName: "test-resource",
         content: "test prompt",
         context,
-        llmFunctions: [mockLLMFunction],
-        candidateModels: undefined,
+        candidates: [candidate],
       });
 
       expect(recordJsonMutatedSpy).not.toHaveBeenCalled();
     });
 
     test("should NOT record JSON mutation for both whitespace and code fence removal only", async () => {
-      const mockLLMFunction = createMockLLMFunction({
+      const candidate = createMockCandidate({
         status: LLMResponseStatus.COMPLETED,
         request: "test",
         modelKey: "test-model",
@@ -171,15 +186,14 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         resourceName: "test-resource",
         content: "test prompt",
         context,
-        llmFunctions: [mockLLMFunction],
-        candidateModels: undefined,
+        candidates: [candidate],
       });
 
       expect(recordJsonMutatedSpy).not.toHaveBeenCalled();
     });
 
     test("should NOT record JSON mutation when no sanitization steps", async () => {
-      const mockLLMFunction = createMockLLMFunction({
+      const candidate = createMockCandidate({
         status: LLMResponseStatus.COMPLETED,
         request: "test",
         modelKey: "test-model",
@@ -197,15 +211,14 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         resourceName: "test-resource",
         content: "test prompt",
         context,
-        llmFunctions: [mockLLMFunction],
-        candidateModels: undefined,
+        candidates: [candidate],
       });
 
       expect(recordJsonMutatedSpy).not.toHaveBeenCalled();
     });
 
     test("should NOT record JSON mutation when sanitizationSteps is undefined", async () => {
-      const mockLLMFunction = createMockLLMFunction({
+      const candidate = createMockCandidate({
         status: LLMResponseStatus.COMPLETED,
         request: "test",
         modelKey: "test-model",
@@ -222,15 +235,14 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         resourceName: "test-resource",
         content: "test prompt",
         context,
-        llmFunctions: [mockLLMFunction],
-        candidateModels: undefined,
+        candidates: [candidate],
       });
 
       expect(recordJsonMutatedSpy).not.toHaveBeenCalled();
     });
 
     test("should record JSON mutation for multiple significant steps", async () => {
-      const mockLLMFunction = createMockLLMFunction({
+      const candidate = createMockCandidate({
         status: LLMResponseStatus.COMPLETED,
         request: "test",
         modelKey: "test-model",
@@ -253,8 +265,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         resourceName: "test-resource",
         content: "test prompt",
         context,
-        llmFunctions: [mockLLMFunction],
-        candidateModels: undefined,
+        candidates: [candidate],
       });
 
       expect(recordJsonMutatedSpy).toHaveBeenCalledTimes(1);
@@ -263,7 +274,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
 
   describe("Error Context Handling", () => {
     test("should return LLMExecutionError with typed context when generated is undefined", async () => {
-      const mockLLMFunction = createMockLLMFunction({
+      const candidate = createMockCandidate({
         status: LLMResponseStatus.COMPLETED,
         request: "test",
         modelKey: "test-model",
@@ -281,8 +292,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         resourceName: "test-resource",
         content: "test prompt",
         context,
-        llmFunctions: [mockLLMFunction],
-        candidateModels: undefined,
+        candidates: [candidate],
       });
 
       expect(result.success).toBe(false);
@@ -291,13 +301,12 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         expect(result.error.context).toEqual(context);
         expect(result.error.context?.resource).toBe("test-resource");
         expect(result.error.context?.purpose).toBe(LLMPurpose.COMPLETIONS);
-        // modelTier has been removed from LLMContext
         expect(result.error.context?.outputFormat).toBe(LLMOutputFormat.JSON);
       }
     });
 
     test("should return LLMExecutionError with typed context when all functions fail", async () => {
-      const mockLLMFunction = createMockLLMFunction({
+      const candidate = createMockCandidate({
         status: LLMResponseStatus.INVALID,
         request: "test",
         modelKey: "test-model",
@@ -313,8 +322,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         resourceName: "failed-resource",
         content: "test prompt",
         context,
-        llmFunctions: [mockLLMFunction],
-        candidateModels: undefined,
+        candidates: [candidate],
       });
 
       expect(result.success).toBe(false);
@@ -323,14 +331,18 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         expect(result.error.context).toEqual(context);
         expect(result.error.context?.resource).toBe("failed-resource");
         expect(result.error.context?.purpose).toBe(LLMPurpose.COMPLETIONS);
-        // modelTier has been removed from LLMContext
       }
     });
 
     test("should return LLMExecutionError with typed context when LLM function throws", async () => {
       const thrownError = new Error("Unexpected error");
-      const mockLLMFunction: BoundLLMFunction<LLMGeneratedContent> = async () => {
-        throw thrownError;
+      const throwingCandidate: ExecutableCandidate<LLMGeneratedContent> = {
+        execute: async () => {
+          throw thrownError;
+        },
+        providerFamily: "test-provider",
+        modelKey: "test-model",
+        description: "test-provider/test-model",
       };
 
       const context: LLMContext = {
@@ -342,8 +354,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         resourceName: "exception-resource",
         content: "test prompt",
         context,
-        llmFunctions: [mockLLMFunction],
-        candidateModels: undefined,
+        candidates: [throwingCandidate],
       });
 
       // When LLM function throws, retry strategy catches it and returns null,
@@ -378,7 +389,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         createMockPipelineConfig(),
       );
 
-      const mockLLMFunction = createMockLLMFunction({
+      const candidate = createMockCandidate({
         status: LLMResponseStatus.COMPLETED,
         request: "test",
         modelKey: "test-model",
@@ -390,8 +401,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         resourceName: "direct-exception-resource",
         content: "test prompt",
         context,
-        llmFunctions: [mockLLMFunction],
-        candidateModels: undefined,
+        candidates: [candidate],
       });
 
       expect(result.success).toBe(false);
@@ -402,35 +412,6 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         expect(result.error.context?.purpose).toBe(LLMPurpose.COMPLETIONS);
         expect(result.error.errorCause).toBeInstanceOf(Error);
         expect((result.error.errorCause as Error).message).toBe("Direct exception");
-      }
-    });
-
-    test("should preserve context with responseContentParseError", async () => {
-      const mockLLMFunction = createMockLLMFunction({
-        status: LLMResponseStatus.COMPLETED,
-        request: "test",
-        modelKey: "test-model",
-        context: { resource: "test", purpose: LLMPurpose.COMPLETIONS },
-        generated: undefined,
-      });
-
-      const context: LLMContext = {
-        resource: "parse-error-resource",
-        purpose: LLMPurpose.COMPLETIONS,
-        responseContentParseError: "Invalid JSON structure",
-      };
-
-      const result = await pipeline.execute({
-        resourceName: "parse-error-resource",
-        content: "test prompt",
-        context,
-        llmFunctions: [mockLLMFunction],
-        candidateModels: undefined,
-      });
-
-      expect(result.success).toBe(false);
-      if (!result.success) {
-        expect(result.error.context?.responseContentParseError).toBe("Invalid JSON structure");
       }
     });
   });
@@ -451,7 +432,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
     });
 
     test("should preserve object type through pipeline execution", async () => {
-      const mockLLMFunction = createMockLLMFunction({
+      const candidate = createMockCandidate({
         status: LLMResponseStatus.COMPLETED,
         request: "test",
         modelKey: "test-model",
@@ -468,7 +449,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         resourceName: "test-resource",
         content: "test prompt",
         context,
-        llmFunctions: [mockLLMFunction],
+        candidates: [candidate],
       });
 
       expect(result.success).toBe(true);
@@ -482,7 +463,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
     });
 
     test("should preserve array type through pipeline execution", async () => {
-      const mockLLMFunction = createMockLLMFunction({
+      const candidate = createMockCandidate({
         status: LLMResponseStatus.COMPLETED,
         request: "test",
         modelKey: "test-model",
@@ -502,7 +483,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         resourceName: "test-resource",
         content: "test prompt",
         context,
-        llmFunctions: [mockLLMFunction],
+        candidates: [candidate],
       });
 
       expect(result.success).toBe(true);
@@ -515,7 +496,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
     });
 
     test("should preserve complex nested type", async () => {
-      const mockLLMFunction = createMockLLMFunction({
+      const candidate = createMockCandidate({
         status: LLMResponseStatus.COMPLETED,
         request: "test",
         modelKey: "test-model",
@@ -545,7 +526,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         resourceName: "test-resource",
         content: "test prompt",
         context,
-        llmFunctions: [mockLLMFunction],
+        candidates: [candidate],
       });
 
       expect(result.success).toBe(true);
@@ -568,7 +549,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
     test("should return success when generated content is null", async () => {
       // null is a valid member of LLMGeneratedContent representing "absence of content"
       // but still a valid response that was intentionally returned
-      const mockLLMFunction = createMockLLMFunction({
+      const candidate = createMockCandidate({
         status: LLMResponseStatus.COMPLETED,
         request: "test",
         modelKey: "test-model",
@@ -585,7 +566,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         resourceName: "test-resource",
         content: "test prompt",
         context,
-        llmFunctions: [mockLLMFunction],
+        candidates: [candidate],
       });
 
       // null is a valid response type in LLMGeneratedContent, should succeed
@@ -597,7 +578,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
 
     test("should return error when generated content is explicitly undefined", async () => {
       // undefined means no content was generated - this is an error case
-      const mockLLMFunction = createMockLLMFunction({
+      const candidate = createMockCandidate({
         status: LLMResponseStatus.COMPLETED,
         request: "test",
         modelKey: "test-model",
@@ -614,7 +595,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         resourceName: "test-resource",
         content: "test prompt",
         context,
-        llmFunctions: [mockLLMFunction],
+        candidates: [candidate],
       });
 
       expect(result.success).toBe(false);
@@ -625,7 +606,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
 
     test("should return success when generated content is empty string", async () => {
       // Empty string is a valid string response (though unusual for LLM output)
-      const mockLLMFunction = createMockLLMFunction({
+      const candidate = createMockCandidate({
         status: LLMResponseStatus.COMPLETED,
         request: "test",
         modelKey: "test-model",
@@ -642,7 +623,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         resourceName: "test-resource",
         content: "test prompt",
         context,
-        llmFunctions: [mockLLMFunction],
+        candidates: [candidate],
       });
 
       // Empty string is a valid string value, should succeed
@@ -654,7 +635,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
 
     test("should return success when generated content is empty object", async () => {
       // Empty object is valid JSON
-      const mockLLMFunction = createMockLLMFunction({
+      const candidate = createMockCandidate({
         status: LLMResponseStatus.COMPLETED,
         request: "test",
         modelKey: "test-model",
@@ -671,7 +652,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         resourceName: "test-resource",
         content: "test prompt",
         context,
-        llmFunctions: [mockLLMFunction],
+        candidates: [candidate],
       });
 
       expect(result.success).toBe(true);
@@ -682,7 +663,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
 
     test("should return success when generated content is empty array", async () => {
       // Empty array is valid JSON
-      const mockLLMFunction = createMockLLMFunction({
+      const candidate = createMockCandidate({
         status: LLMResponseStatus.COMPLETED,
         request: "test",
         modelKey: "test-model",
@@ -699,7 +680,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         resourceName: "test-resource",
         content: "test prompt",
         context,
-        llmFunctions: [mockLLMFunction],
+        candidates: [candidate],
       });
 
       expect(result.success).toBe(true);

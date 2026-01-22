@@ -3,6 +3,7 @@ import type {
   LLMCandidateFunction,
   LLMFunction,
   BoundLLMFunction,
+  ExecutableCandidate,
 } from "../types/llm-function.types";
 import type { ProviderManager } from "../provider-manager";
 import type { ResolvedModelChain } from "../types/llm-model.types";
@@ -90,66 +91,96 @@ export function buildEmbeddingCandidatesFromChain(
 }
 
 /**
- * Get completion candidates optionally filtered by a specific index.
- * If indexOverride is provided, returns only that candidate.
- * Otherwise returns all candidates.
+ * Builds unified executable candidates from completion candidates with options bound.
+ * Returns a single array containing both the executable function and metadata,
+ * eliminating index-correlation issues between separate arrays.
  *
- * @param completionCandidates The full list of completion candidates
- * @param indexOverride Optional index to filter to a specific candidate
- * @returns Object containing the candidates to use and their functions
+ * @param completionCandidates The completion candidates from the chain
+ * @param options The completion options to bind to each function
+ * @param indexOverride Optional index to start from a specific candidate (slices from this index)
+ * @returns Array of unified executable candidates
  */
-export function getFilteredCompletionCandidates(
+export function buildExecutableCandidates<S extends z.ZodType>(
   completionCandidates: LLMCandidateFunction[],
+  options: LLMCompletionOptions<S>,
   indexOverride: number | null = null,
-): {
-  candidatesToUse: LLMCandidateFunction[];
-  candidateFunctions: LLMFunction[];
-} {
-  let candidatesToUse: LLMCandidateFunction[];
+): ExecutableCandidate<z.infer<S>>[] {
+  const startIndex = indexOverride ?? 0;
 
-  if (indexOverride !== null) {
-    if (indexOverride < 0 || indexOverride >= completionCandidates.length) {
-      throw new LLMError(
-        LLMErrorCode.BAD_CONFIGURATION,
-        `Invalid completion candidate index: ${indexOverride}. ` +
-          `Available indices: 0-${completionCandidates.length - 1}`,
-      );
-    }
-    candidatesToUse = [completionCandidates[indexOverride]];
-  } else {
-    candidatesToUse = completionCandidates;
-  }
-
-  if (candidatesToUse.length === 0) {
+  if (completionCandidates.length === 0) {
     throw new LLMError(LLMErrorCode.BAD_CONFIGURATION, "No completion candidates available");
   }
 
-  const candidateFunctions: LLMFunction[] = candidatesToUse.map((candidate) => candidate.func);
-  return { candidatesToUse, candidateFunctions };
-}
+  if (startIndex < 0 || startIndex >= completionCandidates.length) {
+    throw new LLMError(
+      LLMErrorCode.BAD_CONFIGURATION,
+      `Invalid completion candidate index: ${startIndex}. ` +
+        `Available indices: 0-${completionCandidates.length - 1}`,
+    );
+  }
 
-/**
- * Binds completion options to an array of LLM functions, creating named bound functions
- * for better stack traces and debugging.
- *
- * This helper extracts the anonymous closure logic from LLMRouter.executeCompletion,
- * giving each bound function a descriptive name that includes its index in the chain.
- *
- * @param candidateFunctions Array of LLM functions to bind options to
- * @param options The completion options to bind to each function
- * @returns Array of bound functions with debug-friendly names
- */
-export function bindCompletionFunctions<S extends z.ZodType>(
-  candidateFunctions: LLMFunction[],
-  options: LLMCompletionOptions<S>,
-): BoundLLMFunction<z.infer<S>>[] {
-  return candidateFunctions.map((fn, index) => {
+  const candidatesToUse = completionCandidates.slice(startIndex);
+
+  return candidatesToUse.map((candidate, index) => {
     const boundFn: BoundLLMFunction<z.infer<S>> = async (
       content: string,
       ctx: LLMContext,
-    ): Promise<LLMFunctionResponse<z.infer<S>>> => fn(content, ctx, options);
+    ): Promise<LLMFunctionResponse<z.infer<S>>> => candidate.func(content, ctx, options);
+
     // Add debug name for better stack traces
-    Object.defineProperty(boundFn, "name", { value: `boundCompletion_${index}` });
-    return boundFn;
+    Object.defineProperty(boundFn, "name", { value: `boundCompletion_${startIndex + index}` });
+
+    return {
+      execute: boundFn,
+      providerFamily: candidate.providerFamily,
+      modelKey: candidate.modelKey,
+      description: candidate.description,
+    };
+  });
+}
+
+/**
+ * Builds unified executable candidates for embeddings from embedding candidates.
+ * Returns a single array containing both the executable function and metadata.
+ *
+ * @param embeddingCandidates The embedding candidates from buildEmbeddingCandidatesFromChain
+ * @param indexOverride Optional index to start from a specific candidate (slices from this index)
+ * @returns Array of unified executable candidates for embeddings
+ */
+export function buildExecutableEmbeddingCandidates(
+  embeddingCandidates: EmbeddingCandidate[],
+  indexOverride: number | null = null,
+): ExecutableCandidate<number[]>[] {
+  const startIndex = indexOverride ?? 0;
+
+  if (embeddingCandidates.length === 0) {
+    throw new LLMError(LLMErrorCode.BAD_CONFIGURATION, "No embedding candidates available");
+  }
+
+  if (startIndex < 0 || startIndex >= embeddingCandidates.length) {
+    throw new LLMError(
+      LLMErrorCode.BAD_CONFIGURATION,
+      `Invalid embedding candidate index: ${startIndex}. ` +
+        `Available indices: 0-${embeddingCandidates.length - 1}`,
+    );
+  }
+
+  const candidatesToUse = embeddingCandidates.slice(startIndex);
+
+  return candidatesToUse.map((candidate, index) => {
+    const boundFn: BoundLLMFunction<number[]> = async (
+      content: string,
+      ctx: LLMContext,
+    ): Promise<LLMFunctionResponse<number[]>> => candidate.func(content, ctx);
+
+    // Add debug name for better stack traces
+    Object.defineProperty(boundFn, "name", { value: `boundEmbedding_${startIndex + index}` });
+
+    return {
+      execute: boundFn,
+      providerFamily: candidate.providerFamily,
+      modelKey: candidate.modelKey,
+      description: `${candidate.providerFamily}/${candidate.modelKey}`,
+    };
   });
 }

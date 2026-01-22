@@ -10,8 +10,9 @@ import {
   LLMFunctionResponse,
   LLMResponseStatus,
   InferResponseType,
+  LLMGeneratedContent,
 } from "../../../src/common/llm/types/llm-response.types";
-import { LLMFunction } from "../../../src/common/llm/types/llm-function.types";
+import { LLMFunction, ExecutableCandidate } from "../../../src/common/llm/types/llm-function.types";
 import { ResolvedLLMModelMetadata } from "../../../src/common/llm/types/llm-model.types";
 import { RetryStrategy } from "../../../src/common/llm/strategies/retry-strategy";
 import {
@@ -293,17 +294,19 @@ describe("Type Safety Refactoring Validation", () => {
       executionPipeline = new LLMExecutionPipeline(retryStrategy, llmStats, pipelineConfig);
     });
 
-    // Helper to create a bound function from mock data (cast to any for test flexibility)
-    const createBoundFunction = (mockData: unknown) =>
-      (async (content: string, context: LLMContext) => {
-        return {
-          status: LLMResponseStatus.COMPLETED,
-          request: content,
-          modelKey: "test-model",
-          context,
-          generated: mockData,
-        };
-      }) as any;
+    // Helper to create an ExecutableCandidate from mock data
+    const createCandidate = <T>(mockData: T): ExecutableCandidate<T> => ({
+      execute: async (content: string, context: LLMContext) => ({
+        status: LLMResponseStatus.COMPLETED,
+        request: content,
+        modelKey: "test-model",
+        context,
+        generated: mockData,
+      }),
+      providerFamily: "TestProvider",
+      modelKey: "test-model",
+      description: "TestProvider/test-model",
+    });
 
     test("should propagate schema type through execute method", async () => {
       const _analysisSchema = z.object({
@@ -332,18 +335,17 @@ describe("Type Safety Refactoring Validation", () => {
         resourceName: "test-resource",
         content: "Analyze this",
         context: mockContext,
-        llmFunctions: [createBoundFunction(mockAnalysis)],
+        candidates: [createCandidate(mockAnalysis)],
       });
 
       expect(result.success).toBe(true);
 
       if (result.success) {
-        // Type should flow through from the schema - use type assertion for test
-        const data = result.data as AnalysisType;
-        expect(data.summary).toBe("Test analysis completed");
-        expect(data.findings).toHaveLength(2);
-        expect(data.score).toBe(85);
-        expect(data.metadata.version).toBe("1.0.0");
+        // Type flows through from the schema
+        expect(result.data.summary).toBe("Test analysis completed");
+        expect(result.data.findings).toHaveLength(2);
+        expect(result.data.score).toBe(85);
+        expect(result.data.metadata.version).toBe("1.0.0");
       }
     });
 
@@ -373,7 +375,7 @@ describe("Type Safety Refactoring Validation", () => {
         resourceName: "test-resource",
         content: "Execute operation",
         context: mockContext,
-        llmFunctions: [createBoundFunction(mockResult)],
+        candidates: [createCandidate(mockResult)],
       });
 
       expect(result.success).toBe(true);
@@ -389,22 +391,25 @@ describe("Type Safety Refactoring Validation", () => {
     });
 
     test("should return failure when LLM returns undefined generated content", async () => {
-      // Create a function that returns COMPLETED but no generated content
-      const incompleteFunction = async (content: string, context: LLMContext) => {
-        return {
+      // Create a candidate that returns COMPLETED but no generated content
+      const incompleteCandidate: ExecutableCandidate<LLMGeneratedContent> = {
+        execute: async (content: string, context: LLMContext) => ({
           status: LLMResponseStatus.COMPLETED,
           request: content,
           modelKey: "test-model",
           context,
           // generated is undefined
-        };
+        }),
+        providerFamily: "TestProvider",
+        modelKey: "test-model",
+        description: "TestProvider/test-model",
       };
 
       const result = await executionPipeline.execute({
         resourceName: "test-resource",
         content: "test",
         context: mockContext,
-        llmFunctions: [incompleteFunction as any],
+        candidates: [incompleteCandidate],
       });
 
       expect(result.success).toBe(false);
@@ -462,17 +467,19 @@ describe("Type Safety Refactoring Validation", () => {
       executionPipeline = new LLMExecutionPipeline(retryStrategy, llmStats, pipelineConfig);
     });
 
-    // Helper to create a bound function from mock data (cast to any for test flexibility)
-    const createBoundFunction = (mockData: unknown) =>
-      (async (content: string, context: LLMContext) => {
-        return {
-          status: LLMResponseStatus.COMPLETED,
-          request: content,
-          modelKey: "test-model",
-          context,
-          generated: mockData,
-        };
-      }) as any;
+    // Helper to create an ExecutableCandidate from mock data
+    const createCandidate = <T>(mockData: T): ExecutableCandidate<T> => ({
+      execute: async (content: string, context: LLMContext) => ({
+        status: LLMResponseStatus.COMPLETED,
+        request: content,
+        modelKey: "test-model",
+        context,
+        generated: mockData,
+      }),
+      providerFamily: "TestProvider",
+      modelKey: "test-model",
+      description: "TestProvider/test-model",
+    });
 
     test("should maintain type safety through entire call chain", async () => {
       // Define a complex schema that represents a real-world use case
@@ -508,19 +515,18 @@ describe("Type Safety Refactoring Validation", () => {
         resourceName: "security-analysis",
         content: "Analyze security",
         context: mockContext,
-        llmFunctions: [createBoundFunction(expectedInsight)],
+        candidates: [createCandidate(expectedInsight)],
       });
 
       expect(result.success).toBe(true);
 
       if (result.success) {
-        // Type narrowed by discriminated union - data is correctly typed
-        const data = result.data as InsightType;
-        expect(data.category).toBe("security");
-        expect(data.confidence).toBe(0.95);
-        expect(data.insights).toHaveLength(1);
-        expect(data.insights[0].severity).toBe("high");
-        expect(data.recommendations).toContain("Use parameterized queries");
+        // Type flows through correctly
+        expect(result.data.category).toBe("security");
+        expect(result.data.confidence).toBe(0.95);
+        expect(result.data.insights).toHaveLength(1);
+        expect(result.data.insights[0].severity).toBe("high");
+        expect(result.data.recommendations).toContain("Use parameterized queries");
       }
     });
 
@@ -544,18 +550,17 @@ describe("Type Safety Refactoring Validation", () => {
         resourceName: "test",
         content: "test",
         context: mockContext,
-        llmFunctions: [createBoundFunction(mockData)],
+        candidates: [createCandidate(mockData)],
       });
 
       expect(result.success).toBe(true);
 
       if (result.success) {
-        // Type narrowed by discriminated union - data is correctly typed
-        const data = result.data as OptionalFieldsType;
-        expect(data.required).toBe("present");
-        expect(data.optional).toBeUndefined();
-        expect(data.withDefault).toBe(42);
-        expect(data.nullable).toBeNull();
+        // Type flows through correctly
+        expect(result.data.required).toBe("present");
+        expect(result.data.optional).toBeUndefined();
+        expect(result.data.withDefault).toBe(42);
+        expect(result.data.nullable).toBeNull();
       }
     });
 
@@ -564,7 +569,7 @@ describe("Type Safety Refactoring Validation", () => {
         resourceName: "text-generation",
         content: "Generate some text",
         context: { ...mockContext, outputFormat: LLMOutputFormat.TEXT },
-        llmFunctions: [createBoundFunction("Generated text content")],
+        candidates: [createCandidate("Generated text content")],
       });
 
       expect(result.success).toBe(true);

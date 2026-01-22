@@ -6,6 +6,7 @@ import {
 } from "../../../src/common/llm/types/llm-request.types";
 import { LLMResponseStatus } from "../../../src/common/llm/types/llm-response.types";
 import { ResolvedLLMModelMetadata } from "../../../src/common/llm/types/llm-model.types";
+import type { ExecutableCandidate } from "../../../src/common/llm/types/llm-function.types";
 import { LLMImplSpecificResponseSummary } from "../../../src/common/llm/providers/llm-provider.types";
 import BaseLLMProvider from "../../../src/common/llm/providers/base-llm-provider";
 import { createMockErrorLoggingConfig } from "../helpers/llm/mock-error-logger";
@@ -351,18 +352,23 @@ describe("Type Safety Chain - End to End", () => {
         '{"status": "success", "data": {"items": ["a", "b", "c"], "count": 3}, "timestamp": "2024-01-01T00:00:00Z"}',
       );
 
-      // Bind options to create BoundLLMFunction
-      const boundFn = async (content: string, ctx: LLMContext) =>
-        testLLM.executeCompletion(TEST_COMPLETIONS_MODEL, content, ctx, {
-          outputFormat: LLMOutputFormat.JSON,
-          jsonSchema: complexSchema,
-        });
+      // Create unified ExecutableCandidate with bound function and metadata
+      const candidate: ExecutableCandidate<z.infer<typeof complexSchema>> = {
+        execute: async (content: string, ctx: LLMContext) =>
+          testLLM.executeCompletion(TEST_COMPLETIONS_MODEL, content, ctx, {
+            outputFormat: LLMOutputFormat.JSON,
+            jsonSchema: complexSchema,
+          }),
+        providerFamily: "TestProvider",
+        modelKey: TEST_COMPLETIONS_MODEL,
+        description: `TestProvider/${TEST_COMPLETIONS_MODEL}`,
+      };
 
       const result = await executionPipeline.execute({
         resourceName: "test-resource",
         content: "test prompt",
         context: testContext,
-        llmFunctions: [boundFn],
+        candidates: [candidate],
       });
 
       expect(result.success).toBe(true);
@@ -383,18 +389,23 @@ describe("Type Safety Chain - End to End", () => {
 
       testLLM.setMockResponse('{"type": "text", "content": "hello"}');
 
-      // Bind options to create BoundLLMFunction
-      const boundFn = async (content: string, ctx: LLMContext) =>
-        testLLM.executeCompletion(TEST_COMPLETIONS_MODEL, content, ctx, {
-          outputFormat: LLMOutputFormat.JSON,
-          jsonSchema: unionSchema,
-        });
+      // Create unified ExecutableCandidate with bound function and metadata
+      const candidate: ExecutableCandidate<z.infer<typeof unionSchema>> = {
+        execute: async (content: string, ctx: LLMContext) =>
+          testLLM.executeCompletion(TEST_COMPLETIONS_MODEL, content, ctx, {
+            outputFormat: LLMOutputFormat.JSON,
+            jsonSchema: unionSchema,
+          }),
+        providerFamily: "TestProvider",
+        modelKey: TEST_COMPLETIONS_MODEL,
+        description: `TestProvider/${TEST_COMPLETIONS_MODEL}`,
+      };
 
       const result = await executionPipeline.execute({
         resourceName: "test-resource",
         content: "test prompt",
         context: testContext,
-        llmFunctions: [boundFn],
+        candidates: [candidate],
       });
 
       expect(result.success).toBe(true);
@@ -614,18 +625,23 @@ describe("Type Safety Chain - End to End", () => {
 
       testLLM.setMockResponse('{"status": "success", "code": 200}');
 
-      // Bind options to create BoundLLMFunction
-      const boundFn = async (content: string, ctx: LLMContext) =>
-        testLLM.executeCompletion(TEST_COMPLETIONS_MODEL, content, ctx, {
-          outputFormat: LLMOutputFormat.JSON,
-          jsonSchema: pipelineSchema,
-        });
+      // Create unified ExecutableCandidate with bound function and metadata
+      const candidate: ExecutableCandidate<z.infer<typeof pipelineSchema>> = {
+        execute: async (content: string, ctx: LLMContext) =>
+          testLLM.executeCompletion(TEST_COMPLETIONS_MODEL, content, ctx, {
+            outputFormat: LLMOutputFormat.JSON,
+            jsonSchema: pipelineSchema,
+          }),
+        providerFamily: "TestProvider",
+        modelKey: TEST_COMPLETIONS_MODEL,
+        description: `TestProvider/${TEST_COMPLETIONS_MODEL}`,
+      };
 
       const result = await executionPipeline.execute({
         resourceName: "test",
         content: "test",
         context: testContext,
-        llmFunctions: [boundFn],
+        candidates: [candidate],
       });
 
       expect(result.success).toBe(true);

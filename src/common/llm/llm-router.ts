@@ -2,7 +2,7 @@ import { z } from "zod";
 import type { LLMContext, LLMCompletionOptions } from "./types/llm-request.types";
 import { LLMPurpose } from "./types/llm-request.types";
 import type { ResolvedModelChain } from "./types/llm-model.types";
-import type { BoundLLMFunction, LLMCandidateFunction } from "./types/llm-function.types";
+import type { LLMCandidateFunction } from "./types/llm-function.types";
 import { ShutdownBehavior } from "./types/llm-shutdown.types";
 import { LLMError, LLMErrorCode } from "./types/llm-errors.types";
 import { type Result, ok, err } from "../types/result.types";
@@ -15,8 +15,8 @@ import LLMExecutionStats from "./tracking/llm-execution-stats";
 import {
   buildCompletionCandidatesFromChain,
   buildEmbeddingCandidatesFromChain,
-  getFilteredCompletionCandidates,
-  bindCompletionFunctions,
+  buildExecutableCandidates,
+  buildExecutableEmbeddingCandidates,
 } from "./utils/completions-models-retriever";
 import { logWarn } from "../utils/logging";
 
@@ -203,28 +203,26 @@ export default class LLMRouter {
       purpose: LLMPurpose.EMBEDDINGS,
     };
 
-    // Filter candidates based on model index override
-    const startIndex = modelIndexOverride ?? 0;
-    const candidatesToUse = this.embeddingCandidates.slice(startIndex);
-
-    if (candidatesToUse.length === 0) {
+    // Build unified executable candidates for embeddings
+    let candidates;
+    try {
+      candidates = buildExecutableEmbeddingCandidates(this.embeddingCandidates, modelIndexOverride);
+    } catch {
       logWarn(
-        `No embedding candidates available at index ${startIndex}. Chain has ${this.embeddingCandidates.length} models.`,
+        `No embedding candidates available at index ${modelIndexOverride ?? 0}. Chain has ${this.embeddingCandidates.length} models.`,
         context,
       );
       return null;
     }
 
-    // Build bound functions for filtered embedding candidates
-    const embeddingFunctions: BoundLLMFunction<number[]>[] = candidatesToUse.map(
-      (candidate) => async (c: string, ctx: LLMContext) => candidate.func(c, ctx),
-    );
+    // Set initial modelKey from first candidate
+    context.modelKey = candidates[0].modelKey;
 
     const result = await this.executionPipeline.execute<number[]>({
       resourceName,
       content,
       context,
-      llmFunctions: embeddingFunctions,
+      candidates,
       retryOnInvalid: false, // Embeddings don't have JSON parsing
       trackJsonMutations: false, // No JSON mutations for embeddings
     });
@@ -283,12 +281,14 @@ export default class LLMRouter {
     options: LLMCompletionOptions<S>,
     modelIndexOverride: number | null = null,
   ): Promise<Result<z.infer<S>, LLMError>> {
-    const { candidatesToUse, candidateFunctions } = getFilteredCompletionCandidates(
+    // Build unified executable candidates with options bound
+    const candidates = buildExecutableCandidates(
       this.completionCandidates,
+      options,
       modelIndexOverride,
     );
 
-    const firstCandidate = candidatesToUse[0];
+    const firstCandidate = candidates[0];
     const context: LLMContext = {
       resource: resourceName,
       purpose: LLMPurpose.COMPLETIONS,
@@ -296,15 +296,11 @@ export default class LLMRouter {
       outputFormat: options.outputFormat,
     };
 
-    // Bind options to create BoundLLMFunction<z.infer<S>>[] for the unified pipeline
-    const boundFunctions = bindCompletionFunctions(candidateFunctions, options);
-
     const result = await this.executionPipeline.execute<z.infer<S>>({
       resourceName,
       content: prompt,
       context,
-      llmFunctions: boundFunctions,
-      candidateModels: candidatesToUse,
+      candidates,
       retryOnInvalid: true,
       trackJsonMutations: true,
     });

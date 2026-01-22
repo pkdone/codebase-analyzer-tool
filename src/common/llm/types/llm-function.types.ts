@@ -89,3 +89,21 @@ export interface LLMCandidateFunction {
   /** Priority index in the fallback chain (0 = highest priority) */
   readonly priority: number;
 }
+
+/**
+ * A unified execution candidate that combines the bound function with its metadata.
+ * This eliminates the need to pass separate arrays that must be kept in sync by index,
+ * reducing the risk of index mismatch errors and simplifying the execution pipeline.
+ *
+ * @template T - The response data type (z.infer<S> for completions, number[] for embeddings)
+ */
+export interface ExecutableCandidate<T> {
+  /** The bound function ready for execution with options already applied */
+  readonly execute: BoundLLMFunction<T>;
+  /** Provider family this model belongs to */
+  readonly providerFamily: string;
+  /** Model key within the provider */
+  readonly modelKey: string;
+  /** Human-readable description for logging */
+  readonly description: string;
+}
