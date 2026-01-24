@@ -1,6 +1,7 @@
 import type { PreparedHtmlReportData } from "../types/html-report-data.types";
 import type { PreparedJsonData } from "../json-report-writer";
 import type { ReportData } from "../report-data.types";
+import type { RequestableAppSummaryField } from "../../../repositories/app-summaries/app-summaries.model";
 
 /**
  * Interface for report sections that encapsulate data fetching and processing for a specific part of the report.
@@ -24,9 +25,9 @@ export interface ReportSection {
    * The AppReportGenerator will aggregate these from all sections to fetch the necessary data.
    * This allows sections to be self-contained and reduces the need for centralized configuration.
    *
-   * @returns Array of field names required from the app summaries repository
+   * @returns Readonly array of typed field names required from the app summaries repository
    */
-  getRequiredAppSummaryFields(): string[];
+  getRequiredAppSummaryFields(): readonly RequestableAppSummaryField[];
 
   /**
    * Fetch and process data needed for this section.

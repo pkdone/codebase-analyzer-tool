@@ -1,5 +1,6 @@
 import { injectable, inject } from "tsyringe";
 import type { ReportSection } from "../report-section.interface";
+import type { RequestableAppSummaryField } from "../../../../repositories/app-summaries/app-summaries.model";
 import { reportingTokens } from "../../../../di/tokens";
 import { ArchitectureDiagramGenerator } from "../../diagrams";
 import type { PreparedHtmlReportData } from "../../types/html-report-data.types";
@@ -24,7 +25,7 @@ export class MicroservicesArchitectureSection implements ReportSection {
     return SECTION_NAMES.VISUALIZATIONS;
   }
 
-  getRequiredAppSummaryFields(): string[] {
+  getRequiredAppSummaryFields(): readonly RequestableAppSummaryField[] {
     // This section requires potential microservices data for architecture visualization
     return ["potentialMicroservices"];
   }

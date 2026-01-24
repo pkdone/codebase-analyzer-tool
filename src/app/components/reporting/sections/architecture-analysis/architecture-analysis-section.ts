@@ -1,5 +1,6 @@
 import { injectable, inject } from "tsyringe";
 import type { ReportSection } from "../report-section.interface";
+import type { RequestableAppSummaryField } from "../../../../repositories/app-summaries/app-summaries.model";
 import { reportingTokens } from "../../../../di/tokens";
 import { ModuleCouplingDataProvider } from "./module-coupling-data-provider";
 import type { PreparedHtmlReportData } from "../../types/html-report-data.types";
@@ -22,7 +23,7 @@ export class ArchitectureAnalysisSection implements ReportSection {
     return SECTION_NAMES.ARCHITECTURE_ANALYSIS;
   }
 
-  getRequiredAppSummaryFields(): string[] {
+  getRequiredAppSummaryFields(): readonly RequestableAppSummaryField[] {
     // This section does not require any app summary fields
     return [];
   }

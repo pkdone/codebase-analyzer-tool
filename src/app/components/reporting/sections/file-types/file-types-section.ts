@@ -1,5 +1,6 @@
 import { injectable, inject } from "tsyringe";
 import type { ReportSection } from "../report-section.interface";
+import type { RequestableAppSummaryField } from "../../../../repositories/app-summaries/app-summaries.model";
 import { repositoryTokens } from "../../../../di/tokens";
 import type { SourcesRepository } from "../../../../repositories/sources/sources.repository.interface";
 import { htmlReportConstants } from "../../html-report.constants";
@@ -27,7 +28,7 @@ export class FileTypesSection implements ReportSection {
     return SECTION_NAMES.FILE_TYPES;
   }
 
-  getRequiredAppSummaryFields(): string[] {
+  getRequiredAppSummaryFields(): readonly RequestableAppSummaryField[] {
     // This section does not require any app summary fields
     return [];
   }

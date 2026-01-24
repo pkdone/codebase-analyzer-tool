@@ -1,5 +1,6 @@
 import { injectable, inject } from "tsyringe";
 import type { ReportSection } from "../report-section.interface";
+import type { RequestableAppSummaryField } from "../../../../repositories/app-summaries/app-summaries.model";
 import { reportingTokens } from "../../../../di/tokens";
 import { FlowchartDiagramGenerator } from "../../diagrams";
 import type { PreparedHtmlReportData } from "../../types/html-report-data.types";
@@ -23,7 +24,7 @@ export class BusinessProcessesSection implements ReportSection {
     return SECTION_NAMES.BUSINESS_PROCESSES;
   }
 
-  getRequiredAppSummaryFields(): string[] {
+  getRequiredAppSummaryFields(): readonly RequestableAppSummaryField[] {
     // This section requires business processes data from app summaries
     return ["businessProcesses"];
   }

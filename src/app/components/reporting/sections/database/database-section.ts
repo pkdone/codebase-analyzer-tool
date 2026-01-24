@@ -1,5 +1,6 @@
 import { injectable, inject } from "tsyringe";
 import type { ReportSection } from "../report-section.interface";
+import type { RequestableAppSummaryField } from "../../../../repositories/app-summaries/app-summaries.model";
 import { reportingTokens } from "../../../../di/tokens";
 import { DatabaseReportDataProvider } from "./database-report-data-provider";
 import { TableViewModel } from "../../view-models/table-view-model";
@@ -23,7 +24,7 @@ export class DatabaseSection implements ReportSection {
     return SECTION_NAMES.DATABASE;
   }
 
-  getRequiredAppSummaryFields(): string[] {
+  getRequiredAppSummaryFields(): readonly RequestableAppSummaryField[] {
     // This section does not require any app summary fields
     return [];
   }

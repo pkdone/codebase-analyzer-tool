@@ -107,15 +107,21 @@ describe("reporting.constants", () => {
 
     it("should contain exactly the expected core fields", () => {
       expect(CORE_REQUIRED_APP_SUMMARY_FIELDS).toHaveLength(3);
-      expect([...CORE_REQUIRED_APP_SUMMARY_FIELDS].sort()).toEqual(
-        ["appDescription", "llmModels", "technologies"].sort(),
+      // Use localeCompare for string comparison since the array elements could be string | number | symbol
+      const sortedActual = [...CORE_REQUIRED_APP_SUMMARY_FIELDS].sort((a, b) =>
+        String(a).localeCompare(String(b)),
       );
+      const sortedExpected = ["appDescription", "llmModels", "technologies"].sort((a, b) =>
+        a.localeCompare(b),
+      );
+      expect(sortedActual).toEqual(sortedExpected);
     });
 
-    it("should contain only string values", () => {
+    it("should contain only non-empty string values", () => {
       CORE_REQUIRED_APP_SUMMARY_FIELDS.forEach((field) => {
         expect(typeof field).toBe("string");
-        expect(field.length).toBeGreaterThan(0);
+        // Cast to string since we've verified it is a string above
+        expect((field as string).length).toBeGreaterThan(0);
       });
     });
   });

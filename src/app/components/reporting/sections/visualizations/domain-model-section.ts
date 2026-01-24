@@ -1,5 +1,6 @@
 import { injectable, inject } from "tsyringe";
 import type { ReportSection } from "../report-section.interface";
+import type { RequestableAppSummaryField } from "../../../../repositories/app-summaries/app-summaries.model";
 import { reportingTokens } from "../../../../di/tokens";
 import { DomainModelDataProvider } from "./domain-model-data-provider";
 import { DomainModelDiagramGenerator } from "../../diagrams";
@@ -26,7 +27,7 @@ export class DomainModelSection implements ReportSection {
     return SECTION_NAMES.VISUALIZATIONS;
   }
 
-  getRequiredAppSummaryFields(): string[] {
+  getRequiredAppSummaryFields(): readonly RequestableAppSummaryField[] {
     // This section requires bounded contexts data for domain model visualization
     return ["boundedContexts"];
   }

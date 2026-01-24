@@ -24,6 +24,8 @@ export const DATABASE_OBJECT_TYPE_LABELS = {
   TRIGGER: "TRIGGER",
 } as const;
 
+import type { RequestableAppSummaryField } from "../../repositories/app-summaries/app-summaries.model";
+
 /**
  * Core app summary fields required by the report generator itself.
  * These fields are needed for app statistics and categorized data generation,
@@ -31,8 +33,11 @@ export const DATABASE_OBJECT_TYPE_LABELS = {
  *
  * Note: Individual sections declare their own required fields via getRequiredAppSummaryFields().
  * This constant represents the generator's core dependencies only.
+ *
+ * Explicitly typed as ReadonlyArray<RequestableAppSummaryField> to ensure compile-time
+ * validation that only valid app summary fields are listed.
  */
-export const CORE_REQUIRED_APP_SUMMARY_FIELDS = [
+export const CORE_REQUIRED_APP_SUMMARY_FIELDS: readonly RequestableAppSummaryField[] = [
   "appDescription",
   "llmModels",
   "technologies",

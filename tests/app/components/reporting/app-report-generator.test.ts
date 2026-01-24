@@ -1,6 +1,7 @@
 import "reflect-metadata";
 import AppReportGenerator from "../../../../src/app/components/reporting/app-report-generator";
 import { AppSummariesRepository } from "../../../../src/app/repositories/app-summaries/app-summaries.repository.interface";
+import type { RequestableAppSummaryField } from "../../../../src/app/repositories/app-summaries/app-summaries.model";
 import { HtmlReportWriter } from "../../../../src/app/components/reporting/html-report-writer";
 import { JsonReportWriter } from "../../../../src/app/components/reporting/json-report-writer";
 import { AppStatisticsDataProvider } from "../../../../src/app/components/reporting/sections/overview/app-statistics-data-provider";
@@ -47,18 +48,21 @@ describe("AppReportGenerator", () => {
       clearCache: jest.fn(),
     } as unknown as jest.Mocked<HtmlReportAssetService>;
 
-    // Create mock sections
+    // Create mock sections with properly typed required fields
+    const section1Fields: readonly RequestableAppSummaryField[] = ["businessProcesses"];
+    const section2Fields: readonly RequestableAppSummaryField[] = ["boundedContexts"];
+
     mockSections = [
       {
         getName: jest.fn().mockReturnValue("section1"),
-        getRequiredAppSummaryFields: jest.fn().mockReturnValue(["customField1"]),
+        getRequiredAppSummaryFields: jest.fn().mockReturnValue(section1Fields),
         getData: jest.fn().mockResolvedValue({ section1Data: "test" }),
         prepareHtmlData: jest.fn().mockResolvedValue({ section1Html: "html" }),
         prepareJsonData: jest.fn().mockReturnValue([{ filename: "section1.json", data: {} }]),
       },
       {
         getName: jest.fn().mockReturnValue("section2"),
-        getRequiredAppSummaryFields: jest.fn().mockReturnValue(["customField2"]),
+        getRequiredAppSummaryFields: jest.fn().mockReturnValue(section2Fields),
         getData: jest.fn().mockResolvedValue({ section2Data: "test" }),
         prepareHtmlData: jest.fn().mockResolvedValue({ section2Html: "html" }),
         prepareJsonData: jest.fn().mockReturnValue([{ filename: "section2.json", data: {} }]),
@@ -219,6 +223,114 @@ describe("AppReportGenerator", () => {
       expect(mockJsonWriter.writeAllJSONFiles).toHaveBeenCalled();
 
       consoleWarnSpy.mockRestore();
+    });
+
+    it("should aggregate fields from all sections with core fields", async () => {
+      // Setup sections with different required fields using properly typed arrays
+      const businessProcessesFields: readonly RequestableAppSummaryField[] = [
+        "businessProcesses",
+      ];
+      const boundedContextsFields: readonly RequestableAppSummaryField[] = ["boundedContexts"];
+
+      mockSections[0].getRequiredAppSummaryFields.mockReturnValue(businessProcessesFields);
+      mockSections[1].getRequiredAppSummaryFields.mockReturnValue(boundedContextsFields);
+
+      const mockAppSummaryData = { appDescription: "Test app", projectName: "test" };
+      mockAppSummariesRepository.getProjectAppSummaryFields.mockResolvedValue(mockAppSummaryData);
+      mockAppStatsDataProvider.getAppStatistics.mockResolvedValue({
+        projectName: "test",
+        currentDate: "2024-01-01",
+        llmModels: "test",
+        fileCount: 100,
+        linesOfCode: 5000,
+        appDescription: "Test app",
+      });
+      mockCategorizedDataBuilder.getStandardSectionData.mockReturnValue([]);
+
+      await generator.generateReport("test-project", "/output", "report.html");
+
+      // Verify repository was called with aggregated fields
+      const [, fieldsArg] = mockAppSummariesRepository.getProjectAppSummaryFields.mock.calls[0] as [
+        string,
+        RequestableAppSummaryField[],
+      ];
+
+      // Should include core fields
+      expect(fieldsArg).toContain("appDescription");
+      expect(fieldsArg).toContain("llmModels");
+      expect(fieldsArg).toContain("technologies");
+
+      // Should include section-specific fields
+      expect(fieldsArg).toContain("businessProcesses");
+      expect(fieldsArg).toContain("boundedContexts");
+    });
+
+    it("should deduplicate fields requested by multiple sections", async () => {
+      // Both sections request the same field using properly typed arrays
+      const businessProcessesFields: readonly RequestableAppSummaryField[] = [
+        "businessProcesses",
+      ];
+      mockSections[0].getRequiredAppSummaryFields.mockReturnValue(businessProcessesFields);
+      mockSections[1].getRequiredAppSummaryFields.mockReturnValue(businessProcessesFields);
+
+      const mockAppSummaryData = { appDescription: "Test app", projectName: "test" };
+      mockAppSummariesRepository.getProjectAppSummaryFields.mockResolvedValue(mockAppSummaryData);
+      mockAppStatsDataProvider.getAppStatistics.mockResolvedValue({
+        projectName: "test",
+        currentDate: "2024-01-01",
+        llmModels: "test",
+        fileCount: 100,
+        linesOfCode: 5000,
+        appDescription: "Test app",
+      });
+      mockCategorizedDataBuilder.getStandardSectionData.mockReturnValue([]);
+
+      await generator.generateReport("test-project", "/output", "report.html");
+
+      const [, fieldsArg] = mockAppSummariesRepository.getProjectAppSummaryFields.mock.calls[0] as [
+        string,
+        RequestableAppSummaryField[],
+      ];
+
+      // Count occurrences of businessProcesses - should be deduplicated
+      const businessProcessesCount = fieldsArg.filter(
+        (f: RequestableAppSummaryField) => f === "businessProcesses",
+      ).length;
+      expect(businessProcessesCount).toBe(1);
+    });
+
+    it("should handle sections with empty required fields", async () => {
+      // Both sections return empty arrays
+      const emptyFields: readonly RequestableAppSummaryField[] = [];
+      mockSections[0].getRequiredAppSummaryFields.mockReturnValue(emptyFields);
+      mockSections[1].getRequiredAppSummaryFields.mockReturnValue(emptyFields);
+
+      const mockAppSummaryData = { appDescription: "Test app", projectName: "test" };
+      mockAppSummariesRepository.getProjectAppSummaryFields.mockResolvedValue(mockAppSummaryData);
+      mockAppStatsDataProvider.getAppStatistics.mockResolvedValue({
+        projectName: "test",
+        currentDate: "2024-01-01",
+        llmModels: "test",
+        fileCount: 100,
+        linesOfCode: 5000,
+        appDescription: "Test app",
+      });
+      mockCategorizedDataBuilder.getStandardSectionData.mockReturnValue([]);
+
+      await generator.generateReport("test-project", "/output", "report.html");
+
+      const [, fieldsArg] = mockAppSummariesRepository.getProjectAppSummaryFields.mock.calls[0] as [
+        string,
+        RequestableAppSummaryField[],
+      ];
+
+      // Should still include core fields even if no sections request additional fields
+      expect(fieldsArg).toContain("appDescription");
+      expect(fieldsArg).toContain("llmModels");
+      expect(fieldsArg).toContain("technologies");
+
+      // Should have exactly the 3 core fields
+      expect(fieldsArg).toHaveLength(3);
     });
   });
 });

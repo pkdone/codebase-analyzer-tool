@@ -9,6 +9,7 @@ import { JsonReportWriter, type PreparedJsonData } from "./json-report-writer";
 import { AppStatisticsDataProvider } from "./sections/overview/app-statistics-data-provider";
 import { CategorizedSectionDataBuilder, isCategorizedDataNameDescArray } from "./data-processing";
 import type { AppSummariesRepository } from "../../repositories/app-summaries/app-summaries.repository.interface";
+import type { RequestableAppSummaryField } from "../../repositories/app-summaries/app-summaries.model";
 import type { ReportData } from "./report-data.types";
 import { TableViewModel, type DisplayableTableRow } from "./view-models/table-view-model";
 import { convertToDisplayName } from "../../../common/utils/text-utils";
@@ -142,7 +143,7 @@ export default class AppReportGenerator {
     reportData: ReportData,
     sectionDataMap: Map<string, Partial<ReportData>>,
     htmlFilePath: string,
-    allRequiredFields: string[],
+    allRequiredFields: RequestableAppSummaryField[],
   ): Promise<PreparedHtmlReportDataWithoutAssets> {
     const htmlDir = path.dirname(htmlFilePath);
 
@@ -280,10 +281,13 @@ export default class AppReportGenerator {
   /**
    * Aggregate all required app summary fields from sections and core requirements.
    * This decentralizes configuration - each section declares its own requirements.
+   *
+   * Returns a strongly-typed array of RequestableAppSummaryField to ensure
+   * compile-time safety when passing to repository methods.
    */
-  private aggregateRequiredAppSummaryFields(): string[] {
+  private aggregateRequiredAppSummaryFields(): RequestableAppSummaryField[] {
     // Start with core fields needed by the generator
-    const allFields = new Set<string>(CORE_REQUIRED_APP_SUMMARY_FIELDS);
+    const allFields = new Set<RequestableAppSummaryField>(CORE_REQUIRED_APP_SUMMARY_FIELDS);
 
     // Add fields required by each section
     for (const section of this.sections) {

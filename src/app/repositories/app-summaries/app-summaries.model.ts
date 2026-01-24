@@ -28,6 +28,13 @@ export type AppSummaryNameDescArray = z.infer<typeof nameDescSchema>[];
  * Type for arrays of name-description pairs used in app summaries
  */
 export type PartialAppSummaryRecord = Partial<z.infer<typeof appSummarySchema>>;
+
+/**
+ * Type representing fields that can be requested from the app summaries repository.
+ * Excludes '_id' which is always included in query results.
+ * This type ensures compile-time safety when specifying fields to fetch.
+ */
+export type RequestableAppSummaryField = Exclude<keyof AppSummaryRecordWithId, "_id">;
 /**
  * Generate JSON schema for application summary records
  */
