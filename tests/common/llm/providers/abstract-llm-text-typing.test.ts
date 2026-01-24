@@ -9,6 +9,8 @@ import {
 } from "../../../../src/common/llm/types/llm-request.types";
 import {
   LLMResponseStatus,
+  isCompletedResponse,
+  isErrorResponse,
   LLMFunctionResponse,
 } from "../../../../src/common/llm/types/llm-response.types";
 import { LLMError, LLMErrorCode } from "../../../../src/common/llm/types/llm-errors.types";
@@ -104,7 +106,7 @@ Line 3`;
       };
 
       expect(result.generated).toContain("\n");
-      expect(result.generated?.split("\n")).toHaveLength(3);
+      expect(result.generated.split("\n")).toHaveLength(3);
     });
 
     test("should handle TEXT response with special characters", () => {
@@ -188,10 +190,10 @@ Line 3`;
         generated: "This is the generated summary text.",
       };
 
-      // String operations should work without casts
-      expect(response.generated?.toUpperCase()).toBe("THIS IS THE GENERATED SUMMARY TEXT.");
-      expect(response.generated?.length).toBe(35);
-      expect(response.generated?.includes("summary")).toBe(true);
+      // String operations should work without casts (generated is required for COMPLETED)
+      expect(response.generated.toUpperCase()).toBe("THIS IS THE GENERATED SUMMARY TEXT.");
+      expect(response.generated.length).toBe(35);
+      expect(response.generated.includes("summary")).toBe(true);
     });
 
     test("should handle undefined generated content", () => {
@@ -200,15 +202,15 @@ Line 3`;
         purpose: LLMPurpose.COMPLETIONS,
       };
 
+      // EXCEEDED responses are LLMStatusResponse (no generated field)
       const response: LLMFunctionResponse<string> = {
         status: LLMResponseStatus.EXCEEDED,
         request: "Generate content",
         modelKey: "gpt-4",
         context,
-        // generated is undefined for failed requests
       };
 
-      expect(response.generated).toBeUndefined();
+      expect(isCompletedResponse(response)).toBe(false);
       expect(response.status).toBe(LLMResponseStatus.EXCEEDED);
     });
 
@@ -218,6 +220,7 @@ Line 3`;
         purpose: LLMPurpose.COMPLETIONS,
       };
 
+      // ERRORED responses require error field in discriminated union
       const errorResponse: LLMFunctionResponse<string> = {
         status: LLMResponseStatus.ERRORED,
         request: "Generate content",
@@ -227,8 +230,11 @@ Line 3`;
       };
 
       expect(errorResponse.status).toBe(LLMResponseStatus.ERRORED);
-      expect(errorResponse.error).toBeInstanceOf(Error);
-      expect(errorResponse.generated).toBeUndefined();
+      expect(isErrorResponse(errorResponse)).toBe(true);
+      if (isErrorResponse(errorResponse)) {
+        expect(errorResponse.error).toBeInstanceOf(Error);
+      }
+      expect(isCompletedResponse(errorResponse)).toBe(false);
     });
   });
 

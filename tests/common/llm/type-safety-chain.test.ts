@@ -4,7 +4,10 @@ import {
   LLMContext,
   LLMOutputFormat,
 } from "../../../src/common/llm/types/llm-request.types";
-import { LLMResponseStatus } from "../../../src/common/llm/types/llm-response.types";
+import {
+  LLMResponseStatus,
+  isCompletedResponse,
+} from "../../../src/common/llm/types/llm-response.types";
 import { ResolvedLLMModelMetadata } from "../../../src/common/llm/types/llm-model.types";
 import type { ExecutableCandidate } from "../../../src/common/llm/types/llm-function.types";
 import { LLMImplSpecificResponseSummary } from "../../../src/common/llm/providers/llm-provider.types";
@@ -182,9 +185,9 @@ describe("Type Safety Chain - End to End", () => {
       );
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
-      expect(result.generated).toBeDefined();
+      expect(isCompletedResponse(result)).toBe(true);
 
-      if (result.status === LLMResponseStatus.COMPLETED && result.generated) {
+      if (isCompletedResponse(result)) {
         // TypeScript should infer the correct type
         expect(typeof result.generated).toBe("object");
         const data = result.generated as Record<string, unknown>;
@@ -210,9 +213,9 @@ describe("Type Safety Chain - End to End", () => {
       );
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
-      expect(result.generated).toBeDefined();
+      expect(isCompletedResponse(result)).toBe(true);
 
-      if (result.status === LLMResponseStatus.COMPLETED && result.generated) {
+      if (isCompletedResponse(result)) {
         expect(Array.isArray(result.generated)).toBe(true);
         const data = result.generated as unknown[];
         expect(data.length).toBe(2);
@@ -248,9 +251,9 @@ describe("Type Safety Chain - End to End", () => {
       );
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
-      expect(result.generated).toBeDefined();
+      expect(isCompletedResponse(result)).toBe(true);
 
-      if (result.status === LLMResponseStatus.COMPLETED && result.generated) {
+      if (isCompletedResponse(result)) {
         const data = result.generated as Record<string, unknown>;
         expect(data).toHaveProperty("user");
         expect(data).toHaveProperty("metadata");
@@ -290,9 +293,9 @@ describe("Type Safety Chain - End to End", () => {
 
       expect(result).not.toBeNull();
       expect(result?.status).toBe(LLMResponseStatus.COMPLETED);
-      expect(result?.generated).toBeDefined();
+      expect(result && isCompletedResponse(result)).toBe(true);
 
-      if (result?.status === LLMResponseStatus.COMPLETED && result.generated) {
+      if (result && isCompletedResponse(result)) {
         const data = result.generated as Record<string, unknown>;
         expect(data.id).toBe(1);
         expect(data.name).toBe("Widget");
@@ -327,9 +330,9 @@ describe("Type Safety Chain - End to End", () => {
 
       expect(result).not.toBeNull();
       expect(result?.status).toBe(LLMResponseStatus.COMPLETED);
-      expect(result?.generated).toBeDefined();
+      expect(result && isCompletedResponse(result)).toBe(true);
 
-      if (result?.status === LLMResponseStatus.COMPLETED && result.generated) {
+      if (result && isCompletedResponse(result)) {
         expect(Array.isArray(result.generated)).toBe(true);
         const data = result.generated as unknown[];
         expect(data.length).toBe(5);
@@ -454,9 +457,9 @@ describe("Type Safety Chain - End to End", () => {
       );
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
-      expect(result.generated).toBeDefined();
+      expect(isCompletedResponse(result)).toBe(true);
 
-      if (result.status === LLMResponseStatus.COMPLETED && result.generated) {
+      if (isCompletedResponse(result)) {
         expect(typeof result.generated).toBe("string");
         expect(result.generated).toBe("Plain text response");
       }
@@ -484,9 +487,9 @@ describe("Type Safety Chain - End to End", () => {
       );
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
-      expect(result.generated).toBeDefined();
+      expect(isCompletedResponse(result)).toBe(true);
 
-      if (result.status === LLMResponseStatus.COMPLETED && result.generated) {
+      if (isCompletedResponse(result)) {
         const data = result.generated as Record<string, unknown>;
         expect(data.required).toBe("present");
         expect(data.withDefault).toBe("default-value");
@@ -512,9 +515,9 @@ describe("Type Safety Chain - End to End", () => {
       );
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
-      expect(result.generated).toBeDefined();
+      expect(isCompletedResponse(result)).toBe(true);
 
-      if (result.status === LLMResponseStatus.COMPLETED && result.generated) {
+      if (isCompletedResponse(result)) {
         const data = result.generated as Record<string, unknown>;
         expect(data.value).toBeNull();
         expect(data.count).toBe(42);
@@ -545,9 +548,9 @@ describe("Type Safety Chain - End to End", () => {
       );
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
-      expect(result.generated).toBeDefined();
+      expect(isCompletedResponse(result)).toBe(true);
 
-      if (result.status === LLMResponseStatus.COMPLETED && result.generated) {
+      if (isCompletedResponse(result)) {
         const data = result.generated as Record<string, unknown>;
         expect(data).toHaveProperty("items");
         expect(data).toHaveProperty("metadata");
@@ -573,8 +576,8 @@ describe("Type Safety Chain - End to End", () => {
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
 
       // The type of result.generated should not be 'any'
-      // With the fix, TypeScript should infer the correct type
-      if (result.generated) {
+      // With the fix, TypeScript should infer the correct type using type guard
+      if (isCompletedResponse(result)) {
         const data = result.generated as Record<string, unknown>;
         expect(data.id).toBe(1);
         expect(data.data).toBe("test");
@@ -610,7 +613,7 @@ describe("Type Safety Chain - End to End", () => {
       );
 
       expect(result).not.toBeNull();
-      if (result?.generated) {
+      if (result && isCompletedResponse(result)) {
         const data = result.generated as Record<string, unknown>;
         expect(data.verified).toBe(true);
         expect(data.timestamp).toBe("2024-01-01");
@@ -673,7 +676,7 @@ describe("Type Safety Chain - End to End", () => {
       });
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
-      if (result.generated) {
+      if (isCompletedResponse(result)) {
         const data = result.generated as Record<string, unknown>;
         expect(data).toHaveProperty("level1");
       }
@@ -701,7 +704,7 @@ describe("Type Safety Chain - End to End", () => {
       });
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
-      if (result.generated) {
+      if (isCompletedResponse(result)) {
         expect(Array.isArray(result.generated)).toBe(true);
         const data = result.generated as unknown[];
         expect(data.length).toBe(1);
@@ -722,7 +725,7 @@ describe("Type Safety Chain - End to End", () => {
       });
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
-      if (result.generated) {
+      if (isCompletedResponse(result)) {
         const data = result.generated as Record<string, unknown>;
         expect(data.value).toBe("test");
         expect(data.result).toBe("success");
@@ -748,7 +751,7 @@ describe("Type Safety Chain - End to End", () => {
       });
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
-      if (result.generated) {
+      if (isCompletedResponse(result)) {
         const data = result.generated as Record<string, unknown>;
         expect(data.email).toBe("test@example.com");
         expect(data.age).toBe(25);
@@ -774,7 +777,7 @@ describe("Type Safety Chain - End to End", () => {
       });
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
-      if (result.generated) {
+      if (isCompletedResponse(result)) {
         const data = result.generated as Record<string, unknown>;
         expect(data.count).toBe(42);
         expect(data.flag).toBe(true);
@@ -793,7 +796,7 @@ describe("Type Safety Chain - End to End", () => {
       });
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
-      if (result.generated) {
+      if (isCompletedResponse(result)) {
         const data = result.generated as Record<string, unknown>;
         expect(data.key1).toBe(10);
         expect(data.key2).toBe(20);
@@ -812,7 +815,7 @@ describe("Type Safety Chain - End to End", () => {
       });
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
-      if (result.generated) {
+      if (isCompletedResponse(result)) {
         expect(Array.isArray(result.generated)).toBe(true);
         const data = result.generated as unknown[];
         expect(data[0]).toBe("test");

@@ -15,7 +15,10 @@ import {
   LLMOutputFormat,
 } from "../../../../src/common/llm/types/llm-request.types";
 import { ResolvedLLMModelMetadata } from "../../../../src/common/llm/types/llm-model.types";
-import { LLMResponseStatus } from "../../../../src/common/llm/types/llm-response.types";
+import {
+  LLMResponseStatus,
+  isCompletedResponse,
+} from "../../../../src/common/llm/types/llm-response.types";
 import {
   LLMImplSpecificResponseSummary,
   LLMProviderManifest,
@@ -211,13 +214,15 @@ describe("Completion Method Generic Type Flow", () => {
       );
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
-      expect(result.generated).toBeDefined();
+      expect(isCompletedResponse(result)).toBe(true);
 
-      // Verify the data matches the schema structure
-      const data = result.generated!;
-      expect(data.id).toBe(1);
-      expect(data.name).toBe("Test Item");
-      expect(data.tags).toEqual(["a", "b"]);
+      if (isCompletedResponse(result)) {
+        // Verify the data matches the schema structure
+        const data = result.generated;
+        expect(data.id).toBe(1);
+        expect(data.name).toBe("Test Item");
+        expect(data.tags).toEqual(["a", "b"]);
+      }
     });
 
     it("should handle deeply nested schema types correctly", async () => {
@@ -244,8 +249,11 @@ describe("Completion Method Generic Type Flow", () => {
       );
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
-      const data = result.generated!;
-      expect(data.level1.level2.level3.value).toBe("deep");
+      expect(isCompletedResponse(result)).toBe(true);
+      if (isCompletedResponse(result)) {
+        const data = result.generated;
+        expect(data.level1.level2.level3.value).toBe("deep");
+      }
     });
 
     it("should handle array schemas with object items", async () => {
@@ -269,12 +277,15 @@ describe("Completion Method Generic Type Flow", () => {
       );
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
-      const data = result.generated!;
-      expect(data).toHaveLength(2);
-      expect(data[0].id).toBe(1);
-      expect(data[0].active).toBe(true);
-      expect(data[1].id).toBe(2);
-      expect(data[1].active).toBe(false);
+      expect(isCompletedResponse(result)).toBe(true);
+      if (isCompletedResponse(result)) {
+        const data = result.generated;
+        expect(data).toHaveLength(2);
+        expect(data[0].id).toBe(1);
+        expect(data[0].active).toBe(true);
+        expect(data[1].id).toBe(2);
+        expect(data[1].active).toBe(false);
+      }
     });
   });
 
@@ -298,11 +309,13 @@ describe("Completion Method Generic Type Flow", () => {
       );
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
-      expect(result.generated).toBeDefined();
+      expect(isCompletedResponse(result)).toBe(true);
 
-      const data = result.generated!;
-      expect(data.status).toBe("success");
-      expect(data.message).toBe("Operation completed");
+      if (isCompletedResponse(result)) {
+        const data = result.generated;
+        expect(data.status).toBe("success");
+        expect(data.message).toBe("Operation completed");
+      }
     });
 
     it("should handle discriminated union types correctly", async () => {
@@ -324,10 +337,13 @@ describe("Completion Method Generic Type Flow", () => {
       );
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
-      const data = result.generated!;
-      expect(data.type).toBe("user");
-      if (data.type === "user") {
-        expect(data.userId).toBe(42);
+      expect(isCompletedResponse(result)).toBe(true);
+      if (isCompletedResponse(result)) {
+        const data = result.generated;
+        expect(data.type).toBe("user");
+        if (data.type === "user") {
+          expect(data.userId).toBe(42);
+        }
       }
     });
   });
@@ -365,15 +381,19 @@ describe("Completion Method Generic Type Flow", () => {
 
       expect(primaryResult.status).toBe(LLMResponseStatus.COMPLETED);
       expect(secondaryResult.status).toBe(LLMResponseStatus.COMPLETED);
+      expect(isCompletedResponse(primaryResult)).toBe(true);
+      expect(isCompletedResponse(secondaryResult)).toBe(true);
 
-      const primaryData = primaryResult.generated!;
-      const secondaryData = secondaryResult.generated!;
+      if (isCompletedResponse(primaryResult) && isCompletedResponse(secondaryResult)) {
+        const primaryData = primaryResult.generated;
+        const secondaryData = secondaryResult.generated;
 
-      // Both should have same structure
-      expect(primaryData.code).toBe(200);
-      expect(primaryData.description).toBe("OK");
-      expect(secondaryData.code).toBe(404);
-      expect(secondaryData.description).toBe("Not Found");
+        // Both should have same structure
+        expect(primaryData.code).toBe(200);
+        expect(primaryData.description).toBe("OK");
+        expect(secondaryData.code).toBe(404);
+        expect(secondaryData.description).toBe("Not Found");
+      }
     });
   });
 
@@ -386,7 +406,10 @@ describe("Completion Method Generic Type Flow", () => {
       });
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
-      expect(result.generated).toBe("Plain text response from primary");
+      expect(isCompletedResponse(result)).toBe(true);
+      if (isCompletedResponse(result)) {
+        expect(result.generated).toBe("Plain text response from primary");
+      }
     });
 
     it("should handle TEXT output without schema for secondary", async () => {
@@ -397,7 +420,10 @@ describe("Completion Method Generic Type Flow", () => {
       });
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
-      expect(result.generated).toBe("Plain text response from secondary");
+      expect(isCompletedResponse(result)).toBe(true);
+      if (isCompletedResponse(result)) {
+        expect(result.generated).toBe("Plain text response from secondary");
+      }
     });
   });
 

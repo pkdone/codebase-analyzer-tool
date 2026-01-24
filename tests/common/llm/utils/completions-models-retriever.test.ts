@@ -11,7 +11,10 @@ import {
   LLMOutputFormat,
   type LLMCompletionOptions,
 } from "../../../../src/common/llm/types/llm-request.types";
-import { LLMResponseStatus } from "../../../../src/common/llm/types/llm-response.types";
+import {
+  LLMResponseStatus,
+  isCompletedResponse,
+} from "../../../../src/common/llm/types/llm-response.types";
 import type { LLMCandidateFunction } from "../../../../src/common/llm/types/llm-function.types";
 import type { ProviderManager } from "../../../../src/common/llm/provider-manager";
 import type { ResolvedModelChain } from "../../../../src/common/llm/types/llm-model.types";
@@ -316,7 +319,10 @@ describe("completions-models-retriever", () => {
 
       // Verify the result matches what the mock function returns
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
-      expect(result.generated).toEqual({ value: "result1" });
+      expect(isCompletedResponse(result)).toBe(true);
+      if (isCompletedResponse(result)) {
+        expect(result.generated).toEqual({ value: "result1" });
+      }
     });
 
     test("should assign debug-friendly names to bound functions", () => {

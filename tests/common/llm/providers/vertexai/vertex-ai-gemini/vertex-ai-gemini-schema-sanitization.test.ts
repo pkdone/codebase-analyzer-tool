@@ -7,7 +7,10 @@ import {
   LLMContext,
 } from "../../../../../../src/common/llm/types/llm-request.types";
 import { ResolvedLLMModelMetadata } from "../../../../../../src/common/llm/types/llm-model.types";
-import { LLMResponseStatus } from "../../../../../../src/common/llm/types/llm-response.types";
+import {
+  LLMResponseStatus,
+  isCompletedResponse,
+} from "../../../../../../src/common/llm/types/llm-response.types";
 import { z } from "zod";
 import { createMockErrorLoggingConfig } from "../../../../helpers/llm/mock-error-logger";
 import type { ProviderInit } from "../../../../../../src/common/llm/providers/llm-provider.types";
@@ -402,7 +405,10 @@ describe("VertexAIGeminiLLM Schema Sanitization", () => {
 
       // Verify the request completed successfully
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
-      expect(result.generated).toBeDefined();
+      expect(isCompletedResponse(result)).toBe(true);
+      if (isCompletedResponse(result)) {
+        expect(result.generated).toBeDefined();
+      }
     });
   });
 });

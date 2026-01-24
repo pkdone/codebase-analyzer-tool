@@ -10,6 +10,8 @@ import {
   LLMFunctionResponse,
   LLMResponseStatus,
   InferResponseType,
+  isCompletedResponse,
+  isErrorResponse,
 } from "../../../src/common/llm/types/llm-response.types";
 import { LLMFunction } from "../../../src/common/llm/types/llm-function.types";
 
@@ -70,10 +72,10 @@ describe("LLMFunction Type Fix - Generic Type Preservation", () => {
       });
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
-      expect(result.generated).toBeDefined();
+      expect(isCompletedResponse(result)).toBe(true);
 
       // TypeScript should infer the correct type here
-      if (result.generated) {
+      if (isCompletedResponse(result)) {
         const user = result.generated;
         expect(user.id).toBe(1);
         expect(user.name).toBe("Test User");
@@ -95,8 +97,11 @@ describe("LLMFunction Type Fix - Generic Type Preservation", () => {
       });
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
-      expect(typeof result.generated).toBe("string");
-      expect(result.generated).toBe("Plain text response");
+      expect(isCompletedResponse(result)).toBe(true);
+      if (isCompletedResponse(result)) {
+        expect(typeof result.generated).toBe("string");
+        expect(result.generated).toBe("Plain text response");
+      }
     });
   });
 
@@ -137,7 +142,7 @@ describe("LLMFunction Type Fix - Generic Type Preservation", () => {
         jsonSchema: nestedSchema,
       });
 
-      if (result.generated) {
+      if (isCompletedResponse(result)) {
         const data = result.generated;
         expect(data.user.id).toBe(1);
         expect(data.user.profile.name).toBe("Bob");
@@ -167,7 +172,7 @@ describe("LLMFunction Type Fix - Generic Type Preservation", () => {
         jsonSchema: arraySchema,
       });
 
-      if (result.generated) {
+      if (isCompletedResponse(result)) {
         const data = result.generated;
         expect(Array.isArray(data)).toBe(true);
         expect(data).toHaveLength(2);
@@ -198,7 +203,7 @@ describe("LLMFunction Type Fix - Generic Type Preservation", () => {
         jsonSchema: unionSchema,
       });
 
-      if (result.generated) {
+      if (isCompletedResponse(result)) {
         const data = result.generated;
         if (data.type === "success") {
           expect(data.data).toBe("operation completed");
@@ -227,7 +232,7 @@ describe("LLMFunction Type Fix - Generic Type Preservation", () => {
         jsonSchema: discriminatedSchema,
       });
 
-      if (result.generated) {
+      if (isCompletedResponse(result)) {
         const data = result.generated;
         if (data.status === "completed") {
           expect(data.result).toBe("Success!");
@@ -258,7 +263,7 @@ describe("LLMFunction Type Fix - Generic Type Preservation", () => {
         jsonSchema: optionalSchema,
       });
 
-      if (result.generated) {
+      if (isCompletedResponse(result)) {
         const data = result.generated;
         expect(data.required).toBe("present");
         expect(data.withDefault).toBe("default-value");
@@ -286,7 +291,7 @@ describe("LLMFunction Type Fix - Generic Type Preservation", () => {
         jsonSchema: nullableSchema,
       });
 
-      if (result.generated) {
+      if (isCompletedResponse(result)) {
         const data = result.generated;
         expect(data.value).toBeNull();
         expect(data.count).toBe(42);
@@ -343,7 +348,7 @@ describe("LLMFunction Type Fix - Generic Type Preservation", () => {
   });
 
   describe("Response Status Handling", () => {
-    test("should handle responses with undefined generated content", async () => {
+    test("should handle responses with status-only responses", async () => {
       const schema = z.object({ value: z.string() });
 
       const mockLLMFunction: LLMFunction = async <S extends z.ZodType>(
@@ -351,12 +356,12 @@ describe("LLMFunction Type Fix - Generic Type Preservation", () => {
         _context: LLMContext,
         _options?: LLMCompletionOptions<S>,
       ): Promise<LLMFunctionResponse<z.infer<S>>> => {
+        // With discriminated union, EXCEEDED responses are LLMStatusResponse
         return {
           status: LLMResponseStatus.EXCEEDED,
           request: "test",
           modelKey: "test-model",
           context: mockContext,
-          // generated is undefined for non-COMPLETED status
         };
       };
 
@@ -366,7 +371,7 @@ describe("LLMFunction Type Fix - Generic Type Preservation", () => {
       });
 
       expect(result.status).toBe(LLMResponseStatus.EXCEEDED);
-      expect(result.generated).toBeUndefined();
+      expect(isCompletedResponse(result)).toBe(false);
     });
 
     test("should handle error responses", async () => {
@@ -377,6 +382,7 @@ describe("LLMFunction Type Fix - Generic Type Preservation", () => {
         _context: LLMContext,
         _options?: LLMCompletionOptions<S>,
       ): Promise<LLMFunctionResponse<z.infer<S>>> => {
+        // With discriminated union, ERRORED responses must have error field
         return {
           status: LLMResponseStatus.ERRORED,
           request: "test",
@@ -392,7 +398,13 @@ describe("LLMFunction Type Fix - Generic Type Preservation", () => {
       });
 
       expect(result.status).toBe(LLMResponseStatus.ERRORED);
-      expect(result.error).toBeDefined();
+      expect(isErrorResponse(result)).toBe(true);
+      if (isErrorResponse(result)) {
+        expect(isErrorResponse(result)).toBe(true);
+        if (isErrorResponse(result)) {
+          expect(result.error).toBeDefined();
+        }
+      }
     });
   });
 
@@ -417,8 +429,8 @@ describe("LLMFunction Type Fix - Generic Type Preservation", () => {
         },
       };
 
-      expect(validResponse.generated?.name).toBe("test");
-      expect(validResponse.generated?.count).toBe(42);
+      expect(validResponse.generated.name).toBe("test");
+      expect(validResponse.generated.count).toBe(42);
 
       // The following would be compile-time errors (commented for test):
       // const invalidResponse: LLMFunctionResponse<StringSchemaType> = {

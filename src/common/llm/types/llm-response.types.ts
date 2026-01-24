@@ -95,21 +95,24 @@ export type InferResponseType<TOptions extends LLMCompletionOptions> = TOptions 
     : LLMGeneratedContent;
 
 /**
- * Type to define the LLM response with type-safe generated content.
- * The generic type parameter T represents the type of the generated content,
- * which is inferred from the Zod schema when JSON validation is used.
- *
- * @template T - The type of the generated content. Defaults to LLMGeneratedContent to allow
- * use as a base type when the specific content type isn't relevant (e.g., error handling, status checking).
+ * Base fields common to all LLM response variants.
  */
-export interface LLMFunctionResponse<T = LLMGeneratedContent> {
-  readonly status: LLMResponseStatus;
+interface LLMResponseBase {
   readonly request: string;
   readonly modelKey: string;
   readonly context: LLMContext;
-  readonly generated?: T;
+}
+
+/**
+ * Response variant for successful completion with generated content.
+ * Status is COMPLETED and the `generated` field contains the result.
+ *
+ * @template T - The type of the generated content. Defaults to LLMGeneratedContent.
+ */
+export interface LLMCompletedResponse<T = LLMGeneratedContent> extends LLMResponseBase {
+  readonly status: typeof LLMResponseStatus.COMPLETED;
+  readonly generated: T;
   readonly tokensUsage?: LLMResponseTokensUsage;
-  readonly error?: unknown;
   /**
    * Individual repair operations applied to fix JSON issues during processing.
    * Used for determining significance of changes. Contains entries from
@@ -121,4 +124,151 @@ export interface LLMFunctionResponse<T = LLMGeneratedContent> {
    * Used for logging context about what processing occurred.
    */
   readonly pipelineSteps?: readonly string[];
+}
+
+/**
+ * Response variant for error conditions (ERRORED or INVALID status).
+ * The `error` field contains details about what went wrong.
+ */
+export interface LLMErroredResponse extends LLMResponseBase {
+  readonly status: typeof LLMResponseStatus.ERRORED | typeof LLMResponseStatus.INVALID;
+  readonly error: unknown;
+  readonly tokensUsage?: LLMResponseTokensUsage;
+}
+
+/**
+ * Response variant for non-terminal status conditions that may trigger retries or fallbacks.
+ * Includes EXCEEDED (token limit), OVERLOADED (rate limit), and UNKNOWN statuses.
+ */
+export interface LLMStatusResponse extends LLMResponseBase {
+  readonly status:
+    | typeof LLMResponseStatus.EXCEEDED
+    | typeof LLMResponseStatus.OVERLOADED
+    | typeof LLMResponseStatus.UNKNOWN;
+  readonly tokensUsage?: LLMResponseTokensUsage;
+}
+
+/**
+ * Discriminated union type for LLM responses with type-safe generated content.
+ * The `status` field acts as the discriminant, enabling TypeScript to narrow
+ * the type and provide compile-time guarantees about which fields are available.
+ *
+ * Usage:
+ * ```typescript
+ * if (response.status === LLMResponseStatus.COMPLETED) {
+ *   // TypeScript knows `generated` exists here
+ *   console.log(response.generated);
+ * } else if (response.status === LLMResponseStatus.ERRORED) {
+ *   // TypeScript knows `error` exists here
+ *   console.log(response.error);
+ * }
+ * ```
+ *
+ * @template T - The type of the generated content. Defaults to LLMGeneratedContent to allow
+ * use as a base type when the specific content type isn't relevant (e.g., error handling, status checking).
+ */
+export type LLMFunctionResponse<T = LLMGeneratedContent> =
+  | LLMCompletedResponse<T>
+  | LLMErroredResponse
+  | LLMStatusResponse;
+
+// ============================================================================
+// Type Guards for Response Status Checking
+// ============================================================================
+
+/**
+ * Type guard to check if a response is a completed response with generated content.
+ * Enables TypeScript to narrow the type and access the `generated` field safely.
+ *
+ * @param response - The LLM function response to check
+ * @returns True if the response is a completed response
+ *
+ * @example
+ * ```typescript
+ * if (isCompletedResponse(response)) {
+ *   // TypeScript knows response.generated exists
+ *   console.log(response.generated);
+ * }
+ * ```
+ */
+export function isCompletedResponse<T>(
+  response: LLMFunctionResponse<T>,
+): response is LLMCompletedResponse<T> {
+  return response.status === LLMResponseStatus.COMPLETED;
+}
+
+/**
+ * Type guard to check if a response is an error response (ERRORED or INVALID).
+ * Enables TypeScript to narrow the type and access the `error` field safely.
+ *
+ * @param response - The LLM function response to check
+ * @returns True if the response is an error response
+ *
+ * @example
+ * ```typescript
+ * if (isErrorResponse(response)) {
+ *   // TypeScript knows response.error exists
+ *   console.log(response.error);
+ * }
+ * ```
+ */
+export function isErrorResponse<T>(
+  response: LLMFunctionResponse<T>,
+): response is LLMErroredResponse {
+  return (
+    response.status === LLMResponseStatus.ERRORED || response.status === LLMResponseStatus.INVALID
+  );
+}
+
+/**
+ * Type guard to check if a response is a status-only response (EXCEEDED, OVERLOADED, or UNKNOWN).
+ * These responses typically trigger retry or fallback behavior.
+ *
+ * @param response - The LLM function response to check
+ * @returns True if the response is a status-only response
+ *
+ * @example
+ * ```typescript
+ * if (isStatusResponse(response)) {
+ *   // Handle retry/fallback logic
+ *   if (response.status === LLMResponseStatus.EXCEEDED) {
+ *     // Token limit exceeded, may need to crop prompt
+ *   }
+ * }
+ * ```
+ */
+export function isStatusResponse<T>(
+  response: LLMFunctionResponse<T>,
+): response is LLMStatusResponse {
+  return (
+    response.status === LLMResponseStatus.EXCEEDED ||
+    response.status === LLMResponseStatus.OVERLOADED ||
+    response.status === LLMResponseStatus.UNKNOWN
+  );
+}
+
+/**
+ * Type guard to check if a response indicates the LLM is overloaded.
+ * Useful for determining when to apply retry logic with backoff.
+ *
+ * @param response - The LLM function response to check
+ * @returns True if the response status is OVERLOADED
+ */
+export function isOverloadedResponse<T>(
+  response: LLMFunctionResponse<T>,
+): response is LLMStatusResponse & { status: typeof LLMResponseStatus.OVERLOADED } {
+  return response.status === LLMResponseStatus.OVERLOADED;
+}
+
+/**
+ * Type guard to check if a response indicates token limit was exceeded.
+ * Useful for determining when to apply prompt cropping.
+ *
+ * @param response - The LLM function response to check
+ * @returns True if the response status is EXCEEDED
+ */
+export function isExceededResponse<T>(
+  response: LLMFunctionResponse<T>,
+): response is LLMStatusResponse & { status: typeof LLMResponseStatus.EXCEEDED } {
+  return response.status === LLMResponseStatus.EXCEEDED;
 }

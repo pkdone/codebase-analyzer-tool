@@ -205,7 +205,8 @@ export default abstract class BaseLLMProvider implements LLMProvider {
     completionOptions?: LLMCompletionOptions<S>,
     doDebugErrorLogging = false,
   ): Promise<LLMFunctionResponse<z.infer<S>>> {
-    const skeletonResponse: Omit<LLMFunctionResponse, "generated" | "status" | "mutationSteps"> = {
+    // Base fields common to all response variants
+    const responseBase = {
       request,
       context,
       modelKey,
@@ -226,13 +227,13 @@ export default abstract class BaseLLMProvider implements LLMProvider {
 
       if (isIncompleteResponse) {
         return {
-          ...skeletonResponse,
+          ...responseBase,
           status: LLMResponseStatus.EXCEEDED,
           tokensUsage: normalizeTokenUsage(modelKey, tokenUsage, this.llmModelsMetadata, request),
         };
       } else {
         return await this.formatAndValidateResponse(
-          skeletonResponse,
+          responseBase,
           taskType,
           responseContent,
           finalOptions,
@@ -242,12 +243,12 @@ export default abstract class BaseLLMProvider implements LLMProvider {
     } catch (error: unknown) {
       if (this.isLLMOverloaded(error)) {
         return {
-          ...skeletonResponse,
+          ...responseBase,
           status: LLMResponseStatus.OVERLOADED,
         };
       } else if (this.isTokenLimitExceeded(error)) {
         return {
-          ...skeletonResponse,
+          ...responseBase,
           status: LLMResponseStatus.EXCEEDED,
           tokensUsage: calculateTokenUsageFromError(
             modelKey,
@@ -260,7 +261,7 @@ export default abstract class BaseLLMProvider implements LLMProvider {
       } else {
         if (doDebugErrorLogging) this.debugUnhandledError(error, modelKey);
         return {
-          ...skeletonResponse,
+          ...responseBase,
           status: LLMResponseStatus.ERRORED,
           error,
         };
@@ -273,7 +274,7 @@ export default abstract class BaseLLMProvider implements LLMProvider {
    * response metadata object with type-safe JSON validation.
    */
   private async formatAndValidateResponse<S extends z.ZodType<unknown>>(
-    skeletonResult: Omit<LLMFunctionResponse, "generated" | "status" | "mutationSteps">,
+    responseBase: { request: string; context: LLMContext; modelKey: string },
     taskType: LLMPurpose,
     responseContent: LLMGeneratedContent,
     completionOptions: LLMCompletionOptions<S>,
@@ -282,7 +283,7 @@ export default abstract class BaseLLMProvider implements LLMProvider {
     // Early return for non-completion tasks
     if (taskType !== LLMPurpose.COMPLETIONS) {
       return {
-        ...skeletonResult,
+        ...responseBase,
         status: LLMResponseStatus.COMPLETED,
         generated: responseContent,
       };
@@ -290,7 +291,7 @@ export default abstract class BaseLLMProvider implements LLMProvider {
 
     // Early return for non-JSON output format (TEXT mode)
     if (completionOptions.outputFormat !== LLMOutputFormat.JSON) {
-      return this.validateTextResponse(skeletonResult, responseContent, completionOptions, context);
+      return this.validateTextResponse(responseBase, responseContent, completionOptions, context);
     }
 
     // Configuration validation: JSON format requires a jsonSchema.
@@ -313,7 +314,7 @@ export default abstract class BaseLLMProvider implements LLMProvider {
 
     if (jsonProcessingResult.success) {
       return {
-        ...skeletonResult,
+        ...responseBase,
         status: LLMResponseStatus.COMPLETED,
         generated: jsonProcessingResult.data,
         repairs: jsonProcessingResult.repairs,
@@ -326,7 +327,7 @@ export default abstract class BaseLLMProvider implements LLMProvider {
         responseContent,
         context,
       );
-      return { ...skeletonResult, status: LLMResponseStatus.INVALID, error: parseError };
+      return { ...responseBase, status: LLMResponseStatus.INVALID, error: parseError };
     }
   }
 
@@ -334,7 +335,7 @@ export default abstract class BaseLLMProvider implements LLMProvider {
    * Validates and formats TEXT output responses.
    */
   private validateTextResponse<S extends z.ZodType<unknown>>(
-    skeletonResult: Omit<LLMFunctionResponse, "generated" | "status" | "mutationSteps">,
+    responseBase: { request: string; context: LLMContext; modelKey: string },
     responseContent: LLMGeneratedContent,
     completionOptions: LLMCompletionOptions<S>,
     context: LLMContext,
@@ -362,13 +363,14 @@ export default abstract class BaseLLMProvider implements LLMProvider {
     if (!responseContent.trim()) {
       logWarn("LLM returned empty TEXT response", context);
       return {
-        ...skeletonResult,
+        ...responseBase,
         status: LLMResponseStatus.INVALID,
+        error: "LLM returned empty TEXT response",
       };
     }
 
     return {
-      ...skeletonResult,
+      ...responseBase,
       status: LLMResponseStatus.COMPLETED,
       generated: responseContent,
     };

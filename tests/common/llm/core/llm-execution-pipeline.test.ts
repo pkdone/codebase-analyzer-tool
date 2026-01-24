@@ -6,11 +6,7 @@ import {
 } from "../../../../src/common/llm/llm-execution-pipeline";
 import LLMExecutionStats from "../../../../src/common/llm/tracking/llm-execution-stats";
 import { RetryStrategy } from "../../../../src/common/llm/strategies/retry-strategy";
-import {
-  LLMContext,
-  LLMPurpose,
-  LLMOutputFormat,
-} from "../../../../src/common/llm/types/llm-request.types";
+import { LLMContext, LLMPurpose } from "../../../../src/common/llm/types/llm-request.types";
 import {
   LLMResponseStatus,
   LLMFunctionResponse,
@@ -273,44 +269,14 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
   });
 
   describe("Error Context Handling", () => {
-    test("should return LLMExecutionError with typed context when generated is undefined", async () => {
-      const candidate = createMockCandidate({
-        status: LLMResponseStatus.COMPLETED,
-        request: "test",
-        modelKey: "test-model",
-        context: { resource: "test", purpose: LLMPurpose.COMPLETIONS },
-        generated: undefined, // Explicitly undefined
-      });
-
-      const context: LLMContext = {
-        resource: "test-resource",
-        purpose: LLMPurpose.COMPLETIONS,
-        outputFormat: LLMOutputFormat.JSON,
-      };
-
-      const result = await pipeline.execute({
-        resourceName: "test-resource",
-        content: "test prompt",
-        context,
-        candidates: [candidate],
-      });
-
-      expect(result.success).toBe(false);
-      if (!result.success) {
-        expect(result.error.resourceName).toBe("test-resource");
-        expect(result.error.context).toEqual(context);
-        expect(result.error.context?.resource).toBe("test-resource");
-        expect(result.error.context?.purpose).toBe(LLMPurpose.COMPLETIONS);
-        expect(result.error.context?.outputFormat).toBe(LLMOutputFormat.JSON);
-      }
-    });
-
     test("should return LLMExecutionError with typed context when all functions fail", async () => {
+      // With discriminated union, INVALID responses require an error field
       const candidate = createMockCandidate({
         status: LLMResponseStatus.INVALID,
         request: "test",
         modelKey: "test-model",
         context: { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        error: "Validation failed",
       });
 
       const context: LLMContext = {
@@ -576,33 +542,10 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
       }
     });
 
-    test("should return error when generated content is explicitly undefined", async () => {
-      // undefined means no content was generated - this is an error case
-      const candidate = createMockCandidate({
-        status: LLMResponseStatus.COMPLETED,
-        request: "test",
-        modelKey: "test-model",
-        context: { resource: "test", purpose: LLMPurpose.COMPLETIONS },
-        generated: undefined,
-      });
-
-      const context: LLMContext = {
-        resource: "test-resource",
-        purpose: LLMPurpose.COMPLETIONS,
-      };
-
-      const result = await pipeline.execute({
-        resourceName: "test-resource",
-        content: "test prompt",
-        context,
-        candidates: [candidate],
-      });
-
-      expect(result.success).toBe(false);
-      if (!result.success) {
-        expect(result.error.message).toContain("generated no content");
-      }
-    });
+    // Note: The test for "undefined generated content" has been removed.
+    // With the discriminated union type, COMPLETED responses must have a
+    // defined `generated` field. This constraint is now enforced at compile-time
+    // rather than runtime, which is the intended improvement.
 
     test("should return success when generated content is empty string", async () => {
       // Empty string is a valid string response (though unusual for LLM output)

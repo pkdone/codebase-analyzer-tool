@@ -6,6 +6,7 @@ import {
 import {
   LLMResponseTokensUsage,
   LLMResponseStatus,
+  isCompletedResponse,
 } from "../../../../src/common/llm/types/llm-response.types";
 import { ResolvedLLMModelMetadata } from "../../../../src/common/llm/types/llm-model.types";
 import { REPAIR_STEP } from "../../../../src/common/llm/json-processing/sanitizers";
@@ -460,8 +461,11 @@ describe("Abstract LLM Sanitization Steps Propagation", () => {
       );
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
-      expect(result.repairs).toBeDefined();
-      expect(result.repairs).toEqual([]);
+      expect(isCompletedResponse(result)).toBe(true);
+      if (isCompletedResponse(result)) {
+        expect(result.repairs).toBeDefined();
+        expect(result.repairs).toEqual([]);
+      }
     });
 
     test("should propagate sanitization steps for JSON with code fences", async () => {
@@ -479,13 +483,16 @@ describe("Abstract LLM Sanitization Steps Propagation", () => {
       );
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
-      expect(result.repairs).toBeDefined();
-      expect(
-        result.repairs?.some(
-          (s: string) =>
-            s.includes("Fixed JSON structure and noise") || s === REPAIR_STEP.REMOVED_CODE_FENCES,
-        ),
-      ).toBe(true);
+      expect(isCompletedResponse(result)).toBe(true);
+      if (isCompletedResponse(result)) {
+        expect(result.repairs).toBeDefined();
+        expect(
+          result.repairs?.some(
+            (s: string) =>
+              s.includes("Fixed JSON structure and noise") || s === REPAIR_STEP.REMOVED_CODE_FENCES,
+          ),
+        ).toBe(true);
+      }
     });
 
     test("should propagate sanitization steps for JSON with trailing comma", async () => {
@@ -503,8 +510,11 @@ describe("Abstract LLM Sanitization Steps Propagation", () => {
       );
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
-      expect(result.repairs).toBeDefined();
-      expect(result.repairs?.length).toBeGreaterThan(0);
+      expect(isCompletedResponse(result)).toBe(true);
+      if (isCompletedResponse(result)) {
+        expect(result.repairs).toBeDefined();
+        expect(result.repairs?.length).toBeGreaterThan(0);
+      }
     });
 
     test("should not have sanitization steps for clean JSON", async () => {
@@ -522,8 +532,11 @@ describe("Abstract LLM Sanitization Steps Propagation", () => {
       );
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
-      expect(result.repairs).toBeDefined();
-      expect(result.repairs).toEqual([]);
+      expect(isCompletedResponse(result)).toBe(true);
+      if (isCompletedResponse(result)) {
+        expect(result.repairs).toBeDefined();
+        expect(result.repairs).toEqual([]);
+      }
     });
 
     test("should not have sanitization steps for text output format", async () => {
@@ -540,7 +553,11 @@ describe("Abstract LLM Sanitization Steps Propagation", () => {
       );
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
-      expect(result.repairs).toBeUndefined();
+      // TEXT responses are also LLMCompletedResponse, but repairs is undefined for text
+      expect(isCompletedResponse(result)).toBe(true);
+      if (isCompletedResponse(result)) {
+        expect(result.repairs).toBeUndefined();
+      }
     });
 
     test("should not have sanitization steps when JSON parsing fails", async () => {
@@ -558,7 +575,8 @@ describe("Abstract LLM Sanitization Steps Propagation", () => {
       );
 
       expect(result.status).toBe(LLMResponseStatus.INVALID);
-      expect(result.repairs).toBeUndefined();
+      // INVALID responses are LLMErroredResponse, which doesn't have repairs
+      expect(isCompletedResponse(result)).toBe(false);
     });
   });
 });
@@ -634,13 +652,16 @@ describe("Abstract LLM Type Safety with InferResponseType", () => {
       );
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
-      expect(typeof result.generated).toBe("string");
-      expect(result.generated).toBe(textResponse);
+      expect(isCompletedResponse(result)).toBe(true);
+      if (isCompletedResponse(result)) {
+        expect(typeof result.generated).toBe("string");
+        expect(result.generated).toBe(textResponse);
 
-      // TypeScript infers string type with proper narrowing
-      if (result.generated && typeof result.generated === "string") {
-        const upperCase = result.generated.toUpperCase();
-        expect(upperCase).toBe(textResponse.toUpperCase());
+        // TypeScript infers string type with proper narrowing
+        if (typeof result.generated === "string") {
+          const upperCase = result.generated.toUpperCase();
+          expect(upperCase).toBe(textResponse.toUpperCase());
+        }
       }
     });
 
@@ -656,9 +677,12 @@ describe("Abstract LLM Type Safety with InferResponseType", () => {
         },
       );
 
-      // No 'as string' cast needed with type narrowing
-      expect(result.generated).toBe("Sample text");
-      expect(typeof result.generated).toBe("string");
+      expect(isCompletedResponse(result)).toBe(true);
+      if (isCompletedResponse(result)) {
+        // No 'as string' cast needed with type narrowing
+        expect(result.generated).toBe("Sample text");
+        expect(typeof result.generated).toBe("string");
+      }
     });
   });
 
@@ -689,17 +713,16 @@ describe("Abstract LLM Type Safety with InferResponseType", () => {
       );
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
-      expect(result.generated).toEqual(mockData);
+      expect(isCompletedResponse(result)).toBe(true);
+      if (isCompletedResponse(result)) {
+        expect(result.generated).toEqual(mockData);
 
-      // Type is inferred, with narrowing for access
-      if (
-        result.generated &&
-        typeof result.generated === "object" &&
-        !Array.isArray(result.generated)
-      ) {
-        const data = result.generated as Record<string, unknown>;
-        expect(data.id).toBe(123);
-        expect(data.name).toBe("Test User");
+        // Type is inferred, with narrowing for access
+        if (typeof result.generated === "object" && !Array.isArray(result.generated)) {
+          const data = result.generated as Record<string, unknown>;
+          expect(data.id).toBe(123);
+          expect(data.name).toBe("Test User");
+        }
       }
     });
   });
@@ -715,12 +738,13 @@ describe("Abstract LLM Type Safety with InferResponseType", () => {
       });
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
-      expect(Array.isArray(result.generated)).toBe(true);
-      expect(result.generated).toEqual(embeddingVector);
+      expect(isCompletedResponse(result)).toBe(true);
+      if (isCompletedResponse(result)) {
+        expect(Array.isArray(result.generated)).toBe(true);
+        expect(result.generated).toEqual(embeddingVector);
 
-      // Type should be number[] without casts
-      if (result.generated) {
-        result.generated.forEach((num) => {
+        // Type should be number[] without casts
+        result.generated.forEach((num: number) => {
           expect(typeof num).toBe("number");
         });
       }

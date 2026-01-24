@@ -4,7 +4,11 @@ import {
   LLMOutputFormat,
 } from "../../../../src/common/llm/types/llm-request.types";
 import { ResolvedLLMModelMetadata } from "../../../../src/common/llm/types/llm-model.types";
-import { LLMResponseStatus } from "../../../../src/common/llm/types/llm-response.types";
+import {
+  LLMResponseStatus,
+  isCompletedResponse,
+  isErrorResponse,
+} from "../../../../src/common/llm/types/llm-response.types";
 import {
   LLMImplSpecificResponseSummary,
   LLMProviderManifest,
@@ -244,12 +248,13 @@ describe("Abstract LLM Type Safety", () => {
       );
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
-      expect(result.generated).toBeDefined();
+      expect(isCompletedResponse(result)).toBe(true);
 
-      if (result.status === LLMResponseStatus.COMPLETED && result.generated) {
+      if (isCompletedResponse(result)) {
+        expect(result.generated).toBeDefined();
         // Type narrowing required for union types
         if (typeof result.generated === "object" && !Array.isArray(result.generated)) {
-          const data = result.generated as Record<string, any>;
+          const data = result.generated as Record<string, unknown>;
           expect(data).toHaveProperty("name");
           expect(data).toHaveProperty("age");
           expect(data).toHaveProperty("email");
@@ -278,9 +283,10 @@ describe("Abstract LLM Type Safety", () => {
       );
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
-      expect(result.generated).toBeDefined();
+      expect(isCompletedResponse(result)).toBe(true);
 
-      if (result.status === LLMResponseStatus.COMPLETED && result.generated) {
+      if (isCompletedResponse(result)) {
+        expect(result.generated).toBeDefined();
         // TypeScript should infer that result.generated is ItemsType (array)
         const generated = result.generated as unknown as ItemsType;
         expect(Array.isArray(generated)).toBe(true);
@@ -309,12 +315,13 @@ describe("Abstract LLM Type Safety", () => {
       );
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
-      expect(result.generated).toBeDefined();
+      expect(isCompletedResponse(result)).toBe(true);
 
-      if (result.status === LLMResponseStatus.COMPLETED && result.generated) {
+      if (isCompletedResponse(result)) {
+        expect(result.generated).toBeDefined();
         // Type narrowing required for union types
         if (typeof result.generated === "object" && !Array.isArray(result.generated)) {
-          const data = result.generated as Record<string, any>;
+          const data = result.generated as Record<string, unknown>;
           expect(data).toHaveProperty("type");
           if ("data" in data) {
             expect(data.type).toBe("success");
@@ -354,18 +361,22 @@ describe("Abstract LLM Type Safety", () => {
       );
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
-      expect(result.generated).toBeDefined();
+      expect(isCompletedResponse(result)).toBe(true);
 
-      if (result.status === LLMResponseStatus.COMPLETED && result.generated) {
+      if (isCompletedResponse(result)) {
+        expect(result.generated).toBeDefined();
         // Type narrowing required for union types
         if (typeof result.generated === "object" && !Array.isArray(result.generated)) {
-          const data = result.generated as Record<string, any>;
+          const data = result.generated as Record<string, unknown>;
           expect(data).toHaveProperty("user");
-          expect(data.user).toHaveProperty("id");
-          expect(data.user).toHaveProperty("profile");
-          expect(data.user.profile).toHaveProperty("name");
+          const user = data.user as Record<string, unknown>;
+          expect(user).toHaveProperty("id");
+          expect(user).toHaveProperty("profile");
+          const profile = user.profile as Record<string, unknown>;
+          expect(profile).toHaveProperty("name");
           expect(data).toHaveProperty("metadata");
-          expect(data.metadata).toHaveProperty("createdAt");
+          const metadata = data.metadata as Record<string, unknown>;
+          expect(metadata).toHaveProperty("createdAt");
         }
       }
     });
@@ -386,10 +397,13 @@ describe("Abstract LLM Type Safety", () => {
 
       // Error is returned in the response status, not thrown
       expect(result.status).toBe(LLMResponseStatus.ERRORED);
-      expect(result.error).toBeDefined();
-      expect(String(result.error)).toContain(
-        "JSON output requires a schema for type-safe validation",
-      );
+      expect(isErrorResponse(result)).toBe(true);
+      if (isErrorResponse(result)) {
+        expect(result.error).toBeDefined();
+        expect(String(result.error)).toContain(
+          "JSON output requires a schema for type-safe validation",
+        );
+      }
     });
   });
 
@@ -416,16 +430,17 @@ describe("Abstract LLM Type Safety", () => {
       );
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
+      expect(isCompletedResponse(result)).toBe(true);
 
-      if (result.status === LLMResponseStatus.COMPLETED && result.generated) {
+      if (isCompletedResponse(result)) {
         // Type narrowing required for union types
         if (typeof result.generated === "object" && !Array.isArray(result.generated)) {
-          const data = result.generated as Record<string, any>;
+          const data = result.generated as Record<string, unknown>;
           expect(typeof data.id).toBe("number");
           expect(typeof data.name).toBe("string");
           expect(typeof data.price).toBe("number");
           expect(typeof data.inStock).toBe("boolean");
-          expect(data.price).toBeGreaterThan(0);
+          expect(data.price as number).toBeGreaterThan(0);
         }
       }
     });
@@ -454,11 +469,12 @@ describe("Abstract LLM Type Safety", () => {
       );
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
+      expect(isCompletedResponse(result)).toBe(true);
 
-      if (result.status === LLMResponseStatus.COMPLETED && result.generated) {
+      if (isCompletedResponse(result)) {
         // Type narrowing required for union types
         if (typeof result.generated === "object" && !Array.isArray(result.generated)) {
-          const data = result.generated as Record<string, any>;
+          const data = result.generated as Record<string, unknown>;
           expect(data).toHaveProperty("required");
           expect(data.required).toBe("present");
           // Optional and nullable fields should be handled correctly
@@ -491,10 +507,11 @@ describe("Abstract LLM Type Safety", () => {
       );
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
-      if (result.status === LLMResponseStatus.COMPLETED && result.generated) {
+      expect(isCompletedResponse(result)).toBe(true);
+      if (isCompletedResponse(result)) {
         // Type narrowing required for union types
         if (typeof result.generated === "object" && !Array.isArray(result.generated)) {
-          const data = result.generated as Record<string, any>;
+          const data = result.generated as Record<string, unknown>;
           expect(data.status).toBe("active");
           expect(data.count).toBe(42);
         }
@@ -516,10 +533,13 @@ describe("Abstract LLM Type Safety", () => {
       );
 
       expect(result.status).toBe(LLMResponseStatus.ERRORED);
-      expect(result.error).toBeDefined();
-      expect(String(result.error)).toContain(
-        "JSON output requires a schema for type-safe validation",
-      );
+      expect(isErrorResponse(result)).toBe(true);
+      if (isErrorResponse(result)) {
+        expect(result.error).toBeDefined();
+        expect(String(result.error)).toContain(
+          "JSON output requires a schema for type-safe validation",
+        );
+      }
     });
   });
 
@@ -537,8 +557,13 @@ describe("Abstract LLM Type Safety", () => {
       );
 
       expect(result.status).toBe(LLMResponseStatus.ERRORED);
-      expect(result.error).toBeDefined();
-      expect(String(result.error)).toContain("outputFormat is JSON but no jsonSchema was provided");
+      expect(isErrorResponse(result)).toBe(true);
+      if (isErrorResponse(result)) {
+        expect(result.error).toBeDefined();
+        expect(String(result.error)).toContain(
+          "outputFormat is JSON but no jsonSchema was provided",
+        );
+      }
     });
 
     test("should return error for TEXT output with schema", async () => {
@@ -556,8 +581,11 @@ describe("Abstract LLM Type Safety", () => {
       );
 
       expect(result.status).toBe(LLMResponseStatus.ERRORED);
-      expect(result.error).toBeDefined();
-      expect(String(result.error)).toContain("jsonSchema was provided but outputFormat is TEXT");
+      expect(isErrorResponse(result)).toBe(true);
+      if (isErrorResponse(result)) {
+        expect(result.error).toBeDefined();
+        expect(String(result.error)).toContain("jsonSchema was provided but outputFormat is TEXT");
+      }
     });
 
     test("should succeed for TEXT output without schema", async () => {
@@ -573,7 +601,10 @@ describe("Abstract LLM Type Safety", () => {
       );
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
-      expect(result.generated).toBe("plain text response");
+      expect(isCompletedResponse(result)).toBe(true);
+      if (isCompletedResponse(result)) {
+        expect(result.generated).toBe("plain text response");
+      }
     });
 
     test("should succeed for JSON output with valid schema", async () => {
@@ -591,7 +622,8 @@ describe("Abstract LLM Type Safety", () => {
       );
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
-      if (result.status === LLMResponseStatus.COMPLETED && result.generated) {
+      expect(isCompletedResponse(result)).toBe(true);
+      if (isCompletedResponse(result)) {
         const data = result.generated as { key: string; value: number };
         expect(data.key).toBe("test");
         expect(data.value).toBe(42);

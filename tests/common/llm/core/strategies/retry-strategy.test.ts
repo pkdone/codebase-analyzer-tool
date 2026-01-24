@@ -271,9 +271,13 @@ describe("RetryStrategy", () => {
 
   describe("Invalid Response Handling", () => {
     test("should return last response when INVALID response retries are exhausted", async () => {
+      // INVALID responses require error field in the discriminated union
       const invalidResponse: LLMFunctionResponse = {
-        ...mockSuccessResponse,
+        request: mockSuccessResponse.request,
+        modelKey: mockSuccessResponse.modelKey,
+        context: mockSuccessResponse.context,
         status: LLMResponseStatus.INVALID,
+        error: "Validation failed",
       };
 
       const mockLLMFunction = jest.fn() as jest.MockedFunction<

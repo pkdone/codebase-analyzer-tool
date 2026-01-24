@@ -1109,12 +1109,13 @@ describe("LLM Router tests", () => {
       }
     });
 
-    test("should handle completion with undefined generated content as failure", async () => {
-      // undefined means no content was generated - this is an error case
+    test("should handle ERRORED status as failure", async () => {
+      // With the discriminated union type system, COMPLETED responses must have generated content.
+      // This test verifies that ERRORED responses are properly handled as failures.
       const { router, mockProvider } = createLLMRouter();
       (mockProvider.executeCompletion as any).mockResolvedValue({
-        status: LLMResponseStatus.COMPLETED,
-        generated: undefined,
+        status: LLMResponseStatus.ERRORED,
+        error: new Error("Provider failed to generate content"),
         request: "test prompt",
         modelKey: "GPT_COMPLETIONS_GPT4",
         context: {},
@@ -1131,7 +1132,9 @@ describe("LLM Router tests", () => {
       expect(isOk(result)).toBe(false);
       if (!isOk(result)) {
         expect(result.error).toBeDefined();
-        expect(result.error.message).toContain("COMPLETED status but generated no content");
+        // The router wraps errors in a generic "Failed to fulfill" message
+        expect(result.error.message).toContain("Failed to fulfill prompt");
+        expect(result.error.message).toContain("test-resource");
       }
     });
 

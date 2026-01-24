@@ -9,6 +9,8 @@ import {
 import {
   LLMResponseStatus,
   type LLMFunctionResponse,
+  isCompletedResponse,
+  isErrorResponse,
 } from "../../../src/common/llm/types/llm-response.types";
 
 // Mock dependencies
@@ -57,17 +59,15 @@ describe("LLM Call Chain Type Safety", () => {
         },
       };
 
-      // Verify type inference
-      expect(mockResponse.generated?.id).toBe(1);
-      expect(mockResponse.generated?.name).toBe("Test User");
+      // Verify type inference (generated is required for COMPLETED responses)
+      expect(mockResponse.generated.id).toBe(1);
+      expect(mockResponse.generated.name).toBe("Test User");
 
       // Compile-time type check
-      if (mockResponse.generated) {
-        const _id: number = mockResponse.generated.id;
-        const _name: string = mockResponse.generated.name;
-        expect(_id).toBeDefined();
-        expect(_name).toBeDefined();
-      }
+      const _id: number = mockResponse.generated.id;
+      const _name: string = mockResponse.generated.name;
+      expect(_id).toBeDefined();
+      expect(_name).toBeDefined();
     });
 
     test("should handle complex nested schemas in response", () => {
@@ -109,9 +109,9 @@ describe("LLM Call Chain Type Safety", () => {
         },
       };
 
-      expect(mockResponse.generated?.metadata.version).toBe(1);
-      expect(mockResponse.generated?.data.items).toHaveLength(2);
-      expect(mockResponse.generated?.data.total).toBe(15);
+      expect(mockResponse.generated.metadata.version).toBe(1);
+      expect(mockResponse.generated.data.items).toHaveLength(2);
+      expect(mockResponse.generated.data.total).toBe(15);
     });
 
     test("should handle TEXT format responses correctly", () => {
@@ -127,10 +127,8 @@ describe("LLM Call Chain Type Safety", () => {
       expect(typeof mockTextResponse.generated).toBe("string");
 
       // Compile-time check: should be able to use string methods
-      if (mockTextResponse.generated) {
-        const upperCase: string = mockTextResponse.generated.toUpperCase();
-        expect(upperCase).toBe("THIS IS A TEXT RESPONSE");
-      }
+      const upperCase: string = mockTextResponse.generated.toUpperCase();
+      expect(upperCase).toBe("THIS IS A TEXT RESPONSE");
     });
 
     test("should handle optional fields in schema", () => {
@@ -153,9 +151,9 @@ describe("LLM Call Chain Type Safety", () => {
         },
       };
 
-      expect(mockResponse.generated?.required).toBe("present");
-      expect(mockResponse.generated?.optional).toBeUndefined();
-      expect(mockResponse.generated?.nullable).toBeNull();
+      expect(mockResponse.generated.required).toBe("present");
+      expect(mockResponse.generated.optional).toBeUndefined();
+      expect(mockResponse.generated.nullable).toBeNull();
     });
   });
 
@@ -179,7 +177,7 @@ describe("LLM Call Chain Type Safety", () => {
         },
       };
 
-      if (successResponse.generated?.type === "success") {
+      if (successResponse.generated.type === "success") {
         expect(successResponse.generated.data).toBe("operation completed");
       }
 
@@ -194,7 +192,7 @@ describe("LLM Call Chain Type Safety", () => {
         },
       };
 
-      if (errorResponse.generated?.type === "error") {
+      if (errorResponse.generated.type === "error") {
         expect(errorResponse.generated.message).toBe("something went wrong");
       }
     });
@@ -219,7 +217,7 @@ describe("LLM Call Chain Type Safety", () => {
         },
       };
 
-      if (response.generated?.status === "completed") {
+      if (response.generated.status === "completed") {
         // TypeScript should narrow the type automatically
         const _result: string = response.generated.result;
         expect(_result).toBe("Success!");
@@ -228,27 +226,22 @@ describe("LLM Call Chain Type Safety", () => {
   });
 
   describe("Response Status Handling", () => {
-    test("should handle null generated content gracefully", () => {
-      const _schema = z.object({ value: z.string() });
-      type SchemaType = z.infer<typeof _schema>;
-
-      const responseWithoutGenerated: LLMFunctionResponse<SchemaType> = {
+    test("should handle status-only responses without generated content", () => {
+      // With the discriminated union, EXCEEDED responses are LLMStatusResponse
+      // which doesn't have a `generated` field at all
+      const responseWithoutGenerated: LLMFunctionResponse = {
         status: LLMResponseStatus.EXCEEDED,
         request: "test prompt",
         modelKey: "test-model",
         context: mockContext,
-        // generated is undefined for non-COMPLETED status
       };
 
       expect(responseWithoutGenerated.status).toBe(LLMResponseStatus.EXCEEDED);
-      expect(responseWithoutGenerated.generated).toBeUndefined();
+      expect(isCompletedResponse(responseWithoutGenerated)).toBe(false);
     });
 
     test("should handle error responses", () => {
-      const _schema = z.object({ data: z.string() });
-      type SchemaType = z.infer<typeof _schema>;
-
-      const errorResponse: LLMFunctionResponse<SchemaType> = {
+      const errorResponse: LLMFunctionResponse = {
         status: LLMResponseStatus.ERRORED,
         request: "test prompt",
         modelKey: "test-model",
@@ -257,8 +250,11 @@ describe("LLM Call Chain Type Safety", () => {
       };
 
       expect(errorResponse.status).toBe(LLMResponseStatus.ERRORED);
-      expect(errorResponse.error).toBeInstanceOf(Error);
-      expect(errorResponse.generated).toBeUndefined();
+      expect(isErrorResponse(errorResponse)).toBe(true);
+      if (isErrorResponse(errorResponse)) {
+        expect(errorResponse.error).toBeInstanceOf(Error);
+      }
+      expect(isCompletedResponse(errorResponse)).toBe(false);
     });
   });
 
@@ -283,7 +279,7 @@ describe("LLM Call Chain Type Safety", () => {
         },
       };
 
-      expect(validResponse.generated?.name).toBe("test");
+      expect(validResponse.generated.name).toBe("test");
 
       // The following would be compile-time errors (commented for test):
       // const invalidResponse: LLMFunctionResponse<StringSchemaType> = {
@@ -344,10 +340,8 @@ describe("LLM Call Chain Type Safety", () => {
       };
 
       expect(response.generated).toHaveLength(2);
-      if (response.generated) {
-        expect(response.generated[0].id).toBe("1");
-        expect(response.generated[1].active).toBe(false);
-      }
+      expect(response.generated[0].id).toBe("1");
+      expect(response.generated[1].active).toBe(false);
     });
 
     test("should handle empty arrays", () => {
@@ -435,13 +429,11 @@ describe("LLM Call Chain Type Safety", () => {
         },
       };
 
-      // TypeScript should infer correct types
-      if (response.generated) {
-        const count: number = response.generated.count;
-        const items: string[] = response.generated.items;
-        expect(count).toBe(5);
-        expect(items).toHaveLength(3);
-      }
+      // TypeScript should infer correct types (generated is required for COMPLETED)
+      const count: number = response.generated.count;
+      const items: string[] = response.generated.items;
+      expect(count).toBe(5);
+      expect(items).toHaveLength(3);
     });
   });
 
@@ -554,8 +546,8 @@ describe("LLM Call Chain Type Safety", () => {
         generated: { b: 42 },
       };
 
-      expect(response1.generated?.a).toBe("test");
-      expect(response2.generated?.b).toBe(42);
+      expect(response1.generated.a).toBe("test");
+      expect(response2.generated.b).toBe(42);
 
       // These should have different types and not be assignable to each other
       // const _invalid: LLMFunctionResponse<Type1> = response2; // Would be a compile error
@@ -599,10 +591,10 @@ describe("LLM Call Chain Type Safety", () => {
 
       type ResultType = z.infer<typeof _resultSchema>;
 
-      // Function that returns strongly-typed result
+      // Function that returns strongly-typed result using type guard
       const processResult = (result: LLMFunctionResponse<ResultType>): string => {
-        if (result.generated) {
-          // TypeScript knows the exact shape of generated
+        if (isCompletedResponse(result)) {
+          // TypeScript knows the exact shape of generated after type guard
           return result.generated.data;
         }
         return "";
@@ -642,7 +634,7 @@ describe("LLM Call Chain Type Safety", () => {
       };
 
       // TypeScript should support type narrowing
-      if (response.generated?.kind === "string") {
+      if (response.generated.kind === "string") {
         // In this branch, TypeScript knows value is string
         const _stringValue: string = response.generated.value;
         expect(_stringValue).toBe("text");

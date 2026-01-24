@@ -2,7 +2,7 @@ import pRetry, { FailedAttemptError } from "p-retry";
 import type { LLMContext } from "../types/llm-request.types";
 import type { LLMFunctionResponse, LLMGeneratedContent } from "../types/llm-response.types";
 import type { BoundLLMFunction } from "../types/llm-function.types";
-import { LLMResponseStatus } from "../types/llm-response.types";
+import { LLMResponseStatus, isOverloadedResponse } from "../types/llm-response.types";
 import type { LLMRetryConfig } from "../providers/llm-provider.types";
 import LLMExecutionStats from "../tracking/llm-execution-stats";
 
@@ -61,7 +61,7 @@ export class RetryStrategy {
           const response: LLMFunctionResponse<T> = await llmFunction(content, context);
           lastResponse = response; // Capture before potentially throwing
 
-          if (response.status === LLMResponseStatus.OVERLOADED) {
+          if (isOverloadedResponse(response)) {
             throw new RetryableError("LLM is overloaded", LLMResponseStatus.OVERLOADED);
           } else if (retryOnInvalid && response.status === LLMResponseStatus.INVALID) {
             throw new RetryableError("LLM response is invalid", LLMResponseStatus.INVALID);

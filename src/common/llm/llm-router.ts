@@ -197,7 +197,7 @@ export default class LLMRouter {
     content: string,
     modelIndexOverride: number | null = null,
   ): Promise<number[] | null> {
-    const context: LLMContext = {
+    const baseContext: Omit<LLMContext, "modelKey"> = {
       resource: resourceName,
       purpose: LLMPurpose.EMBEDDINGS,
     };
@@ -209,13 +209,15 @@ export default class LLMRouter {
     } catch {
       logWarn(
         `No embedding candidates available at index ${modelIndexOverride ?? 0}. Chain has ${this.embeddingCandidates.length} models.`,
-        context,
+        baseContext as LLMContext,
       );
       return null;
     }
 
-    // Set initial modelKey from first candidate
-    context.modelKey = candidates[0].modelKey;
+    const context: LLMContext = {
+      ...baseContext,
+      modelKey: candidates[0].modelKey,
+    };
 
     const result = await this.executionPipeline.execute<number[]>({
       resourceName,

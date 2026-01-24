@@ -1,8 +1,8 @@
 import type { LLMContext } from "./types/llm-request.types";
 import type { ResolvedLLMModelMetadata } from "./types/llm-model.types";
 import type { ExecutableCandidate } from "./types/llm-function.types";
-import type { LLMFunctionResponse, LLMGeneratedContent } from "./types/llm-response.types";
-import { LLMResponseStatus } from "./types/llm-response.types";
+import type { LLMGeneratedContent, LLMCompletedResponse } from "./types/llm-response.types";
+import { isCompletedResponse, isErrorResponse } from "./types/llm-response.types";
 import type { LLMRetryConfig } from "./providers/llm-provider.types";
 import { RetryStrategy } from "./strategies/retry-strategy";
 import { determineNextAction } from "./strategies/fallback-decision";
@@ -88,25 +88,9 @@ export class LLMExecutionPipeline {
       );
 
       if (result) {
+        // With discriminated union, we know completed responses have `generated` field
         if (trackJsonMutations && hasSignificantRepairs(result.repairs)) {
           this.llmStats.recordJsonMutated();
-        }
-
-        // Check for undefined specifically to distinguish between "no content generated"
-        // (undefined) and "content is null" (valid response type in LLMGeneratedContent)
-        if (result.generated === undefined) {
-          logWarn(
-            `LLM response has COMPLETED status but generated no content for resource: '${resourceName}'`,
-            context,
-          );
-          return {
-            success: false,
-            error: new LLMExecutionError(
-              `LLM response has COMPLETED status but generated no content for resource: '${resourceName}'`,
-              resourceName,
-              context,
-            ),
-          };
         }
 
         return {
@@ -160,10 +144,10 @@ export class LLMExecutionPipeline {
   private async tryFallbackChain<T extends LLMGeneratedContent>(
     resourceName: string,
     initialContent: string,
-    context: LLMContext,
+    initialContext: LLMContext,
     candidates: ExecutableCandidate<T>[],
     retryOnInvalid = true,
-  ): Promise<LLMFunctionResponse<T> | null> {
+  ): Promise<LLMCompletedResponse<T> | null> {
     let currentContent = initialContent;
     let candidateIndex = 0;
 
@@ -172,19 +156,24 @@ export class LLMExecutionPipeline {
     // (to enable trying cropped prompt with same model as last iteration)
     while (candidateIndex < candidates.length) {
       const candidate = candidates[candidateIndex];
+      const currentContext: LLMContext = {
+        ...initialContext,
+        modelKey: candidate.modelKey,
+      };
+
       const llmResponse = await this.retryStrategy.executeWithRetries(
         candidate.execute,
         currentContent,
-        context,
+        currentContext,
         this.pipelineConfig.retryConfig,
         retryOnInvalid,
       );
 
-      if (llmResponse?.status === LLMResponseStatus.COMPLETED) {
+      if (llmResponse && isCompletedResponse(llmResponse)) {
         this.llmStats.recordSuccess();
         return llmResponse;
-      } else if (llmResponse?.status === LLMResponseStatus.ERRORED) {
-        logWarn("LLM Error for resource", { ...context, error: llmResponse.error });
+      } else if (llmResponse && isErrorResponse(llmResponse)) {
+        logWarn("LLM Error for resource", { ...currentContext, error: llmResponse.error });
         break;
       }
 
@@ -192,7 +181,7 @@ export class LLMExecutionPipeline {
         llmResponse,
         candidateIndex,
         candidates.length,
-        context,
+        currentContext,
         resourceName,
       );
       if (nextAction.shouldTerminate) break;
@@ -208,7 +197,7 @@ export class LLMExecutionPipeline {
         if (currentContent.trim() === "") {
           logWarn(
             `Prompt became empty after cropping for resource '${resourceName}', terminating attempts.`,
-            context,
+            currentContext,
           );
           break;
         }
@@ -217,11 +206,6 @@ export class LLMExecutionPipeline {
       }
 
       if (nextAction.shouldSwitchToNextLLM) {
-        // Update context with next model's key for logging purposes - safe access via unified candidate
-        if (candidateIndex + 1 < candidates.length) {
-          context.modelKey = candidates[candidateIndex + 1].modelKey;
-        }
-
         this.llmStats.recordSwitch();
         candidateIndex++;
       }

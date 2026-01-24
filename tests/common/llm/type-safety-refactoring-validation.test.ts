@@ -9,6 +9,8 @@ import {
 import {
   LLMFunctionResponse,
   LLMResponseStatus,
+  isCompletedResponse,
+  isErrorResponse,
   InferResponseType,
   LLMGeneratedContent,
 } from "../../../src/common/llm/types/llm-response.types";
@@ -101,14 +103,15 @@ describe("Type Safety Refactoring Validation", () => {
       });
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
-      expect(result.generated).toBeDefined();
+      expect(isCompletedResponse(result)).toBe(true);
 
-      // Validate runtime behavior - the generated content should match
-      // Type narrowing: we've already asserted generated is defined
-      const generated = result.generated!;
-      expect(generated.id).toBe(1);
-      expect(generated.name).toBe("Test User");
-      expect(generated.email).toBe("test@example.com");
+      if (isCompletedResponse(result)) {
+        // Validate runtime behavior - the generated content should match
+        const generated = result.generated;
+        expect(generated.id).toBe(1);
+        expect(generated.name).toBe("Test User");
+        expect(generated.email).toBe("test@example.com");
+      }
     });
 
     test("should return string for TEXT format", async () => {
@@ -119,8 +122,11 @@ describe("Type Safety Refactoring Validation", () => {
       });
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
-      expect(typeof result.generated).toBe("string");
-      expect(result.generated).toBe("Plain text response");
+      expect(isCompletedResponse(result)).toBe(true);
+      if (isCompletedResponse(result)) {
+        expect(typeof result.generated).toBe("string");
+        expect(result.generated).toBe("Plain text response");
+      }
     });
 
     test("should handle array schema types correctly", async () => {
@@ -146,11 +152,14 @@ describe("Type Safety Refactoring Validation", () => {
       });
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
-      expect(Array.isArray(result.generated)).toBe(true);
-      const generated = result.generated as unknown as ItemsType;
-      expect(generated.length).toBe(2);
-      expect(generated[0].id).toBe("item1");
-      expect(generated[1].value).toBe(20);
+      expect(isCompletedResponse(result)).toBe(true);
+      if (isCompletedResponse(result)) {
+        expect(Array.isArray(result.generated)).toBe(true);
+        const generated = result.generated as unknown as ItemsType;
+        expect(generated.length).toBe(2);
+        expect(generated[0].id).toBe("item1");
+        expect(generated[1].value).toBe(20);
+      }
     });
   });
 
@@ -192,14 +201,16 @@ describe("Type Safety Refactoring Validation", () => {
 
       expect(result).not.toBeNull();
       expect(result?.status).toBe(LLMResponseStatus.COMPLETED);
+      expect(isCompletedResponse(result!)).toBe(true);
 
       // The type should flow through - validate runtime values
-      // Type narrowing: we've already asserted result is not null
-      const product = result!.generated! as ProductType;
-      expect(product.sku).toBe("PROD-001");
-      expect(product.name).toBe("Test Product");
-      expect(product.price).toBe(29.99);
-      expect(product.inStock).toBe(true);
+      if (isCompletedResponse(result!)) {
+        const product = result.generated as ProductType;
+        expect(product.sku).toBe("PROD-001");
+        expect(product.name).toBe("Test Product");
+        expect(product.price).toBe(29.99);
+        expect(product.inStock).toBe(true);
+      }
     });
 
     test("should handle nested schema types through retry", async () => {
@@ -243,11 +254,13 @@ describe("Type Safety Refactoring Validation", () => {
       );
 
       expect(result).not.toBeNull();
-      // Type narrowing: we've already asserted result is not null
-      const data = result!.generated! as NestedType;
-      expect(data.user.id).toBe(42);
-      expect(data.user.profile.displayName).toBe("TestUser");
-      expect(data.settings.theme).toBe("dark");
+      expect(isCompletedResponse(result!)).toBe(true);
+      if (isCompletedResponse(result!)) {
+        const data = result.generated as NestedType;
+        expect(data.user.id).toBe(42);
+        expect(data.user.profile.displayName).toBe("TestUser");
+        expect(data.settings.theme).toBe("dark");
+      }
     });
 
     test("should return last response when all retries exhausted for OVERLOADED", async () => {
@@ -390,15 +403,15 @@ describe("Type Safety Refactoring Validation", () => {
       }
     });
 
-    test("should return failure when LLM returns undefined generated content", async () => {
-      // Create a candidate that returns COMPLETED but no generated content
-      const incompleteCandidate: ExecutableCandidate<LLMGeneratedContent> = {
+    test("should return failure when LLM returns ERRORED status", async () => {
+      // Create a candidate that returns ERRORED
+      const errorCandidate: ExecutableCandidate<LLMGeneratedContent> = {
         execute: async (content: string, context: LLMContext) => ({
-          status: LLMResponseStatus.COMPLETED,
+          status: LLMResponseStatus.ERRORED,
           request: content,
           modelKey: "test-model",
           context,
-          // generated is undefined
+          error: new Error("LLM processing failed"),
         }),
         providerFamily: "TestProvider",
         modelKey: "test-model",
@@ -409,7 +422,7 @@ describe("Type Safety Refactoring Validation", () => {
         resourceName: "test-resource",
         content: "test",
         context: mockContext,
-        candidates: [incompleteCandidate],
+        candidates: [errorCandidate],
       });
 
       expect(result.success).toBe(false);
@@ -597,8 +610,11 @@ describe("Type Safety Refactoring Validation", () => {
         generated: { id: 1, value: "test" },
       };
 
-      expect(typedResponse.generated?.id).toBe(1);
-      expect(typedResponse.generated?.value).toBe("test");
+      expect(isCompletedResponse(typedResponse)).toBe(true);
+      if (isCompletedResponse(typedResponse)) {
+        expect(typedResponse.generated.id).toBe(1);
+        expect(typedResponse.generated.value).toBe("test");
+      }
     });
 
     test("should allow undefined generated for non-COMPLETED status", () => {
@@ -610,8 +626,10 @@ describe("Type Safety Refactoring Validation", () => {
         error: new Error("Test error"),
       };
 
-      expect(errorResponse.generated).toBeUndefined();
-      expect(errorResponse.error).toBeDefined();
+      expect(isErrorResponse(errorResponse)).toBe(true);
+      if (isErrorResponse(errorResponse)) {
+        expect(errorResponse.error).toBeDefined();
+      }
     });
   });
 });

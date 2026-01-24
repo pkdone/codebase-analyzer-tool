@@ -4,7 +4,11 @@ import {
   LLMOutputFormat,
 } from "../../../../src/common/llm/types/llm-request.types";
 import { ResolvedLLMModelMetadata } from "../../../../src/common/llm/types/llm-model.types";
-import { LLMResponseStatus } from "../../../../src/common/llm/types/llm-response.types";
+import {
+  LLMResponseStatus,
+  isCompletedResponse,
+  isErrorResponse,
+} from "../../../../src/common/llm/types/llm-response.types";
 import {
   LLMImplSpecificResponseSummary,
   LLMProviderManifest,
@@ -181,12 +185,15 @@ describe("BaseLLMProvider Configuration Validation", () => {
       );
 
       expect(result.status).toBe(LLMResponseStatus.ERRORED);
-      expect(result.error).toBeDefined();
-      expect(result.error).toBeInstanceOf(LLMError);
+      expect(isErrorResponse(result)).toBe(true);
+      if (isErrorResponse(result)) {
+        expect(result.error).toBeDefined();
+        expect(result.error).toBeInstanceOf(LLMError);
 
-      const error = result.error as LLMError;
-      expect(error.code).toBe(LLMErrorCode.BAD_CONFIGURATION);
-      expect(error.message).toContain("jsonSchema was provided but outputFormat is TEXT");
+        const error = result.error as LLMError;
+        expect(error.code).toBe(LLMErrorCode.BAD_CONFIGURATION);
+        expect(error.message).toContain("jsonSchema was provided but outputFormat is TEXT");
+      }
     });
 
     it("should provide helpful error message with guidance on how to fix", async () => {
@@ -204,11 +211,14 @@ describe("BaseLLMProvider Configuration Validation", () => {
       );
 
       expect(result.status).toBe(LLMResponseStatus.ERRORED);
-      expect(result.error).toBeInstanceOf(LLMError);
+      expect(isErrorResponse(result)).toBe(true);
+      if (isErrorResponse(result)) {
+        expect(result.error).toBeInstanceOf(LLMError);
 
-      const error = result.error as LLMError;
-      expect(error.message).toContain("Use outputFormat: LLMOutputFormat.JSON");
-      expect(error.message).toContain("remove the jsonSchema");
+        const error = result.error as LLMError;
+        expect(error.message).toContain("Use outputFormat: LLMOutputFormat.JSON");
+        expect(error.message).toContain("remove the jsonSchema");
+      }
     });
   });
 
@@ -226,7 +236,10 @@ describe("BaseLLMProvider Configuration Validation", () => {
       );
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
-      expect(result.generated).toBe("Plain text response");
+      expect(isCompletedResponse(result)).toBe(true);
+      if (isCompletedResponse(result)) {
+        expect(result.generated).toBe("Plain text response");
+      }
     });
 
     it("should accept JSON format with jsonSchema", async () => {
@@ -248,11 +261,14 @@ describe("BaseLLMProvider Configuration Validation", () => {
       );
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
-      expect(result.generated).toBeDefined();
-      // Type is inferred from schema: { name: string; count: number }
-      const data = result.generated as { name: string; count: number };
-      expect(data.name).toBe("test");
-      expect(data.count).toBe(42);
+      expect(isCompletedResponse(result)).toBe(true);
+      if (isCompletedResponse(result)) {
+        expect(result.generated).toBeDefined();
+        // Type is inferred from schema: { name: string; count: number }
+        const data = result.generated as { name: string; count: number };
+        expect(data.name).toBe("test");
+        expect(data.count).toBe(42);
+      }
     });
 
     it("should require jsonSchema for JSON format", async () => {
@@ -270,10 +286,13 @@ describe("BaseLLMProvider Configuration Validation", () => {
 
       // Error is returned in status, not thrown
       expect(result.status).toBe(LLMResponseStatus.ERRORED);
-      expect(result.error).toBeDefined();
-      expect(String(result.error)).toContain(
-        "JSON output requires a schema for type-safe validation",
-      );
+      expect(isErrorResponse(result)).toBe(true);
+      if (isErrorResponse(result)) {
+        expect(result.error).toBeDefined();
+        expect(String(result.error)).toContain(
+          "JSON output requires a schema for type-safe validation",
+        );
+      }
     });
 
     it("should accept no options (defaults to TEXT)", async () => {
@@ -286,7 +305,10 @@ describe("BaseLLMProvider Configuration Validation", () => {
       );
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
-      expect(result.generated).toBe("Default text response");
+      expect(isCompletedResponse(result)).toBe(true);
+      if (isCompletedResponse(result)) {
+        expect(result.generated).toBe("Default text response");
+      }
     });
   });
 
@@ -306,7 +328,10 @@ describe("BaseLLMProvider Configuration Validation", () => {
       );
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
-      expect(result.generated).toBe("text response");
+      expect(isCompletedResponse(result)).toBe(true);
+      if (isCompletedResponse(result)) {
+        expect(result.generated).toBe("text response");
+      }
     });
 
     it("should handle complex schemas with JSON format correctly", async () => {
@@ -352,11 +377,14 @@ describe("BaseLLMProvider Configuration Validation", () => {
       );
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
-      expect(result.generated).toBeDefined();
-      // Type is inferred from complexSchema - using ! assertion as we've verified it's defined
-      const data = result.generated!;
-      expect(data).toHaveProperty("users");
-      expect(data).toHaveProperty("metadata");
+      expect(isCompletedResponse(result)).toBe(true);
+      if (isCompletedResponse(result)) {
+        expect(result.generated).toBeDefined();
+        // Type is inferred from complexSchema
+        const data = result.generated;
+        expect(data).toHaveProperty("users");
+        expect(data).toHaveProperty("metadata");
+      }
     });
   });
 });
