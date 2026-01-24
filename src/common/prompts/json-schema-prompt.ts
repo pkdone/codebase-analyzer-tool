@@ -39,9 +39,10 @@ export const JSON_SCHEMA_PROMPT_TEMPLATE = `{{personaIntroduction}} Based on the
  * All essential fields for prompt generation are required, eliminating the need
  * for defensive checks at runtime and improving type safety for downstream consumers.
  *
- * @template S - The Zod schema type for validating the LLM response. Defaults to z.ZodType.
+ * @template S - The Zod schema type for validating the LLM response. Defaults to z.ZodType<unknown>
+ *               for type-safe handling when the generic is not explicitly specified.
  */
-export interface JSONSchemaPromptConfig<S extends z.ZodType = z.ZodType> {
+export interface JSONSchemaPromptConfig<S extends z.ZodType<unknown> = z.ZodType<unknown>> {
   /** Introduction text establishing the AI persona */
   personaIntroduction: string;
   /** Description of the content being analyzed */
@@ -73,7 +74,8 @@ export interface JSONSchemaPromptConfig<S extends z.ZodType = z.ZodType> {
  * All prompts use the standard JSON_SCHEMA_PROMPT_TEMPLATE internally and require
  * a response schema for JSON mode validation.
  *
- * @template S - The Zod schema type for validating the LLM response. Defaults to z.ZodType.
+ * @template S - The Zod schema type for validating the LLM response. Defaults to z.ZodType<unknown>
+ *               for type-safe handling when the generic is not explicitly specified.
  *
  * @example
  * ```typescript
@@ -81,7 +83,7 @@ export interface JSONSchemaPromptConfig<S extends z.ZodType = z.ZodType> {
  * const rendered = prompt.renderPrompt(codeContent);
  * ```
  */
-export class JSONSchemaPrompt<S extends z.ZodType = z.ZodType> {
+export class JSONSchemaPrompt<S extends z.ZodType<unknown> = z.ZodType<unknown>> {
   /**
    * JSON format enforcement instruction used across all prompt templates.
    * This ensures LLM responses are valid, parseable JSON that conforms to strict formatting requirements.

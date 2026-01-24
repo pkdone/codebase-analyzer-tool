@@ -13,9 +13,10 @@ import type { LLMFunctionResponse } from "./llm-response.types";
  * `options.jsonSchema` at the call site, enabling type-safe responses.
  *
  * Generic over the schema type S directly to simplify type inference through
- * the async call chain.
+ * the async call chain. The constraint uses z.ZodType<unknown> for consistency
+ * across the codebase.
  */
-export type LLMModelKeyFunction = <S extends z.ZodType>(
+export type LLMModelKeyFunction = <S extends z.ZodType<unknown>>(
   modelKey: string,
   content: string,
   context: LLMContext,
@@ -31,6 +32,7 @@ export type LLMModelKeyFunction = <S extends z.ZodType>(
  *
  * Generic over the schema type S directly to simplify type inference through
  * the async call chain, avoiding the need for conditional type extraction.
+ * The constraint uses z.ZodType<unknown> for consistency across the codebase.
  *
  * The return type uses z.infer<S> for schema-based inference. For TEXT format
  * or when no schema is provided, the generated content will be string or
@@ -39,7 +41,7 @@ export type LLMModelKeyFunction = <S extends z.ZodType>(
  * Note: This type is specifically for completions. For embeddings, use
  * LLMEmbeddingFunction instead.
  */
-export type LLMFunction = <S extends z.ZodType>(
+export type LLMFunction = <S extends z.ZodType<unknown>>(
   content: string,
   context: LLMContext,
   options?: LLMCompletionOptions<S>,

@@ -2,7 +2,8 @@ import { z } from "zod";
 import type { LLMContext, LLMCompletionOptions } from "./types/llm-request.types";
 import { LLMPurpose } from "./types/llm-request.types";
 import type { ResolvedModelChain } from "./types/llm-model.types";
-import type { LLMCandidateFunction } from "./types/llm-function.types";
+import type { LLMCandidateFunction, ExecutableCandidate } from "./types/llm-function.types";
+import type { LLMGeneratedContent } from "./types/llm-response.types";
 import { ShutdownBehavior } from "./types/llm-shutdown.types";
 import { LLMError, LLMErrorCode } from "./types/llm-errors.types";
 import { type Result, ok, err } from "../types/result.types";
@@ -260,7 +261,7 @@ export default class LLMRouter {
    * - When jsonSchema is not provided (TEXT mode), returns Result<string, LLMError>
    */
   // Overload for JSON with a specific schema
-  async executeCompletion<S extends z.ZodType>(
+  async executeCompletion<S extends z.ZodType<unknown>>(
     resourceName: string,
     prompt: string,
     options: LLMCompletionOptions<S> & { jsonSchema: S },
@@ -276,7 +277,7 @@ export default class LLMRouter {
   ): Promise<Result<string, LLMError>>;
 
   // Implementation
-  async executeCompletion<S extends z.ZodType>(
+  async executeCompletion<S extends z.ZodType<unknown>>(
     resourceName: string,
     prompt: string,
     options: LLMCompletionOptions<S>,
@@ -297,11 +298,17 @@ export default class LLMRouter {
       outputFormat: options.outputFormat,
     };
 
-    const result = await this.executionPipeline.execute<z.infer<S>>({
+    // Type assertion is safe here: when a schema is provided, z.infer<S> produces
+    // an object type that satisfies LLMGeneratedContent. When no schema is provided,
+    // the response handling in BaseLLMProvider ensures the data is LLMGeneratedContent.
+    // The pipeline's T extends LLMGeneratedContent constraint ensures internal type safety,
+    // while this assertion bridges the wider z.ZodType<unknown> constraint used at the API level.
+    type InferredType = z.infer<S> extends LLMGeneratedContent ? z.infer<S> : LLMGeneratedContent;
+    const result = await this.executionPipeline.execute<InferredType>({
       resourceName,
       content: prompt,
       context,
-      candidates,
+      candidates: candidates as ExecutableCandidate<InferredType>[],
       retryOnInvalid: true,
       trackJsonMutations: true,
     });

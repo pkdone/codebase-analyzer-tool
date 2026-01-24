@@ -100,7 +100,7 @@ export function buildEmbeddingCandidatesFromChain(
  * @param indexOverride Optional index to start from a specific candidate (slices from this index)
  * @returns Array of unified executable candidates
  */
-export function buildExecutableCandidates<S extends z.ZodType>(
+export function buildExecutableCandidates<S extends z.ZodType<unknown>>(
   completionCandidates: LLMCandidateFunction[],
   options: LLMCompletionOptions<S>,
   indexOverride: number | null = null,

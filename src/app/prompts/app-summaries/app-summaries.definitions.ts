@@ -19,10 +19,11 @@ import type { BasePromptConfigEntry } from "../prompts.types";
  * self-describing. This design is consistent with SourceConfigEntry and eliminates
  * the need for consumers to provide presentation fields at instantiation time.
  *
- * @template S - The Zod schema type for validating the LLM response.
+ * @template S - The Zod schema type for validating the LLM response. Defaults to z.ZodType<unknown>
+ *               for type-safe handling when the generic is not explicitly specified.
  */
 export interface AppSummaryConfigEntry<
-  S extends z.ZodType = z.ZodType,
+  S extends z.ZodType<unknown> = z.ZodType<unknown>,
 > extends BasePromptConfigEntry<S> {
   /** The data block header to use in the template (e.g., "FILE_SUMMARIES") */
   readonly dataBlockHeader: string;

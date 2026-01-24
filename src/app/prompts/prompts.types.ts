@@ -17,9 +17,10 @@ import type { z } from "zod";
  * that may add additional fields (e.g., hasComplexSchema for sources,
  * dataBlockHeader for app summaries).
  *
- * @template S - The Zod schema type for validating the LLM response.
+ * @template S - The Zod schema type for validating the LLM response. Defaults to z.ZodType<unknown>
+ *               for type-safe handling when the generic is not explicitly specified.
  */
-export interface BasePromptConfigEntry<S extends z.ZodType = z.ZodType> {
+export interface BasePromptConfigEntry<S extends z.ZodType<unknown> = z.ZodType<unknown>> {
   /** Description of the content being analyzed */
   readonly contentDesc: string;
   /** Array of instruction strings for the LLM */

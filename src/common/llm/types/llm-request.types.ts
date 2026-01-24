@@ -25,10 +25,11 @@ export enum LLMOutputFormat {
  * Interface for LLM completion options that can be passed to control output format.
  * Generic over the schema type to preserve type information through the call chain.
  *
- * @template S - The Zod schema type. Defaults to z.ZodType to allow use as a base type
- * for function parameters and type constraints that accept options with any schema.
+ * @template S - The Zod schema type. Defaults to z.ZodType<unknown> to ensure type-safe
+ * handling when the generic is not explicitly specified (forcing consumers to handle
+ * the untyped data explicitly rather than defaulting to `any`).
  */
-export interface LLMCompletionOptions<S extends z.ZodType = z.ZodType> {
+export interface LLMCompletionOptions<S extends z.ZodType<unknown> = z.ZodType<unknown>> {
   /** Desired output format */
   outputFormat: LLMOutputFormat;
   /** Zod schema for structured output providers that support it */
@@ -44,7 +45,7 @@ export interface LLMCompletionOptions<S extends z.ZodType = z.ZodType> {
  * Used for discriminated union pattern to enable better type narrowing.
  */
 export interface JsonCompletionOptions<
-  S extends z.ZodType = z.ZodType,
+  S extends z.ZodType<unknown> = z.ZodType<unknown>,
 > extends LLMCompletionOptions<S> {
   outputFormat: LLMOutputFormat.JSON;
   jsonSchema: S;
@@ -74,7 +75,7 @@ export interface TextCompletionOptions extends Omit<LLMCompletionOptions, "jsonS
  * }
  * ```
  */
-export function isJsonOptionsWithSchema<S extends z.ZodType>(
+export function isJsonOptionsWithSchema<S extends z.ZodType<unknown>>(
   options: LLMCompletionOptions<S> | undefined,
 ): options is JsonCompletionOptions<S> {
   return (

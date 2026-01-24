@@ -167,7 +167,7 @@ type SuccessfulParseResult = Extract<ParseResult, { success: true }>;
  * @param loggingEnabled - Whether to enable repair logging
  * @returns A JsonProcessorResult with the parsed data (typed as unknown) or an error
  */
-function buildSchemalessResult<S extends z.ZodType>(
+function buildSchemalessResult<S extends z.ZodType<unknown>>(
   parseResult: SuccessfulParseResult,
   context: LLMContext,
   loggingEnabled: boolean,
@@ -207,7 +207,7 @@ function buildSchemalessResult<S extends z.ZodType>(
  * @param config - Optional sanitizer configuration to pass to transforms
  * @returns A JsonProcessorResult with validated data or a validation error
  */
-function validateAndBuildResult<S extends z.ZodType>(
+function validateAndBuildResult<S extends z.ZodType<unknown>>(
   parseResult: SuccessfulParseResult,
   jsonSchema: S,
   context: LLMContext,

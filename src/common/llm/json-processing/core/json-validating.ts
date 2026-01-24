@@ -67,7 +67,7 @@ function createValidationFailureWithTransforms<T>(
  * @param jsonSchema - The Zod schema to validate against
  * @returns A result indicating success with validated data, or failure with validation issues
  */
-function attemptValidate<S extends z.ZodType>(
+function attemptValidate<S extends z.ZodType<unknown>>(
   data: unknown,
   jsonSchema: S,
 ): { success: true; data: z.infer<S> } | { success: false; issues: z.ZodIssue[] } {
@@ -125,14 +125,15 @@ function applySchemaFixingTransforms(
  * applies transforms and tries validation again.
  *
  * The return type is inferred from the provided schema using `z.infer<S>`, ensuring type safety
- * without requiring the caller to explicitly specify the type parameter.
+ * without requiring the caller to explicitly specify the type parameter. The constraint uses
+ * z.ZodType<unknown> for consistency across the codebase.
  *
  * @param data - The parsed data to validate
  * @param jsonSchema - The Zod schema to validate against
  * @param config - Optional sanitizer configuration to pass to transforms
  * @returns A ValidationWithTransformsResult indicating success with validated data and transform repairs, or failure with validation issues and transform repairs
  */
-export function validateJsonWithTransforms<S extends z.ZodType>(
+export function validateJsonWithTransforms<S extends z.ZodType<unknown>>(
   data: unknown,
   jsonSchema: S,
   config?: import("../../config/llm-module-config.types").LLMSanitizerConfig,

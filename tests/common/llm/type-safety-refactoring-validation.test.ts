@@ -14,7 +14,11 @@ import {
   InferResponseType,
   LLMGeneratedContent,
 } from "../../../src/common/llm/types/llm-response.types";
-import { LLMFunction, ExecutableCandidate } from "../../../src/common/llm/types/llm-function.types";
+import {
+  LLMFunction,
+  ExecutableCandidate,
+  BoundLLMFunction,
+} from "../../../src/common/llm/types/llm-function.types";
 import { ResolvedLLMModelMetadata } from "../../../src/common/llm/types/llm-model.types";
 import { RetryStrategy } from "../../../src/common/llm/strategies/retry-strategy";
 import {
@@ -64,7 +68,7 @@ describe("Type Safety Refactoring Validation", () => {
    * Uses the generic schema type to ensure type safety.
    */
   function createTypedMockLLMFunction(mockData: unknown): LLMFunction {
-    return async <S extends z.ZodType>(
+    return async <S extends z.ZodType<unknown>>(
       _content: string,
       _context: LLMContext,
       _options?: LLMCompletionOptions<S>,
@@ -75,6 +79,24 @@ describe("Type Safety Refactoring Validation", () => {
         modelKey: "test-model",
         context: mockContext,
         generated: mockData as z.infer<S>,
+      };
+    };
+  }
+
+  /**
+   * Helper to create a bound mock LLM function for use with RetryStrategy.
+   * Returns a BoundLLMFunction<T> which is what executeWithRetries expects.
+   */
+  function createBoundMockLLMFunction<T extends LLMGeneratedContent>(
+    mockData: T,
+  ): BoundLLMFunction<T> {
+    return async (_content: string, _context: LLMContext): Promise<LLMFunctionResponse<T>> => {
+      return {
+        status: LLMResponseStatus.COMPLETED,
+        request: "test",
+        modelKey: "test-model",
+        context: mockContext,
+        generated: mockData,
       };
     };
   }
@@ -189,7 +211,8 @@ describe("Type Safety Refactoring Validation", () => {
         inStock: true,
       };
 
-      const mockLLMFunction = createTypedMockLLMFunction(mockProduct);
+      // Use createBoundMockLLMFunction for executeWithRetries which expects BoundLLMFunction<T>
+      const mockLLMFunction = createBoundMockLLMFunction(mockProduct);
 
       const result = await retryStrategy.executeWithRetries(
         mockLLMFunction,
@@ -205,7 +228,8 @@ describe("Type Safety Refactoring Validation", () => {
 
       // The type should flow through - validate runtime values
       if (isCompletedResponse(result!)) {
-        const product = result.generated as ProductType;
+        // Type now flows correctly through BoundLLMFunction<ProductType>
+        const product = result.generated;
         expect(product.sku).toBe("PROD-001");
         expect(product.name).toBe("Test Product");
         expect(product.price).toBe(29.99);
@@ -243,7 +267,8 @@ describe("Type Safety Refactoring Validation", () => {
         },
       };
 
-      const mockLLMFunction = createTypedMockLLMFunction(mockData);
+      // Use createBoundMockLLMFunction for executeWithRetries which expects BoundLLMFunction<T>
+      const mockLLMFunction = createBoundMockLLMFunction(mockData);
 
       const result = await retryStrategy.executeWithRetries(
         mockLLMFunction,
@@ -256,7 +281,8 @@ describe("Type Safety Refactoring Validation", () => {
       expect(result).not.toBeNull();
       expect(isCompletedResponse(result!)).toBe(true);
       if (isCompletedResponse(result!)) {
-        const data = result.generated as NestedType;
+        // Type now flows correctly through BoundLLMFunction<NestedType>
+        const data = result.generated;
         expect(data.user.id).toBe(42);
         expect(data.user.profile.displayName).toBe("TestUser");
         expect(data.settings.theme).toBe("dark");
@@ -264,12 +290,11 @@ describe("Type Safety Refactoring Validation", () => {
     });
 
     test("should return last response when all retries exhausted for OVERLOADED", async () => {
-      // Create a function that always returns OVERLOADED
-      const failingFunction: LLMFunction = async <S extends z.ZodType>(
+      // Create a bound function that always returns OVERLOADED
+      const failingFunction: BoundLLMFunction<LLMGeneratedContent> = async (
         _content: string,
         _context: LLMContext,
-        _options?: LLMCompletionOptions<S>,
-      ): Promise<LLMFunctionResponse<z.infer<S>>> => {
+      ): Promise<LLMFunctionResponse> => {
         return {
           status: LLMResponseStatus.OVERLOADED,
           request: "test",

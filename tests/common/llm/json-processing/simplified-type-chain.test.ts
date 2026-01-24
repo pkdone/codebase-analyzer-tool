@@ -144,8 +144,8 @@ describe("Simplified Type Chain - parseAndValidateLLMJson", () => {
     });
   });
 
-  describe("Type inference without schema (defaults to Record<string, unknown>)", () => {
-    it("should default to Record<string, unknown> when no schema provided", () => {
+  describe("Type inference without schema (defaults to unknown)", () => {
+    it("should default to unknown when no schema provided", () => {
       const content = JSON.stringify({ any: "data", here: 123 });
       const options: LLMCompletionOptions = {
         outputFormat: LLMOutputFormat.JSON,
@@ -154,8 +154,10 @@ describe("Simplified Type Chain - parseAndValidateLLMJson", () => {
       const result = parseAndValidateLLMJson(content, mockContext, options);
 
       if (result.success) {
-        // Type check: should be Record<string, unknown>
-        const typedData: Record<string, unknown> = result.data;
+        // Type is now 'unknown' - consumers must cast for property access.
+        // This is the correct type-safe behavior: without a schema, we don't
+        // know the shape at compile time.
+        const typedData = result.data as Record<string, unknown>;
         expect(typedData.any).toBe("data");
         expect(typedData.here).toBe(123);
       }
@@ -176,8 +178,8 @@ describe("Simplified Type Chain - parseAndValidateLLMJson", () => {
       const result = parseAndValidateLLMJson(content, mockContext, options);
 
       if (result.success) {
-        // Type check: Record<string, unknown> allows any structure
-        const typedData: Record<string, unknown> = result.data;
+        // Type is 'unknown' - cast to access properties
+        const typedData = result.data as Record<string, unknown>;
         expect(typedData.nested).toBeDefined();
       }
     });

@@ -51,7 +51,7 @@ export type InsightPromptResult<C extends keyof AppSummaryConfigMap> = Generated
  *
  * @template S - The Zod schema type for validating the LLM response
  */
-export type ReducePromptResult<S extends z.ZodType> = GeneratedPrompt<S>;
+export type ReducePromptResult<S extends z.ZodType<unknown>> = GeneratedPrompt<S>;
 
 /**
  * Options for building an insight prompt.
@@ -188,7 +188,7 @@ export function buildInsightPrompt<C extends keyof AppSummaryConfigMap>(
  * });
  * ```
  */
-export function buildReducePrompt<S extends z.ZodType>(
+export function buildReducePrompt<S extends z.ZodType<unknown>>(
   categoryKey: string,
   content: string,
   schema: S,

@@ -64,7 +64,8 @@ export interface TextGeneratedPrompt {
  * functions, encapsulating the rendered prompt string, the validation schema,
  * and optional metadata for LLM provider configuration.
  *
- * @template S - The Zod schema type for validating the LLM response. Defaults to z.ZodType.
+ * @template S - The Zod schema type for validating the LLM response. Defaults to z.ZodType<unknown>
+ *               for type-safe handling when the generic is not explicitly specified.
  *
  * @example
  * ```typescript
@@ -81,7 +82,7 @@ export interface TextGeneratedPrompt {
  * });
  * ```
  */
-export interface GeneratedPrompt<S extends z.ZodType = z.ZodType> {
+export interface GeneratedPrompt<S extends z.ZodType<unknown> = z.ZodType<unknown>> {
   /** The fully rendered prompt string ready for LLM submission */
   readonly prompt: string;
   /** The Zod schema for validating the LLM response */

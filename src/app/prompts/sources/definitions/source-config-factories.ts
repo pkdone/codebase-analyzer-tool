@@ -20,11 +20,12 @@ import type { BasePromptConfigEntry } from "../../prompts.types";
  * Each entry directly includes the responseSchema using sourceSummarySchema.pick(),
  * making the schemas explicit and type-safe.
  *
- * @template S - The Zod schema type for validating the LLM response. Defaults to z.ZodType to allow
- * use as a constraint for heterogeneous collections where entries have different specific schema types.
+ * @template S - The Zod schema type for validating the LLM response. Defaults to z.ZodType<unknown>
+ *               for type-safe handling and to allow use as a constraint for heterogeneous
+ *               collections where entries have different specific schema types.
  */
 export interface SourceConfigEntry<
-  S extends z.ZodType = z.ZodType,
+  S extends z.ZodType<unknown> = z.ZodType<unknown>,
 > extends BasePromptConfigEntry<S> {
   /** Whether the schema is complex and incompatible with some LLM providers */
   readonly hasComplexSchema?: boolean;
@@ -135,7 +136,7 @@ export function createScheduledJobConfig(
  * @param hasComplexSchema - Whether the schema requires complex handling (default: false)
  * @returns A SourceConfigEntry with the provided configuration
  */
-export function createCompositeSourceConfig<S extends z.ZodType>(
+export function createCompositeSourceConfig<S extends z.ZodType<unknown>>(
   contentDesc: string,
   responseSchema: S,
   instructions: readonly string[],
