@@ -382,6 +382,19 @@ describe("zod-schema-metadata", () => {
         expect(metadata2.arrayProperties).toEqual([]);
       });
 
+      it("should not match objects with _def on prototype (Object.hasOwn safety)", () => {
+        // Create an object with _def on its prototype, not as own property
+        const proto = { _def: { typeName: "ZodObject" } };
+        const fakeSchema = Object.create(proto);
+
+        // Should return empty because _def is inherited, not own
+        const metadata = extractSchemaMetadata(fakeSchema as z.ZodType);
+
+        expect(metadata.allProperties).toEqual([]);
+        expect(metadata.numericProperties).toEqual([]);
+        expect(metadata.arrayProperties).toEqual([]);
+      });
+
       it("should return empty metadata for non-object schemas", () => {
         const stringSchema = z.string();
         const numberSchema = z.number();

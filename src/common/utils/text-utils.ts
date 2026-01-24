@@ -1,8 +1,16 @@
 /**
  * Count the lines in a piece of text.
+ * Uses matchAll iterator (ES2020) to avoid allocating an array of substrings,
+ * providing better memory efficiency for large source files.
  */
 export function countLines(text: string): number {
-  return text.split("\n").length;
+  let count = 1;
+
+  for (const _ of text.matchAll(/\n/g)) {
+    count++;
+  }
+
+  return count;
 }
 
 /**

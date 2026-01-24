@@ -32,10 +32,29 @@ export interface LLMStatsCategoriesSummary extends LLMStatsCategoriesBase {
 }
 
 /**
- * Type to define the pattern definition for the error messages
+ * Named capture groups extracted from error message regex patterns.
+ * All groups are optional - the parser handles missing values with fallbacks.
+ */
+export interface TokenErrorGroups {
+  /** Maximum tokens allowed (e.g., model's context limit) */
+  readonly max?: string;
+  /** Number of prompt/input tokens used */
+  readonly prompt?: string;
+  /** Number of completion/output tokens requested */
+  readonly completion?: string;
+  /** Character limit (for char-based patterns) */
+  readonly charLimit?: string;
+  /** Characters used in prompt (for char-based patterns) */
+  readonly charPrompt?: string;
+}
+
+/**
+ * Type to define the pattern definition for the error messages.
+ * Uses named capture groups for readable, maintainable regex matching.
  */
 export interface LLMErrorMsgRegExPattern {
+  /** RegExp with named capture groups matching TokenErrorGroups */
   readonly pattern: RegExp;
-  readonly units: string;
-  readonly isMaxFirst: boolean;
+  /** Unit type for the extracted values */
+  readonly units: "tokens" | "chars";
 }

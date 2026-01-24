@@ -227,9 +227,7 @@ describe("AppReportGenerator", () => {
 
     it("should aggregate fields from all sections with core fields", async () => {
       // Setup sections with different required fields using properly typed arrays
-      const businessProcessesFields: readonly RequestableAppSummaryField[] = [
-        "businessProcesses",
-      ];
+      const businessProcessesFields: readonly RequestableAppSummaryField[] = ["businessProcesses"];
       const boundedContextsFields: readonly RequestableAppSummaryField[] = ["boundedContexts"];
 
       mockSections[0].getRequiredAppSummaryFields.mockReturnValue(businessProcessesFields);
@@ -267,9 +265,7 @@ describe("AppReportGenerator", () => {
 
     it("should deduplicate fields requested by multiple sections", async () => {
       // Both sections request the same field using properly typed arrays
-      const businessProcessesFields: readonly RequestableAppSummaryField[] = [
-        "businessProcesses",
-      ];
+      const businessProcessesFields: readonly RequestableAppSummaryField[] = ["businessProcesses"];
       mockSections[0].getRequiredAppSummaryFields.mockReturnValue(businessProcessesFields);
       mockSections[1].getRequiredAppSummaryFields.mockReturnValue(businessProcessesFields);
 

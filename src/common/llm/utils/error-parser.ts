@@ -1,12 +1,7 @@
 import { ResolvedLLMModelMetadata } from "../types/llm-model.types";
-import { LLMErrorMsgRegExPattern } from "../types/llm-stats.types";
+import { LLMErrorMsgRegExPattern, TokenErrorGroups } from "../types/llm-stats.types";
 import { LLMResponseTokensUsage } from "../types/llm-response.types";
 import { llmProviderConfig } from "../config/llm.config";
-
-/** Capture group indices for regex matches */
-const FIRST_VALUE_INDEX = 1;
-const SECOND_VALUE_INDEX = 2;
-const COMPLETION_TOKENS_INDEX = 3;
 
 /**
  * Default result when no pattern matches or parsing fails.
@@ -18,68 +13,56 @@ const DEFAULT_RESULT: LLMResponseTokensUsage = {
 };
 
 /**
- * Extracts an integer from a regex match at the given index.
- * Returns the fallback value if the index is out of bounds.
+ * Safely parses a string to an integer, returning fallback if undefined or NaN.
  */
-function extractMatchValue(matches: RegExpMatchArray, index: number, fallback: number): number {
-  return matches.length > index ? parseInt(matches[index], 10) : fallback;
+function parseIntOrFallback(value: string | undefined, fallback: number): number {
+  if (value === undefined) return fallback;
+  const parsed = parseInt(value, 10);
+  return Number.isNaN(parsed) ? fallback : parsed;
 }
 
 /**
- * Extract token values from regex matches for token-based patterns.
- * Maps capture groups to promptTokens and maxTotalTokens based on isMaxFirst flag.
+ * Extract token values from named capture groups for token-based patterns.
+ * Uses semantic names (max, prompt, completion) for clarity.
  */
 function extractTokenValues(
-  matches: RegExpMatchArray,
-  isMaxFirst: boolean,
+  groups: TokenErrorGroups,
   fallbackMaxTokens: number,
 ): LLMResponseTokensUsage {
-  const firstValue = extractMatchValue(matches, FIRST_VALUE_INDEX, -1);
-  const secondValue = extractMatchValue(matches, SECOND_VALUE_INDEX, fallbackMaxTokens);
-  const completionTokens = extractMatchValue(matches, COMPLETION_TOKENS_INDEX, 0);
+  const maxTotalTokens = parseIntOrFallback(groups.max, -1);
+  const promptTokens = parseIntOrFallback(groups.prompt, -1);
+  const completionTokens = parseIntOrFallback(groups.completion, 0);
 
-  return isMaxFirst
-    ? {
-        maxTotalTokens: firstValue,
-        promptTokens:
-          secondValue === fallbackMaxTokens && matches.length <= SECOND_VALUE_INDEX
-            ? -1
-            : secondValue,
-        completionTokens,
-      }
-    : {
-        promptTokens: firstValue,
-        maxTotalTokens: secondValue,
-        completionTokens,
-      };
+  return {
+    maxTotalTokens: maxTotalTokens > 0 ? maxTotalTokens : fallbackMaxTokens,
+    promptTokens,
+    completionTokens,
+  };
 }
 
 /**
- * Extract char values from regex matches and convert to token estimates.
- * Maps capture groups to charsPrompt and charsLimit based on isMaxFirst flag.
+ * Extract char values from named capture groups and convert to token estimates.
+ * Uses charLimit and charPrompt groups for character-based error messages.
  */
 function extractCharValues(
-  matches: RegExpMatchArray,
-  isMaxFirst: boolean,
+  groups: TokenErrorGroups,
   modelKey: string,
   llmModelsMetadata: Record<string, ResolvedLLMModelMetadata>,
 ): LLMResponseTokensUsage {
-  if (matches.length <= SECOND_VALUE_INDEX) {
+  const charLimit = parseIntOrFallback(groups.charLimit, -1);
+  const charPrompt = parseIntOrFallback(groups.charPrompt, -1);
+
+  if (charLimit <= 0 || charPrompt <= 0) {
     return { ...DEFAULT_RESULT };
   }
 
-  const firstValue = parseInt(matches[FIRST_VALUE_INDEX], 10);
-  const secondValue = parseInt(matches[SECOND_VALUE_INDEX], 10);
-
-  const charsLimit = isMaxFirst ? firstValue : secondValue;
-  const charsPrompt = isMaxFirst ? secondValue : firstValue;
-
-  return calculateTokensFromChars(charsPrompt, charsLimit, modelKey, llmModelsMetadata);
+  return calculateTokensFromChars(charPrompt, charLimit, modelKey, llmModelsMetadata);
 }
 
 /**
  * Extract token usage information from LLM error message.
  * Internal function used by calculateTokenUsageFromError.
+ * Uses named capture groups for clear, maintainable pattern matching.
  */
 function parseTokenUsageFromLLMError(
   modelKey: string,
@@ -93,12 +76,14 @@ function parseTokenUsageFromLLMError(
 
   for (const pattern of errorPatterns) {
     const matches = errorMsg.match(pattern.pattern);
-    if (!matches || matches.length <= 1) continue;
+    if (!matches?.groups) continue;
+
+    const groups = matches.groups as TokenErrorGroups;
 
     if (pattern.units === "tokens") {
-      return extractTokenValues(matches, pattern.isMaxFirst, fallbackMaxTokens);
+      return extractTokenValues(groups, fallbackMaxTokens);
     } else {
-      return extractCharValues(matches, pattern.isMaxFirst, modelKey, llmModelsMetadata);
+      return extractCharValues(groups, modelKey, llmModelsMetadata);
     }
   }
 

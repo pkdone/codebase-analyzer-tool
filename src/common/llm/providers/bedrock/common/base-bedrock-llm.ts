@@ -54,16 +54,15 @@ interface ResponseExtractionConfig {
 export default abstract class BaseBedrockLLM extends BaseLLMProvider {
   // Private fields
   private readonly client: BedrockRuntimeClient;
+  private readonly requestTimeoutMillis: number;
 
   /**
    * Constructor.
    */
   constructor(init: import("../../llm-provider.types").ProviderInit) {
     super(init);
-    const requestTimeoutMillis = init.manifest.providerSpecificConfig.requestTimeoutMillis;
-    this.client = new BedrockRuntimeClient({
-      requestHandler: { requestTimeout: requestTimeoutMillis },
-    });
+    this.requestTimeoutMillis = init.manifest.providerSpecificConfig.requestTimeoutMillis;
+    this.client = new BedrockRuntimeClient({});
   }
 
   /**
@@ -103,11 +102,14 @@ export default abstract class BaseBedrockLLM extends BaseLLMProvider {
 
   /**
    * Execute the embedding prompt against the LLM and return the relevant summary.
+   * Uses AbortSignal.timeout() (ES2022) for standardized per-request timeout control.
    */
   protected async invokeEmbeddingProvider(modelKey: string, prompt: string) {
     const parameters = this.buildEmbeddingParameters(modelKey, prompt);
     const command = new InvokeModelCommand(parameters);
-    const rawResponse = await this.client.send(command);
+    const rawResponse = await this.client.send(command, {
+      abortSignal: AbortSignal.timeout(this.requestTimeoutMillis),
+    });
     const jsonString = new TextDecoder(llmConfig.UTF8_ENCODING).decode(rawResponse.body);
     const llmResponse: unknown = JSON.parse(jsonString);
     return extractEmbeddingResponse(llmResponse);
@@ -115,11 +117,14 @@ export default abstract class BaseBedrockLLM extends BaseLLMProvider {
 
   /**
    * Execute the completion prompt against the LLM and return the relevant summary.
+   * Uses AbortSignal.timeout() (ES2022) for standardized per-request timeout control.
    */
   protected async invokeCompletionProvider(modelKey: string, prompt: string) {
     const parameters = this.buildCompletionParameters(modelKey, prompt);
     const command = new InvokeModelCommand(parameters);
-    const rawResponse = await this.client.send(command);
+    const rawResponse = await this.client.send(command, {
+      abortSignal: AbortSignal.timeout(this.requestTimeoutMillis),
+    });
     const jsonString = new TextDecoder(llmConfig.UTF8_ENCODING).decode(rawResponse.body);
     const llmResponse: unknown = JSON.parse(jsonString);
     const config = this.getResponseExtractionConfig();

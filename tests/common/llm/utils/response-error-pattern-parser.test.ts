@@ -2,6 +2,7 @@ import { LLMPurpose } from "../../../../src/common/llm/types/llm-request.types";
 import { calculateTokenUsageFromError } from "../../../../src/common/llm/utils/error-parser";
 import { BEDROCK_COMMON_ERROR_PATTERNS } from "../../../../src/common/llm/providers/bedrock/common/bedrock-error-patterns";
 import { OPENAI_COMMON_ERROR_PATTERNS } from "../../../../src/common/llm/providers/openai/common/openai-error-patterns";
+import { VERTEXAI_COMMON_ERROR_PATTERNS } from "../../../../src/common/llm/providers/vertexai/gemini/vertex-ai-error-patterns";
 
 /**
  * Tests for calculateTokenUsageFromError which internally uses parseTokenUsageFromLLMError.
@@ -353,6 +354,98 @@ describe("calculateTokenUsageFromError - error pattern parsing", () => {
       // Should return model defaults for non-token errors
       expect(result.maxTotalTokens).toBe(8192);
       expect(result.completionTokens).toBe(0);
+    });
+  });
+
+  // Vertex AI specific patterns
+  describe("Vertex AI error patterns", () => {
+    test("should extract from 'input token count exceeds maximum' error message", () => {
+      const errorMsg =
+        "The input token count (1594712) exceeds the maximum number of tokens allowed (1048576)";
+      const result = calculateTokenUsageFromError(
+        "GPT_COMPLETIONS_GPT4",
+        TEST_PROMPT,
+        errorMsg,
+        testMetadata,
+        VERTEXAI_COMMON_ERROR_PATTERNS,
+      );
+
+      expect(result.maxTotalTokens).toBe(1048576);
+      expect(result.promptTokens).toBe(1594712);
+      expect(result.completionTokens).toBe(0);
+    });
+
+    test("should handle Vertex AI error with different token counts", () => {
+      const errorMsg =
+        "The input token count (50000) exceeds the maximum number of tokens allowed (32768)";
+      const result = calculateTokenUsageFromError(
+        "GPT_COMPLETIONS_GPT4",
+        TEST_PROMPT,
+        errorMsg,
+        testMetadata,
+        VERTEXAI_COMMON_ERROR_PATTERNS,
+      );
+
+      expect(result.maxTotalTokens).toBe(32768);
+      expect(result.promptTokens).toBe(50000);
+      expect(result.completionTokens).toBe(0);
+    });
+  });
+
+  // Named capture groups verification
+  describe("Named capture groups", () => {
+    test("all Bedrock patterns should have named capture groups", () => {
+      for (const pattern of BEDROCK_COMMON_ERROR_PATTERNS) {
+        const regex = pattern.pattern;
+        const source = regex.source;
+        // Each pattern should contain at least one named group
+        expect(source).toMatch(/\(\?<\w+>/);
+      }
+    });
+
+    test("all OpenAI patterns should have named capture groups", () => {
+      for (const pattern of OPENAI_COMMON_ERROR_PATTERNS) {
+        const regex = pattern.pattern;
+        const source = regex.source;
+        // Each pattern should contain at least one named group
+        expect(source).toMatch(/\(\?<\w+>/);
+      }
+    });
+
+    test("all VertexAI patterns should have named capture groups", () => {
+      for (const pattern of VERTEXAI_COMMON_ERROR_PATTERNS) {
+        const regex = pattern.pattern;
+        const source = regex.source;
+        // Each pattern should contain at least one named group
+        expect(source).toMatch(/\(\?<\w+>/);
+      }
+    });
+
+    test("token patterns should use 'max' and 'prompt' group names", () => {
+      const tokenPatterns = [
+        ...BEDROCK_COMMON_ERROR_PATTERNS.filter((p) => p.units === "tokens"),
+        ...OPENAI_COMMON_ERROR_PATTERNS.filter((p) => p.units === "tokens"),
+        ...VERTEXAI_COMMON_ERROR_PATTERNS.filter((p) => p.units === "tokens"),
+      ];
+
+      for (const pattern of tokenPatterns) {
+        const source = pattern.pattern.source;
+        // Token patterns should have either 'max' or 'prompt' (or both)
+        const hasMax = source.includes("(?<max>");
+        const hasPrompt = source.includes("(?<prompt>");
+        expect(hasMax || hasPrompt).toBe(true);
+      }
+    });
+
+    test("char patterns should use 'charLimit' and 'charPrompt' group names", () => {
+      const charPatterns = BEDROCK_COMMON_ERROR_PATTERNS.filter((p) => p.units === "chars");
+
+      for (const pattern of charPatterns) {
+        const source = pattern.pattern.source;
+        // Char patterns should have charLimit and charPrompt
+        expect(source).toContain("(?<charLimit>");
+        expect(source).toContain("(?<charPrompt>");
+      }
     });
   });
 });

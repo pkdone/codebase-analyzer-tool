@@ -89,6 +89,9 @@ interface ZodLike {
  * This isolates the type narrowing logic to a single location, eliminating
  * scattered type assertions throughout the metadata extraction code.
  *
+ * Uses Object.hasOwn() (ES2022) for safer property checks that don't traverse
+ * the prototype chain, avoiding false positives from inherited properties.
+ *
  * @param schema - The value to check
  * @returns true if the value has a Zod-like structure
  */
@@ -96,8 +99,11 @@ function isZodLike(schema: unknown): schema is ZodLike {
   if (typeof schema !== "object" || schema === null) {
     return false;
   }
+  if (!Object.hasOwn(schema, "_def")) {
+    return false;
+  }
   const candidate = schema as { _def?: unknown };
-  return "_def" in schema && typeof candidate._def === "object" && candidate._def !== null;
+  return typeof candidate._def === "object" && candidate._def !== null;
 }
 
 /**
