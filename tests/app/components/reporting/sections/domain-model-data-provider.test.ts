@@ -249,8 +249,8 @@ describe("DomainModelDataProvider", () => {
     });
 
     it("should handle bounded contexts with missing aggregates property gracefully", () => {
-      // Simulate runtime data where aggregates might be missing due to passthrough or legacy data
-      // The type guard allows missing aggregates but requires them to be an array if present
+      // Simulate runtime data where aggregates might be missing in legacy data
+      // The type guard allows missing aggregates to support schema evolution
       const hierarchicalData = [
         {
           name: "ContextWithAggregates",

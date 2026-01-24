@@ -57,9 +57,8 @@ export interface DomainModelData {
 
 /**
  * Type alias for hierarchical bounded context data from the Zod schema.
- * Uses the inferred type from hierarchicalBoundedContextSchema which includes
- * .passthrough() for additional properties from LLM responses.
- * The aggregates property is required by the schema but may be missing in
- * practice due to .passthrough() flexibility - use optional access when consuming.
+ * Uses the inferred type from hierarchicalBoundedContextSchema.
+ * The aggregates property is required by the schema; defensive coding handles
+ * legacy data that may predate the current schema structure.
  */
 export type HierarchicalBoundedContextData = HierarchicalBoundedContext;

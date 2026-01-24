@@ -81,8 +81,7 @@ export class DomainModelDataProvider {
     hierarchicalContexts: BoundedContextsArray,
   ): DomainBoundedContext[] {
     return hierarchicalContexts.map((context: HierarchicalBoundedContext) => {
-      // aggregates is required by schema but may be missing in runtime data (passthrough)
-      // Using Array.isArray check to handle edge cases with legacy data
+      // Defensive check for legacy data that may predate the current schema structure
       const contextAggregates = Array.isArray(context.aggregates) ? context.aggregates : [];
       const aggregates = this.transformAggregates(contextAggregates);
       const entities = this.extractEntitiesFromAggregates(contextAggregates);

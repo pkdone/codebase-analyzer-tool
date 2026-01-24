@@ -156,7 +156,7 @@ describe("domain-model.guards", () => {
           const firstContext = data[0];
           expect(firstContext.name).toBe("Test Context");
           expect(firstContext.description).toBe("Test description");
-          // aggregates is optional in HierarchicalBoundedContextData
+          // aggregates may be missing in legacy data (guard allows it for schema evolution)
           expect(firstContext.aggregates).toBeUndefined();
         }
       });

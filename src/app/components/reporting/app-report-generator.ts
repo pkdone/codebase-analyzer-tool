@@ -130,7 +130,7 @@ export default class AppReportGenerator {
     await this.assetService.ensureMermaidAsset(outputDir);
 
     // Generate reports using prepared data
-    // Note: HtmlReportWriter now handles asset loading internally via HtmlReportAssetService
+    // HtmlReportWriter handles asset loading internally via HtmlReportAssetService
     await this.jsonWriter.writeAllJSONFiles(preparedJsonData);
     await this.htmlWriter.writeHTMLReportFile(preparedHtmlData, htmlFilePath);
   }

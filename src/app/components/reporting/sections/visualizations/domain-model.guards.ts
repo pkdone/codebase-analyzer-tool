@@ -20,8 +20,8 @@ export function isHierarchicalBoundedContextDataArray(
   if (!Array.isArray(data)) {
     return false;
   }
-  // Validate each item - use a more lenient check that allows missing aggregates
-  // since .passthrough() allows extra properties and aggregates might be optional in practice
+  // Validate each item - use a lenient check that allows missing aggregates
+  // to support legacy data that may predate the current schema structure
   return data.every((item) => {
     // Check basic structure (name and description are required)
     if (typeof item.name !== "string" || typeof item.description !== "string") {
