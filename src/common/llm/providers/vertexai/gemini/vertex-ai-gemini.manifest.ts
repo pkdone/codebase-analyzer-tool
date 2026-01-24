@@ -18,6 +18,7 @@ export const VERTEXAI_GEMINI_FAMILY = "VertexAIGemini";
 export const VERTEXAI_GEMINI_EMBEDDING_001_MODEL_URN_ID = "VERTEXAI_GEMINI_EMBEDDING_001_MODEL_URN";
 export const VERTEXAI_GEMINI_3_PRO_MODEL_URN_ID = "VERTEXAI_GEMINI_3_PRO_MODEL_URN";
 export const VERTEXAI_GEMINI_25_PRO_MODEL_URN_ID = "VERTEXAI_GEMINI_25_PRO_MODEL_URN";
+export const VERTEXAI_GEMINI_20_FLASH_MODEL_URN_ID = "VERTEXAI_GEMINI_20_FLASH_MODEL_URN";
 
 export const vertexAIGeminiProviderManifest: LLMProviderManifest = {
   providerFamily: VERTEXAI_GEMINI_FAMILY,
@@ -28,6 +29,7 @@ export const vertexAIGeminiProviderManifest: LLMProviderManifest = {
     [VERTEXAI_GEMINI_EMBEDDING_001_MODEL_URN_ID]: z.string().min(1),
     [VERTEXAI_GEMINI_3_PRO_MODEL_URN_ID]: z.string().min(1),
     [VERTEXAI_GEMINI_25_PRO_MODEL_URN_ID]: z.string().min(1),
+    [VERTEXAI_GEMINI_20_FLASH_MODEL_URN_ID]: z.string().min(1),
   }),
   models: {
     embeddings: [
@@ -52,6 +54,13 @@ export const vertexAIGeminiProviderManifest: LLMProviderManifest = {
         purpose: LLMPurpose.COMPLETIONS,
         urnEnvKey: VERTEXAI_GEMINI_25_PRO_MODEL_URN_ID,
         maxCompletionTokens: 65535,
+        maxTotalTokens: 1048576,
+      },
+      {
+        modelKey: "vertexai-gemini-2.0-flash",
+        purpose: LLMPurpose.COMPLETIONS,
+        urnEnvKey: VERTEXAI_GEMINI_20_FLASH_MODEL_URN_ID,
+        maxCompletionTokens: 8192,
         maxTotalTokens: 1048576,
       },
     ],
