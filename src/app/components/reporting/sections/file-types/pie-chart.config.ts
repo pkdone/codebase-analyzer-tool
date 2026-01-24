@@ -23,7 +23,20 @@ export const pieChartConfig = {
   LABEL_RADIUS_MULTIPLIER: 0.7,
   /** Total SVG width */
   SVG_WIDTH: 950,
-  /** Color palette for pie chart slices */
+  /**
+   * Color palette for pie chart slices.
+   *
+   * Note: These colors are intentionally different from BRAND_COLORS in theme.config.ts.
+   * Pie charts require many distinct, visually distinguishable colors for effective data
+   * visualization (15+ categories), while the MongoDB brand palette only contains 7 colors.
+   * Using Material Design colors here provides better visual separation between slices.
+   *
+   * If more than 15 slices are needed, the pie-chart-calculator generates additional colors
+   * using the golden angle algorithm for even hue distribution.
+   *
+   * @see pie-chart-calculator.ts for color assignment logic
+   * @see theme.config.ts for MongoDB brand colors used in semantic UI elements
+   */
   COLORS: [
     "#2196F3",
     "#4CAF50",

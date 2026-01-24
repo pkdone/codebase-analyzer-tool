@@ -81,7 +81,7 @@ export class DomainModelDataProvider {
     hierarchicalContexts: BoundedContextsArray,
   ): DomainBoundedContext[] {
     return hierarchicalContexts.map((context: HierarchicalBoundedContext) => {
-      // Defensive check for legacy data that may predate the current schema structure
+      // Defensive check against potentially malformed LLM-generated data
       const contextAggregates = Array.isArray(context.aggregates) ? context.aggregates : [];
       const aggregates = this.transformAggregates(contextAggregates);
       const entities = this.extractEntitiesFromAggregates(contextAggregates);

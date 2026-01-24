@@ -1,16 +1,14 @@
 /* === MongoDB Theme & New CAT Report Styles === */
 
-:root {
-  /* MongoDB Color Palette */
-  --mdb-green-light: #00ED64;
-  --mdb-green-dark: #00684A;
-  --mdb-black: #001E2B;
-  --mdb-grey-dark-1: #3F3E42;
-  --mdb-grey-light-1: #C1C7C6;
-  --mdb-grey-light-2: #E8EDEB;
-  --mdb-white: #FFFFFF;
+/*
+ * Note: MongoDB brand color CSS variables (--mdb-green-dark, --mdb-green-light, etc.)
+ * are generated at runtime from src/app/config/theme.config.ts and injected
+ * into the HTML report. This eliminates duplication and makes TypeScript the
+ * single source of truth for brand colors.
+ */
 
-  /* Semantic Colors */
+:root {
+  /* Semantic Colors (reference brand color variables injected at runtime) */
   --bg-color: var(--mdb-white);
   --text-color: var(--mdb-black);
   --text-color-secondary: var(--mdb-grey-dark-1);

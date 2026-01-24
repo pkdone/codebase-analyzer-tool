@@ -1,114 +1,138 @@
 /**
- * Tests to validate that CSS variables in style.css match TypeScript theme constants.
- * This ensures the two sources of truth for brand colors don't drift apart.
+ * Tests for theme CSS generation utilities.
+ * Validates that brand color CSS variables are generated correctly from TypeScript constants.
  */
 
-import * as fs from "fs";
-import * as path from "path";
-import { BRAND_COLORS } from "../../../src/app/config/theme.config";
+import {
+  BRAND_COLORS,
+  BRAND_COLOR_CSS_VAR_MAP,
+  generateBrandColorCssVariables,
+  generateBrandColorCssBlock,
+  type BrandColorKey,
+} from "../../../src/app/config/theme.config";
 
-/**
- * Mapping between TypeScript BRAND_COLORS keys and their CSS variable names.
- * The CSS uses kebab-case with `--mdb-` prefix while TypeScript uses camelCase.
- */
-const TS_TO_CSS_VAR_MAP: Record<keyof typeof BRAND_COLORS, string> = {
-  greenDark: "--mdb-green-dark",
-  greenLight: "--mdb-green-light",
-  black: "--mdb-black",
-  greyDark1: "--mdb-grey-dark-1",
-  greyLight1: "--mdb-grey-light-1",
-  greyLight2: "--mdb-grey-light-2",
-  white: "--mdb-white",
-};
+describe("Theme CSS Generation", () => {
+  describe("BRAND_COLOR_CSS_VAR_MAP", () => {
+    it("should have a CSS variable name for every brand color", () => {
+      const brandColorKeys = Object.keys(BRAND_COLORS) as BrandColorKey[];
+      const mappedKeys = Object.keys(BRAND_COLOR_CSS_VAR_MAP) as BrandColorKey[];
 
-/**
- * Parse CSS file content and extract CSS variable definitions from :root.
- * Returns a map of variable name to its value (hex color).
- */
-function extractCssVariables(cssContent: string): Map<string, string> {
-  const variables = new Map<string, string>();
+      expect(mappedKeys).toHaveLength(brandColorKeys.length);
+      brandColorKeys.forEach((key) => {
+        expect(BRAND_COLOR_CSS_VAR_MAP).toHaveProperty(key);
+      });
+    });
 
-  // Match :root block content
-  const rootBlockRegex = /:root\s*\{([^}]+)\}/;
-  const rootBlockMatch = rootBlockRegex.exec(cssContent);
-  if (!rootBlockMatch) {
-    return variables;
-  }
+    it("should use kebab-case with --mdb- prefix for all CSS variable names", () => {
+      Object.values(BRAND_COLOR_CSS_VAR_MAP).forEach((cssVarName) => {
+        expect(cssVarName).toMatch(/^--mdb-[a-z0-9-]+$/);
+      });
+    });
 
-  const rootContent = rootBlockMatch[1];
-
-  // Match CSS variable declarations (--name: #HEXCOLOR;)
-  const varRegex = /(--[\w-]+):\s*(#[0-9A-Fa-f]{6})\s*;/g;
-  let match;
-
-  while ((match = varRegex.exec(rootContent)) !== null) {
-    const varName = match[1];
-    const value = match[2].toUpperCase();
-    variables.set(varName, value);
-  }
-
-  return variables;
-}
-
-describe("Theme CSS Sync", () => {
-  let cssContent: string;
-  let cssVariables: Map<string, string>;
-
-  beforeAll(() => {
-    const cssPath = path.join(
-      __dirname,
-      "../../../src/app/components/reporting/templates/style.css",
-    );
-    cssContent = fs.readFileSync(cssPath, "utf-8");
-    cssVariables = extractCssVariables(cssContent);
-  });
-
-  describe("CSS variables exist for all brand colors", () => {
-    const colorKeys = Object.keys(BRAND_COLORS) as (keyof typeof BRAND_COLORS)[];
-
-    test.each(colorKeys)("CSS has variable for BRAND_COLORS.%s", (colorKey) => {
-      const cssVarName = TS_TO_CSS_VAR_MAP[colorKey];
-      expect(cssVariables.has(cssVarName)).toBe(true);
+    it("should have unique CSS variable names", () => {
+      const varNames = Object.values(BRAND_COLOR_CSS_VAR_MAP);
+      const uniqueNames = new Set(varNames);
+      expect(uniqueNames.size).toBe(varNames.length);
     });
   });
 
-  describe("CSS variable values match TypeScript brand colors", () => {
-    const colorEntries = Object.entries(BRAND_COLORS) as [keyof typeof BRAND_COLORS, string][];
+  describe("generateBrandColorCssVariables", () => {
+    let generatedCss: string;
 
-    test.each(colorEntries)("BRAND_COLORS.%s matches CSS variable value", (colorKey, tsValue) => {
-      const cssVarName = TS_TO_CSS_VAR_MAP[colorKey];
-      const cssValue = cssVariables.get(cssVarName);
+    beforeAll(() => {
+      generatedCss = generateBrandColorCssVariables();
+    });
 
-      expect(cssValue).toBeDefined();
-      expect(cssValue?.toUpperCase()).toBe(tsValue.toUpperCase());
+    it("should generate non-empty CSS variable declarations", () => {
+      expect(generatedCss).toBeTruthy();
+      expect(generatedCss.length).toBeGreaterThan(0);
+    });
+
+    it("should include all brand color CSS variable names", () => {
+      Object.values(BRAND_COLOR_CSS_VAR_MAP).forEach((cssVarName) => {
+        expect(generatedCss).toContain(cssVarName);
+      });
+    });
+
+    it("should include all brand color hex values", () => {
+      Object.values(BRAND_COLORS).forEach((hexValue) => {
+        expect(generatedCss).toContain(hexValue);
+      });
+    });
+
+    it("should generate valid CSS variable declaration format", () => {
+      const lines = generatedCss.split("\n");
+      lines.forEach((line) => {
+        // Each line should match pattern: "  --variable-name: #HEXCODE;"
+        expect(line).toMatch(/^\s+--[\w-]+:\s+#[0-9A-Fa-f]{6};$/);
+      });
+    });
+
+    it("should have correct variable-to-value mapping", () => {
+      const colorEntries = Object.entries(BRAND_COLORS) as [BrandColorKey, string][];
+      colorEntries.forEach(([key, hexValue]) => {
+        const cssVarName = BRAND_COLOR_CSS_VAR_MAP[key];
+        const expectedPattern = new RegExp(`${cssVarName}:\\s*${hexValue};`);
+        expect(generatedCss).toMatch(expectedPattern);
+      });
     });
   });
 
-  describe("All MongoDB CSS color variables are accounted for", () => {
-    it("should have no unmatched --mdb-* color variables", () => {
-      const mdbVariables = Array.from(cssVariables.keys()).filter((name) =>
-        name.startsWith("--mdb-"),
-      );
-      const mappedCssVars = Object.values(TS_TO_CSS_VAR_MAP);
+  describe("generateBrandColorCssBlock", () => {
+    let generatedBlock: string;
 
-      const unmatchedVars = mdbVariables.filter((v) => !mappedCssVars.includes(v));
+    beforeAll(() => {
+      generatedBlock = generateBrandColorCssBlock();
+    });
 
-      expect(unmatchedVars).toEqual([]);
+    it("should wrap variables in :root block", () => {
+      expect(generatedBlock).toContain(":root {");
+      expect(generatedBlock).toContain("}");
+    });
+
+    it("should include a comment indicating the source", () => {
+      expect(generatedBlock).toContain("Generated from theme.config.ts");
+    });
+
+    it("should include all brand color CSS variables", () => {
+      Object.values(BRAND_COLOR_CSS_VAR_MAP).forEach((cssVarName) => {
+        expect(generatedBlock).toContain(cssVarName);
+      });
+    });
+
+    it("should be valid CSS that can be prepended to other CSS", () => {
+      // The block should start with :root and end with }
+      expect(generatedBlock.trim()).toMatch(/^:root\s*\{[\s\S]*\}$/);
     });
   });
 
-  describe("CSS parsing validation", () => {
-    it("should find :root block with CSS variables", () => {
-      expect(cssVariables.size).toBeGreaterThan(0);
+  describe("CSS Variable Name Mapping Consistency", () => {
+    it("should map greenDark to --mdb-green-dark", () => {
+      expect(BRAND_COLOR_CSS_VAR_MAP.greenDark).toBe("--mdb-green-dark");
     });
 
-    it("should find all expected MongoDB color variables", () => {
-      const expectedVarCount = Object.keys(BRAND_COLORS).length;
-      const mdbVarCount = Array.from(cssVariables.keys()).filter((name) =>
-        name.startsWith("--mdb-"),
-      ).length;
+    it("should map greenLight to --mdb-green-light", () => {
+      expect(BRAND_COLOR_CSS_VAR_MAP.greenLight).toBe("--mdb-green-light");
+    });
 
-      expect(mdbVarCount).toBe(expectedVarCount);
+    it("should map black to --mdb-black", () => {
+      expect(BRAND_COLOR_CSS_VAR_MAP.black).toBe("--mdb-black");
+    });
+
+    it("should map greyDark1 to --mdb-grey-dark-1", () => {
+      expect(BRAND_COLOR_CSS_VAR_MAP.greyDark1).toBe("--mdb-grey-dark-1");
+    });
+
+    it("should map greyLight1 to --mdb-grey-light-1", () => {
+      expect(BRAND_COLOR_CSS_VAR_MAP.greyLight1).toBe("--mdb-grey-light-1");
+    });
+
+    it("should map greyLight2 to --mdb-grey-light-2", () => {
+      expect(BRAND_COLOR_CSS_VAR_MAP.greyLight2).toBe("--mdb-grey-light-2");
+    });
+
+    it("should map white to --mdb-white", () => {
+      expect(BRAND_COLOR_CSS_VAR_MAP.white).toBe("--mdb-white");
     });
   });
 });

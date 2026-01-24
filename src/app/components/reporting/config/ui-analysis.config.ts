@@ -3,6 +3,8 @@
  * Contains tuning parameters for UI technology analysis and JSP metrics.
  */
 
+import { BADGE_CLASSES } from "./presentation.config";
+
 /**
  * Tag library type enumeration for consistent classification.
  */
@@ -24,12 +26,13 @@ export const TAG_LIBRARY_PATTERNS = {
 
 /**
  * CSS class mappings for tag library badges in the UI.
+ * Uses BADGE_CLASSES from presentation.config.ts as the single source of truth.
  */
 export const TAG_LIBRARY_BADGE_CLASSES: Record<TagLibraryType, string> = {
-  JSTL: "badge-info",
-  Spring: "badge-info",
-  Custom: "badge-warning",
-  Other: "badge-secondary",
+  JSTL: BADGE_CLASSES.INFO,
+  Spring: BADGE_CLASSES.INFO,
+  Custom: BADGE_CLASSES.WARNING,
+  Other: BADGE_CLASSES.SECONDARY,
 } as const;
 
 /**

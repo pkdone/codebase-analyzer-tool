@@ -12,28 +12,23 @@ import { isInStringAt } from "../utils/parser-context-utils";
 /**
  * Consolidated structural sanitizer that handles high-level structural issues and noise.
  *
- * This sanitizer combines the functionality of multiple noise removal sanitizers:
- * - trimWhitespace: Remove leading/trailing whitespace
- * - removeCodeFences: Strip markdown code fences (```json)
- * - removeInvalidPrefixes: Remove invalid prefixes and stray text
- * - fixUnclosedArrays: Fix arrays missing closing brackets before sibling properties
- * - extractLargestJsonSpan: Isolate the main JSON structure from surrounding text
- * - collapseDuplicateJsonObject: Fix cases where LLMs repeat the entire JSON object
- * - removeTruncationMarkers: Remove truncation markers (e.g., ...)
+ * ## Operations Performed
+ * 1. Removes leading/trailing whitespace
+ * 2. Strips markdown code fences (```json)
+ * 3. Removes invalid prefixes and stray introductory text
+ * 4. Fixes arrays missing closing brackets before sibling properties
+ * 5. Isolates the main JSON structure from surrounding text
+ * 6. Collapses cases where LLMs repeat the entire JSON object
+ * 7. Removes truncation markers (e.g., ...)
  *
  * ## Purpose
  * LLMs often include noise, formatting artifacts, and structural issues in their JSON responses.
  * This sanitizer removes these issues in a logical order before more detailed syntax fixes.
  *
  * ## Implementation Order
- * The sanitizers are applied in this order for optimal results:
- * - Trim whitespace (removes leading/trailing noise)
- * - Remove code fences (removes markdown formatting)
- * - Remove invalid prefixes (removes introductory text)
- * - Fix unclosed arrays (must run before delimiter mismatch detection)
- * - Extract largest JSON span (isolates JSON from surrounding text)
- * - Collapse duplicate objects (fixes repeated content)
- * - Remove truncation markers (removes truncation indicators)
+ * Operations are applied in the order listed above for optimal results. Notably,
+ * unclosed array fixes must run before delimiter mismatch detection to prevent
+ * incorrect delimiter corrections that would corrupt the structure.
  *
  * @param input - The raw string content to sanitize
  * @returns Sanitizer result with structural fixes applied

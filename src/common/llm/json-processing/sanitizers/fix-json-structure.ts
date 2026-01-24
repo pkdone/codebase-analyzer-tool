@@ -8,21 +8,16 @@ import { isInStringAt, isInArrayContext } from "../utils/parser-context-utils";
  * This sanitizer handles complex post-processing fixes that are applied after
  * the basic structural fixes (commas, delimiters, truncation) have been handled.
  *
- * This sanitizer combines the functionality of:
- * 1. fixDanglingProperties: Fixes property names without values (inserts `: null`)
- * 2. fixMissingOpeningQuoteInArrayStrings: Fixes missing opening quotes in array string values
- * 3. fixStrayCharsAfterPropertyValues: Removes stray characters after property values
- * 4. fixCorruptedPropertyValuePairs: Fixes corrupted property/value pairs (e.g., `"name":ICCID":`)
- * 5. fixTruncatedValueInArrayElements: Fixes truncated values in array elements
+ * ## Operations Performed
+ * 1. Fixes dangling properties without values by inserting `: null`
+ * 2. Fixes missing opening quotes in array string values
+ * 3. Removes stray characters after property values
+ * 4. Fixes corrupted property/value pairs (e.g., `"name":ICCID":`)
+ * 5. Fixes truncated values in array elements
  *
  * ## Purpose
  * LLMs sometimes generate JSON with advanced structural issues that require
- * context-aware post-processing:
- * - Dangling properties without values
- * - Missing quotes in array strings
- * - Stray characters after property values
- * - Corrupted property/value pairs
- * - Truncated values in array elements
+ * context-aware post-processing.
  *
  * ## Implementation
  * Uses regex-based post-processing passes that analyze the structure context

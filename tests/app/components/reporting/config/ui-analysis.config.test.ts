@@ -5,6 +5,7 @@ import {
   classifyTagLibrary,
   DEBT_THRESHOLDS,
 } from "../../../../../src/app/components/reporting/config/ui-analysis.config";
+import { BADGE_CLASSES } from "../../../../../src/app/components/reporting/config/presentation.config";
 
 describe("DEBT_THRESHOLDS", () => {
   describe("threshold values", () => {
@@ -97,20 +98,40 @@ describe("TAG_LIBRARY_PATTERNS", () => {
 });
 
 describe("TAG_LIBRARY_BADGE_CLASSES", () => {
-  it("should have CSS class for JSTL", () => {
-    expect(TAG_LIBRARY_BADGE_CLASSES.JSTL).toBe("badge-info");
+  describe("class mappings use centralized BADGE_CLASSES", () => {
+    it("should use BADGE_CLASSES.INFO for JSTL", () => {
+      expect(TAG_LIBRARY_BADGE_CLASSES.JSTL).toBe(BADGE_CLASSES.INFO);
+    });
+
+    it("should use BADGE_CLASSES.INFO for Spring", () => {
+      expect(TAG_LIBRARY_BADGE_CLASSES.Spring).toBe(BADGE_CLASSES.INFO);
+    });
+
+    it("should use BADGE_CLASSES.WARNING for Custom", () => {
+      expect(TAG_LIBRARY_BADGE_CLASSES.Custom).toBe(BADGE_CLASSES.WARNING);
+    });
+
+    it("should use BADGE_CLASSES.SECONDARY for Other", () => {
+      expect(TAG_LIBRARY_BADGE_CLASSES.Other).toBe(BADGE_CLASSES.SECONDARY);
+    });
   });
 
-  it("should have CSS class for Spring", () => {
-    expect(TAG_LIBRARY_BADGE_CLASSES.Spring).toBe("badge-info");
-  });
+  describe("class values match expected CSS classes", () => {
+    it("should have CSS class for JSTL", () => {
+      expect(TAG_LIBRARY_BADGE_CLASSES.JSTL).toBe("badge-info");
+    });
 
-  it("should have CSS class for Custom", () => {
-    expect(TAG_LIBRARY_BADGE_CLASSES.Custom).toBe("badge-warning");
-  });
+    it("should have CSS class for Spring", () => {
+      expect(TAG_LIBRARY_BADGE_CLASSES.Spring).toBe("badge-info");
+    });
 
-  it("should have CSS class for Other", () => {
-    expect(TAG_LIBRARY_BADGE_CLASSES.Other).toBe("badge-secondary");
+    it("should have CSS class for Custom", () => {
+      expect(TAG_LIBRARY_BADGE_CLASSES.Custom).toBe("badge-warning");
+    });
+
+    it("should have CSS class for Other", () => {
+      expect(TAG_LIBRARY_BADGE_CLASSES.Other).toBe("badge-secondary");
+    });
   });
 });
 

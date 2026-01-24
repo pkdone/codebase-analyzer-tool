@@ -1,6 +1,7 @@
 import "reflect-metadata";
 import { HtmlReportAssetService } from "../../../../../src/app/components/reporting/services/html-report-asset.service";
 import type { OutputConfigType } from "../../../../../src/app/config/output.config";
+import { generateBrandColorCssBlock } from "../../../../../src/app/config/theme.config";
 
 // Mock fs module
 jest.mock("fs", () => ({
@@ -72,9 +73,63 @@ describe("HtmlReportAssetService", () => {
 
       const result = await service.loadAssets();
 
-      expect(result.inlineCss).toBe(mockCss);
       expect(result.jsonIconSvg).toBe(mockSvg);
       expect(mockReadFile).toHaveBeenCalledTimes(2);
+    });
+
+    it("should prepend brand color CSS variables to loaded CSS", async () => {
+      const mockCss = "body { color: var(--mdb-black); }";
+      const mockSvg = "<svg />";
+      const expectedBrandColorBlock = generateBrandColorCssBlock();
+
+      mockReadFile.mockImplementation(async (filePath: unknown) => {
+        const pathStr = String(filePath);
+        if (pathStr.includes("style.css")) {
+          return mockCss;
+        }
+        if (pathStr.includes("json-icon.svg")) {
+          return mockSvg;
+        }
+        throw new Error(`Unexpected file: ${pathStr}`);
+      });
+
+      const result = await service.loadAssets();
+
+      // CSS should start with generated brand color block
+      expect(result.inlineCss).toContain(expectedBrandColorBlock);
+      // Original CSS should be appended after the brand color block
+      expect(result.inlineCss).toContain(mockCss);
+      // Brand colors should come before the original CSS
+      expect(result.inlineCss.indexOf(expectedBrandColorBlock)).toBeLessThan(
+        result.inlineCss.indexOf(mockCss),
+      );
+    });
+
+    it("should include all brand color CSS variables", async () => {
+      const mockCss = "body {}";
+      const mockSvg = "<svg />";
+
+      mockReadFile.mockImplementation(async (filePath: unknown) => {
+        const pathStr = String(filePath);
+        if (pathStr.includes("style.css")) {
+          return mockCss;
+        }
+        if (pathStr.includes("json-icon.svg")) {
+          return mockSvg;
+        }
+        throw new Error(`Unexpected file: ${pathStr}`);
+      });
+
+      const result = await service.loadAssets();
+
+      // Verify all brand color CSS variables are present
+      expect(result.inlineCss).toContain("--mdb-green-dark");
+      expect(result.inlineCss).toContain("--mdb-green-light");
+      expect(result.inlineCss).toContain("--mdb-black");
+      expect(result.inlineCss).toContain("--mdb-grey-dark-1");
+      expect(result.inlineCss).toContain("--mdb-grey-light-1");
+      expect(result.inlineCss).toContain("--mdb-grey-light-2");
+      expect(result.inlineCss).toContain("--mdb-white");
     });
 
     it("should propagate errors when file read fails", async () => {
