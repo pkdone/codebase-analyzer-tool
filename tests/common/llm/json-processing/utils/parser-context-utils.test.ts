@@ -6,6 +6,7 @@ import {
   isInPropertyContext,
   isInArrayContextSimple,
   isDeepArrayContext,
+  findJsonValueEnd,
 } from "../../../../../src/common/llm/json-processing/utils/parser-context-utils";
 import type { ContextInfo } from "../../../../../src/common/llm/json-processing/sanitizers/rules/replacement-rule.types";
 
@@ -313,6 +314,273 @@ describe("parser-context-utils", () => {
       const content = "[[ ";
       const context = createContext(content, content.length);
       expect(isDeepArrayContext(context)).toBe(true);
+    });
+  });
+
+  // ============================================================================
+  // JSON Value Parsing Utility Tests
+  // ============================================================================
+
+  describe("findJsonValueEnd", () => {
+    describe("object values", () => {
+      it("should find end of simple object", () => {
+        const content = '{"key": "value"}';
+        const result = findJsonValueEnd(content, 0);
+        expect(result.success).toBe(true);
+        expect(result.endPosition).toBe(content.length);
+      });
+
+      it("should find end of nested object", () => {
+        const content = '{"outer": {"inner": "value"}}';
+        const result = findJsonValueEnd(content, 0);
+        expect(result.success).toBe(true);
+        expect(result.endPosition).toBe(content.length);
+      });
+
+      it("should find end of object with strings containing braces", () => {
+        const content = '{"key": "value with { and } braces"}';
+        const result = findJsonValueEnd(content, 0);
+        expect(result.success).toBe(true);
+        expect(result.endPosition).toBe(content.length);
+      });
+
+      it("should find end of object with escaped quotes in strings", () => {
+        const content = '{"key": "value with \\"escaped\\" quotes"}';
+        const result = findJsonValueEnd(content, 0);
+        expect(result.success).toBe(true);
+        expect(result.endPosition).toBe(content.length);
+      });
+
+      it("should find end of deeply nested object", () => {
+        const content = '{"a": {"b": {"c": {"d": "value"}}}}';
+        const result = findJsonValueEnd(content, 0);
+        expect(result.success).toBe(true);
+        expect(result.endPosition).toBe(content.length);
+      });
+
+      it("should handle object with arrays inside", () => {
+        const content = '{"items": [1, 2, 3], "name": "test"}';
+        const result = findJsonValueEnd(content, 0);
+        expect(result.success).toBe(true);
+        expect(result.endPosition).toBe(content.length);
+      });
+
+      it("should return failure for unclosed object", () => {
+        const content = '{"key": "value"';
+        const result = findJsonValueEnd(content, 0);
+        expect(result.success).toBe(false);
+        expect(result.endPosition).toBe(content.length);
+      });
+    });
+
+    describe("array values", () => {
+      it("should find end of simple array", () => {
+        const content = '["item1", "item2"]';
+        const result = findJsonValueEnd(content, 0);
+        expect(result.success).toBe(true);
+        expect(result.endPosition).toBe(content.length);
+      });
+
+      it("should find end of nested array", () => {
+        const content = "[[1, 2], [3, 4]]";
+        const result = findJsonValueEnd(content, 0);
+        expect(result.success).toBe(true);
+        expect(result.endPosition).toBe(content.length);
+      });
+
+      it("should find end of array with strings containing brackets", () => {
+        const content = '["value with [ and ] brackets"]';
+        const result = findJsonValueEnd(content, 0);
+        expect(result.success).toBe(true);
+        expect(result.endPosition).toBe(content.length);
+      });
+
+      it("should find end of array with objects inside", () => {
+        const content = '[{"a": 1}, {"b": 2}]';
+        const result = findJsonValueEnd(content, 0);
+        expect(result.success).toBe(true);
+        expect(result.endPosition).toBe(content.length);
+      });
+
+      it("should return failure for unclosed array", () => {
+        const content = '["item1", "item2"';
+        const result = findJsonValueEnd(content, 0);
+        expect(result.success).toBe(false);
+        expect(result.endPosition).toBe(content.length);
+      });
+    });
+
+    describe("string values", () => {
+      it("should find end of simple string", () => {
+        const content = '"hello world"';
+        const result = findJsonValueEnd(content, 0);
+        expect(result.success).toBe(true);
+        expect(result.endPosition).toBe(content.length);
+      });
+
+      it("should find end of string with escaped quotes", () => {
+        const content = '"hello \\"world\\""';
+        const result = findJsonValueEnd(content, 0);
+        expect(result.success).toBe(true);
+        expect(result.endPosition).toBe(content.length);
+      });
+
+      it("should find end of string with escaped backslashes", () => {
+        const content = '"path\\\\to\\\\file"';
+        const result = findJsonValueEnd(content, 0);
+        expect(result.success).toBe(true);
+        expect(result.endPosition).toBe(content.length);
+      });
+
+      it("should find end of string with unicode escapes", () => {
+        const content = '"hello \\u0041\\u0042"';
+        const result = findJsonValueEnd(content, 0);
+        expect(result.success).toBe(true);
+        expect(result.endPosition).toBe(content.length);
+      });
+
+      it("should find end of empty string", () => {
+        const content = '""';
+        const result = findJsonValueEnd(content, 0);
+        expect(result.success).toBe(true);
+        expect(result.endPosition).toBe(2);
+      });
+
+      it("should return failure for unterminated string", () => {
+        const content = '"hello world';
+        const result = findJsonValueEnd(content, 0);
+        expect(result.success).toBe(false);
+        expect(result.endPosition).toBe(content.length);
+      });
+    });
+
+    describe("primitive values", () => {
+      it("should find end of number", () => {
+        const content = "123, next";
+        const result = findJsonValueEnd(content, 0);
+        expect(result.success).toBe(true);
+        expect(result.endPosition).toBe(3); // Stops at comma
+      });
+
+      it("should find end of negative number", () => {
+        const content = "-456}";
+        const result = findJsonValueEnd(content, 0);
+        expect(result.success).toBe(true);
+        expect(result.endPosition).toBe(4); // Stops at }
+      });
+
+      it("should find end of decimal number", () => {
+        const content = "3.14159]";
+        const result = findJsonValueEnd(content, 0);
+        expect(result.success).toBe(true);
+        expect(result.endPosition).toBe(7); // Stops at ]
+      });
+
+      it("should find end of boolean true", () => {
+        const content = "true, next";
+        const result = findJsonValueEnd(content, 0);
+        expect(result.success).toBe(true);
+        expect(result.endPosition).toBe(4);
+      });
+
+      it("should find end of boolean false", () => {
+        const content = "false}";
+        const result = findJsonValueEnd(content, 0);
+        expect(result.success).toBe(true);
+        expect(result.endPosition).toBe(5);
+      });
+
+      it("should find end of null", () => {
+        const content = "null]";
+        const result = findJsonValueEnd(content, 0);
+        expect(result.success).toBe(true);
+        expect(result.endPosition).toBe(4);
+      });
+    });
+
+    describe("leading whitespace handling", () => {
+      it("should skip leading whitespace for object", () => {
+        const content = '  {"key": "value"}';
+        const result = findJsonValueEnd(content, 0);
+        expect(result.success).toBe(true);
+        expect(result.endPosition).toBe(content.length);
+      });
+
+      it("should skip leading whitespace for array", () => {
+        const content = "\n\t[1, 2, 3]";
+        const result = findJsonValueEnd(content, 0);
+        expect(result.success).toBe(true);
+        expect(result.endPosition).toBe(content.length);
+      });
+
+      it("should skip leading whitespace for string", () => {
+        const content = '   "hello"';
+        const result = findJsonValueEnd(content, 0);
+        expect(result.success).toBe(true);
+        expect(result.endPosition).toBe(content.length);
+      });
+
+      it("should skip leading whitespace for primitive", () => {
+        const content = "  123, next";
+        const result = findJsonValueEnd(content, 0);
+        expect(result.success).toBe(true);
+        expect(result.endPosition).toBe(5); // Position after "123"
+      });
+    });
+
+    describe("starting from non-zero position", () => {
+      it("should find value starting from middle of content", () => {
+        const content = '{"key": "value", "next": "data"}';
+        // Start after "next":  (position 25)
+        const startPos = content.indexOf('"data"');
+        const result = findJsonValueEnd(content, startPos);
+        expect(result.success).toBe(true);
+        expect(result.endPosition).toBe(content.length - 1); // Ends at closing quote of "data"
+      });
+
+      it("should find nested object starting from middle", () => {
+        const content = '{"outer": {"inner": "value"}, "other": 123}';
+        // Start at the inner object
+        const startPos = content.indexOf('{"inner"');
+        const result = findJsonValueEnd(content, startPos);
+        expect(result.success).toBe(true);
+        expect(result.endPosition).toBe(content.indexOf("}") + 1);
+      });
+    });
+
+    describe("edge cases", () => {
+      it("should return failure for empty content", () => {
+        const result = findJsonValueEnd("", 0);
+        expect(result.success).toBe(false);
+        expect(result.endPosition).toBe(0);
+      });
+
+      it("should return failure for whitespace-only content", () => {
+        const result = findJsonValueEnd("   ", 0);
+        expect(result.success).toBe(false);
+        expect(result.endPosition).toBe(3);
+      });
+
+      it("should return failure when start position is beyond content", () => {
+        const content = '{"key": "value"}';
+        const result = findJsonValueEnd(content, 100);
+        expect(result.success).toBe(false);
+        expect(result.endPosition).toBe(100);
+      });
+
+      it("should handle complex nested structure", () => {
+        const content = '{"data": [{"items": [1, 2, {"nested": true}]}, "string"], "end": null}';
+        const result = findJsonValueEnd(content, 0);
+        expect(result.success).toBe(true);
+        expect(result.endPosition).toBe(content.length);
+      });
+
+      it("should handle string with backslash at end", () => {
+        const content = '"test\\\\"';
+        const result = findJsonValueEnd(content, 0);
+        expect(result.success).toBe(true);
+        expect(result.endPosition).toBe(content.length);
+      });
     });
   });
 });

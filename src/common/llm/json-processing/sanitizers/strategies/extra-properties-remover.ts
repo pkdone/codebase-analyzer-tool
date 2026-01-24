@@ -6,7 +6,7 @@
 
 import type { LLMSanitizerConfig } from "../../../config/llm-module-config.types";
 import type { SanitizerStrategy, StrategyResult } from "../pipeline/sanitizer-pipeline.types";
-import { isInStringAt } from "../../utils/parser-context-utils";
+import { findJsonValueEnd, isInStringAt } from "../../utils/parser-context-utils";
 
 /**
  * Checks if a property name looks like an LLM artifact property.
@@ -130,96 +130,26 @@ export const extraPropertiesRemover: SanitizerStrategy = {
         const delimiterStr = match[1] || "";
         const valueStartPos = numericOffset + match[0].length;
 
-        let valueEndPos = valueStartPos;
-        let inString = false;
-        let escaped = false;
-        let braceCount = 0;
-        let bracketCount = 0;
+        // Use the shared utility to find the end of the JSON value
+        const valueEndResult = findJsonValueEnd(sanitized, valueStartPos);
+        let valueEndPos = valueEndResult.endPosition;
 
-        while (valueEndPos < sanitized.length && /\s/.test(sanitized[valueEndPos])) {
-          valueEndPos++;
-        }
-
-        if (valueEndPos >= sanitized.length) {
-          continue;
-        }
-
-        const firstChar = sanitized[valueEndPos];
-        if (firstChar === "{") {
-          braceCount = 1;
-          valueEndPos++;
-          while (braceCount > 0 && valueEndPos < sanitized.length) {
-            if (escaped) {
-              escaped = false;
-            } else if (sanitized[valueEndPos] === "\\") {
-              escaped = true;
-            } else if (sanitized[valueEndPos] === '"') {
-              inString = !inString;
-            } else if (!inString) {
-              if (sanitized[valueEndPos] === "{") {
-                braceCount++;
-              } else if (sanitized[valueEndPos] === "}") {
-                braceCount--;
-              }
-            }
-            valueEndPos++;
-          }
-        } else if (firstChar === '"') {
-          inString = true;
-          valueEndPos++;
-          let foundClosingQuote = false;
-          while (valueEndPos < sanitized.length) {
-            if (escaped) {
-              escaped = false;
-            } else if (sanitized[valueEndPos] === "\\") {
-              escaped = true;
-            } else if (sanitized[valueEndPos] === '"') {
-              inString = false;
-              foundClosingQuote = true;
-              valueEndPos++;
-              break;
-            }
-            valueEndPos++;
-          }
-          if (!foundClosingQuote) {
-            const nextComma = sanitized.indexOf(",", valueStartPos);
-            if (nextComma !== -1) {
-              valueEndPos = nextComma + 1;
-            } else {
-              const nextNewline = sanitized.indexOf("\n", valueStartPos);
-              if (nextNewline !== -1) {
-                valueEndPos = nextNewline;
-              }
-            }
-          }
-        } else if (firstChar === "[") {
-          bracketCount = 1;
-          valueEndPos++;
-          while (bracketCount > 0 && valueEndPos < sanitized.length) {
-            if (escaped) {
-              escaped = false;
-            } else if (sanitized[valueEndPos] === "\\") {
-              escaped = true;
-            } else if (sanitized[valueEndPos] === '"') {
-              inString = !inString;
-            } else if (!inString) {
-              if (sanitized[valueEndPos] === "[") {
-                bracketCount++;
-              } else if (sanitized[valueEndPos] === "]") {
-                bracketCount--;
-              }
-            }
-            valueEndPos++;
-          }
-        } else {
+        // If parsing failed (unterminated string/structure), try fallback to next comma or newline
+        if (!valueEndResult.success) {
           const nextComma = sanitized.indexOf(",", valueStartPos);
           if (nextComma !== -1) {
             valueEndPos = nextComma + 1;
           } else {
-            continue;
+            const nextNewline = sanitized.indexOf("\n", valueStartPos);
+            if (nextNewline !== -1) {
+              valueEndPos = nextNewline;
+            } else {
+              continue;
+            }
           }
         }
 
+        // Skip trailing whitespace and comma
         while (valueEndPos < sanitized.length && /\s/.test(sanitized[valueEndPos])) {
           valueEndPos++;
         }
@@ -290,57 +220,17 @@ export const extraPropertiesRemover: SanitizerStrategy = {
         const delimiterStr = match[1] || "";
         const valueStartPos = numericOffset + match[0].length;
 
-        let valueEndPos = valueStartPos;
-        let inString = false;
-        let escaped = false;
+        // Use the shared utility to find the end of the JSON value
+        const valueEndResult = findJsonValueEnd(sanitized, valueStartPos);
 
-        while (valueEndPos < sanitized.length && /\s/.test(sanitized[valueEndPos])) {
-          valueEndPos++;
-        }
-
-        if (valueEndPos >= sanitized.length) {
+        // If parsing failed, skip this match
+        if (!valueEndResult.success) {
           continue;
         }
 
-        const firstChar = sanitized[valueEndPos];
+        let valueEndPos = valueEndResult.endPosition;
 
-        if (firstChar === "{") {
-          let braceCount = 1;
-          valueEndPos++;
-          while (braceCount > 0 && valueEndPos < sanitized.length) {
-            if (escaped) {
-              escaped = false;
-            } else if (sanitized[valueEndPos] === "\\") {
-              escaped = true;
-            } else if (sanitized[valueEndPos] === '"') {
-              inString = !inString;
-            } else if (!inString) {
-              if (sanitized[valueEndPos] === "{") {
-                braceCount++;
-              } else if (sanitized[valueEndPos] === "}") {
-                braceCount--;
-              }
-            }
-            valueEndPos++;
-          }
-        } else if (firstChar === '"') {
-          inString = true;
-          valueEndPos++;
-          while (inString && valueEndPos < sanitized.length) {
-            if (escaped) {
-              escaped = false;
-            } else if (sanitized[valueEndPos] === "\\") {
-              escaped = true;
-            } else if (sanitized[valueEndPos] === '"') {
-              inString = false;
-            }
-            valueEndPos++;
-          }
-          valueEndPos++;
-        } else {
-          continue;
-        }
-
+        // Skip trailing whitespace and comma
         while (valueEndPos < sanitized.length && /\s/.test(sanitized[valueEndPos])) {
           valueEndPos++;
         }

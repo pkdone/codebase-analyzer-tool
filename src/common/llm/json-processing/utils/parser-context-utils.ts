@@ -221,3 +221,117 @@ export function isDeepArrayContext(context: ContextInfo): boolean {
   }
   return isDirectlyInArrayContext(context.offset, context.fullContent);
 }
+
+// ============================================================================
+// JSON Value Parsing Utilities
+// ============================================================================
+// These utilities are used to find the boundaries of JSON values during
+// sanitization, consolidating common parsing logic in one place.
+
+/**
+ * Result of finding the end of a JSON value.
+ */
+export interface JsonValueEndResult {
+  /** The position immediately after the value ends */
+  endPosition: number;
+  /** Whether the value was successfully parsed (balanced braces/brackets, closed strings) */
+  success: boolean;
+}
+
+/**
+ * Finds the end position of a JSON value starting at the given position.
+ * Handles all JSON value types: objects, arrays, strings, and primitives.
+ * Correctly handles escaped characters within strings.
+ *
+ * This utility consolidates the value-skipping logic used by multiple sanitizers
+ * to avoid code duplication and ensure consistent parsing behavior.
+ *
+ * @param content - The content string to parse
+ * @param startPos - The position where the value starts (may include leading whitespace)
+ * @returns The end position and success status
+ */
+export function findJsonValueEnd(content: string, startPos: number): JsonValueEndResult {
+  let pos = startPos;
+
+  // Skip leading whitespace
+  while (pos < content.length && /\s/.test(content[pos])) {
+    pos++;
+  }
+
+  if (pos >= content.length) {
+    return { endPosition: pos, success: false };
+  }
+
+  const firstChar = content[pos];
+  let inString = false;
+  let escaped = false;
+
+  // Handle object values
+  if (firstChar === "{") {
+    let braceCount = 1;
+    pos++;
+    while (braceCount > 0 && pos < content.length) {
+      if (escaped) {
+        escaped = false;
+      } else if (content[pos] === "\\") {
+        escaped = true;
+      } else if (content[pos] === '"') {
+        inString = !inString;
+      } else if (!inString) {
+        if (content[pos] === "{") {
+          braceCount++;
+        } else if (content[pos] === "}") {
+          braceCount--;
+        }
+      }
+      pos++;
+    }
+    return { endPosition: pos, success: braceCount === 0 };
+  }
+
+  // Handle array values
+  if (firstChar === "[") {
+    let bracketCount = 1;
+    pos++;
+    while (bracketCount > 0 && pos < content.length) {
+      if (escaped) {
+        escaped = false;
+      } else if (content[pos] === "\\") {
+        escaped = true;
+      } else if (content[pos] === '"') {
+        inString = !inString;
+      } else if (!inString) {
+        if (content[pos] === "[") {
+          bracketCount++;
+        } else if (content[pos] === "]") {
+          bracketCount--;
+        }
+      }
+      pos++;
+    }
+    return { endPosition: pos, success: bracketCount === 0 };
+  }
+
+  // Handle string values
+  if (firstChar === '"') {
+    pos++;
+    while (pos < content.length) {
+      if (escaped) {
+        escaped = false;
+      } else if (content[pos] === "\\") {
+        escaped = true;
+      } else if (content[pos] === '"') {
+        pos++;
+        return { endPosition: pos, success: true };
+      }
+      pos++;
+    }
+    return { endPosition: pos, success: false };
+  }
+
+  // Handle primitives (numbers, booleans, null) - read until delimiter
+  while (pos < content.length && !/[,}\]\s]/.test(content[pos])) {
+    pos++;
+  }
+  return { endPosition: pos, success: true };
+}
