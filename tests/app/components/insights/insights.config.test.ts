@@ -62,4 +62,17 @@ describe("summaryCategoriesConfig", () => {
       expect(typeof config.responseSchema.parse).toBe("function");
     });
   });
+
+  it("should have hasComplexSchema defined for all categories", () => {
+    Object.values(appSummaryConfigMap).forEach((config) => {
+      expect(config).toHaveProperty("hasComplexSchema");
+      expect(typeof config.hasComplexSchema).toBe("boolean");
+    });
+  });
+
+  it("should have hasComplexSchema set to false for all categories (simple schemas)", () => {
+    Object.values(appSummaryConfigMap).forEach((config) => {
+      expect(config.hasComplexSchema).toBe(false);
+    });
+  });
 });

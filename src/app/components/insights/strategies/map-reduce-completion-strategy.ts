@@ -237,11 +237,15 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
       const categoryKey = Object.keys(schemaShape)[0] as keyof CategoryInsightResult<C>;
       const combinedData = this.combinePartialResultsData(category, partialResults);
       const content = JSON.stringify(combinedData, null, 2);
-      const { prompt: renderedPrompt } = buildReducePrompt(String(categoryKey), content, schema);
+      const { prompt: renderedPrompt, metadata } = buildReducePrompt(
+        String(categoryKey),
+        content,
+        schema,
+      );
       const result = await this.llmRouter.executeCompletion(`${category}-reduce`, renderedPrompt, {
         outputFormat: LLMOutputFormat.JSON,
         jsonSchema: schema,
-        hasComplexSchema: insightsConfig.IS_COMPLEX_SCHEMA,
+        hasComplexSchema: metadata.hasComplexSchema,
         sanitizerConfig: getLlmArtifactCorrections(),
       });
 

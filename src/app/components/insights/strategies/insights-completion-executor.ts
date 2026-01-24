@@ -9,7 +9,6 @@ import { joinArrayWithSeparators } from "../../../../common/utils/text-utils";
 import { AppSummaryCategoryEnum, type AppSummaryCategorySchemas } from "../insights.types";
 import { getLlmArtifactCorrections } from "../../../llm";
 import { isOk } from "../../../../common/types/result.types";
-import { insightsConfig } from "../insights.config";
 
 /**
  * Options for executing insight completion.
@@ -47,13 +46,18 @@ export async function executeInsightCompletion<C extends AppSummaryCategoryEnum>
   try {
     const taskCategory: string = options?.taskCategory ?? category;
     const codeContent = joinArrayWithSeparators(sourceFileSummaries);
-    const { prompt, schema } = buildInsightPrompt(appSummaryConfigMap, category, codeContent, {
-      forPartialAnalysis: options?.forPartialAnalysis,
-    });
+    const { prompt, schema, metadata } = buildInsightPrompt(
+      appSummaryConfigMap,
+      category,
+      codeContent,
+      {
+        forPartialAnalysis: options?.forPartialAnalysis,
+      },
+    );
     const result = await llmRouter.executeCompletion(taskCategory, prompt, {
       outputFormat: LLMOutputFormat.JSON,
       jsonSchema: schema,
-      hasComplexSchema: insightsConfig.IS_COMPLEX_SCHEMA,
+      hasComplexSchema: metadata.hasComplexSchema,
       sanitizerConfig: getLlmArtifactCorrections(),
     });
 

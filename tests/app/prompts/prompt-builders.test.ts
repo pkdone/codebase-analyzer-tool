@@ -437,8 +437,8 @@ describe("GeneratedPrompt type consistency", () => {
     // Verify GeneratedPrompt structure
     expect(typeof result.prompt).toBe("string");
     expect(result.schema).toBeDefined();
-    // InsightPromptResult has optional metadata
-    expect(result.metadata).toBeUndefined();
+    expect(result.metadata).toBeDefined();
+    expect(typeof result.metadata.hasComplexSchema).toBe("boolean");
   });
 
   test("buildReducePrompt should return consistent GeneratedPrompt structure", () => {
@@ -448,8 +448,8 @@ describe("GeneratedPrompt type consistency", () => {
     // Verify GeneratedPrompt structure
     expect(typeof result.prompt).toBe("string");
     expect(result.schema).toBe(mockSchema);
-    // ReducePromptResult has optional metadata
-    expect(result.metadata).toBeUndefined();
+    expect(result.metadata).toBeDefined();
+    expect(typeof result.metadata.hasComplexSchema).toBe("boolean");
   });
 });
 
@@ -530,5 +530,100 @@ describe("buildInsightPrompt with custom config", () => {
     expect(resultB.prompt).toContain("description B");
     expect(resultB.prompt).toContain("HEADER_B:");
     expect(resultB.schema).toBe(schemaB);
+  });
+});
+
+describe("buildInsightPrompt metadata handling", () => {
+  test("should return metadata with hasComplexSchema from appSummaryConfigMap", () => {
+    const result = buildInsightPrompt(appSummaryConfigMap, "technologies", "test content");
+
+    expect(result.metadata).toBeDefined();
+    expect(result.metadata.hasComplexSchema).toBe(false);
+  });
+
+  test("should use hasComplexSchema from config when set to true", () => {
+    const customSchema = z.object({ items: z.array(z.string()) });
+    const configWithComplexSchema = {
+      technologies: {
+        contentDesc: "test",
+        dataBlockHeader: "TEST",
+        responseSchema: customSchema,
+        instructions: ["Test"],
+        hasComplexSchema: true,
+      },
+    } as unknown as AppSummaryConfigMap;
+
+    const result = buildInsightPrompt(configWithComplexSchema, "technologies", "content");
+
+    expect(result.metadata.hasComplexSchema).toBe(true);
+  });
+
+  test("should default hasComplexSchema to false when not in config", () => {
+    const customSchema = z.object({ items: z.array(z.string()) });
+    const configWithoutFlag = {
+      technologies: {
+        contentDesc: "test",
+        dataBlockHeader: "TEST",
+        responseSchema: customSchema,
+        instructions: ["Test"],
+        // no hasComplexSchema field
+      },
+    } as unknown as AppSummaryConfigMap;
+
+    const result = buildInsightPrompt(configWithoutFlag, "technologies", "content");
+
+    expect(result.metadata.hasComplexSchema).toBe(false);
+  });
+
+  test("should include metadata for all appSummaryConfigMap categories", () => {
+    const categories: (keyof typeof appSummaryConfigMap)[] = [
+      "appDescription",
+      "technologies",
+      "businessProcesses",
+      "boundedContexts",
+      "potentialMicroservices",
+      "inferredArchitecture",
+    ];
+
+    for (const category of categories) {
+      const result = buildInsightPrompt(appSummaryConfigMap, category, "test content");
+      expect(result.metadata).toBeDefined();
+      expect(typeof result.metadata.hasComplexSchema).toBe("boolean");
+    }
+  });
+});
+
+describe("buildReducePrompt metadata handling", () => {
+  const mockSchema = z.object({ items: z.array(z.string()) });
+
+  test("should return metadata with hasComplexSchema defaulting to false", () => {
+    const result = buildReducePrompt("items", "content", mockSchema);
+
+    expect(result.metadata).toBeDefined();
+    expect(result.metadata.hasComplexSchema).toBe(false);
+  });
+
+  test("should use hasComplexSchema from options when set to true", () => {
+    const result = buildReducePrompt("items", "content", mockSchema, { hasComplexSchema: true });
+
+    expect(result.metadata.hasComplexSchema).toBe(true);
+  });
+
+  test("should use hasComplexSchema from options when set to false", () => {
+    const result = buildReducePrompt("items", "content", mockSchema, { hasComplexSchema: false });
+
+    expect(result.metadata.hasComplexSchema).toBe(false);
+  });
+
+  test("should default hasComplexSchema to false when options is undefined", () => {
+    const result = buildReducePrompt("items", "content", mockSchema);
+
+    expect(result.metadata.hasComplexSchema).toBe(false);
+  });
+
+  test("should default hasComplexSchema to false when options.hasComplexSchema is undefined", () => {
+    const result = buildReducePrompt("items", "content", mockSchema, {});
+
+    expect(result.metadata.hasComplexSchema).toBe(false);
   });
 });

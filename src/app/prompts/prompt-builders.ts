@@ -37,21 +37,23 @@ export type SourcePromptResult = GeneratedPrompt<
 
 /**
  * Type alias for insight prompt results.
- * Uses the common GeneratedPrompt type with category-specific schema.
+ * Uses the common GeneratedPrompt type with category-specific schema and required metadata.
  *
  * @template C - The specific category type from AppSummaryConfigMap
  */
 export type InsightPromptResult<C extends keyof AppSummaryConfigMap> = GeneratedPrompt<
   AppSummaryConfigMap[C]["responseSchema"]
->;
+> &
+  Required<Pick<GeneratedPrompt, "metadata">>;
 
 /**
  * Type alias for reduce prompt results.
- * Uses the common GeneratedPrompt type with the provided schema.
+ * Uses the common GeneratedPrompt type with the provided schema and required metadata.
  *
  * @template S - The Zod schema type for validating the LLM response
  */
-export type ReducePromptResult<S extends z.ZodType<unknown>> = GeneratedPrompt<S>;
+export type ReducePromptResult<S extends z.ZodType<unknown>> = GeneratedPrompt<S> &
+  Required<Pick<GeneratedPrompt, "metadata">>;
 
 /**
  * Options for building an insight prompt.
@@ -62,6 +64,17 @@ export interface InsightPromptOptions {
    * When true, a note is prepended indicating this is a partial analysis.
    */
   forPartialAnalysis?: boolean;
+}
+
+/**
+ * Options for building a reduce prompt.
+ */
+export interface ReducePromptOptions {
+  /**
+   * Whether the schema is complex and incompatible with some LLM providers.
+   * Defaults to false if not specified.
+   */
+  hasComplexSchema?: boolean;
 }
 
 /**
@@ -160,9 +173,13 @@ export function buildInsightPrompt<C extends keyof AppSummaryConfigMap>(
     wrapInCodeBlock: false,
     contextNote,
   });
+  // Type assertion needed because config type preserves literal `false` from appSummaryConfigMap,
+  // but tests may pass custom configs without hasComplexSchema. This ensures runtime safety.
+  const hasComplexSchema = (config as { hasComplexSchema?: boolean }).hasComplexSchema ?? false;
   return {
     prompt: promptGenerator.renderPrompt(content),
     schema: config.responseSchema,
+    metadata: { hasComplexSchema },
   };
 }
 
@@ -176,6 +193,7 @@ export function buildInsightPrompt<C extends keyof AppSummaryConfigMap>(
  * @param categoryKey - The key name for the category being reduced (e.g., "technologies")
  * @param content - The JSON stringified combined data from partial results
  * @param schema - The Zod schema for validating the consolidated response
+ * @param options - Optional configuration for the prompt
  * @returns The built prompt with metadata for LLM execution
  *
  * @example
@@ -185,6 +203,7 @@ export function buildInsightPrompt<C extends keyof AppSummaryConfigMap>(
  * const llmResponse = await llmRouter.executeCompletion("technologies-reduce", result.prompt, {
  *   outputFormat: LLMOutputFormat.JSON,
  *   jsonSchema: result.schema,
+ *   hasComplexSchema: result.metadata.hasComplexSchema,
  * });
  * ```
  */
@@ -192,6 +211,7 @@ export function buildReducePrompt<S extends z.ZodType<unknown>>(
   categoryKey: string,
   content: string,
   schema: S,
+  options?: ReducePromptOptions,
 ): ReducePromptResult<S> {
   const promptGenerator = new JSONSchemaPrompt({
     personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
@@ -204,6 +224,7 @@ export function buildReducePrompt<S extends z.ZodType<unknown>>(
   return {
     prompt: promptGenerator.renderPrompt(content),
     schema,
+    metadata: { hasComplexSchema: options?.hasComplexSchema ?? false },
   };
 }
 
