@@ -85,8 +85,7 @@ export class FileSummarizerService {
        * The cast to `PartialSourceSummaryType` is necessary because TypeScript cannot
        * narrow the schema type through the dynamic runtime lookup `fileTypePromptRegistry[canonicalFileType]`.
        * When canonicalFileType is a runtime variable, TypeScript resolves the schema to the union
-       * of all possible schemas across all file types, resulting in an inferred return type of
-       * `unknown` from executeCompletion.
+       * of all possible schemas across all file types.
        *
        * This assertion is TYPE-SAFE because:
        * 1. All schemas in fileTypePromptRegistry are created via `sourceSummarySchema.pick(...)`,
@@ -96,7 +95,7 @@ export class FileSummarizerService {
        * 3. The LLM router validates the response against the specific schema at runtime,
        *    ensuring the data structure matches before reaching this cast.
        */
-      return ok(result.value as unknown as PartialSourceSummaryType);
+      return ok(result.value as PartialSourceSummaryType);
     } catch (error: unknown) {
       const errorMsg = `Failed to generate summary for '${filepath}'`;
       logErr(errorMsg, error);

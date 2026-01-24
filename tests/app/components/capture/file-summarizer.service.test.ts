@@ -3,7 +3,10 @@
  */
 
 import "reflect-metadata";
-import { FileSummarizerService } from "../../../../src/app/components/capture/file-summarizer.service";
+import {
+  FileSummarizerService,
+  type PartialSourceSummaryType,
+} from "../../../../src/app/components/capture/file-summarizer.service";
 import type LLMRouter from "../../../../src/common/llm/llm-router";
 import type { FileTypePromptRegistry } from "../../../../src/app/prompts/sources/sources.definitions";
 import { z } from "zod";
@@ -133,6 +136,57 @@ describe("FileSummarizerService", () => {
           jsonSchema: mockSchema,
         }),
       );
+    });
+
+    it("should return result compatible with PartialSourceSummaryType for partial responses", async () => {
+      // Mock a partial response that only includes some fields from SourceSummaryType
+      // This simulates what happens when different file types return different field subsets
+      const partialResponse = {
+        purpose: "Handles user authentication and session management",
+        implementation: "Uses JWT tokens for stateless authentication",
+        // Note: not all fields included - testing partial compatibility
+      };
+      (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(ok(partialResponse));
+
+      const result = await service.summarize("auth.js", "js", "function authenticate() {}");
+
+      expect(isOk(result)).toBe(true);
+      if (isOk(result)) {
+        // Verify the result is assignable to PartialSourceSummaryType
+        const summary: PartialSourceSummaryType = result.value;
+        expect(summary.purpose).toBe("Handles user authentication and session management");
+        expect(summary.implementation).toBe("Uses JWT tokens for stateless authentication");
+        // Verify optional fields are undefined (not present in partial response)
+        expect(summary.name).toBeUndefined();
+        expect(summary.namespace).toBeUndefined();
+      }
+    });
+
+    it("should return result compatible with PartialSourceSummaryType for full responses", async () => {
+      // Mock a more complete response with additional optional fields
+      const fullResponse = {
+        name: "AuthService",
+        namespace: "com.app.security",
+        kind: "CLASS",
+        purpose: "Handles user authentication",
+        implementation: "Uses JWT tokens",
+        internalReferences: ["UserRepository", "TokenService"],
+        externalReferences: ["jsonwebtoken"],
+      };
+      (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(ok(fullResponse));
+
+      const result = await service.summarize("AuthService.java", "java", "class AuthService {}");
+
+      expect(isOk(result)).toBe(true);
+      if (isOk(result)) {
+        // Verify the result is assignable to PartialSourceSummaryType
+        const summary: PartialSourceSummaryType = result.value;
+        expect(summary.name).toBe("AuthService");
+        expect(summary.namespace).toBe("com.app.security");
+        expect(summary.kind).toBe("CLASS");
+        expect(summary.internalReferences).toEqual(["UserRepository", "TokenService"]);
+        expect(summary.externalReferences).toEqual(["jsonwebtoken"]);
+      }
     });
   });
 });
