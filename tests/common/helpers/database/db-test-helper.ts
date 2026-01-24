@@ -6,6 +6,7 @@ import { coreTokens } from "../../../../src/app/di/tokens";
 import { databaseConfig } from "../../../../src/app/components/database/database.config";
 import { registerAppDependencies } from "../../../../src/app/di/registration-modules";
 import { loadManifestForProviderFamily } from "../../../../src/common/llm/utils/manifest-loader";
+import { getProviderFamilyForModelKey } from "../../../../src/common/llm/utils/model-registry";
 
 // Store client and dbName to be accessible in teardown
 let testMongoClient: MongoClient | null = null;
@@ -16,7 +17,7 @@ let testDbName: string | null = null;
  * Exported for reuse in integration tests that need to create test vectors.
  */
 export async function getVectorDimensions(): Promise<number> {
-  // Parse the LLM_EMBEDDINGS chain to get the first provider family
+  // Parse the LLM_EMBEDDINGS chain to get the first model key
   const embeddingsChain = process.env.LLM_EMBEDDINGS;
   if (!embeddingsChain) {
     console.warn("LLM_EMBEDDINGS environment variable is not set. Using default 1536 dimensions.");
@@ -24,15 +25,17 @@ export async function getVectorDimensions(): Promise<number> {
   }
 
   try {
-    // Extract the first provider family from the chain (format: "ProviderFamily:modelKey")
-    const firstEntry = embeddingsChain.split(",")[0];
-    const [providerFamily] = firstEntry.split(":");
+    // Extract the first model key from the chain
+    const modelKey = embeddingsChain.split(",")[0].trim();
+
+    // Look up the provider family from the model registry
+    const providerFamily = getProviderFamilyForModelKey(modelKey);
 
     const manifest = loadManifestForProviderFamily(providerFamily);
-    // embeddings is now an array - get dimensions from first embedding model
-    const firstEmbedding = manifest.models.embeddings[0];
-    const dimensions = firstEmbedding.dimensions ?? databaseConfig.DEFAULT_VECTOR_DIMENSIONS;
-    console.log(`Using ${dimensions} vector dimensions for provider family: ${providerFamily}`);
+    // Find the specific model in the manifest to get its dimensions
+    const embeddingModel = manifest.models.embeddings.find((m) => m.modelKey === modelKey);
+    const dimensions = embeddingModel?.dimensions ?? databaseConfig.DEFAULT_VECTOR_DIMENSIONS;
+    console.log(`Using ${dimensions} vector dimensions for model: ${modelKey}`);
     return dimensions;
   } catch (error) {
     console.warn(

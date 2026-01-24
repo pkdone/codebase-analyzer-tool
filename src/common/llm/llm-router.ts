@@ -157,7 +157,6 @@ export default class LLMRouter {
    */
   getEmbeddingModelDimensions(): number | undefined {
     if (this.embeddingCandidates.length === 0) return undefined;
-
     const firstEntry = this.modelChain.embeddings[0];
     const provider = this.providerManager.getProvider(firstEntry.providerFamily);
     return provider.getEmbeddingModelDimensions(firstEntry.modelKey);

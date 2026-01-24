@@ -21,10 +21,7 @@ export async function runApplication(taskToken: symbol): Promise<void> {
   }, 30000); // Empty timer every 30 seconds
 
   try {
-    // Bootstrap the DI container
     await bootstrapContainer();
-
-    // Resolve and execute the task
     console.log(`START: ${formatDateForLogging()}`);
     const task = await container.resolve<Task | Promise<Task>>(taskToken);
     await task.execute();
@@ -33,33 +30,27 @@ export async function runApplication(taskToken: symbol): Promise<void> {
     console.error("Application error:", error);
     process.exitCode = 1;
   } finally {
-    // Gracefully shutdown all registered services
     try {
-      // Directly resolve and shutdown MongoDB and LLM components
       if (container.isRegistered(coreTokens.MongoDBConnectionManager)) {
         const mongoConnectionManager = container.resolve<MongoDBConnectionManager>(
           coreTokens.MongoDBConnectionManager,
         );
         await mongoConnectionManager.shutdown();
       }
+
       if (container.isRegistered(llmTokens.LLMRouter)) {
         const llmRouter = container.resolve<LLMRouter>(llmTokens.LLMRouter);
-
-        // Check shutdown behavior BEFORE shutdown (shutdown clears the provider cache,
-        // and getProvidersRequiringProcessExit() would re-instantiate providers if called after)
         const providersRequiringExit = llmRouter.getProvidersRequiringProcessExit();
-
         await llmRouter.shutdown();
 
         // Known Google Cloud Node.js client limitation:
         // VertexAI SDK doesn't have explicit close() method and HTTP connections may persist
-        // This is documented behavior - see: https://github.com/googleapis/nodejs-pubsub/issues/1190
+        // This is documented behavior: https://github.com/googleapis/nodejs-pubsub/issues/1190
         if (providersRequiringExit.length > 0) {
           const providerNames = providersRequiringExit.join(", ");
           console.log(
             `LLM provider(s) require forced exit (${providerNames}) - terminating process`,
           );
-          process.exit(0);
         }
       }
     } catch (shutdownError: unknown) {
