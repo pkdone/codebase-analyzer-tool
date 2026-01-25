@@ -40,7 +40,7 @@ export {
   YAML_CONTENT_RULES,
   EXTRA_PROPERTY_RULES,
   LLM_ARTIFACT_RULES,
-  NATURAL_LANGUAGE_RULES,
+  STRAY_COMMENTARY_RULES,
 } from "./embedded-content";
 
 // Domain-specific rule exports (opt-in for specific use cases)

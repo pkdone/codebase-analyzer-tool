@@ -44,7 +44,7 @@ export class CategorizedSectionDataBuilder {
     appSummaryData: Pick<AppSummaryRecordWithId, AppSummaryCategoryType>,
   ): CategorizedSectionItem[] {
     // Exclude appDescription which is rendered separately in the overview section
-    // Note: boundedContexts is included here because the DomainModelDataProvider needs it
+    // Note: boundedContexts is included here because the DomainModelTransformer needs it
     const standardCategoryKeys = AppSummaryCategories.options.filter(
       (key): key is Exclude<AppSummaryCategoryType, "appDescription"> => key !== "appDescription",
     );

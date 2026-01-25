@@ -7,7 +7,7 @@ import {
   isTextOptions,
 } from "../../../../src/common/llm/types/llm-request.types";
 import { parseAndValidateLLMJson } from "../../../../src/common/llm/json-processing/core/json-processing";
-import { validateJsonWithTransforms } from "../../../../src/common/llm/json-processing/core/json-validating";
+import { repairAndValidateJson } from "../../../../src/common/llm/json-processing/core/json-validating";
 
 /**
  * Integration tests for end-to-end type safety through the LLM call chain.
@@ -32,7 +32,7 @@ describe("LLMRouter Type Safety Integration Tests", () => {
         email: "john@example.com",
       };
 
-      const result = validateJsonWithTransforms(validData, schema);
+      const result = repairAndValidateJson(validData, schema);
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -55,7 +55,7 @@ describe("LLMRouter Type Safety Integration Tests", () => {
         items: ["valid"],
       };
 
-      const result = validateJsonWithTransforms(invalidData, schema);
+      const result = repairAndValidateJson(invalidData, schema);
 
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -117,7 +117,7 @@ describe("LLMRouter Type Safety Integration Tests", () => {
         extraField: null, // Will be transformed
       };
 
-      const result = validateJsonWithTransforms(dataWithNull, schema);
+      const result = repairAndValidateJson(dataWithNull, schema);
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -139,7 +139,7 @@ describe("LLMRouter Type Safety Integration Tests", () => {
         description: undefined,
       };
 
-      const result = validateJsonWithTransforms(dataWithUndefined, schema);
+      const result = repairAndValidateJson(dataWithUndefined, schema);
 
       // Should transform undefined to empty string for required string fields
       if (result.success) {
@@ -173,7 +173,7 @@ describe("LLMRouter Type Safety Integration Tests", () => {
         },
       };
 
-      const result = validateJsonWithTransforms(data, nestedSchema);
+      const result = repairAndValidateJson(data, nestedSchema);
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -203,7 +203,7 @@ describe("LLMRouter Type Safety Integration Tests", () => {
         ],
       };
 
-      const result = validateJsonWithTransforms(data, arraySchema);
+      const result = repairAndValidateJson(data, arraySchema);
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -230,7 +230,7 @@ describe("LLMRouter Type Safety Integration Tests", () => {
         required: "present",
       };
 
-      const result = validateJsonWithTransforms(minimalData, optionalSchema);
+      const result = repairAndValidateJson(minimalData, optionalSchema);
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -255,7 +255,7 @@ describe("LLMRouter Type Safety Integration Tests", () => {
         username: "ab", // Too short
       };
 
-      const result = validateJsonWithTransforms(invalidData, strictSchema);
+      const result = repairAndValidateJson(invalidData, strictSchema);
 
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -279,7 +279,7 @@ describe("LLMRouter Type Safety Integration Tests", () => {
 
       const emptyData = {};
 
-      const result = validateJsonWithTransforms(emptyData, schema);
+      const result = repairAndValidateJson(emptyData, schema);
 
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -304,7 +304,7 @@ describe("LLMRouter Type Safety Integration Tests", () => {
         },
       };
 
-      const result = validateJsonWithTransforms(successData, unionSchema);
+      const result = repairAndValidateJson(successData, unionSchema);
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -327,7 +327,7 @@ describe("LLMRouter Type Safety Integration Tests", () => {
         radius: 10,
       };
 
-      const result = validateJsonWithTransforms(circleData, discriminatedSchema);
+      const result = repairAndValidateJson(circleData, discriminatedSchema);
 
       expect(result.success).toBe(true);
       if (result.success && result.data.kind === "circle") {
@@ -375,7 +375,7 @@ describe("LLMRouter Type Safety Integration Tests", () => {
         },
       };
 
-      const result = validateJsonWithTransforms(apiData, apiResponseSchema);
+      const result = repairAndValidateJson(apiData, apiResponseSchema);
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -427,7 +427,7 @@ describe("LLMRouter Type Safety Integration Tests", () => {
         ],
       };
 
-      const result = validateJsonWithTransforms(entityData, entitySchema);
+      const result = repairAndValidateJson(entityData, entitySchema);
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -454,7 +454,7 @@ describe("LLMRouter Type Safety Integration Tests", () => {
         items: "not an array", // Will be transformed to empty array
       };
 
-      const result = validateJsonWithTransforms(dataRequiringTransforms, schema);
+      const result = repairAndValidateJson(dataRequiringTransforms, schema);
 
       // Transform steps should be tracked
       expect(result.transformRepairs).toBeDefined();
@@ -470,7 +470,7 @@ describe("LLMRouter Type Safety Integration Tests", () => {
         value: "perfect",
       };
 
-      const result = validateJsonWithTransforms(perfectData, schema);
+      const result = repairAndValidateJson(perfectData, schema);
 
       expect(result.success).toBe(true);
       if (result.success) {

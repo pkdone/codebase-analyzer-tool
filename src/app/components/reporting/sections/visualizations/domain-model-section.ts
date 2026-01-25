@@ -2,7 +2,7 @@ import { injectable, inject } from "tsyringe";
 import type { ReportSection } from "../report-section.interface";
 import type { RequestableAppSummaryField } from "../../../../repositories/app-summaries/app-summaries.model";
 import { reportingTokens } from "../../../../di/tokens";
-import { DomainModelDataProvider } from "./domain-model-data-provider";
+import { DomainModelTransformer } from "./domain-model-transformer";
 import { DomainModelDiagramGenerator } from "../../diagrams";
 import type { PreparedHtmlReportData } from "../../types/html-report-data.types";
 import type { PreparedJsonData } from "../../json-report-writer";
@@ -17,8 +17,8 @@ import { SECTION_NAMES } from "../../reporting.constants";
 @injectable()
 export class DomainModelSection implements ReportSection {
   constructor(
-    @inject(reportingTokens.DomainModelDataProvider)
-    private readonly domainModelDataProvider: DomainModelDataProvider,
+    @inject(reportingTokens.DomainModelTransformer)
+    private readonly domainModelTransformer: DomainModelTransformer,
     @inject(reportingTokens.DomainModelDiagramGenerator)
     private readonly domainModelDiagramGenerator: DomainModelDiagramGenerator,
   ) {}
@@ -44,7 +44,7 @@ export class DomainModelSection implements ReportSection {
     _htmlDir: string,
   ): Promise<Partial<PreparedHtmlReportData> | null> {
     // Generate domain model data and diagrams (synchronous - client-side rendering)
-    const domainModelData = this.domainModelDataProvider.getDomainModelData(
+    const domainModelData = this.domainModelTransformer.getDomainModelData(
       baseData.categorizedData,
     );
     const contextDiagramSvgs = this.domainModelDiagramGenerator.generateMultipleContextDiagrams(

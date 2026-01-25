@@ -1,7 +1,7 @@
 import { executeRules } from "../../../../../../../src/common/llm/json-processing/sanitizers/rules/rule-executor";
-import { NATURAL_LANGUAGE_RULES } from "../../../../../../../src/common/llm/json-processing/sanitizers/rules/embedded-content/natural-language-rules";
+import { STRAY_COMMENTARY_RULES } from "../../../../../../../src/common/llm/json-processing/sanitizers/rules/embedded-content/stray-commentary-rules";
 
-describe("NATURAL_LANGUAGE_RULES", () => {
+describe("STRAY_COMMENTARY_RULES", () => {
   describe("genericStrayTextLine", () => {
     it("should remove stray text on its own line", () => {
       const input = `{
@@ -10,7 +10,7 @@ describe("NATURAL_LANGUAGE_RULES", () => {
 trib
   "property": "value"
 }`;
-      const result = executeRules(input, NATURAL_LANGUAGE_RULES);
+      const result = executeRules(input, STRAY_COMMENTARY_RULES);
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"property": "value"');
       expect(result.content).not.toContain("trib");
@@ -23,7 +23,7 @@ trib
 abc
   "next": "value"
 }`;
-      const result = executeRules(input, NATURAL_LANGUAGE_RULES);
+      const result = executeRules(input, STRAY_COMMENTARY_RULES);
       expect(result.changed).toBe(true);
       expect(result.content).not.toContain("\nabc\n");
     });
@@ -32,7 +32,7 @@ abc
       const input = `{
   "enabled": true
 }`;
-      const result = executeRules(input, NATURAL_LANGUAGE_RULES);
+      const result = executeRules(input, STRAY_COMMENTARY_RULES);
       expect(result.content).toContain("true");
     });
 
@@ -43,7 +43,7 @@ abc
 some-stray-text
   "nextProp": {}
 }`;
-      const result = executeRules(input, NATURAL_LANGUAGE_RULES);
+      const result = executeRules(input, STRAY_COMMENTARY_RULES);
       expect(result.changed).toBe(true);
       expect(result.content).not.toContain("some-stray-text");
     });
@@ -57,7 +57,7 @@ some-stray-text
 there are more methods, but I'm stopping here
   "property": "value"
 }`;
-      const result = executeRules(input, NATURAL_LANGUAGE_RULES);
+      const result = executeRules(input, STRAY_COMMENTARY_RULES);
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"property": "value"');
       expect(result.content).not.toContain("there are more");
@@ -70,7 +70,7 @@ there are more methods, but I'm stopping here
 this analysis covers the main patterns found
   "summary": "done"
 }`;
-      const result = executeRules(input, NATURAL_LANGUAGE_RULES);
+      const result = executeRules(input, STRAY_COMMENTARY_RULES);
       expect(result.changed).toBe(true);
       expect(result.content).not.toContain("this analysis");
     });
@@ -83,7 +83,7 @@ shorttext
   "next": {}
 }`;
       // Short text without spaces might not match the sentence pattern
-      const result = executeRules(input, NATURAL_LANGUAGE_RULES);
+      const result = executeRules(input, STRAY_COMMENTARY_RULES);
       // The genericStrayTextLine rule might catch this instead
       expect(result.content).toContain('"next": {}');
     });
@@ -99,7 +99,7 @@ this is some explanatory text here
     "nested": "value"
   }
 }`;
-      const result = executeRules(input, NATURAL_LANGUAGE_RULES);
+      const result = executeRules(input, STRAY_COMMENTARY_RULES);
       expect(result.changed).toBe(true);
       expect(result.content).not.toContain("explanatory text");
     });
@@ -111,7 +111,7 @@ this is some explanatory text here
 additional context for this section
   "nextSection": {}
 }`;
-      const result = executeRules(input, NATURAL_LANGUAGE_RULES);
+      const result = executeRules(input, STRAY_COMMENTARY_RULES);
       expect(result.changed).toBe(true);
       expect(result.content).not.toContain("additional context");
     });
@@ -123,7 +123,7 @@ additional context for this section
 here's the analysis, as requested!
   "result": "done"
 }`;
-      const result = executeRules(input, NATURAL_LANGUAGE_RULES);
+      const result = executeRules(input, STRAY_COMMENTARY_RULES);
       expect(result.changed).toBe(true);
       expect(result.content).not.toContain("as requested");
     });
@@ -136,7 +136,7 @@ here's the analysis, as requested!
 },
 post_max_size = 20M    "purpose": "testing"
 }`;
-      const result = executeRules(input, NATURAL_LANGUAGE_RULES);
+      const result = executeRules(input, STRAY_COMMENTARY_RULES);
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"purpose": "testing"');
       expect(result.content).not.toContain("post_max_size");
@@ -148,7 +148,7 @@ post_max_size = 20M    "purpose": "testing"
 }
 DEBUG_MODE = true    "config": {}
 }`;
-      const result = executeRules(input, NATURAL_LANGUAGE_RULES);
+      const result = executeRules(input, STRAY_COMMENTARY_RULES);
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"config": {}');
       expect(result.content).not.toContain("DEBUG_MODE");
@@ -160,7 +160,7 @@ DEBUG_MODE = true    "config": {}
 ],
 max_connections=100    "settings": "default"
 }`;
-      const result = executeRules(input, NATURAL_LANGUAGE_RULES);
+      const result = executeRules(input, STRAY_COMMENTARY_RULES);
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"settings": "default"');
       expect(result.content).not.toContain("max_connections");
@@ -176,7 +176,7 @@ trib
 there are more methods in this class
   "publicMethods": []
 }`;
-      const result = executeRules(input, NATURAL_LANGUAGE_RULES);
+      const result = executeRules(input, STRAY_COMMENTARY_RULES);
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"publicMethods": []');
       expect(result.content).not.toContain("trib");
@@ -189,7 +189,7 @@ there are more methods in this class
   "description": "A test class with methods",
   "methods": ["method1", "method2"]
 }`;
-      const result = executeRules(input, NATURAL_LANGUAGE_RULES);
+      const result = executeRules(input, STRAY_COMMENTARY_RULES);
       // Valid JSON should not be modified
       expect(result.content).toContain('"description": "A test class with methods"');
       expect(result.content).toContain('"methods": ["method1", "method2"]');
@@ -206,7 +206,7 @@ there are more methods in this class
 the following classes were also identified
   "summary": "Analysis complete"
 }`;
-      const result = executeRules(input, NATURAL_LANGUAGE_RULES);
+      const result = executeRules(input, STRAY_COMMENTARY_RULES);
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"summary": "Analysis complete"');
       expect(result.content).not.toContain("the following classes");

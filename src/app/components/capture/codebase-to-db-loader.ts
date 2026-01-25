@@ -2,7 +2,7 @@ import { injectable, inject } from "tsyringe";
 import type LLMRouter from "../../../common/llm/llm-router";
 import path from "path";
 import { getCanonicalFileType, type FileProcessingRulesType } from "../../config/file-handling";
-import { llmConcurrencyLimiter } from "../../config/concurrency.config";
+import { llmConcurrencyLimiter } from "../../config/llm-concurrency-limiter";
 import { readFile } from "../../../common/fs/file-operations";
 import { findFilesRecursively, sortFilesBySize } from "../../../common/fs/directory-operations";
 import { getFileExtension } from "../../../common/fs/path-utils";

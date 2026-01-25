@@ -1,6 +1,6 @@
 import { LLMOutputFormat, LLMPurpose } from "../../../../src/common/llm/types/llm-request.types";
 import { parseAndValidateLLMJson } from "../../../../src/common/llm/json-processing/core/json-processing";
-import { validateJsonWithTransforms } from "../../../../src/common/llm/json-processing/core/json-validating";
+import { repairAndValidateJson } from "../../../../src/common/llm/json-processing/core/json-validating";
 import { sourceSummarySchema } from "../../../../src/app/schemas/sources.schema";
 import { z } from "zod";
 
@@ -833,12 +833,12 @@ describe("json-tools", () => {
     });
   });
 
-  describe("validateJsonWithTransforms (integration)", () => {
+  describe("repairAndValidateJson (integration)", () => {
     test("should return failure for null content", () => {
       const schema = z.object({ key: z.string() });
       const content = null;
 
-      const result = validateJsonWithTransforms(content, schema);
+      const result = repairAndValidateJson(content, schema);
 
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -854,7 +854,7 @@ describe("json-tools", () => {
         jsonSchema: sourceSummarySchema.pick({ purpose: true }),
       } as any;
 
-      const result = validateJsonWithTransforms(badContent, options.jsonSchema);
+      const result = repairAndValidateJson(badContent, options.jsonSchema);
 
       expect(result.success).toBe(false);
       if (!result.success) {

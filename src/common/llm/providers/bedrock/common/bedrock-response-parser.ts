@@ -107,8 +107,12 @@ interface ResponsePathConfig {
 }
 
 /**
- * Generic helper function to extract completion response data from various Bedrock provider responses.
- * This eliminates code duplication across different Bedrock provider implementations.
+ * Extracts text completion response data from various Bedrock provider responses.
+ * This helper function eliminates code duplication across different Bedrock provider
+ * implementations by providing a unified extraction interface.
+ *
+ * The name "text completion" distinguishes this from embedding extraction, which
+ * returns numeric vectors rather than text content.
  *
  * @param llmResponse The raw LLM response object
  * @param schema The Zod schema to validate the response structure
@@ -116,7 +120,7 @@ interface ResponsePathConfig {
  * @param providerName The name of the provider (for error messages)
  * @returns Standardized LLMImplSpecificResponseSummary object
  */
-export function extractGenericCompletionResponse(
+export function extractTextCompletionResponse(
   llmResponse: unknown,
   schema: z.ZodType,
   pathConfig: ResponsePathConfig,

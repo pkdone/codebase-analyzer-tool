@@ -120,20 +120,25 @@ function applySchemaFixingTransforms(
 }
 
 /**
- * Validates parsed data against a Zod schema, applying schema fixing transforms if initial validation fails.
- * This function encapsulates the test-fix-test pattern: it tries validation first, and if that fails,
- * applies transforms and tries validation again.
+ * Repairs and validates parsed data against a Zod schema.
+ *
+ * This function implements a test-fix-test pattern:
+ * 1. First attempts validation without modifications
+ * 2. If validation fails, applies schema-fixing transforms (coercing types, fixing typos, etc.)
+ * 3. Re-validates after repairs
+ *
+ * IMPORTANT: The data returned may be different from the input data due to repairs.
+ * Repairs include: null→undefined conversion, string→array coercion, typo fixes, etc.
  *
  * The return type is inferred from the provided schema using `z.infer<S>`, ensuring type safety
- * without requiring the caller to explicitly specify the type parameter. The constraint uses
- * z.ZodType<unknown> for consistency across the codebase.
+ * without requiring the caller to explicitly specify the type parameter.
  *
- * @param data - The parsed data to validate
+ * @param data - The parsed data to repair and validate
  * @param jsonSchema - The Zod schema to validate against
  * @param config - Optional sanitizer configuration to pass to transforms
- * @returns A ValidationWithTransformsResult indicating success with validated data and transform repairs, or failure with validation issues and transform repairs
+ * @returns A result indicating success with repaired/validated data and applied repairs, or failure with validation issues
  */
-export function validateJsonWithTransforms<S extends z.ZodType<unknown>>(
+export function repairAndValidateJson<S extends z.ZodType<unknown>>(
   data: unknown,
   jsonSchema: S,
   config?: import("../../config/llm-module-config.types").LLMSanitizerConfig,

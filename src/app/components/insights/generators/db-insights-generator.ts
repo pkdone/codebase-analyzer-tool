@@ -1,7 +1,7 @@
 import { injectable, inject } from "tsyringe";
 import LLMRouter from "../../../../common/llm/llm-router";
 import type { FileProcessingRulesType } from "../../../config/file-handling";
-import { llmConcurrencyLimiter } from "../../../config/concurrency.config";
+import { llmConcurrencyLimiter } from "../../../config/llm-concurrency-limiter";
 import { logErr, logWarn } from "../../../../common/utils/logging";
 import type { AppSummariesRepository } from "../../../repositories/app-summaries/app-summaries.repository.interface";
 import type { SourcesRepository } from "../../../repositories/sources/sources.repository.interface";
@@ -17,7 +17,7 @@ import { getCategoryLabel } from "../../../config/category-labels.config";
 import { AppSummaryCategories } from "../../../schemas/app-summaries.schema";
 import { AppSummaryCategoryEnum } from "../insights.types";
 import type { IInsightGenerationStrategy } from "../strategies/completion-strategy.interface";
-import { chunkTextByTokenLimit } from "../../../../common/llm/utils/text-chunking";
+import { batchItemsByTokenLimit } from "../../../../common/llm/utils/text-chunking";
 
 /**
  * Generates metadata in database collections to capture application information,
@@ -137,7 +137,7 @@ export default class InsightsFromDBGenerator {
 
     try {
       // Determine which strategy to use based on codebase size
-      const summaryChunks = chunkTextByTokenLimit(sourceFileSummaries, {
+      const summaryChunks = batchItemsByTokenLimit(sourceFileSummaries, {
         maxTokens: this.maxTokens,
         chunkTokenLimitRatio: insightsConfig.CHUNK_TOKEN_LIMIT_RATIO,
       });

@@ -65,7 +65,7 @@ describe("CategorizedSectionDataBuilder", () => {
       expect(categoryNames).not.toContain("appDescription");
 
       // Verify that all standard categories are included
-      // boundedContexts is included because DomainModelDataProvider needs it
+      // boundedContexts is included because DomainModelTransformer needs it
       expect(categoryNames).toContain("technologies");
       expect(categoryNames).toContain("businessProcesses");
       expect(categoryNames).toContain("boundedContexts");
@@ -183,7 +183,7 @@ describe("CategorizedSectionDataBuilder", () => {
       );
 
       // Assert - only appDescription should not be in results (it has a dedicated overview section)
-      // boundedContexts IS included because DomainModelDataProvider needs it
+      // boundedContexts IS included because DomainModelTransformer needs it
       const categoryNames = result.map((r: { category: string }) => r.category);
       expect(categoryNames).not.toContain("appDescription");
       expect(categoryNames).toContain("boundedContexts");

@@ -1,12 +1,12 @@
 import { LLMOutputFormat } from "../../../../../src/common/llm/types/llm-request.types";
 import { z } from "zod";
 import {
-  validateJsonWithTransforms,
+  repairAndValidateJson,
   type ValidationWithTransformsResult,
 } from "../../../../../src/common/llm/json-processing/core/json-validating";
 
 describe("json-validating", () => {
-  describe("validateJsonWithTransforms", () => {
+  describe("repairAndValidateJson", () => {
     describe("schema validation", () => {
       it("should validate and return data when schema validation succeeds", () => {
         const schema = z.object({ name: z.string(), age: z.number() });
@@ -16,7 +16,7 @@ describe("json-validating", () => {
           jsonSchema: schema,
         };
 
-        const result = validateJsonWithTransforms(content, options.jsonSchema);
+        const result = repairAndValidateJson(content, options.jsonSchema);
 
         expect(result.success).toBe(true);
         if (result.success) {
@@ -33,7 +33,7 @@ describe("json-validating", () => {
           jsonSchema: schema,
         };
 
-        const result = validateJsonWithTransforms(content, options.jsonSchema);
+        const result = repairAndValidateJson(content, options.jsonSchema);
 
         expect(result.success).toBe(false);
         if (!result.success) {
@@ -51,7 +51,7 @@ describe("json-validating", () => {
           jsonSchema: schema,
         };
 
-        const result = validateJsonWithTransforms(content, options.jsonSchema);
+        const result = repairAndValidateJson(content, options.jsonSchema);
 
         expect(result.success).toBe(false);
         if (!result.success) {
@@ -74,7 +74,7 @@ describe("json-validating", () => {
           jsonSchema: schema,
         };
 
-        const result = validateJsonWithTransforms(null, options.jsonSchema);
+        const result = repairAndValidateJson(null, options.jsonSchema);
 
         expect(result.success).toBe(false);
         if (!result.success) {
@@ -90,7 +90,7 @@ describe("json-validating", () => {
           jsonSchema: schema,
         };
 
-        const result = validateJsonWithTransforms(undefined, options.jsonSchema);
+        const result = repairAndValidateJson(undefined, options.jsonSchema);
 
         expect(result.success).toBe(false);
         if (!result.success) {
@@ -106,7 +106,7 @@ describe("json-validating", () => {
           jsonSchema: schema,
         };
 
-        const result = validateJsonWithTransforms({}, options.jsonSchema);
+        const result = repairAndValidateJson({}, options.jsonSchema);
 
         expect(result.success).toBe(false);
         if (!result.success) {
@@ -121,7 +121,7 @@ describe("json-validating", () => {
           jsonSchema: schema,
         };
 
-        const result = validateJsonWithTransforms([], options.jsonSchema);
+        const result = repairAndValidateJson([], options.jsonSchema);
 
         expect(result.success).toBe(false);
         if (!result.success) {
@@ -140,7 +140,7 @@ describe("json-validating", () => {
         };
 
         // We can't easily test logging, but we can verify the function works
-        const result = validateJsonWithTransforms(content, options.jsonSchema);
+        const result = repairAndValidateJson(content, options.jsonSchema);
 
         expect(result.success).toBe(false);
         if (!result.success) {
@@ -156,7 +156,7 @@ describe("json-validating", () => {
           jsonSchema: schema,
         };
 
-        const result = validateJsonWithTransforms(content, options.jsonSchema);
+        const result = repairAndValidateJson(content, options.jsonSchema);
 
         expect(result.success).toBe(false);
         if (!result.success) {
@@ -177,7 +177,7 @@ describe("json-validating", () => {
           jsonSchema: schema,
         };
 
-        const result = validateJsonWithTransforms(content, options.jsonSchema);
+        const result = repairAndValidateJson(content, options.jsonSchema);
 
         expect(result.success).toBe(true);
         if (result.success) {
@@ -199,7 +199,7 @@ describe("json-validating", () => {
           jsonSchema: schema,
         };
 
-        const result = validateJsonWithTransforms(content, options.jsonSchema);
+        const result = repairAndValidateJson(content, options.jsonSchema);
 
         expect(result.success).toBe(false);
         if (!result.success) {
@@ -230,7 +230,7 @@ describe("json-validating", () => {
         isActive: true,
       };
 
-      const result: ValidationWithTransformsResult<User> = validateJsonWithTransforms(
+      const result: ValidationWithTransformsResult<User> = repairAndValidateJson(
         validData,
         userSchema,
       );
@@ -275,7 +275,7 @@ describe("json-validating", () => {
         },
       };
 
-      const result: ValidationWithTransformsResult<Person> = validateJsonWithTransforms(
+      const result: ValidationWithTransformsResult<Person> = repairAndValidateJson(
         validData,
         personSchema,
       );
@@ -312,7 +312,7 @@ describe("json-validating", () => {
         count: 2,
       };
 
-      const result: ValidationWithTransformsResult<Collection> = validateJsonWithTransforms(
+      const result: ValidationWithTransformsResult<Collection> = repairAndValidateJson(
         validData,
         collectionSchema,
       );
@@ -332,7 +332,7 @@ describe("json-validating", () => {
   });
 
   describe("transform application through public API", () => {
-    it("should apply fixCommonPropertyNameTypos transform via validateJsonWithTransforms", () => {
+    it("should apply fixCommonPropertyNameTypos transform via repairAndValidateJson", () => {
       const schema = z.object({ type: z.string(), name: z.string(), value: z.number() });
       const data = { type_: "string", name_: "test", value: 123 };
       const options = {
@@ -340,7 +340,7 @@ describe("json-validating", () => {
         jsonSchema: schema,
       };
 
-      const result = validateJsonWithTransforms(data, options.jsonSchema);
+      const result = repairAndValidateJson(data, options.jsonSchema);
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -353,7 +353,7 @@ describe("json-validating", () => {
       }
     });
 
-    it("should apply coerceStringToArray transform via validateJsonWithTransforms", () => {
+    it("should apply coerceStringToArray transform via repairAndValidateJson", () => {
       const schema = z.object({
         parameters: z.array(z.unknown()),
         dependencies: z.array(z.unknown()),
@@ -367,7 +367,7 @@ describe("json-validating", () => {
         jsonSchema: schema,
       };
 
-      const result = validateJsonWithTransforms(data, options.jsonSchema, {
+      const result = repairAndValidateJson(data, options.jsonSchema, {
         arrayPropertyNames: ["parameters", "dependencies"],
       });
 
@@ -382,7 +382,7 @@ describe("json-validating", () => {
       }
     });
 
-    it("should track all applied transforms via validateJsonWithTransforms", () => {
+    it("should track all applied transforms via repairAndValidateJson", () => {
       const schema = z.object({
         type: z.string(),
         parameters: z.array(z.unknown()),
@@ -398,7 +398,7 @@ describe("json-validating", () => {
         jsonSchema: schema,
       };
 
-      const result = validateJsonWithTransforms(data, options.jsonSchema, {
+      const result = repairAndValidateJson(data, options.jsonSchema, {
         arrayPropertyNames: ["parameters"],
       });
 
@@ -409,7 +409,7 @@ describe("json-validating", () => {
       }
     });
 
-    it("should handle nested structures via validateJsonWithTransforms", () => {
+    it("should handle nested structures via repairAndValidateJson", () => {
       const schema = z.object({
         level1: z.object({
           type: z.string(),
@@ -429,7 +429,7 @@ describe("json-validating", () => {
         jsonSchema: schema,
       };
 
-      const result = validateJsonWithTransforms(data, options.jsonSchema, {
+      const result = repairAndValidateJson(data, options.jsonSchema, {
         arrayPropertyNames: ["parameters"],
       });
 

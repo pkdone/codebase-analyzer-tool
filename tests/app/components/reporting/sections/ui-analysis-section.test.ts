@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import { UiAnalysisSection } from "../../../../../src/app/components/reporting/sections/ui-analysis/ui-analysis-section";
-import { ServerSideUiDataProvider } from "../../../../../src/app/components/reporting/sections/ui-analysis/server-side-ui-data-provider";
+import { JavaUiTechnologyDataProvider } from "../../../../../src/app/components/reporting/sections/ui-analysis/java-ui-technology-data-provider";
 import type { ReportData } from "../../../../../src/app/components/reporting/report-data.types";
 import type { UiTechnologyAnalysisData } from "../../../../../src/app/components/reporting/sections/ui-analysis/ui-analysis.types";
 import { UNKNOWN_VALUE_PLACEHOLDER } from "../../../../../src/app/components/reporting/config/placeholders.config";
@@ -27,12 +27,12 @@ function createMockUiAnalysisData(
 
 describe("UiAnalysisSection", () => {
   let section: UiAnalysisSection;
-  let mockDataProvider: jest.Mocked<ServerSideUiDataProvider>;
+  let mockDataProvider: jest.Mocked<JavaUiTechnologyDataProvider>;
 
   beforeEach(() => {
     mockDataProvider = {
       getUiTechnologyAnalysis: jest.fn(),
-    } as unknown as jest.Mocked<ServerSideUiDataProvider>;
+    } as unknown as jest.Mocked<JavaUiTechnologyDataProvider>;
 
     section = new UiAnalysisSection(mockDataProvider);
   });

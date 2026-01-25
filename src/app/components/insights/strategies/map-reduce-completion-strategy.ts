@@ -3,7 +3,7 @@ import { z } from "zod";
 import LLMRouter from "../../../../common/llm/llm-router";
 import { LLMOutputFormat } from "../../../../common/llm/types/llm-request.types";
 import { insightsConfig } from "../insights.config";
-import { llmConcurrencyLimiter } from "../../../config/concurrency.config";
+import { llmConcurrencyLimiter } from "../../../config/llm-concurrency-limiter";
 import { getCategoryLabel } from "../../../config/category-labels.config";
 import { logWarn } from "../../../../common/utils/logging";
 import { isNotNull } from "../../../../common/utils/type-guards";
@@ -17,7 +17,7 @@ import {
 } from "../insights.types";
 import { getLlmArtifactCorrections } from "../../../llm";
 import { executeInsightCompletion } from "./insights-completion-executor";
-import { chunkTextByTokenLimit } from "../../../../common/llm/utils/text-chunking";
+import { batchItemsByTokenLimit } from "../../../../common/llm/utils/text-chunking";
 import { isOk } from "../../../../common/types/result.types";
 import { buildReducePrompt } from "../../../prompts/prompt-builders";
 
@@ -51,8 +51,8 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
     try {
       console.log(`  - Using map-reduce strategy for ${categoryLabel}`);
 
-      // 1. Chunk the summaries into token-appropriate sizes
-      const summaryChunks = chunkTextByTokenLimit(sourceFileSummaries, {
+      // 1. Batch the summaries into token-appropriate sizes
+      const summaryChunks = batchItemsByTokenLimit(sourceFileSummaries, {
         maxTokens: this.maxTokens,
         chunkTokenLimitRatio: insightsConfig.CHUNK_TOKEN_LIMIT_RATIO,
       });

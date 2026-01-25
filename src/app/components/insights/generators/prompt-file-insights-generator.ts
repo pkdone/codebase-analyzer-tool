@@ -2,7 +2,7 @@ import path from "path";
 import os from "os";
 import { injectable, inject } from "tsyringe";
 import type { FileProcessingRulesType } from "../../../config/file-handling";
-import { llmConcurrencyLimiter } from "../../../config/concurrency.config";
+import { llmConcurrencyLimiter } from "../../../config/llm-concurrency-limiter";
 import { outputConfig } from "../../../config/output.config";
 import { readFile, writeFile } from "../../../../common/fs/file-operations";
 import {

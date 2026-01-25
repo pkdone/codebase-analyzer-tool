@@ -50,15 +50,9 @@ describe("visualization-data-extractors", () => {
       const item: AppSummaryNameDescArray[0] = {
         name: "UserService",
         description: "User management",
-        entities: [
-          { name: "User", description: "User entity", attributes: ["id", "email"] },
-        ],
-        endpoints: [
-          { path: "/users", method: "GET", description: "List users" },
-        ],
-        operations: [
-          { operation: "createUser", method: "POST", description: "Create user" },
-        ],
+        entities: [{ name: "User", description: "User entity", attributes: ["id", "email"] }],
+        endpoints: [{ path: "/users", method: "GET", description: "List users" }],
+        operations: [{ operation: "createUser", method: "POST", description: "Create user" }],
       };
 
       const result = extractMicroserviceFields(item);
@@ -86,9 +80,7 @@ describe("visualization-data-extractors", () => {
       const item: AppSummaryNameDescArray[0] = {
         name: "TestService",
         description: "Test",
-        entities: [
-          { name: "Entity", description: "Entity without attributes" },
-        ],
+        entities: [{ name: "Entity", description: "Entity without attributes" }],
         endpoints: [],
         operations: [],
       };

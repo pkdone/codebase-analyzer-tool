@@ -15,7 +15,7 @@ import { DatabaseReportDataProvider } from "../../components/reporting/sections/
 import { IntegrationPointsDataProvider } from "../../components/reporting/sections/integration-points/integration-points-data-provider";
 import { AppStatisticsDataProvider } from "../../components/reporting/sections/overview/app-statistics-data-provider";
 import { CategorizedSectionDataBuilder } from "../../components/reporting/data-processing";
-import { DomainModelDataProvider } from "../../components/reporting/sections/visualizations/domain-model-data-provider";
+import { DomainModelTransformer } from "../../components/reporting/sections/visualizations/domain-model-transformer";
 import AppReportGenerator from "../../components/reporting/app-report-generator";
 import { FileTypesSection } from "../../components/reporting/sections/file-types/file-types-section";
 import { DatabaseSection } from "../../components/reporting/sections/database/database-section";
@@ -37,7 +37,7 @@ import { ScheduledJobDataProvider } from "../../components/reporting/sections/ba
 import { ArchitectureAnalysisSection } from "../../components/reporting/sections/architecture-analysis/architecture-analysis-section";
 import { ModuleCouplingDataProvider } from "../../components/reporting/sections/architecture-analysis/module-coupling-data-provider";
 import { UiAnalysisSection } from "../../components/reporting/sections/ui-analysis/ui-analysis-section";
-import { ServerSideUiDataProvider } from "../../components/reporting/sections/ui-analysis/server-side-ui-data-provider";
+import { JavaUiTechnologyDataProvider } from "../../components/reporting/sections/ui-analysis/java-ui-technology-data-provider";
 import { CodeQualitySection } from "../../components/reporting/sections/code-quality/code-quality-section";
 import { CodeQualityDataProvider } from "../../components/reporting/sections/code-quality/code-quality-data-provider";
 
@@ -80,7 +80,7 @@ export function registerReportingComponents(): void {
     reportingTokens.CategorizedSectionDataBuilder,
     CategorizedSectionDataBuilder,
   );
-  container.registerSingleton(reportingTokens.DomainModelDataProvider, DomainModelDataProvider);
+  container.registerSingleton(reportingTokens.DomainModelTransformer, DomainModelTransformer);
   container.registerSingleton(reportingTokens.AppReportGenerator, AppReportGenerator);
 
   // Register data providers for focused sections
@@ -91,7 +91,10 @@ export function registerReportingComponents(): void {
     reportingTokens.ModuleCouplingDataProvider,
     ModuleCouplingDataProvider,
   );
-  container.registerSingleton(reportingTokens.ServerSideUiDataProvider, ServerSideUiDataProvider);
+  container.registerSingleton(
+    reportingTokens.JavaUiTechnologyDataProvider,
+    JavaUiTechnologyDataProvider,
+  );
   console.log("Reporting components registered");
 
   // Register report sections using multi-injection pattern

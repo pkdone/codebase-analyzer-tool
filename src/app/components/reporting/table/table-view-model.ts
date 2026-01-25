@@ -1,9 +1,5 @@
 import { convertToDisplayName } from "../../../../common/utils/text-utils";
-import {
-  formatRow,
-  type ProcessedTableCell,
-  type ProcessedListItem,
-} from "./table-data-formatter";
+import { formatRow, type ProcessedTableCell, type ProcessedListItem } from "./table-data-formatter";
 
 // Re-export formatter types for convenience (used by tests and other consumers)
 export type { ProcessedTableCell, ProcessedListItem };

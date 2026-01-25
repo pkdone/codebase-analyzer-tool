@@ -6,7 +6,7 @@ import { JsonProcessorResult } from "../types/json-processing-result.types";
 import { logWarn } from "../../../utils/logging";
 import { hasSignificantRepairs } from "../utils/repair-analysis";
 import { parseJsonWithSanitizers, type ParseResult } from "./json-parsing";
-import { validateJsonWithTransforms } from "./json-validating";
+import { repairAndValidateJson } from "./json-validating";
 import {
   extractSchemaMetadata,
   schemaMetadataToSanitizerConfig,
@@ -215,11 +215,7 @@ function validateAndBuildResult<S extends z.ZodType<unknown>>(
   config?: LLMSanitizerConfig,
 ): JsonProcessorResult<z.infer<S>> {
   const effectiveConfig = buildEffectiveSanitizerConfig(jsonSchema, config);
-  const validationResult = validateJsonWithTransforms(
-    parseResult.data,
-    jsonSchema,
-    effectiveConfig,
-  );
+  const validationResult = repairAndValidateJson(parseResult.data, jsonSchema, effectiveConfig);
 
   // Validation succeeded.
   if (validationResult.success) {

@@ -4,7 +4,7 @@ import { repositoryTokens } from "../../../../src/app/di/tokens";
 import { reportingTokens } from "../../../../src/app/di/tokens";
 import { SourcesRepository } from "../../../../src/app/repositories/sources/sources.repository.interface";
 import { AppSummariesRepository } from "../../../../src/app/repositories/app-summaries/app-summaries.repository.interface";
-import { ServerSideUiDataProvider } from "../../../../src/app/components/reporting/sections/ui-analysis/server-side-ui-data-provider";
+import { JavaUiTechnologyDataProvider } from "../../../../src/app/components/reporting/sections/ui-analysis/java-ui-technology-data-provider";
 import { SourceRecord } from "../../../../src/app/repositories/sources/sources.model";
 import {
   setupTestDatabase,
@@ -14,7 +14,7 @@ import {
 describe("UI Technology Analysis Integration Test", () => {
   let sourcesRepository: SourcesRepository;
   let appSummaryRepository: AppSummariesRepository;
-  let serverSideUiDataProvider: ServerSideUiDataProvider;
+  let javaUiTechnologyDataProvider: JavaUiTechnologyDataProvider;
   const projectName = `ui-test-project-${Date.now()}`;
 
   beforeAll(async () => {
@@ -25,8 +25,8 @@ describe("UI Technology Analysis Integration Test", () => {
     appSummaryRepository = container.resolve<AppSummariesRepository>(
       repositoryTokens.AppSummariesRepository,
     );
-    serverSideUiDataProvider = container.resolve<ServerSideUiDataProvider>(
-      reportingTokens.ServerSideUiDataProvider,
+    javaUiTechnologyDataProvider = container.resolve<JavaUiTechnologyDataProvider>(
+      reportingTokens.JavaUiTechnologyDataProvider,
     );
   }, 60000);
 
@@ -149,7 +149,8 @@ describe("UI Technology Analysis Integration Test", () => {
     await sourcesRepository.insertSource(testStrutsConfig);
 
     // Act: Run UI analysis aggregation
-    const uiAnalysisResult = await serverSideUiDataProvider.getUiTechnologyAnalysis(projectName);
+    const uiAnalysisResult =
+      await javaUiTechnologyDataProvider.getUiTechnologyAnalysis(projectName);
 
     // Assert: Verify the aggregated results
     expect(uiAnalysisResult.totalJspFiles).toBe(3);
@@ -216,7 +217,7 @@ describe("UI Technology Analysis Integration Test", () => {
     await sourcesRepository.insertSource(testJavaFile);
 
     // Act
-    const result = await serverSideUiDataProvider.getUiTechnologyAnalysis(projectName);
+    const result = await javaUiTechnologyDataProvider.getUiTechnologyAnalysis(projectName);
 
     // Assert: Should return empty/zero results
     expect(result.totalJspFiles).toBe(0);
@@ -268,7 +269,7 @@ describe("UI Technology Analysis Integration Test", () => {
     await sourcesRepository.insertSource(jsfConfig);
 
     // Act
-    const result = await serverSideUiDataProvider.getUiTechnologyAnalysis(projectName);
+    const result = await javaUiTechnologyDataProvider.getUiTechnologyAnalysis(projectName);
 
     // Assert
     expect(result.frameworks).toHaveLength(2);
@@ -306,7 +307,7 @@ describe("UI Technology Analysis Integration Test", () => {
     });
 
     // Act: Run data provider
-    const uiData = await serverSideUiDataProvider.getUiTechnologyAnalysis(projectName);
+    const uiData = await javaUiTechnologyDataProvider.getUiTechnologyAnalysis(projectName);
 
     // Assert: Verify data provider results
     expect(uiData).toBeDefined();

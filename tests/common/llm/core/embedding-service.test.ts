@@ -1,4 +1,7 @@
-import { EmbeddingService, type EmbeddingCandidate } from "../../../../src/common/llm/embedding-service";
+import {
+  EmbeddingService,
+  type EmbeddingCandidate,
+} from "../../../../src/common/llm/embedding-service";
 import type { LLMExecutionPipeline } from "../../../../src/common/llm/llm-execution-pipeline";
 import type { ProviderManager } from "../../../../src/common/llm/provider-manager";
 import type { ResolvedModelChain } from "../../../../src/common/llm/types/llm-model.types";
@@ -28,7 +31,13 @@ describe("EmbeddingService", () => {
 
     modelChain = {
       completions: [{ providerFamily: "OpenAI", modelKey: "gpt-4", modelUrn: "gpt-4" }],
-      embeddings: [{ providerFamily: "OpenAI", modelKey: "text-embedding-ada-002", modelUrn: "text-embedding-ada-002" }],
+      embeddings: [
+        {
+          providerFamily: "OpenAI",
+          modelKey: "text-embedding-ada-002",
+          modelUrn: "text-embedding-ada-002",
+        },
+      ],
     };
 
     embeddingCandidates = [
@@ -152,8 +161,16 @@ describe("EmbeddingService", () => {
       const multiModelChain: ResolvedModelChain = {
         completions: [{ providerFamily: "OpenAI", modelKey: "gpt-4", modelUrn: "gpt-4" }],
         embeddings: [
-          { providerFamily: "OpenAI", modelKey: "text-embedding-ada-002", modelUrn: "text-embedding-ada-002" },
-          { providerFamily: "OpenAI", modelKey: "text-embedding-3-small", modelUrn: "text-embedding-3-small" },
+          {
+            providerFamily: "OpenAI",
+            modelKey: "text-embedding-ada-002",
+            modelUrn: "text-embedding-ada-002",
+          },
+          {
+            providerFamily: "OpenAI",
+            modelKey: "text-embedding-3-small",
+            modelUrn: "text-embedding-3-small",
+          },
         ],
       };
 

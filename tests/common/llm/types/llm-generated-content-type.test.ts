@@ -82,7 +82,7 @@ describe("LLMGeneratedContent Type", () => {
       const _schema = z.object({ id: z.number(), name: z.string() });
       type InferredType = z.infer<typeof _schema>;
 
-      // Simulating what would come from parseAndValidateLLMJson or validateJsonWithTransforms
+      // Simulating what would come from parseAndValidateLLMJson or repairAndValidateJson
       const data: InferredType = { id: 1, name: "test" };
 
       // The inferred type should be assignable to LLMGeneratedContent

@@ -19,8 +19,8 @@ describe("barrel exports", () => {
       expect(visualizationsExports.CurrentArchitectureSection).toBeDefined();
     });
 
-    it("should export DomainModelDataProvider", () => {
-      expect(visualizationsExports.DomainModelDataProvider).toBeDefined();
+    it("should export DomainModelTransformer", () => {
+      expect(visualizationsExports.DomainModelTransformer).toBeDefined();
     });
 
     it("should export co-located data extractors for this section", () => {
@@ -49,7 +49,7 @@ describe("barrel exports", () => {
       expect(exports).toContain("DomainModelSection");
       expect(exports).toContain("MicroservicesArchitectureSection");
       expect(exports).toContain("CurrentArchitectureSection");
-      expect(exports).toContain("DomainModelDataProvider");
+      expect(exports).toContain("DomainModelTransformer");
     });
   });
 

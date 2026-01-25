@@ -321,7 +321,7 @@ describe("Generic Type Safety in parseAndValidateLLMJson", () => {
         anotherOptional: z.number().optional(),
       });
 
-      // Note: Empty objects are rejected by validateJsonWithTransforms early check
+      // Note: Empty objects are rejected by repairAndValidateJson early check
       // So we test with at least one field present
       const jsonContent = '{"optionalField": "value"}';
 

@@ -2,9 +2,9 @@ import { llmProviderConfig } from "../config/llm.config";
 import { logWarn } from "../../utils/logging";
 
 /**
- * Configuration for text chunking based on token limits
+ * Configuration for batching items based on token limits.
  */
-export interface TextChunkingConfig {
+export interface ItemBatchingConfig {
   /** Maximum total tokens available for the LLM */
   maxTokens: number;
   /** Ratio of max tokens to use per chunk (e.g., 0.7 for 70%) */
@@ -14,17 +14,20 @@ export interface TextChunkingConfig {
 }
 
 /**
- * Splits a list of text items into chunks that fit within an LLM's token limit.
- * Uses a conservative ratio of the max token limit to leave room for prompt instructions and response.
+ * Batches a list of text items into groups that fit within an LLM's token limit.
+ * Preserves the integrity of individual items while grouping them into batches.
+ *
+ * Uses a conservative ratio of the max token limit to leave room for prompt
+ * instructions and response.
  *
  * This utility is particularly useful for:
  * - Preparing large codebases for LLM processing
  * - Implementing map-reduce patterns over large text collections
  * - Ensuring prompts don't exceed token limits
  *
- * @param items - Array of text items to chunk
- * @param config - Configuration for chunking behavior
- * @returns Array of arrays, where each inner array is a chunk that fits within token limits
+ * @param items - Array of text items to batch (items are preserved, not split)
+ * @param config - Configuration for batching behavior
+ * @returns Array of batches, where each batch is an array of items that fits within token limits
  *
  * @example
  * ```typescript
@@ -33,13 +36,13 @@ export interface TextChunkingConfig {
  *   maxTokens: 100000,
  *   chunkTokenLimitRatio: 0.7
  * };
- * const chunks = chunkTextByTokenLimit(summaries, config);
- * console.log(`Split into ${chunks.length} chunks`);
+ * const batches = batchItemsByTokenLimit(summaries, config);
+ * console.log(`Split into ${batches.length} batches`);
  * ```
  */
-export function chunkTextByTokenLimit(
+export function batchItemsByTokenLimit(
   items: readonly string[],
-  config: TextChunkingConfig,
+  config: ItemBatchingConfig,
 ): string[][] {
   const chunks: string[][] = [];
   let currentChunk: string[] = [];

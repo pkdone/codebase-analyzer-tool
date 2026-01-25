@@ -3,7 +3,7 @@ import {
   DomainModelSection,
   MicroservicesArchitectureSection,
   CurrentArchitectureSection,
-  DomainModelDataProvider,
+  DomainModelTransformer,
 } from "../../../../../src/app/components/reporting/sections/visualizations";
 import {
   DomainModelDiagramGenerator,
@@ -49,24 +49,24 @@ function createMinimalReportData(categorizedData: CategorizedSectionItem[] = [])
 
 describe("DomainModelSection", () => {
   let section: DomainModelSection;
-  let mockDomainModelDataProvider: jest.Mocked<DomainModelDataProvider>;
+  let mockDomainModelTransformer: jest.Mocked<DomainModelTransformer>;
   let mockDomainModelDiagramGenerator: jest.Mocked<DomainModelDiagramGenerator>;
 
   beforeEach(() => {
-    mockDomainModelDataProvider = {
+    mockDomainModelTransformer = {
       getDomainModelData: jest.fn().mockReturnValue({
         boundedContexts: [],
         aggregates: [],
         entities: [],
         repositories: [],
       }),
-    } as unknown as jest.Mocked<DomainModelDataProvider>;
+    } as unknown as jest.Mocked<DomainModelTransformer>;
 
     mockDomainModelDiagramGenerator = {
       generateMultipleContextDiagrams: jest.fn().mockReturnValue([]),
     } as unknown as jest.Mocked<DomainModelDiagramGenerator>;
 
-    section = new DomainModelSection(mockDomainModelDataProvider, mockDomainModelDiagramGenerator);
+    section = new DomainModelSection(mockDomainModelTransformer, mockDomainModelDiagramGenerator);
   });
 
   describe("getName", () => {
@@ -94,7 +94,7 @@ describe("DomainModelSection", () => {
 
       const result = await section.prepareHtmlData(baseData, {}, "/output");
 
-      expect(mockDomainModelDataProvider.getDomainModelData).toHaveBeenCalledWith(
+      expect(mockDomainModelTransformer.getDomainModelData).toHaveBeenCalledWith(
         baseData.categorizedData,
       );
       expect(mockDomainModelDiagramGenerator.generateMultipleContextDiagrams).toHaveBeenCalled();

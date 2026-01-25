@@ -5,7 +5,7 @@
 export { DomainModelSection } from "./domain-model-section";
 export { MicroservicesArchitectureSection } from "./microservices-architecture-section";
 export { CurrentArchitectureSection } from "./current-architecture-section";
-export { DomainModelDataProvider } from "./domain-model-data-provider";
+export { DomainModelTransformer } from "./domain-model-transformer";
 
 // Domain model types
 export type {
