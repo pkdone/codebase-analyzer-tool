@@ -1,6 +1,5 @@
 import { injectable, inject } from "tsyringe";
-import type { ReportSection } from "../report-section.interface";
-import type { RequestableAppSummaryField } from "../../../../repositories/app-summaries/app-summaries.model";
+import { BaseReportSection } from "../base-report-section";
 import { reportingTokens } from "../../../../di/tokens";
 import { ModuleCouplingDataProvider } from "./module-coupling-data-provider";
 import type { PreparedHtmlReportData } from "../../types/html-report-data.types";
@@ -13,19 +12,16 @@ import { SECTION_NAMES } from "../../reporting.constants";
  * Identifies module dependencies and coupling relationships.
  */
 @injectable()
-export class ArchitectureAnalysisSection implements ReportSection {
+export class ArchitectureAnalysisSection extends BaseReportSection {
   constructor(
     @inject(reportingTokens.ModuleCouplingDataProvider)
     private readonly moduleCouplingDataProvider: ModuleCouplingDataProvider,
-  ) {}
+  ) {
+    super();
+  }
 
   getName(): string {
     return SECTION_NAMES.ARCHITECTURE_ANALYSIS;
-  }
-
-  getRequiredAppSummaryFields(): readonly RequestableAppSummaryField[] {
-    // This section does not require any app summary fields
-    return [];
   }
 
   async getData(projectName: string): Promise<Partial<ReportData>> {
@@ -59,12 +55,6 @@ export class ArchitectureAnalysisSection implements ReportSection {
   }
 
   prepareJsonData(_baseData: ReportData, sectionData: Partial<ReportData>): PreparedJsonData[] {
-    const { moduleCoupling } = sectionData;
-
-    if (moduleCoupling !== undefined) {
-      return [{ filename: "module-coupling.json", data: moduleCoupling }];
-    }
-
-    return [];
+    return this.prepareSingleJsonData(sectionData.moduleCoupling, "module-coupling.json");
   }
 }

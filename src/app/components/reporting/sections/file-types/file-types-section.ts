@@ -1,6 +1,5 @@
 import { injectable, inject } from "tsyringe";
-import type { ReportSection } from "../report-section.interface";
-import type { RequestableAppSummaryField } from "../../../../repositories/app-summaries/app-summaries.model";
+import { BaseReportSection } from "../base-report-section";
 import { repositoryTokens } from "../../../../di/tokens";
 import type { SourcesRepository } from "../../../../repositories/sources/sources.repository.interface";
 import { TableViewModel } from "../../table";
@@ -17,19 +16,16 @@ import { outputConfig } from "../../../../config/output.config";
  * Pie chart is rendered client-side via SVG in the EJS template.
  */
 @injectable()
-export class FileTypesSection implements ReportSection {
+export class FileTypesSection extends BaseReportSection {
   constructor(
     @inject(repositoryTokens.SourcesRepository)
     private readonly sourcesRepository: SourcesRepository,
-  ) {}
+  ) {
+    super();
+  }
 
   getName(): string {
     return SECTION_NAMES.FILE_TYPES;
-  }
-
-  getRequiredAppSummaryFields(): readonly RequestableAppSummaryField[] {
-    // This section does not require any app summary fields
-    return [];
   }
 
   async getData(projectName: string): Promise<Partial<ReportData>> {

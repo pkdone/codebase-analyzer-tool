@@ -1,6 +1,5 @@
 import { injectable, inject } from "tsyringe";
-import type { ReportSection } from "../report-section.interface";
-import type { RequestableAppSummaryField } from "../../../../repositories/app-summaries/app-summaries.model";
+import { BaseReportSection } from "../base-report-section";
 import { reportingTokens } from "../../../../di/tokens";
 import { JavaUiTechnologyDataProvider } from "./java-ui-technology-data-provider";
 import type { PreparedHtmlReportData } from "../../types/html-report-data.types";
@@ -24,19 +23,16 @@ import { UNKNOWN_VALUE_PLACEHOLDER } from "../../config/placeholders.config";
  * Identifies JSP scriptlets, tag libraries, and UI frameworks for technical debt assessment.
  */
 @injectable()
-export class UiAnalysisSection implements ReportSection {
+export class UiAnalysisSection extends BaseReportSection {
   constructor(
     @inject(reportingTokens.JavaUiTechnologyDataProvider)
     private readonly javaUiTechnologyDataProvider: JavaUiTechnologyDataProvider,
-  ) {}
+  ) {
+    super();
+  }
 
   getName(): string {
     return SECTION_NAMES.UI_ANALYSIS;
-  }
-
-  getRequiredAppSummaryFields(): readonly RequestableAppSummaryField[] {
-    // This section does not require any app summary fields
-    return [];
   }
 
   async getData(projectName: string): Promise<Partial<ReportData>> {
@@ -99,14 +95,9 @@ export class UiAnalysisSection implements ReportSection {
   }
 
   prepareJsonData(_baseData: ReportData, sectionData: Partial<ReportData>): PreparedJsonData[] {
-    const { uiTechnologyAnalysis } = sectionData;
-
-    if (uiTechnologyAnalysis !== undefined) {
-      return [
-        { filename: outputConfig.jsonFiles.UI_TECHNOLOGY_ANALYSIS, data: uiTechnologyAnalysis },
-      ];
-    }
-
-    return [];
+    return this.prepareSingleJsonData(
+      sectionData.uiTechnologyAnalysis,
+      outputConfig.jsonFiles.UI_TECHNOLOGY_ANALYSIS,
+    );
   }
 }

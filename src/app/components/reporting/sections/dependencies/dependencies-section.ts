@@ -1,6 +1,5 @@
 import { injectable, inject } from "tsyringe";
-import type { ReportSection } from "../report-section.interface";
-import type { RequestableAppSummaryField } from "../../../../repositories/app-summaries/app-summaries.model";
+import { BaseReportSection } from "../base-report-section";
 import { reportingTokens } from "../../../../di/tokens";
 import { BomDataProvider } from "./bom-data-provider";
 import type { PreparedHtmlReportData } from "../../types/html-report-data.types";
@@ -14,18 +13,15 @@ import { getBomConflictsCssClass } from "../../view-models/presentation-helpers"
  * Provides dependency aggregation and version conflict detection.
  */
 @injectable()
-export class DependenciesSection implements ReportSection {
+export class DependenciesSection extends BaseReportSection {
   constructor(
     @inject(reportingTokens.BomDataProvider) private readonly bomDataProvider: BomDataProvider,
-  ) {}
+  ) {
+    super();
+  }
 
   getName(): string {
     return SECTION_NAMES.DEPENDENCIES;
-  }
-
-  getRequiredAppSummaryFields(): readonly RequestableAppSummaryField[] {
-    // This section does not require any app summary fields
-    return [];
   }
 
   async getData(projectName: string): Promise<Partial<ReportData>> {
@@ -62,12 +58,6 @@ export class DependenciesSection implements ReportSection {
   }
 
   prepareJsonData(_baseData: ReportData, sectionData: Partial<ReportData>): PreparedJsonData[] {
-    const { billOfMaterials } = sectionData;
-
-    if (billOfMaterials) {
-      return [{ filename: "bill-of-materials.json", data: billOfMaterials }];
-    }
-
-    return [];
+    return this.prepareSingleJsonData(sectionData.billOfMaterials, "bill-of-materials.json");
   }
 }

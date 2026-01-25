@@ -1,6 +1,5 @@
 import { injectable, inject } from "tsyringe";
-import type { ReportSection } from "../report-section.interface";
-import type { RequestableAppSummaryField } from "../../../../repositories/app-summaries/app-summaries.model";
+import { BaseReportSection } from "../base-report-section";
 import { reportingTokens } from "../../../../di/tokens";
 import { ScheduledJobDataProvider } from "./job-data-provider";
 import type { PreparedHtmlReportData } from "../../types/html-report-data.types";
@@ -13,19 +12,16 @@ import { SECTION_NAMES } from "../../reporting.constants";
  * Identifies cron jobs, scheduled tasks, JCL, and other automated processes.
  */
 @injectable()
-export class BackgroundProcessesSection implements ReportSection {
+export class BackgroundProcessesSection extends BaseReportSection {
   constructor(
     @inject(reportingTokens.ScheduledJobDataProvider)
     private readonly scheduledJobDataProvider: ScheduledJobDataProvider,
-  ) {}
+  ) {
+    super();
+  }
 
   getName(): string {
     return SECTION_NAMES.BACKGROUND_PROCESSES;
-  }
-
-  getRequiredAppSummaryFields(): readonly RequestableAppSummaryField[] {
-    // This section does not require any app summary fields
-    return [];
   }
 
   async getData(projectName: string): Promise<Partial<ReportData>> {
@@ -59,12 +55,9 @@ export class BackgroundProcessesSection implements ReportSection {
   }
 
   prepareJsonData(_baseData: ReportData, sectionData: Partial<ReportData>): PreparedJsonData[] {
-    const { scheduledJobsSummary } = sectionData;
-
-    if (scheduledJobsSummary !== undefined) {
-      return [{ filename: "scheduled-jobs-summary.json", data: scheduledJobsSummary }];
-    }
-
-    return [];
+    return this.prepareSingleJsonData(
+      sectionData.scheduledJobsSummary,
+      "scheduled-jobs-summary.json",
+    );
   }
 }

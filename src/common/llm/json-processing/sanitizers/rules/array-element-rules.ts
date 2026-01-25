@@ -9,6 +9,7 @@
 
 import type { ReplacementRule } from "./replacement-rule.types";
 import { isInArrayContextSimple, isDeepArrayContext } from "../../utils/parser-context-utils";
+import { safeGroup, safeGroups3, safeGroups4 } from "../../utils/safe-group-extractor";
 
 /**
  * Rules for fixing array element issues in JSON content.
@@ -23,15 +24,11 @@ export const ARRAY_ELEMENT_RULES: readonly ReplacementRule[] = [
       if (!isDeepArrayContext(context)) {
         return null;
       }
-      const [delimiter, whitespace, stringValue] = groups;
-      const delimiterStr = delimiter ?? "";
-      const whitespaceStr = whitespace ?? "";
-      const stringValueStr = stringValue ?? "";
-      return `${delimiterStr}${whitespaceStr}"${stringValueStr}",`;
+      const [delimiter, whitespace, stringValue] = safeGroups3(groups);
+      return `${delimiter}${whitespace}"${stringValue}",`;
     },
     diagnosticMessage: (_match, groups) => {
-      const stringValue = groups[2] ?? "";
-      return `Fixed missing opening quote in array: ${stringValue}" -> "${stringValue}"`;
+      return `Fixed missing opening quote in array: ${safeGroup(groups, 2)}" -> "${safeGroup(groups, 2)}"`;
     },
   },
 
@@ -44,15 +41,11 @@ export const ARRAY_ELEMENT_RULES: readonly ReplacementRule[] = [
       if (!isDeepArrayContext(context)) {
         return null;
       }
-      const [delimiter, whitespace, stringValue] = groups;
-      const delimiterStr = delimiter ?? "";
-      const whitespaceStr = whitespace ?? "";
-      const stringValueStr = stringValue ?? "";
-      return `${delimiterStr}${whitespaceStr}"${stringValueStr}",`;
+      const [delimiter, whitespace, stringValue] = safeGroups3(groups);
+      return `${delimiter}${whitespace}"${stringValue}",`;
     },
     diagnosticMessage: (_match, groups) => {
-      const stringValue = groups[2] ?? "";
-      return `Fixed missing opening quote before array element: ${stringValue}" -> "${stringValue}"`;
+      return `Fixed missing opening quote before array element: ${safeGroup(groups, 2)}" -> "${safeGroup(groups, 2)}"`;
     },
   },
 
@@ -65,11 +58,8 @@ export const ARRAY_ELEMENT_RULES: readonly ReplacementRule[] = [
       if (!isDeepArrayContext(context)) {
         return null;
       }
-      const [delimiter, whitespace, quotedElement] = groups;
-      const delimiterStr = delimiter ?? "";
-      const whitespaceStr = whitespace ?? "";
-      const quotedElementStr = quotedElement ?? "";
-      return `${delimiterStr}${whitespaceStr}${quotedElementStr}`;
+      const [delimiter, whitespace, quotedElement] = safeGroups3(groups);
+      return `${delimiter}${whitespace}${quotedElement}`;
     },
     diagnosticMessage: "Removed minus sign before array element",
   },
@@ -83,10 +73,9 @@ export const ARRAY_ELEMENT_RULES: readonly ReplacementRule[] = [
       if (!isDeepArrayContext(context)) {
         return null;
       }
-      const [prefix, quotedElement] = groups;
-      const prefixStr = prefix ?? "";
-      const quotedElementStr = quotedElement ?? "";
-      return `${prefixStr}${quotedElementStr}`;
+      const prefix = safeGroup(groups, 0);
+      const quotedElement = safeGroup(groups, 1);
+      return `${prefix}${quotedElement}`;
     },
     diagnosticMessage: "Removed markdown list marker (*) from array element",
   },
@@ -110,10 +99,8 @@ export const ARRAY_ELEMENT_RULES: readonly ReplacementRule[] = [
         return null;
       }
 
-      const [stringValue, strayContent, terminator] = groups;
-      const stringValueStr = stringValue ?? "";
-      const strayContentStr = (strayContent ?? "").trim();
-      const terminatorStr = terminator ?? "";
+      const [stringValue, strayContent, terminator] = safeGroups3(groups);
+      const strayContentStr = strayContent.trim();
 
       // Skip if the stray content is empty or just whitespace
       if (!strayContentStr) {
@@ -142,11 +129,11 @@ export const ARRAY_ELEMENT_RULES: readonly ReplacementRule[] = [
         return null;
       }
 
-      return `"${stringValueStr}"${terminatorStr}`;
+      return `"${stringValue}"${terminator}`;
     },
     diagnosticMessage: (_match, groups) => {
-      const stringValue = groups[0] ?? "";
-      const strayContent = (groups[1] ?? "").trim();
+      const stringValue = safeGroup(groups, 0);
+      const strayContent = safeGroup(groups, 1).trim();
       return `Removed stray content '${strayContent}' after string: "${stringValue.substring(0, 30)}..."`;
     },
   },
@@ -158,7 +145,7 @@ export const ARRAY_ELEMENT_RULES: readonly ReplacementRule[] = [
     name: "strayLibraryNameAfterString",
     pattern: /"([^"]+)"\s*,\s*([A-Z][A-Z0-9_.-]{5,50})"\s*([,}\]]|\n|$)/g,
     replacement: (_match, groups, context) => {
-      const strayText = groups[1] ?? "";
+      const [stringValue, strayText, terminator] = safeGroups3(groups);
       // Check if it looks like a library/JAR name
       const looksLikeLibraryName =
         /^[A-Z][A-Z0-9_.-]+$/.test(strayText) &&
@@ -166,8 +153,6 @@ export const ARRAY_ELEMENT_RULES: readonly ReplacementRule[] = [
       if (!looksLikeLibraryName) {
         return null;
       }
-      const stringValue = groups[0] ?? "";
-      const terminator = groups[2] ?? "";
       // Ensure comma if in array context
       const { beforeMatch } = context;
       const isInArray = /\[\s*$/.test(beforeMatch) || /,\s*\n\s*$/.test(beforeMatch);
@@ -175,8 +160,7 @@ export const ARRAY_ELEMENT_RULES: readonly ReplacementRule[] = [
       return `"${stringValue}"${comma}${terminator}`;
     },
     diagnosticMessage: (_match, groups) => {
-      const stringValue = groups[0] ?? "";
-      const strayText = groups[1] ?? "";
+      const [stringValue, strayText] = safeGroups3(groups);
       return `Removed stray library/JAR name '${strayText}' after string: "${stringValue.substring(0, 30)}..."`;
     },
   },
@@ -190,15 +174,12 @@ export const ARRAY_ELEMENT_RULES: readonly ReplacementRule[] = [
       if (!isDeepArrayContext(context)) {
         return null;
       }
-      const [prevValue, whitespace, stringValue, terminator] = groups;
-      const prevValueStr = prevValue ?? "";
-      const whitespaceStr = whitespace ?? "    ";
-      const stringValueStr = stringValue ?? "";
-      const terminatorStr = terminator ?? "";
-      return `"${prevValueStr}",\n${whitespaceStr}"${stringValueStr}"${terminatorStr}`;
+      const [prevValue, whitespace, stringValue, terminator] = safeGroups4(groups);
+      const whitespaceStr = whitespace || "    ";
+      return `"${prevValue}",\n${whitespaceStr}"${stringValue}"${terminator}`;
     },
     diagnosticMessage: (_match, groups) => {
-      const stringValue = groups[2] ?? "";
+      const stringValue = safeGroup(groups, 2);
       return `Fixed missing comma and quote: ${stringValue}" -> "${stringValue}",`;
     },
   },
@@ -212,18 +193,12 @@ export const ARRAY_ELEMENT_RULES: readonly ReplacementRule[] = [
       if (!isInArrayContextSimple(context)) {
         return null;
       }
-      const [delimiter, prefix, middle, suffix] = groups;
-      const delimiterStr = delimiter ?? "";
-      const prefixStr = prefix ?? "";
-      const middleStr = middle ?? "";
-      const suffixStr = suffix ?? "";
-      const fullPath = `${prefixStr}.${middleStr}.${suffixStr}`;
-      return `${delimiterStr},\n    "${fullPath}",\n`;
+      const [delimiter, prefix, middle, suffix] = safeGroups4(groups);
+      const fullPath = `${prefix}.${middle}.${suffix}`;
+      return `${delimiter},\n    "${fullPath}",\n`;
     },
     diagnosticMessage: (_match, groups) => {
-      const prefix = groups[1] ?? "";
-      const middle = groups[2] ?? "";
-      const suffix = groups[3] ?? "";
+      const [, prefix, middle, suffix] = safeGroups4(groups);
       return `Fixed missing comma and quote before array item: ${prefix}.${middle}.${suffix}`;
     },
   },
@@ -237,18 +212,13 @@ export const ARRAY_ELEMENT_RULES: readonly ReplacementRule[] = [
       if (!isInArrayContextSimple(context)) {
         return null;
       }
-      const [delimiter, whitespace, strayPrefix, stringValue] = groups;
-      const delimiterStr = delimiter ?? "";
-      const whitespaceStr = whitespace ?? "";
-      const strayPrefixStr = strayPrefix ?? "";
-      const stringValueStr = stringValue ?? "";
+      const [delimiter, whitespace, strayPrefix, stringValue] = safeGroups4(groups);
       // For package names, we want to keep the full path
-      const fullValue = strayPrefixStr + stringValueStr;
-      return `${delimiterStr}${whitespaceStr}"${fullValue}",`;
+      const fullValue = strayPrefix + stringValue;
+      return `${delimiter}${whitespace}"${fullValue}",`;
     },
     diagnosticMessage: (_match, groups) => {
-      const strayPrefix = groups[2] ?? "";
-      const stringValue = groups[3] ?? "";
+      const [, , strayPrefix, stringValue] = safeGroups4(groups);
       return `Fixed missing quote: ${strayPrefix}${stringValue}" -> "${strayPrefix}${stringValue}"`;
     },
   },
@@ -259,13 +229,12 @@ export const ARRAY_ELEMENT_RULES: readonly ReplacementRule[] = [
     name: "strayTextAfterClosingBracket",
     pattern: /([}\]])\s*]\s*,\s*([a-z_]+)"\s*([,}\]]|\n|$)/g,
     replacement: (_match, groups) => {
-      const [brace, , next] = groups;
-      const braceStr = brace ?? "";
-      const nextStr = next ?? "";
-      return `${braceStr}],${nextStr}`;
+      const brace = safeGroup(groups, 0);
+      const next = safeGroup(groups, 2);
+      return `${brace}],${next}`;
     },
     diagnosticMessage: (_match, groups) => {
-      const strayText = groups[1] ?? "";
+      const strayText = safeGroup(groups, 1);
       return `Removed stray text '${strayText}' after array closing bracket`;
     },
   },
@@ -280,14 +249,13 @@ export const ARRAY_ELEMENT_RULES: readonly ReplacementRule[] = [
       if (!isDeepArrayContext(context)) {
         return null;
       }
-      const [delimiter, whitespace, , stringValue] = groups;
-      const delimiterStr = delimiter ?? "";
-      const whitespaceStr = whitespace ?? "";
-      const stringValueStr = stringValue ?? "";
-      return `${delimiterStr}${whitespaceStr}"${stringValueStr}",`;
+      const delimiter = safeGroup(groups, 0);
+      const whitespace = safeGroup(groups, 1);
+      const stringValue = safeGroup(groups, 3);
+      return `${delimiter}${whitespace}"${stringValue}",`;
     },
     diagnosticMessage: (_match, groups) => {
-      const stringValue = groups[3] ?? "";
+      const stringValue = safeGroup(groups, 3);
       return `Removed non-ASCII characters before array element: "${stringValue.substring(0, 30)}..."`;
     },
   },
@@ -310,14 +278,11 @@ export const ARRAY_ELEMENT_RULES: readonly ReplacementRule[] = [
       if (!isInArrayContextSimple(context)) {
         return null;
       }
-      const [delimiter, whitespace, stringValue] = groups;
-      const delimiterStr = delimiter ?? "";
-      const whitespaceStr = whitespace ?? "";
-      const stringValueStr = stringValue ?? "";
-      return `${delimiterStr}${whitespaceStr}"${stringValueStr}",`;
+      const [delimiter, whitespace, stringValue] = safeGroups3(groups);
+      return `${delimiter}${whitespace}"${stringValue}",`;
     },
     diagnosticMessage: (_match, groups) => {
-      const stringValue = groups[2] ?? "";
+      const stringValue = safeGroup(groups, 2);
       return `Removed 'stop' before array element: "${stringValue.substring(0, 30)}..."`;
     },
   },
@@ -336,10 +301,9 @@ export const ARRAY_ELEMENT_RULES: readonly ReplacementRule[] = [
       if (!/^\s*[}\]]/.test(after) && after.length > 0) {
         return null;
       }
-      const [value, ws] = groups;
-      const valueStr = value ?? "";
-      const wsStr = ws ?? "";
-      return `"${valueStr}"${wsStr}`;
+      const value = safeGroup(groups, 0);
+      const ws = safeGroup(groups, 1);
+      return `"${value}"${ws}`;
     },
     diagnosticMessage: "Removed trailing comma before array closing bracket",
   },
@@ -353,10 +317,9 @@ export const ARRAY_ELEMENT_RULES: readonly ReplacementRule[] = [
       if (!isDeepArrayContext(context)) {
         return null;
       }
-      const [prefix, quotedElement] = groups;
-      const prefixStr = prefix ?? "";
-      const quotedElementStr = quotedElement ?? "";
-      return `${prefixStr}${quotedElementStr}`;
+      const prefix = safeGroup(groups, 0);
+      const quotedElement = safeGroup(groups, 1);
+      return `${prefix}${quotedElement}`;
     },
     diagnosticMessage: "Removed markdown asterisk before array element",
   },
@@ -405,17 +368,16 @@ export const ARRAY_ELEMENT_RULES: readonly ReplacementRule[] = [
       // If we found an array or the context suggests we're in an array, apply the fix
       if (foundArray || isInArray || isDeepArrayContext(context)) {
         // In array context, this should just be the value, not a property
-        const [delimiter, whitespace, , value] = groups;
-        const delimiterStr = delimiter ?? "";
-        const whitespaceStr = whitespace ?? "";
-        const valueStr = value ?? "";
-        return `${delimiterStr}${whitespaceStr}"${valueStr}",`;
+        const delimiter = safeGroup(groups, 0);
+        const whitespace = safeGroup(groups, 1);
+        const value = safeGroup(groups, 3);
+        return `${delimiter}${whitespace}"${value}",`;
       }
 
       return null;
     },
     diagnosticMessage: (_match, groups) => {
-      const value = groups[3] ?? "";
+      const value = safeGroup(groups, 3);
       return `Fixed missing quote: removed property name, kept value "${value}"`;
     },
   },
@@ -427,7 +389,7 @@ export const ARRAY_ELEMENT_RULES: readonly ReplacementRule[] = [
     pattern: /,\s*\n\s*([_][A-Z_]+)\s*=\s*"[^"]*"\s*,?\s*\n/g,
     replacement: () => ",\n",
     diagnosticMessage: (_match, groups) => {
-      const prop = groups[0] ?? "";
+      const prop = safeGroup(groups, 0);
       return `Removed invalid property in array: ${prop}`;
     },
   },
@@ -468,16 +430,15 @@ export const ARRAY_ELEMENT_RULES: readonly ReplacementRule[] = [
       }
 
       if (foundArray || isDeepArrayContext(context)) {
-        const [newline, , quotedElement] = groups;
-        const newlineStr = newline ?? "";
-        const quotedElementStr = quotedElement ?? "";
-        return `${newlineStr}    ${quotedElementStr}`;
+        const newline = safeGroup(groups, 0);
+        const quotedElement = safeGroup(groups, 2);
+        return `${newline}    ${quotedElement}`;
       }
 
       return null;
     },
     diagnosticMessage: (_match, groups) => {
-      const strayChar = groups[1] ?? "";
+      const strayChar = safeGroup(groups, 1);
       return `Removed stray character '${strayChar}' before array element`;
     },
   },

@@ -14,6 +14,7 @@
 import type { ReplacementRule, ContextInfo } from "../replacement-rule.types";
 import { parsingHeuristics } from "../../../constants/json-processing.config";
 import { looksLikeSentenceStructure } from "../../../utils/stray-text-detection";
+import { safeGroup, safeGroups3, safeGroups4 } from "../../../utils/safe-group-extractor";
 
 /**
  * Checks if a context is valid for embedded content removal.
@@ -37,7 +38,7 @@ export const STRAY_COMMENTARY_RULES: readonly ReplacementRule[] = [
     name: "genericStrayTextLine",
     pattern: /([}\],])\s*\n\s*([a-zA-Z_][a-zA-Z0-9_-]{1,30})\s*\n(\s*"|\s*[}\]])/g,
     replacement: (_match, groups) => {
-      const strayText = groups[1] ?? "";
+      const strayText = safeGroup(groups, 1);
       // Check if it looks like stray text
       const jsonKeywords = ["true", "false", "null"];
       if (jsonKeywords.includes(strayText.toLowerCase())) {
@@ -52,13 +53,11 @@ export const STRAY_COMMENTARY_RULES: readonly ReplacementRule[] = [
       if (!isStray) {
         return null;
       }
-      const [delimiter, , continuation] = groups;
-      const delimiterStr = delimiter ?? "";
-      const continuationStr = continuation ?? "";
-      return `${delimiterStr}\n${continuationStr}`;
+      const [delimiter, , continuation] = safeGroups3(groups);
+      return `${delimiter}\n${continuation}`;
     },
     diagnosticMessage: (_match, groups) => {
-      const strayText = groups[1] ?? "";
+      const strayText = safeGroup(groups, 1);
       return `Removed stray text '${strayText}'`;
     },
   },
@@ -69,18 +68,16 @@ export const STRAY_COMMENTARY_RULES: readonly ReplacementRule[] = [
     name: "sentenceLikeTextBeforeProperty",
     pattern: /([}\],])\s*\n\s*([a-z][a-z\s,.'!?-]{10,60})\s*\n(\s*"[a-zA-Z_$])/gi,
     replacement: (_match, groups) => {
-      const sentenceText = (groups[1] ?? "").trim();
+      const sentenceText = safeGroup(groups, 1).trim();
       // Check if it looks like a sentence (contains spaces, doesn't look like JSON)
       if (!sentenceText.includes(" ") || sentenceText.length <= 10) {
         return null;
       }
-      const [delimiter, , continuation] = groups;
-      const delimiterStr = delimiter ?? "";
-      const continuationStr = continuation ?? "";
-      return `${delimiterStr}\n${continuationStr}`;
+      const [delimiter, , continuation] = safeGroups3(groups);
+      return `${delimiter}\n${continuation}`;
     },
     diagnosticMessage: (_match, groups) => {
-      const sentenceText = (groups[1] ?? "").trim().substring(0, 30);
+      const sentenceText = safeGroup(groups, 1).trim().substring(0, 30);
       return `Removed LLM commentary: "${sentenceText}..."`;
     },
   },
@@ -98,20 +95,18 @@ export const STRAY_COMMENTARY_RULES: readonly ReplacementRule[] = [
         return null;
       }
 
-      const strayText = (groups[1] ?? "").trim();
+      const strayText = safeGroup(groups, 1).trim();
 
       // Use structural detection: check if it looks like sentence-like content
       if (!looksLikeSentenceStructure(strayText)) {
         return null;
       }
 
-      const [delimiter, , nextChar] = groups;
-      const delimiterStr = delimiter ?? "";
-      const nextCharStr = nextChar ?? "";
-      return `${delimiterStr}\n${nextCharStr}`;
+      const [delimiter, , nextChar] = safeGroups3(groups);
+      return `${delimiter}\n${nextChar}`;
     },
     diagnosticMessage: (_match, groups) => {
-      const strayText = (groups[1] ?? "").trim();
+      const strayText = safeGroup(groups, 1).trim();
       return `Removed stray text: "${strayText}"`;
     },
   },
@@ -126,15 +121,12 @@ export const STRAY_COMMENTARY_RULES: readonly ReplacementRule[] = [
       if (!isValidEmbeddedContentContext(context)) {
         return null;
       }
-      const [delimiter, whitespace, , propertyWithQuote] = groups;
-      const delimiterStr = delimiter ?? "";
-      const whitespaceStr = whitespace ?? "";
-      const propertyWithQuoteStr = propertyWithQuote ?? "";
-      return `${delimiterStr}${whitespaceStr}${propertyWithQuoteStr}`;
+      const [delimiter, whitespace, , propertyWithQuote] = safeGroups4(groups);
+      return `${delimiter}${whitespace}${propertyWithQuote}`;
     },
     diagnosticMessage: (_match, groups) => {
-      const configText = groups[2] ?? "";
-      const propertyWithQuote = groups[3] ?? "";
+      const configText = safeGroup(groups, 2);
+      const propertyWithQuote = safeGroup(groups, 3);
       return `Removed config text '${configText}' before property: ${propertyWithQuote}`;
     },
   },

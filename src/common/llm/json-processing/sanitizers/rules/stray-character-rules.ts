@@ -14,6 +14,7 @@ import {
 } from "../../utils/parser-context-utils";
 import { isJsonKeyword, looksLikeStrayText } from "../../utils/stray-text-detection";
 import { parsingHeuristics } from "../../constants/json-processing.config";
+import { safeGroup, safeGroups4, safeGroups5 } from "../../utils/safe-group-extractor";
 
 /**
  * Checks if text looks like stray non-JSON content before a property.
@@ -50,21 +51,18 @@ export const STRAY_CHARACTER_RULES: readonly ReplacementRule[] = [
     name: "genericStrayTextBeforeProperty",
     pattern: /([}\],]|\n|^)(\s*)([a-z][a-z\s]{0,40}?)\s*("([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:)/g,
     replacement: (_match, groups) => {
-      const [delimiter, whitespace, strayText, propertyWithQuote] = groups;
-      const delimiterStr = delimiter ?? "";
-      const whitespaceStr = whitespace ?? "";
-      const strayTextStr = (strayText ?? "").trim();
-      const propertyWithQuoteStr = propertyWithQuote ?? "";
+      const [delimiter, whitespace, strayText, propertyWithQuote] = safeGroups4(groups);
+      const strayTextStr = strayText.trim();
 
       // Use structural detection to determine if this is stray text
       if (!looksLikeStrayTextBeforeProperty(strayTextStr)) {
         return null;
       }
 
-      return `${delimiterStr}${whitespaceStr}${propertyWithQuoteStr}`;
+      return `${delimiter}${whitespace}${propertyWithQuote}`;
     },
     diagnosticMessage: (_match, groups) => {
-      const strayText = (groups[2] ?? "").trim();
+      const strayText = safeGroup(groups, 2).trim();
       return `Removed stray text '${strayText}' before property`;
     },
     contextCheck: isAfterJsonDelimiter,
@@ -79,14 +77,13 @@ export const STRAY_CHARACTER_RULES: readonly ReplacementRule[] = [
       if (!isDeepArrayContext(context)) {
         return null;
       }
-      const [prefix, , quotedString] = groups;
-      const prefixStr = prefix ?? "";
-      const quotedStringStr = quotedString ?? "";
-      const cleanPrefix = prefixStr.replace(/\s*$/, "");
-      return `${cleanPrefix}\n    ${quotedStringStr}`;
+      const prefix = safeGroup(groups, 0);
+      const quotedString = safeGroup(groups, 2);
+      const cleanPrefix = prefix.replace(/\s*$/, "");
+      return `${cleanPrefix}\n    ${quotedString}`;
     },
     diagnosticMessage: (_match, groups) => {
-      const strayChar = groups[1] ?? "";
+      const strayChar = safeGroup(groups, 1);
       return `Removed stray character '${strayChar}' before quoted string in array`;
     },
   },
@@ -97,14 +94,13 @@ export const STRAY_CHARACTER_RULES: readonly ReplacementRule[] = [
     name: "singleCharBeforePropertyQuote",
     pattern: /([{,]\s*)([a-z])"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:/g,
     replacement: (_match, groups) => {
-      const [prefix, , propertyName] = groups;
-      const prefixStr = prefix ?? "";
-      const propertyNameStr = propertyName ?? "";
-      return `${prefixStr}"${propertyNameStr}":`;
+      const prefix = safeGroup(groups, 0);
+      const propertyName = safeGroup(groups, 2);
+      return `${prefix}"${propertyName}":`;
     },
     diagnosticMessage: (_match, groups) => {
-      const extraChar = groups[1] ?? "";
-      const propertyName = groups[2] ?? "";
+      const extraChar = safeGroup(groups, 1);
+      const propertyName = safeGroup(groups, 2);
       return `Removed extra character '${extraChar}' before property name "${propertyName}"`;
     },
   },
@@ -119,21 +115,17 @@ export const STRAY_CHARACTER_RULES: readonly ReplacementRule[] = [
       if (!isInArrayContextSimple(context)) {
         return null;
       }
-      const strayPrefix = groups[2] ?? "";
+      const strayPrefix = safeGroup(groups, 2);
       // Skip if the prefix is a JSON keyword
       if (isJsonKeyword(strayPrefix)) {
         return null;
       }
-      const [delimiter, whitespace, , stringValue, terminator] = groups;
-      const delimiterStr = delimiter ?? "";
-      const whitespaceStr = whitespace ?? "";
-      const stringValueStr = stringValue ?? "";
-      const terminatorStr = terminator ?? "";
-      return `${delimiterStr}${whitespaceStr}"${stringValueStr}"${terminatorStr}`;
+      const [delimiter, whitespace, , stringValue, terminator] = safeGroups5(groups);
+      return `${delimiter}${whitespace}"${stringValue}"${terminator}`;
     },
     diagnosticMessage: (_match, groups) => {
-      const prefix = groups[2] ?? "";
-      const stringValue = groups[3] ?? "";
+      const prefix = safeGroup(groups, 2);
+      const stringValue = safeGroup(groups, 3);
       return `Removed '${prefix}' prefix before quoted string: "${stringValue.substring(0, 30)}..."`;
     },
   },
@@ -147,14 +139,13 @@ export const STRAY_CHARACTER_RULES: readonly ReplacementRule[] = [
     name: "genericListMarkerBeforeProperty",
     pattern: /([}\],]|\n|^)(\s*)([^\w\s"'{}[\],:])(?:\s+)("([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:)/g,
     replacement: (_match, groups) => {
-      const [delimiter, whitespace, , propertyWithQuote] = groups;
-      const delimiterStr = delimiter ?? "";
-      const whitespaceStr = whitespace ?? "";
-      const propertyWithQuoteStr = propertyWithQuote ?? "";
-      return `${delimiterStr}${whitespaceStr}${propertyWithQuoteStr}`;
+      const delimiter = safeGroup(groups, 0);
+      const whitespace = safeGroup(groups, 1);
+      const propertyWithQuote = safeGroup(groups, 3);
+      return `${delimiter}${whitespace}${propertyWithQuote}`;
     },
     diagnosticMessage: (_match, groups) => {
-      const marker = groups[2] ?? "";
+      const marker = safeGroup(groups, 2);
       return `Removed list marker '${marker}' before property name`;
     },
     contextCheck: isAfterJsonDelimiter,
@@ -166,17 +157,17 @@ export const STRAY_CHARACTER_RULES: readonly ReplacementRule[] = [
     name: "strayTextAfterBraceComma",
     pattern: /([}\]])\s*,\s*([a-z]{1,5})(\s*[}\]]|\s*\n\s*[{"])/g,
     replacement: (_match, groups) => {
-      const strayText = groups[1] ?? "";
+      const strayText = safeGroup(groups, 1);
       if (isJsonKeyword(strayText)) {
         return null;
       }
-      const delimiter = groups[0] ?? "";
-      const nextToken = groups[2] ?? "";
+      const delimiter = safeGroup(groups, 0);
+      const nextToken = safeGroup(groups, 2);
       return `${delimiter},${nextToken}`;
     },
     diagnosticMessage: (_match, groups) => {
-      const delimiter = groups[0] ?? "";
-      const strayText = groups[1] ?? "";
+      const delimiter = safeGroup(groups, 0);
+      const strayText = safeGroup(groups, 1);
       return `Removed stray text '${strayText}' after ${delimiter}`;
     },
   },
@@ -187,22 +178,21 @@ export const STRAY_CHARACTER_RULES: readonly ReplacementRule[] = [
     name: "strayCharAtLineStartInArray",
     pattern: /([}\],]|\n|^)(\s*)([a-z])\s+("([a-zA-Z0-9_.]+)")/g,
     replacement: (_match, groups, context) => {
-      const strayChar = groups[2] ?? "";
+      const strayChar = safeGroup(groups, 2);
       if (!/^[a-z]$/.test(strayChar)) {
         return null;
       }
       if (!isInArrayContextSimple(context)) {
         return null;
       }
-      const [delimiter, whitespace, , quotedString] = groups;
-      const delimiterStr = delimiter ?? "";
-      const whitespaceStr = whitespace ?? "";
-      const quotedStringStr = quotedString ?? "";
-      return `${delimiterStr}${whitespaceStr}${quotedStringStr}`;
+      const delimiter = safeGroup(groups, 0);
+      const whitespace = safeGroup(groups, 1);
+      const quotedString = safeGroup(groups, 3);
+      return `${delimiter}${whitespace}${quotedString}`;
     },
     diagnosticMessage: (_match, groups) => {
-      const strayChar = groups[2] ?? "";
-      const quotedString = groups[3] ?? "";
+      const strayChar = safeGroup(groups, 2);
+      const quotedString = safeGroup(groups, 3);
       return `Removed stray character '${strayChar}' before array element: ${strayChar} ${quotedString}`;
     },
   },
@@ -220,11 +210,10 @@ export const STRAY_CHARACTER_RULES: readonly ReplacementRule[] = [
       if (afterMatch.trim().length !== 0) {
         return null;
       }
-      const brace = groups[0] ?? "";
-      return brace;
+      return safeGroup(groups, 0);
     },
     diagnosticMessage: (_match, groups) => {
-      const strayText = groups[1] ?? "";
+      const strayText = safeGroup(groups, 1);
       return `Removed stray text after closing brace: ${strayText}`;
     },
   },
@@ -237,13 +226,11 @@ export const STRAY_CHARACTER_RULES: readonly ReplacementRule[] = [
     name: "removePlaceholderText",
     pattern: /([}\],]|\n|^)(\s*)_[A-Z_]+_(\s*)([}\],]|\n|$)/g,
     replacement: (_match, groups) => {
-      const [before, , , after] = groups;
-      const beforeStr = before ?? "";
-      const afterStr = after ?? "";
-      if (beforeStr.includes(",")) {
-        return `${beforeStr}\n${afterStr}`;
+      const [before, , , after] = safeGroups4(groups);
+      if (before.includes(",")) {
+        return `${before}\n${after}`;
       }
-      return `${beforeStr}${afterStr}`;
+      return `${before}${after}`;
     },
     diagnosticMessage: "Removed placeholder text",
   },
@@ -254,10 +241,9 @@ export const STRAY_CHARACTER_RULES: readonly ReplacementRule[] = [
     name: "pythonTripleQuotes",
     pattern: /([}\],]|\n|^)(\s*)(extra_[a-zA-Z_$]+\s*=\s*)?"(""|""")/g,
     replacement: (_match, groups) => {
-      const [delimiter, whitespace] = groups;
-      const delimiterStr = delimiter ?? "";
-      const whitespaceStr = whitespace ?? "";
-      return `${delimiterStr}${whitespaceStr}`;
+      const delimiter = safeGroup(groups, 0);
+      const whitespace = safeGroup(groups, 1);
+      return `${delimiter}${whitespace}`;
     },
     diagnosticMessage: "Removed Python-style triple quotes",
   },
@@ -276,7 +262,7 @@ export const STRAY_CHARACTER_RULES: readonly ReplacementRule[] = [
     name: "corruptedUppercaseIdentifier",
     pattern: /([}\],])\s*\n\s*_[A-Z0-9_]+"\s*,?\s*\n/g,
     replacement: (_match, groups) => {
-      const delimiter = groups[0] ?? "";
+      const delimiter = safeGroup(groups, 0);
       return `${delimiter}\n`;
     },
     diagnosticMessage: "Removed corrupted uppercase identifier reference from array",
@@ -288,13 +274,12 @@ export const STRAY_CHARACTER_RULES: readonly ReplacementRule[] = [
     name: "extraCharBeforeBrace",
     pattern: /([}\],]|\n|^)(\s*)([a-z])\s*{/g,
     replacement: (_match, groups) => {
-      const [delimiter, whitespace] = groups;
-      const delimiterStr = delimiter ?? "";
-      const whitespaceStr = whitespace ?? "";
-      return `${delimiterStr}${whitespaceStr}{`;
+      const delimiter = safeGroup(groups, 0);
+      const whitespace = safeGroup(groups, 1);
+      return `${delimiter}${whitespace}{`;
     },
     diagnosticMessage: (_match, groups) => {
-      const extraChar = groups[2] ?? "";
+      const extraChar = safeGroup(groups, 2);
       return `Removed extra character '${extraChar}' before opening brace`;
     },
     contextCheck: isAfterJsonDelimiter,

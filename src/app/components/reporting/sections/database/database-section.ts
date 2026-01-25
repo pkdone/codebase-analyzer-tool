@@ -1,6 +1,5 @@
 import { injectable, inject } from "tsyringe";
-import type { ReportSection } from "../report-section.interface";
-import type { RequestableAppSummaryField } from "../../../../repositories/app-summaries/app-summaries.model";
+import { BaseReportSection } from "../base-report-section";
 import { reportingTokens } from "../../../../di/tokens";
 import { DatabaseReportDataProvider } from "./database-report-data-provider";
 import { TableViewModel } from "../../table";
@@ -14,19 +13,16 @@ import { outputConfig } from "../../../../config/output.config";
  * Report section for database-related data (interactions, procedures, triggers).
  */
 @injectable()
-export class DatabaseSection implements ReportSection {
+export class DatabaseSection extends BaseReportSection {
   constructor(
     @inject(reportingTokens.DatabaseReportDataProvider)
     private readonly databaseDataProvider: DatabaseReportDataProvider,
-  ) {}
+  ) {
+    super();
+  }
 
   getName(): string {
     return SECTION_NAMES.DATABASE;
-  }
-
-  getRequiredAppSummaryFields(): readonly RequestableAppSummaryField[] {
-    // This section does not require any app summary fields
-    return [];
   }
 
   async getData(projectName: string): Promise<Partial<ReportData>> {

@@ -1,6 +1,7 @@
 import { Sanitizer, SanitizerResult } from "./sanitizers-types";
 import { REPAIR_STEP } from "../constants/repair-steps.config";
 import { logWarn } from "../../../utils/logging";
+import { createStringStateTracker } from "../utils/string-state-iterator";
 
 /**
  * Replacement pattern tuple: [RegExp, replacement string, description]
@@ -358,62 +359,37 @@ export const normalizeCharacters: Sanitizer = (input: string): SanitizerResult =
     // Fourth pass: fix any invalid escapes that may have been created by over-escape fixes
     // (e.g., \0 is not valid JSON, should be \u0000)
     // This is a simplified version that only handles \0 since it's the main case
+    // Uses the StringStateTracker for cleaner state management
     const finalResult = result;
-    let inStringFinal = false;
-    let escapeNextFinal = false;
     let fixedNullEscapes = 0;
-    let iFinal = 0;
     let outputFinal = "";
 
-    while (iFinal < finalResult.length) {
-      const charFinal = finalResult[iFinal];
+    const tracker = createStringStateTracker(finalResult);
 
-      if (escapeNextFinal) {
-        outputFinal += charFinal;
-        escapeNextFinal = false;
-        iFinal++;
-        continue;
-      }
+    while (tracker.position < tracker.length) {
+      const state = tracker.getCurrentState();
+      if (!state) break;
 
-      if (charFinal === "\\") {
-        if (iFinal + 1 < finalResult.length) {
-          const nextCharFinal = finalResult[iFinal + 1];
-          if (inStringFinal && nextCharFinal === "0") {
+      const { char, index, inString, nextChar } = state;
+
+      if (char === "\\") {
+        if (nextChar !== undefined) {
+          if (inString && nextChar === "0") {
             // Convert \0 to \u0000 (valid JSON)
             outputFinal += "\\u0000";
-            iFinal += 2;
+            tracker.advanceTo(index + 2); // Skip both \ and 0
             fixedNullEscapes++;
             hasChanges = true;
             continue;
           }
-          outputFinal += charFinal;
-          if (inStringFinal && '"\\/bfnrtu'.includes(nextCharFinal)) {
-            escapeNextFinal = true;
-          }
-        } else {
-          outputFinal += charFinal;
         }
-        iFinal++;
+        outputFinal += char;
+        tracker.advance();
         continue;
       }
 
-      if (charFinal === '"') {
-        let backslashCountFinal = 0;
-        let jFinal = iFinal - 1;
-        while (jFinal >= 0 && finalResult[jFinal] === "\\") {
-          backslashCountFinal++;
-          jFinal--;
-        }
-        if (backslashCountFinal % 2 === 0) {
-          inStringFinal = !inStringFinal;
-        }
-        outputFinal += charFinal;
-        iFinal++;
-        continue;
-      }
-
-      outputFinal += charFinal;
-      iFinal++;
+      outputFinal += char;
+      tracker.advance();
     }
 
     if (fixedNullEscapes > 0) {

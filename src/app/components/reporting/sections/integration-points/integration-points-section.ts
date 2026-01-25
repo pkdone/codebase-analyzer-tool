@@ -1,6 +1,5 @@
 import { injectable, inject } from "tsyringe";
-import type { ReportSection } from "../report-section.interface";
-import type { RequestableAppSummaryField } from "../../../../repositories/app-summaries/app-summaries.model";
+import { BaseReportSection } from "../base-report-section";
 import { reportingTokens } from "../../../../di/tokens";
 import { IntegrationPointsDataProvider } from "./integration-points-data-provider";
 import { TableViewModel } from "../../table";
@@ -14,19 +13,16 @@ import { outputConfig } from "../../../../config/output.config";
  * Report section for integration points (APIs, queues, topics, SOAP services).
  */
 @injectable()
-export class IntegrationPointsSection implements ReportSection {
+export class IntegrationPointsSection extends BaseReportSection {
   constructor(
     @inject(reportingTokens.IntegrationPointsDataProvider)
     private readonly integrationPointsDataProvider: IntegrationPointsDataProvider,
-  ) {}
+  ) {
+    super();
+  }
 
   getName(): string {
     return SECTION_NAMES.INTEGRATION_POINTS;
-  }
-
-  getRequiredAppSummaryFields(): readonly RequestableAppSummaryField[] {
-    // This section does not require any app summary fields
-    return [];
   }
 
   async getData(projectName: string): Promise<Partial<ReportData>> {
@@ -56,17 +52,9 @@ export class IntegrationPointsSection implements ReportSection {
   }
 
   prepareJsonData(_baseData: ReportData, sectionData: Partial<ReportData>): PreparedJsonData[] {
-    const { integrationPoints } = sectionData;
-
-    if (!integrationPoints) {
-      return [];
-    }
-
-    return [
-      {
-        filename: outputConfig.jsonFiles.INTEGRATION_POINTS,
-        data: integrationPoints,
-      },
-    ];
+    return this.prepareSingleJsonData(
+      sectionData.integrationPoints,
+      outputConfig.jsonFiles.INTEGRATION_POINTS,
+    );
   }
 }

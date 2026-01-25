@@ -1,6 +1,5 @@
 import { injectable, inject } from "tsyringe";
-import type { ReportSection } from "../report-section.interface";
-import type { RequestableAppSummaryField } from "../../../../repositories/app-summaries/app-summaries.model";
+import { BaseReportSection } from "../base-report-section";
 import { reportingTokens } from "../../../../di/tokens";
 import { CodeQualityDataProvider } from "./code-quality-data-provider";
 import type { PreparedHtmlReportData } from "../../types/html-report-data.types";
@@ -15,19 +14,16 @@ import { getCodeSmellRecommendation } from "../../view-models/presentation-helpe
  * Provides function complexity analysis, code smells, and overall quality statistics.
  */
 @injectable()
-export class CodeQualitySection implements ReportSection {
+export class CodeQualitySection extends BaseReportSection {
   constructor(
     @inject(reportingTokens.CodeQualityDataProvider)
     private readonly codeQualityDataProvider: CodeQualityDataProvider,
-  ) {}
+  ) {
+    super();
+  }
 
   getName(): string {
     return SECTION_NAMES.CODE_QUALITY;
-  }
-
-  getRequiredAppSummaryFields(): readonly RequestableAppSummaryField[] {
-    // This section does not require any app summary fields
-    return [];
   }
 
   async getData(projectName: string): Promise<Partial<ReportData>> {
@@ -62,12 +58,6 @@ export class CodeQualitySection implements ReportSection {
   }
 
   prepareJsonData(_baseData: ReportData, sectionData: Partial<ReportData>): PreparedJsonData[] {
-    const { codeQualitySummary } = sectionData;
-
-    if (codeQualitySummary !== undefined) {
-      return [{ filename: "code-quality-summary.json", data: codeQualitySummary }];
-    }
-
-    return [];
+    return this.prepareSingleJsonData(sectionData.codeQualitySummary, "code-quality-summary.json");
   }
 }
