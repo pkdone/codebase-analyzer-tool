@@ -1,45 +1,40 @@
 import { z } from "zod";
-import type { LLMContext, LLMCompletionOptions } from "./types/llm-request.types";
-import { LLMPurpose } from "./types/llm-request.types";
+import type { LLMCompletionOptions } from "./types/llm-request.types";
 import type { ResolvedModelChain } from "./types/llm-model.types";
-import type { LLMCandidateFunction, ExecutableCandidate } from "./types/llm-function.types";
-import type { LLMGeneratedContent } from "./types/llm-response.types";
 import { ShutdownBehavior } from "./types/llm-shutdown.types";
 import { LLMError, LLMErrorCode } from "./types/llm-errors.types";
-import { type Result, ok, err } from "../types/result.types";
+import type { Result } from "../types/result.types";
 import type { LLMModuleConfig } from "./config/llm-module-config.types";
 import type { LLMRetryConfig } from "./providers/llm-provider.types";
 import { LLMExecutionPipeline, type LLMPipelineConfig } from "./llm-execution-pipeline";
 import { ProviderManager } from "./provider-manager";
 import { RetryStrategy } from "./strategies/retry-strategy";
 import LLMExecutionStats from "./tracking/llm-execution-stats";
+import { CompletionService } from "./completion-service";
 import { EmbeddingService } from "./embedding-service";
 import {
   buildCompletionCandidatesFromChain,
   buildEmbeddingCandidatesFromChain,
-  buildExecutableCandidates,
 } from "./utils/completions-models-retriever";
-import { logWarn } from "../utils/logging";
 
 /**
- * LLMRouter orchestrates LLM completion operations across multiple providers with fallback support.
+ * LLMRouter orchestrates LLM operations across multiple providers with fallback support.
  *
  * Features:
  * - Multi-provider support: Can use models from different providers in a single fallback chain
  * - Configurable fallback: Models are tried in priority order as specified in the chain config
  * - Non-functional concerns: Retries, cropping, statistics tracking are handled automatically
  *
- * Note: Embedding operations are delegated to the internal EmbeddingService.
- * The generateEmbeddings method is retained for API compatibility but delegates to EmbeddingService.
+ * Note: Both completion and embedding operations are delegated to their respective services.
+ * The executeCompletion and generateEmbeddings methods are retained for API compatibility.
  */
 export default class LLMRouter {
   /** Execution statistics for tracking LLM call metrics */
   readonly stats: LLMExecutionStats;
 
   private readonly providerManager: ProviderManager;
-  private readonly completionCandidates: LLMCandidateFunction[];
   private readonly modelChain: ResolvedModelChain;
-  private readonly executionPipeline: LLMExecutionPipeline;
+  private readonly completionService: CompletionService;
   private readonly embeddingService: EmbeddingService;
 
   /**
@@ -59,7 +54,7 @@ export default class LLMRouter {
     });
 
     // Build completion candidates from the chain
-    this.completionCandidates = buildCompletionCandidatesFromChain(
+    const completionCandidates = buildCompletionCandidatesFromChain(
       this.providerManager,
       this.modelChain,
     );
@@ -70,7 +65,7 @@ export default class LLMRouter {
       this.modelChain,
     );
 
-    if (this.completionCandidates.length === 0) {
+    if (completionCandidates.length === 0) {
       throw new LLMError(
         LLMErrorCode.BAD_CONFIGURATION,
         "At least one completion model must be configured in LLM_COMPLETIONS",
@@ -91,14 +86,22 @@ export default class LLMRouter {
       retryConfig: this.getRetryConfig(),
       getModelsMetadata: () => this.providerManager.getAllModelsMetadata(),
     };
-    this.executionPipeline = new LLMExecutionPipeline(retryStrategy, this.stats, pipelineConfig);
+    const executionPipeline = new LLMExecutionPipeline(retryStrategy, this.stats, pipelineConfig);
+
+    // Create completion service with shared dependencies
+    this.completionService = new CompletionService({
+      completionCandidates,
+      modelChain: this.modelChain,
+      providerManager: this.providerManager,
+      executionPipeline,
+    });
 
     // Create embedding service with shared dependencies
     this.embeddingService = new EmbeddingService({
       embeddingCandidates,
       modelChain: this.modelChain,
       providerManager: this.providerManager,
-      executionPipeline: this.executionPipeline,
+      executionPipeline,
     });
 
     console.log(`LLMRouter initialized with: ${this.getModelsUsedDescription()}`);
@@ -152,10 +155,10 @@ export default class LLMRouter {
 
   /**
    * Get the configured completion model chain.
-   * Useful for iterating through models for testing or display purposes.
+   * Delegates to CompletionService.
    */
   getCompletionChain(): ResolvedModelChain["completions"] {
-    return this.modelChain.completions;
+    return this.completionService.getCompletionChain();
   }
 
   /**
@@ -175,18 +178,10 @@ export default class LLMRouter {
 
   /**
    * Get the max total tokens for the first completion model in the chain.
-   * Useful for chunking calculations.
+   * Delegates to CompletionService.
    */
   getFirstCompletionModelMaxTokens(): number {
-    const defaultMaxTokens = 128000;
-    if (this.completionCandidates.length === 0) return defaultMaxTokens;
-
-    const firstEntry = this.modelChain.completions[0];
-    const metadata = this.providerManager.getModelMetadata(
-      firstEntry.providerFamily,
-      firstEntry.modelKey,
-    );
-    return metadata?.maxTotalTokens ?? defaultMaxTokens;
+    return this.completionService.getFirstCompletionModelMaxTokens();
   }
 
   /**
@@ -243,54 +238,19 @@ export default class LLMRouter {
     modelIndexOverride?: number | null,
   ): Promise<Result<string, LLMError>>;
 
-  // Implementation
+  // Implementation - delegates to CompletionService
   async executeCompletion<S extends z.ZodType<unknown>>(
     resourceName: string,
     prompt: string,
     options: LLMCompletionOptions<S>,
     modelIndexOverride: number | null = null,
   ): Promise<Result<z.infer<S>, LLMError>> {
-    // Build unified executable candidates with options bound
-    const candidates = buildExecutableCandidates(
-      this.completionCandidates,
+    return this.completionService.executeCompletion(
+      resourceName,
+      prompt,
       options,
       modelIndexOverride,
     );
-
-    const firstCandidate = candidates[0];
-    const context: LLMContext = {
-      resource: resourceName,
-      purpose: LLMPurpose.COMPLETIONS,
-      modelKey: firstCandidate.modelKey,
-      outputFormat: options.outputFormat,
-    };
-
-    // Type assertion is safe here: when a schema is provided, z.infer<S> produces
-    // an object type that satisfies LLMGeneratedContent. When no schema is provided,
-    // the response handling in BaseLLMProvider ensures the data is LLMGeneratedContent.
-    // The pipeline's T extends LLMGeneratedContent constraint ensures internal type safety,
-    // while this assertion bridges the wider z.ZodType<unknown> constraint used at the API level.
-    type InferredType = z.infer<S> extends LLMGeneratedContent ? z.infer<S> : LLMGeneratedContent;
-    const result = await this.executionPipeline.execute<InferredType>({
-      resourceName,
-      content: prompt,
-      context,
-      candidates: candidates as ExecutableCandidate<InferredType>[],
-      retryOnInvalid: true,
-      trackJsonMutations: true,
-    });
-
-    if (!result.success) {
-      logWarn(`Failed to execute completion: ${result.error.message}`, context);
-      return err(
-        new LLMError(LLMErrorCode.BAD_RESPONSE_CONTENT, result.error.message, {
-          resourceName,
-          context,
-        }),
-      );
-    }
-
-    return ok(result.data);
   }
 
   /**
