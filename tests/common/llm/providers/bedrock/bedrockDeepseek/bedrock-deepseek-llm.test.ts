@@ -56,6 +56,7 @@ describe("BedrockDeepseekLLM - Request Body Building", () => {
         ],
       },
       errorLogging: createMockErrorLoggingConfig(),
+      extractedConfig: manifest.extractConfig({}),
     };
   }
 

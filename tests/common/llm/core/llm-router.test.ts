@@ -202,6 +202,7 @@ describe("LLM Router tests", () => {
       implementation: jest.fn().mockImplementation(() => mockProvider) as any,
       errorPatterns: [],
       providerSpecificConfig: testRetryConfig,
+      extractConfig: () => ({}),
     };
 
     // Mock the manifest loader

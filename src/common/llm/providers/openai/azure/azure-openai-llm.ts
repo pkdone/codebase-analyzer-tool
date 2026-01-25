@@ -1,6 +1,8 @@
 import { AzureOpenAI, OpenAI } from "openai";
 import BaseOpenAILLM from "../common/base-openai-llm";
 import type { ProviderInit } from "../../llm-provider.types";
+import { isAzureOpenAIConfig } from "./azure-openai.types";
+import { LLMError, LLMErrorCode } from "../../../types/llm-errors.types";
 
 /**
  * Class for Azure's own managed version of the OpenAI service.
@@ -16,12 +18,21 @@ export default class AzureOpenAILLM extends BaseOpenAILLM {
 
   /**
    * Constructor.
+   * Uses typed configuration extracted via the manifest's extractConfig function,
+   * decoupling this provider from specific environment variable names.
    */
   constructor(init: ProviderInit) {
     super(init);
-    const { providerParams, manifest } = init;
-    const apiKey = providerParams.AZURE_OPENAI_LLM_API_KEY as string;
-    const endpoint = providerParams.AZURE_OPENAI_ENDPOINT as string;
+    const { providerParams, manifest, extractedConfig } = init;
+
+    // Use typed extracted config instead of hardcoded env var key lookups
+    if (!isAzureOpenAIConfig(extractedConfig)) {
+      throw new LLMError(
+        LLMErrorCode.BAD_CONFIGURATION,
+        "Invalid Azure OpenAI configuration - missing required fields (apiKey, endpoint)",
+      );
+    }
+    const { apiKey, endpoint } = extractedConfig;
 
     // Get deployment env key mapping from manifest configuration
     const deploymentEnvKeys = manifest.providerSpecificConfig.deploymentEnvKeys as

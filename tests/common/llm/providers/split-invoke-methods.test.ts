@@ -79,6 +79,7 @@ describe("Split Invoke Methods", () => {
         minRetryDelayMillis: 1000,
         maxRetryDelayMillis: 5000,
       },
+      extractConfig: () => ({}),
       implementation: TrackingTestProvider,
     },
     providerParams: {},
@@ -92,6 +93,7 @@ describe("Split Invoke Methods", () => {
       errorLogDirectory: "/tmp/test-errors",
       errorLogFilenameTemplate: "error-{timestamp}.log",
     },
+    extractedConfig: {},
   });
 
   it("should call invokeEmbeddingProvider for embeddings requests", async () => {

@@ -83,6 +83,7 @@ describe("StandardMessagesBedrockLLM", () => {
       },
       errorPatterns: [],
       providerSpecificConfig: mockConfig,
+      extractConfig: () => ({}),
       implementation: TestStandardMessagesBedrockLLM,
     };
 
@@ -106,6 +107,7 @@ describe("StandardMessagesBedrockLLM", () => {
         ],
       },
       errorLogging: createMockErrorLoggingConfig(),
+      extractedConfig: {},
     };
   }
 

@@ -171,5 +171,6 @@ export function createBedrockProviderInit(
       embeddings: resolvedEmbeddings,
     },
     errorLogging: createMockErrorLoggingConfig(),
+    extractedConfig: manifest.extractConfig(mockEnv),
   };
 }

@@ -87,6 +87,7 @@ class StubLLM extends BaseLLMProvider {
           minRetryDelayMillis: 1000,
           maxRetryDelayMillis: 5000,
         },
+        extractConfig: () => ({}),
         implementation: StubLLM as unknown as LLMProviderManifest["implementation"],
       },
       providerParams: {},
@@ -107,6 +108,7 @@ class StubLLM extends BaseLLMProvider {
         ],
       },
       errorLogging: createMockErrorLoggingConfig(),
+      extractedConfig: {},
     });
   }
   protected async invokeEmbeddingProvider(): Promise<LLMImplSpecificResponseSummary> {
@@ -166,6 +168,7 @@ function createTestProviderInit(
       minRetryDelayMillis: 1000,
       maxRetryDelayMillis: 5000,
     },
+    extractConfig: () => ({}),
     implementation: StubLLM as unknown as LLMProviderManifest["implementation"],
   };
 
@@ -189,6 +192,7 @@ function createTestProviderInit(
       ],
     },
     errorLogging: createMockErrorLoggingConfig(),
+    extractedConfig: {},
   };
 }
 

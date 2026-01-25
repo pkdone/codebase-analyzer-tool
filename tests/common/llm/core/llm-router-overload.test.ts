@@ -129,6 +129,7 @@ describe("LLMRouter Function Overloads - Type Safety Tests", () => {
         maxRetryDelayMillis: 100,
         requestTimeoutMillis: 1000,
       },
+      extractConfig: () => ({}),
     };
 
     jest.spyOn(manifestLoader, "loadManifestForProviderFamily").mockReturnValue(mockManifest);

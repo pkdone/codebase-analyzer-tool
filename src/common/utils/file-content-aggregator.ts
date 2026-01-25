@@ -7,6 +7,7 @@
 import { findFilesRecursively } from "../fs/directory-operations";
 import { readFile } from "../fs/file-operations";
 import { getFileExtension } from "../fs/path-utils";
+import type { FileFilterConfig } from "../fs/file-filter.types";
 import {
   formatFilesAsMarkdownCodeBlocksWithPath,
   type SourceFileContent,
@@ -23,35 +24,28 @@ const TRAILING_SLASH_PATTERN = /\/$/;
  * with file path headers.
  *
  * @param dirPath - The path to the directory containing files to aggregate
- * @param folderIgnoreList - List of folder names to ignore during traversal
- * @param filenameIgnorePrefix - Prefix for filenames to ignore
- * @param binaryFileExtensionIgnoreList - List of binary file extensions to skip
- * @param filenameIgnoreList - List of specific filenames to ignore
+ * @param filterConfig - Configuration for filtering files during aggregation
  * @returns Promise resolving to formatted content containing all files as markdown code blocks
  */
 export async function aggregateFilesToMarkdown(
   dirPath: string,
-  folderIgnoreList: readonly string[],
-  filenameIgnorePrefix: string,
-  binaryFileExtensionIgnoreList: readonly string[],
-  filenameIgnoreList: readonly string[] = [],
+  filterConfig: FileFilterConfig,
 ): Promise<string> {
   // Remove trailing slashes from the directory path
   const baseDirPath = dirPath.replace(TRAILING_SLASH_PATTERN, "");
 
   // Find all files recursively with ignore rules applied
-  const filepaths = await findFilesRecursively(
-    baseDirPath,
-    folderIgnoreList,
-    filenameIgnorePrefix,
-    filenameIgnoreList,
-  );
+  const filepaths = await findFilesRecursively(baseDirPath, {
+    folderIgnoreList: filterConfig.folderIgnoreList,
+    filenameIgnorePrefix: filterConfig.filenameIgnorePrefix,
+    filenameIgnoreList: filterConfig.filenameIgnoreList,
+  });
 
   // Merge all files into markdown code blocks
   const codeBlocksContent = await mergeFilesIntoMarkdownCodeblock(
     filepaths,
     baseDirPath,
-    binaryFileExtensionIgnoreList,
+    filterConfig.binaryFileExtensionIgnoreList,
   );
 
   return codeBlocksContent;

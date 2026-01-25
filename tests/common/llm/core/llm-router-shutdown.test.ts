@@ -55,6 +55,7 @@ describe("LLMRouter Shutdown Behavior", () => {
         minRetryDelayMillis: 1000,
         maxRetryDelayMillis: 5000,
       },
+      extractConfig: () => ({}),
       implementation: class MockProvider {
         getAvailableModelNames() {
           return { embeddings: ["test-embed"], completions: ["test-primary"] };
@@ -145,6 +146,7 @@ describe("LLMRouter Shutdown Behavior", () => {
         minRetryDelayMillis: 1000,
         maxRetryDelayMillis: 5000,
       },
+      extractConfig: () => ({}),
       implementation: class MockProviderForced {
         getAvailableModelNames() {
           return { embeddings: ["test-embed"], completions: ["test-primary"] };
@@ -237,6 +239,7 @@ describe("LLMRouter Shutdown Behavior", () => {
         minRetryDelayMillis: 1000,
         maxRetryDelayMillis: 5000,
       },
+      extractConfig: () => ({}),
       implementation: class MockProviderNoForced {
         getAvailableModelNames() {
           return { embeddings: ["test-embed"], completions: ["test-primary"] };

@@ -38,6 +38,7 @@ describe("Type-Safe Config Without Features Array", () => {
       },
       errorPatterns: [],
       providerSpecificConfig: config,
+      extractConfig: () => ({}),
       implementation: BedrockLlamaLLM,
     },
     providerParams: {},
@@ -57,6 +58,7 @@ describe("Type-Safe Config Without Features Array", () => {
       errorLogDirectory: "/tmp/test-errors",
       errorLogFilenameTemplate: "error-{timestamp}.log",
     },
+    extractedConfig: {},
   });
 
   it("should use type-safe config check for maxGenLenCap", () => {

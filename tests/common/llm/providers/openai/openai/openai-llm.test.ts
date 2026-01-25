@@ -156,9 +156,11 @@ describe("OpenAI LLM Provider", () => {
         ],
       },
     };
+    const providerParams = { OPENAI_LLM_API_KEY: mockApiKey };
     const init: ProviderInit = {
       manifest: customManifest as any,
-      providerParams: { OPENAI_LLM_API_KEY: mockApiKey },
+      providerParams,
+      extractedConfig: openAIProviderManifest.extractConfig(providerParams),
       resolvedModelChain: {
         embeddings: [
           {

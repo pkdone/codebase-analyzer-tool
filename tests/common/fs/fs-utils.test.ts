@@ -185,10 +185,10 @@ describe("File System Utilities", () => {
     });
 
     test("should find all files without ordering", async () => {
-      const folderIgnoreList = ["node_modules", "dist", ".git"];
-      const filenameIgnorePrefix = ".";
-
-      const files = await findFilesRecursively("/project", folderIgnoreList, filenameIgnorePrefix);
+      const files = await findFilesRecursively("/project", {
+        folderIgnoreList: ["node_modules", "dist", ".git"],
+        filenameIgnorePrefix: ".",
+      });
 
       // Should include files but exclude ignored folders and hidden files
       const relativePaths = files.map((f) => path.relative("/project", f)).sort();
@@ -206,10 +206,10 @@ describe("File System Utilities", () => {
     });
 
     test("should find files ordered by size (largest first)", async () => {
-      const folderIgnoreList = ["node_modules", "dist", ".git"];
-      const filenameIgnorePrefix = ".";
-
-      const files = await findFilesRecursively("/project", folderIgnoreList, filenameIgnorePrefix);
+      const files = await findFilesRecursively("/project", {
+        folderIgnoreList: ["node_modules", "dist", ".git"],
+        filenameIgnorePrefix: ".",
+      });
 
       // Sort files by size to get largest first
       const sortedFiles = await sortFilesBySize(files);
@@ -222,10 +222,10 @@ describe("File System Utilities", () => {
     });
 
     test("should respect folder ignore list", async () => {
-      const folderIgnoreList = ["src", "node_modules"];
-      const filenameIgnorePrefix = ".";
-
-      const files = await findFilesRecursively("/project", folderIgnoreList, filenameIgnorePrefix);
+      const files = await findFilesRecursively("/project", {
+        folderIgnoreList: ["src", "node_modules"],
+        filenameIgnorePrefix: ".",
+      });
 
       // Should not include any files from src directory
       const relativePaths = files.map((f) => path.relative("/project", f));
@@ -238,10 +238,10 @@ describe("File System Utilities", () => {
     });
 
     test("should respect filename ignore prefix", async () => {
-      const folderIgnoreList = ["node_modules", "dist"];
-      const filenameIgnorePrefix = "ignored-prefix";
-
-      const files = await findFilesRecursively("/project", folderIgnoreList, filenameIgnorePrefix);
+      const files = await findFilesRecursively("/project", {
+        folderIgnoreList: ["node_modules", "dist"],
+        filenameIgnorePrefix: "ignored-prefix",
+      });
 
       // Should not include files starting with ignore prefix
       const relativePaths = files.map((f) => path.relative("/project", f));
@@ -260,7 +260,10 @@ describe("File System Utilities", () => {
         "/empty": {},
       });
 
-      const files = await findFilesRecursively("/empty", [], ".");
+      const files = await findFilesRecursively("/empty", {
+        folderIgnoreList: [],
+        filenameIgnorePrefix: ".",
+      });
       expect(files).toHaveLength(0);
     });
 
@@ -275,7 +278,10 @@ describe("File System Utilities", () => {
         },
       });
 
-      const files = await findFilesRecursively("/ignored-only", ["node_modules"], ".");
+      const files = await findFilesRecursively("/ignored-only", {
+        folderIgnoreList: ["node_modules"],
+        filenameIgnorePrefix: ".",
+      });
       expect(files).toHaveLength(0);
     });
 
@@ -294,7 +300,10 @@ describe("File System Utilities", () => {
         },
       });
 
-      const files = await findFilesRecursively("/deep", [], ".");
+      const files = await findFilesRecursively("/deep", {
+        folderIgnoreList: [],
+        filenameIgnorePrefix: ".",
+      });
       expect(files).toHaveLength(1);
 
       const relativePath = path.relative("/deep", files[0]);
@@ -303,9 +312,11 @@ describe("File System Utilities", () => {
 
     test("should handle multiple ignore patterns", async () => {
       const folderIgnoreList = ["node_modules", "dist", ".git", "build", "coverage"];
-      const filenameIgnorePrefix = ".";
 
-      const files = await findFilesRecursively("/project", folderIgnoreList, filenameIgnorePrefix);
+      const files = await findFilesRecursively("/project", {
+        folderIgnoreList,
+        filenameIgnorePrefix: ".",
+      });
 
       // Should exclude all specified folders
       const relativePaths = files.map((f) => path.relative("/project", f));
@@ -334,7 +345,10 @@ describe("File System Utilities", () => {
       mockFs({});
 
       // The function returns empty array for non-existent directories with glob
-      const files = await findFilesRecursively("/non-existent", [], ".");
+      const files = await findFilesRecursively("/non-existent", {
+        folderIgnoreList: [],
+        filenameIgnorePrefix: ".",
+      });
       expect(files).toEqual([]);
     });
   });

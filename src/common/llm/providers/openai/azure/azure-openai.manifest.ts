@@ -5,10 +5,22 @@ import { LLMPurpose } from "../../../types/llm-request.types";
 import { OPENAI_COMMON_ERROR_PATTERNS } from "../common/openai-error-patterns";
 import { defaultOpenAIProviderConfig } from "../common/openai-defaults.config";
 import { llmConfig } from "../../../config/llm.config";
+import type { AzureOpenAIConfig } from "./azure-openai.types";
 
 // Environment variable name constants
 const AZURE_OPENAI_LLM_API_KEY = "AZURE_OPENAI_LLM_API_KEY";
 const AZURE_OPENAI_ENDPOINT_KEY = "AZURE_OPENAI_ENDPOINT";
+
+/**
+ * Extracts typed Azure OpenAI configuration from raw environment parameters.
+ * This decouples the provider implementation from specific env var names.
+ */
+function extractAzureOpenAIConfig(providerParams: Record<string, unknown>): AzureOpenAIConfig {
+  return {
+    apiKey: providerParams[AZURE_OPENAI_LLM_API_KEY] as string,
+    endpoint: providerParams[AZURE_OPENAI_ENDPOINT_KEY] as string,
+  };
+}
 // Azure-specific: each model needs its own deployment name for routing
 const AZURE_OPENAI_EMBEDDINGS_MODEL_DEPLOYMENT_KEY = "AZURE_OPENAI_EMBEDDINGS_MODEL_DEPLOYMENT";
 const AZURE_OPENAI_GPT4O_DEPLOYMENT_KEY = "AZURE_OPENAI_GPT4O_MODEL_DEPLOYMENT";
@@ -87,5 +99,6 @@ export const azureOpenAIProviderManifest: LLMProviderManifest = {
     // Azure deployment mapping - maps model keys to deployment env var keys
     deploymentEnvKeys: AZURE_DEPLOYMENT_ENV_KEYS,
   },
+  extractConfig: extractAzureOpenAIConfig,
   implementation: AzureOpenAILLM,
 };

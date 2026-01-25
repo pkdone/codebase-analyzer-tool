@@ -44,6 +44,7 @@ describe("Consolidated Bedrock Logic", () => {
         minRetryDelayMillis: 1000,
         maxRetryDelayMillis: 5000,
       },
+      extractConfig: () => ({}),
       implementation: BaseBedrockLLM as any,
     },
     providerParams: {},
@@ -63,6 +64,7 @@ describe("Consolidated Bedrock Logic", () => {
       errorLogDirectory: "/tmp/test-errors",
       errorLogFilenameTemplate: "error-{timestamp}.log",
     },
+    extractedConfig: {},
   });
 
   describe("BaseBedrockLLM default implementation", () => {

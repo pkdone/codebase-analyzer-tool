@@ -20,6 +20,15 @@ export interface BedrockModelsConfig {
 }
 
 /**
+ * Default config extractor for Bedrock providers.
+ * Bedrock uses AWS credentials from the environment (via AWS SDK's default credential chain),
+ * so no specific env var mapping is needed. Returns the raw params for any provider-specific use.
+ */
+function extractBedrockConfig(providerParams: Record<string, unknown>): Record<string, unknown> {
+  return providerParams;
+}
+
+/**
  * Factory function to create a Bedrock provider manifest.
  * This eliminates boilerplate code by consolidating the common structure
  * shared across all Bedrock provider manifests.
@@ -47,6 +56,7 @@ export function createBedrockManifest(
       ...defaultBedrockProviderConfig,
       ...providerSpecificConfig,
     },
+    extractConfig: extractBedrockConfig,
     implementation,
   };
 }

@@ -10,7 +10,13 @@ import { logErr } from "../../../common/utils/logging";
 import { FileSummarizerService, type PartialSourceSummaryType } from "./file-summarizer.service";
 import type { SourcesRepository } from "../../repositories/sources/sources.repository.interface";
 import type { SourceRecord } from "../../repositories/sources/sources.model";
-import { repositoryTokens, llmTokens, captureTokens, configTokens, serviceTokens } from "../../di/tokens";
+import {
+  repositoryTokens,
+  llmTokens,
+  captureTokens,
+  configTokens,
+  serviceTokens,
+} from "../../di/tokens";
 import { isOk } from "../../../common/types/result.types";
 import type { LlmConcurrencyService } from "../concurrency";
 
@@ -47,12 +53,11 @@ export default class CodebaseToDBLoader {
     srcDirPath: string,
     skipIfAlreadyCaptured: boolean,
   ): Promise<void> {
-    const srcFilepaths = await findFilesRecursively(
-      srcDirPath,
-      this.fileProcessingConfig.FOLDER_IGNORE_LIST,
-      this.fileProcessingConfig.FILENAME_PREFIX_IGNORE,
-      this.fileProcessingConfig.FILENAME_IGNORE_LIST,
-    );
+    const srcFilepaths = await findFilesRecursively(srcDirPath, {
+      folderIgnoreList: this.fileProcessingConfig.FOLDER_IGNORE_LIST,
+      filenameIgnorePrefix: this.fileProcessingConfig.FILENAME_PREFIX_IGNORE,
+      filenameIgnoreList: this.fileProcessingConfig.FILENAME_IGNORE_LIST,
+    });
     // Sort files by size (largest first) to distribute work more evenly during concurrent processing
     const sortedFilepaths = await sortFilesBySize(srcFilepaths);
     await this.processAndStoreFiles(

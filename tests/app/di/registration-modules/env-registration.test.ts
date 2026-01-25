@@ -57,6 +57,7 @@ describe("Environment Registration Module", () => {
       minRetryDelayMillis: 1000,
       maxRetryDelayMillis: 5000,
     },
+    extractConfig: () => ({}),
     implementation: jest.fn() as unknown as LLMProviderManifest["implementation"],
   };
 

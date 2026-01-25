@@ -42,14 +42,33 @@ export interface LLMProviderSpecificConfig extends LLMRetryConfig {
 }
 
 /**
+ * Typed provider configuration extracted from environment variables.
+ * Each provider defines its own config interface; this is the base constraint.
+ * Uses unknown to allow any object shape - providers are responsible for
+ * validating the config structure at runtime via type guards.
+ */
+export type ExtractedProviderConfig = Record<string, unknown>;
+
+/**
+ * Function type for extracting typed provider configuration from raw environment params.
+ * This decouples providers from specific environment variable names.
+ * Returns ExtractedProviderConfig to allow any provider-specific config shape.
+ */
+export type ProviderConfigExtractor = (
+  providerParams: Record<string, unknown>,
+) => ExtractedProviderConfig;
+
+/**
  * Initialization configuration object for LLM providers.
  * Bundles all necessary data for provider instantiation.
  */
 export interface ProviderInit {
   /** The complete provider manifest */
   manifest: LLMProviderManifest;
-  /** Provider-specific parameters (e.g., API keys, endpoints) */
+  /** Provider-specific parameters (e.g., API keys, endpoints) - raw from environment */
   providerParams: Record<string, unknown>;
+  /** Extracted and typed provider configuration - decouples providers from env var names */
+  extractedConfig: ExtractedProviderConfig;
   /** Resolved model chain entries for models from this provider */
   resolvedModelChain: ResolvedModelChain;
   /** Error logging configuration for recording JSON processing issues */
@@ -77,6 +96,12 @@ export interface LLMProviderManifest {
   errorPatterns: readonly LLMErrorMsgRegExPattern[];
   /** Provider-specific operational configuration */
   providerSpecificConfig: LLMProviderSpecificConfig;
+  /**
+   * Extracts typed provider configuration from raw environment parameters.
+   * This decouples provider implementations from specific environment variable names,
+   * allowing different projects to use different naming conventions.
+   */
+  extractConfig: ProviderConfigExtractor;
   /** Required implementation constructor */
   implementation: new (init: ProviderInit) => LLMProvider;
 }

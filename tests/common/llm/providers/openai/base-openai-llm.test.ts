@@ -64,11 +64,14 @@ class TestOpenAILLM extends BaseOpenAILLM {
       },
       errorPatterns: [],
       providerSpecificConfig: providerConfig,
+      extractConfig: (params) => params,
       implementation: TestOpenAILLM as any,
     };
+    const providerParams = {};
     const init: ProviderInit = {
       manifest,
-      providerParams: {},
+      providerParams,
+      extractedConfig: manifest.extractConfig(providerParams),
       resolvedModelChain: {
         embeddings: [{ providerFamily: "test-openai", modelKey: "EMBED", modelUrn: "embed-model" }],
         completions: [

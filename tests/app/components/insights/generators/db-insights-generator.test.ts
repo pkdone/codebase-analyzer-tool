@@ -3,10 +3,15 @@ import InsightsFromDBGenerator from "../../../../../src/app/components/insights/
 import { AppSummariesRepository } from "../../../../../src/app/repositories/app-summaries/app-summaries.repository.interface";
 import { SourcesRepository } from "../../../../../src/app/repositories/sources/sources.repository.interface";
 import LLMRouter from "../../../../../src/common/llm/llm-router";
-import { llmProviderConfig } from "../../../../../src/common/llm/config/llm.config";
 import type { IInsightGenerationStrategy } from "../../../../../src/app/components/insights/strategies/completion-strategy.interface";
 import type { FileProcessingRulesType } from "../../../../../src/app/config/file-handling";
 import type { LlmConcurrencyService } from "../../../../../src/app/components/concurrency";
+
+/**
+ * Default average characters per token used by text chunking utilities.
+ * This should match the constant used in the source for accurate testing.
+ */
+const DEFAULT_AVERAGE_CHARS_PER_TOKEN = 3.6;
 
 // Mock the logging utilities
 jest.mock("../../../../../src/common/utils/logging", () => ({
@@ -161,7 +166,7 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
     it("should use map-reduce when summaries exceed one chunk", async () => {
       // Create large summaries that will require chunking
       const tokenLimitPerChunk = 128000 * 0.7;
-      const charsPerChunk = tokenLimitPerChunk * llmProviderConfig.AVERAGE_CHARS_PER_TOKEN;
+      const charsPerChunk = tokenLimitPerChunk * DEFAULT_AVERAGE_CHARS_PER_TOKEN;
       const largeSummary = "x".repeat(Math.floor(charsPerChunk * 0.6));
       const summaries = [largeSummary, largeSummary];
 
@@ -193,7 +198,7 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
 
     it("should handle map-reduce strategy returning null", async () => {
       const tokenLimitPerChunk = 128000 * 0.7;
-      const charsPerChunk = tokenLimitPerChunk * llmProviderConfig.AVERAGE_CHARS_PER_TOKEN;
+      const charsPerChunk = tokenLimitPerChunk * DEFAULT_AVERAGE_CHARS_PER_TOKEN;
       const largeSummary = "x".repeat(Math.floor(charsPerChunk * 0.9));
       const summaries = [largeSummary, largeSummary];
 
@@ -208,7 +213,7 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
 
     it("should handle map-reduce strategy returning null for all chunks", async () => {
       const tokenLimitPerChunk = 128000 * 0.7;
-      const charsPerChunk = tokenLimitPerChunk * llmProviderConfig.AVERAGE_CHARS_PER_TOKEN;
+      const charsPerChunk = tokenLimitPerChunk * DEFAULT_AVERAGE_CHARS_PER_TOKEN;
       const largeSummary = "x".repeat(Math.floor(charsPerChunk * 0.9));
       const summaries = [largeSummary, largeSummary];
 
@@ -223,7 +228,7 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
 
     it("should handle map-reduce strategy returning null (REDUCE phase failure)", async () => {
       const tokenLimitPerChunk = 128000 * 0.7;
-      const charsPerChunk = tokenLimitPerChunk * llmProviderConfig.AVERAGE_CHARS_PER_TOKEN;
+      const charsPerChunk = tokenLimitPerChunk * DEFAULT_AVERAGE_CHARS_PER_TOKEN;
       const largeSummary = "x".repeat(Math.floor(charsPerChunk * 0.9));
       const summaries = [largeSummary, largeSummary];
 
@@ -240,7 +245,7 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
     it("should handle complete workflow with map-reduce", async () => {
       // Setup: Large codebase requiring chunking
       const tokenLimitPerChunk = 128000 * 0.7;
-      const charsPerChunk = tokenLimitPerChunk * llmProviderConfig.AVERAGE_CHARS_PER_TOKEN;
+      const charsPerChunk = tokenLimitPerChunk * DEFAULT_AVERAGE_CHARS_PER_TOKEN;
       const largeSummary = "x".repeat(Math.floor(charsPerChunk * 0.9));
 
       mockSourcesRepository.getProjectSourcesSummariesByFileType.mockResolvedValue([

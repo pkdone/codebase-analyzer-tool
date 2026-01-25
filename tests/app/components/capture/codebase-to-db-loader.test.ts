@@ -155,12 +155,11 @@ describe("CodebaseToDBLoader", () => {
 
       await loader.captureCodebaseToDatabase("test-project", "/src", false);
 
-      expect(mockDirectoryOperations.findFilesRecursively).toHaveBeenCalledWith(
-        "/src",
-        [".git", "node_modules"],
-        "test-",
-        ["package-lock.json"],
-      );
+      expect(mockDirectoryOperations.findFilesRecursively).toHaveBeenCalledWith("/src", {
+        folderIgnoreList: [".git", "node_modules"],
+        filenameIgnorePrefix: "test-",
+        filenameIgnoreList: ["package-lock.json"],
+      });
       expect(mockSourcesRepository.insertSource).toHaveBeenCalledTimes(2);
     });
 

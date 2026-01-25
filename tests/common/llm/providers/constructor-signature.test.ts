@@ -72,6 +72,7 @@ describe("Provider Constructor Signatures", () => {
       },
       errorPatterns: [],
       providerSpecificConfig,
+      extractConfig: () => ({}),
       implementation: TestProvider,
     },
     providerParams: {},
@@ -85,6 +86,7 @@ describe("Provider Constructor Signatures", () => {
       errorLogDirectory: "/tmp/test-errors",
       errorLogFilenameTemplate: "error-{timestamp}.log",
     },
+    extractedConfig: {},
   });
 
   it("should accept ProviderInit object", () => {

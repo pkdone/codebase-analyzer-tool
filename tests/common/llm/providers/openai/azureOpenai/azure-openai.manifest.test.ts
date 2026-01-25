@@ -104,6 +104,7 @@ function createTestProviderInit(): ProviderInit {
       })),
     },
     errorLogging: createMockErrorLoggingConfig(),
+    extractedConfig: azureOpenAIProviderManifest.extractConfig(mockAzureOpenAIEnv),
   };
 }
 

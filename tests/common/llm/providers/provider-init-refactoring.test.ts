@@ -86,6 +86,7 @@ describe("Provider Init Refactoring", () => {
         maxRetryDelayMillis: 5000,
         temperature: 0.0,
       },
+      extractConfig: () => ({}),
       implementation: TestProvider,
     },
     providerParams: {
@@ -112,6 +113,7 @@ describe("Provider Init Refactoring", () => {
       errorLogDirectory: "/tmp/test-errors",
       errorLogFilenameTemplate: "error-{timestamp}.log",
     },
+    extractedConfig: {},
   });
 
   it("should accept ProviderInit object in constructor", () => {

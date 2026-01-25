@@ -27,6 +27,7 @@ import {
   VERTEXAI_TERMINAL_FINISH_REASONS,
   VERTEXAI_GLOBAL_LOCATION,
 } from "./vertex-ai-gemini.constants";
+import { isVertexAIGeminiConfig } from "./vertex-ai-gemini.types";
 
 /**
  * Class for the GCP Vertex AI Gemini service.
@@ -45,21 +46,30 @@ export default class VertexAIGeminiLLM extends BaseLLMProvider {
    * Constructor
    *
    * Supports separate locations for embeddings and completions:
-   * - VERTEXAI_EMBEDDINGS_LOCATION: Regional location for embeddings (e.g., "us-central1")
-   * - VERTEXAI_COMPLETIONS_LOCATION: Location for completions (can be "global" for preview models)
+   * - embeddingsLocation: Regional location for embeddings (e.g., "us-central1")
+   * - completionsLocation: Location for completions (can be "global" for preview models)
+   *
+   * Uses typed configuration extracted via the manifest's extractConfig function,
+   * decoupling this provider from specific environment variable names.
    */
   constructor(init: import("../../llm-provider.types").ProviderInit) {
     super(init);
-    const project = init.providerParams.VERTEXAI_PROJECTID as string;
-    const embeddingsLocation = init.providerParams.VERTEXAI_EMBEDDINGS_LOCATION as string;
-    const completionsLocation = init.providerParams.VERTEXAI_COMPLETIONS_LOCATION as string;
+
+    // Use typed extracted config instead of hardcoded env var key lookups
+    if (!isVertexAIGeminiConfig(init.extractedConfig)) {
+      throw new LLMError(
+        LLMErrorCode.BAD_CONFIGURATION,
+        "Invalid VertexAI Gemini configuration - missing required fields (projectId, embeddingsLocation, completionsLocation)",
+      );
+    }
+    const { projectId, embeddingsLocation, completionsLocation } = init.extractedConfig;
 
     // For 'global' location, the API endpoint is the base domain (no region prefix)
     // For regional locations, the SDK automatically constructs '{location}-aiplatform.googleapis.com'
     const completionsApiEndpoint =
       completionsLocation === VERTEXAI_GLOBAL_LOCATION ? VERTEXAI_API_ENDPOINT : undefined;
     this.vertexAiApiClient = new VertexAI({
-      project,
+      project: projectId,
       location: completionsLocation,
       ...(completionsApiEndpoint && { apiEndpoint: completionsApiEndpoint }),
     });
@@ -68,7 +78,7 @@ export default class VertexAIGeminiLLM extends BaseLLMProvider {
     this.embeddingsApiClient = new aiplatform.PredictionServiceClient({
       apiEndpoint: `${embeddingsLocation}-${VERTEXAI_API_ENDPOINT}`,
     });
-    this.apiEndpointPrefix = `projects/${project}/locations/${embeddingsLocation}/publishers/google/models/`;
+    this.apiEndpointPrefix = `projects/${projectId}/locations/${embeddingsLocation}/publishers/google/models/`;
   }
 
   /**

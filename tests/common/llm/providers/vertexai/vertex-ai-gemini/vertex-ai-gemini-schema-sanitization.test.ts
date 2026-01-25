@@ -97,13 +97,15 @@ describe("VertexAIGeminiLLM Schema Sanitization", () => {
       } as unknown as aiplatform.PredictionServiceClient;
     });
 
+    const providerParams = {
+      VERTEXAI_PROJECTID: "test-project",
+      VERTEXAI_EMBEDDINGS_LOCATION: "us-central1",
+      VERTEXAI_COMPLETIONS_LOCATION: "us-central1",
+    };
     const init: ProviderInit = {
       manifest: vertexAIGeminiProviderManifest,
-      providerParams: {
-        VERTEXAI_PROJECTID: "test-project",
-        VERTEXAI_EMBEDDINGS_LOCATION: "us-central1",
-        VERTEXAI_COMPLETIONS_LOCATION: "us-central1",
-      },
+      providerParams,
+      extractedConfig: vertexAIGeminiProviderManifest.extractConfig(providerParams),
       resolvedModelChain: {
         embeddings: [
           {

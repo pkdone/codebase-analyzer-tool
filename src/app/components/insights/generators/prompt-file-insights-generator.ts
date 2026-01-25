@@ -53,13 +53,12 @@ export class PromptFileInsightsGenerator {
    */
   async generateInsightsToFiles(srcDirPath: string, llmName: string): Promise<string[]> {
     const prompts = await this.loadPrompts();
-    const codeBlocksContent = await aggregateFilesToMarkdown(
-      srcDirPath,
-      this.fileProcessingConfig.FOLDER_IGNORE_LIST,
-      this.fileProcessingConfig.FILENAME_PREFIX_IGNORE,
-      this.fileProcessingConfig.BINARY_FILE_EXTENSION_IGNORE_LIST,
-      this.fileProcessingConfig.FILENAME_IGNORE_LIST,
-    );
+    const codeBlocksContent = await aggregateFilesToMarkdown(srcDirPath, {
+      folderIgnoreList: this.fileProcessingConfig.FOLDER_IGNORE_LIST,
+      filenameIgnorePrefix: this.fileProcessingConfig.FILENAME_PREFIX_IGNORE,
+      binaryFileExtensionIgnoreList: this.fileProcessingConfig.BINARY_FILE_EXTENSION_IGNORE_LIST,
+      filenameIgnoreList: this.fileProcessingConfig.FILENAME_IGNORE_LIST,
+    });
     await this.dumpCodeBlocksToTempFile(codeBlocksContent);
     const tasks = prompts.map(async (prompt) => {
       return this.llmConcurrencyService.run(async () => {

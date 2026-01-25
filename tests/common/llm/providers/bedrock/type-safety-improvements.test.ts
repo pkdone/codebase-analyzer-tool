@@ -104,6 +104,7 @@ describe("Bedrock Type Safety Improvements", () => {
             ],
           },
           errorLogging: createMockErrorLoggingConfig(),
+          extractedConfig: manifest.extractConfig({}),
         };
       };
 
@@ -235,6 +236,7 @@ describe("Bedrock Type Safety Improvements", () => {
             ],
           },
           errorLogging: createMockErrorLoggingConfig(),
+          extractedConfig: manifest.extractConfig({}),
         };
       };
 

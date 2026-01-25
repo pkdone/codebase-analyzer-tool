@@ -30,7 +30,10 @@ describe("directory-operations", () => {
       const mockFiles = ["/test/file1.ts", "/test/file2.ts", "/test/file3.ts"];
       mockGlob.mockResolvedValue(mockFiles as any);
 
-      const result = await findFilesRecursively("/test", ["node_modules"], ".");
+      const result = await findFilesRecursively("/test", {
+        folderIgnoreList: ["node_modules"],
+        filenameIgnorePrefix: ".",
+      });
 
       // Verify glob was called only once
       expect(mockGlob).toHaveBeenCalledTimes(1);
@@ -56,7 +59,10 @@ describe("directory-operations", () => {
     test("should build ignore patterns correctly", async () => {
       mockGlob.mockResolvedValue([]);
 
-      await findFilesRecursively("/test", ["node_modules", "dist", ".git"], "_temp");
+      await findFilesRecursively("/test", {
+        folderIgnoreList: ["node_modules", "dist", ".git"],
+        filenameIgnorePrefix: "_temp",
+      });
 
       expect(mockGlob).toHaveBeenCalledWith(
         "**/*",
@@ -70,7 +76,10 @@ describe("directory-operations", () => {
       const mockFiles = ["/test/file1.ts", "/test/file3.ts", "/test/file2.ts"];
       mockGlob.mockResolvedValue(mockFiles as any);
 
-      const result = await findFilesRecursively("/test", [], ".");
+      const result = await findFilesRecursively("/test", {
+        folderIgnoreList: [],
+        filenameIgnorePrefix: ".",
+      });
 
       expect(result).toEqual(mockFiles);
     });
@@ -78,7 +87,10 @@ describe("directory-operations", () => {
     test("should handle empty results", async () => {
       mockGlob.mockResolvedValue([]);
 
-      const result = await findFilesRecursively("/test", [], ".");
+      const result = await findFilesRecursively("/test", {
+        folderIgnoreList: [],
+        filenameIgnorePrefix: ".",
+      });
 
       expect(result).toEqual([]);
     });

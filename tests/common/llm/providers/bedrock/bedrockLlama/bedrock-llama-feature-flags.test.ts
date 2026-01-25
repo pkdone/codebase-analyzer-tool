@@ -19,6 +19,7 @@ describe("Bedrock Llama Type-Safe Configuration", () => {
       })),
     },
     errorLogging: createMockErrorLoggingConfig(),
+    extractedConfig: bedrockLlamaProviderManifest.extractConfig({}),
   });
 
   test("maxGenLenCap property in config triggers max_gen_len capping", () => {

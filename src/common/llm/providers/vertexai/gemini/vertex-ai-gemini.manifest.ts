@@ -5,11 +5,24 @@ import { LLMPurpose } from "../../../types/llm-request.types";
 import { llmConfig } from "../../../config/llm.config";
 import { VERTEXAI_COMMON_ERROR_PATTERNS } from "./vertex-ai-error-patterns";
 import { defaultVertexAIProviderConfig } from "./vertex-ai-gemini-defaults.config";
+import type { VertexAIGeminiConfig } from "./vertex-ai-gemini.types";
 
 // Environment variable name constants
 const VERTEXAI_PROJECTID_KEY = "VERTEXAI_PROJECTID";
 const VERTEXAI_EMBEDDINGS_LOCATION_KEY = "VERTEXAI_EMBEDDINGS_LOCATION";
 const VERTEXAI_COMPLETIONS_LOCATION_KEY = "VERTEXAI_COMPLETIONS_LOCATION";
+
+/**
+ * Extracts typed VertexAI configuration from raw environment parameters.
+ * This decouples the provider implementation from specific env var names.
+ */
+function extractVertexAIConfig(providerParams: Record<string, unknown>): VertexAIGeminiConfig {
+  return {
+    projectId: providerParams[VERTEXAI_PROJECTID_KEY] as string,
+    embeddingsLocation: providerParams[VERTEXAI_EMBEDDINGS_LOCATION_KEY] as string,
+    completionsLocation: providerParams[VERTEXAI_COMPLETIONS_LOCATION_KEY] as string,
+  };
+}
 
 // Provider family constant - exported for use in provider registry
 export const VERTEXAI_GEMINI_FAMILY = "VertexAIGemini";
@@ -72,5 +85,6 @@ export const vertexAIGeminiProviderManifest: LLMProviderManifest = {
     topP: llmConfig.DEFAULT_TOP_P_LOWEST,
     topK: llmConfig.DEFAULT_TOP_K_LOWEST,
   },
+  extractConfig: extractVertexAIConfig,
   implementation: VertexAIGeminiLLM,
 };

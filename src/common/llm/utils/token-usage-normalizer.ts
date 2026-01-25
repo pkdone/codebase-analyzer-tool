@@ -1,6 +1,11 @@
 import type { LLMResponseTokensUsage } from "../types/llm-response.types";
 import type { ResolvedLLMModelMetadata } from "../types/llm-model.types";
-import { llmProviderConfig } from "../config/llm.config";
+
+/**
+ * Default average characters per token for estimation.
+ * This is a standard heuristic used across LLM providers (~3.6 chars/token for English text).
+ */
+const DEFAULT_AVERAGE_CHARS_PER_TOKEN = 3.6;
 
 /**
  * Normalizes token usage data by defaulting missing values from model metadata
@@ -41,7 +46,7 @@ export function normalizeTokenUsage(
   // to trigger cropping behavior in the execution pipeline
   if (promptTokens < 0) {
     const estimatedPromptTokensConsumed = Math.floor(
-      request.length / llmProviderConfig.AVERAGE_CHARS_PER_TOKEN,
+      request.length / DEFAULT_AVERAGE_CHARS_PER_TOKEN,
     );
     // Use Math.max to ensure estimated tokens exceed the limit, triggering cropping
     promptTokens = Math.max(estimatedPromptTokensConsumed, maxTotalTokens + 1);

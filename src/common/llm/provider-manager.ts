@@ -70,10 +70,15 @@ export class ProviderManager {
       );
     }
 
-    // Create provider instance
+    // Extract typed configuration using manifest's extractor
+    // This decouples providers from specific environment variable names
+    const extractedConfig = manifest.extractConfig(this.config.providerParams);
+
+    // Create provider instance with extracted configuration
     const init: ProviderInit = {
       manifest,
       providerParams: this.config.providerParams,
+      extractedConfig,
       resolvedModelChain: this.config.resolvedModelChain,
       errorLogging: this.config.errorLogging,
     };

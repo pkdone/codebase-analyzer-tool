@@ -76,6 +76,7 @@ function createTestProviderInit(): ProviderInit {
       minRetryDelayMillis: 1000,
       maxRetryDelayMillis: 5000,
     },
+    extractConfig: () => ({}),
     implementation: ConfigValidationTestLLM as unknown as new (
       init: ProviderInit,
     ) => BaseLLMProvider,
@@ -101,6 +102,7 @@ function createTestProviderInit(): ProviderInit {
       ],
     },
     errorLogging: createMockErrorLoggingConfig(),
+    extractedConfig: {},
   };
 }
 

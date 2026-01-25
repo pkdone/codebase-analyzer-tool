@@ -89,9 +89,11 @@ describe("BedrockClaudeLLM - Request Body Building", () => {
       },
     };
 
+    const providerParams = {};
     return {
       manifest,
-      providerParams: {},
+      providerParams,
+      extractedConfig: manifest.extractConfig(providerParams),
       resolvedModelChain: {
         embeddings: [
           {
@@ -143,9 +145,11 @@ describe("BedrockClaudeLLM - Request Body Building", () => {
       },
     };
 
+    const providerParams = {};
     return {
       manifest,
-      providerParams: {},
+      providerParams,
+      extractedConfig: manifest.extractConfig(providerParams),
       resolvedModelChain: {
         embeddings: [
           {
@@ -287,6 +291,7 @@ describe("BedrockClaudeLLM - Request Body Building", () => {
           ],
         },
         errorLogging: createMockErrorLoggingConfig(),
+        extractedConfig: minimalManifest.extractConfig({}),
       };
 
       const llm = new BedrockClaudeLLM(minimalInit);

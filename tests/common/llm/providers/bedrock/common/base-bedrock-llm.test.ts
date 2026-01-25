@@ -54,6 +54,7 @@ function createTestProviderInit(
     },
     errorPatterns: [],
     providerSpecificConfig: config,
+    extractConfig: () => ({}),
     implementation: TestBedrockLLM as any,
   };
 
@@ -77,6 +78,7 @@ function createTestProviderInit(
       ],
     },
     errorLogging: createMockErrorLoggingConfig(),
+    extractedConfig: {},
   };
 }
 
@@ -368,6 +370,7 @@ describe("BaseBedrockLLM - validateCredentials", () => {
       },
       errorPatterns: [],
       providerSpecificConfig: mockConfig,
+      extractConfig: () => ({}),
       implementation: TestBedrockLLMWithCredentials as any,
     };
 
@@ -391,6 +394,7 @@ describe("BaseBedrockLLM - validateCredentials", () => {
         ],
       },
       errorLogging: createMockErrorLoggingConfig(),
+      extractedConfig: {},
     };
   }
 

@@ -2,6 +2,7 @@ import { promises as fs, Dirent } from "fs";
 import path from "path";
 import glob from "fast-glob";
 import { logErr } from "../utils/logging";
+import type { FileDiscoveryConfig } from "./file-filter.types";
 
 /**
  * Get the handle of the files in a directory
@@ -55,17 +56,16 @@ export async function clearDirectory(
 /**
  * Build the list of files descending from a directory.
  * Files are returned in the natural (arbitrary) order they are discovered by glob.
+ *
  * @param srcDirPath - The root directory to search
- * @param folderIgnoreList - List of folder names to ignore
- * @param filenameIgnorePrefix - Prefix for filenames to ignore
- * @param filenameIgnoreList - List of specific filenames to ignore
+ * @param config - Configuration for file discovery filtering
+ * @returns Promise resolving to array of absolute file paths
  */
 export async function findFilesRecursively(
   srcDirPath: string,
-  folderIgnoreList: readonly string[],
-  filenameIgnorePrefix: string,
-  filenameIgnoreList: readonly string[] = [],
+  config: FileDiscoveryConfig,
 ): Promise<string[]> {
+  const { folderIgnoreList, filenameIgnorePrefix, filenameIgnoreList = [] } = config;
   const ignorePatterns = [
     ...folderIgnoreList.map((folder) => `**/${folder}/**`),
     `**/${filenameIgnorePrefix}*`,

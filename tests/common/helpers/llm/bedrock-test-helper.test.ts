@@ -108,6 +108,7 @@ describe("bedrock-test-helper", () => {
       },
       errorPatterns: [],
       providerSpecificConfig: {} as any,
+      extractConfig: () => ({}),
       implementation: jest.fn() as any,
     };
 
@@ -205,6 +206,7 @@ describe("bedrock-test-helper", () => {
       },
       errorPatterns: [],
       providerSpecificConfig: {} as any,
+      extractConfig: () => ({}),
       implementation: jest.fn() as any,
     };
 

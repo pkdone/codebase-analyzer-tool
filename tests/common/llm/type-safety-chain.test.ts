@@ -83,6 +83,7 @@ class TypeSafetyChainTestLLM extends BaseLLMProvider {
           minRetryDelayMillis: 1000,
           maxRetryDelayMillis: 5000,
         },
+        extractConfig: () => ({}),
         implementation: TypeSafetyChainTestLLM as any,
       },
       providerParams: {},
@@ -95,6 +96,7 @@ class TypeSafetyChainTestLLM extends BaseLLMProvider {
         ],
       },
       errorLogging: createMockErrorLoggingConfig(),
+      extractedConfig: {},
     });
   }
 
