@@ -13,23 +13,22 @@ import type { BasePromptConfigEntry } from "../../prompts.types";
 
 /**
  * Configuration entry for a source prompt definition.
- * Extends BasePromptConfigEntry with source-specific fields.
+ * Extends BasePromptConfigEntry for source file analysis.
  *
  * Contains only the category-specific fields; presentation fields (dataBlockHeader,
- * wrapInCodeBlock) are provided by the consumer (FileSummarizerService) at instantiation time.
+ * wrapInCodeBlock) are provided by the consumer (buildSourcePrompt) at instantiation time.
  * Each entry directly includes the responseSchema using sourceSummarySchema.pick(),
  * making the schemas explicit and type-safe.
+ *
+ * The hasComplexSchema field is inherited from BasePromptConfigEntry and indicates
+ * whether the schema is incompatible with some LLM providers' strict JSON mode.
  *
  * @template S - The Zod schema type for validating the LLM response. Defaults to z.ZodType<unknown>
  *               for type-safe handling and to allow use as a constraint for heterogeneous
  *               collections where entries have different specific schema types.
  */
-export interface SourceConfigEntry<
-  S extends z.ZodType<unknown> = z.ZodType<unknown>,
-> extends BasePromptConfigEntry<S> {
-  /** Whether the schema is complex and incompatible with some LLM providers */
-  readonly hasComplexSchema?: boolean;
-}
+export type SourceConfigEntry<S extends z.ZodType<unknown> = z.ZodType<unknown>> =
+  BasePromptConfigEntry<S>;
 
 /**
  * Options for creating a standard code source configuration.

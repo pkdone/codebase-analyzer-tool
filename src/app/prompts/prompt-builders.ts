@@ -11,7 +11,6 @@ import { fillPrompt } from "type-safe-prompt";
 import type { z } from "zod";
 import {
   JSONSchemaPrompt,
-  type JSONSchemaPromptConfig,
   type GeneratedPrompt,
   type TextGeneratedPrompt,
 } from "../../common/prompts";
@@ -19,6 +18,7 @@ import { type FileTypePromptRegistry } from "./sources/sources.definitions";
 import { type AppSummaryConfigMap } from "./app-summaries/app-summaries.definitions";
 import { buildReduceInsightsContentDesc } from "./app-summaries/app-summaries.constants";
 import type { CanonicalFileType } from "../schemas/canonical-file-types";
+import type { BasePromptConfigEntry } from "./prompts.types";
 import {
   DEFAULT_PERSONA_INTRODUCTION,
   CODE_DATA_BLOCK_HEADER,
@@ -78,6 +78,49 @@ export interface ReducePromptOptions {
 }
 
 /**
+ * Presentation configuration for prompt generation.
+ * These fields control how content is displayed in the prompt template
+ * but are not part of the logical prompt definition.
+ */
+interface PresentationConfig {
+  /** The data block header to use in the template (e.g., "CODE", "FILE_SUMMARIES") */
+  readonly dataBlockHeader: string;
+  /** Whether to wrap content in markdown code blocks */
+  readonly wrapInCodeBlock: boolean;
+  /** Optional contextual note prepended before the schema section */
+  readonly contextNote?: string;
+}
+
+/**
+ * Creates a JSONSchemaPrompt from a base config entry and presentation settings.
+ * This helper function provides clean construction of prompts by explicitly combining
+ * the config entry with presentation fields.
+ *
+ * Note: This function uses z.ZodType<unknown> for the schema type parameter because
+ * config registries contain heterogeneous entry types with different schemas. The
+ * specific schema type is preserved by the caller through the returned prompt result.
+ *
+ * @param config - The base prompt configuration entry containing content, instructions, and schema
+ * @param presentation - The presentation configuration for the prompt template
+ * @returns A configured JSONSchemaPrompt ready to render prompts
+ */
+export function createPromptGenerator(
+  config: BasePromptConfigEntry,
+  presentation: PresentationConfig,
+): JSONSchemaPrompt {
+  return new JSONSchemaPrompt({
+    personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+    contentDesc: config.contentDesc,
+    instructions: config.instructions,
+    responseSchema: config.responseSchema,
+    hasComplexSchema: config.hasComplexSchema,
+    dataBlockHeader: presentation.dataBlockHeader,
+    wrapInCodeBlock: presentation.wrapInCodeBlock,
+    contextNote: presentation.contextNote,
+  });
+}
+
+/**
  * Builds a contextual note for partial/chunked analysis prompts.
  * This function constructs a standardized note that indicates to the LLM
  * that the current content is a subset of a larger analysis.
@@ -95,6 +138,7 @@ function buildPartialAnalysisNote(dataBlockHeader: string): string {
  *
  * This function encapsulates the prompt construction logic for source file analysis,
  * combining the file type configuration with standard presentation fields.
+ * All source files use the CODE data block header and wrap content in code blocks.
  *
  * @param fileTypePromptRegistry - The registry containing prompt configurations for each file type
  * @param canonicalFileType - The canonical file type to build a prompt for
@@ -117,17 +161,14 @@ export function buildSourcePrompt(
   content: string,
 ): SourcePromptResult {
   const config = fileTypePromptRegistry[canonicalFileType];
-  const promptGenerator = new JSONSchemaPrompt({
-    personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
-    ...config,
+  const promptGenerator = createPromptGenerator(config, {
     dataBlockHeader: CODE_DATA_BLOCK_HEADER,
     wrapInCodeBlock: true,
-  } as JSONSchemaPromptConfig);
-  const hasComplexSchema = "hasComplexSchema" in config && Boolean(config.hasComplexSchema);
+  });
   return {
     prompt: promptGenerator.renderPrompt(content),
     schema: config.responseSchema,
-    metadata: { hasComplexSchema },
+    metadata: { hasComplexSchema: config.hasComplexSchema ?? false },
   };
 }
 
@@ -136,6 +177,7 @@ export function buildSourcePrompt(
  *
  * This function encapsulates the prompt construction logic for insight generation,
  * using the self-describing configuration from the provided config map.
+ * App summary prompts do not wrap content in code blocks.
  *
  * @template C - The specific category type (inferred from the category parameter)
  * @param configMap - The app summary configuration map containing prompt definitions
@@ -164,22 +206,15 @@ export function buildInsightPrompt<C extends keyof AppSummaryConfigMap>(
   const contextNote = options?.forPartialAnalysis
     ? buildPartialAnalysisNote(config.dataBlockHeader)
     : undefined;
-  const promptGenerator = new JSONSchemaPrompt({
-    personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
-    contentDesc: config.contentDesc,
-    instructions: config.instructions,
-    responseSchema: config.responseSchema,
+  const promptGenerator = createPromptGenerator(config, {
     dataBlockHeader: config.dataBlockHeader,
     wrapInCodeBlock: false,
     contextNote,
   });
-  // Type assertion needed because config type preserves literal `false` from appSummaryConfigMap,
-  // but tests may pass custom configs without hasComplexSchema. This ensures runtime safety.
-  const hasComplexSchema = (config as { hasComplexSchema?: boolean }).hasComplexSchema ?? false;
   return {
     prompt: promptGenerator.renderPrompt(content),
     schema: config.responseSchema,
-    metadata: { hasComplexSchema },
+    metadata: { hasComplexSchema: config.hasComplexSchema ?? false },
   };
 }
 
@@ -188,6 +223,7 @@ export function buildInsightPrompt<C extends keyof AppSummaryConfigMap>(
  *
  * This function creates a prompt that instructs the LLM to consolidate multiple
  * partial insight results into a single, de-duplicated, coherent final result.
+ * Reduce prompts do not wrap content in code blocks.
  *
  * @template S - The Zod schema type for validating the LLM response
  * @param categoryKey - The key name for the category being reduced (e.g., "technologies")
@@ -213,11 +249,13 @@ export function buildReducePrompt<S extends z.ZodType<unknown>>(
   schema: S,
   options?: ReducePromptOptions,
 ): ReducePromptResult<S> {
-  const promptGenerator = new JSONSchemaPrompt({
-    personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+  const reduceConfig: BasePromptConfigEntry = {
     contentDesc: buildReduceInsightsContentDesc(categoryKey),
     instructions: [`* A consolidated list of '${categoryKey}'`],
     responseSchema: schema,
+    hasComplexSchema: options?.hasComplexSchema,
+  };
+  const promptGenerator = createPromptGenerator(reduceConfig, {
     dataBlockHeader: FRAGMENTED_DATA_BLOCK_HEADER,
     wrapInCodeBlock: false,
   });

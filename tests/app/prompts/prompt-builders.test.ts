@@ -10,16 +10,19 @@ import {
   buildInsightPrompt,
   buildReducePrompt,
   buildQueryPrompt,
+  createPromptGenerator,
 } from "../../../src/app/prompts/prompt-builders";
 import type { FileTypePromptRegistry } from "../../../src/app/prompts/sources/sources.definitions";
 import {
   DEFAULT_PERSONA_INTRODUCTION,
   FRAGMENTED_DATA_BLOCK_HEADER,
   FILE_SUMMARIES_DATA_BLOCK_HEADER,
+  CODE_DATA_BLOCK_HEADER,
 } from "../../../src/app/prompts/prompts.constants";
 import { APP_SUMMARY_CONTENT_DESC } from "../../../src/app/prompts/app-summaries/app-summaries.constants";
 import { appSummaryConfigMap } from "../../../src/app/prompts/app-summaries/app-summaries.definitions";
 import type { AppSummaryConfigMap } from "../../../src/app/prompts/app-summaries/app-summaries.definitions";
+import type { BasePromptConfigEntry } from "../../../src/app/prompts/prompts.types";
 
 describe("buildSourcePrompt", () => {
   const mockSchema = z.object({
@@ -625,5 +628,242 @@ describe("buildReducePrompt metadata handling", () => {
     const result = buildReducePrompt("items", "content", mockSchema, {});
 
     expect(result.metadata.hasComplexSchema).toBe(false);
+  });
+});
+
+describe("createPromptGenerator", () => {
+  /**
+   * Tests for the createPromptGenerator helper function.
+   * This function creates a type-safe JSONSchemaPrompt from a config entry and presentation settings.
+   */
+
+  const mockSchema = z.object({
+    purpose: z.string(),
+    implementation: z.string(),
+  });
+
+  const mockConfig: BasePromptConfigEntry<typeof mockSchema> = {
+    contentDesc: "the test code",
+    instructions: ["Extract the purpose", "Extract the implementation"],
+    responseSchema: mockSchema,
+  };
+
+  test("should create a JSONSchemaPrompt that can render prompts", () => {
+    const promptGenerator = createPromptGenerator(mockConfig, {
+      dataBlockHeader: CODE_DATA_BLOCK_HEADER,
+      wrapInCodeBlock: true,
+    });
+
+    const rendered = promptGenerator.renderPrompt("const x = 1;");
+
+    expect(typeof rendered).toBe("string");
+    expect(rendered.length).toBeGreaterThan(0);
+  });
+
+  test("should include DEFAULT_PERSONA_INTRODUCTION in rendered prompts", () => {
+    const promptGenerator = createPromptGenerator(mockConfig, {
+      dataBlockHeader: CODE_DATA_BLOCK_HEADER,
+      wrapInCodeBlock: true,
+    });
+
+    const rendered = promptGenerator.renderPrompt("const x = 1;");
+
+    expect(rendered).toContain(DEFAULT_PERSONA_INTRODUCTION);
+  });
+
+  test("should include contentDesc from config in rendered prompts", () => {
+    const promptGenerator = createPromptGenerator(mockConfig, {
+      dataBlockHeader: CODE_DATA_BLOCK_HEADER,
+      wrapInCodeBlock: true,
+    });
+
+    const rendered = promptGenerator.renderPrompt("const x = 1;");
+
+    expect(rendered).toContain("the test code");
+  });
+
+  test("should include instructions from config in rendered prompts", () => {
+    const promptGenerator = createPromptGenerator(mockConfig, {
+      dataBlockHeader: CODE_DATA_BLOCK_HEADER,
+      wrapInCodeBlock: true,
+    });
+
+    const rendered = promptGenerator.renderPrompt("const x = 1;");
+
+    expect(rendered).toContain("Extract the purpose");
+    expect(rendered).toContain("Extract the implementation");
+  });
+
+  test("should include dataBlockHeader from presentation config", () => {
+    const promptGenerator = createPromptGenerator(mockConfig, {
+      dataBlockHeader: "CUSTOM_HEADER",
+      wrapInCodeBlock: true,
+    });
+
+    const rendered = promptGenerator.renderPrompt("const x = 1;");
+
+    expect(rendered).toContain("CUSTOM_HEADER:");
+  });
+
+  test("should wrap content in code blocks when wrapInCodeBlock is true", () => {
+    const promptGenerator = createPromptGenerator(mockConfig, {
+      dataBlockHeader: CODE_DATA_BLOCK_HEADER,
+      wrapInCodeBlock: true,
+    });
+
+    const rendered = promptGenerator.renderPrompt("const x = 1;");
+
+    // Should have code block markers around the content
+    // Count occurrences - should be at least 4 (2 for JSON schema, 2 for content)
+    const codeBlockCount = (rendered.match(/```/g) ?? []).length;
+    expect(codeBlockCount).toBeGreaterThanOrEqual(4);
+  });
+
+  test("should NOT wrap content in code blocks when wrapInCodeBlock is false", () => {
+    const promptGenerator = createPromptGenerator(mockConfig, {
+      dataBlockHeader: FILE_SUMMARIES_DATA_BLOCK_HEADER,
+      wrapInCodeBlock: false,
+    });
+
+    const rendered = promptGenerator.renderPrompt("* TestClass: A test class");
+
+    // Should only have code block markers for JSON schema (2 occurrences)
+    const codeBlockCount = (rendered.match(/```/g) ?? []).length;
+    expect(codeBlockCount).toBe(2);
+  });
+
+  test("should include contextNote when provided", () => {
+    const promptGenerator = createPromptGenerator(mockConfig, {
+      dataBlockHeader: FILE_SUMMARIES_DATA_BLOCK_HEADER,
+      wrapInCodeBlock: false,
+      contextNote: "This is a partial analysis note.\n\n",
+    });
+
+    const rendered = promptGenerator.renderPrompt("* TestClass: A test class");
+
+    expect(rendered).toContain("partial analysis note");
+  });
+
+  test("should NOT include contextNote when not provided", () => {
+    const promptGenerator = createPromptGenerator(mockConfig, {
+      dataBlockHeader: FILE_SUMMARIES_DATA_BLOCK_HEADER,
+      wrapInCodeBlock: false,
+    });
+
+    const rendered = promptGenerator.renderPrompt("* TestClass: A test class");
+
+    expect(rendered).not.toContain("partial analysis note");
+  });
+
+  test("should include the content in rendered prompts", () => {
+    const promptGenerator = createPromptGenerator(mockConfig, {
+      dataBlockHeader: CODE_DATA_BLOCK_HEADER,
+      wrapInCodeBlock: true,
+    });
+
+    const content = "export function myFunction() { return 42; }";
+    const rendered = promptGenerator.renderPrompt(content);
+
+    expect(rendered).toContain(content);
+  });
+
+  test("should work with configs that have hasComplexSchema", () => {
+    const configWithComplexSchema: BasePromptConfigEntry<typeof mockSchema> = {
+      ...mockConfig,
+      hasComplexSchema: true,
+    };
+
+    const promptGenerator = createPromptGenerator(configWithComplexSchema, {
+      dataBlockHeader: CODE_DATA_BLOCK_HEADER,
+      wrapInCodeBlock: true,
+    });
+
+    const rendered = promptGenerator.renderPrompt("const x = 1;");
+
+    // Should still render successfully
+    expect(typeof rendered).toBe("string");
+    expect(rendered.length).toBeGreaterThan(0);
+  });
+
+  test("should work with different schema types", () => {
+    const customSchema = z.object({
+      items: z.array(z.string()),
+      count: z.number(),
+    });
+
+    const customConfig: BasePromptConfigEntry<typeof customSchema> = {
+      contentDesc: "the custom data",
+      instructions: ["Extract items", "Count elements"],
+      responseSchema: customSchema,
+    };
+
+    const promptGenerator = createPromptGenerator(customConfig, {
+      dataBlockHeader: FRAGMENTED_DATA_BLOCK_HEADER,
+      wrapInCodeBlock: false,
+    });
+
+    const rendered = promptGenerator.renderPrompt("some data content");
+
+    expect(rendered).toContain("the custom data");
+    expect(rendered).toContain("FRAGMENTED_DATA:");
+    expect(rendered).toContain("Extract items");
+    expect(rendered).toContain("Count elements");
+  });
+});
+
+describe("createPromptGenerator integration with builders", () => {
+  /**
+   * Tests that verify createPromptGenerator produces the same output
+   * as the refactored builder functions.
+   */
+
+  const mockSchema = z.object({
+    purpose: z.string(),
+  });
+
+  test("should produce equivalent output to buildSourcePrompt", () => {
+    const mockConfig: BasePromptConfigEntry<typeof mockSchema> = {
+      contentDesc: "the JVM code",
+      instructions: ["Extract purpose"],
+      responseSchema: mockSchema,
+      hasComplexSchema: false,
+    };
+
+    const mockRegistry = {
+      java: mockConfig,
+    } as unknown as FileTypePromptRegistry;
+
+    const content = "public class Test {}";
+
+    // Using buildSourcePrompt
+    const builderResult = buildSourcePrompt(mockRegistry, "java", content);
+
+    // Using createPromptGenerator directly
+    const promptGenerator = createPromptGenerator(mockConfig, {
+      dataBlockHeader: CODE_DATA_BLOCK_HEADER,
+      wrapInCodeBlock: true,
+    });
+    const directResult = promptGenerator.renderPrompt(content);
+
+    // Both should produce the same prompt
+    expect(builderResult.prompt).toBe(directResult);
+  });
+
+  test("should produce equivalent output to buildInsightPrompt", () => {
+    const content = "* TestClass.java: A test class";
+
+    // Using buildInsightPrompt
+    const builderResult = buildInsightPrompt(appSummaryConfigMap, "technologies", content);
+
+    // Using createPromptGenerator directly with the same config
+    const config = appSummaryConfigMap.technologies;
+    const promptGenerator = createPromptGenerator(config, {
+      dataBlockHeader: config.dataBlockHeader,
+      wrapInCodeBlock: false,
+    });
+    const directResult = promptGenerator.renderPrompt(content);
+
+    // Both should produce the same prompt
+    expect(builderResult.prompt).toBe(directResult);
   });
 });
