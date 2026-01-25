@@ -25,5 +25,18 @@ export {
   type StyleApplication,
 } from "./abstract-graph-builder";
 
+// Pure rendering functions
+export {
+  renderFlowchart,
+  renderNode,
+  renderEdge,
+  renderSubgraph,
+  getShapeSyntax,
+  getEdgeSyntax,
+  type FlowchartRenderData,
+  type RenderableSubgraph,
+  type SubgraphStyleApplication,
+} from "./flowchart-renderer";
+
 // Pure utility functions
 export { escapeMermaidLabel, generateNodeId, buildArrow, applyStyleClass } from "./mermaid-utils";

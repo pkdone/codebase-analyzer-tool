@@ -6,6 +6,7 @@ import LLMRouter from "../../../../src/common/llm/llm-router";
 import { FileSummarizerService } from "../../../../src/app/components/capture/file-summarizer.service";
 import * as fileOperations from "../../../../src/common/fs/file-operations";
 import * as directoryOperations from "../../../../src/common/fs/directory-operations";
+import * as fileSorting from "../../../../src/common/fs/file-sorting";
 import * as pathUtils from "../../../../src/common/fs/path-utils";
 import * as textAnalysis from "../../../../src/common/utils/text-utils";
 import { ok, err } from "../../../../src/common/types/result.types";
@@ -16,6 +17,7 @@ import type { LlmConcurrencyService } from "../../../../src/app/components/concu
 // Mock dependencies
 jest.mock("../../../../src/common/fs/file-operations");
 jest.mock("../../../../src/common/fs/directory-operations");
+jest.mock("../../../../src/common/fs/file-sorting");
 jest.mock("../../../../src/common/fs/path-utils");
 jest.mock("../../../../src/common/utils/text-utils");
 jest.mock("../../../../src/common/utils/logging", () => ({
@@ -56,6 +58,7 @@ jest.mock("node:path", () => ({
 
 const mockFileOperations = fileOperations as jest.Mocked<typeof fileOperations>;
 const mockDirectoryOperations = directoryOperations as jest.Mocked<typeof directoryOperations>;
+const mockFileSorting = fileSorting as jest.Mocked<typeof fileSorting>;
 const mockPathUtils = pathUtils as jest.Mocked<typeof pathUtils>;
 const mockTextUtils = textAnalysis as jest.Mocked<typeof textAnalysis>;
 const mockPath = {
@@ -111,7 +114,7 @@ describe("CodebaseToDBLoader", () => {
     } as unknown as jest.Mocked<FileSummarizerService>;
 
     // Default mock for sortFilesBySize - returns files in same order
-    mockDirectoryOperations.sortFilesBySize.mockImplementation(async (files) => files);
+    mockFileSorting.sortFilesBySize.mockImplementation(async (files) => files);
 
     // Create mock for LlmConcurrencyService that executes immediately
     const mockLlmConcurrencyService = {

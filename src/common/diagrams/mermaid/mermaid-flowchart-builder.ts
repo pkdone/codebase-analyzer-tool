@@ -26,7 +26,6 @@
  * ```
  */
 
-import { escapeMermaidLabel, applyStyleClass } from "./mermaid-utils";
 import {
   AbstractGraphBuilder,
   type NodeShape,
@@ -35,13 +34,15 @@ import {
   type MermaidEdge,
   type StyleApplication,
 } from "./abstract-graph-builder";
+import {
+  renderFlowchart,
+  type FlowchartDirection,
+  type RenderableSubgraph,
+  type SubgraphStyleApplication,
+} from "./flowchart-renderer";
 
-/**
- * Supported flowchart directions.
- */
-export type FlowchartDirection = "TB" | "BT" | "LR" | "RL";
-
-// Re-export types from abstract builder for convenience
+// Re-export types for convenience
+export type { FlowchartDirection } from "./flowchart-renderer";
 export type { NodeShape, EdgeType };
 
 /**
@@ -81,50 +82,6 @@ interface MermaidSubgraph {
 }
 
 /**
- * Maps known node shapes to their Mermaid syntax wrappers.
- * Unknown shapes fall back to rectangle syntax.
- */
-const SHAPE_SYNTAX: Readonly<Record<string, { open: string; close: string }>> = {
-  rectangle: { open: "[", close: "]" },
-  rounded: { open: "(", close: ")" },
-  stadium: { open: "([", close: "])" },
-  hexagon: { open: "{{", close: "}}" },
-  circle: { open: "((", close: "))" },
-  rhombus: { open: "{", close: "}" },
-};
-
-/** Default shape syntax used for unknown shapes */
-const DEFAULT_SHAPE_SYNTAX = SHAPE_SYNTAX.rectangle;
-
-/**
- * Gets the Mermaid syntax for a node shape, falling back to rectangle for unknown shapes.
- */
-function getShapeSyntax(shape: NodeShape): { open: string; close: string } {
-  return SHAPE_SYNTAX[shape] ?? DEFAULT_SHAPE_SYNTAX;
-}
-
-/**
- * Maps known edge types to their Mermaid syntax.
- * Unknown edge types fall back to solid arrow.
- */
-const EDGE_SYNTAX: Readonly<Record<string, string>> = {
-  solid: "-->",
-  dotted: "-.->",
-  dashed: "-.-",
-  invisible: "~~~",
-};
-
-/** Default edge syntax used for unknown edge types */
-const DEFAULT_EDGE_SYNTAX = EDGE_SYNTAX.solid;
-
-/**
- * Gets the Mermaid syntax for an edge type, falling back to solid for unknown types.
- */
-function getEdgeSyntax(edgeType: EdgeType): string {
-  return EDGE_SYNTAX[edgeType] ?? DEFAULT_EDGE_SYNTAX;
-}
-
-/**
  * Type-safe Mermaid flowchart builder.
  *
  * Provides a fluent API for constructing Mermaid flowchart diagrams with
@@ -135,7 +92,7 @@ export class MermaidFlowchartBuilder extends AbstractGraphBuilder {
   private readonly initDirective?: string;
   private readonly styleDefinitions?: string;
   private readonly subgraphs: MermaidSubgraph[] = [];
-  private readonly subgraphStyles: { subgraphId: string; styleString: string }[] = [];
+  private readonly subgraphStyles: SubgraphStyleApplication[] = [];
 
   /**
    * Creates a new MermaidFlowchartBuilder.
@@ -205,107 +162,31 @@ export class MermaidFlowchartBuilder extends AbstractGraphBuilder {
 
   /**
    * Renders the flowchart to a Mermaid definition string.
+   * Delegates to the pure renderer function for syntax generation.
    *
    * @returns The complete Mermaid flowchart definition
    */
   render(): string {
-    const lines: string[] = [];
+    // Convert internal subgraphs to renderable format
+    const renderableSubgraphs: RenderableSubgraph[] = this.subgraphs.map((sg) => ({
+      id: sg.id,
+      label: sg.label,
+      direction: sg.direction,
+      nodes: sg.nodes,
+      edges: sg.edges,
+      styles: sg.styles,
+    }));
 
-    // Add init directive if provided
-    if (this.initDirective) {
-      lines.push(this.initDirective);
-    }
-
-    // Add flowchart declaration
-    lines.push(`flowchart ${this.direction}`);
-
-    // Add style definitions if provided
-    if (this.styleDefinitions) {
-      lines.push(this.styleDefinitions);
-    }
-
-    // Add top-level nodes
-    for (const node of this.getNodes()) {
-      lines.push(this.renderNode(node, "    "));
-    }
-
-    // Add top-level edges
-    for (const edge of this.getEdges()) {
-      lines.push(this.renderEdge(edge, "    "));
-    }
-
-    // Add subgraphs
-    for (const subgraph of this.subgraphs) {
-      lines.push(...this.renderSubgraph(subgraph));
-    }
-
-    // Add top-level styles
-    for (const style of this.getStyles()) {
-      lines.push(applyStyleClass(style.nodeId, style.className));
-    }
-
-    // Add subgraph styles
-    for (const subgraphStyle of this.subgraphStyles) {
-      lines.push(`    style ${subgraphStyle.subgraphId} ${subgraphStyle.styleString}`);
-    }
-
-    return lines.join("\n");
-  }
-
-  /**
-   * Renders a single node to Mermaid syntax.
-   */
-  private renderNode(node: MermaidNode, indent: string): string {
-    const syntax = getShapeSyntax(node.shape);
-    const escapedLabel = escapeMermaidLabel(node.label);
-    return `${indent}${node.id}${syntax.open}"${escapedLabel}"${syntax.close}`;
-  }
-
-  /**
-   * Renders a single edge to Mermaid syntax.
-   */
-  private renderEdge(edge: MermaidEdge, indent: string): string {
-    const edgeSyntax = getEdgeSyntax(edge.type);
-    if (edge.label) {
-      const escapedLabel = escapeMermaidLabel(edge.label);
-      return `${indent}${edge.from} ${edgeSyntax}|"${escapedLabel}"| ${edge.to}`;
-    }
-    return `${indent}${edge.from} ${edgeSyntax} ${edge.to}`;
-  }
-
-  /**
-   * Renders a subgraph to Mermaid syntax lines.
-   */
-  private renderSubgraph(subgraph: MermaidSubgraph): string[] {
-    const lines: string[] = [];
-
-    // Subgraph opening
-    lines.push(`    subgraph ${subgraph.id}["${subgraph.label}"]`);
-
-    // Direction override if specified
-    if (subgraph.direction) {
-      lines.push(`        direction ${subgraph.direction}`);
-    }
-
-    // Nodes within subgraph
-    for (const node of subgraph.nodes) {
-      lines.push(this.renderNode(node, "        "));
-    }
-
-    // Edges within subgraph
-    for (const edge of subgraph.edges) {
-      lines.push(this.renderEdge(edge, "        "));
-    }
-
-    // Close subgraph
-    lines.push("    end");
-
-    // Styles for nodes in subgraph (applied outside the subgraph block)
-    for (const style of subgraph.styles) {
-      lines.push(applyStyleClass(style.nodeId, style.className));
-    }
-
-    return lines;
+    return renderFlowchart({
+      direction: this.direction,
+      initDirective: this.initDirective,
+      styleDefinitions: this.styleDefinitions,
+      nodes: this.getNodes(),
+      edges: this.getEdges(),
+      styles: this.getStyles(),
+      subgraphs: renderableSubgraphs,
+      subgraphStyles: this.subgraphStyles,
+    });
   }
 }
 

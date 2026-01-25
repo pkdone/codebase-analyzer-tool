@@ -1,5 +1,9 @@
 import "reflect-metadata";
 import { JavaUiTechnologyDataProvider } from "../../../../../src/app/components/reporting/sections/ui-analysis/java-ui-technology-data-provider";
+import {
+  JavaFrameworkAnalyzer,
+  JspMetricsAnalyzer,
+} from "../../../../../src/app/components/reporting/sections/ui-analysis/analyzers";
 import type { SourcesRepository } from "../../../../../src/app/repositories/sources/sources.repository.interface";
 import type { ProjectedSourceSummaryFields } from "../../../../../src/app/repositories/sources/sources.model";
 
@@ -65,7 +69,15 @@ describe("JavaUiTechnologyDataProvider", () => {
       getCodeQualityStatistics: jest.fn(),
     } as jest.Mocked<SourcesRepository>;
 
-    provider = new JavaUiTechnologyDataProvider(mockSourcesRepository);
+    // Use real analyzers since they have no external dependencies
+    const frameworkAnalyzer = new JavaFrameworkAnalyzer();
+    const jspMetricsAnalyzer = new JspMetricsAnalyzer();
+
+    provider = new JavaUiTechnologyDataProvider(
+      mockSourcesRepository,
+      frameworkAnalyzer,
+      jspMetricsAnalyzer,
+    );
   });
 
   describe("getUiTechnologyAnalysis", () => {

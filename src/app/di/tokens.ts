@@ -106,6 +106,8 @@ export const reportingTokens = {
   ScheduledJobDataProvider: Symbol("ScheduledJobDataProvider"),
   ModuleCouplingDataProvider: Symbol("ModuleCouplingDataProvider"),
   JavaUiTechnologyDataProvider: Symbol("JavaUiTechnologyDataProvider"),
+  JavaFrameworkAnalyzer: Symbol("JavaFrameworkAnalyzer"),
+  JspMetricsAnalyzer: Symbol("JspMetricsAnalyzer"),
   IntegrationPointsDataProvider: Symbol("IntegrationPointsDataProvider"),
   ReportSection: Symbol("ReportSection"),
 } as const;

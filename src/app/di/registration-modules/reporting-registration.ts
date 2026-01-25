@@ -38,6 +38,10 @@ import { ArchitectureAnalysisSection } from "../../components/reporting/sections
 import { ModuleCouplingDataProvider } from "../../components/reporting/sections/architecture-analysis/module-coupling-data-provider";
 import { UiAnalysisSection } from "../../components/reporting/sections/ui-analysis/ui-analysis-section";
 import { JavaUiTechnologyDataProvider } from "../../components/reporting/sections/ui-analysis/java-ui-technology-data-provider";
+import {
+  JavaFrameworkAnalyzer,
+  JspMetricsAnalyzer,
+} from "../../components/reporting/sections/ui-analysis/analyzers";
 import { CodeQualitySection } from "../../components/reporting/sections/code-quality/code-quality-section";
 import { CodeQualityDataProvider } from "../../components/reporting/sections/code-quality/code-quality-data-provider";
 
@@ -95,6 +99,8 @@ export function registerReportingComponents(): void {
     reportingTokens.JavaUiTechnologyDataProvider,
     JavaUiTechnologyDataProvider,
   );
+  container.registerSingleton(reportingTokens.JavaFrameworkAnalyzer, JavaFrameworkAnalyzer);
+  container.registerSingleton(reportingTokens.JspMetricsAnalyzer, JspMetricsAnalyzer);
   console.log("Reporting components registered");
 
   // Register report sections using multi-injection pattern

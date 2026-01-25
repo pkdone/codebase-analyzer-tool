@@ -6,8 +6,8 @@ import {
   listDirectoryEntries,
   clearDirectory,
   findFilesRecursively,
-  sortFilesBySize,
 } from "../../../src/common/fs/directory-operations";
+import { sortFilesBySize } from "../../../src/common/fs/file-sorting";
 
 // Mock the logging module to avoid actual logging during tests
 jest.mock("../../../src/common/utils/logging", () => ({
