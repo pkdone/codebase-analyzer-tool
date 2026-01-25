@@ -13,10 +13,7 @@ export type {
   CategorizedSectionItem,
   BoundedContextsArray,
 } from "./categorized-section-data-builder";
-export {
-  isCategorizedDataNameDescArray,
-  isCategorizedDataInferredArchitecture,
-} from "./categorized-section-data-builder";
+export { isCategorizedDataNameDescArray } from "./categorized-section-data-builder";
 
 // Re-export additional types from type guards
 export type {
@@ -24,9 +21,3 @@ export type {
   PotentialMicroservicesArray,
   BusinessProcessesArray,
 } from "./category-data-type-guards";
-
-// Visualization data extractors (general-purpose utilities)
-export {
-  extractKeyBusinessActivities,
-  extractMicroserviceFields,
-} from "./visualization-data-extractors";

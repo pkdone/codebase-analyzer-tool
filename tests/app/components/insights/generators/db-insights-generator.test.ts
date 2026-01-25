@@ -94,9 +94,6 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
     // Create mock for LlmConcurrencyService that executes immediately
     const mockLlmConcurrencyService = {
       run: jest.fn().mockImplementation(async <T>(fn: () => Promise<T>) => fn()),
-      pendingCount: 0,
-      activeCount: 0,
-      clearQueue: jest.fn(),
     } as unknown as jest.Mocked<LlmConcurrencyService>;
 
     generator = new InsightsFromDBGenerator(

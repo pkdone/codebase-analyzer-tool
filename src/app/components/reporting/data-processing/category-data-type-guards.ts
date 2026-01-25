@@ -127,35 +127,11 @@ export function isBusinessProcessesArray(data: unknown): data is BusinessProcess
 }
 
 /**
- * Type guard to check if a value is InferredArchitectureInner[].
- */
-function isInferredArchitectureInnerArray(data: unknown): data is InferredArchitectureInner[] {
-  if (!Array.isArray(data)) {
-    return false;
-  }
-  if (data.length === 0) {
-    return true; // Empty array is valid
-  }
-  // Check if the first element matches the inferred architecture schema
-  return inferredArchitectureInnerSchema.safeParse(data[0]).success;
-}
-
-/**
  * Type guard to check if a value is AppSummaryNameDescArray.
  * Useful when narrowing data from CategorizedSectionItem in report generation.
  */
 export function isCategorizedDataNameDescArray(data: unknown): data is AppSummaryNameDescArray {
   return isAppSummaryNameDescArray(data);
-}
-
-/**
- * Type guard to check if a value is InferredArchitectureInner[].
- * Useful when narrowing data from CategorizedSectionItem in report generation.
- */
-export function isCategorizedDataInferredArchitecture(
-  data: unknown,
-): data is InferredArchitectureInner[] {
-  return isInferredArchitectureInnerArray(data);
 }
 
 /**

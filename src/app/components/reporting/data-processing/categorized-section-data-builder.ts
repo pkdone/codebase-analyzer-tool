@@ -15,10 +15,7 @@ import {
 
 // Re-export types and type guards that consumers may need
 export type { CategorizedSectionItem, BoundedContextsArray } from "./category-data-type-guards";
-export {
-  isCategorizedDataNameDescArray,
-  isCategorizedDataInferredArchitecture,
-} from "./category-data-type-guards";
+export { isCategorizedDataNameDescArray } from "./category-data-type-guards";
 
 /**
  * Builds categorized section data from app summary records for report generation.

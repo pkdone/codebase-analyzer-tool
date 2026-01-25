@@ -30,16 +30,6 @@ describe("barrel exports", () => {
 
       expect(visualizationsExports.extractInferredArchitectureData).toBeDefined();
       expect(typeof visualizationsExports.extractInferredArchitectureData).toBe("function");
-
-      expect(visualizationsExports.isInferredArchitectureCategoryData).toBeDefined();
-      expect(typeof visualizationsExports.isInferredArchitectureCategoryData).toBe("function");
-    });
-
-    it("should NOT export general-purpose extractors that stay in data-processing", () => {
-      // These remain in data-processing as they are general-purpose
-      const exports = Object.keys(visualizationsExports);
-      expect(exports).not.toContain("extractKeyBusinessActivities");
-      expect(exports).not.toContain("extractMicroserviceFields");
     });
 
     it("should export domain model types", () => {
@@ -63,7 +53,6 @@ describe("barrel exports", () => {
       const exports = Object.keys(overviewExports);
       expect(exports).not.toContain("CategorizedSectionDataBuilder");
       expect(exports).not.toContain("isCategorizedDataNameDescArray");
-      expect(exports).not.toContain("isCategorizedDataInferredArchitecture");
     });
 
     it("should have minimal exports (only data provider)", () => {
@@ -80,18 +69,6 @@ describe("barrel exports", () => {
     it("should export type guards", () => {
       expect(dataProcessingExports.isCategorizedDataNameDescArray).toBeDefined();
       expect(typeof dataProcessingExports.isCategorizedDataNameDescArray).toBe("function");
-
-      expect(dataProcessingExports.isCategorizedDataInferredArchitecture).toBeDefined();
-      expect(typeof dataProcessingExports.isCategorizedDataInferredArchitecture).toBe("function");
-    });
-
-    it("should export general-purpose visualization data extractors", () => {
-      // These general-purpose extractors remain in data-processing
-      expect(dataProcessingExports.extractKeyBusinessActivities).toBeDefined();
-      expect(typeof dataProcessingExports.extractKeyBusinessActivities).toBe("function");
-
-      expect(dataProcessingExports.extractMicroserviceFields).toBeDefined();
-      expect(typeof dataProcessingExports.extractMicroserviceFields).toBe("function");
     });
 
     it("should NOT export section-specific extractors (moved to visualizations)", () => {
@@ -99,7 +76,6 @@ describe("barrel exports", () => {
       const exports = Object.keys(dataProcessingExports);
       expect(exports).not.toContain("extractMicroservicesData");
       expect(exports).not.toContain("extractInferredArchitectureData");
-      expect(exports).not.toContain("isInferredArchitectureCategoryData");
     });
   });
 });

@@ -67,8 +67,8 @@ export function createTokenUsageRecord(
  * Zod schema validation at the call site. This enables strict Zod schemas (without
  * `.passthrough()`) to satisfy the `T extends LLMGeneratedContent` constraint.
  *
- * For type-safe JSON value operations, use the type guards from json-value.types.ts
- * (isJsonPrimitive, isJsonObject, isJsonArray, isJsonValue) to narrow types.
+ * For type-safe JSON value operations, use the types from json-value.types.ts
+ * (JsonValue, JsonObject, JsonArray, JsonPrimitive) for stronger typing.
  */
 export type LLMGeneratedContent = string | object | null;
 
@@ -221,33 +221,6 @@ export function isErrorResponse<T>(
 }
 
 /**
- * Type guard to check if a response is a status-only response (EXCEEDED, OVERLOADED, or UNKNOWN).
- * These responses typically trigger retry or fallback behavior.
- *
- * @param response - The LLM function response to check
- * @returns True if the response is a status-only response
- *
- * @example
- * ```typescript
- * if (isStatusResponse(response)) {
- *   // Handle retry/fallback logic
- *   if (response.status === LLMResponseStatus.EXCEEDED) {
- *     // Token limit exceeded, may need to crop prompt
- *   }
- * }
- * ```
- */
-export function isStatusResponse<T>(
-  response: LLMFunctionResponse<T>,
-): response is LLMStatusResponse {
-  return (
-    response.status === LLMResponseStatus.EXCEEDED ||
-    response.status === LLMResponseStatus.OVERLOADED ||
-    response.status === LLMResponseStatus.UNKNOWN
-  );
-}
-
-/**
  * Type guard to check if a response indicates the LLM is overloaded.
  * Useful for determining when to apply retry logic with backoff.
  *
@@ -258,17 +231,4 @@ export function isOverloadedResponse<T>(
   response: LLMFunctionResponse<T>,
 ): response is LLMStatusResponse & { status: typeof LLMResponseStatus.OVERLOADED } {
   return response.status === LLMResponseStatus.OVERLOADED;
-}
-
-/**
- * Type guard to check if a response indicates token limit was exceeded.
- * Useful for determining when to apply prompt cropping.
- *
- * @param response - The LLM function response to check
- * @returns True if the response status is EXCEEDED
- */
-export function isExceededResponse<T>(
-  response: LLMFunctionResponse<T>,
-): response is LLMStatusResponse & { status: typeof LLMResponseStatus.EXCEEDED } {
-  return response.status === LLMResponseStatus.EXCEEDED;
 }

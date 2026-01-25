@@ -35,9 +35,6 @@ describe("PromptFileInsightsGenerator", () => {
   // Create mock for LlmConcurrencyService that executes immediately
   const mockLlmConcurrencyService = {
     run: jest.fn().mockImplementation(async <T>(fn: () => Promise<T>) => fn()),
-    pendingCount: 0,
-    activeCount: 0,
-    clearQueue: jest.fn(),
   } as unknown as jest.Mocked<LlmConcurrencyService>;
 
   it("loads prompts filtering only .prompt files and generates insights", async () => {

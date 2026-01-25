@@ -161,9 +161,7 @@ export default class LLMExecutionStats {
    */
   private record(statusKey: keyof LLMStatsCategoriesBase): void {
     this.counts[statusKey]++;
-    if (this.shouldPrintEventTicks) {
-      console.log(STATUS_DEFINITIONS[statusKey].symbol);
-    }
+    if (this.shouldPrintEventTicks) console.log(STATUS_DEFINITIONS[statusKey].symbol);
   }
 
   /**

@@ -9,8 +9,6 @@ describe("LlmConcurrencyService", () => {
       const service = new LlmConcurrencyService(config);
 
       expect(service).toBeDefined();
-      expect(service.pendingCount).toBe(0);
-      expect(service.activeCount).toBe(0);
     });
   });
 
@@ -88,116 +86,6 @@ describe("LlmConcurrencyService", () => {
       // All tasks should complete
       expect(results).toHaveLength(5);
       expect(returnValues).toEqual([1, 2, 3, 4, 5]);
-    });
-  });
-
-  describe("pendingCount", () => {
-    it("should return 0 when no tasks are pending", () => {
-      const config: ConcurrencyConfigType = { MAX_LLM_CONCURRENCY: 5 };
-      const service = new LlmConcurrencyService(config);
-
-      expect(service.pendingCount).toBe(0);
-    });
-
-    it("should track pending tasks", async () => {
-      const config: ConcurrencyConfigType = { MAX_LLM_CONCURRENCY: 1 };
-      const service = new LlmConcurrencyService(config);
-
-      // Create a promise that we can control when to resolve
-      let resolveFirst: () => void;
-      const firstTask = new Promise<void>((resolve) => {
-        resolveFirst = resolve;
-      });
-
-      // Start first task (will be active)
-      const task1 = service.run(async () => firstTask);
-
-      // Give time for the first task to start
-      await new Promise((resolve) => setTimeout(resolve, 0));
-
-      // Start second task (will be pending since concurrency is 1)
-      const task2Promise = service.run(async () => "second");
-
-      // Give time for the second task to queue
-      await new Promise((resolve) => setTimeout(resolve, 0));
-
-      // With concurrency of 1, one task should be active and one pending
-      expect(service.pendingCount).toBe(1);
-
-      // Resolve the first task
-      resolveFirst!();
-      await task1;
-      await task2Promise;
-
-      expect(service.pendingCount).toBe(0);
-    });
-  });
-
-  describe("activeCount", () => {
-    it("should return 0 when no tasks are active", () => {
-      const config: ConcurrencyConfigType = { MAX_LLM_CONCURRENCY: 5 };
-      const service = new LlmConcurrencyService(config);
-
-      expect(service.activeCount).toBe(0);
-    });
-
-    it("should track active tasks", async () => {
-      const config: ConcurrencyConfigType = { MAX_LLM_CONCURRENCY: 5 };
-      const service = new LlmConcurrencyService(config);
-
-      let resolveTask: () => void;
-      const taskPromise = new Promise<void>((resolve) => {
-        resolveTask = resolve;
-      });
-
-      const runPromise = service.run(async () => taskPromise);
-
-      // Give time for the task to start
-      await new Promise((resolve) => setTimeout(resolve, 0));
-
-      expect(service.activeCount).toBe(1);
-
-      resolveTask!();
-      await runPromise;
-
-      expect(service.activeCount).toBe(0);
-    });
-  });
-
-  describe("clearQueue", () => {
-    it("should clear pending tasks from the queue", async () => {
-      const config: ConcurrencyConfigType = { MAX_LLM_CONCURRENCY: 1 };
-      const service = new LlmConcurrencyService(config);
-
-      // Create a blocking task
-      let resolveFirst: () => void;
-      const firstTask = new Promise<void>((resolve) => {
-        resolveFirst = resolve;
-      });
-
-      // Start first task (will be active)
-      const task1 = service.run(async () => firstTask);
-
-      // Give time for the first task to start
-      await new Promise((resolve) => setTimeout(resolve, 0));
-
-      // Queue more tasks
-      void service.run(async () => "second");
-      void service.run(async () => "third");
-
-      // Give time for tasks to queue
-      await new Promise((resolve) => setTimeout(resolve, 0));
-
-      expect(service.pendingCount).toBe(2);
-
-      // Clear the queue
-      service.clearQueue();
-
-      expect(service.pendingCount).toBe(0);
-
-      // Clean up
-      resolveFirst!();
-      await task1;
     });
   });
 });

@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import { DomainModelTransformer } from "../../../../../src/app/components/reporting/sections/visualizations/domain-model-transformer";
-import type { HierarchicalBoundedContextData } from "../../../../../src/app/components/reporting/sections/visualizations/domain-model.types";
+import type { HierarchicalBoundedContext } from "../../../../../src/app/schemas/app-summaries.schema";
 import type { CategorizedSectionItem } from "../../../../../src/app/components/reporting/data-processing";
 
 describe("DomainModelTransformer", () => {
@@ -27,7 +27,7 @@ describe("DomainModelTransformer", () => {
     });
 
     it("should extract aggregates from multiple bounded contexts", () => {
-      const hierarchicalData: HierarchicalBoundedContextData[] = [
+      const hierarchicalData: HierarchicalBoundedContext[] = [
         {
           name: "Context1",
           description: "First context",
@@ -70,7 +70,7 @@ describe("DomainModelTransformer", () => {
     });
 
     it("should deduplicate aggregates by name across contexts", () => {
-      const hierarchicalData: HierarchicalBoundedContextData[] = [
+      const hierarchicalData: HierarchicalBoundedContext[] = [
         {
           name: "Context1",
           description: "First context",
@@ -113,7 +113,7 @@ describe("DomainModelTransformer", () => {
     });
 
     it("should deduplicate entities by name across contexts", () => {
-      const hierarchicalData: HierarchicalBoundedContextData[] = [
+      const hierarchicalData: HierarchicalBoundedContext[] = [
         {
           name: "Context1",
           description: "First context",
@@ -163,7 +163,7 @@ describe("DomainModelTransformer", () => {
     });
 
     it("should deduplicate repositories by name across contexts", () => {
-      const hierarchicalData: HierarchicalBoundedContextData[] = [
+      const hierarchicalData: HierarchicalBoundedContext[] = [
         {
           name: "Context1",
           description: "First context",
@@ -206,7 +206,7 @@ describe("DomainModelTransformer", () => {
     });
 
     it("should preserve first occurrence when deduplicating", () => {
-      const hierarchicalData: HierarchicalBoundedContextData[] = [
+      const hierarchicalData: HierarchicalBoundedContext[] = [
         {
           name: "Context1",
           description: "First context",
@@ -269,13 +269,13 @@ describe("DomainModelTransformer", () => {
           description: "Context without aggregates property",
           // aggregates property intentionally missing - allowed by type guard
         },
-      ] as unknown as HierarchicalBoundedContextData[];
+      ] as unknown as HierarchicalBoundedContext[];
 
       const categorizedData: CategorizedSectionItem[] = [
         {
           category: "boundedContexts",
           label: "Bounded Contexts",
-          data: hierarchicalData as unknown as HierarchicalBoundedContextData[],
+          data: hierarchicalData as unknown as HierarchicalBoundedContext[],
         },
       ];
 
@@ -302,7 +302,7 @@ describe("DomainModelTransformer", () => {
     });
 
     it("should handle bounded context with empty aggregates array", () => {
-      const hierarchicalData: HierarchicalBoundedContextData[] = [
+      const hierarchicalData: HierarchicalBoundedContext[] = [
         {
           name: "EmptyContext",
           description: "Context with empty aggregates",

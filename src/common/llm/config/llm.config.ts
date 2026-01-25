@@ -21,13 +21,6 @@ export const llmConfig = {
 } as const;
 
 /**
- * LLM provider configuration
- */
-export const llmProviderConfig = {
-  AVERAGE_CHARS_PER_TOKEN: 3.6, // Average num of chars per token to estimate token counts from text length.
-} as const;
-
-/**
  * Default retry and timeout configuration for LLM providers.
  * Providers should spread this base config and override only what is specific to them.
  * This ensures consistent baseline behavior across all providers while allowing

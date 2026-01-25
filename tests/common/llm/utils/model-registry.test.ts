@@ -2,7 +2,6 @@ import {
   buildModelRegistry,
   getProviderFamilyForModelKey,
   getAllModelKeys,
-  isValidModelKey,
 } from "../../../../src/common/llm/utils/model-registry";
 import { LLMError, LLMErrorCode } from "../../../../src/common/llm/types/llm-errors.types";
 import { APP_PROVIDER_REGISTRY } from "../../../../src/app/llm/provider-registry";
@@ -81,20 +80,6 @@ describe("model-registry", () => {
       // Embeddings models
       expect(allKeys).toContain("vertexai-gemini-embedding-001");
       expect(allKeys).toContain("openai-text-embedding-3-small");
-    });
-  });
-
-  describe("isValidModelKey", () => {
-    it("should return true for valid model keys", () => {
-      expect(isValidModelKey("vertexai-gemini-3-pro", modelRegistry)).toBe(true);
-      expect(isValidModelKey("bedrock-claude-opus-4.5", modelRegistry)).toBe(true);
-      expect(isValidModelKey("openai-gpt-5", modelRegistry)).toBe(true);
-    });
-
-    it("should return false for invalid model keys", () => {
-      expect(isValidModelKey("unknown-model", modelRegistry)).toBe(false);
-      expect(isValidModelKey("", modelRegistry)).toBe(false);
-      expect(isValidModelKey("gpt-4o", modelRegistry)).toBe(false); // Old format without prefix
     });
   });
 

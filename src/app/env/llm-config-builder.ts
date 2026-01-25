@@ -3,12 +3,11 @@ import type {
   ModelChainEntry,
 } from "../../common/llm/config/llm-module-config.types";
 import type { EnvVars } from "../env/env.types";
-import { parseModelChain, getUniqueProviderFamilies } from "../env/env.types";
+import { parseModelChain } from "../env/env.types";
 import { loadManifestForProviderFamily } from "../../common/llm/utils/manifest-loader";
 import { APP_PROVIDER_REGISTRY } from "../llm/provider-registry";
 import { LLMError, LLMErrorCode } from "../../common/llm/types/llm-errors.types";
 import type { LLMModelMetadata } from "../../common/llm/types/llm-model.types";
-import { z } from "zod";
 
 /**
  * Finds a model in the provider's manifest and returns its metadata.
@@ -89,34 +88,6 @@ function buildResolvedChain(
       modelUrn,
     };
   });
-}
-
-/**
- * Builds a combined environment schema from all provider manifests in the chains.
- * This merges the env schemas from all required providers.
- *
- * @param completionsChain The parsed completions chain
- * @param embeddingsChain The parsed embeddings chain
- * @returns A combined Zod schema for all provider env vars
- */
-export function buildCombinedProviderEnvSchema(
-  completionsChain: ReturnType<typeof parseModelChain>,
-  embeddingsChain: ReturnType<typeof parseModelChain>,
-): z.ZodObject<z.ZodRawShape> {
-  // Get unique provider families from both chains
-  const completionFamilies = getUniqueProviderFamilies(completionsChain);
-  const embeddingFamilies = getUniqueProviderFamilies(embeddingsChain);
-  const allFamilies = [...new Set([...completionFamilies, ...embeddingFamilies])];
-
-  // Merge all provider env schemas by combining shapes
-  let combinedShape: z.ZodRawShape = {};
-
-  for (const family of allFamilies) {
-    const manifest = loadManifestForProviderFamily(family, APP_PROVIDER_REGISTRY);
-    combinedShape = { ...combinedShape, ...manifest.envSchema.shape };
-  }
-
-  return z.object(combinedShape);
 }
 
 /**

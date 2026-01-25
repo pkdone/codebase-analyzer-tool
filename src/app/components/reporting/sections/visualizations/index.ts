@@ -18,7 +18,4 @@ export type {
 
 // Data extractors for visualization components
 export { extractMicroservicesData } from "./microservices-data-extractor";
-export {
-  extractInferredArchitectureData,
-  isInferredArchitectureCategoryData,
-} from "./architecture-data-extractor";
+export { extractInferredArchitectureData } from "./architecture-data-extractor";

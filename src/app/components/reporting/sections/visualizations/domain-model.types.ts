@@ -1,5 +1,3 @@
-import type { HierarchicalBoundedContext } from "../../../../schemas/app-summaries.schema";
-
 /**
  * Domain model types for reporting and visualization.
  * These interfaces define the flattened data structures used for
@@ -54,11 +52,3 @@ export interface DomainModelData {
   entities: DomainEntity[];
   repositories: DomainRepository[];
 }
-
-/**
- * Type alias for hierarchical bounded context data from the Zod schema.
- * Uses the inferred type from hierarchicalBoundedContextSchema.
- * The aggregates property is required by the schema; defensive coding handles
- * legacy data that may predate the current schema structure.
- */
-export type HierarchicalBoundedContextData = HierarchicalBoundedContext;

@@ -8,9 +8,7 @@ import {
   LLMStatusResponse,
   isCompletedResponse,
   isErrorResponse,
-  isStatusResponse,
   isOverloadedResponse,
-  isExceededResponse,
 } from "../../../../src/common/llm/types/llm-response.types";
 import { LLMPurpose } from "../../../../src/common/llm/types/llm-request.types";
 
@@ -151,60 +149,6 @@ describe("LLMFunctionResponse Type Guards", () => {
     });
   });
 
-  describe("isStatusResponse", () => {
-    test("returns true for EXCEEDED status", () => {
-      const response: LLMFunctionResponse = {
-        ...createBaseResponse(),
-        status: LLMResponseStatus.EXCEEDED,
-        tokensUsage: {
-          promptTokens: 10000,
-          completionTokens: 100,
-          maxTotalTokens: 8192,
-        },
-      };
-
-      expect(isStatusResponse(response)).toBe(true);
-    });
-
-    test("returns true for OVERLOADED status", () => {
-      const response: LLMFunctionResponse = {
-        ...createBaseResponse(),
-        status: LLMResponseStatus.OVERLOADED,
-      };
-
-      expect(isStatusResponse(response)).toBe(true);
-    });
-
-    test("returns true for UNKNOWN status", () => {
-      const response: LLMFunctionResponse = {
-        ...createBaseResponse(),
-        status: LLMResponseStatus.UNKNOWN,
-      };
-
-      expect(isStatusResponse(response)).toBe(true);
-    });
-
-    test("returns false for COMPLETED status", () => {
-      const response: LLMFunctionResponse<string> = {
-        ...createBaseResponse(),
-        status: LLMResponseStatus.COMPLETED,
-        generated: "result",
-      };
-
-      expect(isStatusResponse(response)).toBe(false);
-    });
-
-    test("returns false for ERRORED status", () => {
-      const response: LLMFunctionResponse = {
-        ...createBaseResponse(),
-        status: LLMResponseStatus.ERRORED,
-        error: new Error("test"),
-      };
-
-      expect(isStatusResponse(response)).toBe(false);
-    });
-  });
-
   describe("isOverloadedResponse", () => {
     test("returns true for OVERLOADED status", () => {
       const response: LLMFunctionResponse = {
@@ -232,41 +176,6 @@ describe("LLMFunctionResponse Type Guards", () => {
       };
 
       expect(isOverloadedResponse(response)).toBe(false);
-    });
-  });
-
-  describe("isExceededResponse", () => {
-    test("returns true for EXCEEDED status", () => {
-      const response: LLMFunctionResponse = {
-        ...createBaseResponse(),
-        status: LLMResponseStatus.EXCEEDED,
-        tokensUsage: {
-          promptTokens: 10000,
-          completionTokens: 100,
-          maxTotalTokens: 8192,
-        },
-      };
-
-      expect(isExceededResponse(response)).toBe(true);
-    });
-
-    test("returns false for OVERLOADED status", () => {
-      const response: LLMFunctionResponse = {
-        ...createBaseResponse(),
-        status: LLMResponseStatus.OVERLOADED,
-      };
-
-      expect(isExceededResponse(response)).toBe(false);
-    });
-
-    test("returns false for COMPLETED status", () => {
-      const response: LLMFunctionResponse<string> = {
-        ...createBaseResponse(),
-        status: LLMResponseStatus.COMPLETED,
-        generated: "result",
-      };
-
-      expect(isExceededResponse(response)).toBe(false);
     });
   });
 
@@ -300,17 +209,16 @@ describe("LLMFunctionResponse Type Guards", () => {
       }
     });
 
-    test("works with switch statement for exhaustive handling", () => {
+    test("works with conditional logic pattern", () => {
       const processResponse = (response: LLMFunctionResponse<string>): string => {
         if (isCompletedResponse(response)) {
           return `Success: ${response.generated}`;
         } else if (isErrorResponse(response)) {
           return `Error: ${String(response.error)}`;
-        } else if (isStatusResponse(response)) {
-          return `Status: ${response.status}`;
+        } else if (isOverloadedResponse(response)) {
+          return `Overloaded: ${response.status}`;
         }
-        // This line is unreachable with the current union
-        return "Unknown";
+        return `Status: ${response.status}`;
       };
 
       const completed: LLMFunctionResponse<string> = {
@@ -332,7 +240,7 @@ describe("LLMFunctionResponse Type Guards", () => {
 
       expect(processResponse(completed)).toBe("Success: test");
       expect(processResponse(errored as LLMFunctionResponse<string>)).toBe("Error: fail");
-      expect(processResponse(overloaded as LLMFunctionResponse<string>)).toBe("Status: overloaded");
+      expect(processResponse(overloaded as LLMFunctionResponse<string>)).toBe("Overloaded: overloaded");
     });
   });
 
@@ -371,8 +279,8 @@ describe("LLMFunctionResponse Type Guards", () => {
         status: LLMResponseStatus.OVERLOADED,
       };
 
-      if (isStatusResponse(response)) {
-        // TypeScript correctly narrows to LLMStatusResponse
+      if (isOverloadedResponse(response)) {
+        // TypeScript correctly narrows to LLMStatusResponse with OVERLOADED status
         const status: LLMStatusResponse = response;
         expect(status.status).toBe(LLMResponseStatus.OVERLOADED);
       }

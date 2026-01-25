@@ -61,7 +61,7 @@ type InferredArchitectureCategoryData = z.infer<typeof inferredArchitectureCateg
  * Type guard to check if data is valid InferredArchitectureCategoryData.
  * Uses Zod schema validation for robust type checking.
  */
-export function isInferredArchitectureCategoryData(
+function isInferredArchitectureCategoryData(
   data: unknown,
 ): data is InferredArchitectureCategoryData {
   return inferredArchitectureCategoryDataSchema.safeParse(data).success;

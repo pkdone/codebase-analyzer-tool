@@ -9,7 +9,6 @@
 export {
   TableViewModel,
   type DisplayableTableRow,
-  type TableCellValue,
   type ProcessedTableCell,
   type ProcessedListItem,
 } from "./table-view-model";

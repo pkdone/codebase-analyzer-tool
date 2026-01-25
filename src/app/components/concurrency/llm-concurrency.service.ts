@@ -35,22 +35,6 @@ export class LlmConcurrencyService {
   }
 
   /**
-   * Returns the current number of pending operations.
-   * Useful for testing and debugging.
-   */
-  get pendingCount(): number {
-    return this.limiter.pendingCount;
-  }
-
-  /**
-   * Returns the current number of active (running) operations.
-   * Useful for testing and debugging.
-   */
-  get activeCount(): number {
-    return this.limiter.activeCount;
-  }
-
-  /**
    * Executes a function with concurrency limiting.
    * Only the configured number of concurrent executions will be allowed at any time.
    *
@@ -59,13 +43,5 @@ export class LlmConcurrencyService {
    */
   async run<T>(fn: () => Promise<T>): Promise<T> {
     return this.limiter(fn);
-  }
-
-  /**
-   * Clears any pending operations from the queue.
-   * Useful for cleanup in tests.
-   */
-  clearQueue(): void {
-    this.limiter.clearQueue();
   }
 }

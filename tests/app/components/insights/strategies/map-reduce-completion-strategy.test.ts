@@ -21,9 +21,6 @@ import type { LlmConcurrencyService } from "../../../../../src/app/components/co
 function createMockLlmConcurrencyService(): jest.Mocked<LlmConcurrencyService> {
   return {
     run: jest.fn().mockImplementation(async <T>(fn: () => Promise<T>) => fn()),
-    pendingCount: 0,
-    activeCount: 0,
-    clearQueue: jest.fn(),
   } as unknown as jest.Mocked<LlmConcurrencyService>;
 }
 

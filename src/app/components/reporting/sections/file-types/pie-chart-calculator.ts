@@ -10,7 +10,7 @@ import { UNKNOWN_VALUE_PLACEHOLDER } from "../../config/placeholders.config";
 /**
  * File type data structure expected as input.
  */
-export interface FileTypeData {
+interface FileTypeData {
   fileType: string;
   files: number;
   lines: number;

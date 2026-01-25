@@ -2,12 +2,19 @@
  * Tests for pie chart calculation utilities.
  */
 
-import {
-  calculatePieChartData,
-  type FileTypeData,
-} from "../../../../../src/app/components/reporting/sections/file-types/pie-chart-calculator";
+import { calculatePieChartData } from "../../../../../src/app/components/reporting/sections/file-types/pie-chart-calculator";
 import { pieChartConfig } from "../../../../../src/app/components/reporting/sections/file-types/pie-chart.config";
 import { UNKNOWN_VALUE_PLACEHOLDER } from "../../../../../src/app/components/reporting/config/placeholders.config";
+
+/**
+ * File type data structure for test input.
+ * Matches the internal interface of calculatePieChartData.
+ */
+interface FileTypeData {
+  fileType: string;
+  files: number;
+  lines: number;
+}
 
 describe("pie-chart-calculator", () => {
   describe("calculatePieChartData", () => {

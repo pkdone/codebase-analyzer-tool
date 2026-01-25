@@ -105,14 +105,3 @@ export function getProviderFamilyForModelKey(
 export function getAllModelKeys(modelRegistry: Map<string, string>): string[] {
   return Array.from(modelRegistry.keys()).sort();
 }
-
-/**
- * Check if a model key exists in a model registry.
- *
- * @param modelKey - The model key to check
- * @param modelRegistry - The model registry to search in
- * @returns True if the model key is registered
- */
-export function isValidModelKey(modelKey: string, modelRegistry: Map<string, string>): boolean {
-  return modelRegistry.has(modelKey);
-}
