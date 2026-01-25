@@ -3,7 +3,7 @@ import {
   formatRow,
   type ProcessedTableCell,
   type ProcessedListItem,
-} from "../formatters/table-data-formatter";
+} from "./table-data-formatter";
 
 // Re-export formatter types for convenience (used by tests and other consumers)
 export type { ProcessedTableCell, ProcessedListItem };

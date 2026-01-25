@@ -3,7 +3,7 @@ import path from "path";
 import { promises as fs } from "fs";
 import { coreTokens } from "../../../di/tokens";
 import type { OutputConfigType } from "../../../config/output.config";
-import { generateBrandColorCssBlock } from "../../../config/theme.config";
+import { generateBrandColorCssBlock } from "../config/brand-theme.config";
 
 /**
  * Interface representing the assets required for HTML report rendering.
@@ -32,7 +32,7 @@ export class HtmlReportAssetService {
 
   /**
    * Loads and returns the assets required for HTML report rendering.
-   * Brand color CSS variables are generated from theme.config.ts and prepended
+   * Brand color CSS variables are generated from brand-theme.config.ts and prepended
    * to the CSS content, making TypeScript the single source of truth for colors.
    *
    * @returns Promise resolving to the HTML report assets
@@ -51,7 +51,7 @@ export class HtmlReportAssetService {
       fs.readFile(jsonIconPath, "utf-8"),
     ]);
 
-    // Generate brand color CSS variables from theme.config.ts and prepend to CSS
+    // Generate brand color CSS variables from brand-theme.config.ts and prepend to CSS
     const brandColorCss = generateBrandColorCssBlock();
     const fullCss = `${brandColorCss}\n\n${cssContent}`;
 

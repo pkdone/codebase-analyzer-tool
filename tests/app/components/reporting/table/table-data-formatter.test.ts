@@ -1,7 +1,7 @@
 import {
   formatRow,
   type ProcessedListItem,
-} from "../../../../../src/app/components/reporting/formatters/table-data-formatter";
+} from "../../../../../src/app/components/reporting/table";
 
 describe("TableDataFormatter", () => {
   describe("formatRow() - formatCell() integration", () => {

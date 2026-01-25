@@ -5,7 +5,7 @@ export {
   DIAGRAM_STYLES,
   DIAGRAM_ELEMENT_COLORS,
   type DiagramElementColorKey,
-} from "./diagram-theme.config";
+} from "../../config/brand-theme.config";
 
 export {
   buildMermaidInitDirective,

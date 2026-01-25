@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import { HtmlReportAssetService } from "../../../../../src/app/components/reporting/services/html-report-asset.service";
 import type { OutputConfigType } from "../../../../../src/app/config/output.config";
-import { generateBrandColorCssBlock } from "../../../../../src/app/config/theme.config";
+import { generateBrandColorCssBlock } from "../../../../../src/app/components/reporting/config/brand-theme.config";
 
 // Mock fs module
 jest.mock("fs", () => ({

@@ -11,7 +11,7 @@ import { CategorizedSectionDataBuilder, isCategorizedDataNameDescArray } from ".
 import type { AppSummariesRepository } from "../../repositories/app-summaries/app-summaries.repository.interface";
 import type { RequestableAppSummaryField } from "../../repositories/app-summaries/app-summaries.model";
 import type { ReportData } from "./report-data.types";
-import { TableViewModel, type DisplayableTableRow } from "./view-models/table-view-model";
+import { TableViewModel, type DisplayableTableRow } from "./table";
 import { convertToDisplayName } from "../../../common/utils/text-utils";
 import type { ReportSection } from "./sections/report-section.interface";
 import path from "path";

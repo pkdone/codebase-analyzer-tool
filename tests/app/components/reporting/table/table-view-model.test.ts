@@ -2,7 +2,7 @@ import {
   TableViewModel,
   ProcessedListItem,
   type DisplayableTableRow,
-} from "../../../../src/app/components/reporting/view-models/table-view-model";
+} from "../../../../../src/app/components/reporting/table";
 
 describe("TableViewModel", () => {
   describe("constructor and basic properties", () => {

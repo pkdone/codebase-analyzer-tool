@@ -13,22 +13,24 @@ import { LLMExecutionPipeline, type LLMPipelineConfig } from "./llm-execution-pi
 import { ProviderManager } from "./provider-manager";
 import { RetryStrategy } from "./strategies/retry-strategy";
 import LLMExecutionStats from "./tracking/llm-execution-stats";
+import { EmbeddingService } from "./embedding-service";
 import {
   buildCompletionCandidatesFromChain,
   buildEmbeddingCandidatesFromChain,
   buildExecutableCandidates,
-  buildExecutableEmbeddingCandidates,
 } from "./utils/completions-models-retriever";
 import { logWarn } from "../utils/logging";
 
 /**
- * LLMRouter orchestrates LLM operations across multiple providers with fallback support.
+ * LLMRouter orchestrates LLM completion operations across multiple providers with fallback support.
  *
  * Features:
  * - Multi-provider support: Can use models from different providers in a single fallback chain
  * - Configurable fallback: Models are tried in priority order as specified in the chain config
- * - Unified execution: Both completions and embeddings go through the same execution pipeline
  * - Non-functional concerns: Retries, cropping, statistics tracking are handled automatically
+ *
+ * Note: Embedding operations are delegated to the internal EmbeddingService.
+ * The generateEmbeddings method is retained for API compatibility but delegates to EmbeddingService.
  */
 export default class LLMRouter {
   /** Execution statistics for tracking LLM call metrics */
@@ -36,9 +38,9 @@ export default class LLMRouter {
 
   private readonly providerManager: ProviderManager;
   private readonly completionCandidates: LLMCandidateFunction[];
-  private readonly embeddingCandidates: ReturnType<typeof buildEmbeddingCandidatesFromChain>;
   private readonly modelChain: ResolvedModelChain;
   private readonly executionPipeline: LLMExecutionPipeline;
+  private readonly embeddingService: EmbeddingService;
 
   /**
    * Constructor.
@@ -55,12 +57,14 @@ export default class LLMRouter {
       errorLogging: config.errorLogging,
     });
 
-    // Build completion and embedding candidates from the chain
+    // Build completion candidates from the chain
     this.completionCandidates = buildCompletionCandidatesFromChain(
       this.providerManager,
       this.modelChain,
     );
-    this.embeddingCandidates = buildEmbeddingCandidatesFromChain(
+
+    // Build embedding candidates
+    const embeddingCandidates = buildEmbeddingCandidatesFromChain(
       this.providerManager,
       this.modelChain,
     );
@@ -72,14 +76,14 @@ export default class LLMRouter {
       );
     }
 
-    if (this.embeddingCandidates.length === 0) {
+    if (embeddingCandidates.length === 0) {
       throw new LLMError(
         LLMErrorCode.BAD_CONFIGURATION,
         "At least one embedding model must be configured in LLM_EMBEDDINGS",
       );
     }
 
-    // Create execution pipeline with injected configuration
+    // Create shared execution pipeline
     this.stats = new LLMExecutionStats();
     const retryStrategy = new RetryStrategy(this.stats);
     const pipelineConfig: LLMPipelineConfig = {
@@ -87,6 +91,14 @@ export default class LLMRouter {
       getModelsMetadata: () => this.providerManager.getAllModelsMetadata(),
     };
     this.executionPipeline = new LLMExecutionPipeline(retryStrategy, this.stats, pipelineConfig);
+
+    // Create embedding service with shared dependencies
+    this.embeddingService = new EmbeddingService({
+      embeddingCandidates,
+      modelChain: this.modelChain,
+      providerManager: this.providerManager,
+      executionPipeline: this.executionPipeline,
+    });
 
     console.log(`LLMRouter initialized with: ${this.getModelsUsedDescription()}`);
   }
@@ -150,17 +162,14 @@ export default class LLMRouter {
    * Useful for iterating through models for testing or display purposes.
    */
   getEmbeddingChain(): ResolvedModelChain["embeddings"] {
-    return this.modelChain.embeddings;
+    return this.embeddingService.getEmbeddingChain();
   }
 
   /**
    * Get the dimensions for the first embedding model in the chain.
    */
   getEmbeddingModelDimensions(): number | undefined {
-    if (this.embeddingCandidates.length === 0) return undefined;
-    const firstEntry = this.modelChain.embeddings[0];
-    const provider = this.providerManager.getProvider(firstEntry.providerFamily);
-    return provider.getEmbeddingModelDimensions(firstEntry.modelKey);
+    return this.embeddingService.getEmbeddingModelDimensions();
   }
 
   /**
@@ -182,7 +191,7 @@ export default class LLMRouter {
   /**
    * Send the content to the LLM for it to generate and return the content's embedding.
    *
-   * Uses the execution pipeline which provides:
+   * Delegates to the internal EmbeddingService which provides:
    * - Retry logic for overloaded models
    * - Prompt cropping when content exceeds context window
    * - Statistics tracking (success, failure, retries, crops)
@@ -198,50 +207,7 @@ export default class LLMRouter {
     content: string,
     modelIndexOverride: number | null = null,
   ): Promise<number[] | null> {
-    const baseContext: Omit<LLMContext, "modelKey"> = {
-      resource: resourceName,
-      purpose: LLMPurpose.EMBEDDINGS,
-    };
-
-    // Build unified executable candidates for embeddings
-    let candidates;
-    try {
-      candidates = buildExecutableEmbeddingCandidates(this.embeddingCandidates, modelIndexOverride);
-    } catch {
-      logWarn(
-        `No embedding candidates available at index ${modelIndexOverride ?? 0}. Chain has ${this.embeddingCandidates.length} models.`,
-        baseContext as LLMContext,
-      );
-      return null;
-    }
-
-    const context: LLMContext = {
-      ...baseContext,
-      modelKey: candidates[0].modelKey,
-    };
-
-    const result = await this.executionPipeline.execute<number[]>({
-      resourceName,
-      content,
-      context,
-      candidates,
-      retryOnInvalid: false, // Embeddings don't have JSON parsing
-      trackJsonMutations: false, // No JSON mutations for embeddings
-    });
-
-    if (!result.success) {
-      return null;
-    }
-
-    if (!Array.isArray(result.data)) {
-      logWarn(
-        `Embedding response has invalid type: expected number[] but got ${typeof result.data}`,
-        context,
-      );
-      return null;
-    }
-
-    return result.data;
+    return this.embeddingService.generateEmbeddings(resourceName, content, modelIndexOverride);
   }
 
   /**

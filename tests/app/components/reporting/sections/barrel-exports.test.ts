@@ -7,8 +7,9 @@ import * as dataProcessingExports from "../../../../../src/app/components/report
  * Tests to verify barrel exports are correct and prevent regression.
  *
  * These tests ensure that:
- * 1. Section barrel files export only their own components (no re-exports from data-processing)
- * 2. Data-processing module is the canonical location for data extraction utilities
+ * 1. Section barrel files export appropriate components and utilities
+ * 2. Data-processing module exports general-purpose utilities
+ * 3. Section-specific extractors are co-located with their consuming sections
  */
 describe("barrel exports", () => {
   describe("visualizations/index.ts", () => {
@@ -22,14 +23,23 @@ describe("barrel exports", () => {
       expect(visualizationsExports.DomainModelDataProvider).toBeDefined();
     });
 
-    it("should NOT re-export data extractors from data-processing module", () => {
-      // These should be imported from data-processing, not visualizations
+    it("should export co-located data extractors for this section", () => {
+      // These are now co-located with the visualizations section
+      expect(visualizationsExports.extractMicroservicesData).toBeDefined();
+      expect(typeof visualizationsExports.extractMicroservicesData).toBe("function");
+
+      expect(visualizationsExports.extractInferredArchitectureData).toBeDefined();
+      expect(typeof visualizationsExports.extractInferredArchitectureData).toBe("function");
+
+      expect(visualizationsExports.isInferredArchitectureCategoryData).toBeDefined();
+      expect(typeof visualizationsExports.isInferredArchitectureCategoryData).toBe("function");
+    });
+
+    it("should NOT export general-purpose extractors that stay in data-processing", () => {
+      // These remain in data-processing as they are general-purpose
       const exports = Object.keys(visualizationsExports);
-      expect(exports).not.toContain("extractMicroservicesData");
-      expect(exports).not.toContain("extractInferredArchitectureData");
       expect(exports).not.toContain("extractKeyBusinessActivities");
       expect(exports).not.toContain("extractMicroserviceFields");
-      expect(exports).not.toContain("isInferredArchitectureCategoryData");
     });
 
     it("should export domain model types", () => {
@@ -62,7 +72,7 @@ describe("barrel exports", () => {
     });
   });
 
-  describe("data-processing/index.ts (canonical location)", () => {
+  describe("data-processing/index.ts (general-purpose utilities)", () => {
     it("should export CategorizedSectionDataBuilder", () => {
       expect(dataProcessingExports.CategorizedSectionDataBuilder).toBeDefined();
     });
@@ -75,21 +85,21 @@ describe("barrel exports", () => {
       expect(typeof dataProcessingExports.isCategorizedDataInferredArchitecture).toBe("function");
     });
 
-    it("should export visualization data extractors", () => {
+    it("should export general-purpose visualization data extractors", () => {
+      // These general-purpose extractors remain in data-processing
       expect(dataProcessingExports.extractKeyBusinessActivities).toBeDefined();
       expect(typeof dataProcessingExports.extractKeyBusinessActivities).toBe("function");
 
       expect(dataProcessingExports.extractMicroserviceFields).toBeDefined();
       expect(typeof dataProcessingExports.extractMicroserviceFields).toBe("function");
+    });
 
-      expect(dataProcessingExports.extractMicroservicesData).toBeDefined();
-      expect(typeof dataProcessingExports.extractMicroservicesData).toBe("function");
-
-      expect(dataProcessingExports.extractInferredArchitectureData).toBeDefined();
-      expect(typeof dataProcessingExports.extractInferredArchitectureData).toBe("function");
-
-      expect(dataProcessingExports.isInferredArchitectureCategoryData).toBeDefined();
-      expect(typeof dataProcessingExports.isInferredArchitectureCategoryData).toBe("function");
+    it("should NOT export section-specific extractors (moved to visualizations)", () => {
+      // These have been moved to visualizations section
+      const exports = Object.keys(dataProcessingExports);
+      expect(exports).not.toContain("extractMicroservicesData");
+      expect(exports).not.toContain("extractInferredArchitectureData");
+      expect(exports).not.toContain("isInferredArchitectureCategoryData");
     });
   });
 });

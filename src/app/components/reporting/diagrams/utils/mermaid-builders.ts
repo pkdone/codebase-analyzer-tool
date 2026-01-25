@@ -4,7 +4,7 @@
  */
 
 import { currentArchitectureConfig } from "../diagrams.config";
-import { DIAGRAM_STYLES } from "./diagram-theme.config";
+import { DIAGRAM_STYLES } from "../../config/brand-theme.config";
 
 /**
  * Generate the Mermaid init directive for consistent diagram configuration.

@@ -3,7 +3,7 @@ import type { ReportSection } from "../report-section.interface";
 import type { RequestableAppSummaryField } from "../../../../repositories/app-summaries/app-summaries.model";
 import { reportingTokens } from "../../../../di/tokens";
 import { IntegrationPointsDataProvider } from "./integration-points-data-provider";
-import { TableViewModel } from "../../view-models/table-view-model";
+import { TableViewModel } from "../../table";
 import type { PreparedHtmlReportData } from "../../types/html-report-data.types";
 import type { PreparedJsonData } from "../../json-report-writer";
 import type { ReportData } from "../../report-data.types";

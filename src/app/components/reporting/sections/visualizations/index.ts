@@ -15,3 +15,10 @@ export type {
   DomainBoundedContext,
   DomainModelData,
 } from "./domain-model.types";
+
+// Data extractors for visualization components
+export { extractMicroservicesData } from "./microservices-data-extractor";
+export {
+  extractInferredArchitectureData,
+  isInferredArchitectureCategoryData,
+} from "./architecture-data-extractor";

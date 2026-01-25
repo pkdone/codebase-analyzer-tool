@@ -9,7 +9,7 @@ import {
   generateBrandColorCssVariables,
   generateBrandColorCssBlock,
   type BrandColorKey,
-} from "../../../src/app/config/theme.config";
+} from "../../../../../src/app/components/reporting/config/brand-theme.config";
 
 describe("Theme CSS Generation", () => {
   describe("BRAND_COLOR_CSS_VAR_MAP", () => {
@@ -91,7 +91,7 @@ describe("Theme CSS Generation", () => {
     });
 
     it("should include a comment indicating the source", () => {
-      expect(generatedBlock).toContain("Generated from theme.config.ts");
+      expect(generatedBlock).toContain("Generated from brand-theme.config.ts");
     });
 
     it("should include all brand color CSS variables", () => {

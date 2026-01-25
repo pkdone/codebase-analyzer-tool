@@ -2,7 +2,7 @@
 
 /*
  * Note: MongoDB brand color CSS variables (--mdb-green-dark, --mdb-green-light, etc.)
- * are generated at runtime from src/app/config/theme.config.ts and injected
+ * are generated at runtime from src/app/components/reporting/config/brand-theme.config.ts and injected
  * into the HTML report. This eliminates duplication and makes TypeScript the
  * single source of truth for brand colors.
  */

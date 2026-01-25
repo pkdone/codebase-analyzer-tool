@@ -26,7 +26,7 @@ export const pieChartConfig = {
   /**
    * Color palette for pie chart slices.
    *
-   * Note: These colors are intentionally different from BRAND_COLORS in theme.config.ts.
+   * Note: These colors are intentionally different from BRAND_COLORS in brand-theme.config.ts.
    * Pie charts require many distinct, visually distinguishable colors for effective data
    * visualization (15+ categories), while the MongoDB brand palette only contains 7 colors.
    * Using Material Design colors here provides better visual separation between slices.
@@ -35,7 +35,7 @@ export const pieChartConfig = {
    * using the golden angle algorithm for even hue distribution.
    *
    * @see pie-chart-calculator.ts for color assignment logic
-   * @see theme.config.ts for MongoDB brand colors used in semantic UI elements
+   * @see brand-theme.config.ts for MongoDB brand colors used in semantic UI elements
    */
   COLORS: [
     "#2196F3",

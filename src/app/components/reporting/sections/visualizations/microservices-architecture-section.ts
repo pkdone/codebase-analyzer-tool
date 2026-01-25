@@ -7,7 +7,7 @@ import type { PreparedHtmlReportData } from "../../types/html-report-data.types"
 import type { PreparedJsonData } from "../../json-report-writer";
 import type { ReportData } from "../../report-data.types";
 import { SECTION_NAMES } from "../../reporting.constants";
-import { extractMicroservicesData } from "../../data-processing";
+import { extractMicroservicesData } from "./microservices-data-extractor";
 
 /**
  * Report section for microservices architecture visualizations.
