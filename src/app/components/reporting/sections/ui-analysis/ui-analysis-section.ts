@@ -14,6 +14,7 @@ import {
   getTotalScriptletsCssClass,
   getFilesWithHighScriptletCountCssClass,
   shouldShowHighDebtAlert,
+  getScriptletUsageInsight,
 } from "../../view-models/presentation-helpers";
 import { outputConfig } from "../../../../config/output.config";
 import { UNKNOWN_VALUE_PLACEHOLDER } from "../../config/placeholders.config";
@@ -86,6 +87,10 @@ export class UiAnalysisSection implements ReportSection {
         rawData.filesWithHighScriptletCount,
       ),
       showHighDebtAlert: shouldShowHighDebtAlert(rawData.filesWithHighScriptletCount),
+      scriptletUsageInsight: getScriptletUsageInsight(
+        rawData.totalScriptlets,
+        rawData.averageScriptletsPerFile,
+      ),
     };
 
     return await Promise.resolve({

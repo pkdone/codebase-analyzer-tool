@@ -129,19 +129,7 @@
       <h3>UI Modernization Insights</h3>
       <ul>
         <li>
-          <strong>Scriptlet Usage:</strong> 
-          <% if (uiData.totalScriptlets === 0) { %>
-            No scriptlets detected - excellent! The codebase follows modern JSP best practices.
-          <% } else if (uiData.averageScriptletsPerFile < 5) { %>
-            Low scriptlet usage (<%= uiData.averageScriptletsPerFile.toFixed(1) %> per file). 
-            Consider further refactoring to eliminate remaining scriptlets.
-          <% } else if (uiData.averageScriptletsPerFile < 10) { %>
-            Moderate scriptlet usage (<%= uiData.averageScriptletsPerFile.toFixed(1) %> per file). 
-            Refactoring to tag libraries or modern UI framework recommended.
-          <% } else { %>
-            High scriptlet usage (<%= uiData.averageScriptletsPerFile.toFixed(1) %> per file). 
-            Significant refactoring needed for modernization.
-          <% } %>
+          <strong>Scriptlet Usage:</strong> <%= uiData.scriptletUsageInsight %>
         </li>
         <% if (uiData.totalExpressions > 0) { %>
           <li>

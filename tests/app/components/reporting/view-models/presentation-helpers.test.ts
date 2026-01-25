@@ -5,6 +5,8 @@ import {
   getFilesWithHighScriptletCountCssClass,
   shouldShowHighDebtAlert,
   getBomConflictsCssClass,
+  getCodeSmellRecommendation,
+  getScriptletUsageInsight,
   uiAnalysisConfig,
   type CouplingLevelPresentation,
   type DebtLevelPresentation,
@@ -156,6 +158,99 @@ describe("presentation-helpers", () => {
     it("should return conflict-warning class for multiple conflicts", () => {
       const result = getBomConflictsCssClass(10);
       expect(result).toBe("conflict-warning");
+    });
+  });
+
+  describe("getCodeSmellRecommendation", () => {
+    it("should return recommendation for Long Method smell", () => {
+      const result = getCodeSmellRecommendation("LONG METHOD");
+      expect(result).toBe("Refactor into smaller, single-purpose methods");
+    });
+
+    it("should return recommendation for God Class smell (case insensitive)", () => {
+      const result = getCodeSmellRecommendation("god class");
+      expect(result).toBe("Split into multiple classes following Single Responsibility Principle");
+    });
+
+    it("should return recommendation for Duplicate Code smell", () => {
+      const result = getCodeSmellRecommendation("Duplicate Code Found");
+      expect(result).toBe("Extract common code into reusable functions or utilities");
+    });
+
+    it("should return recommendation for Long Parameter List smell", () => {
+      const result = getCodeSmellRecommendation("Long Parameter List");
+      expect(result).toBe("Use parameter objects or builder pattern");
+    });
+
+    it("should return recommendation for Complex Conditional smell", () => {
+      const result = getCodeSmellRecommendation("Complex Conditional Logic");
+      expect(result).toBe("Simplify conditionals or extract into guard clauses");
+    });
+
+    it("should return default recommendation for unknown smell type", () => {
+      const result = getCodeSmellRecommendation("UNKNOWN_SMELL_TYPE");
+      expect(result).toBe("Review and refactor as part of modernization effort");
+    });
+
+    it("should return default recommendation for empty smell type", () => {
+      const result = getCodeSmellRecommendation("");
+      expect(result).toBe("Review and refactor as part of modernization effort");
+    });
+
+    it("should match patterns that contain the smell type", () => {
+      const result = getCodeSmellRecommendation("Very Long Method with excessive code");
+      expect(result).toBe("Refactor into smaller, single-purpose methods");
+    });
+  });
+
+  describe("getScriptletUsageInsight", () => {
+    it("should return excellent message when no scriptlets", () => {
+      const result = getScriptletUsageInsight(0, 0);
+      expect(result).toBe(
+        "No scriptlets detected - excellent! The codebase follows modern JSP best practices.",
+      );
+    });
+
+    it("should return low usage message when average < 5", () => {
+      const result = getScriptletUsageInsight(10, 2.5);
+      expect(result).toBe(
+        "Low scriptlet usage (2.5 per file). Consider further refactoring to eliminate remaining scriptlets.",
+      );
+    });
+
+    it("should return moderate usage message when average >= 5 and < 10", () => {
+      const result = getScriptletUsageInsight(50, 7.5);
+      expect(result).toBe(
+        "Moderate scriptlet usage (7.5 per file). Refactoring to tag libraries or modern UI framework recommended.",
+      );
+    });
+
+    it("should return high usage message when average >= 10", () => {
+      const result = getScriptletUsageInsight(200, 15.0);
+      expect(result).toBe(
+        "High scriptlet usage (15.0 per file). Significant refactoring needed for modernization.",
+      );
+    });
+
+    it("should handle boundary at 5 scriptlets per file", () => {
+      // At exactly 5.0, it should return moderate (not low)
+      const result = getScriptletUsageInsight(50, 5.0);
+      expect(result).toBe(
+        "Moderate scriptlet usage (5.0 per file). Refactoring to tag libraries or modern UI framework recommended.",
+      );
+    });
+
+    it("should handle boundary at 10 scriptlets per file", () => {
+      // At exactly 10.0, it should return high (not moderate)
+      const result = getScriptletUsageInsight(100, 10.0);
+      expect(result).toBe(
+        "High scriptlet usage (10.0 per file). Significant refactoring needed for modernization.",
+      );
+    });
+
+    it("should format average to one decimal place", () => {
+      const result = getScriptletUsageInsight(10, 3.333333);
+      expect(result).toContain("3.3 per file");
     });
   });
 });

@@ -109,21 +109,7 @@
       <td><strong><%= smell.smellType %></strong></td>
       <td class="numeric"><%= smell.occurrences %></td>
       <td class="numeric"><%= smell.affectedFiles %></td>
-      <td>
-        <% if (smell.smellType.includes('Long Method')) { %>
-          Refactor into smaller, single-purpose methods
-        <% } else if (smell.smellType.includes('God Class')) { %>
-          Split into multiple classes following Single Responsibility Principle
-        <% } else if (smell.smellType.includes('Duplicate Code')) { %>
-          Extract common code into reusable functions or utilities
-        <% } else if (smell.smellType.includes('Long Parameter List')) { %>
-          Use parameter objects or builder pattern
-        <% } else if (smell.smellType.includes('Complex Conditional')) { %>
-          Simplify conditionals or extract into guard clauses
-        <% } else { %>
-          Review and refactor as part of modernization effort
-        <% } %>
-      </td>
+      <td><%= smell.recommendation %></td>
     </tr>
     <% }); %>
   </tbody>

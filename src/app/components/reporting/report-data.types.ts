@@ -35,7 +35,7 @@ export interface ReportData {
   procsAndTriggers: import("./sections/database/database.types").ProcsAndTriggers;
   billOfMaterials: import("./sections/dependencies/dependencies.types").BomDependency[];
   codeQualitySummary:
-    | import("./sections/code-quality/code-quality.types").CodeQualitySummary
+    | import("./sections/code-quality/code-quality.types").CodeQualitySummaryData
     | null;
   scheduledJobsSummary:
     | import("./sections/background-processes/background-processes.types").ScheduledJobsSummary

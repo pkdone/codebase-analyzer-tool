@@ -269,6 +269,74 @@ describe("UiAnalysisSection", () => {
         expect(framework.version?.length).toBeGreaterThan(0);
       });
     });
+
+    it("should add scriptletUsageInsight for no scriptlets", async () => {
+      const rawData = createMockUiAnalysisData({
+        totalScriptlets: 0,
+        averageScriptletsPerFile: 0,
+      });
+
+      const result = await section.prepareHtmlData(
+        mockBaseData,
+        { uiTechnologyAnalysis: rawData },
+        "/tmp",
+      );
+
+      expect(result?.uiTechnologyAnalysis?.scriptletUsageInsight).toBe(
+        "No scriptlets detected - excellent! The codebase follows modern JSP best practices.",
+      );
+    });
+
+    it("should add scriptletUsageInsight for low scriptlet usage", async () => {
+      const rawData = createMockUiAnalysisData({
+        totalScriptlets: 10,
+        averageScriptletsPerFile: 2.5,
+      });
+
+      const result = await section.prepareHtmlData(
+        mockBaseData,
+        { uiTechnologyAnalysis: rawData },
+        "/tmp",
+      );
+
+      expect(result?.uiTechnologyAnalysis?.scriptletUsageInsight).toBe(
+        "Low scriptlet usage (2.5 per file). Consider further refactoring to eliminate remaining scriptlets.",
+      );
+    });
+
+    it("should add scriptletUsageInsight for moderate scriptlet usage", async () => {
+      const rawData = createMockUiAnalysisData({
+        totalScriptlets: 50,
+        averageScriptletsPerFile: 7.5,
+      });
+
+      const result = await section.prepareHtmlData(
+        mockBaseData,
+        { uiTechnologyAnalysis: rawData },
+        "/tmp",
+      );
+
+      expect(result?.uiTechnologyAnalysis?.scriptletUsageInsight).toBe(
+        "Moderate scriptlet usage (7.5 per file). Refactoring to tag libraries or modern UI framework recommended.",
+      );
+    });
+
+    it("should add scriptletUsageInsight for high scriptlet usage", async () => {
+      const rawData = createMockUiAnalysisData({
+        totalScriptlets: 200,
+        averageScriptletsPerFile: 15.0,
+      });
+
+      const result = await section.prepareHtmlData(
+        mockBaseData,
+        { uiTechnologyAnalysis: rawData },
+        "/tmp",
+      );
+
+      expect(result?.uiTechnologyAnalysis?.scriptletUsageInsight).toBe(
+        "High scriptlet usage (15.0 per file). Significant refactoring needed for modernization.",
+      );
+    });
   });
 
   describe("prepareJsonData", () => {

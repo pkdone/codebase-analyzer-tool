@@ -91,4 +91,6 @@ export interface UiTechnologyAnalysis {
   filesWithHighScriptletCountCssClass: string;
   /** Flag indicating whether to show the high debt alert */
   showHighDebtAlert: boolean;
+  /** Pre-computed insight text about scriptlet usage level */
+  scriptletUsageInsight: string;
 }

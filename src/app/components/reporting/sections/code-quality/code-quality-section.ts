@@ -7,6 +7,8 @@ import type { PreparedHtmlReportData } from "../../types/html-report-data.types"
 import type { PreparedJsonData } from "../../json-report-writer";
 import type { ReportData } from "../../report-data.types";
 import { SECTION_NAMES } from "../../reporting.constants";
+import type { CodeQualitySummary } from "./code-quality.types";
+import { getCodeSmellRecommendation } from "../../view-models/presentation-helpers";
 
 /**
  * Report section for code quality metrics.
@@ -39,11 +41,20 @@ export class CodeQualitySection implements ReportSection {
     sectionData: Partial<ReportData>,
     _htmlDir: string,
   ): Promise<Partial<PreparedHtmlReportData> | null> {
-    const { codeQualitySummary } = sectionData;
+    const { codeQualitySummary: rawData } = sectionData;
 
-    if (!codeQualitySummary) {
+    if (!rawData) {
       return await Promise.resolve(null);
     }
+
+    // Transform raw data to presentation data by adding recommendations
+    const codeQualitySummary: CodeQualitySummary = {
+      ...rawData,
+      commonCodeSmells: rawData.commonCodeSmells.map((smell) => ({
+        ...smell,
+        recommendation: getCodeSmellRecommendation(smell.smellType),
+      })),
+    };
 
     return await Promise.resolve({
       codeQualitySummary,

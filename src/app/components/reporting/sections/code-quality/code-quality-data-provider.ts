@@ -1,7 +1,7 @@
 import { injectable, inject } from "tsyringe";
 import type { SourcesRepository } from "../../../../repositories/sources/sources.repository.interface";
 import { repositoryTokens } from "../../../../di/tokens";
-import type { CodeQualitySummary } from "./code-quality.types";
+import type { CodeQualitySummaryData } from "./code-quality.types";
 
 /**
  * Data provider responsible for aggregating code quality metrics.
@@ -15,9 +15,10 @@ export class CodeQualityDataProvider {
   ) {}
 
   /**
-   * Aggregates code quality metrics for a project
+   * Aggregates code quality metrics for a project.
+   * Returns raw data without presentation fields.
    */
-  async getCodeQualitySummary(projectName: string): Promise<CodeQualitySummary> {
+  async getCodeQualitySummary(projectName: string): Promise<CodeQualitySummaryData> {
     // Execute all three aggregations in parallel
     const [topComplexFunctions, commonCodeSmells, overallStatistics] = await Promise.all([
       this.sourcesRepository.getTopComplexFunctions(projectName, 10),
