@@ -11,6 +11,7 @@
 
 import type { ReplacementRule, ContextInfo } from "../replacement-rule.types";
 import { parsingHeuristics } from "../../../constants/json-processing.config";
+import { findJsonValueEnd } from "../../../utils/parser-context-utils";
 
 /**
  * Checks if a context is valid for embedded content removal.
@@ -159,38 +160,14 @@ export const EXTRA_PROPERTY_RULES: readonly ReplacementRule[] = [
       const { fullContent, offset } = context;
       const matchStr = _match;
 
-      // Find matching closing brace
-      let braceCount = 1;
-      let i = offset + matchStr.length;
-
-      while (i < fullContent.length && braceCount > 0) {
-        const char = fullContent[i];
-        if (char === "\\") {
-          i += 2;
-          continue;
-        }
-        if (char === '"') {
-          i++;
-          while (i < fullContent.length && fullContent[i] !== '"') {
-            if (fullContent[i] === "\\") {
-              i += 2;
-            } else {
-              i++;
-            }
-          }
-          i++;
-          continue;
-        }
-        if (char === "{") {
-          braceCount++;
-        } else if (char === "}") {
-          braceCount--;
-        }
-        i++;
-      }
+      // Use findJsonValueEnd to locate the matching closing brace.
+      // The regex pattern ends with `{`, so the opening brace is at the last character
+      // of the match. We pass that position to findJsonValueEnd.
+      const openBracePosition = offset + matchStr.length - 1;
+      const valueEndResult = findJsonValueEnd(fullContent, openBracePosition);
 
       // If we couldn't find the closing brace, skip this replacement
-      if (braceCount !== 0) {
+      if (!valueEndResult.success) {
         return null;
       }
 

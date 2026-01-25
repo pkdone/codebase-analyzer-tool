@@ -5,7 +5,6 @@ import { coreTokens } from "../../../../src/app/di/tokens";
 import {
   registerBaseEnvDependencies,
   registerLlmEnvDependencies,
-  resetProjectNameCache,
 } from "../../../../src/app/di/registration-modules/env-registration";
 import { loadManifestForProviderFamily } from "../../../../src/common/llm/utils/manifest-loader";
 import { LLMProviderManifest } from "../../../../src/common/llm/providers/llm-provider.types";
@@ -69,7 +68,6 @@ describe("Environment Registration Module", () => {
     jest.clearAllMocks();
     container.clearInstances();
     container.reset();
-    resetProjectNameCache();
 
     // Reset process.env for each test
     delete process.env.LLM_COMPLETIONS;
@@ -193,7 +191,6 @@ describe("Environment Registration Module", () => {
   describe("project name registration", () => {
     it("should derive project name from codebase directory path", () => {
       (getBaseNameFromPath as jest.Mock).mockReturnValue("my-awesome-project");
-      container.registerInstance(coreTokens.EnvVars, mockBaseEnvVars);
 
       registerBaseEnvDependencies();
 
@@ -202,8 +199,7 @@ describe("Environment Registration Module", () => {
       expect(getBaseNameFromPath).toHaveBeenCalledWith("/test/project");
     });
 
-    it("should cache project name after first resolution", () => {
-      container.registerInstance(coreTokens.EnvVars, mockBaseEnvVars);
+    it("should only compute project name once via registerInstance singleton behavior", () => {
       registerBaseEnvDependencies();
 
       // First resolution
@@ -211,33 +207,11 @@ describe("Environment Registration Module", () => {
       // Second resolution
       const projectName2 = container.resolve(coreTokens.ProjectName);
 
-      // Should only call getBaseNameFromPath once (cached)
+      // getBaseNameFromPath is called once during registration (not on each resolution)
+      // as the value is registered as an instance, not a factory
       expect(getBaseNameFromPath).toHaveBeenCalledTimes(1);
       expect(projectName1).toBe(projectName2);
     });
   });
 
-  describe("resetProjectNameCache", () => {
-    it("should clear the cached project name", () => {
-      container.registerInstance(coreTokens.EnvVars, mockBaseEnvVars);
-      registerBaseEnvDependencies();
-
-      // First resolution - caches the name
-      container.resolve(coreTokens.ProjectName);
-      expect(getBaseNameFromPath).toHaveBeenCalledTimes(1);
-
-      // Reset the cache
-      resetProjectNameCache();
-      container.clearInstances();
-      container.reset();
-
-      // Re-register
-      container.registerInstance(coreTokens.EnvVars, mockBaseEnvVars);
-      registerBaseEnvDependencies();
-
-      // Resolve again - should call getBaseNameFromPath again
-      container.resolve(coreTokens.ProjectName);
-      expect(getBaseNameFromPath).toHaveBeenCalledTimes(2);
-    });
-  });
 });
