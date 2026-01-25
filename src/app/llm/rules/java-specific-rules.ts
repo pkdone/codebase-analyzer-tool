@@ -2,19 +2,19 @@
  * Java-specific replacement rules for handling Java code artifacts in JSON.
  *
  * These rules are domain-specific and handle Java-related content that may appear
- * in LLM responses when analyzing Java codebases. They are exported separately
- * from the generic rules to allow consuming applications to opt-in to Java support.
+ * in LLM responses when analyzing Java codebases. They are specific to this application
+ * since it primarily analyzes Java projects.
  *
  * Usage:
  * ```typescript
- * import { JAVA_SPECIFIC_RULES } from "common/llm/json-processing/sanitizers/rules";
+ * import { JAVA_SPECIFIC_RULES } from "./rules/java-specific-rules";
  * const config: LLMSanitizerConfig = {
  *   customReplacementRules: JAVA_SPECIFIC_RULES,
  * };
  * ```
  */
 
-import type { ReplacementRule } from "./replacement-rule.types";
+import type { ReplacementRule } from "../../../common/llm/json-processing/sanitizers/rules/replacement-rule.types";
 
 /**
  * Rules for removing Java code artifacts from JSON content.

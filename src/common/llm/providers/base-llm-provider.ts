@@ -285,7 +285,12 @@ export default abstract class BaseLLMProvider implements LLMProvider {
       return {
         ...responseBase,
         status: LLMResponseStatus.COMPLETED,
-        generated: responseContent,
+        // TYPE ASSERTION RATIONALE: For non-completion tasks (embeddings), the type contract
+        // is enforced at the call boundary. generateEmbeddings() explicitly binds S to
+        // z.ZodType<number[]>, and invokeEmbeddingProvider() implementations return number[]
+        // by contract. The generic method cannot know the specific S at compile time, so
+        // we cast here to bridge the typed caller with the generic implementation.
+        generated: responseContent as z.infer<S>,
       };
     }
 
@@ -372,7 +377,13 @@ export default abstract class BaseLLMProvider implements LLMProvider {
     return {
       ...responseBase,
       status: LLMResponseStatus.COMPLETED,
-      generated: responseContent,
+      // TYPE ASSERTION RATIONALE: For TEXT output format, the runtime validation above
+      // confirms responseContent is a string, and the configuration validation (lines 344-350)
+      // ensures callers cannot provide a jsonSchema with TEXT mode. When no schema is provided,
+      // S defaults to z.ZodType<unknown>, making z.infer<S> resolve to unknown. String is
+      // assignable to unknown, making this cast safe. Callers expecting typed JSON must use
+      // JSON output format with a schema.
+      generated: responseContent as z.infer<S>,
     };
   }
 

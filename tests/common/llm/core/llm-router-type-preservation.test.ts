@@ -131,6 +131,9 @@ describe("LLMRouter Type Preservation Tests", () => {
 
     jest.spyOn(manifestLoader, "loadManifestForProviderFamily").mockReturnValue(mockManifest);
 
+    // Create mock provider registry
+    const mockProviderRegistry = new Map([["test", mockManifest]]);
+
     const mockConfig: LLMModuleConfig = {
       providerParams: {},
       resolvedModelChain: {
@@ -146,6 +149,7 @@ describe("LLMRouter Type Preservation Tests", () => {
         ],
       },
       errorLogging: { errorLogDirectory: "/tmp", errorLogFilenameTemplate: "error.log" },
+      providerRegistry: mockProviderRegistry,
     };
 
     // Router now creates its own execution pipeline internally

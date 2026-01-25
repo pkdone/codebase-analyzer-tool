@@ -6,5 +6,8 @@
  *
  * Exports:
  * - `getLlmArtifactCorrections`: Configuration for fixing common LLM output artifacts
+ * - `buildProviderRegistry`: Constructs the LLM provider registry for this application
+ * - `APP_PROVIDER_REGISTRY`: Singleton instance of the provider registry
  */
 export { getLlmArtifactCorrections } from "./llm-artifact-corrections";
+export { buildProviderRegistry, APP_PROVIDER_REGISTRY } from "./provider-registry";

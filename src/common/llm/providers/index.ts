@@ -1,49 +1,56 @@
 /**
- * Static registry of all available LLM provider manifests.
+ * LLM provider manifests and family constants.
+ *
+ * This module exports all available provider manifests and their family identifiers.
+ * The application layer is responsible for constructing the registry of providers
+ * it intends to use by selecting from these exports.
+ *
+ * This design allows consuming applications to:
+ * 1. Include only the providers they need (reducing bundle size)
+ * 2. Add custom providers without modifying this module
+ * 3. Maintain full control over provider initialization
  */
 
-import { LLMProviderManifest } from "./llm-provider.types";
-import { openAIProviderManifest, OPENAI_FAMILY } from "./openai/openai/openai.manifest";
-import {
+// OpenAI providers
+export { openAIProviderManifest, OPENAI_FAMILY } from "./openai/openai/openai.manifest";
+export {
   azureOpenAIProviderManifest,
   AZURE_OPENAI_FAMILY,
 } from "./openai/azure/azure-openai.manifest";
-import {
+
+// Vertex AI providers
+export {
   vertexAIGeminiProviderManifest,
   VERTEXAI_GEMINI_FAMILY,
 } from "./vertexai/gemini/vertex-ai-gemini.manifest";
-import {
+
+// Bedrock providers
+export {
   bedrockClaudeProviderManifest,
   BEDROCK_CLAUDE_FAMILY,
 } from "./bedrock/claude/bedrock-claude.manifest";
-import {
+export {
   bedrockDeepseekProviderManifest,
   BEDROCK_DEEPSEEK_FAMILY,
 } from "./bedrock/deepseek/bedrock-deepseek.manifest";
-import {
+export {
   bedrockLlamaProviderManifest,
   BEDROCK_LLAMA_FAMILY,
 } from "./bedrock/llama/bedrock-llama.manifest";
-import {
+export {
   bedrockMistralProviderManifest,
   BEDROCK_MISTRAL_FAMILY,
 } from "./bedrock/mistral/bedrock-mistral.manifest";
-import {
+export {
   bedrockNovaProviderManifest,
   BEDROCK_NOVA_FAMILY,
 } from "./bedrock/nova/bedrock-nova.manifest";
 
-/**
- * Map of provider family identifiers to their provider manifests.
- * The key is the provider family identifier (case-insensitive matching is handled in manifest-loader).
- */
-export const LLM_PROVIDER_REGISTRY: ReadonlyMap<string, LLMProviderManifest> = new Map([
-  [OPENAI_FAMILY.toLowerCase(), openAIProviderManifest],
-  [AZURE_OPENAI_FAMILY.toLowerCase(), azureOpenAIProviderManifest],
-  [VERTEXAI_GEMINI_FAMILY.toLowerCase(), vertexAIGeminiProviderManifest],
-  [BEDROCK_CLAUDE_FAMILY.toLowerCase(), bedrockClaudeProviderManifest],
-  [BEDROCK_DEEPSEEK_FAMILY.toLowerCase(), bedrockDeepseekProviderManifest],
-  [BEDROCK_LLAMA_FAMILY.toLowerCase(), bedrockLlamaProviderManifest],
-  [BEDROCK_MISTRAL_FAMILY.toLowerCase(), bedrockMistralProviderManifest],
-  [BEDROCK_NOVA_FAMILY.toLowerCase(), bedrockNovaProviderManifest],
-]);
+// Type exports
+export type {
+  LLMProviderManifest,
+  LLMRetryConfig,
+  LLMProviderSpecificConfig,
+  ProviderInit,
+  LLMImplSpecificResponseSummary,
+} from "./llm-provider.types";

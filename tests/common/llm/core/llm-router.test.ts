@@ -216,6 +216,9 @@ describe("LLM Router tests", () => {
       OPENAI_GPT35_MODEL_URN: "gpt-3.5-turbo",
     };
 
+    // Create mock provider registry
+    const mockProviderRegistry = new Map([["openai", mockManifest]]);
+
     const mockConfig: LLMModuleConfig = {
       providerParams: mockEnvVars as unknown as Record<string, unknown>,
       resolvedModelChain: {
@@ -236,6 +239,7 @@ describe("LLM Router tests", () => {
         ],
       },
       errorLogging: { errorLogDirectory: "/tmp", errorLogFilenameTemplate: "error.log" },
+      providerRegistry: mockProviderRegistry,
     };
     // Router now creates its own execution pipeline internally
     const router = new LLMRouter(mockConfig);

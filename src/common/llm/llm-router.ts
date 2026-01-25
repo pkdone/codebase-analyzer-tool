@@ -55,6 +55,7 @@ export default class LLMRouter {
       resolvedModelChain: config.resolvedModelChain,
       providerParams: config.providerParams,
       errorLogging: config.errorLogging,
+      providerRegistry: config.providerRegistry,
     });
 
     // Build completion candidates from the chain

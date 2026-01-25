@@ -1,9 +1,9 @@
 import "reflect-metadata";
 import { injectable } from "tsyringe";
 import { Task } from "../task.types";
-import { LLM_PROVIDER_REGISTRY } from "../../../common/llm/providers";
+import { APP_PROVIDER_REGISTRY } from "../../llm/provider-registry";
 import type { LLMProviderManifest } from "../../../common/llm/providers/llm-provider.types";
-import { getAllModelKeys } from "../../../common/llm/utils/model-registry";
+import { buildModelRegistry, getAllModelKeys } from "../../../common/llm/utils/model-registry";
 import { LLMError } from "../../../common/llm/types/llm-errors.types";
 
 /**
@@ -39,8 +39,9 @@ export class ListAvailableModelsTask implements Task {
    */
   private validateNoDuplicateModelKeys(): boolean {
     try {
-      // getAllModelKeys() triggers the registry build which validates uniqueness
-      getAllModelKeys();
+      // buildModelRegistry() validates uniqueness and throws on duplicates
+      const modelRegistry = buildModelRegistry(APP_PROVIDER_REGISTRY);
+      getAllModelKeys(modelRegistry);
       return true;
     } catch (error) {
       if (error instanceof LLMError) {
@@ -64,7 +65,7 @@ export class ListAvailableModelsTask implements Task {
   private buildModelGroups(): ProviderModelGroup[] {
     const groups: ProviderModelGroup[] = [];
 
-    for (const [, manifest] of LLM_PROVIDER_REGISTRY) {
+    for (const [, manifest] of APP_PROVIDER_REGISTRY) {
       const group = this.extractModelGroup(manifest);
       groups.push(group);
     }

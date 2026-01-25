@@ -81,9 +81,10 @@ interface MermaidSubgraph {
 }
 
 /**
- * Maps node shapes to their Mermaid syntax wrappers.
+ * Maps known node shapes to their Mermaid syntax wrappers.
+ * Unknown shapes fall back to rectangle syntax.
  */
-const SHAPE_SYNTAX: Readonly<Record<NodeShape, { open: string; close: string }>> = {
+const SHAPE_SYNTAX: Readonly<Record<string, { open: string; close: string }>> = {
   rectangle: { open: "[", close: "]" },
   rounded: { open: "(", close: ")" },
   stadium: { open: "([", close: "])" },
@@ -92,15 +93,36 @@ const SHAPE_SYNTAX: Readonly<Record<NodeShape, { open: string; close: string }>>
   rhombus: { open: "{", close: "}" },
 };
 
+/** Default shape syntax used for unknown shapes */
+const DEFAULT_SHAPE_SYNTAX = SHAPE_SYNTAX.rectangle;
+
 /**
- * Maps edge types to their Mermaid syntax.
+ * Gets the Mermaid syntax for a node shape, falling back to rectangle for unknown shapes.
  */
-const EDGE_SYNTAX: Readonly<Record<EdgeType, string>> = {
+function getShapeSyntax(shape: NodeShape): { open: string; close: string } {
+  return SHAPE_SYNTAX[shape] ?? DEFAULT_SHAPE_SYNTAX;
+}
+
+/**
+ * Maps known edge types to their Mermaid syntax.
+ * Unknown edge types fall back to solid arrow.
+ */
+const EDGE_SYNTAX: Readonly<Record<string, string>> = {
   solid: "-->",
   dotted: "-.->",
   dashed: "-.-",
   invisible: "~~~",
 };
+
+/** Default edge syntax used for unknown edge types */
+const DEFAULT_EDGE_SYNTAX = EDGE_SYNTAX.solid;
+
+/**
+ * Gets the Mermaid syntax for an edge type, falling back to solid for unknown types.
+ */
+function getEdgeSyntax(edgeType: EdgeType): string {
+  return EDGE_SYNTAX[edgeType] ?? DEFAULT_EDGE_SYNTAX;
+}
 
 /**
  * Type-safe Mermaid flowchart builder.
@@ -234,7 +256,7 @@ export class MermaidFlowchartBuilder extends AbstractGraphBuilder {
    * Renders a single node to Mermaid syntax.
    */
   private renderNode(node: MermaidNode, indent: string): string {
-    const syntax = SHAPE_SYNTAX[node.shape];
+    const syntax = getShapeSyntax(node.shape);
     const escapedLabel = escapeMermaidLabel(node.label);
     return `${indent}${node.id}${syntax.open}"${escapedLabel}"${syntax.close}`;
   }
@@ -243,7 +265,7 @@ export class MermaidFlowchartBuilder extends AbstractGraphBuilder {
    * Renders a single edge to Mermaid syntax.
    */
   private renderEdge(edge: MermaidEdge, indent: string): string {
-    const edgeSyntax = EDGE_SYNTAX[edge.type];
+    const edgeSyntax = getEdgeSyntax(edge.type);
     if (edge.label) {
       const escapedLabel = escapeMermaidLabel(edge.label);
       return `${indent}${edge.from} ${edgeSyntax}|"${escapedLabel}"| ${edge.to}`;

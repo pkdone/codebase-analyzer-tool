@@ -1,5 +1,5 @@
 import LLMRouter from "../../../../src/common/llm/llm-router";
-import { LLMModuleConfig } from "../../../../src/common/llm/config/llm-module-config.types";
+import type { LLMModuleConfig } from "../../../../src/common/llm/config/llm-module-config.types";
 import { ShutdownBehavior } from "../../../../src/common/llm/types/llm-shutdown.types";
 
 // Mock the manifest loader to avoid actual provider instantiation
@@ -14,7 +14,7 @@ describe("LLMRouter Shutdown Behavior", () => {
     originalProcessExit = process.exit;
     // Mock process.exit to prevent actual process termination in tests
     processExitMock = jest.fn();
-    process.exit = processExitMock as any;
+    process.exit = processExitMock as never;
   });
 
   afterEach(() => {
@@ -27,7 +27,7 @@ describe("LLMRouter Shutdown Behavior", () => {
     // Create a mock manifest that returns a provider needing forced shutdown
     const mockManifest = {
       providerFamily: "test",
-      envSchema: {} as any,
+      envSchema: {} as never,
       models: {
         embeddings: [
           {
@@ -72,7 +72,7 @@ describe("LLMRouter Shutdown Behavior", () => {
         getShutdownBehavior() {
           return ShutdownBehavior.REQUIRES_PROCESS_EXIT;
         }
-      } as any,
+      } as never,
     };
 
     const {
@@ -80,6 +80,9 @@ describe("LLMRouter Shutdown Behavior", () => {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
     } = require("../../../../src/common/llm/utils/manifest-loader");
     loadManifestForProviderFamily.mockReturnValue(mockManifest);
+
+    // Create mock provider registry
+    const mockProviderRegistry = new Map([["test", mockManifest]]);
 
     const config: LLMModuleConfig = {
       errorLogging: {
@@ -98,6 +101,7 @@ describe("LLMRouter Shutdown Behavior", () => {
           { providerFamily: "test", modelKey: "test-primary", modelUrn: "test-primary-model" },
         ],
       },
+      providerRegistry: mockProviderRegistry,
     };
 
     // Router now creates its own execution pipeline internally
@@ -113,7 +117,7 @@ describe("LLMRouter Shutdown Behavior", () => {
   it("should return REQUIRES_PROCESS_EXIT for providers that need forced shutdown", async () => {
     const mockManifest = {
       providerFamily: "test",
-      envSchema: {} as any,
+      envSchema: {} as never,
       models: {
         embeddings: [
           {
@@ -158,7 +162,7 @@ describe("LLMRouter Shutdown Behavior", () => {
         getShutdownBehavior() {
           return ShutdownBehavior.REQUIRES_PROCESS_EXIT;
         }
-      } as any,
+      } as never,
     };
 
     const {
@@ -166,6 +170,9 @@ describe("LLMRouter Shutdown Behavior", () => {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
     } = require("../../../../src/common/llm/utils/manifest-loader");
     loadManifestForProviderFamily.mockReturnValue(mockManifest);
+
+    // Create mock provider registry
+    const mockProviderRegistry = new Map([["test", mockManifest]]);
 
     const config: LLMModuleConfig = {
       errorLogging: {
@@ -184,6 +191,7 @@ describe("LLMRouter Shutdown Behavior", () => {
           { providerFamily: "test", modelKey: "test-primary", modelUrn: "test-primary-model" },
         ],
       },
+      providerRegistry: mockProviderRegistry,
     };
 
     // Router now creates its own execution pipeline internally
@@ -201,7 +209,7 @@ describe("LLMRouter Shutdown Behavior", () => {
   it("should return GRACEFUL for providers that support graceful shutdown", async () => {
     const mockManifest = {
       providerFamily: "test",
-      envSchema: {} as any,
+      envSchema: {} as never,
       models: {
         embeddings: [
           {
@@ -246,7 +254,7 @@ describe("LLMRouter Shutdown Behavior", () => {
         getShutdownBehavior() {
           return ShutdownBehavior.GRACEFUL;
         }
-      } as any,
+      } as never,
     };
 
     const {
@@ -254,6 +262,9 @@ describe("LLMRouter Shutdown Behavior", () => {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
     } = require("../../../../src/common/llm/utils/manifest-loader");
     loadManifestForProviderFamily.mockReturnValue(mockManifest);
+
+    // Create mock provider registry
+    const mockProviderRegistry = new Map([["test", mockManifest]]);
 
     const config: LLMModuleConfig = {
       errorLogging: {
@@ -272,6 +283,7 @@ describe("LLMRouter Shutdown Behavior", () => {
           { providerFamily: "test", modelKey: "test-primary", modelUrn: "test-primary-model" },
         ],
       },
+      providerRegistry: mockProviderRegistry,
     };
 
     // Router now creates its own execution pipeline internally

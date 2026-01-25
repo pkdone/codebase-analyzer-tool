@@ -1,12 +1,40 @@
 /**
- * Supported node shapes in Mermaid flowcharts.
+ * Node shapes in Mermaid flowcharts.
+ *
+ * Common shapes are provided as type literals for autocomplete, but any valid
+ * Mermaid shape string is accepted. This allows forward compatibility with
+ * new Mermaid shapes without requiring changes to this library.
+ *
+ * Common shapes:
+ * - "rectangle" - Standard rectangular node `[text]`
+ * - "rounded" - Rounded corners `(text)`
+ * - "stadium" - Stadium/pill shape `([text])`
+ * - "hexagon" - Hexagonal shape `{{text}}`
+ * - "circle" - Circular shape `((text))`
+ * - "rhombus" - Diamond shape `{text}`
  */
-export type NodeShape = "rectangle" | "rounded" | "stadium" | "hexagon" | "circle" | "rhombus";
+export type NodeShape =
+  | (string & {})
+  | "rectangle"
+  | "rounded"
+  | "stadium"
+  | "hexagon"
+  | "circle"
+  | "rhombus";
 
 /**
- * Supported edge types in Mermaid flowcharts.
+ * Edge types in Mermaid flowcharts.
+ *
+ * Common types are provided as type literals for autocomplete, but any valid
+ * Mermaid edge type string is accepted for forward compatibility.
+ *
+ * Common types:
+ * - "solid" - Solid arrow `-->`
+ * - "dotted" - Dotted arrow `-.->`
+ * - "dashed" - Dashed line `-.-`
+ * - "invisible" - Invisible connection `~~~`
  */
-export type EdgeType = "solid" | "dotted" | "dashed" | "invisible";
+export type EdgeType = (string & {}) | "solid" | "dotted" | "dashed" | "invisible";
 
 /**
  * Internal representation of a node.

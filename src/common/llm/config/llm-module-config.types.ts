@@ -5,7 +5,15 @@
  */
 
 import type { ReplacementRule } from "../json-processing/sanitizers/rules/replacement-rule.types";
+import type { LLMProviderManifest } from "../providers/llm-provider.types";
 import type { ModelChainEntry, ResolvedModelChain } from "../types/llm-model.types";
+
+/**
+ * Registry mapping provider family identifiers to their manifests.
+ * This type is used to inject the set of available providers at runtime,
+ * allowing consuming applications to control which providers are included.
+ */
+export type LLMProviderRegistry = ReadonlyMap<string, LLMProviderManifest>;
 
 // Re-export for convenience
 export type { ModelChainEntry, ResolvedModelChain };
@@ -103,9 +111,16 @@ export interface LLMSanitizerConfig {
    *
    * These rules are appended to the default rule set and executed after the built-in rules.
    *
+   * Domain-specific rules should be defined in the application layer. For example,
+   * an application analyzing Java codebases might define JAVA_SPECIFIC_RULES to handle
+   * Java package/import declarations that LLMs sometimes include in JSON responses.
+   *
    * @example
    * ```typescript
-   * import { JAVA_SPECIFIC_RULES } from "common/llm/json-processing/sanitizers/rules";
+   * // Define rules in your application layer
+   * const JAVA_SPECIFIC_RULES: ReplacementRule[] = [
+   *   { name: "javaPackageInJson", pattern: /.../, replacement: ... }
+   * ];
    * const config: LLMSanitizerConfig = {
    *   customReplacementRules: JAVA_SPECIFIC_RULES,
    * };
@@ -129,4 +144,10 @@ export interface LLMModuleConfig {
   readonly providerParams: Record<string, unknown>;
   /** Resolved model chain for completions and embeddings */
   readonly resolvedModelChain: ResolvedModelChain;
+  /**
+   * Registry of available LLM provider manifests.
+   * The application layer is responsible for constructing this registry
+   * with the specific providers it intends to use.
+   */
+  readonly providerRegistry: LLMProviderRegistry;
 }

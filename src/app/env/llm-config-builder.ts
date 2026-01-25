@@ -5,6 +5,7 @@ import type {
 import type { EnvVars } from "../env/env.types";
 import { parseModelChain, getUniqueProviderFamilies } from "../env/env.types";
 import { loadManifestForProviderFamily } from "../../common/llm/utils/manifest-loader";
+import { APP_PROVIDER_REGISTRY } from "../llm/provider-registry";
 import { LLMError, LLMErrorCode } from "../../common/llm/types/llm-errors.types";
 import type { LLMModelMetadata } from "../../common/llm/types/llm-model.types";
 import { z } from "zod";
@@ -23,7 +24,7 @@ function findModelMetadata(
   modelKey: string,
   modelType: "completions" | "embeddings",
 ): LLMModelMetadata {
-  const manifest = loadManifestForProviderFamily(providerFamily);
+  const manifest = loadManifestForProviderFamily(providerFamily, APP_PROVIDER_REGISTRY);
   const availableModels = manifest.models[modelType];
   const model = availableModels.find((m) => m.modelKey === modelKey);
 
@@ -111,7 +112,7 @@ export function buildCombinedProviderEnvSchema(
   let combinedShape: z.ZodRawShape = {};
 
   for (const family of allFamilies) {
-    const manifest = loadManifestForProviderFamily(family);
+    const manifest = loadManifestForProviderFamily(family, APP_PROVIDER_REGISTRY);
     combinedShape = { ...combinedShape, ...manifest.envSchema.shape };
   }
 
@@ -127,7 +128,7 @@ export function buildCombinedProviderEnvSchema(
  * - LLM_COMPLETIONS: Comma-separated list of model keys (e.g., "vertexai-gemini-3-pro,bedrock-claude-opus-4.5")
  * - LLM_EMBEDDINGS: Comma-separated list of model keys (e.g., "vertexai-gemini-embedding-001")
  *
- * Provider families are automatically resolved from the global model registry.
+ * Provider families are automatically resolved from the app's model registry.
  * Model URNs are resolved from provider-specific environment variables (urnEnvKey in manifests).
  *
  * @param envVars The application's environment variables
@@ -160,5 +161,6 @@ export function buildLLMModuleConfig(envVars: EnvVars): LLMModuleConfig {
       completions: resolvedCompletions,
       embeddings: resolvedEmbeddings,
     },
+    providerRegistry: APP_PROVIDER_REGISTRY,
   };
 }

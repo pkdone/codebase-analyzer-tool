@@ -6,7 +6,11 @@ import { coreTokens } from "../../../../src/app/di/tokens";
 import { databaseConfig } from "../../../../src/app/components/database/database.config";
 import { registerAppDependencies } from "../../../../src/app/di/registration-modules";
 import { loadManifestForProviderFamily } from "../../../../src/common/llm/utils/manifest-loader";
-import { getProviderFamilyForModelKey } from "../../../../src/common/llm/utils/model-registry";
+import {
+  buildModelRegistry,
+  getProviderFamilyForModelKey,
+} from "../../../../src/common/llm/utils/model-registry";
+import { APP_PROVIDER_REGISTRY } from "../../../../src/app/llm/provider-registry";
 
 // Store client and dbName to be accessible in teardown
 let testMongoClient: MongoClient | null = null;
@@ -28,10 +32,11 @@ export async function getVectorDimensions(): Promise<number> {
     // Extract the first model key from the chain
     const modelKey = embeddingsChain.split(",")[0].trim();
 
-    // Look up the provider family from the model registry
-    const providerFamily = getProviderFamilyForModelKey(modelKey);
+    // Build model registry and look up the provider family
+    const modelRegistry = buildModelRegistry(APP_PROVIDER_REGISTRY);
+    const providerFamily = getProviderFamilyForModelKey(modelKey, modelRegistry);
 
-    const manifest = loadManifestForProviderFamily(providerFamily);
+    const manifest = loadManifestForProviderFamily(providerFamily, APP_PROVIDER_REGISTRY);
     // Find the specific model in the manifest to get its dimensions
     const embeddingModel = manifest.models.embeddings.find((m) => m.modelKey === modelKey);
     const dimensions = embeddingModel?.dimensions ?? databaseConfig.DEFAULT_VECTOR_DIMENSIONS;

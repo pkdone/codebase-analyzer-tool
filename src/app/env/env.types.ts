@@ -1,5 +1,15 @@
 import { z } from "zod";
-import { getProviderFamilyForModelKey } from "../../common/llm/utils/model-registry";
+import {
+  buildModelRegistry,
+  getProviderFamilyForModelKey,
+} from "../../common/llm/utils/model-registry";
+import { APP_PROVIDER_REGISTRY } from "../llm/provider-registry";
+
+/**
+ * Pre-built model registry for this application.
+ * Built once from the app's provider registry for efficient lookups during parsing.
+ */
+const APP_MODEL_REGISTRY = buildModelRegistry(APP_PROVIDER_REGISTRY);
 
 /**
  * Validates a comma-separated model chain format: "modelKey,modelKey,..."
@@ -59,7 +69,7 @@ export interface ParsedModelChainEntry {
 
 /**
  * Parse a model chain string into an array of entries.
- * Provider families are automatically looked up from the global model registry
+ * Provider families are automatically looked up from the app's model registry
  * based on the unique model key.
  *
  * @param chainStr The chain string in format "modelKey,modelKey,..."
@@ -69,7 +79,7 @@ export interface ParsedModelChainEntry {
 export function parseModelChain(chainStr: string): ParsedModelChainEntry[] {
   return chainStr.split(",").map((entry) => {
     const modelKey = entry.trim();
-    const providerFamily = getProviderFamilyForModelKey(modelKey);
+    const providerFamily = getProviderFamilyForModelKey(modelKey, APP_MODEL_REGISTRY);
     return {
       providerFamily,
       modelKey,

@@ -630,4 +630,108 @@ describe("Abstract LLM Type Safety", () => {
       }
     });
   });
+
+  describe("Type assertion documentation for response paths", () => {
+    test("embeddings should return number[] through executeProviderFunction", async () => {
+      // This test exercises the embeddings path type assertion in formatAndValidateResponse.
+      // The type assertion bridges the generic S (bound to z.ZodType<number[]> at the call site)
+      // with the actual number[] returned by invokeEmbeddingProvider.
+      const embeddingContext: LLMContext = {
+        resource: "embedding-test",
+        purpose: LLMPurpose.EMBEDDINGS,
+      };
+
+      const result = await testLLM.generateEmbeddings(
+        "GPT_EMBEDDINGS_GPT4",
+        "test content for embedding",
+        embeddingContext,
+      );
+
+      expect(result.status).toBe(LLMResponseStatus.COMPLETED);
+      if (isCompletedResponse(result)) {
+        // Verify the type contract: embeddings return number[]
+        expect(Array.isArray(result.generated)).toBe(true);
+        expect(result.generated.every((v: number) => typeof v === "number")).toBe(true);
+        // Verify actual values from mock
+        expect(result.generated).toEqual([0.1, 0.2, 0.3]);
+      }
+    });
+
+    test("TEXT response should preserve string type through validateTextResponse", async () => {
+      // This test exercises the TEXT path type assertion in validateTextResponse.
+      // The type assertion bridges the runtime-validated string with the generic S
+      // (which defaults to z.ZodType<unknown> when no schema is provided).
+      const textContent = "This is a plain text response with special chars: <>&\"'";
+      testLLM.setMockResponse(textContent);
+
+      const result = await testLLM.executeCompletion(
+        "GPT_COMPLETIONS_GPT4_32k",
+        "test prompt",
+        testContext,
+        {
+          outputFormat: LLMOutputFormat.TEXT,
+        },
+      );
+
+      expect(result.status).toBe(LLMResponseStatus.COMPLETED);
+      if (isCompletedResponse(result)) {
+        // Verify the type contract: TEXT returns string
+        expect(typeof result.generated).toBe("string");
+        expect(result.generated).toBe(textContent);
+      }
+    });
+
+    test("TEXT response type assertion is safe because schema defaults to unknown", async () => {
+      // When no schema is provided for TEXT mode, S defaults to z.ZodType<unknown>
+      // and z.infer<S> resolves to unknown. String is assignable to unknown.
+      // This test verifies the contract that TEXT mode without schema works correctly.
+      testLLM.setMockResponse("response without explicit schema type");
+
+      const result = await testLLM.executeCompletion(
+        "GPT_COMPLETIONS_GPT4_32k",
+        "test prompt",
+        testContext,
+        {
+          outputFormat: LLMOutputFormat.TEXT,
+          // No jsonSchema provided - S defaults to z.ZodType<unknown>
+        },
+      );
+
+      expect(result.status).toBe(LLMResponseStatus.COMPLETED);
+      if (isCompletedResponse(result)) {
+        // The generated content is typed as unknown at compile time
+        // but is string at runtime due to TEXT format validation
+        expect(typeof result.generated).toBe("string");
+        expect(result.generated).toBe("response without explicit schema type");
+      }
+    });
+
+    test("embeddings type assertion enforces number[] contract at call boundary", async () => {
+      // This test verifies that the type contract for embeddings is properly enforced.
+      // generateEmbeddings() binds S to z.ZodType<number[]>, and the invokeEmbeddingProvider
+      // implementation returns number[] by contract.
+      const embeddingContext: LLMContext = {
+        resource: "embedding-contract-test",
+        purpose: LLMPurpose.EMBEDDINGS,
+      };
+
+      const result = await testLLM.generateEmbeddings(
+        "GPT_EMBEDDINGS_GPT4",
+        "another embedding test",
+        embeddingContext,
+      );
+
+      expect(result.status).toBe(LLMResponseStatus.COMPLETED);
+      if (isCompletedResponse(result)) {
+        // Verify the number[] contract
+        expect(Array.isArray(result.generated)).toBe(true);
+        expect(result.generated.length).toBeGreaterThan(0);
+        // All elements should be numbers (float values for embeddings)
+        for (const value of result.generated) {
+          expect(typeof value).toBe("number");
+          expect(Number.isFinite(value)).toBe(true);
+        }
+      }
+    });
+  });
 });

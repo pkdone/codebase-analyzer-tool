@@ -3,6 +3,7 @@ import { coreTokens } from "../tokens";
 import type { EnvVars } from "../../env/env.types";
 import { baseEnvVarsSchema, parseModelChain, getUniqueProviderFamilies } from "../../env/env.types";
 import { loadManifestForProviderFamily } from "../../../common/llm/utils/manifest-loader";
+import { APP_PROVIDER_REGISTRY } from "../../llm/provider-registry";
 import { loadBaseEnvVarsOnly } from "../../env/env";
 import { z } from "zod";
 import { LLMError, LLMErrorCode } from "../../../common/llm/types/llm-errors.types";
@@ -92,7 +93,7 @@ function loadEnvIncludingLLMVars(): EnvVars {
     // Use z.object with passthrough for flexible schema merging
     let combinedShape: z.ZodRawShape = { ...baseEnvVarsSchema.shape };
     for (const family of allFamilies) {
-      const manifest = loadManifestForProviderFamily(family);
+      const manifest = loadManifestForProviderFamily(family, APP_PROVIDER_REGISTRY);
       combinedShape = { ...combinedShape, ...manifest.envSchema.shape };
     }
 

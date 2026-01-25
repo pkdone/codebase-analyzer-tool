@@ -4,10 +4,6 @@
  * This module provides general-purpose functions for safely extracting and normalizing
  * data from app summary records for use in visualization components.
  *
- * Note: Section-specific extractors (extractMicroservicesData, extractInferredArchitectureData)
- * have been moved to sections/visualizations/ where they are consumed, following the
- * principle of colocation.
- *
  * Functions include:
  * - extractKeyBusinessActivities: Extracts business activities from process data
  * - extractMicroserviceFields: Extracts and normalizes microservice-specific fields

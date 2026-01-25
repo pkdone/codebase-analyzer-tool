@@ -5,7 +5,7 @@
 import type { LLMProvider } from "./types/llm-provider.interface";
 import type { ResolvedLLMModelMetadata, ResolvedModelChain } from "./types/llm-model.types";
 import type { LLMProviderManifest, ProviderInit } from "./providers/llm-provider.types";
-import type { LLMErrorLoggingConfig } from "./config/llm-module-config.types";
+import type { LLMErrorLoggingConfig, LLMProviderRegistry } from "./config/llm-module-config.types";
 import { LLMError, LLMErrorCode } from "./types/llm-errors.types";
 import { loadManifestForProviderFamily } from "./utils/manifest-loader";
 import { ShutdownBehavior } from "./types/llm-shutdown.types";
@@ -20,6 +20,8 @@ export interface ProviderManagerConfig {
   readonly providerParams: Record<string, unknown>;
   /** Error logging configuration */
   readonly errorLogging: LLMErrorLoggingConfig;
+  /** Registry of available LLM provider manifests */
+  readonly providerRegistry: LLMProviderRegistry;
 }
 
 /**
@@ -42,7 +44,7 @@ export class ProviderManager {
     // Pre-load manifests for all provider families in the chain
     const families = this.getRequiredProviderFamilies();
     for (const family of families) {
-      const manifest = loadManifestForProviderFamily(family);
+      const manifest = loadManifestForProviderFamily(family, config.providerRegistry);
       this.manifests.set(family, manifest);
     }
   }

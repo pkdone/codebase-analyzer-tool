@@ -30,7 +30,3 @@ export {
   extractKeyBusinessActivities,
   extractMicroserviceFields,
 } from "./visualization-data-extractors";
-
-// Note: extractMicroservicesData and extractInferredArchitectureData have been
-// moved to sections/visualizations/ where they are consumed, following the
-// principle of colocation.

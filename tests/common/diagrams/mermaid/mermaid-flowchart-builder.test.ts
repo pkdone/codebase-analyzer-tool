@@ -7,6 +7,8 @@ import {
   MermaidFlowchartBuilder,
   SubgraphBuilder,
   GraphValidationError,
+  type NodeShape,
+  type EdgeType,
 } from "../../../../src/common/diagrams/mermaid";
 
 describe("MermaidFlowchartBuilder (common module)", () => {
@@ -411,6 +413,87 @@ describe("AbstractGraphBuilder validation (common module)", () => {
       subBuilder.setStrictValidation(true).addNode("a", "A");
 
       expect(() => subBuilder.addEdge("a", "nonExistent")).toThrow(GraphValidationError);
+    });
+  });
+
+  describe("extensible shapes and edge types", () => {
+    it("should accept custom/unknown node shapes and fall back to rectangle syntax", () => {
+      const builder = new MermaidFlowchartBuilder();
+      // Using a custom shape string that's not in the known shapes
+      builder.addNode("custom1", "Custom Shape", "trapezoid" as NodeShape);
+
+      const result = builder.render();
+      // Unknown shapes fall back to rectangle syntax [label]
+      expect(result).toContain('custom1["Custom Shape"]');
+    });
+
+    it("should accept custom/unknown edge types and fall back to solid syntax", () => {
+      const builder = new MermaidFlowchartBuilder();
+      builder.addNode("a", "Node A").addNode("b", "Node B");
+      // Using a custom edge type string that's not in the known types
+      builder.addEdge("a", "b", undefined, "thick" as EdgeType);
+
+      const result = builder.render();
+      // Unknown edge types fall back to solid syntax -->
+      expect(result).toContain("a --> b");
+    });
+
+    it("should properly render all known shapes", () => {
+      const builder = new MermaidFlowchartBuilder();
+
+      builder
+        .addNode("rect", "Rectangle", "rectangle")
+        .addNode("round", "Rounded", "rounded")
+        .addNode("stad", "Stadium", "stadium")
+        .addNode("hex", "Hexagon", "hexagon")
+        .addNode("circ", "Circle", "circle")
+        .addNode("rhom", "Rhombus", "rhombus");
+
+      const result = builder.render();
+
+      expect(result).toContain('rect["Rectangle"]');
+      expect(result).toContain('round("Rounded")');
+      expect(result).toContain('stad(["Stadium"])');
+      expect(result).toContain('hex{{"Hexagon"}}');
+      expect(result).toContain('circ(("Circle"))');
+      expect(result).toContain('rhom{"Rhombus"}');
+    });
+
+    it("should properly render all known edge types", () => {
+      const builder = new MermaidFlowchartBuilder();
+      builder
+        .addNode("a", "A")
+        .addNode("b", "B")
+        .addNode("c", "C")
+        .addNode("d", "D")
+        .addNode("e", "E");
+
+      builder
+        .addEdge("a", "b", undefined, "solid")
+        .addEdge("b", "c", undefined, "dotted")
+        .addEdge("c", "d", undefined, "dashed")
+        .addEdge("d", "e", undefined, "invisible");
+
+      const result = builder.render();
+
+      expect(result).toContain("a --> b");
+      expect(result).toContain("b -.-> c");
+      expect(result).toContain("c -.- d");
+      expect(result).toContain("d ~~~ e");
+    });
+
+    it("should allow mixing known and unknown shapes in the same diagram", () => {
+      const builder = new MermaidFlowchartBuilder();
+      builder
+        .addNode("known", "Known Shape", "hexagon")
+        .addNode("custom", "Custom Shape", "parallelogram" as NodeShape);
+
+      const result = builder.render();
+
+      // Known shape uses its syntax
+      expect(result).toContain('known{{"Known Shape"}}');
+      // Unknown shape falls back to rectangle
+      expect(result).toContain('custom["Custom Shape"]');
     });
   });
 });

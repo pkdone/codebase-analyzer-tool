@@ -7,7 +7,7 @@ import {
   registerLlmEnvDependencies,
 } from "../../../../src/app/di/registration-modules/env-registration";
 import { loadManifestForProviderFamily } from "../../../../src/common/llm/utils/manifest-loader";
-import { LLMProviderManifest } from "../../../../src/common/llm/providers/llm-provider.types";
+import type { LLMProviderManifest } from "../../../../src/common/llm/providers/llm-provider.types";
 import { getBaseNameFromPath } from "../../../../src/common/fs/path-utils";
 import { loadBaseEnvVarsOnly } from "../../../../src/app/env/env";
 import { LLMPurpose } from "../../../../src/common/llm/types/llm-request.types";
@@ -18,6 +18,10 @@ jest.mock("../../../../src/common/llm/utils/manifest-loader");
 jest.mock("../../../../src/app/env/env");
 jest.mock("../../../../src/common/fs/path-utils");
 jest.mock("dotenv");
+// Mock the provider registry to avoid loading real providers in tests
+jest.mock("../../../../src/app/llm/provider-registry", () => ({
+  APP_PROVIDER_REGISTRY: new Map(),
+}));
 
 describe("Environment Registration Module", () => {
   const mockManifest: LLMProviderManifest = {
@@ -213,5 +217,4 @@ describe("Environment Registration Module", () => {
       expect(projectName1).toBe(projectName2);
     });
   });
-
 });

@@ -1,5 +1,5 @@
-import { executeRules } from "../../../../../../src/common/llm/json-processing/sanitizers/rules/rule-executor";
-import { JAVA_SPECIFIC_RULES } from "../../../../../../src/common/llm/json-processing/sanitizers/rules/java-specific-rules";
+import { executeRules } from "../../../../src/common/llm/json-processing/sanitizers/rules/rule-executor";
+import { JAVA_SPECIFIC_RULES } from "../../../../src/app/llm/rules/java-specific-rules";
 
 describe("JAVA_SPECIFIC_RULES", () => {
   describe("javaPackageInJson", () => {
@@ -170,7 +170,7 @@ public class TestClass {
       expect(result.changed).toBe(true);
       expect(() => JSON.parse(result.content)).not.toThrow();
 
-      const parsed = JSON.parse(result.content);
+      const parsed = JSON.parse(result.content) as { name: string; purpose: string };
       expect(parsed.name).toBe("TestClass");
       expect(parsed.purpose).toBe("Test class for something");
     });

@@ -6,16 +6,61 @@ import {
 
 describe("date-utils", () => {
   describe("formatDateForDisplay", () => {
-    it("should return a formatted date string", () => {
-      const result = formatDateForDisplay();
-      expect(typeof result).toBe("string");
-      expect(result.length).toBeGreaterThan(0);
+    describe("without locale (default behavior)", () => {
+      it("should return an ISO date string when no locale is specified", () => {
+        const result = formatDateForDisplay();
+        expect(typeof result).toBe("string");
+        // ISO format: YYYY-MM-DDTHH:mm:ss.sssZ
+        expect(result).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
+      });
+
+      it("should be parseable by Date constructor", () => {
+        const result = formatDateForDisplay();
+        const parsed = new Date(result);
+        expect(parsed.getTime()).not.toBeNaN();
+      });
     });
 
-    it("should follow DD/MM/YYYY, HH:mm:ss format pattern", () => {
-      const result = formatDateForDisplay();
-      // Pattern: DD/MM/YYYY, HH:mm:ss
-      expect(result).toMatch(/^\d{2}\/\d{2}\/\d{4}, \d{2}:\d{2}:\d{2}$/);
+    describe("with locale", () => {
+      it("should format date using en-GB locale (DD/MM/YYYY, HH:mm:ss)", () => {
+        const testDate = new Date("2024-01-25T12:30:45.000Z");
+        const result = formatDateForDisplay(testDate, "en-GB");
+        // Pattern: DD/MM/YYYY, HH:mm:ss
+        expect(result).toMatch(/^\d{2}\/\d{2}\/\d{4}, \d{2}:\d{2}:\d{2}$/);
+      });
+
+      it("should format date using en-US locale", () => {
+        const testDate = new Date("2024-01-25T12:30:45.000Z");
+        const result = formatDateForDisplay(testDate, "en-US");
+        // US format: MM/DD/YYYY, HH:mm:ss
+        expect(result).toMatch(/^\d{1,2}\/\d{1,2}\/\d{4}, \d{2}:\d{2}:\d{2}$/);
+      });
+
+      it("should use custom format options when provided", () => {
+        const testDate = new Date("2024-01-25T12:30:45.000Z");
+        const result = formatDateForDisplay(testDate, "en-GB", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        });
+        // Should contain the month name
+        expect(result).toContain("January");
+      });
+    });
+
+    describe("with custom date", () => {
+      it("should format the provided date instead of current date", () => {
+        const specificDate = new Date("2020-06-15T10:20:30.000Z");
+        const result = formatDateForDisplay(specificDate);
+        expect(result).toBe("2020-06-15T10:20:30.000Z");
+      });
+
+      it("should format provided date with locale", () => {
+        const specificDate = new Date("2020-06-15T10:20:30.000Z");
+        const result = formatDateForDisplay(specificDate, "en-GB");
+        // The exact format depends on timezone, but should contain the date components
+        expect(result).toMatch(/\d{2}\/\d{2}\/2020/);
+      });
     });
   });
 
@@ -31,6 +76,12 @@ describe("date-utils", () => {
       const result = formatDateForLogging();
       const parsed = new Date(result);
       expect(parsed.getTime()).not.toBeNaN();
+    });
+
+    it("should format the provided date when given", () => {
+      const specificDate = new Date("2020-06-15T10:20:30.000Z");
+      const result = formatDateForLogging(specificDate);
+      expect(result).toBe("2020-06-15T10:20:30.000Z");
     });
   });
 
@@ -68,6 +119,12 @@ describe("date-utils", () => {
       // Both should have the same structure (may differ by milliseconds)
       expect(filenameFormat.length).toBe(expected.length);
       expect(filenameFormat).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}-\d{3}Z$/);
+    });
+
+    it("should format the provided date when given", () => {
+      const specificDate = new Date("2020-06-15T10:20:30.123Z");
+      const result = formatDateForFilename(specificDate);
+      expect(result).toBe("2020-06-15T10-20-30-123Z");
     });
 
     it("should produce unique values for different calls", async () => {

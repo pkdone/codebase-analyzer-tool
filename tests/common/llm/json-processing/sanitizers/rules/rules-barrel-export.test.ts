@@ -1,6 +1,10 @@
 /**
  * Tests for the rules module barrel export.
  * Verifies that all expected exports are accessible from the unified import point.
+ *
+ * Note: Domain-specific rules like JAVA_SPECIFIC_RULES have been moved to the
+ * application layer (src/app/llm/rules/) and are no longer exported from the
+ * common library.
  */
 import {
   executeRules,
@@ -14,7 +18,6 @@ import {
   STRUCTURAL_RULES,
   EMBEDDED_CONTENT_RULES,
   ALL_RULES,
-  JAVA_SPECIFIC_RULES,
 } from "../../../../../../src/common/llm/json-processing/sanitizers/rules";
 
 import type { ContextInfo } from "../../../../../../src/common/llm/json-processing/sanitizers/rules";
@@ -93,11 +96,6 @@ describe("rules barrel export", () => {
           EMBEDDED_CONTENT_RULES.length,
         ),
       );
-    });
-
-    it("should export JAVA_SPECIFIC_RULES array", () => {
-      expect(JAVA_SPECIFIC_RULES).toBeDefined();
-      expect(Array.isArray(JAVA_SPECIFIC_RULES)).toBe(true);
     });
   });
 

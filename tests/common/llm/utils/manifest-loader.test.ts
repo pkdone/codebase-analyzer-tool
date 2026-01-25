@@ -1,12 +1,15 @@
 import "reflect-metadata";
 import { loadManifestForProviderFamily } from "../../../../src/common/llm/utils/manifest-loader";
 import { LLMError, LLMErrorCode } from "../../../../src/common/llm/types/llm-errors.types";
+import { APP_PROVIDER_REGISTRY } from "../../../../src/app/llm/provider-registry";
 
 describe("manifest-loader", () => {
   describe("loadManifestForProviderFamily", () => {
     it("should throw error for unknown model family", () => {
-      expect(() => loadManifestForProviderFamily("unknownFamily")).toThrow(LLMError);
-      const errorFn = () => loadManifestForProviderFamily("unknownFamily");
+      expect(() => loadManifestForProviderFamily("unknownFamily", APP_PROVIDER_REGISTRY)).toThrow(
+        LLMError,
+      );
+      const errorFn = () => loadManifestForProviderFamily("unknownFamily", APP_PROVIDER_REGISTRY);
       expect(errorFn).toThrow(/No provider manifest found for provider family: unknownFamily/);
       try {
         errorFn();
@@ -19,21 +22,21 @@ describe("manifest-loader", () => {
 
     it("should load manifest for valid model family (case-insensitive)", () => {
       // Test with a known provider from the registry
-      const manifest = loadManifestForProviderFamily("openai");
+      const manifest = loadManifestForProviderFamily("openai", APP_PROVIDER_REGISTRY);
       expect(manifest).toBeDefined();
       expect(manifest.providerFamily.toLowerCase()).toBe("openai");
 
       // Test case-insensitive matching
-      const manifestUpper = loadManifestForProviderFamily("OPENAI");
+      const manifestUpper = loadManifestForProviderFamily("OPENAI", APP_PROVIDER_REGISTRY);
       expect(manifestUpper).toBe(manifest);
 
-      const manifestMixed = loadManifestForProviderFamily("OpenAI");
+      const manifestMixed = loadManifestForProviderFamily("OpenAI", APP_PROVIDER_REGISTRY);
       expect(manifestMixed).toBe(manifest);
     });
 
     it("should include available families in error message", () => {
       try {
-        loadManifestForProviderFamily("unknownFamily");
+        loadManifestForProviderFamily("unknownFamily", APP_PROVIDER_REGISTRY);
         fail("Should have thrown an error");
       } catch (error) {
         expect(error).toBeInstanceOf(LLMError);
@@ -46,7 +49,7 @@ describe("manifest-loader", () => {
     });
 
     it("should return manifest with all expected properties", () => {
-      const manifest = loadManifestForProviderFamily("openai");
+      const manifest = loadManifestForProviderFamily("openai", APP_PROVIDER_REGISTRY);
 
       expect(manifest.models).toBeDefined();
       // Models are now arrays, not objects with named properties

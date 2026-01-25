@@ -133,6 +133,9 @@ describe("LLMRouter Function Overloads - Type Safety Tests", () => {
 
     jest.spyOn(manifestLoader, "loadManifestForProviderFamily").mockReturnValue(mockManifest);
 
+    // Create mock provider registry
+    const mockProviderRegistry = new Map([["test", mockManifest]]);
+
     const mockConfig: LLMModuleConfig = {
       providerParams: {},
       resolvedModelChain: {
@@ -148,6 +151,7 @@ describe("LLMRouter Function Overloads - Type Safety Tests", () => {
         ],
       },
       errorLogging: { errorLogDirectory: "/tmp", errorLogFilenameTemplate: "error.log" },
+      providerRegistry: mockProviderRegistry,
     };
 
     // Router now creates its own execution pipeline internally

@@ -1,33 +1,30 @@
 /**
- * Global model registry that maps unique model keys to their provider families.
+ * Model registry that maps unique model keys to their provider families.
  * This module provides the reverse lookup capability needed when model chains
  * use just model keys instead of Provider:modelKey pairs.
  *
- * The registry is built lazily on first access and validates that all model
- * keys are globally unique across providers. If duplicate model keys are
- * detected, an error is thrown at startup to fail fast.
+ * The registry is built from the provided provider registry and validates that
+ * all model keys are globally unique across providers. If duplicate model keys
+ * are detected, an error is thrown to fail fast.
  */
 
-import { LLM_PROVIDER_REGISTRY } from "../providers";
+import type { LLMProviderRegistry } from "../config/llm-module-config.types";
 import { LLMError, LLMErrorCode } from "../types/llm-errors.types";
 
 /**
- * Internal registry state - built lazily on first access.
- */
-let modelToProviderMap: Map<string, string> | null = null;
-
-/**
- * Build the model-to-provider registry from all provider manifests.
+ * Build the model-to-provider registry from the provided provider manifests.
  * Validates that no model key appears in multiple providers.
  *
+ * @param providerRegistry - The provider registry to build from
+ * @returns Map of model keys to provider family names
  * @throws {LLMError} If duplicate model keys are detected across providers
  */
-function buildRegistry(): Map<string, string> {
+export function buildModelRegistry(providerRegistry: LLMProviderRegistry): Map<string, string> {
   const registry = new Map<string, string>();
   const duplicates = new Map<string, string[]>();
 
   // Iterate through all provider manifests
-  for (const [, manifest] of LLM_PROVIDER_REGISTRY) {
+  for (const [, manifest] of providerRegistry) {
     const providerFamily = manifest.providerFamily;
 
     // Process embeddings models
@@ -74,30 +71,21 @@ function buildRegistry(): Map<string, string> {
 }
 
 /**
- * Get the lazily-initialized model-to-provider registry.
- * The registry is built on first access and cached for subsequent calls.
- *
- * @returns The model-to-provider map
- * @throws {LLMError} If duplicate model keys are detected during first build
- */
-function getRegistry(): Map<string, string> {
-  modelToProviderMap ??= buildRegistry();
-  return modelToProviderMap;
-}
-
-/**
- * Look up the provider family for a given model key.
+ * Look up the provider family for a given model key in a model registry.
  *
  * @param modelKey - The unique model key to look up
+ * @param modelRegistry - The model registry to search in
  * @returns The provider family name for this model
- * @throws {LLMError} If the model key is not found in any provider
+ * @throws {LLMError} If the model key is not found in the registry
  */
-export function getProviderFamilyForModelKey(modelKey: string): string {
-  const registry = getRegistry();
-  const providerFamily = registry.get(modelKey);
+export function getProviderFamilyForModelKey(
+  modelKey: string,
+  modelRegistry: Map<string, string>,
+): string {
+  const providerFamily = modelRegistry.get(modelKey);
 
   if (!providerFamily) {
-    const availableKeys = Array.from(registry.keys()).sort();
+    const availableKeys = Array.from(modelRegistry.keys()).sort();
     throw new LLMError(
       LLMErrorCode.BAD_CONFIGURATION,
       `Unknown model key "${modelKey}". Available model keys: ${availableKeys.join(", ")}`,
@@ -108,31 +96,23 @@ export function getProviderFamilyForModelKey(modelKey: string): string {
 }
 
 /**
- * Get all available model keys across all providers.
+ * Get all available model keys from a model registry.
  * Useful for validation, documentation, and error messages.
  *
+ * @param modelRegistry - The model registry to get keys from
  * @returns Array of all registered model keys, sorted alphabetically
  */
-export function getAllModelKeys(): string[] {
-  const registry = getRegistry();
-  return Array.from(registry.keys()).sort();
+export function getAllModelKeys(modelRegistry: Map<string, string>): string[] {
+  return Array.from(modelRegistry.keys()).sort();
 }
 
 /**
- * Check if a model key exists in the registry.
+ * Check if a model key exists in a model registry.
  *
  * @param modelKey - The model key to check
+ * @param modelRegistry - The model registry to search in
  * @returns True if the model key is registered
  */
-export function isValidModelKey(modelKey: string): boolean {
-  const registry = getRegistry();
-  return registry.has(modelKey);
-}
-
-/**
- * Reset the registry cache. This is intended for testing purposes only
- * to ensure clean state between test runs.
- */
-export function resetModelRegistryCache(): void {
-  modelToProviderMap = null;
+export function isValidModelKey(modelKey: string, modelRegistry: Map<string, string>): boolean {
+  return modelRegistry.has(modelKey);
 }

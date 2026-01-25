@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import { ListAvailableModelsTask } from "../../../../src/app/tasks/dev/list-available-models.task";
-import { LLM_PROVIDER_REGISTRY } from "../../../../src/common/llm/providers";
+import { APP_PROVIDER_REGISTRY } from "../../../../src/app/llm/provider-registry";
 import * as modelRegistry from "../../../../src/common/llm/utils/model-registry";
 import { LLMError, LLMErrorCode } from "../../../../src/common/llm/types/llm-errors.types";
 
@@ -42,7 +42,7 @@ describe("ListAvailableModelsTask", () => {
       const output = consoleSpy.mock.calls.map((call) => call[0]).join("\n");
 
       // Check that all provider families from the registry are included
-      for (const [, manifest] of LLM_PROVIDER_REGISTRY) {
+      for (const [, manifest] of APP_PROVIDER_REGISTRY) {
         expect(output).toContain(manifest.providerFamily);
       }
     });
@@ -94,7 +94,7 @@ describe("ListAvailableModelsTask", () => {
       }
 
       // All providers in the registry have completion models, so we check they all appear
-      for (const [, manifest] of LLM_PROVIDER_REGISTRY) {
+      for (const [, manifest] of APP_PROVIDER_REGISTRY) {
         if (manifest.models.completions.length > 0) {
           const hasProvider = completionLines.some((line) =>
             line.includes(manifest.providerFamily),
@@ -160,16 +160,16 @@ describe("ListAvailableModelsTask", () => {
 
   describe("duplicate model key validation", () => {
     let consoleErrorSpy: jest.SpyInstance;
-    let getAllModelKeysSpy: jest.SpyInstance | undefined;
+    let buildModelRegistrySpy: jest.SpyInstance | undefined;
 
     beforeEach(() => {
       consoleErrorSpy = jest.spyOn(console, "error").mockImplementation();
-      getAllModelKeysSpy = undefined;
+      buildModelRegistrySpy = undefined;
     });
 
     afterEach(() => {
       consoleErrorSpy.mockRestore();
-      getAllModelKeysSpy?.mockRestore();
+      buildModelRegistrySpy?.mockRestore();
     });
 
     it("should display error and set exit code when duplicate model keys exist", async () => {
@@ -177,9 +177,11 @@ describe("ListAvailableModelsTask", () => {
         LLMErrorCode.BAD_CONFIGURATION,
         'Duplicate model keys detected across providers. Model keys must be globally unique. Conflicts: "test-model" defined in [ProviderA, ProviderB]',
       );
-      getAllModelKeysSpy = jest.spyOn(modelRegistry, "getAllModelKeys").mockImplementation(() => {
-        throw duplicateError;
-      });
+      buildModelRegistrySpy = jest
+        .spyOn(modelRegistry, "buildModelRegistry")
+        .mockImplementation(() => {
+          throw duplicateError;
+        });
 
       await task.execute();
 
@@ -197,9 +199,11 @@ describe("ListAvailableModelsTask", () => {
         LLMErrorCode.BAD_CONFIGURATION,
         "Duplicate model keys detected",
       );
-      getAllModelKeysSpy = jest.spyOn(modelRegistry, "getAllModelKeys").mockImplementation(() => {
-        throw duplicateError;
-      });
+      buildModelRegistrySpy = jest
+        .spyOn(modelRegistry, "buildModelRegistry")
+        .mockImplementation(() => {
+          throw duplicateError;
+        });
 
       await task.execute();
 
@@ -213,9 +217,11 @@ describe("ListAvailableModelsTask", () => {
 
     it("should re-throw non-LLMError exceptions", async () => {
       const unexpectedError = new Error("Unexpected error");
-      getAllModelKeysSpy = jest.spyOn(modelRegistry, "getAllModelKeys").mockImplementation(() => {
-        throw unexpectedError;
-      });
+      buildModelRegistrySpy = jest
+        .spyOn(modelRegistry, "buildModelRegistry")
+        .mockImplementation(() => {
+          throw unexpectedError;
+        });
 
       await expect(task.execute()).rejects.toThrow("Unexpected error");
     });

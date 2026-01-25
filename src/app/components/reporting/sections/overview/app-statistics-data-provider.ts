@@ -7,6 +7,12 @@ import { formatDateForDisplay } from "../../../../../common/utils/date-utils";
 import { NO_DESCRIPTION_PLACEHOLDER } from "../../config/placeholders.config";
 
 /**
+ * Locale used for date formatting in reports.
+ * Using en-GB format (DD/MM/YYYY, HH:mm:ss) for consistency.
+ */
+const REPORT_DATE_LOCALE = "en-GB";
+
+/**
  * Data provider responsible for aggregating app statistics information for reports.
  */
 @injectable()
@@ -17,7 +23,7 @@ export class AppStatisticsDataProvider {
     @inject(repositoryTokens.SourcesRepository)
     private readonly sourcesRepository: SourcesRepository,
   ) {
-    this.currentDate = formatDateForDisplay();
+    this.currentDate = formatDateForDisplay(new Date(), REPORT_DATE_LOCALE);
   }
 
   /**
