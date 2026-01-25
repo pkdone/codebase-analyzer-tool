@@ -3,12 +3,12 @@ import { z } from "zod";
 import LLMRouter from "../../../../common/llm/llm-router";
 import { LLMOutputFormat } from "../../../../common/llm/types/llm-request.types";
 import { insightsConfig } from "../insights.config";
-import { llmConcurrencyLimiter } from "../../../config/llm-concurrency-limiter";
 import { getCategoryLabel } from "../../../config/category-labels.config";
 import { logWarn } from "../../../../common/utils/logging";
 import { isNotNull } from "../../../../common/utils/type-guards";
-import { llmTokens } from "../../../di/tokens";
+import { llmTokens, serviceTokens } from "../../../di/tokens";
 import { IInsightGenerationStrategy } from "./completion-strategy.interface";
+import type { LlmConcurrencyService } from "../../concurrency";
 import {
   AppSummaryCategoryEnum,
   CategoryInsightResult,
@@ -29,7 +29,16 @@ import { buildReducePrompt } from "../../../prompts/prompt-builders";
 export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
   private readonly maxTokens: number;
 
-  constructor(@inject(llmTokens.LLMRouter) private readonly llmRouter: LLMRouter) {
+  /**
+   * Creates a new MapReduceInsightStrategy.
+   * @param llmRouter - Router for LLM operations
+   * @param llmConcurrencyService - Service for managing LLM call concurrency
+   */
+  constructor(
+    @inject(llmTokens.LLMRouter) private readonly llmRouter: LLMRouter,
+    @inject(serviceTokens.LlmConcurrencyService)
+    private readonly llmConcurrencyService: LlmConcurrencyService,
+  ) {
     // Get the token limit from the first completion model in the chain for chunking calculations
     this.maxTokens = this.llmRouter.getFirstCompletionModelMaxTokens();
   }
@@ -65,7 +74,7 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
       // Uses shared concurrency limiter to prevent rate limit issues from nested parallelism
       // (categories are also processed in parallel at the generator level)
       const partialResultsPromises = summaryChunks.map(async (chunk, index) =>
-        llmConcurrencyLimiter(async () => {
+        this.llmConcurrencyService.run(async () => {
           console.log(
             `  - [MAP ${index + 1}/${summaryChunks.length}] Processing chunk for ${categoryLabel}...`,
           );

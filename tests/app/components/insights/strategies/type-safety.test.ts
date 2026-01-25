@@ -12,6 +12,19 @@ import {
 } from "../../../../../src/app/components/insights/insights.types";
 import LLMRouter from "../../../../../src/common/llm/llm-router";
 import { z } from "zod";
+import type { LlmConcurrencyService } from "../../../../../src/app/components/concurrency";
+
+/**
+ * Creates a mock LlmConcurrencyService that executes functions immediately.
+ */
+function createMockLlmConcurrencyService(): jest.Mocked<LlmConcurrencyService> {
+  return {
+    run: jest.fn().mockImplementation(async <T>(fn: () => Promise<T>) => fn()),
+    pendingCount: 0,
+    activeCount: 0,
+    clearQueue: jest.fn(),
+  } as unknown as jest.Mocked<LlmConcurrencyService>;
+}
 
 describe("Type Safety Tests", () => {
   describe("IInsightGenerationStrategy interface", () => {
@@ -116,6 +129,7 @@ describe("Type Safety Tests", () => {
 
   describe("MapReduceInsightStrategy type safety", () => {
     let mockLLMRouter: jest.Mocked<LLMRouter>;
+    let mockLlmConcurrencyService: jest.Mocked<LlmConcurrencyService>;
     let strategy: MapReduceInsightStrategy;
 
     beforeEach(() => {
@@ -123,7 +137,8 @@ describe("Type Safety Tests", () => {
         executeCompletion: jest.fn(),
         getFirstCompletionModelMaxTokens: jest.fn().mockReturnValue(100000),
       } as unknown as jest.Mocked<LLMRouter>;
-      strategy = new MapReduceInsightStrategy(mockLLMRouter);
+      mockLlmConcurrencyService = createMockLlmConcurrencyService();
+      strategy = new MapReduceInsightStrategy(mockLLMRouter, mockLlmConcurrencyService);
     });
 
     it("should return strongly-typed result for technologies category", async () => {

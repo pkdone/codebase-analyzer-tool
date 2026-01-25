@@ -3,8 +3,8 @@ import path from "path";
 import type { SourcesRepository } from "../../../../repositories/sources/sources.repository.interface";
 import { repositoryTokens } from "../../../../di/tokens";
 import type { ModuleCoupling } from "./architecture-analysis.types";
-import { moduleCouplingConfig } from "../../config/module-coupling.config";
-import { calculateCouplingLevel } from "../../view-models/presentation-helpers";
+import { moduleCouplingConfig, calculateCouplingLevel } from "../../config/module-coupling.config";
+import { getCouplingLevelPresentation } from "../../view-models/presentation-helpers";
 
 type ModuleCouplingMap = Record<string, Record<string, number>>;
 
@@ -101,11 +101,11 @@ export class ModuleCouplingDataProvider {
     });
 
     // Add pre-computed coupling levels for each coupling entry
+    // Business logic (calculateCouplingLevel) determines the level,
+    // then presentation helper maps it to display values
     const couplingsWithLevels = sortedCouplings.map((coupling) => {
-      const { level, cssClass } = calculateCouplingLevel(
-        coupling.referenceCount,
-        highestCouplingCount,
-      );
+      const couplingLevel = calculateCouplingLevel(coupling.referenceCount, highestCouplingCount);
+      const { level, cssClass } = getCouplingLevelPresentation(couplingLevel);
       return {
         ...coupling,
         couplingLevel: level,

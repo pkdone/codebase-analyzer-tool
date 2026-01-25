@@ -1,4 +1,4 @@
-import { coreTokens, llmTokens, configTokens } from "../../../src/app/di/tokens";
+import { coreTokens, llmTokens, configTokens, serviceTokens } from "../../../src/app/di/tokens";
 
 /**
  * Unit tests to verify that unused tokens have been removed from the DI container.
@@ -56,9 +56,30 @@ describe("DI Tokens Cleanup", () => {
       expect(typeof configTokens.FileProcessingRules).toBe("symbol");
     });
 
+    it("should contain ConcurrencyConfig token for injectable concurrency configuration", () => {
+      expect(configTokens).toHaveProperty("ConcurrencyConfig");
+      expect(typeof configTokens.ConcurrencyConfig).toBe("symbol");
+    });
+
     it("should contain all expected config tokens", () => {
       // Verify that all configuration tokens are present
-      expect(Object.keys(configTokens)).toEqual(["DatabaseConfig", "FileProcessingRules"]);
+      expect(Object.keys(configTokens)).toEqual([
+        "DatabaseConfig",
+        "FileProcessingRules",
+        "ConcurrencyConfig",
+      ]);
+    });
+  });
+
+  describe("serviceTokens", () => {
+    it("should contain LlmConcurrencyService token for injectable concurrency service", () => {
+      expect(serviceTokens).toHaveProperty("LlmConcurrencyService");
+      expect(typeof serviceTokens.LlmConcurrencyService).toBe("symbol");
+    });
+
+    it("should contain all expected service tokens", () => {
+      // Verify that all service tokens are present
+      expect(Object.keys(serviceTokens)).toEqual(["LlmConcurrencyService"]);
     });
   });
 });

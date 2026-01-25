@@ -75,9 +75,17 @@ export type LLMToken = keyof typeof llmTokens;
 export const configTokens = {
   DatabaseConfig: Symbol("DatabaseConfig"),
   FileProcessingRules: Symbol("FileProcessingRules"),
+  ConcurrencyConfig: Symbol("ConcurrencyConfig"),
 } as const;
 
 export type ConfigToken = keyof typeof configTokens;
+
+// Service tokens for application services
+export const serviceTokens = {
+  LlmConcurrencyService: Symbol("LlmConcurrencyService"),
+} as const;
+
+export type ServiceToken = keyof typeof serviceTokens;
 
 // Reporting module tokens
 export const reportingTokens = {

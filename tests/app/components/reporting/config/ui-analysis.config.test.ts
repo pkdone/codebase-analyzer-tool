@@ -4,8 +4,19 @@ import {
   TAG_LIBRARY_BADGE_CLASSES,
   classifyTagLibrary,
   DEBT_THRESHOLDS,
+  DebtLevel,
+  calculateDebtLevel,
 } from "../../../../../src/app/components/reporting/config/ui-analysis.config";
 import { BADGE_CLASSES } from "../../../../../src/app/components/reporting/config/presentation.config";
+
+describe("DebtLevel enum", () => {
+  it("should define all expected debt levels", () => {
+    expect(DebtLevel.VERY_HIGH).toBe("VERY_HIGH");
+    expect(DebtLevel.HIGH).toBe("HIGH");
+    expect(DebtLevel.MODERATE).toBe("MODERATE");
+    expect(DebtLevel.LOW).toBe("LOW");
+  });
+});
 
 describe("DEBT_THRESHOLDS", () => {
   describe("threshold values", () => {
@@ -38,6 +49,80 @@ describe("DEBT_THRESHOLDS", () => {
       expect(Number.isInteger(DEBT_THRESHOLDS.HIGH)).toBe(true);
       expect(DEBT_THRESHOLDS.MODERATE).toBeGreaterThan(0);
       expect(Number.isInteger(DEBT_THRESHOLDS.MODERATE)).toBe(true);
+    });
+  });
+});
+
+describe("calculateDebtLevel", () => {
+  describe("threshold calculations", () => {
+    it("should return VERY_HIGH for > 20 total blocks", () => {
+      const result = calculateDebtLevel(21);
+      expect(result).toBe(DebtLevel.VERY_HIGH);
+    });
+
+    it("should return HIGH for > 10 but <= 20 total blocks", () => {
+      const result = calculateDebtLevel(15);
+      expect(result).toBe(DebtLevel.HIGH);
+    });
+
+    it("should return MODERATE for > 5 but <= 10 total blocks", () => {
+      const result = calculateDebtLevel(8);
+      expect(result).toBe(DebtLevel.MODERATE);
+    });
+
+    it("should return LOW for <= 5 total blocks", () => {
+      const result = calculateDebtLevel(5);
+      expect(result).toBe(DebtLevel.LOW);
+    });
+  });
+
+  describe("boundary conditions", () => {
+    it("should return HIGH at exactly 20 total blocks", () => {
+      const result = calculateDebtLevel(20);
+      expect(result).toBe(DebtLevel.HIGH);
+    });
+
+    it("should return VERY_HIGH at 21 total blocks", () => {
+      const result = calculateDebtLevel(21);
+      expect(result).toBe(DebtLevel.VERY_HIGH);
+    });
+
+    it("should return MODERATE at exactly 10 total blocks", () => {
+      const result = calculateDebtLevel(10);
+      expect(result).toBe(DebtLevel.MODERATE);
+    });
+
+    it("should return HIGH at 11 total blocks", () => {
+      const result = calculateDebtLevel(11);
+      expect(result).toBe(DebtLevel.HIGH);
+    });
+
+    it("should return LOW at exactly 5 total blocks", () => {
+      const result = calculateDebtLevel(5);
+      expect(result).toBe(DebtLevel.LOW);
+    });
+
+    it("should return MODERATE at 6 total blocks", () => {
+      const result = calculateDebtLevel(6);
+      expect(result).toBe(DebtLevel.MODERATE);
+    });
+  });
+
+  describe("edge cases", () => {
+    it("should return LOW for 0 total blocks", () => {
+      const result = calculateDebtLevel(0);
+      expect(result).toBe(DebtLevel.LOW);
+    });
+
+    it("should return LOW for negative total blocks", () => {
+      // Shouldn't happen in practice but should handle gracefully
+      const result = calculateDebtLevel(-5);
+      expect(result).toBe(DebtLevel.LOW);
+    });
+
+    it("should return VERY_HIGH for very large total blocks", () => {
+      const result = calculateDebtLevel(1000);
+      expect(result).toBe(DebtLevel.VERY_HIGH);
     });
   });
 });

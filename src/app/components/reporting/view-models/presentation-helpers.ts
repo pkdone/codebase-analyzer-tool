@@ -1,17 +1,21 @@
 /**
- * View helper utilities for computing presentation values.
+ * View helper utilities for mapping domain values to presentation concerns.
  * Extracts presentation logic from EJS templates to enable pre-computation
  * and easier testing.
+ *
+ * IMPORTANT: This module should NOT contain business logic (thresholds, calculations).
+ * Business logic belongs in the data providers. This module only maps domain
+ * enum values to presentation-specific strings (labels and CSS classes).
  */
 
-import { COUPLING_THRESHOLDS } from "../config/module-coupling.config";
-import { DEBT_THRESHOLDS, uiAnalysisConfig } from "../config/ui-analysis.config";
+import { CouplingLevel } from "../config/module-coupling.config";
+import { DebtLevel, uiAnalysisConfig } from "../config/ui-analysis.config";
 import { LEVEL_LABELS, BADGE_CLASSES, WARNING_CLASSES } from "../config/presentation.config";
 
 /**
- * Result type for coupling level calculations.
+ * Result type for coupling level presentation.
  */
-export interface CouplingLevelResult {
+export interface CouplingLevelPresentation {
   /** Human-readable coupling level label */
   readonly level: string;
   /** CSS class for styling the badge */
@@ -19,9 +23,9 @@ export interface CouplingLevelResult {
 }
 
 /**
- * Result type for debt level calculations.
+ * Result type for debt level presentation.
  */
-export interface DebtLevelResult {
+export interface DebtLevelPresentation {
   /** Human-readable debt level label */
   readonly level: string;
   /** CSS class for styling the badge */
@@ -29,70 +33,45 @@ export interface DebtLevelResult {
 }
 
 /**
- * Calculates the coupling level and CSS class for a module coupling relationship.
- * The coupling level is determined relative to the highest coupling count in the dataset.
+ * Maps a CouplingLevel enum to its presentation (label and CSS class).
+ * This is purely presentational - it translates domain concepts to UI concerns.
  *
- * Thresholds:
- * - Very High: >= 70% of highest count
- * - High: >= 40% of highest count
- * - Medium: >= 20% of highest count
- * - Low: < 20% of highest count
- *
- * @param referenceCount - The number of references between modules
- * @param highestCouplingCount - The maximum reference count in the dataset
+ * @param couplingLevel - The coupling level from business logic
  * @returns Object containing the level label and CSS class
  */
-export function calculateCouplingLevel(
-  referenceCount: number,
-  highestCouplingCount: number,
-): CouplingLevelResult {
-  // Handle edge case where highest count is 0
-  if (highestCouplingCount <= 0) {
-    return { level: LEVEL_LABELS.LOW, cssClass: BADGE_CLASSES.SUCCESS };
+export function getCouplingLevelPresentation(
+  couplingLevel: CouplingLevel,
+): CouplingLevelPresentation {
+  switch (couplingLevel) {
+    case CouplingLevel.VERY_HIGH:
+      return { level: LEVEL_LABELS.VERY_HIGH, cssClass: BADGE_CLASSES.DANGER };
+    case CouplingLevel.HIGH:
+      return { level: LEVEL_LABELS.HIGH, cssClass: BADGE_CLASSES.HIGH };
+    case CouplingLevel.MEDIUM:
+      return { level: LEVEL_LABELS.MEDIUM, cssClass: BADGE_CLASSES.WARNING };
+    case CouplingLevel.LOW:
+      return { level: LEVEL_LABELS.LOW, cssClass: BADGE_CLASSES.SUCCESS };
   }
-
-  if (referenceCount >= highestCouplingCount * COUPLING_THRESHOLDS.VERY_HIGH) {
-    return { level: LEVEL_LABELS.VERY_HIGH, cssClass: BADGE_CLASSES.DANGER };
-  }
-
-  if (referenceCount >= highestCouplingCount * COUPLING_THRESHOLDS.HIGH) {
-    return { level: LEVEL_LABELS.HIGH, cssClass: BADGE_CLASSES.HIGH };
-  }
-
-  if (referenceCount >= highestCouplingCount * COUPLING_THRESHOLDS.MEDIUM) {
-    return { level: LEVEL_LABELS.MEDIUM, cssClass: BADGE_CLASSES.WARNING };
-  }
-
-  return { level: LEVEL_LABELS.LOW, cssClass: BADGE_CLASSES.SUCCESS };
 }
 
 /**
- * Calculates the technical debt level and CSS class for a JSP file based on
- * its total scriptlet blocks (scriptlets + expressions + declarations).
+ * Maps a DebtLevel enum to its presentation (label and CSS class).
+ * This is purely presentational - it translates domain concepts to UI concerns.
  *
- * Thresholds:
- * - Very High: > 20 blocks
- * - High: > 10 blocks
- * - Moderate: > 5 blocks
- * - Low: <= 5 blocks
- *
- * @param totalScriptletBlocks - Total count of scriptlet blocks in the file
+ * @param debtLevel - The debt level from business logic
  * @returns Object containing the debt level label and CSS class
  */
-export function calculateDebtLevel(totalScriptletBlocks: number): DebtLevelResult {
-  if (totalScriptletBlocks > DEBT_THRESHOLDS.VERY_HIGH) {
-    return { level: LEVEL_LABELS.VERY_HIGH, cssClass: BADGE_CLASSES.DANGER };
+export function getDebtLevelPresentation(debtLevel: DebtLevel): DebtLevelPresentation {
+  switch (debtLevel) {
+    case DebtLevel.VERY_HIGH:
+      return { level: LEVEL_LABELS.VERY_HIGH, cssClass: BADGE_CLASSES.DANGER };
+    case DebtLevel.HIGH:
+      return { level: LEVEL_LABELS.HIGH, cssClass: BADGE_CLASSES.WARNING };
+    case DebtLevel.MODERATE:
+      return { level: LEVEL_LABELS.MODERATE, cssClass: BADGE_CLASSES.INFO };
+    case DebtLevel.LOW:
+      return { level: LEVEL_LABELS.LOW, cssClass: BADGE_CLASSES.SUCCESS };
   }
-
-  if (totalScriptletBlocks > DEBT_THRESHOLDS.HIGH) {
-    return { level: LEVEL_LABELS.HIGH, cssClass: BADGE_CLASSES.WARNING };
-  }
-
-  if (totalScriptletBlocks > DEBT_THRESHOLDS.MODERATE) {
-    return { level: LEVEL_LABELS.MODERATE, cssClass: BADGE_CLASSES.INFO };
-  }
-
-  return { level: LEVEL_LABELS.LOW, cssClass: BADGE_CLASSES.SUCCESS };
 }
 
 /**

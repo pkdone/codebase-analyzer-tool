@@ -2,6 +2,7 @@ import "reflect-metadata";
 import { PromptFileInsightsGenerator } from "../../../../../src/app/components/insights/generators/prompt-file-insights-generator";
 import LLMRouter from "../../../../../src/common/llm/llm-router";
 import type { FileProcessingRulesType } from "../../../../../src/app/config/file-handling";
+import type { LlmConcurrencyService } from "../../../../../src/app/components/concurrency";
 
 jest.mock("../../../../../src/common/fs/directory-operations", () => ({
   ensureDirectoryExists: jest.fn().mockResolvedValue(undefined),
@@ -31,12 +32,24 @@ describe("PromptFileInsightsGenerator", () => {
     SCHEDULED_JOB_CANONICAL_TYPES: ["shell-script"],
   } as unknown as FileProcessingRulesType;
 
+  // Create mock for LlmConcurrencyService that executes immediately
+  const mockLlmConcurrencyService = {
+    run: jest.fn().mockImplementation(async <T>(fn: () => Promise<T>) => fn()),
+    pendingCount: 0,
+    activeCount: 0,
+    clearQueue: jest.fn(),
+  } as unknown as jest.Mocked<LlmConcurrencyService>;
+
   it("loads prompts filtering only .prompt files and generates insights", async () => {
     const mockExecuteCompletion = jest.fn().mockResolvedValue("LLM Response");
     const mockLlMRouter = {
       executeCompletion: mockExecuteCompletion,
     } as unknown as LLMRouter;
-    const gen = new PromptFileInsightsGenerator(mockLlMRouter, mockFileProcessingConfig);
+    const gen = new PromptFileInsightsGenerator(
+      mockLlMRouter,
+      mockFileProcessingConfig,
+      mockLlmConcurrencyService,
+    );
     const result = await gen.generateInsightsToFiles("/test/path", "test-llm");
     expect(result).toHaveLength(1);
     expect(mockExecuteCompletion).toHaveBeenCalledTimes(1);

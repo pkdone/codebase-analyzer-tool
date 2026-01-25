@@ -11,6 +11,7 @@ import * as textAnalysis from "../../../../src/common/utils/text-utils";
 import { ok, err } from "../../../../src/common/types/result.types";
 import { LLMError, LLMErrorCode } from "../../../../src/common/llm/types/llm-errors.types";
 import type { FileProcessingRulesType } from "../../../../src/app/config/file-handling";
+import type { LlmConcurrencyService } from "../../../../src/app/components/concurrency";
 
 // Mock dependencies
 jest.mock("../../../../src/common/fs/file-operations");
@@ -112,12 +113,21 @@ describe("CodebaseToDBLoader", () => {
     // Default mock for sortFilesBySize - returns files in same order
     mockDirectoryOperations.sortFilesBySize.mockImplementation(async (files) => files);
 
+    // Create mock for LlmConcurrencyService that executes immediately
+    const mockLlmConcurrencyService = {
+      run: jest.fn().mockImplementation(async <T>(fn: () => Promise<T>) => fn()),
+      pendingCount: 0,
+      activeCount: 0,
+      clearQueue: jest.fn(),
+    } as unknown as jest.Mocked<LlmConcurrencyService>;
+
     // Create loader with injected mock config (no module mocking needed)
     loader = new CodebaseToDBLoader(
       mockSourcesRepository,
       mockLLMRouter,
       mockFileSummarizer,
       mockFileProcessingRules,
+      mockLlmConcurrencyService,
     );
   });
 

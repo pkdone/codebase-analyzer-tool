@@ -13,9 +13,23 @@ const appSummaryPromptMetadata = appSummaryConfigMap;
 import { z } from "zod";
 import { ok, err } from "../../../../../src/common/types/result.types";
 import { LLMError, LLMErrorCode } from "../../../../../src/common/llm/types/llm-errors.types";
+import type { LlmConcurrencyService } from "../../../../../src/app/components/concurrency";
+
+/**
+ * Creates a mock LlmConcurrencyService that executes functions immediately.
+ */
+function createMockLlmConcurrencyService(): jest.Mocked<LlmConcurrencyService> {
+  return {
+    run: jest.fn().mockImplementation(async <T>(fn: () => Promise<T>) => fn()),
+    pendingCount: 0,
+    activeCount: 0,
+    clearQueue: jest.fn(),
+  } as unknown as jest.Mocked<LlmConcurrencyService>;
+}
 
 describe("MapReduceInsightStrategy", () => {
   let mockLLMRouter: jest.Mocked<LLMRouter>;
+  let mockLlmConcurrencyService: jest.Mocked<LlmConcurrencyService>;
   let strategy: MapReduceInsightStrategy;
 
   beforeEach(() => {
@@ -23,7 +37,8 @@ describe("MapReduceInsightStrategy", () => {
       executeCompletion: jest.fn(),
       getFirstCompletionModelMaxTokens: jest.fn().mockReturnValue(100000),
     } as unknown as jest.Mocked<LLMRouter>;
-    strategy = new MapReduceInsightStrategy(mockLLMRouter);
+    mockLlmConcurrencyService = createMockLlmConcurrencyService();
+    strategy = new MapReduceInsightStrategy(mockLLMRouter, mockLlmConcurrencyService);
   });
 
   describe("generateInsights", () => {
@@ -541,7 +556,7 @@ describe("MapReduceInsightStrategy", () => {
     it("should maintain strong typing in reduce operation without unsafe casts", async () => {
       // Use a smaller token limit to force chunking
       mockLLMRouter.getFirstCompletionModelMaxTokens = jest.fn().mockReturnValue(100);
-      strategy = new MapReduceInsightStrategy(mockLLMRouter);
+      strategy = new MapReduceInsightStrategy(mockLLMRouter, mockLlmConcurrencyService);
 
       // Create long summary strings to force chunking
       const longSummary1 = "* file1.ts: " + "implementation ".repeat(50);
@@ -623,7 +638,7 @@ describe("MapReduceInsightStrategy", () => {
     it("should handle complex nested structures without type loss", async () => {
       // Use a smaller token limit to force chunking
       mockLLMRouter.getFirstCompletionModelMaxTokens = jest.fn().mockReturnValue(100);
-      strategy = new MapReduceInsightStrategy(mockLLMRouter);
+      strategy = new MapReduceInsightStrategy(mockLLMRouter, mockLlmConcurrencyService);
 
       // Create long summary strings to force chunking
       const longSummary1 = "* file1.ts: " + "implementation ".repeat(50);
@@ -696,7 +711,7 @@ describe("MapReduceInsightStrategy", () => {
     it("should handle boundedContexts with hierarchical aggregates", async () => {
       // Use a smaller token limit to force chunking
       mockLLMRouter.getFirstCompletionModelMaxTokens = jest.fn().mockReturnValue(100);
-      strategy = new MapReduceInsightStrategy(mockLLMRouter);
+      strategy = new MapReduceInsightStrategy(mockLLMRouter, mockLlmConcurrencyService);
 
       // Create long summary strings to force chunking
       const longSummary1 = "* file1.ts: " + "implementation ".repeat(50);
@@ -799,7 +814,7 @@ describe("MapReduceInsightStrategy", () => {
     it("should properly handle empty arrays from partial results", async () => {
       // Use a smaller token limit to force chunking
       mockLLMRouter.getFirstCompletionModelMaxTokens = jest.fn().mockReturnValue(100);
-      strategy = new MapReduceInsightStrategy(mockLLMRouter);
+      strategy = new MapReduceInsightStrategy(mockLLMRouter, mockLlmConcurrencyService);
 
       // Create long summary strings to force chunking
       const longSummary1 = "* file1.ts: " + "implementation ".repeat(50);
@@ -887,7 +902,7 @@ describe("MapReduceInsightStrategy", () => {
     it("should combine flat array results for technologies category", async () => {
       // Use a smaller token limit to force chunking
       mockLLMRouter.getFirstCompletionModelMaxTokens = jest.fn().mockReturnValue(100);
-      strategy = new MapReduceInsightStrategy(mockLLMRouter);
+      strategy = new MapReduceInsightStrategy(mockLLMRouter, mockLlmConcurrencyService);
 
       const longSummary1 = "* file1.ts: " + "implementation ".repeat(50);
       const longSummary2 = "* file2.ts: " + "implementation ".repeat(50);
@@ -924,7 +939,7 @@ describe("MapReduceInsightStrategy", () => {
     it("should combine nested object results for inferredArchitecture category", async () => {
       // Use a smaller token limit to force chunking
       mockLLMRouter.getFirstCompletionModelMaxTokens = jest.fn().mockReturnValue(100);
-      strategy = new MapReduceInsightStrategy(mockLLMRouter);
+      strategy = new MapReduceInsightStrategy(mockLLMRouter, mockLlmConcurrencyService);
 
       const longSummary1 = "* file1.ts: " + "implementation ".repeat(50);
       const longSummary2 = "* file2.ts: " + "implementation ".repeat(50);
@@ -985,7 +1000,7 @@ describe("MapReduceInsightStrategy", () => {
     it("should collect string values into array for appDescription category", async () => {
       // Use a smaller token limit to force chunking
       mockLLMRouter.getFirstCompletionModelMaxTokens = jest.fn().mockReturnValue(100);
-      strategy = new MapReduceInsightStrategy(mockLLMRouter);
+      strategy = new MapReduceInsightStrategy(mockLLMRouter, mockLlmConcurrencyService);
 
       const longSummary1 = "* file1.ts: " + "implementation ".repeat(50);
       const longSummary2 = "* file2.ts: " + "implementation ".repeat(50);
@@ -1023,7 +1038,7 @@ describe("MapReduceInsightStrategy", () => {
     it("should handle empty nested arrays in inferredArchitecture", async () => {
       // Use a smaller token limit to force chunking
       mockLLMRouter.getFirstCompletionModelMaxTokens = jest.fn().mockReturnValue(100);
-      strategy = new MapReduceInsightStrategy(mockLLMRouter);
+      strategy = new MapReduceInsightStrategy(mockLLMRouter, mockLlmConcurrencyService);
 
       const longSummary1 = "* file1.ts: " + "implementation ".repeat(50);
       const longSummary2 = "* file2.ts: " + "implementation ".repeat(50);
@@ -1072,7 +1087,7 @@ describe("MapReduceInsightStrategy", () => {
     it("should handle multiple chunks for inferredArchitecture with many components", async () => {
       // Use a smaller token limit to force chunking
       mockLLMRouter.getFirstCompletionModelMaxTokens = jest.fn().mockReturnValue(100);
-      strategy = new MapReduceInsightStrategy(mockLLMRouter);
+      strategy = new MapReduceInsightStrategy(mockLLMRouter, mockLlmConcurrencyService);
 
       const longSummary1 = "* file1.ts: " + "implementation ".repeat(50);
       const longSummary2 = "* file2.ts: " + "implementation ".repeat(50);
@@ -1146,7 +1161,7 @@ describe("MapReduceInsightStrategy", () => {
     it("should filter out empty strings when combining appDescription", async () => {
       // Use a smaller token limit to force chunking
       mockLLMRouter.getFirstCompletionModelMaxTokens = jest.fn().mockReturnValue(100);
-      strategy = new MapReduceInsightStrategy(mockLLMRouter);
+      strategy = new MapReduceInsightStrategy(mockLLMRouter, mockLlmConcurrencyService);
 
       const longSummary1 = "* file1.ts: " + "implementation ".repeat(50);
       const longSummary2 = "* file2.ts: " + "implementation ".repeat(50);
@@ -1197,7 +1212,7 @@ describe("MapReduceInsightStrategy", () => {
     it("should return CategoryInsightResult<'technologies'> for flat array schema", async () => {
       // Use a smaller token limit to force chunking
       mockLLMRouter.getFirstCompletionModelMaxTokens = jest.fn().mockReturnValue(100);
-      strategy = new MapReduceInsightStrategy(mockLLMRouter);
+      strategy = new MapReduceInsightStrategy(mockLLMRouter, mockLlmConcurrencyService);
 
       const longSummary1 = "* file1.ts: " + "implementation ".repeat(50);
       const longSummary2 = "* file2.ts: " + "implementation ".repeat(50);
@@ -1252,7 +1267,7 @@ describe("MapReduceInsightStrategy", () => {
     it("should return CategoryInsightResult<'inferredArchitecture'> for nested object schema", async () => {
       // Use a smaller token limit to force chunking
       mockLLMRouter.getFirstCompletionModelMaxTokens = jest.fn().mockReturnValue(100);
-      strategy = new MapReduceInsightStrategy(mockLLMRouter);
+      strategy = new MapReduceInsightStrategy(mockLLMRouter, mockLlmConcurrencyService);
 
       const longSummary1 = "* file1.ts: " + "implementation ".repeat(50);
       const longSummary2 = "* file2.ts: " + "implementation ".repeat(50);
@@ -1314,7 +1329,7 @@ describe("MapReduceInsightStrategy", () => {
     it("should return CategoryInsightResult<'appDescription'> for string schema with collected array", async () => {
       // Use a smaller token limit to force chunking
       mockLLMRouter.getFirstCompletionModelMaxTokens = jest.fn().mockReturnValue(100);
-      strategy = new MapReduceInsightStrategy(mockLLMRouter);
+      strategy = new MapReduceInsightStrategy(mockLLMRouter, mockLlmConcurrencyService);
 
       const longSummary1 = "* file1.ts: " + "implementation ".repeat(50);
       const longSummary2 = "* file2.ts: " + "implementation ".repeat(50);
@@ -1359,7 +1374,7 @@ describe("MapReduceInsightStrategy", () => {
     it("should maintain type safety through entire map-reduce pipeline for boundedContexts", async () => {
       // Use a smaller token limit to force chunking
       mockLLMRouter.getFirstCompletionModelMaxTokens = jest.fn().mockReturnValue(100);
-      strategy = new MapReduceInsightStrategy(mockLLMRouter);
+      strategy = new MapReduceInsightStrategy(mockLLMRouter, mockLlmConcurrencyService);
 
       const longSummary1 = "* file1.ts: " + "implementation ".repeat(50);
       const longSummary2 = "* file2.ts: " + "implementation ".repeat(50);
@@ -1448,7 +1463,7 @@ describe("MapReduceInsightStrategy", () => {
     it("should preserve type safety when combining potentialMicroservices with nested arrays", async () => {
       // Use a smaller token limit to force chunking
       mockLLMRouter.getFirstCompletionModelMaxTokens = jest.fn().mockReturnValue(100);
-      strategy = new MapReduceInsightStrategy(mockLLMRouter);
+      strategy = new MapReduceInsightStrategy(mockLLMRouter, mockLlmConcurrencyService);
 
       const longSummary1 = "* file1.ts: " + "implementation ".repeat(50);
       const longSummary2 = "* file2.ts: " + "implementation ".repeat(50);
@@ -1522,7 +1537,7 @@ describe("MapReduceInsightStrategy", () => {
     it("should ensure combined data structure matches schema for businessProcesses", async () => {
       // Use a smaller token limit to force chunking
       mockLLMRouter.getFirstCompletionModelMaxTokens = jest.fn().mockReturnValue(100);
-      strategy = new MapReduceInsightStrategy(mockLLMRouter);
+      strategy = new MapReduceInsightStrategy(mockLLMRouter, mockLlmConcurrencyService);
 
       const longSummary1 = "* file1.ts: " + "implementation ".repeat(50);
       const longSummary2 = "* file2.ts: " + "implementation ".repeat(50);

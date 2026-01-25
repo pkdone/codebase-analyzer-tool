@@ -2,7 +2,6 @@ import { injectable, inject } from "tsyringe";
 import type LLMRouter from "../../../common/llm/llm-router";
 import path from "path";
 import { getCanonicalFileType, type FileProcessingRulesType } from "../../config/file-handling";
-import { llmConcurrencyLimiter } from "../../config/llm-concurrency-limiter";
 import { readFile } from "../../../common/fs/file-operations";
 import { findFilesRecursively, sortFilesBySize } from "../../../common/fs/directory-operations";
 import { getFileExtension } from "../../../common/fs/path-utils";
@@ -11,8 +10,9 @@ import { logErr } from "../../../common/utils/logging";
 import { FileSummarizerService, type PartialSourceSummaryType } from "./file-summarizer.service";
 import type { SourcesRepository } from "../../repositories/sources/sources.repository.interface";
 import type { SourceRecord } from "../../repositories/sources/sources.model";
-import { repositoryTokens, llmTokens, captureTokens, configTokens } from "../../di/tokens";
+import { repositoryTokens, llmTokens, captureTokens, configTokens, serviceTokens } from "../../di/tokens";
 import { isOk } from "../../../common/types/result.types";
+import type { LlmConcurrencyService } from "../concurrency";
 
 /**
  * Loads each source file into a class to represent it.
@@ -25,6 +25,7 @@ export default class CodebaseToDBLoader {
    * @param llmRouter - Router for LLM operations (embeddings, summarization)
    * @param fileSummarizer - Service for generating file summaries
    * @param fileProcessingConfig - Configuration for file processing rules
+   * @param llmConcurrencyService - Service for managing LLM call concurrency
    */
   constructor(
     @inject(repositoryTokens.SourcesRepository)
@@ -34,6 +35,8 @@ export default class CodebaseToDBLoader {
     private readonly fileSummarizer: FileSummarizerService,
     @inject(configTokens.FileProcessingRules)
     private readonly fileProcessingConfig: FileProcessingRulesType,
+    @inject(serviceTokens.LlmConcurrencyService)
+    private readonly llmConcurrencyService: LlmConcurrencyService,
   ) {}
 
   /**
@@ -93,7 +96,7 @@ export default class CodebaseToDBLoader {
     let successes = 0;
     let failures = 0;
     const tasks = filepaths.map(async (filepath) => {
-      return llmConcurrencyLimiter(async () => {
+      return this.llmConcurrencyService.run(async () => {
         try {
           await this.processAndStoreSourceFile(
             filepath,

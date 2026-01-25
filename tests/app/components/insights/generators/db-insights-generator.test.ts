@@ -6,6 +6,7 @@ import LLMRouter from "../../../../../src/common/llm/llm-router";
 import { llmProviderConfig } from "../../../../../src/common/llm/config/llm.config";
 import type { IInsightGenerationStrategy } from "../../../../../src/app/components/insights/strategies/completion-strategy.interface";
 import type { FileProcessingRulesType } from "../../../../../src/app/config/file-handling";
+import type { LlmConcurrencyService } from "../../../../../src/app/components/concurrency";
 
 // Mock the logging utilities
 jest.mock("../../../../../src/common/utils/logging", () => ({
@@ -85,6 +86,14 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
       SCHEDULED_JOB_CANONICAL_TYPES: ["shell-script"],
     } as unknown as FileProcessingRulesType;
 
+    // Create mock for LlmConcurrencyService that executes immediately
+    const mockLlmConcurrencyService = {
+      run: jest.fn().mockImplementation(async <T>(fn: () => Promise<T>) => fn()),
+      pendingCount: 0,
+      activeCount: 0,
+      clearQueue: jest.fn(),
+    } as unknown as jest.Mocked<LlmConcurrencyService>;
+
     generator = new InsightsFromDBGenerator(
       mockAppSummaryRepository,
       mockLLMRouter,
@@ -93,6 +102,7 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
       mockSinglePassStrategy,
       mockMapReduceStrategy,
       mockFileProcessingConfig,
+      mockLlmConcurrencyService,
     );
   });
 

@@ -1,7 +1,6 @@
 import { injectable, inject } from "tsyringe";
 import LLMRouter from "../../../../common/llm/llm-router";
 import type { FileProcessingRulesType } from "../../../config/file-handling";
-import { llmConcurrencyLimiter } from "../../../config/llm-concurrency-limiter";
 import { logErr, logWarn } from "../../../../common/utils/logging";
 import type { AppSummariesRepository } from "../../../repositories/app-summaries/app-summaries.repository.interface";
 import type { SourcesRepository } from "../../../repositories/sources/sources.repository.interface";
@@ -11,7 +10,9 @@ import {
   coreTokens,
   configTokens,
   insightsTokens,
+  serviceTokens,
 } from "../../../di/tokens";
+import type { LlmConcurrencyService } from "../../concurrency";
 import { insightsConfig } from "../insights.config";
 import { getCategoryLabel } from "../../../config/category-labels.config";
 import { AppSummaryCategories } from "../../../schemas/app-summaries.schema";
@@ -35,10 +36,10 @@ export default class InsightsFromDBGenerator {
    * @param llmRouter - Router for LLM operations
    * @param sourcesRepository - Repository for retrieving source file data
    * @param projectName - Name of the project being analyzed
-   * @param llmConfig - LLM module configuration for token limits
    * @param singlePassStrategy - Strategy for single-pass insight generation
    * @param mapReduceStrategy - Strategy for map-reduce insight generation
    * @param fileProcessingConfig - Configuration for file processing rules
+   * @param llmConcurrencyService - Service for managing LLM call concurrency
    */
   constructor(
     @inject(repositoryTokens.AppSummariesRepository)
@@ -53,6 +54,8 @@ export default class InsightsFromDBGenerator {
     private readonly mapReduceStrategy: IInsightGenerationStrategy,
     @inject(configTokens.FileProcessingRules)
     private readonly fileProcessingConfig: FileProcessingRulesType,
+    @inject(serviceTokens.LlmConcurrencyService)
+    private readonly llmConcurrencyService: LlmConcurrencyService,
   ) {
     this.llmModelsDescription = this.llmRouter.getModelsUsedDescription();
     // Get the token limit from the first completion model in the chain
@@ -85,7 +88,7 @@ export default class InsightsFromDBGenerator {
     // from exceeding rate limits
     const results = await Promise.allSettled(
       categories.map(async (category) =>
-        llmConcurrencyLimiter(async () =>
+        this.llmConcurrencyService.run(async () =>
           this.generateAndRecordDataForCategory(category, sourceFileSummaries),
         ),
       ),

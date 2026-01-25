@@ -10,3 +10,12 @@ export const concurrencyConfig = {
    */
   MAX_LLM_CONCURRENCY: 50,
 } as const;
+
+/**
+ * Type for the concurrency configuration object.
+ * Used for dependency injection typing.
+ * Uses Readonly<{...}> to allow flexibility in tests while maintaining type safety.
+ */
+export interface ConcurrencyConfigType {
+  readonly MAX_LLM_CONCURRENCY: number;
+}

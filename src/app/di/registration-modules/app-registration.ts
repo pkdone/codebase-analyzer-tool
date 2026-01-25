@@ -1,5 +1,5 @@
 import { container } from "tsyringe";
-import { coreTokens, captureTokens, insightsTokens, configTokens } from "../tokens";
+import { coreTokens, captureTokens, insightsTokens, configTokens, serviceTokens } from "../tokens";
 import { repositoryTokens } from "../tokens";
 import { taskTokens } from "../tokens";
 
@@ -35,6 +35,10 @@ import { ReportGenerationTask } from "../../tasks/main/report-generation.task";
 import { databaseConfig } from "../../components/database/database.config";
 import { outputConfig } from "../../config/output.config";
 import { fileProcessingRules } from "../../config/file-handling";
+import { concurrencyConfig } from "../../config/concurrency.config";
+
+// Concurrency service import
+import { LlmConcurrencyService } from "../../components/concurrency";
 
 // Database component imports
 import { DatabaseInitializer } from "../../components/database/database-initializer";
@@ -56,6 +60,7 @@ function registerRepositories(): void {
   // Register configuration objects for dependency injection
   container.registerInstance(configTokens.DatabaseConfig, databaseConfig);
   container.registerInstance(configTokens.FileProcessingRules, fileProcessingRules);
+  container.registerInstance(configTokens.ConcurrencyConfig, concurrencyConfig);
 
   // Register the default database name for the application (derived from config)
   container.registerInstance(coreTokens.DatabaseName, databaseConfig.CODEBASE_DB_NAME);
@@ -86,6 +91,9 @@ function registerRepositories(): void {
  * to keep the src/common/llm module framework-agnostic.
  */
 function registerComponents(): void {
+  // Register concurrency services (shared across modules)
+  container.registerSingleton(serviceTokens.LlmConcurrencyService, LlmConcurrencyService);
+
   // Register database components
   container.registerSingleton(coreTokens.DatabaseInitializer, DatabaseInitializer);
 

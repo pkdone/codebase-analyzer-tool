@@ -8,9 +8,9 @@ import type { PreparedJsonData } from "../../json-report-writer";
 import type { ReportData } from "../../report-data.types";
 import { SECTION_NAMES } from "../../reporting.constants";
 import type { UiTechnologyAnalysis } from "./ui-analysis.types";
-import { TAG_LIBRARY_BADGE_CLASSES } from "../../config/ui-analysis.config";
+import { TAG_LIBRARY_BADGE_CLASSES, calculateDebtLevel } from "../../config/ui-analysis.config";
 import {
-  calculateDebtLevel,
+  getDebtLevelPresentation,
   getTotalScriptletsCssClass,
   getFilesWithHighScriptletCountCssClass,
   shouldShowHighDebtAlert,
@@ -69,8 +69,11 @@ export class UiAnalysisSection implements ReportSection {
         tagTypeClass: TAG_LIBRARY_BADGE_CLASSES[tagLib.tagType],
       })),
       // Add debt levels and CSS classes to top scriptlet files
+      // Business logic (calculateDebtLevel) determines the level,
+      // then presentation helper maps it to display values
       topScriptletFiles: rawData.topScriptletFiles.map((file) => {
-        const { level, cssClass } = calculateDebtLevel(file.totalScriptletBlocks);
+        const debtLevel = calculateDebtLevel(file.totalScriptletBlocks);
+        const { level, cssClass } = getDebtLevelPresentation(debtLevel);
         return {
           ...file,
           debtLevel: level,

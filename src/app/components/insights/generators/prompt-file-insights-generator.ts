@@ -2,7 +2,6 @@ import path from "path";
 import os from "os";
 import { injectable, inject } from "tsyringe";
 import type { FileProcessingRulesType } from "../../../config/file-handling";
-import { llmConcurrencyLimiter } from "../../../config/llm-concurrency-limiter";
 import { outputConfig } from "../../../config/output.config";
 import { readFile, writeFile } from "../../../../common/fs/file-operations";
 import {
@@ -11,13 +10,14 @@ import {
 } from "../../../../common/fs/directory-operations";
 import { logErr, logWarn } from "../../../../common/utils/logging";
 import { formatError } from "../../../../common/utils/error-formatters";
-import { llmTokens, configTokens } from "../../../di/tokens";
+import { llmTokens, configTokens, serviceTokens } from "../../../di/tokens";
 import LLMRouter from "../../../../common/llm/llm-router";
 import { LLMOutputFormat } from "../../../../common/llm/types/llm-request.types";
 import { aggregateFilesToMarkdown } from "../../../../common/utils/file-content-aggregator";
 import { formatDateForFilename } from "../../../../common/utils/date-utils";
 import { inputConfig } from "../../../config/input.config";
 import { isOk } from "../../../../common/types/result.types";
+import type { LlmConcurrencyService } from "../../concurrency";
 
 /**
  * Interface to define the filename and question of a file requirement prompt
@@ -38,11 +38,14 @@ export class PromptFileInsightsGenerator {
    * Constructor with dependency injection.
    * @param llmRouter - Router for LLM operations
    * @param fileProcessingConfig - Configuration for file processing rules
+   * @param llmConcurrencyService - Service for managing LLM call concurrency
    */
   constructor(
     @inject(llmTokens.LLMRouter) private readonly llmRouter: LLMRouter,
     @inject(configTokens.FileProcessingRules)
     private readonly fileProcessingConfig: FileProcessingRulesType,
+    @inject(serviceTokens.LlmConcurrencyService)
+    private readonly llmConcurrencyService: LlmConcurrencyService,
   ) {}
 
   /**
@@ -59,7 +62,7 @@ export class PromptFileInsightsGenerator {
     );
     await this.dumpCodeBlocksToTempFile(codeBlocksContent);
     const tasks = prompts.map(async (prompt) => {
-      return llmConcurrencyLimiter(async () => {
+      return this.llmConcurrencyService.run(async () => {
         const result = await this.executePromptAgainstCodebase(prompt, codeBlocksContent);
         const outputFileName = `${prompt.filename}.result`;
         const outputFilePath = path.join(process.cwd(), outputConfig.OUTPUT_DIR, outputFileName);

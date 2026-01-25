@@ -11,6 +11,17 @@ import { BADGE_CLASSES } from "./presentation.config";
 export type TagLibraryType = "JSTL" | "Spring" | "Custom" | "Other";
 
 /**
+ * Enumeration of technical debt severity levels.
+ * These are business domain concepts representing the severity of technical debt in JSP files.
+ */
+export enum DebtLevel {
+  VERY_HIGH = "VERY_HIGH",
+  HIGH = "HIGH",
+  MODERATE = "MODERATE",
+  LOW = "LOW",
+}
+
+/**
  * Tag library detection patterns used to classify tag libraries by their URI.
  * These patterns are used to identify standard vs custom tag libraries in JSP files.
  */
@@ -58,7 +69,7 @@ export function classifyTagLibrary(uri: string): TagLibraryType {
 
 /**
  * Debt level thresholds based on total scriptlet blocks.
- * Used by view helpers to determine technical debt level badges for JSP files.
+ * Used to determine technical debt severity levels for JSP files.
  *
  * Thresholds:
  * - Very High: > 20 blocks
@@ -71,6 +82,30 @@ export const DEBT_THRESHOLDS = {
   HIGH: 10,
   MODERATE: 5,
 } as const;
+
+/**
+ * Calculates the technical debt level for a JSP file based on
+ * its total scriptlet blocks (scriptlets + expressions + declarations).
+ * This is business/domain logic that determines the severity of technical debt.
+ *
+ * @param totalScriptletBlocks - Total count of scriptlet blocks in the file
+ * @returns The debt level classification
+ */
+export function calculateDebtLevel(totalScriptletBlocks: number): DebtLevel {
+  if (totalScriptletBlocks > DEBT_THRESHOLDS.VERY_HIGH) {
+    return DebtLevel.VERY_HIGH;
+  }
+
+  if (totalScriptletBlocks > DEBT_THRESHOLDS.HIGH) {
+    return DebtLevel.HIGH;
+  }
+
+  if (totalScriptletBlocks > DEBT_THRESHOLDS.MODERATE) {
+    return DebtLevel.MODERATE;
+  }
+
+  return DebtLevel.LOW;
+}
 
 export const uiAnalysisConfig = {
   /**
