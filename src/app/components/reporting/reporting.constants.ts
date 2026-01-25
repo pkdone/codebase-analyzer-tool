@@ -1,4 +1,14 @@
 /**
+ * Constants for HTML table column headers.
+ * Used by report sections to create consistent table displays.
+ */
+export const HTML_TABLE_COLUMN_HEADERS = {
+  FILE_TYPE: "File Type",
+  FILES_COUNT: "Files Count",
+  LINES_COUNT: "Lines Count",
+} as const;
+
+/**
  * Section name constants used in sectionDataMap
  */
 export const SECTION_NAMES = {

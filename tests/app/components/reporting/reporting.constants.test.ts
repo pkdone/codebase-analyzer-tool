@@ -2,6 +2,7 @@ import {
   SECTION_NAMES,
   DATABASE_OBJECT_TYPE_LABELS,
   CORE_REQUIRED_APP_SUMMARY_FIELDS,
+  HTML_TABLE_COLUMN_HEADERS,
 } from "../../../../src/app/components/reporting/reporting.constants";
 
 describe("reporting.constants", () => {
@@ -81,6 +82,28 @@ describe("reporting.constants", () => {
     it("should be a const object", () => {
       // TypeScript enforces immutability at compile time with 'as const'
       expect(SECTION_NAMES).toBeDefined();
+    });
+  });
+
+  describe("HTML_TABLE_COLUMN_HEADERS", () => {
+    it("should be defined", () => {
+      expect(HTML_TABLE_COLUMN_HEADERS).toBeDefined();
+    });
+
+    it("should have FILE_TYPE", () => {
+      expect(HTML_TABLE_COLUMN_HEADERS.FILE_TYPE).toBe("File Type");
+    });
+
+    it("should have FILES_COUNT", () => {
+      expect(HTML_TABLE_COLUMN_HEADERS.FILES_COUNT).toBe("Files Count");
+    });
+
+    it("should have LINES_COUNT", () => {
+      expect(HTML_TABLE_COLUMN_HEADERS.LINES_COUNT).toBe("Lines Count");
+    });
+
+    it("should have exactly 3 column headers", () => {
+      expect(Object.keys(HTML_TABLE_COLUMN_HEADERS)).toHaveLength(3);
     });
   });
 

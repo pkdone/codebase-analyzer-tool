@@ -3,12 +3,11 @@ import type { ReportSection } from "../report-section.interface";
 import type { RequestableAppSummaryField } from "../../../../repositories/app-summaries/app-summaries.model";
 import { repositoryTokens } from "../../../../di/tokens";
 import type { SourcesRepository } from "../../../../repositories/sources/sources.repository.interface";
-import { htmlReportConstants } from "../../html-report.constants";
 import { TableViewModel } from "../../table";
 import type { PreparedHtmlReportData } from "../../types/html-report-data.types";
 import type { PreparedJsonData } from "../../json-report-writer";
 import type { ReportData } from "../../report-data.types";
-import { SECTION_NAMES } from "../../reporting.constants";
+import { SECTION_NAMES, HTML_TABLE_COLUMN_HEADERS } from "../../reporting.constants";
 import { UNKNOWN_VALUE_PLACEHOLDER } from "../../config/placeholders.config";
 import { calculatePieChartData } from "./pie-chart-calculator";
 import { outputConfig } from "../../../../config/output.config";
@@ -49,9 +48,9 @@ export class FileTypesSection implements ReportSection {
 
     // Create display data for table
     const fileTypesDisplayData = processedFileTypesData.map((item) => ({
-      [htmlReportConstants.columnHeaders.FILE_TYPE]: item.fileType,
-      [htmlReportConstants.columnHeaders.FILES_COUNT]: item.files,
-      [htmlReportConstants.columnHeaders.LINES_COUNT]: item.lines,
+      [HTML_TABLE_COLUMN_HEADERS.FILE_TYPE]: item.fileType,
+      [HTML_TABLE_COLUMN_HEADERS.FILES_COUNT]: item.files,
+      [HTML_TABLE_COLUMN_HEADERS.LINES_COUNT]: item.lines,
     }));
 
     // Calculate pie chart data
