@@ -6,10 +6,8 @@ describe("LLMExecutionStats", () => {
   let llmStats: LLMExecutionStats;
 
   beforeEach(() => {
-    // Mock console.log to avoid cluttering test output
-    jest.spyOn(console, "log").mockImplementation(() => {
-      // Mock implementation
-    });
+    // Mock process.stdout.write to avoid cluttering test output
+    jest.spyOn(process.stdout, "write").mockImplementation(() => true);
     llmStats = new LLMExecutionStats();
   });
 
@@ -282,16 +280,16 @@ describe("LLMExecutionStats", () => {
 
   describe("Console Output", () => {
     test("should print symbols when events are recorded", () => {
-      const consoleSpy = jest.spyOn(console, "log");
+      const stdoutSpy = jest.spyOn(process.stdout, "write");
 
       llmStats.recordSuccess();
       llmStats.recordFailure();
       llmStats.recordSwitch();
 
-      expect(consoleSpy).toHaveBeenCalledWith(">");
-      expect(consoleSpy).toHaveBeenCalledWith("!");
-      expect(consoleSpy).toHaveBeenCalledWith("+");
-      expect(consoleSpy).toHaveBeenCalledTimes(3);
+      expect(stdoutSpy).toHaveBeenCalledWith(">");
+      expect(stdoutSpy).toHaveBeenCalledWith("!");
+      expect(stdoutSpy).toHaveBeenCalledWith("+");
+      expect(stdoutSpy).toHaveBeenCalledTimes(3);
     });
   });
 

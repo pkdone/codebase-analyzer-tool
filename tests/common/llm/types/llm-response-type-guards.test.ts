@@ -240,7 +240,9 @@ describe("LLMFunctionResponse Type Guards", () => {
 
       expect(processResponse(completed)).toBe("Success: test");
       expect(processResponse(errored as LLMFunctionResponse<string>)).toBe("Error: fail");
-      expect(processResponse(overloaded as LLMFunctionResponse<string>)).toBe("Overloaded: overloaded");
+      expect(processResponse(overloaded as LLMFunctionResponse<string>)).toBe(
+        "Overloaded: overloaded",
+      );
     });
   });
 

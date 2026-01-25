@@ -157,11 +157,11 @@ export default class LLMExecutionStats {
   }
 
   /**
-   * Record an event for the specified status key and print its symbol.
+   * Record an event for the specified status key and print its symbol, with NO new line.
    */
   private record(statusKey: keyof LLMStatsCategoriesBase): void {
     this.counts[statusKey]++;
-    if (this.shouldPrintEventTicks) console.log(STATUS_DEFINITIONS[statusKey].symbol);
+    if (this.shouldPrintEventTicks) process.stdout.write(STATUS_DEFINITIONS[statusKey].symbol);
   }
 
   /**

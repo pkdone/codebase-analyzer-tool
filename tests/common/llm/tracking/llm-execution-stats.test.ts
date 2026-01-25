@@ -2,15 +2,15 @@ import LLMExecutionStats from "../../../../src/common/llm/tracking/llm-execution
 
 describe("LLMExecutionStats", () => {
   let stats: LLMExecutionStats;
-  let consoleLogSpy: jest.SpyInstance;
+  let stdoutWriteSpy: jest.SpyInstance;
 
   beforeEach(() => {
     stats = new LLMExecutionStats();
-    consoleLogSpy = jest.spyOn(console, "log").mockImplementation();
+    stdoutWriteSpy = jest.spyOn(process.stdout, "write").mockImplementation();
   });
 
   afterEach(() => {
-    consoleLogSpy.mockRestore();
+    stdoutWriteSpy.mockRestore();
   });
 
   describe("constructor", () => {
@@ -75,7 +75,7 @@ describe("LLMExecutionStats", () => {
 
     it("should print symbol on record when enabled", () => {
       stats.recordSuccess();
-      expect(consoleLogSpy).toHaveBeenCalledWith(">");
+      expect(stdoutWriteSpy).toHaveBeenCalledWith(">");
     });
   });
 
@@ -171,13 +171,16 @@ describe("LLMExecutionStats", () => {
   });
 
   describe("display methods", () => {
+    let consoleLogSpy: jest.SpyInstance;
     let consoleTableSpy: jest.SpyInstance;
 
     beforeEach(() => {
+      consoleLogSpy = jest.spyOn(console, "log").mockImplementation();
       consoleTableSpy = jest.spyOn(console, "table").mockImplementation();
     });
 
     afterEach(() => {
+      consoleLogSpy.mockRestore();
       consoleTableSpy.mockRestore();
     });
 
