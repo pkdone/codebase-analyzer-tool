@@ -9,6 +9,7 @@ import type {
 import type { ProviderManager } from "../provider-manager";
 import type { ResolvedModelChain } from "../types/llm-model.types";
 import type { LLMContext, LLMCompletionOptions } from "../types/llm-request.types";
+import type { LLMFunctionResponse } from "../types/llm-response.types";
 import { LLMError, LLMErrorCode } from "../types/llm-errors.types";
 
 /**

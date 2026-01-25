@@ -5,7 +5,7 @@ import {
   buildEmbeddingCandidatesFromChain,
   buildExecutableCandidates,
   buildExecutableEmbeddingCandidates,
-} from "../../../../src/common/llm/utils/completions-models-retriever";
+} from "../../../../src/common/llm/utils/llm-candidate-builder";
 import {
   LLMPurpose,
   LLMOutputFormat,
@@ -78,7 +78,7 @@ function createMockProviderManager(providers: Record<string, LLMProvider>): Prov
   } as unknown as ProviderManager;
 }
 
-describe("completions-models-retriever", () => {
+describe("llm-candidate-builder", () => {
   describe("buildCompletionCandidatesFromChain", () => {
     test("should build candidates for each model in the chain", () => {
       const mockProvider = createMockProvider();

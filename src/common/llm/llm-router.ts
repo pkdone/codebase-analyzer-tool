@@ -15,7 +15,7 @@ import { EmbeddingService } from "./embedding-service";
 import {
   buildCompletionCandidatesFromChain,
   buildEmbeddingCandidatesFromChain,
-} from "./utils/completions-models-retriever";
+} from "./utils/llm-candidate-builder";
 
 /**
  * LLMRouter orchestrates LLM operations across multiple providers with fallback support.

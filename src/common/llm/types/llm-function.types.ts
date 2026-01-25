@@ -93,6 +93,22 @@ export interface LLMCandidateFunction {
 }
 
 /**
+ * Type to define a candidate embedding function with its associated metadata.
+ * Analogous to LLMCandidateFunction but for embedding operations.
+ * Priority is determined by position in the chain (index 0 = highest priority).
+ */
+export interface EmbeddingCandidate {
+  /** The embedding function bound to a specific model */
+  readonly func: (content: string, context: LLMContext) => Promise<LLMFunctionResponse<number[]>>;
+  /** Provider family this model belongs to */
+  readonly providerFamily: string;
+  /** Model key within the provider */
+  readonly modelKey: string;
+  /** Priority index in the fallback chain (0 = highest priority) */
+  readonly priority: number;
+}
+
+/**
  * A unified execution candidate that combines the bound function with its metadata.
  * This eliminates the need to pass separate arrays that must be kept in sync by index,
  * reducing the risk of index mismatch errors and simplifying the execution pipeline.

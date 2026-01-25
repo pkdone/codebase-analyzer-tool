@@ -8,7 +8,7 @@ import { LLMError, LLMErrorCode } from "./types/llm-errors.types";
 import { type Result, ok, err } from "../types/result.types";
 import type { LLMExecutionPipeline } from "./llm-execution-pipeline";
 import type { ProviderManager } from "./provider-manager";
-import { buildExecutableCandidates } from "./utils/completions-models-retriever";
+import { buildExecutableCandidates } from "./utils/llm-candidate-builder";
 import { logWarn } from "../utils/logging";
 
 /**

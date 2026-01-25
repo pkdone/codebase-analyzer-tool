@@ -1,21 +1,14 @@
 import type { LLMContext } from "./types/llm-request.types";
 import { LLMPurpose } from "./types/llm-request.types";
 import type { ResolvedModelChain } from "./types/llm-model.types";
-import type { LLMFunctionResponse } from "./types/llm-response.types";
+import type { EmbeddingCandidate } from "./types/llm-function.types";
 import type { LLMExecutionPipeline } from "./llm-execution-pipeline";
 import type { ProviderManager } from "./provider-manager";
-import { buildExecutableEmbeddingCandidates } from "./utils/completions-models-retriever";
+import { buildExecutableEmbeddingCandidates } from "./utils/llm-candidate-builder";
 import { logWarn } from "../utils/logging";
 
-/**
- * Embedding candidate function type.
- */
-export interface EmbeddingCandidate {
-  func: (content: string, context: LLMContext) => Promise<LLMFunctionResponse<number[]>>;
-  providerFamily: string;
-  modelKey: string;
-  priority: number;
-}
+// Re-export EmbeddingCandidate for consumers who expect it from this module
+export type { EmbeddingCandidate } from "./types/llm-function.types";
 
 /**
  * Dependencies required by the EmbeddingService.
