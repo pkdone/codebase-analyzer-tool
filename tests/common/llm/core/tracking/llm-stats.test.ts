@@ -4,8 +4,11 @@ import LLMExecutionStats from "../../../../../src/common/llm/tracking/llm-execut
 
 describe("LLMExecutionStats", () => {
   let llmStats: LLMExecutionStats;
+  const originalIsTTY = process.stdout.isTTY;
 
   beforeEach(() => {
+    // Mock isTTY to true so we can test stdout.write behavior consistently
+    Object.defineProperty(process.stdout, "isTTY", { value: true, writable: true });
     // Mock process.stdout.write to avoid cluttering test output
     jest.spyOn(process.stdout, "write").mockImplementation(() => true);
     llmStats = new LLMExecutionStats();
@@ -13,6 +16,7 @@ describe("LLMExecutionStats", () => {
 
   afterEach(() => {
     jest.restoreAllMocks();
+    Object.defineProperty(process.stdout, "isTTY", { value: originalIsTTY, writable: true });
   });
 
   describe("Recording Event Types", () => {

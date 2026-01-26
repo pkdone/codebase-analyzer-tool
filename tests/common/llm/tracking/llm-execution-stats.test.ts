@@ -3,14 +3,18 @@ import LLMExecutionStats from "../../../../src/common/llm/tracking/llm-execution
 describe("LLMExecutionStats", () => {
   let stats: LLMExecutionStats;
   let stdoutWriteSpy: jest.SpyInstance;
+  const originalIsTTY = process.stdout.isTTY;
 
   beforeEach(() => {
+    // Mock isTTY to true so we can test stdout.write behavior consistently
+    Object.defineProperty(process.stdout, "isTTY", { value: true, writable: true });
     stats = new LLMExecutionStats();
     stdoutWriteSpy = jest.spyOn(process.stdout, "write").mockImplementation();
   });
 
   afterEach(() => {
     stdoutWriteSpy.mockRestore();
+    Object.defineProperty(process.stdout, "isTTY", { value: originalIsTTY, writable: true });
   });
 
   describe("constructor", () => {

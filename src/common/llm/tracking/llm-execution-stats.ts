@@ -161,7 +161,22 @@ export default class LLMExecutionStats {
    */
   private record(statusKey: keyof LLMStatsCategoriesBase): void {
     this.counts[statusKey]++;
-    if (this.shouldPrintEventTicks) process.stdout.write(STATUS_DEFINITIONS[statusKey].symbol);
+    if (this.shouldPrintEventTicks) this.printChar(STATUS_DEFINITIONS[statusKey].symbol);
+  }
+
+  /**
+   * Print a single character or string, handling TTY vs. non-TTY environments.
+   * @param ch The character or string to print.
+   */
+  private printChar(ch: string): void {
+    if (process.stdout.isTTY) {
+      // Real terminal: no newline output works as expected
+      process.stdout.write(ch);
+    } else {
+      // Not a terminal (VS Code Debug Console, pipes, redirected output, CI logs, etc.)
+      // Fall back to line-based output
+      console.log(ch);
+    }
   }
 
   /**
