@@ -1,4 +1,4 @@
-import { createDbMechanismInstructions } from "../../utils";
+import { createDbMechanismInstructions, dbMech } from "../../utils";
 import type { LanguageSpecificFragments } from "../../sources.types";
 import { MECHANISM_DESCRIPTIONS } from "../features/common.fragments";
 
@@ -41,19 +41,19 @@ export const JAVASCRIPT_SPECIFIC_FRAGMENTS: LanguageSpecificFragments = {
   * Server-Sent Events ${MECHANISM_DESCRIPTIONS.SSE}:
     - res.writeHead with text/event-stream`,
   DB_MECHANISM_MAPPING: createDbMechanismInstructions([
-    "      - Uses Mongoose schemas/models (mongoose.model, Schema) => mechanism: 'MONGOOSE'",
-    "      - Uses Prisma Client (PrismaClient, prisma.user.findMany) => mechanism: 'PRISMA'",
-    "      - Uses TypeORM (Repository, EntityManager, @Entity decorators) => mechanism: 'TYPEORM'",
-    "      - Uses Sequelize models (sequelize.define, Model.findAll) => mechanism: 'SEQUELIZE'",
-    "      - Uses Knex query builder (knex.select, knex('table')) => mechanism: 'KNEX'",
-    "      - Uses Drizzle ORM (drizzle, select, insert) => mechanism: 'DRIZZLE'",
-    "      - Uses Redis client (redis.set, redis.get, ioredis) => mechanism: 'REDIS'",
-    "      - Uses Elasticsearch client (@elastic/elasticsearch, client.search) => mechanism: 'ELASTICSEARCH'",
-    "      - Uses Cassandra driver (cassandra-driver, client.execute with CQL) => mechanism: 'CASSANDRA-CQL'",
-    "      - Uses MongoDB driver directly (MongoClient, db.collection) without Mongoose => mechanism: 'MQL'",
-    "      - Contains raw SQL strings without ORM => mechanism: 'SQL'",
-    "      - Uses generic database driver (pg, mysql2, tedious) without ORM => mechanism: 'DRIVER'",
-    "      - Defines DDL / migration scripts => mechanism: 'DDL'",
-    "      - Performs data manipulation (bulk operations, seeding) => mechanism: 'DML'",
+    `      - Uses Mongoose schemas/models (mongoose.model, Schema) => ${dbMech("MONGOOSE")}`,
+    `      - Uses Prisma Client (PrismaClient, prisma.user.findMany) => ${dbMech("PRISMA")}`,
+    `      - Uses TypeORM (Repository, EntityManager, @Entity decorators) => ${dbMech("TYPEORM")}`,
+    `      - Uses Sequelize models (sequelize.define, Model.findAll) => ${dbMech("SEQUELIZE")}`,
+    `      - Uses Knex query builder (knex.select, knex('table')) => ${dbMech("KNEX")}`,
+    `      - Uses Drizzle ORM (drizzle, select, insert) => ${dbMech("DRIZZLE")}`,
+    `      - Uses Redis client (redis.set, redis.get, ioredis) => ${dbMech("REDIS")}`,
+    `      - Uses Elasticsearch client (@elastic/elasticsearch, client.search) => ${dbMech("ELASTICSEARCH")}`,
+    `      - Uses Cassandra driver (cassandra-driver, client.execute with CQL) => ${dbMech("CASSANDRA-CQL")}`,
+    `      - Uses MongoDB driver directly (MongoClient, db.collection) without Mongoose => ${dbMech("MQL")}`,
+    `      - Contains raw SQL strings without ORM => ${dbMech("SQL")}`,
+    `      - Uses generic database driver (pg, mysql2, tedious) without ORM => ${dbMech("DRIVER")}`,
+    `      - Defines DDL / migration scripts => ${dbMech("DDL")}`,
+    `      - Performs data manipulation (bulk operations, seeding) => ${dbMech("DML")}`,
   ]),
 };

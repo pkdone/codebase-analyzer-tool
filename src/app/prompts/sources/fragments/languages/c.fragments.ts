@@ -1,4 +1,4 @@
-import { createDbMechanismInstructions } from "../../utils";
+import { createDbMechanismInstructions, dbMech } from "../../utils";
 import type { LanguageSpecificFragments } from "../../sources.types";
 import { MECHANISM_DESCRIPTIONS } from "../features/common.fragments";
 
@@ -29,14 +29,14 @@ export const C_SPECIFIC_FRAGMENTS: LanguageSpecificFragments = {
   * RPC (mechanism: 'OTHER' - describe as 'Sun RPC' or 'ONC RPC'):
     - RPC client/server implementations using rpcgen or XDR`,
   DB_MECHANISM_MAPPING: createDbMechanismInstructions([
-    "      - Uses ODBC API (SQLConnect, SQLDriverConnect, SQLExecDirect, SQLFetch, SQLBindCol) => mechanism: 'DRIVER'",
-    "      - Uses MySQL C API (mysql_init, mysql_real_connect, mysql_query, mysql_store_result) => mechanism: 'DRIVER'",
-    "      - Uses PostgreSQL libpq (PQconnectdb, PQexec, PQgetvalue, PQclear) => mechanism: 'DRIVER'",
-    "      - Uses SQLite3 C API (sqlite3_open, sqlite3_exec, sqlite3_prepare_v2, sqlite3_step) => mechanism: 'DRIVER'",
-    "      - Uses Oracle OCI (OCIInitialize, OCILogon, OCIStmtExecute) => mechanism: 'DRIVER'",
-    "      - Uses MongoDB C driver (mongoc_client_t, mongoc_collection_find_with_opts, mongoc_cursor_next) => mechanism: 'MQL'",
-    "      - Uses embedded SQL (EXEC SQL ... END-EXEC) => mechanism: 'SQL'",
-    "      - Contains inline SQL strings in sprintf/snprintf for query building => mechanism: 'SQL'",
-    "      - Uses Berkeley DB (db_create, DB->open, DB->get, DB->put) => mechanism: 'DRIVER'",
+    `      - Uses ODBC API (SQLConnect, SQLDriverConnect, SQLExecDirect, SQLFetch, SQLBindCol) => ${dbMech("DRIVER")}`,
+    `      - Uses MySQL C API (mysql_init, mysql_real_connect, mysql_query, mysql_store_result) => ${dbMech("DRIVER")}`,
+    `      - Uses PostgreSQL libpq (PQconnectdb, PQexec, PQgetvalue, PQclear) => ${dbMech("DRIVER")}`,
+    `      - Uses SQLite3 C API (sqlite3_open, sqlite3_exec, sqlite3_prepare_v2, sqlite3_step) => ${dbMech("DRIVER")}`,
+    `      - Uses Oracle OCI (OCIInitialize, OCILogon, OCIStmtExecute) => ${dbMech("DRIVER")}`,
+    `      - Uses MongoDB C driver (mongoc_client_t, mongoc_collection_find_with_opts, mongoc_cursor_next) => ${dbMech("MQL")}`,
+    `      - Uses embedded SQL (EXEC SQL ... END-EXEC) => ${dbMech("SQL")}`,
+    `      - Contains inline SQL strings in sprintf/snprintf for query building => ${dbMech("SQL")}`,
+    `      - Uses Berkeley DB (db_create, DB->open, DB->get, DB->put) => ${dbMech("DRIVER")}`,
   ]),
 };

@@ -5,6 +5,29 @@
  * all programming languages. Modern LLMs can infer language-specific details from the
  * code context, making these generic instructions effective for most use cases.
  */
+
+import { INTEGRATION_MECHANISM_VALUES } from "../../../../schemas/sources.enums";
+
+/**
+ * Type for integration mechanism values that have mechanism descriptions.
+ * These are the values that appear in prompt instructions.
+ */
+type DescribedMechanism = Extract<
+  (typeof INTEGRATION_MECHANISM_VALUES)[number],
+  "REST" | "GRAPHQL" | "SOAP" | "WEBSOCKET" | "GRPC" | "SSE" | "TRPC"
+>;
+
+/**
+ * Creates a mechanism description string from an enum value.
+ * This ensures type safety between the schema and prompt instructions.
+ *
+ * @param mechanism - The integration mechanism value from the schema
+ * @returns A formatted mechanism description string for use in prompts
+ */
+function createMechanismDesc(mechanism: DescribedMechanism): string {
+  return `(mechanism: '${mechanism}')`;
+}
+
 export const COMMON_FRAGMENTS = {
   PURPOSE: "A detailed definition of its purpose",
   IMPLEMENTATION: "A detailed definition of its implementation",
@@ -106,14 +129,16 @@ export const BASE_FRAGMENTS = {
 /**
  * Standard mechanism descriptions for integration points.
  * These are used across multiple language-specific fragments to ensure consistency.
- * If the enum values for mechanisms change in the schema, update these constants.
+ *
+ * The descriptions are derived from INTEGRATION_MECHANISM_VALUES to ensure type safety.
+ * If the enum values change in the schema, TypeScript will catch any mismatches.
  */
 export const MECHANISM_DESCRIPTIONS = {
-  REST: "(mechanism: 'REST')",
-  GRAPHQL: "(mechanism: 'GRAPHQL')",
-  SOAP: "(mechanism: 'SOAP')",
-  WEBSOCKET: "(mechanism: 'WEBSOCKET')",
-  GRPC: "(mechanism: 'GRPC')",
-  SSE: "(mechanism: 'SSE')",
-  TRPC: "(mechanism: 'TRPC')",
+  REST: createMechanismDesc("REST"),
+  GRAPHQL: createMechanismDesc("GRAPHQL"),
+  SOAP: createMechanismDesc("SOAP"),
+  WEBSOCKET: createMechanismDesc("WEBSOCKET"),
+  GRPC: createMechanismDesc("GRPC"),
+  SSE: createMechanismDesc("SSE"),
+  TRPC: createMechanismDesc("TRPC"),
 } as const;

@@ -3446,13 +3446,13 @@ For files that interact with a database, you MUST extract and provide ALL of the
     - protocol: Database type and version (e.g., 'PostgreSQL 15', 'MySQL 8.0', 'MongoDB 6.0', 'Oracle 19c', 'H2', 'SQL Server 2019')
     - connectionInfo: JDBC URL or connection string - MUST REDACT passwords/secrets (e.g., 'jdbc:postgresql://localhost:5432/mydb', 'mongodb://localhost:27017/appdb')
     - mechanism: If any of the following are true (apart from 'NONE'), you MUST assume database interaction:
-      - SQLAlchemy ORM (Session, declarative Base) => 'SQLALCHEMY'
-      - Django ORM (models.Model, QuerySet) => 'DJANGO-ORM'
-      - Raw DB-API / driver (psycopg2, mysqlclient, sqlite3) => 'DRIVER' or 'SQL' (if many inline SQL strings)
-      - Async drivers (asyncpg, aiomysql) => 'DRIVER'
-      - Inline CREATE/ALTER => also 'DDL'
-      - Bulk data scripts => also 'DML'
-      - Stored procedure/function invocation (CALL/EXEC) => 'STORED-PROCEDURE' or 'FUNCTION'
+      - SQLAlchemy ORM (Session, declarative Base) => mechanism: 'SQLALCHEMY'
+      - Django ORM (models.Model, QuerySet) => mechanism: 'DJANGO-ORM'
+      - Raw DB-API / driver (psycopg2, mysqlclient, sqlite3) => mechanism: 'DRIVER' or mechanism: 'SQL' (if many inline SQL strings)
+      - Async drivers (asyncpg, aiomysql) => mechanism: 'DRIVER'
+      - Inline CREATE/ALTER => also mechanism: 'DDL'
+      - Bulk data scripts => also mechanism: 'DML'
+      - Stored procedure/function invocation (CALL/EXEC) => mechanism: 'STORED-PROCEDURE' or mechanism: 'FUNCTION'
       - Otherwise, if the code does not use a database => mechanism: 'NONE'
 
 __Code Quality Metrics__
@@ -4110,7 +4110,7 @@ For files that interact with a database, you MUST extract and provide ALL of the
     - mechanism: If any of the following are true (apart from 'NONE'), you MUST assume database interaction:
       - Uses ActiveRecord (models, migrations, associations, where/find methods) => mechanism: 'ACTIVE-RECORD'
       - Uses Sequel ORM (DB[:table], dataset operations) => mechanism: 'SEQUEL'
-      - Uses other Ruby ORM / micro ORM (ROM.rb, DataMapper) => mechanism: 'ORM' (or 'MICRO-ORM' if lightweight)
+      - Uses other Ruby ORM / micro ORM (ROM.rb, DataMapper) => mechanism: 'ORM' (or mechanism: 'MICRO-ORM' if lightweight)
       - Uses Redis client (redis-rb, redis.set/get) => mechanism: 'REDIS'
       - Executes raw SQL strings (SELECT / INSERT / etc.) => mechanism: 'SQL'
       - Invokes stored procedures (via connection.exec with CALL) => mechanism: 'STORED-PROCEDURE'

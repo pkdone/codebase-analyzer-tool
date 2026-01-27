@@ -2,11 +2,13 @@ import {
   uiAnalysisConfig,
   TAG_LIBRARY_PATTERNS,
   TAG_LIBRARY_BADGE_CLASSES,
-  classifyTagLibrary,
   DEBT_THRESHOLDS,
   DebtLevel,
-  calculateDebtLevel,
 } from "../../../../../src/app/components/reporting/config/ui-analysis.config";
+import {
+  calculateDebtLevel,
+  classifyTagLibrary,
+} from "../../../../../src/app/components/reporting/domain/ui-analysis-calculator";
 import { BADGE_CLASSES } from "../../../../../src/app/components/reporting/config/presentation.config";
 
 describe("DebtLevel enum", () => {

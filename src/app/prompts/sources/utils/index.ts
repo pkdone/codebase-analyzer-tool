@@ -10,4 +10,6 @@ export {
   type InstructionSectionTitle,
   buildInstructionBlock,
   createDbMechanismInstructions,
+  dbMech,
+  type DatabaseMechanism,
 } from "./instruction-builders";

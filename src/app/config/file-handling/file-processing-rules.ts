@@ -2,7 +2,13 @@
  * File processing configuration with readonly arrays for immutability.
  * This is an application-wide configuration used by multiple components
  * (capture, insights) for consistent file handling rules.
+ *
+ * Note: CODE_FILE_EXTENSIONS is now derived from the unified file type registry.
+ * To add a new language extension, update file-type-registry.ts instead.
  */
+
+import { DERIVED_CODE_FILE_EXTENSIONS } from "./file-type-registry";
+
 export const fileProcessingRules = {
   FOLDER_IGNORE_LIST: [
     ".git",
@@ -95,60 +101,11 @@ export const fileProcessingRules = {
     "gz",
     "tgz",
   ] as const satisfies readonly string[],
-  CODE_FILE_EXTENSIONS: [
-    "js",
-    "mjs",
-    "cjs",
-    "jsx",
-    "ts",
-    "tsx",
-    "java",
-    "py",
-    "sql",
-    "go",
-    "rb",
-    "php",
-    "kt",
-    "hpp",
-    "hh",
-    "hxx",
-    "cpp",
-    "cxx",
-    "cc",
-    "c",
-    "h",
-    "cs",
-    "rs",
-    "swift",
-    "kts",
-    "scala",
-    "sh",
-    "dml",
-    "ddl",
-    "R",
-    "r",
-    "dart",
-    "groovy",
-    "lua",
-    "pl",
-    "pm",
-    "tcl",
-    "vb",
-    "vbs",
-    "fs",
-    "fsi",
-    "fsx",
-    "clj",
-    "cljs",
-    "cljc",
-    "edn",
-    "ex",
-    "exs",
-    "elm",
-    "erl",
-    "hrl",
-    "hs",
-  ] as const satisfies readonly string[],
+  /**
+   * List of file extensions that represent source code files.
+   * Derived from the unified file type registry for single source of truth.
+   */
+  CODE_FILE_EXTENSIONS: DERIVED_CODE_FILE_EXTENSIONS,
   /**
    * Canonical file types for build/dependency management files.
    * Used by BomDataProvider for Bill of Materials aggregation.

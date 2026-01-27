@@ -1,4 +1,4 @@
-import { createDbMechanismInstructions } from "../../utils";
+import { createDbMechanismInstructions, dbMech } from "../../utils";
 import type { LanguageSpecificFragments } from "../../sources.types";
 
 /**
@@ -28,13 +28,13 @@ export const PYTHON_SPECIFIC_FRAGMENTS: LanguageSpecificFragments = {
   * WebSockets (mechanism: 'WEBSOCKET'): FastAPI WebSocket endpoints, Django Channels consumers
   * Server-Sent Events (mechanism: 'SSE'): streaming responses with 'text/event-stream'`,
   DB_MECHANISM_MAPPING: createDbMechanismInstructions([
-    "      - SQLAlchemy ORM (Session, declarative Base) => 'SQLALCHEMY'",
-    "      - Django ORM (models.Model, QuerySet) => 'DJANGO-ORM'",
-    "      - Raw DB-API / driver (psycopg2, mysqlclient, sqlite3) => 'DRIVER' or 'SQL' (if many inline SQL strings)",
-    "      - Async drivers (asyncpg, aiomysql) => 'DRIVER'",
-    "      - Inline CREATE/ALTER => also 'DDL'",
-    "      - Bulk data scripts => also 'DML'",
-    "      - Stored procedure/function invocation (CALL/EXEC) => 'STORED-PROCEDURE' or 'FUNCTION'",
+    `      - SQLAlchemy ORM (Session, declarative Base) => ${dbMech("SQLALCHEMY")}`,
+    `      - Django ORM (models.Model, QuerySet) => ${dbMech("DJANGO-ORM")}`,
+    `      - Raw DB-API / driver (psycopg2, mysqlclient, sqlite3) => ${dbMech("DRIVER")} or ${dbMech("SQL")} (if many inline SQL strings)`,
+    `      - Async drivers (asyncpg, aiomysql) => ${dbMech("DRIVER")}`,
+    `      - Inline CREATE/ALTER => also ${dbMech("DDL")}`,
+    `      - Bulk data scripts => also ${dbMech("DML")}`,
+    `      - Stored procedure/function invocation (CALL/EXEC) => ${dbMech("STORED-PROCEDURE")} or ${dbMech("FUNCTION")}`,
   ]),
 };
 

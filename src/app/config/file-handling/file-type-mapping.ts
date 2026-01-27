@@ -1,5 +1,6 @@
 import path from "node:path";
 import type { CanonicalFileType } from "../../schemas/canonical-file-types";
+import { DERIVED_EXTENSION_TO_TYPE_MAP } from "./file-type-registry";
 
 /**
  * Map of exact filename matches to canonical file types.
@@ -32,46 +33,18 @@ const FILENAME_TO_TYPE_MAP: Readonly<Record<string, CanonicalFileType>> = {
 
 /**
  * Map of file extensions to canonical file types.
- * Multiple extensions can map to the same type.
+ * Derived from the unified file type registry for single source of truth.
+ *
+ * Note: This constant includes additional aliases like "javascript", "typescript",
+ * "ruby", "csharp" that are not in the registry but are used for flexibility.
  */
 const EXTENSION_TO_TYPE_MAP: Readonly<Record<string, CanonicalFileType>> = {
-  java: "java",
-  kt: "java",
-  kts: "java",
-  js: "javascript",
-  ts: "javascript",
+  ...DERIVED_EXTENSION_TO_TYPE_MAP,
+  // Additional aliases for type string values (not file extensions)
   javascript: "javascript",
   typescript: "javascript",
-  py: "python",
-  rb: "ruby",
   ruby: "ruby",
-  cs: "csharp",
-  csx: "csharp",
   csharp: "csharp",
-  ddl: "sql",
-  sql: "sql",
-  xml: "xml",
-  jsp: "jsp",
-  markdown: "markdown",
-  md: "markdown",
-  csproj: "dotnet-proj",
-  vbproj: "dotnet-proj",
-  fsproj: "dotnet-proj",
-  sh: "shell-script",
-  bash: "shell-script",
-  bat: "batch-script",
-  cmd: "batch-script",
-  jcl: "jcl",
-  // C language
-  c: "c",
-  h: "c",
-  // C++ language
-  cpp: "cpp",
-  cxx: "cpp",
-  cc: "cpp",
-  hpp: "cpp",
-  hh: "cpp",
-  hxx: "cpp",
 } as const;
 
 /**

@@ -1,4 +1,4 @@
-import { createDbMechanismInstructions } from "../../utils";
+import { createDbMechanismInstructions, dbMech } from "../../utils";
 import type { LanguageSpecificFragments } from "../../sources.types";
 import { MECHANISM_DESCRIPTIONS } from "../features/common.fragments";
 
@@ -46,23 +46,23 @@ export const JAVA_SPECIFIC_FRAGMENTS: LanguageSpecificFragments = {
     - @GrpcService annotations or gRPC stub usage - include service name, methods`,
   DB_MECHANISM_MAPPING: createDbMechanismInstructions(
     [
-      "      - Uses JDBC driver / JDBC API classes => mechanism: 'JDBC'",
-      "      - Uses Spring Data repositories (CrudRepository, JpaRepository, MongoRepository, etc.) => mechanism: 'SPRING-DATA'",
-      "      - Uses Hibernate API directly (SessionFactory, Session, Criteria API) => mechanism: 'HIBERNATE'",
-      "      - Uses standard JPA annotations and EntityManager (without Spring Data) => mechanism: 'JPA'",
-      "      - Uses Enterprise Java Beans for persistence (CMP/BMP, @Entity with EJB) => mechanism: 'EJB'",
-      "      - Contains inline SQL strings / queries (SELECT / UPDATE / etc.) without ORM => mechanism: 'SQL'",
-      "      - Uses raw database driver APIs (DataSource, Connection, etc.) without higher abstraction => mechanism: 'DRIVER'",
-      "      - Uses other JPA-based ORMs (TopLink, EclipseLink) not clearly Hibernate => mechanism: 'ORM'",
-      "      - Defines DDL / migration style schema changes inline => mechanism: 'DDL'",
-      "      - Executes DML specific batch / manipulation blocks distinct from generic SQL => mechanism: 'DML'",
-      "      - Invokes stored procedures (CallableStatement, @Procedure, etc.) => mechanism: 'STORED-PROCEDURE'",
-      "      - Creates or manages database triggers => mechanism: 'TRIGGER'",
-      "      - Creates or invokes database functions => mechanism: 'FUNCTION'",
-      "      - Uses Redis client (Jedis, Lettuce) => mechanism: 'REDIS'",
-      "      - Uses Elasticsearch client (RestHighLevelClient, ElasticsearchTemplate) => mechanism: 'ELASTICSEARCH'",
-      "      - Uses Cassandra CQL (CqlSession, @Query with CQL) => mechanism: 'CASSANDRA-CQL'",
-      "      - Uses a 3rd party framework not otherwise categorized => mechanism: 'OTHER'",
+      `      - Uses JDBC driver / JDBC API classes => ${dbMech("JDBC")}`,
+      `      - Uses Spring Data repositories (CrudRepository, JpaRepository, MongoRepository, etc.) => ${dbMech("SPRING-DATA")}`,
+      `      - Uses Hibernate API directly (SessionFactory, Session, Criteria API) => ${dbMech("HIBERNATE")}`,
+      `      - Uses standard JPA annotations and EntityManager (without Spring Data) => ${dbMech("JPA")}`,
+      `      - Uses Enterprise Java Beans for persistence (CMP/BMP, @Entity with EJB) => ${dbMech("EJB")}`,
+      `      - Contains inline SQL strings / queries (SELECT / UPDATE / etc.) without ORM => ${dbMech("SQL")}`,
+      `      - Uses raw database driver APIs (DataSource, Connection, etc.) without higher abstraction => ${dbMech("DRIVER")}`,
+      `      - Uses other JPA-based ORMs (TopLink, EclipseLink) not clearly Hibernate => ${dbMech("ORM")}`,
+      `      - Defines DDL / migration style schema changes inline => ${dbMech("DDL")}`,
+      `      - Executes DML specific batch / manipulation blocks distinct from generic SQL => ${dbMech("DML")}`,
+      `      - Invokes stored procedures (CallableStatement, @Procedure, etc.) => ${dbMech("STORED-PROCEDURE")}`,
+      `      - Creates or manages database triggers => ${dbMech("TRIGGER")}`,
+      `      - Creates or invokes database functions => ${dbMech("FUNCTION")}`,
+      `      - Uses Redis client (Jedis, Lettuce) => ${dbMech("REDIS")}`,
+      `      - Uses Elasticsearch client (RestHighLevelClient, ElasticsearchTemplate) => ${dbMech("ELASTICSEARCH")}`,
+      `      - Uses Cassandra CQL (CqlSession, @Query with CQL) => ${dbMech("CASSANDRA-CQL")}`,
+      `      - Uses a 3rd party framework not otherwise categorized => ${dbMech("OTHER")}`,
     ],
     "    (note, JMS and JNDI are not related to interacting with a database)",
   ),

@@ -1,6 +1,9 @@
 /**
  * Configuration for UI analysis data provider.
- * Contains tuning parameters for UI technology analysis and JSP metrics.
+ * Contains tuning parameters and constants for UI technology analysis and JSP metrics.
+ *
+ * Note: The calculateDebtLevel() and classifyTagLibrary() functions have been moved to
+ * domain/ui-analysis-calculator.ts to separate domain logic from configuration.
  */
 
 import { BADGE_CLASSES } from "./presentation.config";
@@ -47,27 +50,6 @@ export const TAG_LIBRARY_BADGE_CLASSES: Record<TagLibraryType, string> = {
 } as const;
 
 /**
- * Determines the type of a tag library based on its URI.
- * @param uri - The tag library URI to classify
- * @returns The classified tag library type
- */
-export function classifyTagLibrary(uri: string): TagLibraryType {
-  if (uri.includes(TAG_LIBRARY_PATTERNS.JSTL)) {
-    return "JSTL";
-  }
-  if (uri.includes(TAG_LIBRARY_PATTERNS.SPRING)) {
-    return "Spring";
-  }
-  if (
-    uri.includes(TAG_LIBRARY_PATTERNS.CUSTOM_WEB_INF) ||
-    uri.includes(TAG_LIBRARY_PATTERNS.CUSTOM_KEYWORD)
-  ) {
-    return "Custom";
-  }
-  return "Other";
-}
-
-/**
  * Debt level thresholds based on total scriptlet blocks.
  * Used to determine technical debt severity levels for JSP files.
  *
@@ -82,30 +64,6 @@ export const DEBT_THRESHOLDS = {
   HIGH: 10,
   MODERATE: 5,
 } as const;
-
-/**
- * Calculates the technical debt level for a JSP file based on
- * its total scriptlet blocks (scriptlets + expressions + declarations).
- * This is business/domain logic that determines the severity of technical debt.
- *
- * @param totalScriptletBlocks - Total count of scriptlet blocks in the file
- * @returns The debt level classification
- */
-export function calculateDebtLevel(totalScriptletBlocks: number): DebtLevel {
-  if (totalScriptletBlocks > DEBT_THRESHOLDS.VERY_HIGH) {
-    return DebtLevel.VERY_HIGH;
-  }
-
-  if (totalScriptletBlocks > DEBT_THRESHOLDS.HIGH) {
-    return DebtLevel.HIGH;
-  }
-
-  if (totalScriptletBlocks > DEBT_THRESHOLDS.MODERATE) {
-    return DebtLevel.MODERATE;
-  }
-
-  return DebtLevel.LOW;
-}
 
 export const uiAnalysisConfig = {
   /**

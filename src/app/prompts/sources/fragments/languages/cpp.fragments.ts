@@ -1,4 +1,4 @@
-import { createDbMechanismInstructions } from "../../utils";
+import { createDbMechanismInstructions, dbMech } from "../../utils";
 import type { LanguageSpecificFragments } from "../../sources.types";
 import { MECHANISM_DESCRIPTIONS } from "../features/common.fragments";
 
@@ -34,16 +34,16 @@ export const CPP_SPECIFIC_FRAGMENTS: LanguageSpecificFragments = {
     - RabbitMQ C++ client => 'RABBITMQ-QUEUE' or 'RABBITMQ-EXCHANGE'
     - Kafka (librdkafka): rd_kafka_t, rd_kafka_produce => 'KAFKA-TOPIC'`,
   DB_MECHANISM_MAPPING: createDbMechanismInstructions([
-    "      - Uses ODBC API (SQLConnect, SQLDriverConnect, SQLExecDirect) => mechanism: 'DRIVER'",
-    "      - Uses MySQL Connector/C++ (sql::mysql::MySQL_Driver, sql::Connection) => mechanism: 'DRIVER'",
-    "      - Uses PostgreSQL libpqxx (pqxx::connection, pqxx::work, pqxx::result) => mechanism: 'DRIVER'",
-    "      - Uses SQLite3 (sqlite3_open, sqlite3_exec) or SQLiteCpp wrapper => mechanism: 'DRIVER'",
-    "      - Uses SOCI library (soci::session, soci::statement) => mechanism: 'ORM'",
-    "      - Uses Qt SQL module (QSqlDatabase, QSqlQuery, QSqlTableModel) => mechanism: 'DRIVER'",
-    "      - Uses ODB ORM (odb::database, odb::transaction, persistent classes) => mechanism: 'ORM'",
-    "      - Uses sqlpp11 (sqlpp::connection, query builders) => mechanism: 'ORM'",
-    "      - Contains inline SQL strings => mechanism: 'SQL'",
-    "      - Uses Redis client (hiredis, redis-plus-plus) => mechanism: 'REDIS'",
-    "      - Uses MongoDB C++ driver (mongocxx::client, mongocxx::collection) => mechanism: 'MQL'",
+    `      - Uses ODBC API (SQLConnect, SQLDriverConnect, SQLExecDirect) => ${dbMech("DRIVER")}`,
+    `      - Uses MySQL Connector/C++ (sql::mysql::MySQL_Driver, sql::Connection) => ${dbMech("DRIVER")}`,
+    `      - Uses PostgreSQL libpqxx (pqxx::connection, pqxx::work, pqxx::result) => ${dbMech("DRIVER")}`,
+    `      - Uses SQLite3 (sqlite3_open, sqlite3_exec) or SQLiteCpp wrapper => ${dbMech("DRIVER")}`,
+    `      - Uses SOCI library (soci::session, soci::statement) => ${dbMech("ORM")}`,
+    `      - Uses Qt SQL module (QSqlDatabase, QSqlQuery, QSqlTableModel) => ${dbMech("DRIVER")}`,
+    `      - Uses ODB ORM (odb::database, odb::transaction, persistent classes) => ${dbMech("ORM")}`,
+    `      - Uses sqlpp11 (sqlpp::connection, query builders) => ${dbMech("ORM")}`,
+    `      - Contains inline SQL strings => ${dbMech("SQL")}`,
+    `      - Uses Redis client (hiredis, redis-plus-plus) => ${dbMech("REDIS")}`,
+    `      - Uses MongoDB C++ driver (mongocxx::client, mongocxx::collection) => ${dbMech("MQL")}`,
   ]),
 };

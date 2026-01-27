@@ -7,9 +7,43 @@
  */
 
 import { INSTRUCTION_SECTION_TITLES, type InstructionSectionTitle } from "../../prompts.constants";
+import { DATABASE_MECHANISM_VALUES } from "../../../schemas/sources.enums";
 
 // Re-export for consumers that import from this module
 export { INSTRUCTION_SECTION_TITLES, type InstructionSectionTitle };
+
+/**
+ * Type for valid database mechanism values from the schema.
+ */
+export type DatabaseMechanism = (typeof DATABASE_MECHANISM_VALUES)[number];
+
+/**
+ * Set of valid database mechanism values for runtime validation.
+ */
+const DATABASE_MECHANISM_SET = new Set<string>(DATABASE_MECHANISM_VALUES);
+
+/**
+ * Creates a type-safe database mechanism reference for prompt instructions.
+ * Validates that the mechanism is a valid value from DATABASE_MECHANISM_VALUES.
+ *
+ * @param mechanism - The database mechanism value (must be a valid schema value)
+ * @returns A formatted mechanism string for use in prompt instructions
+ * @throws Error if the mechanism is not a valid DATABASE_MECHANISM_VALUES entry
+ *
+ * @example
+ * ```typescript
+ * dbMech("JDBC")  // Returns: "mechanism: 'JDBC'"
+ * dbMech("INVALID_VALUE")  // Throws error at runtime
+ * ```
+ */
+export function dbMech(mechanism: DatabaseMechanism): string {
+  if (!DATABASE_MECHANISM_SET.has(mechanism)) {
+    throw new Error(
+      `Invalid database mechanism: '${mechanism}'. Must be one of: ${DATABASE_MECHANISM_VALUES.join(", ")}`,
+    );
+  }
+  return `mechanism: '${mechanism}'`;
+}
 
 /**
  * Builds a formatted instruction block from a title and a list of instruction parts.

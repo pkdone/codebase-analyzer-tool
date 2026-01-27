@@ -2,8 +2,8 @@ import {
   moduleCouplingConfig,
   COUPLING_THRESHOLDS,
   CouplingLevel,
-  calculateCouplingLevel,
 } from "../../../../../src/app/components/reporting/config/module-coupling.config";
+import { calculateCouplingLevel } from "../../../../../src/app/components/reporting/domain/coupling-calculator";
 
 describe("COUPLING_THRESHOLDS", () => {
   describe("threshold values", () => {

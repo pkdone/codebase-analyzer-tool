@@ -7,7 +7,8 @@ import type { PreparedJsonData } from "../../json-report-writer";
 import type { ReportData } from "../../report-data.types";
 import { SECTION_NAMES } from "../../reporting.constants";
 import type { UiTechnologyAnalysis } from "./ui-analysis.types";
-import { TAG_LIBRARY_BADGE_CLASSES, calculateDebtLevel } from "../../config/ui-analysis.config";
+import { TAG_LIBRARY_BADGE_CLASSES } from "../../config/ui-analysis.config";
+import { calculateDebtLevel } from "../../domain/ui-analysis-calculator";
 import {
   getDebtLevelPresentation,
   getTotalScriptletsCssClass,

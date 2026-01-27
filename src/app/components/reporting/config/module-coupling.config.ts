@@ -1,6 +1,9 @@
 /**
  * Configuration for module coupling data provider.
- * Contains tuning parameters for module coupling analysis.
+ * Contains tuning parameters and constants for module coupling analysis.
+ *
+ * Note: The calculateCouplingLevel() function has been moved to
+ * domain/coupling-calculator.ts to separate domain logic from configuration.
  */
 
 /**
@@ -29,39 +32,6 @@ export const COUPLING_THRESHOLDS = {
   HIGH: 0.4,
   MEDIUM: 0.2,
 } as const;
-
-/**
- * Calculates the coupling level for a module relationship.
- * This is business/domain logic that determines the severity of coupling
- * based on the reference count relative to the highest coupling in the dataset.
- *
- * @param referenceCount - The number of references between modules
- * @param highestCouplingCount - The maximum reference count in the dataset
- * @returns The coupling level classification
- */
-export function calculateCouplingLevel(
-  referenceCount: number,
-  highestCouplingCount: number,
-): CouplingLevel {
-  // Handle edge case where highest count is 0
-  if (highestCouplingCount <= 0) {
-    return CouplingLevel.LOW;
-  }
-
-  if (referenceCount >= highestCouplingCount * COUPLING_THRESHOLDS.VERY_HIGH) {
-    return CouplingLevel.VERY_HIGH;
-  }
-
-  if (referenceCount >= highestCouplingCount * COUPLING_THRESHOLDS.HIGH) {
-    return CouplingLevel.HIGH;
-  }
-
-  if (referenceCount >= highestCouplingCount * COUPLING_THRESHOLDS.MEDIUM) {
-    return CouplingLevel.MEDIUM;
-  }
-
-  return CouplingLevel.LOW;
-}
 
 export const moduleCouplingConfig = {
   /**

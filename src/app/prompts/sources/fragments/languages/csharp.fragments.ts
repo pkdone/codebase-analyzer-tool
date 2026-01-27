@@ -1,4 +1,4 @@
-import { createDbMechanismInstructions } from "../../utils";
+import { createDbMechanismInstructions, dbMech } from "../../utils";
 import type { LanguageSpecificFragments } from "../../sources.types";
 import { MECHANISM_DESCRIPTIONS } from "../features/common.fragments";
 
@@ -33,17 +33,17 @@ export const CSHARP_SPECIFIC_FRAGMENTS: LanguageSpecificFragments = {
     - Grpc.Net.Client, Grpc.Core service definitions
    - gRPC client stubs and service implementations`,
   DB_MECHANISM_MAPPING: createDbMechanismInstructions([
-    "      - Uses Entity Framework / EF Core (DbContext, LINQ-to-Entities, DbSet) => mechanism: 'EF-CORE'",
-    "      - Uses Dapper extension methods (Query<T>, Execute, QueryAsync) => mechanism: 'DAPPER'",
-    "      - Uses other micro ORMs (NPoco, ServiceStack.OrmLite, PetaPoco) => mechanism: 'MICRO-ORM'",
-    "      - Uses ADO.NET primitives (SqlConnection, SqlCommand, DataReader) without ORM => mechanism: 'ADO-NET'",
-    "      - Executes raw SQL strings or stored procedures via SqlCommand => mechanism: 'SQL'",
-    "      - Invokes stored procedures explicitly (CommandType.StoredProcedure) => mechanism: 'STORED-PROCEDURE'",
-    "      - Uses database provider drivers directly (NpgsqlConnection, MySqlConnection) without abstraction => mechanism: 'DRIVER'",
-    "      - Contains EF Core migrations or explicit DDL (CREATE/ALTER/DROP TABLE) => mechanism: 'DDL'",
-    "      - Performs data manipulation operations (bulk INSERT, SqlBulkCopy) => mechanism: 'DML'",
-    "      - Creates or invokes database functions => mechanism: 'FUNCTION'",
-    "      - Uses Redis client (StackExchange.Redis) => mechanism: 'REDIS'",
-    "      - Uses Elasticsearch.Net client => mechanism: 'ELASTICSEARCH'",
+    `      - Uses Entity Framework / EF Core (DbContext, LINQ-to-Entities, DbSet) => ${dbMech("EF-CORE")}`,
+    `      - Uses Dapper extension methods (Query<T>, Execute, QueryAsync) => ${dbMech("DAPPER")}`,
+    `      - Uses other micro ORMs (NPoco, ServiceStack.OrmLite, PetaPoco) => ${dbMech("MICRO-ORM")}`,
+    `      - Uses ADO.NET primitives (SqlConnection, SqlCommand, DataReader) without ORM => ${dbMech("ADO-NET")}`,
+    `      - Executes raw SQL strings or stored procedures via SqlCommand => ${dbMech("SQL")}`,
+    `      - Invokes stored procedures explicitly (CommandType.StoredProcedure) => ${dbMech("STORED-PROCEDURE")}`,
+    `      - Uses database provider drivers directly (NpgsqlConnection, MySqlConnection) without abstraction => ${dbMech("DRIVER")}`,
+    `      - Contains EF Core migrations or explicit DDL (CREATE/ALTER/DROP TABLE) => ${dbMech("DDL")}`,
+    `      - Performs data manipulation operations (bulk INSERT, SqlBulkCopy) => ${dbMech("DML")}`,
+    `      - Creates or invokes database functions => ${dbMech("FUNCTION")}`,
+    `      - Uses Redis client (StackExchange.Redis) => ${dbMech("REDIS")}`,
+    `      - Uses Elasticsearch.Net client => ${dbMech("ELASTICSEARCH")}`,
   ]),
 };

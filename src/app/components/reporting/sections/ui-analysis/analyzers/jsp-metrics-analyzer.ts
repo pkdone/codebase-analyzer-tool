@@ -1,6 +1,7 @@
 import { injectable } from "tsyringe";
 import type { CustomTagLibraryData, JspFileMetricsData } from "../ui-analysis.types";
-import { uiAnalysisConfig, classifyTagLibrary } from "../../../config/ui-analysis.config";
+import { uiAnalysisConfig } from "../../../config/ui-analysis.config";
+import { classifyTagLibrary } from "../../../domain/ui-analysis-calculator";
 import type { ProjectedSourceSummaryFields } from "../../../../../repositories/sources/sources.model";
 
 /**

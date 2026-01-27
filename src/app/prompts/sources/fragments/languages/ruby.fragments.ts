@@ -1,4 +1,4 @@
-import { createDbMechanismInstructions } from "../../utils";
+import { createDbMechanismInstructions, dbMech } from "../../utils";
 import type { LanguageSpecificFragments } from "../../sources.types";
 
 /**
@@ -34,16 +34,16 @@ export const RUBY_SPECIFIC_FRAGMENTS: LanguageSpecificFragments = {
     - Action Cable channels
     - WebSocket-Rails usage`,
   DB_MECHANISM_MAPPING: createDbMechanismInstructions([
-    "      - Uses ActiveRecord (models, migrations, associations, where/find methods) => mechanism: 'ACTIVE-RECORD'",
-    "      - Uses Sequel ORM (DB[:table], dataset operations) => mechanism: 'SEQUEL'",
-    "      - Uses other Ruby ORM / micro ORM (ROM.rb, DataMapper) => mechanism: 'ORM' (or 'MICRO-ORM' if lightweight)",
-    "      - Uses Redis client (redis-rb, redis.set/get) => mechanism: 'REDIS'",
-    "      - Executes raw SQL strings (SELECT / INSERT / etc.) => mechanism: 'SQL'",
-    "      - Invokes stored procedures (via connection.exec with CALL) => mechanism: 'STORED-PROCEDURE'",
-    "      - Uses database driver / adapter directly (PG gem, mysql2 gem) without ORM => mechanism: 'DRIVER'",
-    "      - Defines migration DSL (create_table, add_column, change_table) => mechanism: 'DDL'",
-    "      - Performs data manipulation (bulk insert helpers, seeding, data-only scripts) => mechanism: 'DML'",
-    "      - Creates or manages triggers (via execute or DSL) => mechanism: 'TRIGGER'",
-    "      - Creates or invokes functions / stored routines => mechanism: 'FUNCTION'",
+    `      - Uses ActiveRecord (models, migrations, associations, where/find methods) => ${dbMech("ACTIVE-RECORD")}`,
+    `      - Uses Sequel ORM (DB[:table], dataset operations) => ${dbMech("SEQUEL")}`,
+    `      - Uses other Ruby ORM / micro ORM (ROM.rb, DataMapper) => ${dbMech("ORM")} (or ${dbMech("MICRO-ORM")} if lightweight)`,
+    `      - Uses Redis client (redis-rb, redis.set/get) => ${dbMech("REDIS")}`,
+    `      - Executes raw SQL strings (SELECT / INSERT / etc.) => ${dbMech("SQL")}`,
+    `      - Invokes stored procedures (via connection.exec with CALL) => ${dbMech("STORED-PROCEDURE")}`,
+    `      - Uses database driver / adapter directly (PG gem, mysql2 gem) without ORM => ${dbMech("DRIVER")}`,
+    `      - Defines migration DSL (create_table, add_column, change_table) => ${dbMech("DDL")}`,
+    `      - Performs data manipulation (bulk insert helpers, seeding, data-only scripts) => ${dbMech("DML")}`,
+    `      - Creates or manages triggers (via execute or DSL) => ${dbMech("TRIGGER")}`,
+    `      - Creates or invokes functions / stored routines => ${dbMech("FUNCTION")}`,
   ]),
 };
