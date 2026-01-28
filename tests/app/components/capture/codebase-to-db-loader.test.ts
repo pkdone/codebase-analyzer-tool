@@ -11,7 +11,10 @@ import * as pathUtils from "../../../../src/common/fs/path-utils";
 import * as textAnalysis from "../../../../src/common/utils/text-utils";
 import { ok, err } from "../../../../src/common/types/result.types";
 import { LLMError, LLMErrorCode } from "../../../../src/common/llm/types/llm-errors.types";
-import type { FileProcessingRulesType } from "../../../../src/app/config/file-handling";
+import {
+  getCanonicalFileType,
+  type FileProcessingRulesType,
+} from "../../../../src/app/config/file-handling";
 import type { LlmConcurrencyService } from "../../../../src/app/components/concurrency";
 
 // Mock dependencies
@@ -24,6 +27,9 @@ jest.mock("../../../../src/common/utils/logging", () => ({
   logError: jest.fn(),
   logWarn: jest.fn(),
   logErr: jest.fn(),
+}));
+jest.mock("../../../../src/app/config/file-handling", () => ({
+  getCanonicalFileType: jest.fn().mockReturnValue("javascript"),
 }));
 
 /**
@@ -61,6 +67,9 @@ const mockDirectoryOperations = directoryOperations as jest.Mocked<typeof direct
 const mockFileSorting = fileSorting as jest.Mocked<typeof fileSorting>;
 const mockPathUtils = pathUtils as jest.Mocked<typeof pathUtils>;
 const mockTextUtils = textAnalysis as jest.Mocked<typeof textAnalysis>;
+const mockGetCanonicalFileType = getCanonicalFileType as jest.MockedFunction<
+  typeof getCanonicalFileType
+>;
 const mockPath = {
   ...jest.requireActual("path"),
   relative: mockPathRelative,
@@ -143,15 +152,10 @@ describe("CodebaseToDBLoader", () => {
       mockDirectoryOperations.findFilesRecursively.mockResolvedValue(mockFiles);
       mockPathUtils.getFileExtension.mockReturnValue("ts");
       mockPath.relative.mockReturnValueOnce("file1.ts").mockReturnValueOnce("file2.ts");
-      // path.basename is called once per file in processAndStoreSourceFile,
-      // and once per file inside getCanonicalFileType, so we need 4 return values
-      mockPath.basename
-        .mockReturnValueOnce("file1.ts") // called in processAndStoreSourceFile for file1
-        .mockReturnValueOnce("file1.ts") // called in getCanonicalFileType for file1
-        .mockReturnValueOnce("file2.ts") // called in processAndStoreSourceFile for file2
-        .mockReturnValueOnce("file2.ts"); // called in getCanonicalFileType for file2
+      mockPath.basename.mockReturnValueOnce("file1.ts").mockReturnValueOnce("file2.ts");
       mockFileOperations.readFile.mockResolvedValue("const x = 1;");
       mockTextUtils.countLines.mockReturnValue(1);
+      mockGetCanonicalFileType.mockReturnValue("javascript");
 
       await loader.captureCodebaseToDatabase("test-project", "/src", false);
 
@@ -161,6 +165,12 @@ describe("CodebaseToDBLoader", () => {
         filenameIgnoreList: ["package-lock.json"],
       });
       expect(mockSourcesRepository.insertSource).toHaveBeenCalledTimes(2);
+      // Verify summarize is called with canonicalFileType (not raw file extension)
+      expect(mockFileSummarizer.summarize).toHaveBeenCalledWith(
+        expect.any(String),
+        "javascript",
+        expect.any(String),
+      );
     });
 
     it("should skip already captured files when skipIfAlreadyCaptured is true", async () => {

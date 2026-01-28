@@ -19,10 +19,6 @@ jest.mock("../../../../src/common/utils/logging", () => ({
   logWarn: jest.fn(),
 }));
 
-jest.mock("../../../../src/app/config/file-handling", () => ({
-  getCanonicalFileType: jest.fn().mockReturnValue("javascript"),
-}));
-
 jest.mock("../../../../src/app/llm", () => ({
   getLlmArtifactCorrections: jest.fn().mockReturnValue({}),
 }));
@@ -61,6 +57,13 @@ describe("FileSummarizerService", () => {
         dataBlockHeader: "CODE",
         wrapInCodeBlock: true,
       },
+      java: {
+        contentDesc: "the Java code",
+        responseSchema: mockSchema,
+        instructions: ["test instruction"],
+        dataBlockHeader: "CODE",
+        wrapInCodeBlock: true,
+      },
     } as unknown as FileTypePromptRegistry;
 
     // Create service instance (now only needs LLMRouter and FileTypePromptRegistry)
@@ -72,7 +75,8 @@ describe("FileSummarizerService", () => {
       const mockResponse = { name: "TestClass", purpose: "Test purpose" };
       (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(ok(mockResponse));
 
-      const result = await service.summarize("test.js", "js", "const x = 1;");
+      // Now passing canonicalFileType directly instead of raw file extension
+      const result = await service.summarize("test.js", "javascript", "const x = 1;");
 
       expect(isOk(result)).toBe(true);
       if (isOk(result)) {
@@ -89,7 +93,7 @@ describe("FileSummarizerService", () => {
     });
 
     it("should return err result when file content is empty", async () => {
-      const result = await service.summarize("test.js", "js", "   ");
+      const result = await service.summarize("test.js", "javascript", "   ");
 
       expect(isErr(result)).toBe(true);
       if (isErr(result)) {
@@ -102,7 +106,7 @@ describe("FileSummarizerService", () => {
         err(new LLMError(LLMErrorCode.BAD_RESPONSE_CONTENT, "No response")),
       );
 
-      const result = await service.summarize("test.js", "js", "const x = 1;");
+      const result = await service.summarize("test.js", "javascript", "const x = 1;");
 
       expect(isErr(result)).toBe(true);
     });
@@ -111,7 +115,7 @@ describe("FileSummarizerService", () => {
       const error = new Error("LLM failed");
       (mockLLMRouter.executeCompletion as jest.Mock).mockRejectedValue(error);
 
-      const result = await service.summarize("test.js", "js", "const x = 1;");
+      const result = await service.summarize("test.js", "javascript", "const x = 1;");
 
       expect(isErr(result)).toBe(true);
       if (isErr(result)) {
@@ -127,7 +131,7 @@ describe("FileSummarizerService", () => {
         }),
       );
 
-      await service.summarize("test.js", "js", "const x = 1;");
+      await service.summarize("test.js", "javascript", "const x = 1;");
 
       expect(mockLLMRouter.executeCompletion).toHaveBeenCalledWith(
         "test.js",
@@ -148,7 +152,7 @@ describe("FileSummarizerService", () => {
       };
       (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(ok(partialResponse));
 
-      const result = await service.summarize("auth.js", "js", "function authenticate() {}");
+      const result = await service.summarize("auth.js", "javascript", "function authenticate() {}");
 
       expect(isOk(result)).toBe(true);
       if (isOk(result)) {
@@ -175,6 +179,7 @@ describe("FileSummarizerService", () => {
       };
       (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(ok(fullResponse));
 
+      // Using "java" canonical file type for Java file
       const result = await service.summarize("AuthService.java", "java", "class AuthService {}");
 
       expect(isOk(result)).toBe(true);

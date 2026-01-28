@@ -4,7 +4,7 @@ import { logErr } from "../../../common/utils/logging";
 import type LLMRouter from "../../../common/llm/llm-router";
 import { LLMOutputFormat } from "../../../common/llm/types/llm-request.types";
 import { sourceSummarySchema } from "../../schemas/sources.schema";
-import { getCanonicalFileType } from "../../config/file-handling";
+import type { CanonicalFileType } from "../../schemas/canonical-file-types";
 import { getLlmArtifactCorrections } from "../../llm";
 import { llmTokens, captureTokens } from "../../di/tokens";
 import { type FileTypePromptRegistry } from "../../prompts/sources/sources.definitions";
@@ -49,18 +49,17 @@ export class FileSummarizerService {
    * ensuring type safety aligns with runtime behavior.
    *
    * @param filepath The path to the file being summarized
-   * @param type The file type/extension
+   * @param canonicalFileType The canonical file type (e.g., "java", "javascript", "python")
    * @param content The file content to summarize
    * @returns A Result containing either the partial summary or an error
    */
   async summarize(
     filepath: string,
-    type: string,
+    canonicalFileType: CanonicalFileType,
     content: string,
   ): Promise<Result<PartialSourceSummaryType>> {
     try {
       if (content.trim().length === 0) return err(new Error("File is empty"));
-      const canonicalFileType = getCanonicalFileType(filepath, type);
       const { prompt, schema, metadata } = buildSourcePrompt(
         this.fileTypePromptRegistry,
         canonicalFileType,

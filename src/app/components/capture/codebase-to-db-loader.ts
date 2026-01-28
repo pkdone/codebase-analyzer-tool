@@ -2,6 +2,7 @@ import { injectable, inject } from "tsyringe";
 import type LLMRouter from "../../../common/llm/llm-router";
 import path from "path";
 import { getCanonicalFileType, type FileProcessingRulesType } from "../../config/file-handling";
+import type { CanonicalFileType } from "../../schemas/canonical-file-types";
 import { readFile } from "../../../common/fs/file-operations";
 import { findFilesRecursively } from "../../../common/fs/directory-operations";
 import { sortFilesBySize } from "../../../common/fs/file-sorting";
@@ -155,13 +156,14 @@ export default class CodebaseToDBLoader {
     if (!content) return; // Skip empty files
     const filename = path.basename(filepath);
     const linesCount = countLines(content);
+    // Compute canonical type once and pass it through the call chain
+    const canonicalType = getCanonicalFileType(filepath, fileType);
     const { summary, summaryError, summaryVector } = await this.generateSummaryAndEmbeddings(
       filepath,
-      fileType,
+      canonicalType,
       content,
     );
     const contentVector = await this.getContentEmbeddings(filepath, content);
-    const canonicalType = getCanonicalFileType(filepath, fileType);
     const sourceFileRecord: SourceRecord = {
       projectName,
       filename,
@@ -181,10 +183,14 @@ export default class CodebaseToDBLoader {
   /**
    * Generates summary and embeddings for a file, handling errors gracefully.
    * Returns the summary, any error that occurred, and the summary vector.
+   *
+   * @param filepath The relative path to the file being summarized
+   * @param canonicalFileType The canonical file type (e.g., "java", "javascript")
+   * @param content The file content to summarize
    */
   private async generateSummaryAndEmbeddings(
     filepath: string,
-    type: string,
+    canonicalFileType: CanonicalFileType,
     content: string,
   ): Promise<{
     summary: PartialSourceSummaryType | undefined;
@@ -194,7 +200,7 @@ export default class CodebaseToDBLoader {
     let summary: PartialSourceSummaryType | undefined;
     let summaryError: string | undefined;
     let summaryVector: number[] | undefined;
-    const summaryResult = await this.fileSummarizer.summarize(filepath, type, content);
+    const summaryResult = await this.fileSummarizer.summarize(filepath, canonicalFileType, content);
 
     if (isOk(summaryResult)) {
       summary = summaryResult.value;
