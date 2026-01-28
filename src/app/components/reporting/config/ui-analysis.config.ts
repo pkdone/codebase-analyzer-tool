@@ -1,9 +1,6 @@
 /**
  * Configuration for UI analysis data provider.
  * Contains tuning parameters and constants for UI technology analysis and JSP metrics.
- *
- * Note: The calculateDebtLevel() and classifyTagLibrary() functions have been moved to
- * domain/ui-analysis-calculator.ts to separate domain logic from configuration.
  */
 
 import { BADGE_CLASSES } from "./presentation.config";

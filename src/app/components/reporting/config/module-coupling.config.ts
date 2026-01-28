@@ -1,9 +1,6 @@
 /**
  * Configuration for module coupling data provider.
  * Contains tuning parameters and constants for module coupling analysis.
- *
- * Note: The calculateCouplingLevel() function has been moved to
- * domain/coupling-calculator.ts to separate domain logic from configuration.
  */
 
 /**
