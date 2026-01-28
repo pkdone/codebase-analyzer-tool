@@ -202,6 +202,48 @@ function unwrapZodType(schema: unknown): unknown {
 }
 
 /**
+ * Internal result interface for property extraction.
+ */
+interface PropertyExtractionResult {
+  all: string[];
+  numeric: string[];
+  arrays: string[];
+}
+
+/**
+ * Empty result constant to avoid repeated object allocations.
+ */
+const EMPTY_EXTRACTION_RESULT: PropertyExtractionResult = { all: [], numeric: [], arrays: [] };
+
+/**
+ * Merges property extraction results from multiple schemas.
+ * This helper consolidates the repetitive merging logic used for unions and intersections.
+ *
+ * @param schemas - Array of schemas to extract and merge properties from
+ * @param currentDepth - Current recursion depth
+ * @param options - Extraction options
+ * @returns Merged property extraction result
+ */
+function mergePropertiesFromSchemas(
+  schemas: unknown[],
+  currentDepth: number,
+  options: Required<ExtractSchemaMetadataOptions>,
+): PropertyExtractionResult {
+  const all: string[] = [];
+  const numeric: string[] = [];
+  const arrays: string[] = [];
+
+  for (const schema of schemas) {
+    const nested = extractPropertiesFromSchema(schema, currentDepth + 1, options);
+    all.push(...nested.all);
+    numeric.push(...nested.numeric);
+    arrays.push(...nested.arrays);
+  }
+
+  return { all, numeric, arrays };
+}
+
+/**
  * Extracts properties from any Zod schema type, handling objects, arrays, unions, and intersections.
  * This is a recursive helper that traverses the schema structure.
  *
@@ -214,9 +256,9 @@ function extractPropertiesFromSchema(
   schema: unknown,
   currentDepth: number,
   options: Required<ExtractSchemaMetadataOptions>,
-): { all: string[]; numeric: string[]; arrays: string[] } {
+): PropertyExtractionResult {
   if (currentDepth > options.maxDepth) {
-    return { all: [], numeric: [], arrays: [] };
+    return EMPTY_EXTRACTION_RESULT;
   }
 
   const unwrapped = unwrapZodType(schema);
@@ -237,18 +279,7 @@ function extractPropertiesFromSchema(
   if (isZodUnion(unwrapped) && isZodLike(unwrapped)) {
     const unionOptions = unwrapped._def.options;
     if (Array.isArray(unionOptions)) {
-      const all: string[] = [];
-      const numeric: string[] = [];
-      const arrays: string[] = [];
-
-      for (const option of unionOptions) {
-        const nested = extractPropertiesFromSchema(option, currentDepth + 1, options);
-        all.push(...nested.all);
-        numeric.push(...nested.numeric);
-        arrays.push(...nested.arrays);
-      }
-
-      return { all, numeric, arrays };
+      return mergePropertiesFromSchemas(unionOptions, currentDepth, options);
     }
   }
 
@@ -256,18 +287,7 @@ function extractPropertiesFromSchema(
   if (isZodDiscriminatedUnion(unwrapped) && isZodLike(unwrapped)) {
     const unionOptions = unwrapped._def.options;
     if (Array.isArray(unionOptions)) {
-      const all: string[] = [];
-      const numeric: string[] = [];
-      const arrays: string[] = [];
-
-      for (const option of unionOptions) {
-        const nested = extractPropertiesFromSchema(option, currentDepth + 1, options);
-        all.push(...nested.all);
-        numeric.push(...nested.numeric);
-        arrays.push(...nested.arrays);
-      }
-
-      return { all, numeric, arrays };
+      return mergePropertiesFromSchemas(unionOptions, currentDepth, options);
     }
   }
 
@@ -276,24 +296,10 @@ function extractPropertiesFromSchema(
     // ZodIntersection always has left and right in its _def
     const leftSchema = unwrapped._def.left;
     const rightSchema = unwrapped._def.right;
-    const all: string[] = [];
-    const numeric: string[] = [];
-    const arrays: string[] = [];
-
-    const leftProps = extractPropertiesFromSchema(leftSchema, currentDepth + 1, options);
-    all.push(...leftProps.all);
-    numeric.push(...leftProps.numeric);
-    arrays.push(...leftProps.arrays);
-
-    const rightProps = extractPropertiesFromSchema(rightSchema, currentDepth + 1, options);
-    all.push(...rightProps.all);
-    numeric.push(...rightProps.numeric);
-    arrays.push(...rightProps.arrays);
-
-    return { all, numeric, arrays };
+    return mergePropertiesFromSchemas([leftSchema, rightSchema], currentDepth, options);
   }
 
-  return { all: [], numeric: [], arrays: [] };
+  return EMPTY_EXTRACTION_RESULT;
 }
 
 /**
@@ -303,7 +309,7 @@ function extractPropertiesFromShape(
   shape: z.ZodRawShape,
   currentDepth: number,
   options: Required<ExtractSchemaMetadataOptions>,
-): { all: string[]; numeric: string[]; arrays: string[] } {
+): PropertyExtractionResult {
   const all: string[] = [];
   const numeric: string[] = [];
   const arrays: string[] = [];

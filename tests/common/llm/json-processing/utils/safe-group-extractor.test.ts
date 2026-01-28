@@ -1,7 +1,6 @@
 import {
   safeGroup,
   safeGroups,
-  safeGroups2,
   safeGroups3,
   safeGroups4,
   safeGroups5,
@@ -80,33 +79,6 @@ describe("safe-group-extractor", () => {
     });
   });
 
-  describe("safeGroups2", () => {
-    it("should return tuple of 2 strings", () => {
-      const groups: (string | undefined)[] = ["first", "second", "third"];
-      const result = safeGroups2(groups);
-      expect(result).toEqual(["first", "second"]);
-    });
-
-    it("should convert undefined to empty strings", () => {
-      const groups: (string | undefined)[] = [undefined, "second"];
-      const result = safeGroups2(groups);
-      expect(result).toEqual(["", "second"]);
-    });
-
-    it("should pad with empty strings when groups are missing", () => {
-      const groups: (string | undefined)[] = ["first"];
-      const result = safeGroups2(groups);
-      expect(result).toEqual(["first", ""]);
-    });
-
-    it("should return correct tuple type", () => {
-      const groups: (string | undefined)[] = ["a", "b"];
-      const [first, second] = safeGroups2(groups);
-      expect(typeof first).toBe("string");
-      expect(typeof second).toBe("string");
-    });
-  });
-
   describe("safeGroups3", () => {
     it("should return tuple of 3 strings", () => {
       const groups: (string | undefined)[] = ["a", "b", "c", "d"];
@@ -182,7 +154,6 @@ describe("safe-group-extractor", () => {
       // All functions should accept readonly arrays
       expect(safeGroup(groups, 0)).toBe("a");
       expect(safeGroups(groups, 2)).toEqual(["a", "b"]);
-      expect(safeGroups2(groups)).toEqual(["a", "b"]);
       expect(safeGroups3(groups)).toEqual(["a", "b", "c"]);
     });
 
@@ -222,7 +193,7 @@ describe("safe-group-extractor", () => {
 
       if (match) {
         const groups = match.slice(1) as (string | undefined)[];
-        const [letters, numbers] = safeGroups2(groups);
+        const [letters, numbers] = safeGroups(groups, 2);
 
         // First group didn't match, should be empty string
         expect(letters).toBe("");

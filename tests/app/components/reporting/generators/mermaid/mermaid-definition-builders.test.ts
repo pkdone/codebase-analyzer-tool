@@ -8,7 +8,7 @@ import {
   generateNodeId,
   buildArrow,
   buildStyleDefinitions,
-  applyStyle,
+  applyStyleClass,
 } from "../../../../../../src/app/components/reporting/diagrams";
 import { currentArchitectureConfig } from "../../../../../../src/app/components/reporting/diagrams/diagrams.config";
 
@@ -324,22 +324,22 @@ describe("mermaid-definition-builders", () => {
     });
   });
 
-  describe("applyStyle", () => {
+  describe("applyStyleClass", () => {
     it("should apply style class to node", () => {
-      const result = applyStyle("nodeId", "boundedContext");
+      const result = applyStyleClass("nodeId", "boundedContext");
 
       expect(result).toBe("    class nodeId boundedContext");
     });
 
     it("should have proper indentation (4 spaces)", () => {
-      const result = applyStyle("nodeId", "aggregate");
+      const result = applyStyleClass("nodeId", "aggregate");
 
       expect(result).toMatch(/^ {4}/);
     });
 
     it("should format correctly for different node IDs and classes", () => {
-      const result1 = applyStyle("node1", "entity");
-      const result2 = applyStyle("my_node", "repository");
+      const result1 = applyStyleClass("node1", "entity");
+      const result2 = applyStyleClass("my_node", "repository");
 
       expect(result1).toBe("    class node1 entity");
       expect(result2).toBe("    class my_node repository");

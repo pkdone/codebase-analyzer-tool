@@ -1,12 +1,15 @@
 import {
   FILE_TYPE_REGISTRY,
+  FILENAME_TYPE_REGISTRY,
   deriveCodeFileExtensions,
   deriveExtensionToTypeMap,
   getFileTypeEntry,
   isCodeExtension,
   getCanonicalTypeForExtension,
+  getCanonicalTypeForFilename,
   DERIVED_CODE_FILE_EXTENSIONS,
   DERIVED_EXTENSION_TO_TYPE_MAP,
+  DERIVED_FILENAME_TO_TYPE_MAP,
 } from "../../../../src/app/config/file-handling/file-type-registry";
 
 describe("FILE_TYPE_REGISTRY", () => {
@@ -199,5 +202,71 @@ describe("DERIVED_EXTENSION_TO_TYPE_MAP", () => {
     for (const ext of DERIVED_CODE_FILE_EXTENSIONS) {
       expect(DERIVED_EXTENSION_TO_TYPE_MAP[ext]).toBeDefined();
     }
+  });
+});
+
+describe("FILENAME_TYPE_REGISTRY", () => {
+  describe("registry structure", () => {
+    it("should have entries for common build files", () => {
+      expect(FILENAME_TYPE_REGISTRY["pom.xml"]).toBeDefined();
+      expect(FILENAME_TYPE_REGISTRY["build.gradle"]).toBeDefined();
+      expect(FILENAME_TYPE_REGISTRY["package.json"]).toBeDefined();
+      expect(FILENAME_TYPE_REGISTRY["requirements.txt"]).toBeDefined();
+    });
+
+    it("should map build files to correct canonical types", () => {
+      expect(FILENAME_TYPE_REGISTRY["pom.xml"]).toBe("maven");
+      expect(FILENAME_TYPE_REGISTRY["build.gradle"]).toBe("gradle");
+      expect(FILENAME_TYPE_REGISTRY["build.gradle.kts"]).toBe("gradle");
+      expect(FILENAME_TYPE_REGISTRY["package.json"]).toBe("npm");
+      expect(FILENAME_TYPE_REGISTRY["yarn.lock"]).toBe("npm");
+    });
+
+    it("should have entries for Python package files", () => {
+      expect(FILENAME_TYPE_REGISTRY["requirements.txt"]).toBe("python-pip");
+      expect(FILENAME_TYPE_REGISTRY["setup.py"]).toBe("python-setup");
+      expect(FILENAME_TYPE_REGISTRY["pyproject.toml"]).toBe("python-poetry");
+      expect(FILENAME_TYPE_REGISTRY.pipfile).toBe("python-pip");
+    });
+
+    it("should have entries for C/C++ build files", () => {
+      expect(FILENAME_TYPE_REGISTRY["cmakelists.txt"]).toBe("makefile");
+      expect(FILENAME_TYPE_REGISTRY.makefile).toBe("makefile");
+      expect(FILENAME_TYPE_REGISTRY.gnumakefile).toBe("makefile");
+    });
+
+    it("should have entries for Ruby bundler files", () => {
+      expect(FILENAME_TYPE_REGISTRY.gemfile).toBe("ruby-bundler");
+      expect(FILENAME_TYPE_REGISTRY["gemfile.lock"]).toBe("ruby-bundler");
+    });
+  });
+});
+
+describe("getCanonicalTypeForFilename", () => {
+  it("should return correct canonical type for known filenames", () => {
+    expect(getCanonicalTypeForFilename("pom.xml")).toBe("maven");
+    expect(getCanonicalTypeForFilename("package.json")).toBe("npm");
+    expect(getCanonicalTypeForFilename("requirements.txt")).toBe("python-pip");
+  });
+
+  it("should return undefined for unknown filenames", () => {
+    expect(getCanonicalTypeForFilename("unknown.txt")).toBeUndefined();
+    expect(getCanonicalTypeForFilename("myfile.java")).toBeUndefined();
+  });
+
+  it("should be case-insensitive", () => {
+    expect(getCanonicalTypeForFilename("POM.XML")).toBe("maven");
+    expect(getCanonicalTypeForFilename("Package.json")).toBe("npm");
+    expect(getCanonicalTypeForFilename("MAKEFILE")).toBe("makefile");
+  });
+});
+
+describe("DERIVED_FILENAME_TO_TYPE_MAP", () => {
+  it("should be the same as FILENAME_TYPE_REGISTRY", () => {
+    expect(DERIVED_FILENAME_TO_TYPE_MAP).toBe(FILENAME_TYPE_REGISTRY);
+  });
+
+  it("should contain all expected filename mappings", () => {
+    expect(Object.keys(DERIVED_FILENAME_TO_TYPE_MAP).length).toBeGreaterThan(15);
   });
 });

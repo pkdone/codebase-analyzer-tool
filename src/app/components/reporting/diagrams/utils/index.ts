@@ -1,5 +1,8 @@
 /**
  * Mermaid diagram utilities - public API
+ *
+ * Core Mermaid utilities are re-exported from the common module.
+ * App-specific functions (init directives, style definitions) are provided locally.
  */
 export {
   DIAGRAM_STYLES,
@@ -16,4 +19,7 @@ export {
   buildArrow,
 } from "./mermaid-builders";
 
-export { buildStyleDefinitions, applyStyle } from "./mermaid-styles";
+export { buildStyleDefinitions } from "./mermaid-styles";
+
+// Re-export applyStyleClass from common module for diagram generators
+export { applyStyleClass } from "../../../../../common/diagrams/mermaid/mermaid-utils";

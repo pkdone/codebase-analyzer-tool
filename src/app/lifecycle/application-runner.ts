@@ -51,7 +51,7 @@ export async function runApplication(taskToken: symbol): Promise<void> {
           console.log(
             `LLM provider(s) require forced exit (${providerNames}) - terminating process`,
           );
-          process.exit(process.exitCode ?? 0);  // Must do process exit to avoid hanging processes
+          process.exit(process.exitCode ?? 0); // Must do process exit to avoid hanging processes
         }
       }
     } catch (shutdownError: unknown) {

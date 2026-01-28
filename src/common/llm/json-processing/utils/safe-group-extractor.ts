@@ -64,17 +64,6 @@ export function safeGroups(
 }
 
 /**
- * Type-safe tuple extractor for exactly 2 capture groups.
- * Provides better type inference than the generic safeGroups function.
- *
- * @param groups - The capture groups array from a regex match
- * @returns Tuple of 2 guaranteed strings
- */
-export function safeGroups2(groups: readonly (string | undefined)[]): readonly [string, string] {
-  return [groups[0] ?? "", groups[1] ?? ""];
-}
-
-/**
  * Type-safe tuple extractor for exactly 3 capture groups.
  * Provides better type inference than the generic safeGroups function.
  *

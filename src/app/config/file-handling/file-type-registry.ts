@@ -1,11 +1,12 @@
 /**
- * Unified file type registry - single source of truth for file extension handling.
+ * Unified file type registry - single source of truth for file type handling.
  *
  * This module consolidates the previously fragmented file type definitions:
  * - CODE_FILE_EXTENSIONS from file-processing-rules.ts
  * - EXTENSION_TO_TYPE_MAP from file-type-mapping.ts
+ * - FILENAME_TO_TYPE_MAP from file-type-mapping.ts
  *
- * Adding a new language now requires updating only this registry.
+ * Adding a new language or filename mapping now requires updating only this registry.
  * The CODE_FILE_EXTENSIONS list and type mappings are derived programmatically.
  */
 
@@ -222,6 +223,68 @@ export function getCanonicalTypeForExtension(extension: string): CanonicalFileTy
   return entry?.canonicalType ?? "default";
 }
 
+/**
+ * Registry mapping exact filenames to their canonical types.
+ * This is the SINGLE SOURCE OF TRUTH for filename-based file type detection.
+ *
+ * Keys are lowercase filenames (e.g., "pom.xml", "makefile").
+ * Values are the canonical file types.
+ *
+ * To add a new filename mapping:
+ * 1. Add the filename (lowercase) as a key
+ * 2. Set the value to the appropriate CanonicalFileType
+ */
+export const FILENAME_TYPE_REGISTRY: Readonly<Record<string, CanonicalFileType>> = {
+  // Maven
+  "pom.xml": "maven",
+
+  // Gradle
+  "build.gradle": "gradle",
+  "build.gradle.kts": "gradle",
+
+  // Ant
+  "build.xml": "ant",
+
+  // npm/Node.js
+  "package.json": "npm",
+  "package-lock.json": "npm",
+  "yarn.lock": "npm",
+
+  // NuGet (.NET)
+  "packages.config": "nuget",
+
+  // Python
+  "requirements.txt": "python-pip",
+  "setup.py": "python-setup",
+  "pyproject.toml": "python-poetry",
+  pipfile: "python-pip",
+  "pipfile.lock": "python-pip",
+
+  // Ruby
+  gemfile: "ruby-bundler",
+  "gemfile.lock": "ruby-bundler",
+
+  // Shell
+  crontab: "shell-script",
+
+  // C/C++ build files (CMake, Make, Autotools)
+  "cmakelists.txt": "makefile",
+  makefile: "makefile",
+  gnumakefile: "makefile",
+  "configure.ac": "makefile",
+  "configure.in": "makefile",
+} as const;
+
+/**
+ * Gets the canonical type for a filename.
+ *
+ * @param filename - The filename (case-insensitive)
+ * @returns The canonical type or undefined if not found
+ */
+export function getCanonicalTypeForFilename(filename: string): CanonicalFileType | undefined {
+  return FILENAME_TYPE_REGISTRY[filename.toLowerCase()];
+}
+
 // Derived constants for backwards compatibility
 // These are computed once at module load time
 
@@ -237,3 +300,10 @@ export const DERIVED_CODE_FILE_EXTENSIONS: readonly string[] = deriveCodeFileExt
  */
 export const DERIVED_EXTENSION_TO_TYPE_MAP: Readonly<Record<string, CanonicalFileType>> =
   deriveExtensionToTypeMap();
+
+/**
+ * Filename to type map exported for use in file-type-mapping.ts.
+ * This is the same as FILENAME_TYPE_REGISTRY but exported with a consistent naming convention.
+ */
+export const DERIVED_FILENAME_TO_TYPE_MAP: Readonly<Record<string, CanonicalFileType>> =
+  FILENAME_TYPE_REGISTRY;

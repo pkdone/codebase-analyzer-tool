@@ -1,5 +1,5 @@
 import { injectable } from "tsyringe";
-import { escapeMermaidLabel, generateNodeId, buildArrow, applyStyle } from "../utils";
+import { escapeMermaidLabel, generateNodeId, buildArrow, applyStyleClass } from "../utils";
 import { BaseDiagramGenerator, type BaseDiagramOptions } from "./base-diagram-generator";
 import { currentArchitectureConfig } from "../diagrams.config";
 
@@ -118,13 +118,13 @@ export class CurrentArchitectureDiagramGenerator extends BaseDiagramGenerator<Cu
     // Apply styles to internal component nodes
     architectureData.internalComponents.forEach((component, index) => {
       const nodeId = generateNodeId(`int_${component.name}`, index);
-      lines.push(applyStyle(nodeId, "internalComponent"));
+      lines.push(applyStyleClass(nodeId, "internalComponent"));
     });
 
     // Apply styles to external dependency nodes
     architectureData.externalDependencies.forEach((dep, index) => {
       const nodeId = generateNodeId(`ext_${dep.name}`, index);
-      lines.push(applyStyle(nodeId, "externalComponent"));
+      lines.push(applyStyleClass(nodeId, "externalComponent"));
     });
 
     return lines.join("\n");

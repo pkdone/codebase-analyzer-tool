@@ -2,6 +2,8 @@
  * Domain-specific style definitions for Mermaid diagrams.
  * These styles are used by various diagram generators to apply consistent
  * visual styling to domain model elements like bounded contexts, entities, etc.
+ *
+ * The applyStyleClass utility function is provided by the common Mermaid module.
  */
 
 import { BRAND_COLORS, DIAGRAM_ELEMENT_COLORS } from "../../config/brand-theme.config";
@@ -38,11 +40,4 @@ export function buildStyleDefinitions(): string {
     classDef rootDependency fill:${aggregateFill},stroke:${aggregateStroke},stroke-width:2px,color:${black}
     classDef internalComponent fill:${boundedContextFill},stroke:${greenDark},stroke-width:2px,color:${black}
     classDef externalComponent fill:${externalComponentFill},stroke:${externalComponentStroke},stroke-width:2px,color:${black}`;
-}
-
-/**
- * Apply a style class to a node.
- */
-export function applyStyle(nodeId: string, className: string): string {
-  return `    class ${nodeId} ${className}`;
 }

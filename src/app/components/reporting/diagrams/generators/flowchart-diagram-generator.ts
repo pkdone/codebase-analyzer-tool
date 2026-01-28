@@ -1,5 +1,5 @@
 import { injectable } from "tsyringe";
-import { escapeMermaidLabel, generateNodeId, applyStyle } from "../utils";
+import { escapeMermaidLabel, generateNodeId, applyStyleClass } from "../utils";
 import { BaseDiagramGenerator, type BaseDiagramOptions } from "./base-diagram-generator";
 import { flowchartConfig } from "../diagrams.config";
 
@@ -75,7 +75,7 @@ export class FlowchartDiagramGenerator extends BaseDiagramGenerator<FlowchartDia
       lines.push(`    ${nodeId}["${escapeMermaidLabel(activity.activity)}"]`);
 
       // Apply style
-      lines.push(applyStyle(nodeId, "process"));
+      lines.push(applyStyleClass(nodeId, "process"));
     });
 
     // Add connections between consecutive nodes

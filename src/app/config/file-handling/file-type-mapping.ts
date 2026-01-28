@@ -1,35 +1,6 @@
 import path from "node:path";
 import type { CanonicalFileType } from "../../schemas/canonical-file-types";
-import { DERIVED_EXTENSION_TO_TYPE_MAP } from "./file-type-registry";
-
-/**
- * Map of exact filename matches to canonical file types.
- * These are checked first for fast lookups.
- */
-const FILENAME_TO_TYPE_MAP: Readonly<Record<string, CanonicalFileType>> = {
-  "pom.xml": "maven",
-  "build.gradle": "gradle",
-  "build.gradle.kts": "gradle",
-  "build.xml": "ant",
-  "package.json": "npm",
-  "package-lock.json": "npm",
-  "yarn.lock": "npm",
-  "packages.config": "nuget",
-  "requirements.txt": "python-pip",
-  "setup.py": "python-setup",
-  "pyproject.toml": "python-poetry",
-  crontab: "shell-script",
-  gemfile: "ruby-bundler",
-  "gemfile.lock": "ruby-bundler",
-  pipfile: "python-pip",
-  "pipfile.lock": "python-pip",
-  // C/C++ build files (CMake, Make, Autotools)
-  "cmakelists.txt": "makefile",
-  makefile: "makefile",
-  gnumakefile: "makefile",
-  "configure.ac": "makefile",
-  "configure.in": "makefile",
-} as const;
+import { DERIVED_EXTENSION_TO_TYPE_MAP, DERIVED_FILENAME_TO_TYPE_MAP } from "./file-type-registry";
 
 /**
  * Map of file extensions to canonical file types.
@@ -101,8 +72,9 @@ export const getCanonicalFileType = (filepath: string, type: string): CanonicalF
   const extension = type.toLowerCase();
 
   // 1. Check exact filename matches first (fastest lookup)
-  if (Object.hasOwn(FILENAME_TO_TYPE_MAP, filename)) {
-    return FILENAME_TO_TYPE_MAP[filename];
+  // Uses the centralized DERIVED_FILENAME_TO_TYPE_MAP from file-type-registry.ts
+  if (Object.hasOwn(DERIVED_FILENAME_TO_TYPE_MAP, filename)) {
+    return DERIVED_FILENAME_TO_TYPE_MAP[filename];
   }
 
   // 2. Check extension-based mappings

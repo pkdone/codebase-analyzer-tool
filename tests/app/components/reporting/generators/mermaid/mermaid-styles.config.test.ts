@@ -1,7 +1,5 @@
-import {
-  buildStyleDefinitions,
-  applyStyle,
-} from "../../../../../../src/app/components/reporting/diagrams/utils/mermaid-styles";
+import { buildStyleDefinitions } from "../../../../../../src/app/components/reporting/diagrams/utils/mermaid-styles";
+import { applyStyleClass } from "../../../../../../src/app/components/reporting/diagrams/utils";
 import { BRAND_COLORS } from "../../../../../../src/app/components/reporting/config/brand-theme.config";
 
 describe("mermaid-styles.config", () => {
@@ -78,23 +76,23 @@ describe("mermaid-styles.config", () => {
     });
   });
 
-  describe("applyStyle", () => {
+  describe("applyStyleClass", () => {
     it("should apply style class to node", () => {
-      const result = applyStyle("nodeId", "boundedContext");
+      const result = applyStyleClass("nodeId", "boundedContext");
 
       expect(result).toBe("    class nodeId boundedContext");
     });
 
     it("should have proper indentation (4 spaces)", () => {
-      const result = applyStyle("nodeId", "aggregate");
+      const result = applyStyleClass("nodeId", "aggregate");
 
       expect(result).toMatch(/^ {4}/);
     });
 
     it("should format correctly for different node IDs and classes", () => {
-      expect(applyStyle("node1", "entity")).toBe("    class node1 entity");
-      expect(applyStyle("my_node", "repository")).toBe("    class my_node repository");
-      expect(applyStyle("service_1", "service")).toBe("    class service_1 service");
+      expect(applyStyleClass("node1", "entity")).toBe("    class node1 entity");
+      expect(applyStyleClass("my_node", "repository")).toBe("    class my_node repository");
+      expect(applyStyleClass("service_1", "service")).toBe("    class service_1 service");
     });
 
     it("should work with all defined style classes", () => {
@@ -112,13 +110,13 @@ describe("mermaid-styles.config", () => {
       ];
 
       for (const styleClass of styleClasses) {
-        const result = applyStyle("testNode", styleClass);
+        const result = applyStyleClass("testNode", styleClass);
         expect(result).toBe(`    class testNode ${styleClass}`);
       }
     });
 
     it("should handle node IDs with underscores", () => {
-      const result = applyStyle("node_with_underscores_123", "dependency");
+      const result = applyStyleClass("node_with_underscores_123", "dependency");
 
       expect(result).toBe("    class node_with_underscores_123 dependency");
     });
