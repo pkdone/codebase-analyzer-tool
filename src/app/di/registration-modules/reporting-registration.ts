@@ -24,8 +24,8 @@ import { BusinessProcessesSection } from "../../components/reporting/sections/bu
 
 // Visualization sections (domain-organized)
 import { DomainModelSection } from "../../components/reporting/sections/domain-model";
-import { CurrentArchitectureSection } from "../../components/reporting/sections/current-architecture";
-import { MicroservicesArchitectureSection } from "../../components/reporting/sections/future-architecture";
+import { InferredArchitectureSection } from "../../components/reporting/sections/inferred-architecture";
+import { PotentialMicroservicesSection } from "../../components/reporting/sections/future-architecture";
 
 // Focused report sections
 import { DependenciesSection } from "../../components/reporting/sections/dependencies/dependencies-section";
@@ -108,8 +108,8 @@ export function registerReportingComponents(): void {
   container.registerSingleton(reportingTokens.ReportSection, BusinessProcessesSection);
   // Visualization sections
   container.registerSingleton(reportingTokens.ReportSection, DomainModelSection);
-  container.registerSingleton(reportingTokens.ReportSection, MicroservicesArchitectureSection);
-  container.registerSingleton(reportingTokens.ReportSection, CurrentArchitectureSection);
+  container.registerSingleton(reportingTokens.ReportSection, PotentialMicroservicesSection);
+  container.registerSingleton(reportingTokens.ReportSection, InferredArchitectureSection);
   // Focused analysis sections
   container.registerSingleton(reportingTokens.ReportSection, DependenciesSection);
   container.registerSingleton(reportingTokens.ReportSection, BackgroundProcessesSection);

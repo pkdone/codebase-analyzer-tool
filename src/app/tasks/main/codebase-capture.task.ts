@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import { injectable, inject } from "tsyringe";
-import CodebaseToDBLoader from "../../components/capture/codebase-to-db-loader";
+import CodebaseCaptureService from "../../components/capture/codebase-capture.service";
 import type LLMExecutionStats from "../../../common/llm/tracking/llm-execution-stats";
 import type LLMRouter from "../../../common/llm/llm-router";
 import type { EnvVars } from "../../env/env.types";
@@ -26,8 +26,8 @@ export class CodebaseCaptureTask extends BaseAnalysisTask {
     @inject(coreTokens.DatabaseInitializer)
     private readonly databaseInitializer: DatabaseInitializer,
     @inject(coreTokens.EnvVars) private readonly env: EnvVars,
-    @inject(captureTokens.CodebaseToDBLoader)
-    private readonly codebaseToDBLoader: CodebaseToDBLoader,
+    @inject(captureTokens.CodebaseCaptureService)
+    private readonly codebaseCaptureService: CodebaseCaptureService,
   ) {
     super(llmStats, projectName);
   }
@@ -44,7 +44,7 @@ export class CodebaseCaptureTask extends BaseAnalysisTask {
     const vectorDimensions =
       this.llmRouter.getEmbeddingModelDimensions() ?? databaseConfig.DEFAULT_VECTOR_DIMENSIONS;
     await this.databaseInitializer.initializeDatabaseSchema(vectorDimensions);
-    await this.codebaseToDBLoader.captureCodebaseToDatabase(
+    await this.codebaseCaptureService.captureCodebaseToDatabase(
       this.projectName,
       this.env.CODEBASE_DIR_PATH,
       this.env.SKIP_ALREADY_PROCESSED_FILES,

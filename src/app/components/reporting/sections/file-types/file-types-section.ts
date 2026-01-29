@@ -8,7 +8,7 @@ import type { PreparedJsonData } from "../../json-report-writer";
 import type { ReportData } from "../../report-data.types";
 import { SECTION_NAMES, HTML_TABLE_COLUMN_HEADERS } from "../../config/reporting.config";
 import { UNKNOWN_VALUE_PLACEHOLDER } from "../../config/placeholders.config";
-import { calculatePieChartData } from "./pie-chart-calculator";
+import { buildPieChartData } from "./pie-chart-data-builder";
 import { outputConfig } from "../../../../config/output.config";
 
 /**
@@ -49,8 +49,8 @@ export class FileTypesSection extends BaseReportSection {
       [HTML_TABLE_COLUMN_HEADERS.LINES_COUNT]: item.lines,
     }));
 
-    // Calculate pie chart data
-    const pieChartData = calculatePieChartData(processedFileTypesData);
+    // Build pie chart data
+    const pieChartData = buildPieChartData(processedFileTypesData);
 
     // Implementation of async interface - computation is synchronous but interface requires Promise
     return await Promise.resolve({

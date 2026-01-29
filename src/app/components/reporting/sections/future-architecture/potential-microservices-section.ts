@@ -2,23 +2,24 @@ import { injectable, inject } from "tsyringe";
 import type { ReportSection } from "../report-section.interface";
 import type { RequestableAppSummaryField } from "../../../../repositories/app-summaries/app-summaries.model";
 import { reportingTokens } from "../../../../di/tokens";
-import { CurrentArchitectureDiagramGenerator } from "../../diagrams";
+import { ArchitectureDiagramGenerator } from "../../diagrams";
 import type { PreparedHtmlReportData } from "../../types/html-report-data.types";
 import type { PreparedJsonData } from "../../json-report-writer";
 import type { ReportData } from "../../report-data.types";
 import { SECTION_NAMES } from "../../config/reporting.config";
-import { extractInferredArchitectureData } from "./architecture-data-extractor";
+import { extractMicroservicesData } from "./microservices-data-extractor";
 
 /**
- * Report section for current/inferred architecture visualizations.
- * Generates Mermaid diagrams showing the inferred architecture from the codebase.
+ * Report section for potential microservices architecture visualizations.
+ * Generates Mermaid diagrams showing suggested microservices and their relationships.
+ * This section visualizes the hypothetical microservices decomposition of a monolithic application.
  * Diagrams are generated as Mermaid definitions and rendered client-side.
  */
 @injectable()
-export class CurrentArchitectureSection implements ReportSection {
+export class PotentialMicroservicesSection implements ReportSection {
   constructor(
-    @inject(reportingTokens.CurrentArchitectureDiagramGenerator)
-    private readonly currentArchitectureDiagramGenerator: CurrentArchitectureDiagramGenerator,
+    @inject(reportingTokens.ArchitectureDiagramGenerator)
+    private readonly architectureDiagramGenerator: ArchitectureDiagramGenerator,
   ) {}
 
   getName(): string {
@@ -26,8 +27,8 @@ export class CurrentArchitectureSection implements ReportSection {
   }
 
   getRequiredAppSummaryFields(): readonly RequestableAppSummaryField[] {
-    // This section requires inferred architecture data for current architecture visualization
-    return ["inferredArchitecture"];
+    // This section requires potential microservices data for architecture visualization
+    return ["potentialMicroservices"];
   }
 
   async getData(_projectName: string): Promise<Partial<ReportData>> {
@@ -41,17 +42,15 @@ export class CurrentArchitectureSection implements ReportSection {
     _sectionData: Partial<ReportData>,
     _htmlDir: string,
   ): Promise<Partial<PreparedHtmlReportData> | null> {
-    // Extract inferred architecture data and generate current architecture diagram (synchronous)
-    const inferredArchitectureData = extractInferredArchitectureData(baseData.categorizedData);
-    const currentArchitectureDiagramSvg =
-      this.currentArchitectureDiagramGenerator.generateCurrentArchitectureDiagram(
-        inferredArchitectureData,
-      );
+    // Extract microservices data and generate architecture diagram (synchronous - client-side rendering)
+    const microservicesData = extractMicroservicesData(baseData.categorizedData);
+    const architectureDiagramSvg =
+      this.architectureDiagramGenerator.generateArchitectureDiagram(microservicesData);
 
     // Implementation of async interface - computation is synchronous but interface requires Promise
     return await Promise.resolve({
-      inferredArchitectureData,
-      currentArchitectureDiagramSvg,
+      microservicesData,
+      architectureDiagramSvg,
     });
   }
 

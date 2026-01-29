@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import path from "path";
-import CodebaseToDBLoader from "../../../../src/app/components/capture/codebase-to-db-loader";
+import CodebaseCaptureService from "../../../../src/app/components/capture/codebase-capture.service";
 import { SourcesRepository } from "../../../../src/app/repositories/sources/sources.repository.interface";
 import LLMRouter from "../../../../src/common/llm/llm-router";
 import { FileSummarizerService } from "../../../../src/app/components/capture/file-summarizer.service";
@@ -34,7 +34,7 @@ jest.mock("../../../../src/app/config/file-handling", () => ({
 
 /**
  * Test configuration for file processing rules.
- * Injected directly into CodebaseToDBLoader instead of mocking module imports.
+ * Injected directly into CodebaseCaptureService instead of mocking module imports.
  * Uses type assertion to allow test-specific values without matching exact literal types.
  */
 const mockFileProcessingRules = {
@@ -76,8 +76,8 @@ const mockPath = {
   basename: mockPathBasename,
 } as jest.Mocked<typeof path>;
 
-describe("CodebaseToDBLoader", () => {
-  let loader: CodebaseToDBLoader;
+describe("CodebaseCaptureService", () => {
+  let service: CodebaseCaptureService;
   let mockSourcesRepository: jest.Mocked<SourcesRepository>;
   let mockLLMRouter: jest.Mocked<LLMRouter>;
   let mockFileSummarizer: jest.Mocked<FileSummarizerService>;
@@ -130,8 +130,8 @@ describe("CodebaseToDBLoader", () => {
       run: jest.fn().mockImplementation(async <T>(fn: () => Promise<T>) => fn()),
     } as unknown as jest.Mocked<LlmConcurrencyService>;
 
-    // Create loader with injected mock config (no module mocking needed)
-    loader = new CodebaseToDBLoader(
+    // Create service with injected mock config (no module mocking needed)
+    service = new CodebaseCaptureService(
       mockSourcesRepository,
       mockLLMRouter,
       mockFileSummarizer,
@@ -157,7 +157,7 @@ describe("CodebaseToDBLoader", () => {
       mockTextUtils.countLines.mockReturnValue(1);
       mockGetCanonicalFileType.mockReturnValue("javascript");
 
-      await loader.captureCodebaseToDatabase("test-project", "/src", false);
+      await service.captureCodebaseToDatabase("test-project", "/src", false);
 
       expect(mockDirectoryOperations.findFilesRecursively).toHaveBeenCalledWith("/src", {
         folderIgnoreList: [".git", "node_modules"],
@@ -185,7 +185,7 @@ describe("CodebaseToDBLoader", () => {
       mockFileOperations.readFile.mockResolvedValue("const x = 1;");
       mockTextUtils.countLines.mockReturnValue(1);
 
-      await loader.captureCodebaseToDatabase("test-project", "/src", true);
+      await service.captureCodebaseToDatabase("test-project", "/src", true);
 
       expect(mockSourcesRepository.insertSource).toHaveBeenCalledTimes(1);
     });
@@ -193,7 +193,7 @@ describe("CodebaseToDBLoader", () => {
     it("should delete existing sources when skipIfAlreadyCaptured is false", async () => {
       mockDirectoryOperations.findFilesRecursively.mockResolvedValue([]);
 
-      await loader.captureCodebaseToDatabase("test-project", "/src", false);
+      await service.captureCodebaseToDatabase("test-project", "/src", false);
 
       expect(mockSourcesRepository.deleteSourcesByProject).toHaveBeenCalledWith("test-project");
     });
@@ -202,7 +202,7 @@ describe("CodebaseToDBLoader", () => {
       mockDirectoryOperations.findFilesRecursively.mockResolvedValue([]);
       mockSourcesRepository.getProjectFilesPaths.mockResolvedValue([]);
 
-      await loader.captureCodebaseToDatabase("test-project", "/src", true);
+      await service.captureCodebaseToDatabase("test-project", "/src", true);
 
       expect(mockSourcesRepository.deleteSourcesByProject).not.toHaveBeenCalled();
     });
@@ -217,7 +217,7 @@ describe("CodebaseToDBLoader", () => {
       mockFileOperations.readFile.mockResolvedValue("const x = 1;");
       mockTextUtils.countLines.mockReturnValue(1);
 
-      await loader.captureCodebaseToDatabase("test-project", "/src", false);
+      await service.captureCodebaseToDatabase("test-project", "/src", false);
 
       expect(mockSourcesRepository.insertSource).toHaveBeenCalledTimes(1);
     });
@@ -234,7 +234,7 @@ describe("CodebaseToDBLoader", () => {
         .mockResolvedValueOnce("const x = 1;");
       mockTextUtils.countLines.mockReturnValue(1);
 
-      await loader.captureCodebaseToDatabase("test-project", "/src", false);
+      await service.captureCodebaseToDatabase("test-project", "/src", false);
 
       expect(mockSourcesRepository.insertSource).toHaveBeenCalledTimes(1);
     });
@@ -254,7 +254,7 @@ describe("CodebaseToDBLoader", () => {
         ),
       );
 
-      await loader.captureCodebaseToDatabase("test-project", "/src", false);
+      await service.captureCodebaseToDatabase("test-project", "/src", false);
 
       // File should still be inserted with summaryError
       expect(mockSourcesRepository.insertSource).toHaveBeenCalledWith(
@@ -272,7 +272,7 @@ describe("CodebaseToDBLoader", () => {
       mockPath.relative.mockReturnValue("file1.ts");
       mockFileOperations.readFile.mockRejectedValue(new Error("Read failed"));
 
-      await loader.captureCodebaseToDatabase("test-project", "/src", false);
+      await service.captureCodebaseToDatabase("test-project", "/src", false);
 
       expect(mockConsoleWarn).toHaveBeenCalledWith(expect.stringContaining("failed to process"));
     });
@@ -289,7 +289,7 @@ describe("CodebaseToDBLoader", () => {
       mockTextUtils.countLines.mockReturnValue(1);
       mockLLMRouter.generateEmbeddings.mockResolvedValue(mockEmbeddings);
 
-      await loader.captureCodebaseToDatabase("test-project", "/src", false);
+      await service.captureCodebaseToDatabase("test-project", "/src", false);
 
       expect(mockSourcesRepository.insertSource).toHaveBeenCalledWith(
         expect.objectContaining({

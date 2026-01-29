@@ -30,9 +30,10 @@ export type ProjectedSourceFilePathAndSummary = z.infer<
 >;
 
 /**
- * Type for MongoDB projected document with metadata, content and summary for vector search
+ * Type representing the result of a vector search operation on source files.
+ * Contains metadata, content, and summary fields needed for RAG workflows.
  */
-export type ProjectedSourceMetadataContentAndSummary = z.infer<
+export type VectorSearchResult = z.infer<
   ReturnType<
     typeof sourceSchema.pick<{
       projectName: true;

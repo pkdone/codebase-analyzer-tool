@@ -7,7 +7,7 @@ import { getCategoryLabel } from "../../../config/category-labels.config";
 import { logWarn } from "../../../../common/utils/logging";
 import { isNotNull } from "../../../../common/utils/type-guards";
 import { llmTokens, serviceTokens } from "../../../di/tokens";
-import { IInsightGenerationStrategy } from "./completion-strategy.interface";
+import { IInsightGenerationStrategy } from "./insight-generation-strategy.interface";
 import type { LlmConcurrencyService } from "../../concurrency";
 import {
   AppSummaryCategoryEnum,

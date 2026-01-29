@@ -7,9 +7,9 @@ import * as CaptureModule from "../../../../src/app/components/capture";
 
 describe("capture module barrel exports", () => {
   describe("core services", () => {
-    it("should export CodebaseToDBLoader", () => {
-      expect(CaptureModule.CodebaseToDBLoader).toBeDefined();
-      expect(typeof CaptureModule.CodebaseToDBLoader).toBe("function");
+    it("should export CodebaseCaptureService", () => {
+      expect(CaptureModule.CodebaseCaptureService).toBeDefined();
+      expect(typeof CaptureModule.CodebaseCaptureService).toBe("function");
     });
 
     it("should export FileSummarizerService", () => {

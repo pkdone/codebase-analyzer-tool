@@ -6,7 +6,7 @@
  */
 
 // Core services
-export { default as CodebaseToDBLoader } from "./codebase-to-db-loader";
+export { default as CodebaseCaptureService } from "./codebase-capture.service";
 export {
   FileSummarizerService,
   type SourceSummaryType,

@@ -2,7 +2,7 @@
  * Data extraction utility for inferred architecture visualization.
  *
  * This module provides functions for extracting inferred architecture data from
- * categorized app summary data for use in the current architecture diagram.
+ * categorized app summary data for use in the inferred architecture diagram.
  */
 import { z } from "zod";
 import {

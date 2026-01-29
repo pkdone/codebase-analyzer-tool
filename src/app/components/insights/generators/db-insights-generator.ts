@@ -17,7 +17,7 @@ import { insightsConfig } from "../insights.config";
 import { getCategoryLabel } from "../../../config/category-labels.config";
 import { AppSummaryCategories } from "../../../schemas/app-summaries.schema";
 import { AppSummaryCategoryEnum } from "../insights.types";
-import type { IInsightGenerationStrategy } from "../strategies/completion-strategy.interface";
+import type { IInsightGenerationStrategy } from "../strategies/insight-generation-strategy.interface";
 import { batchItemsByTokenLimit } from "../../../../common/llm/utils/text-chunking";
 
 /**

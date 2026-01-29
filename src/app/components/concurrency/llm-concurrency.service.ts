@@ -14,7 +14,7 @@ type LimitFunction = ReturnType<typeof pLimit>;
  * share the same pool, preventing rate limit issues from nested parallelism.
  *
  * This service is used by:
- * - CodebaseToDBLoader: File capture and summarization
+ * - CodebaseCaptureService: File capture and summarization
  * - InsightsFromDBGenerator: Category-level insight processing
  * - MapReduceInsightStrategy: Chunk-level MAP phase processing
  * - PromptFileInsightsGenerator: Prompt-based insight generation

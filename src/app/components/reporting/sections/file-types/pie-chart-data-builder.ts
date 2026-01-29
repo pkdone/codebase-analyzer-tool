@@ -1,5 +1,5 @@
 /**
- * Pie chart calculation utilities for file type visualizations.
+ * Pie chart data building utilities for file type visualizations.
  * Separates geometry and rendering logic from the EJS template.
  */
 
@@ -64,13 +64,13 @@ function describeArc(
 }
 
 /**
- * Calculate all pie chart data from file type statistics.
+ * Build pie chart data from file type statistics.
  * This function performs all geometry calculations that were previously in the EJS template.
  *
  * @param fileTypesData - Array of file type statistics
  * @returns Complete pie chart data ready for template rendering
  */
-export function calculatePieChartData(fileTypesData: FileTypeData[]): PieChartData {
+export function buildPieChartData(fileTypesData: FileTypeData[]): PieChartData {
   const totalFiles = fileTypesData.reduce((sum, item) => sum + item.files, 0);
 
   // Calculate SVG dimensions based on content

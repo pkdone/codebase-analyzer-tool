@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import * as domainModelExports from "../../../../../src/app/components/reporting/sections/domain-model";
-import * as currentArchitectureExports from "../../../../../src/app/components/reporting/sections/current-architecture";
+import * as inferredArchitectureExports from "../../../../../src/app/components/reporting/sections/inferred-architecture";
 import * as futureArchitectureExports from "../../../../../src/app/components/reporting/sections/future-architecture";
 import * as overviewExports from "../../../../../src/app/components/reporting/sections/overview";
 import * as dataProcessingExports from "../../../../../src/app/components/reporting/data-processing";
@@ -30,20 +30,20 @@ describe("barrel exports", () => {
     });
   });
 
-  describe("current-architecture/index.ts", () => {
-    it("should export CurrentArchitectureSection", () => {
-      expect(currentArchitectureExports.CurrentArchitectureSection).toBeDefined();
+  describe("inferred-architecture/index.ts", () => {
+    it("should export InferredArchitectureSection", () => {
+      expect(inferredArchitectureExports.InferredArchitectureSection).toBeDefined();
     });
 
     it("should export extractInferredArchitectureData", () => {
-      expect(currentArchitectureExports.extractInferredArchitectureData).toBeDefined();
-      expect(typeof currentArchitectureExports.extractInferredArchitectureData).toBe("function");
+      expect(inferredArchitectureExports.extractInferredArchitectureData).toBeDefined();
+      expect(typeof inferredArchitectureExports.extractInferredArchitectureData).toBe("function");
     });
   });
 
   describe("future-architecture/index.ts", () => {
-    it("should export MicroservicesArchitectureSection", () => {
-      expect(futureArchitectureExports.MicroservicesArchitectureSection).toBeDefined();
+    it("should export PotentialMicroservicesSection", () => {
+      expect(futureArchitectureExports.PotentialMicroservicesSection).toBeDefined();
     });
 
     it("should export extractMicroservicesData", () => {

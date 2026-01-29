@@ -2,5 +2,5 @@
  * Future architecture section - visualization of potential microservices architecture.
  */
 
-export { MicroservicesArchitectureSection } from "./microservices-architecture-section";
+export { PotentialMicroservicesSection } from "./potential-microservices-section";
 export { extractMicroservicesData } from "./microservices-data-extractor";

@@ -3,7 +3,7 @@ import { numbersToBsonDoubles } from "../../../common/mongodb/bson-utils";
 import { SourcesRepository } from "./sources.repository.interface";
 import {
   SourceRecordWithId,
-  ProjectedSourceMetadataContentAndSummary,
+  VectorSearchResult,
   ProjectedSourceFilePathAndSummary,
   ProjectedSourceSummaryFields,
   ProjectedDatabaseIntegrationFields,
@@ -193,7 +193,7 @@ export default class SourcesRepositoryImpl
     queryVector: number[],
     numCandidates: number,
     limit: number,
-  ): Promise<ProjectedSourceMetadataContentAndSummary[]> {
+  ): Promise<VectorSearchResult[]> {
     // Convert number[] to Double[] to work around MongoDB driver issue
     // See: https://jira.mongodb.org/browse/NODE-5714
     const queryVectorDoubles = numbersToBsonDoubles(queryVector);
@@ -224,9 +224,7 @@ export default class SourcesRepositoryImpl
     ];
 
     try {
-      return await this.collection
-        .aggregate<ProjectedSourceMetadataContentAndSummary>(pipeline)
-        .toArray();
+      return await this.collection.aggregate<VectorSearchResult>(pipeline).toArray();
     } catch (error: unknown) {
       logErr(
         `Problem performing Atlas Vector Search aggregation - ensure the vector index is defined for the '${databaseConfig.SOURCES_COLLECTION_NAME}' collection`,

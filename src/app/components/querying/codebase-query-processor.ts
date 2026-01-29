@@ -1,7 +1,7 @@
 import LLMRouter from "../../../common/llm/llm-router";
 import { LLMOutputFormat } from "../../../common/llm/types/llm-request.types";
 import type { SourcesRepository } from "../../repositories/sources/sources.repository.interface";
-import type { ProjectedSourceMetadataContentAndSummary } from "../../repositories/sources/sources.model";
+import type { VectorSearchResult } from "../../repositories/sources/sources.model";
 import { queryingInputConfig } from "./querying-input.config";
 import { formatFilesAsMarkdownCodeBlocks } from "../../../common/utils/markdown-formatter";
 import { isOk } from "../../../common/types/result.types";
@@ -19,14 +19,12 @@ import { buildQueryPrompt } from "../../prompts/prompt-builders";
  * - Formatting vector search results for LLM consumption
  * - Creating structured prompts from multiple source files
  *
- * @param sourceFileMetadataList - Array of source file metadata including content and type
+ * @param vectorSearchResults - Array of vector search results including content and type
  * @returns Formatted string with markdown code blocks for each file
  */
-function formatSourcesForPrompt(
-  sourceFileMetadataList: ProjectedSourceMetadataContentAndSummary[],
-): string {
+function formatSourcesForPrompt(vectorSearchResults: VectorSearchResult[]): string {
   return formatFilesAsMarkdownCodeBlocks(
-    sourceFileMetadataList.map((file) => ({
+    vectorSearchResults.map((file) => ({
       filepath: file.filepath,
       type: file.fileType,
       content: file.content,

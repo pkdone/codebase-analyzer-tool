@@ -19,10 +19,10 @@ export { default as InsightsFromDBGenerator } from "./generators/db-insights-gen
 export { PromptFileInsightsGenerator } from "./generators/prompt-file-insights-generator";
 
 // Strategies
-export type { IInsightGenerationStrategy } from "./strategies/completion-strategy.interface";
+export type { IInsightGenerationStrategy } from "./strategies/insight-generation-strategy.interface";
 export {
   executeInsightCompletion,
   type InsightCompletionOptions,
 } from "./strategies/insights-completion-executor";
-export { MapReduceInsightStrategy } from "./strategies/map-reduce-completion-strategy";
-export { SinglePassInsightStrategy } from "./strategies/single-pass-completion-strategy";
+export { MapReduceInsightStrategy } from "./strategies/map-reduce-insight-strategy";
+export { SinglePassInsightStrategy } from "./strategies/single-pass-insight-strategy";

@@ -1,8 +1,8 @@
 import "reflect-metadata";
 import { DomainModelSection } from "../../../../../src/app/components/reporting/sections/domain-model";
 import { DomainModelTransformer } from "../../../../../src/app/components/reporting/sections/domain-model/domain-model-transformer";
-import { CurrentArchitectureSection } from "../../../../../src/app/components/reporting/sections/current-architecture";
-import { MicroservicesArchitectureSection } from "../../../../../src/app/components/reporting/sections/future-architecture";
+import { InferredArchitectureSection } from "../../../../../src/app/components/reporting/sections/inferred-architecture";
+import { PotentialMicroservicesSection } from "../../../../../src/app/components/reporting/sections/future-architecture";
 import {
   DomainModelDiagramGenerator,
   ArchitectureDiagramGenerator,
@@ -110,8 +110,8 @@ describe("DomainModelSection", () => {
   });
 });
 
-describe("MicroservicesArchitectureSection", () => {
-  let section: MicroservicesArchitectureSection;
+describe("PotentialMicroservicesSection", () => {
+  let section: PotentialMicroservicesSection;
   let mockArchitectureDiagramGenerator: jest.Mocked<ArchitectureDiagramGenerator>;
 
   beforeEach(() => {
@@ -119,7 +119,7 @@ describe("MicroservicesArchitectureSection", () => {
       generateArchitectureDiagram: jest.fn().mockReturnValue("<svg>architecture</svg>"),
     } as unknown as jest.Mocked<ArchitectureDiagramGenerator>;
 
-    section = new MicroservicesArchitectureSection(mockArchitectureDiagramGenerator);
+    section = new PotentialMicroservicesSection(mockArchitectureDiagramGenerator);
   });
 
   describe("getName", () => {
@@ -188,8 +188,8 @@ describe("MicroservicesArchitectureSection", () => {
   });
 });
 
-describe("CurrentArchitectureSection", () => {
-  let section: CurrentArchitectureSection;
+describe("InferredArchitectureSection", () => {
+  let section: InferredArchitectureSection;
   let mockCurrentArchitectureDiagramGenerator: jest.Mocked<CurrentArchitectureDiagramGenerator>;
 
   beforeEach(() => {
@@ -199,7 +199,7 @@ describe("CurrentArchitectureSection", () => {
         .mockReturnValue("<svg>current architecture</svg>"),
     } as unknown as jest.Mocked<CurrentArchitectureDiagramGenerator>;
 
-    section = new CurrentArchitectureSection(mockCurrentArchitectureDiagramGenerator);
+    section = new InferredArchitectureSection(mockCurrentArchitectureDiagramGenerator);
   });
 
   describe("getName", () => {

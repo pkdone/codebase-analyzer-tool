@@ -23,10 +23,12 @@ import { isOk } from "../../../common/types/result.types";
 import type { LlmConcurrencyService } from "../concurrency";
 
 /**
- * Loads each source file into a class to represent it.
+ * Service that orchestrates the capture of source files from a codebase into the database.
+ * Handles file discovery, content reading, LLM-based summarization, embedding generation,
+ * and persistence of source records.
  */
 @injectable()
-export default class CodebaseToDBLoader {
+export default class CodebaseCaptureService {
   /**
    * Constructor with dependency injection.
    * @param sourcesRepository - Repository for storing source file data

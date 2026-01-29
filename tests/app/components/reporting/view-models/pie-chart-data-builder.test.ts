@@ -1,14 +1,14 @@
 /**
- * Tests for pie chart calculation utilities.
+ * Tests for pie chart data building utilities.
  */
 
-import { calculatePieChartData } from "../../../../../src/app/components/reporting/sections/file-types/pie-chart-calculator";
+import { buildPieChartData } from "../../../../../src/app/components/reporting/sections/file-types/pie-chart-data-builder";
 import { pieChartConfig } from "../../../../../src/app/components/reporting/sections/file-types/pie-chart.config";
 import { UNKNOWN_VALUE_PLACEHOLDER } from "../../../../../src/app/components/reporting/config/placeholders.config";
 
 /**
  * File type data structure for test input.
- * Matches the internal interface of calculatePieChartData.
+ * Matches the internal interface of buildPieChartData.
  */
 interface FileTypeData {
   fileType: string;
@@ -16,10 +16,10 @@ interface FileTypeData {
   lines: number;
 }
 
-describe("pie-chart-calculator", () => {
-  describe("calculatePieChartData", () => {
+describe("pie-chart-data-builder", () => {
+  describe("buildPieChartData", () => {
     it("should return empty slices array for empty input", () => {
-      const result = calculatePieChartData([]);
+      const result = buildPieChartData([]);
       expect(result.totalFiles).toBe(0);
       expect(result.slices).toHaveLength(0);
     });
@@ -30,7 +30,7 @@ describe("pie-chart-calculator", () => {
         { fileType: "ts", files: 20, lines: 200 },
         { fileType: "css", files: 5, lines: 50 },
       ];
-      const result = calculatePieChartData(data);
+      const result = buildPieChartData(data);
       expect(result.totalFiles).toBe(35);
     });
 
@@ -39,7 +39,7 @@ describe("pie-chart-calculator", () => {
         { fileType: "js", files: 50, lines: 500 },
         { fileType: "ts", files: 50, lines: 500 },
       ];
-      const result = calculatePieChartData(data);
+      const result = buildPieChartData(data);
       expect(result.slices[0].percentage).toBe(50);
       expect(result.slices[1].percentage).toBe(50);
     });
@@ -49,7 +49,7 @@ describe("pie-chart-calculator", () => {
         { fileType: "js", files: 10, lines: 100 },
         { fileType: "ts", files: 20, lines: 200 },
       ];
-      const result = calculatePieChartData(data);
+      const result = buildPieChartData(data);
       expect(result.slices[0].color).toBe(pieChartConfig.COLORS[0]);
       expect(result.slices[1].color).toBe(pieChartConfig.COLORS[1]);
     });
@@ -59,7 +59,7 @@ describe("pie-chart-calculator", () => {
       const data: FileTypeData[] = Array(paletteSize + 2)
         .fill(null)
         .map((_, i) => ({ fileType: `type${i}`, files: 10, lines: 100 }));
-      const result = calculatePieChartData(data);
+      const result = buildPieChartData(data);
       // Colors beyond palette should be HSL format
       expect(result.slices[paletteSize].color).toMatch(/^hsl\(\d+(\.\d+)?, 65%, 50%\)$/);
       expect(result.slices[paletteSize + 1].color).toMatch(/^hsl\(\d+(\.\d+)?, 65%, 50%\)$/);
@@ -69,7 +69,7 @@ describe("pie-chart-calculator", () => {
 
     it("should generate path data for each slice", () => {
       const data: FileTypeData[] = [{ fileType: "js", files: 10, lines: 100 }];
-      const result = calculatePieChartData(data);
+      const result = buildPieChartData(data);
       expect(result.slices[0].pathData).toContain("M");
       expect(result.slices[0].pathData).toContain("A");
       expect(result.slices[0].pathData).toContain("Z");
@@ -80,7 +80,7 @@ describe("pie-chart-calculator", () => {
         { fileType: "js", files: 97, lines: 970 }, // 97%
         { fileType: "ts", files: 3, lines: 30 }, // 3% - at threshold
       ];
-      const result = calculatePieChartData(data);
+      const result = buildPieChartData(data);
       expect(result.slices[0].showLabel).toBe(true);
       expect(result.slices[1].showLabel).toBe(true);
     });
@@ -90,20 +90,20 @@ describe("pie-chart-calculator", () => {
         { fileType: "js", files: 98, lines: 980 }, // 98%
         { fileType: "ts", files: 2, lines: 20 }, // 2% - below threshold
       ];
-      const result = calculatePieChartData(data);
+      const result = buildPieChartData(data);
       expect(result.slices[0].showLabel).toBe(true);
       expect(result.slices[1].showLabel).toBe(false);
     });
 
     it("should use UNKNOWN_VALUE_PLACEHOLDER for empty file type labels", () => {
       const data: FileTypeData[] = [{ fileType: "", files: 10, lines: 100 }];
-      const result = calculatePieChartData(data);
+      const result = buildPieChartData(data);
       expect(result.slices[0].label).toBe(UNKNOWN_VALUE_PLACEHOLDER);
     });
 
     it("should include config values for template rendering", () => {
       const data: FileTypeData[] = [{ fileType: "js", files: 10, lines: 100 }];
-      const result = calculatePieChartData(data);
+      const result = buildPieChartData(data);
       expect(result.config.centerX).toBe(pieChartConfig.CENTER_X);
       expect(result.config.centerY).toBe(pieChartConfig.CENTER_Y);
       expect(result.config.legendX).toBe(pieChartConfig.LEGEND_X);
@@ -116,7 +116,7 @@ describe("pie-chart-calculator", () => {
         { fileType: "js", files: 50, lines: 500 },
         { fileType: "ts", files: 50, lines: 500 },
       ];
-      const result = calculatePieChartData(data);
+      const result = buildPieChartData(data);
       // First slice mid-angle is 0 (3 o'clock position), so labelX should be right of center
       expect(result.slices[0].labelX).toBeGreaterThan(pieChartConfig.CENTER_X);
       // Second slice mid-angle is π (9 o'clock position), so labelX should be left of center
@@ -129,8 +129,8 @@ describe("pie-chart-calculator", () => {
         .fill(null)
         .map((_, i) => ({ fileType: `type${i}`, files: 10, lines: 100 }));
 
-      const smallResult = calculatePieChartData(smallData);
-      const largeResult = calculatePieChartData(largeData);
+      const smallResult = buildPieChartData(smallData);
+      const largeResult = buildPieChartData(largeData);
 
       // More legend items should require more height
       expect(largeResult.svgHeight).toBeGreaterThan(smallResult.svgHeight);
@@ -138,7 +138,7 @@ describe("pie-chart-calculator", () => {
 
     it("should set SVG width from config", () => {
       const data: FileTypeData[] = [{ fileType: "js", files: 10, lines: 100 }];
-      const result = calculatePieChartData(data);
+      const result = buildPieChartData(data);
       expect(result.svgWidth).toBe(pieChartConfig.SVG_WIDTH);
     });
 
@@ -147,7 +147,7 @@ describe("pie-chart-calculator", () => {
         { fileType: "js", files: 0, lines: 0 },
         { fileType: "ts", files: 0, lines: 0 },
       ];
-      const result = calculatePieChartData(data);
+      const result = buildPieChartData(data);
       expect(result.totalFiles).toBe(0);
       expect(result.slices[0].percentage).toBe(0);
       expect(result.slices[1].percentage).toBe(0);

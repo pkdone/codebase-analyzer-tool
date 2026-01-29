@@ -13,13 +13,13 @@ import { AppSummariesRepository } from "../../repositories/app-summaries/app-sum
 import { registerReportingComponents } from "./reporting-registration";
 
 // Capture component imports
-import CodebaseToDBLoader from "../../components/capture/codebase-to-db-loader";
+import CodebaseCaptureService from "../../components/capture/codebase-capture.service";
 
 // Insights component imports
 import InsightsFromDBGenerator from "../../components/insights/generators/db-insights-generator";
 import { PromptFileInsightsGenerator } from "../../components/insights/generators/prompt-file-insights-generator";
-import { SinglePassInsightStrategy } from "../../components/insights/strategies/single-pass-completion-strategy";
-import { MapReduceInsightStrategy } from "../../components/insights/strategies/map-reduce-completion-strategy";
+import { SinglePassInsightStrategy } from "../../components/insights/strategies/single-pass-insight-strategy";
+import { MapReduceInsightStrategy } from "../../components/insights/strategies/map-reduce-insight-strategy";
 
 // Task imports (these are top-level orchestrators for CLI commands)
 import { CodebaseCaptureTask } from "../../tasks/main/codebase-capture.task";
@@ -98,7 +98,7 @@ function registerComponents(): void {
   container.registerSingleton(coreTokens.DatabaseInitializer, DatabaseInitializer);
 
   // Register capture components
-  container.registerSingleton(captureTokens.CodebaseToDBLoader, CodebaseToDBLoader);
+  container.registerSingleton(captureTokens.CodebaseCaptureService, CodebaseCaptureService);
 
   // Register insights components
   container.registerSingleton(

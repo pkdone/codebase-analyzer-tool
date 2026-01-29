@@ -3,7 +3,7 @@ import InsightsFromDBGenerator from "../../../../../src/app/components/insights/
 import { AppSummariesRepository } from "../../../../../src/app/repositories/app-summaries/app-summaries.repository.interface";
 import { SourcesRepository } from "../../../../../src/app/repositories/sources/sources.repository.interface";
 import LLMRouter from "../../../../../src/common/llm/llm-router";
-import type { IInsightGenerationStrategy } from "../../../../../src/app/components/insights/strategies/completion-strategy.interface";
+import type { IInsightGenerationStrategy } from "../../../../../src/app/components/insights/strategies/insight-generation-strategy.interface";
 import type { FileProcessingRulesType } from "../../../../../src/app/config/file-handling";
 import type { LlmConcurrencyService } from "../../../../../src/app/components/concurrency";
 import { llmConfig } from "../../../../../src/common/llm/config/llm.config";
