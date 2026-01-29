@@ -29,9 +29,11 @@ import {
 /**
  * Type alias for source prompt results.
  * Uses the common GeneratedPrompt type with source-specific schema and required metadata.
+ *
+ * @template K - The specific canonical file type from FileTypePromptRegistry
  */
-export type SourcePromptResult = GeneratedPrompt<
-  FileTypePromptRegistry[CanonicalFileType]["responseSchema"]
+export type SourcePromptResult<K extends CanonicalFileType> = GeneratedPrompt<
+  FileTypePromptRegistry[K]["responseSchema"]
 > &
   Required<Pick<GeneratedPrompt, "metadata">>;
 
@@ -140,6 +142,11 @@ function buildPartialAnalysisNote(dataBlockHeader: string): string {
  * combining the file type configuration with standard presentation fields.
  * All source files use the CODE data block header and wrap content in code blocks.
  *
+ * The generic parameter K captures the specific file type literal, enabling TypeScript
+ * to narrow the return type to the exact schema for that file type when called with
+ * a literal string (e.g., "java"). This provides API consistency with buildInsightPrompt.
+ *
+ * @template K - The specific canonical file type (inferred from the canonicalFileType parameter)
  * @param fileTypePromptRegistry - The registry containing prompt configurations for each file type
  * @param canonicalFileType - The canonical file type to build a prompt for
  * @param content - The source file content to analyze
@@ -155,11 +162,11 @@ function buildPartialAnalysisNote(dataBlockHeader: string): string {
  * });
  * ```
  */
-export function buildSourcePrompt(
+export function buildSourcePrompt<K extends CanonicalFileType>(
   fileTypePromptRegistry: FileTypePromptRegistry,
-  canonicalFileType: CanonicalFileType,
+  canonicalFileType: K,
   content: string,
-): SourcePromptResult {
+): SourcePromptResult<K> {
   const config = fileTypePromptRegistry[canonicalFileType];
   const promptGenerator = createPromptGenerator(config, {
     dataBlockHeader: CODE_DATA_BLOCK_HEADER,

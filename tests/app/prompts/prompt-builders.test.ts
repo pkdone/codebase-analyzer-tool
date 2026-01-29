@@ -12,7 +12,11 @@ import {
   buildQueryPrompt,
   createPromptGenerator,
 } from "../../../src/app/prompts/prompt-builders";
-import type { FileTypePromptRegistry } from "../../../src/app/prompts/sources/sources.definitions";
+import {
+  fileTypePromptRegistry,
+  type FileTypePromptRegistry,
+} from "../../../src/app/prompts/sources/sources.definitions";
+import type { CanonicalFileType } from "../../../src/app/schemas/canonical-file-types";
 import {
   DEFAULT_PERSONA_INTRODUCTION,
   FRAGMENTED_DATA_BLOCK_HEADER,
@@ -111,6 +115,56 @@ describe("buildSourcePrompt", () => {
 
     expect(result.prompt).toContain("Extract the purpose");
     expect(result.prompt).toContain("Extract the implementation");
+  });
+
+  describe("type safety", () => {
+    /**
+     * Tests that verify compile-time type safety through the generic K parameter.
+     * When called with literal file types, the return type should be narrowed
+     * to the specific schema for that file type.
+     */
+
+    test("should preserve schema type for specific file type literals", () => {
+      // This test verifies that calling with literal string types produces
+      // results with the specific schema for each file type
+      const javaResult = buildSourcePrompt(fileTypePromptRegistry, "java", "code");
+      const pythonResult = buildSourcePrompt(fileTypePromptRegistry, "python", "code");
+      const javascriptResult = buildSourcePrompt(fileTypePromptRegistry, "javascript", "code");
+
+      // Each result's schema property should match the file type's schema
+      expect(javaResult.schema).toBe(fileTypePromptRegistry.java.responseSchema);
+      expect(pythonResult.schema).toBe(fileTypePromptRegistry.python.responseSchema);
+      expect(javascriptResult.schema).toBe(fileTypePromptRegistry.javascript.responseSchema);
+    });
+
+    test("should work with CanonicalFileType union parameter", () => {
+      // This verifies backward compatibility when called with a union type variable
+      const fileType: CanonicalFileType = "java";
+      const result = buildSourcePrompt(fileTypePromptRegistry, fileType, "code");
+
+      expect(result).toHaveProperty("prompt");
+      expect(result).toHaveProperty("schema");
+      expect(result).toHaveProperty("metadata");
+      expect(result.schema).toBe(fileTypePromptRegistry.java.responseSchema);
+    });
+
+    test("should preserve schema type for dependency file types", () => {
+      // Test dependency file types which use a different schema
+      const mavenResult = buildSourcePrompt(fileTypePromptRegistry, "maven", "pom content");
+      const npmResult = buildSourcePrompt(fileTypePromptRegistry, "npm", "package.json content");
+
+      expect(mavenResult.schema).toBe(fileTypePromptRegistry.maven.responseSchema);
+      expect(npmResult.schema).toBe(fileTypePromptRegistry.npm.responseSchema);
+    });
+
+    test("should preserve schema type for special file types", () => {
+      // Test special file types like SQL, Markdown, etc.
+      const sqlResult = buildSourcePrompt(fileTypePromptRegistry, "sql", "SELECT * FROM users");
+      const markdownResult = buildSourcePrompt(fileTypePromptRegistry, "markdown", "# Heading");
+
+      expect(sqlResult.schema).toBe(fileTypePromptRegistry.sql.responseSchema);
+      expect(markdownResult.schema).toBe(fileTypePromptRegistry.markdown.responseSchema);
+    });
   });
 });
 
