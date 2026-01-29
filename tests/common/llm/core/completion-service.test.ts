@@ -12,6 +12,7 @@ import type { LLMCandidateFunction } from "../../../../src/common/llm/types/llm-
 import { LLMExecutionError } from "../../../../src/common/llm/types/llm-execution-result.types";
 import { LLMOutputFormat, LLMPurpose } from "../../../../src/common/llm/types/llm-request.types";
 import { isOk, isErr } from "../../../../src/common/types/result.types";
+import { llmConfig } from "../../../../src/common/llm/config/llm.config";
 import { z } from "zod";
 
 // Mock logging to avoid noise
@@ -279,7 +280,7 @@ describe("CompletionService", () => {
       const service = createService({ completionCandidates: [] });
       const result = service.getFirstCompletionModelMaxTokens();
 
-      expect(result).toBe(128000);
+      expect(result).toBe(llmConfig.DEFAULT_MAX_TOKENS_FALLBACK);
     });
 
     it("should return default when metadata is undefined", () => {
@@ -287,7 +288,7 @@ describe("CompletionService", () => {
       const service = createService();
       const result = service.getFirstCompletionModelMaxTokens();
 
-      expect(result).toBe(128000);
+      expect(result).toBe(llmConfig.DEFAULT_MAX_TOKENS_FALLBACK);
     });
 
     it("should return default when maxTotalTokens is missing from metadata", () => {
@@ -300,7 +301,7 @@ describe("CompletionService", () => {
       const service = createService();
       const result = service.getFirstCompletionModelMaxTokens();
 
-      expect(result).toBe(128000);
+      expect(result).toBe(llmConfig.DEFAULT_MAX_TOKENS_FALLBACK);
     });
   });
 

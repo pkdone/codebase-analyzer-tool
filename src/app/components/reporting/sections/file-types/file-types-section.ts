@@ -6,7 +6,7 @@ import { TableViewModel } from "../../table";
 import type { PreparedHtmlReportData } from "../../types/html-report-data.types";
 import type { PreparedJsonData } from "../../json-report-writer";
 import type { ReportData } from "../../report-data.types";
-import { SECTION_NAMES, HTML_TABLE_COLUMN_HEADERS } from "../../reporting.constants";
+import { SECTION_NAMES, HTML_TABLE_COLUMN_HEADERS } from "../../config/reporting.config";
 import { UNKNOWN_VALUE_PLACEHOLDER } from "../../config/placeholders.config";
 import { calculatePieChartData } from "./pie-chart-calculator";
 import { outputConfig } from "../../../../config/output.config";

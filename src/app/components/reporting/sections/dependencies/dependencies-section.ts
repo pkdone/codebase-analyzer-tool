@@ -5,7 +5,7 @@ import { BomDataProvider } from "./bom-data-provider";
 import type { PreparedHtmlReportData } from "../../types/html-report-data.types";
 import type { PreparedJsonData } from "../../json-report-writer";
 import type { ReportData } from "../../report-data.types";
-import { SECTION_NAMES } from "../../reporting.constants";
+import { SECTION_NAMES } from "../../config/reporting.config";
 import { getBomConflictsCssClass } from "../../view-models/presentation-helpers";
 
 /**

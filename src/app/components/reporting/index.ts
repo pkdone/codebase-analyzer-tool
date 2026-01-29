@@ -34,4 +34,4 @@ export { type UiTechnologyAnalysis } from "./sections/ui-analysis/ui-analysis.ty
 export type { ReportSection } from "./sections/report-section.interface";
 
 // Constants
-export { SECTION_NAMES } from "./reporting.constants";
+export { SECTION_NAMES } from "./config/reporting.config";

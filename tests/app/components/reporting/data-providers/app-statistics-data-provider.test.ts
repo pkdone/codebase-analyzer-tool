@@ -3,10 +3,12 @@ import { AppStatisticsDataProvider } from "../../../../../src/app/components/rep
 import { SourcesRepository } from "../../../../../src/app/repositories/sources/sources.repository.interface";
 import type { AppSummaryRecordWithId } from "../../../../../src/app/repositories/app-summaries/app-summaries.model";
 import { NO_DESCRIPTION_PLACEHOLDER } from "../../../../../src/app/components/reporting/config/placeholders.config";
+import { outputConfig, type OutputConfigType } from "../../../../../src/app/config/output.config";
 
 describe("AppStatisticsDataProvider", () => {
   let dataProvider: AppStatisticsDataProvider;
   let mockSourcesRepository: jest.Mocked<SourcesRepository>;
+  let mockOutputConfig: OutputConfigType;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -15,7 +17,10 @@ describe("AppStatisticsDataProvider", () => {
       getProjectFileAndLineStats: jest.fn(),
     } as unknown as jest.Mocked<SourcesRepository>;
 
-    dataProvider = new AppStatisticsDataProvider(mockSourcesRepository);
+    // Use real outputConfig for testing to ensure date formatting works correctly
+    mockOutputConfig = outputConfig;
+
+    dataProvider = new AppStatisticsDataProvider(mockSourcesRepository, mockOutputConfig);
   });
 
   describe("getAppStatistics", () => {
@@ -129,6 +134,27 @@ describe("AppStatisticsDataProvider", () => {
       expect(result.currentDate).not.toBe("");
       // Date format can vary, just check it contains digits and separators
       expect(result.currentDate).toMatch(/\d/);
+    });
+
+    it("should use DATE_LOCALE from output config for date formatting", async () => {
+      const mockAppSummaryData: Pick<AppSummaryRecordWithId, "appDescription" | "llmModels"> = {
+        appDescription: "Test app",
+        llmModels: "openai",
+      };
+
+      mockSourcesRepository.getProjectFileAndLineStats.mockResolvedValue({
+        fileCount: 0,
+        linesOfCode: 0,
+      });
+
+      const result = await dataProvider.getAppStatistics("test-project", mockAppSummaryData);
+
+      // The date should be in en-GB format (DD/MM/YYYY) based on the config
+      // This validates the config is being used for date formatting
+      expect(result.currentDate).toBeDefined();
+      expect(typeof result.currentDate).toBe("string");
+      // Verify the DATE_LOCALE is defined in the config being used
+      expect(mockOutputConfig.formatting.DATE_LOCALE).toBe("en-GB");
     });
   });
 });

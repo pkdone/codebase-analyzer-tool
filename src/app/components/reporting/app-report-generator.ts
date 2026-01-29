@@ -17,7 +17,7 @@ import type { ReportSection } from "./sections/report-section.interface";
 import path from "path";
 import type { OutputConfigType } from "../../config/output.config";
 import { HtmlReportAssetService } from "./services/html-report-asset.service";
-import { CORE_REQUIRED_APP_SUMMARY_FIELDS } from "./reporting.constants";
+import { CORE_REQUIRED_APP_SUMMARY_FIELDS } from "./config/reporting.config";
 
 /**
  * Class responsible for orchestrating report generation using a modular section-based architecture.

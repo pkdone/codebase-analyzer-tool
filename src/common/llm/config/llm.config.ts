@@ -18,6 +18,16 @@ export const llmConfig = {
   MIME_TYPE_JSON: "application/json",
   MIME_TYPE_ANY: "*/*",
   UTF8_ENCODING: ENCODING_UTF8,
+  /**
+   * Default average characters per token for estimation.
+   * Standard heuristic used across LLM providers (~3.6 chars/token for English text).
+   */
+  AVERAGE_CHARS_PER_TOKEN: 3.6,
+  /**
+   * Default fallback for maximum tokens when model metadata is unavailable.
+   * Based on common large context window models (128K tokens).
+   */
+  DEFAULT_MAX_TOKENS_FALLBACK: 128000,
 } as const;
 
 /**

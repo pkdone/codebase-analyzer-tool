@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import type { RequestableAppSummaryField } from "../../../../../src/app/repositories/app-summaries/app-summaries.model";
-import { CORE_REQUIRED_APP_SUMMARY_FIELDS } from "../../../../../src/app/components/reporting/reporting.constants";
+import { CORE_REQUIRED_APP_SUMMARY_FIELDS } from "../../../../../src/app/components/reporting/config/reporting.config";
 
 /**
  * Tests for type safety in report section field declarations.

@@ -24,6 +24,26 @@ describe("llmConfig", () => {
     expect(llmConfig.MAX_PROMPT_REDUCTION_RATIO).toBe(0.85);
   });
 
+  describe("token estimation constants", () => {
+    it("should have AVERAGE_CHARS_PER_TOKEN defined with expected value", () => {
+      expect(llmConfig.AVERAGE_CHARS_PER_TOKEN).toBeDefined();
+      expect(llmConfig.AVERAGE_CHARS_PER_TOKEN).toBe(3.6);
+    });
+
+    it("should have DEFAULT_MAX_TOKENS_FALLBACK defined with expected value", () => {
+      expect(llmConfig.DEFAULT_MAX_TOKENS_FALLBACK).toBeDefined();
+      expect(llmConfig.DEFAULT_MAX_TOKENS_FALLBACK).toBe(128000);
+    });
+
+    it("should be typed as const for token estimation constants", () => {
+      const charsPerToken: 3.6 = llmConfig.AVERAGE_CHARS_PER_TOKEN;
+      const maxTokensFallback: 128000 = llmConfig.DEFAULT_MAX_TOKENS_FALLBACK;
+
+      expect(charsPerToken).toBe(3.6);
+      expect(maxTokensFallback).toBe(128000);
+    });
+  });
+
   it("should be typed as const", () => {
     // This test verifies that TypeScript treats the config as readonly
     // The 'as const' assertion should make all properties readonly

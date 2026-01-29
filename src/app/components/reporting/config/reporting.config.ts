@@ -1,15 +1,8 @@
-/**
- * Constants for HTML table column headers.
- * Used by report sections to create consistent table displays.
- */
-export const HTML_TABLE_COLUMN_HEADERS = {
-  FILE_TYPE: "File Type",
-  FILES_COUNT: "Files Count",
-  LINES_COUNT: "Lines Count",
-} as const;
+import type { RequestableAppSummaryField } from "../../../repositories/app-summaries/app-summaries.model";
 
 /**
- * Section name constants used in sectionDataMap
+ * Section name identifiers used in sectionDataMap.
+ * These must match the keys used by report sections.
  */
 export const SECTION_NAMES = {
   FILE_TYPES: "file-types",
@@ -25,19 +18,26 @@ export const SECTION_NAMES = {
 } as const;
 
 /**
+ * Constants for HTML table column headers.
+ * Used by report sections to create consistent table displays.
+ */
+export const HTML_TABLE_COLUMN_HEADERS = {
+  FILE_TYPE: "File Type",
+  FILES_COUNT: "Files Count",
+  LINES_COUNT: "Lines Count",
+} as const;
+
+/**
  * Database object type labels used in reports.
- * These are display labels for database objects (stored procedures, triggers, etc.)
- * in the reporting layer.
+ * Display labels for database objects (stored procedures, triggers, etc.).
  */
 export const DATABASE_OBJECT_TYPE_LABELS = {
   STORED_PROCEDURE: "STORED PROCEDURE",
   TRIGGER: "TRIGGER",
 } as const;
 
-import type { RequestableAppSummaryField } from "../../repositories/app-summaries/app-summaries.model";
-
 /**
- * Core app summary fields required by the report generator itself.
+ * Core app summary fields required by the report generator.
  * These fields are needed for app statistics and categorized data generation,
  * and are combined with fields requested by individual report sections.
  *

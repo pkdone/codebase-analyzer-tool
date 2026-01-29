@@ -1,10 +1,5 @@
 import { logWarn } from "../../utils/logging";
-
-/**
- * Default average characters per token for estimation.
- * This is a standard heuristic used across LLM providers (~3.6 chars/token for English text).
- */
-const DEFAULT_AVERAGE_CHARS_PER_TOKEN = 3.6;
+import { llmConfig } from "../config/llm.config";
 
 /**
  * Configuration for batching items based on token limits.
@@ -53,7 +48,7 @@ export function batchItemsByTokenLimit(
   let currentChunk: string[] = [];
   let currentTokenCount = 0;
   const tokenLimitPerChunk = config.maxTokens * config.chunkTokenLimitRatio;
-  const charsPerToken = config.averageCharsPerToken ?? DEFAULT_AVERAGE_CHARS_PER_TOKEN;
+  const charsPerToken = config.averageCharsPerToken ?? llmConfig.AVERAGE_CHARS_PER_TOKEN;
 
   for (const item of items) {
     // Estimate token count using character-to-token ratio

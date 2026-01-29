@@ -4,12 +4,7 @@ import { normalizeTokenUsage } from "../../../../src/common/llm/utils/token-usag
 import type { LLMResponseTokensUsage } from "../../../../src/common/llm/types/llm-response.types";
 import type { ResolvedLLMModelMetadata } from "../../../../src/common/llm/types/llm-model.types";
 import { LLMPurpose } from "../../../../src/common/llm/types/llm-request.types";
-
-/**
- * Default average characters per token used by the normalizer.
- * This should match the constant in the source file for accurate testing.
- */
-const DEFAULT_AVERAGE_CHARS_PER_TOKEN = 3.6;
+import { llmConfig } from "../../../../src/common/llm/config/llm.config";
 
 describe("normalizeTokenUsage", () => {
   const createModelMetadata = (
@@ -137,7 +132,7 @@ describe("normalizeTokenUsage", () => {
         longRequest,
       );
 
-      const expectedEstimate = Math.floor(500 / DEFAULT_AVERAGE_CHARS_PER_TOKEN);
+      const expectedEstimate = Math.floor(500 / llmConfig.AVERAGE_CHARS_PER_TOKEN);
       expect(result.promptTokens).toBe(expectedEstimate); // 138 > 101, so use 138
     });
 
@@ -234,7 +229,7 @@ describe("normalizeTokenUsage", () => {
         largeRequest,
       );
 
-      const expectedEstimate = Math.floor(1_000_000 / DEFAULT_AVERAGE_CHARS_PER_TOKEN);
+      const expectedEstimate = Math.floor(1_000_000 / llmConfig.AVERAGE_CHARS_PER_TOKEN);
       expect(result.promptTokens).toBe(expectedEstimate);
       expect(result.promptTokens).toBeGreaterThan(100);
     });

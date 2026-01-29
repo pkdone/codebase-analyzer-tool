@@ -10,6 +10,7 @@ import type { LLMExecutionPipeline } from "./llm-execution-pipeline";
 import type { ProviderManager } from "./provider-manager";
 import { buildExecutableCandidates } from "./utils/llm-candidate-builder";
 import { logWarn } from "../utils/logging";
+import { llmConfig } from "./config/llm.config";
 
 /**
  * Dependencies required by the CompletionService.
@@ -139,15 +140,13 @@ export class CompletionService {
    * Useful for chunking calculations.
    */
   getFirstCompletionModelMaxTokens(): number {
-    const defaultMaxTokens = 128000;
-    if (this.completionCandidates.length === 0) return defaultMaxTokens;
-
+    if (this.completionCandidates.length === 0) return llmConfig.DEFAULT_MAX_TOKENS_FALLBACK;
     const firstEntry = this.modelChain.completions[0];
     const metadata = this.providerManager.getModelMetadata(
       firstEntry.providerFamily,
       firstEntry.modelKey,
     );
-    return metadata?.maxTotalTokens ?? defaultMaxTokens;
+    return metadata?.maxTotalTokens ?? llmConfig.DEFAULT_MAX_TOKENS_FALLBACK;
   }
 
   /**

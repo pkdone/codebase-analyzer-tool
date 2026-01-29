@@ -62,6 +62,37 @@ describe("outputConfig", () => {
     });
   });
 
+  describe("jsonFiles", () => {
+    it("should have jsonFiles defined", () => {
+      expect(outputConfig.jsonFiles).toBeDefined();
+    });
+
+    it("should have all expected JSON output filenames", () => {
+      expect(outputConfig.jsonFiles.COMPLETE_REPORT).toBe("codebase-report.json");
+      expect(outputConfig.jsonFiles.APP_STATS).toBe("app-stats.json");
+      expect(outputConfig.jsonFiles.APP_DESCRIPTION).toBe("app-description.json");
+      expect(outputConfig.jsonFiles.FILE_TYPES).toBe("file-types.json");
+      expect(outputConfig.jsonFiles.DB_INTERACTIONS).toBe("db-interactions.json");
+      expect(outputConfig.jsonFiles.PROCS_AND_TRIGGERS).toBe("procs-and-triggers.json");
+      expect(outputConfig.jsonFiles.INTEGRATION_POINTS).toBe("integration-points.json");
+      expect(outputConfig.jsonFiles.UI_TECHNOLOGY_ANALYSIS).toBe("ui-technology-analysis.json");
+    });
+  });
+
+  describe("formatting", () => {
+    it("should have formatting defined", () => {
+      expect(outputConfig.formatting).toBeDefined();
+    });
+
+    it("should have DATE_LOCALE with a valid locale string", () => {
+      expect(outputConfig.formatting.DATE_LOCALE).toBe("en-GB");
+    });
+
+    it("should have DATE_LOCALE as a string type", () => {
+      expect(typeof outputConfig.formatting.DATE_LOCALE).toBe("string");
+    });
+  });
+
   describe("immutability", () => {
     it("should be a const object", () => {
       expect(outputConfig).toBeDefined();

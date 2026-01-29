@@ -3,9 +3,9 @@ import {
   DATABASE_OBJECT_TYPE_LABELS,
   CORE_REQUIRED_APP_SUMMARY_FIELDS,
   HTML_TABLE_COLUMN_HEADERS,
-} from "../../../../src/app/components/reporting/reporting.constants";
+} from "../../../../../src/app/components/reporting/config/reporting.config";
 
-describe("reporting.constants", () => {
+describe("reporting.config", () => {
   describe("SECTION_NAMES", () => {
     it("should be defined", () => {
       expect(SECTION_NAMES).toBeDefined();

@@ -94,6 +94,9 @@ describe("AppReportGenerator", () => {
         INTEGRATION_POINTS: "integration-points.json",
         UI_TECHNOLOGY_ANALYSIS: "ui-technology-analysis.json",
       },
+      formatting: {
+        DATE_LOCALE: "en-GB",
+      },
     } as const;
 
     generator = new AppReportGenerator(

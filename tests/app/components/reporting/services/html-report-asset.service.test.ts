@@ -46,6 +46,9 @@ describe("HtmlReportAssetService", () => {
       INTEGRATION_POINTS: "integration-points.json",
       UI_TECHNOLOGY_ANALYSIS: "ui-technology-analysis.json",
     },
+    formatting: {
+      DATE_LOCALE: "en-GB",
+    },
   };
 
   let service: HtmlReportAssetService;

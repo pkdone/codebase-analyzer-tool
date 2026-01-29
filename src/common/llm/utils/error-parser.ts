@@ -1,12 +1,7 @@
 import { ResolvedLLMModelMetadata } from "../types/llm-model.types";
 import { LLMErrorMsgRegExPattern, TokenErrorGroups } from "../types/llm-stats.types";
 import { LLMResponseTokensUsage } from "../types/llm-response.types";
-
-/**
- * Default average characters per token for estimation.
- * This is a standard heuristic used across LLM providers (~3.6 chars/token for English text).
- */
-const DEFAULT_AVERAGE_CHARS_PER_TOKEN = 3.6;
+import { llmConfig } from "../config/llm.config";
 
 /**
  * Default result when no pattern matches or parsing fails.
@@ -137,7 +132,7 @@ export function calculateTokenUsageFromError(
   if (promptTokens < 0) {
     const assumedMaxTotalTokens = maxTotalTokens > 0 ? maxTotalTokens : publishedMaxTotalTokens;
     const estimatedPromptTokensConsumed = Math.floor(
-      prompt.length / DEFAULT_AVERAGE_CHARS_PER_TOKEN,
+      prompt.length / llmConfig.AVERAGE_CHARS_PER_TOKEN,
     );
     promptTokens = Math.max(estimatedPromptTokensConsumed, assumedMaxTotalTokens + 1);
   }

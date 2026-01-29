@@ -27,6 +27,9 @@ interface OutputConfig {
     readonly INTEGRATION_POINTS: string;
     readonly UI_TECHNOLOGY_ANALYSIS: string;
   };
+  readonly formatting: {
+    readonly DATE_LOCALE: string;
+  };
 }
 
 /**
@@ -78,5 +81,13 @@ export const outputConfig = {
     PROCS_AND_TRIGGERS: "procs-and-triggers.json",
     INTEGRATION_POINTS: "integration-points.json",
     UI_TECHNOLOGY_ANALYSIS: "ui-technology-analysis.json",
+  },
+
+  /**
+   * Formatting configuration for report output.
+   */
+  formatting: {
+    /** Locale for date formatting (DD/MM/YYYY, HH:mm:ss format for en-GB) */
+    DATE_LOCALE: "en-GB",
   },
 } as const satisfies OutputConfig;

@@ -12,7 +12,7 @@ import { procedureTriggerSchema } from "../../../../schemas/sources.schema";
 import { DEFAULT_COMPLEXITY } from "../../../../schemas/sources.enums";
 import type { z } from "zod";
 import { logWarn } from "../../../../../common/utils/logging";
-import { DATABASE_OBJECT_TYPE_LABELS } from "../../reporting.constants";
+import { DATABASE_OBJECT_TYPE_LABELS } from "../../config/reporting.config";
 import { NOT_AVAILABLE_PLACEHOLDER } from "../../config/placeholders.config";
 
 // Define a more specific type for the items
