@@ -1,0 +1,65 @@
+<% if (bomData && bomData.length > 0) { %>
+  <div class="stats-grid">
+    <div class="card">
+      <span class="card-title">Total Dependencies</span>
+      <span class="card-value"><%= bomStats.total %></span>
+    </div>
+    <div class="card">
+      <span class="card-title">Version Conflicts</span>
+      <span class="card-value <%= bomStats.conflictsCssClass %>"><%= bomStats.conflicts %></span>
+    </div>
+    <div class="card">
+      <span class="card-title">Build Files</span>
+      <span class="card-value"><%= bomStats.buildFiles %></span>
+    </div>
+  </div>
+
+  <% if (bomStats.conflicts > 0) { %>
+    <div class="note-box">
+      <p><strong>⚠️ Version Conflicts Detected!</strong> <%= bomStats.conflicts %> <%= bomStats.conflicts === 1 ? 'dependency has' : 'dependencies have' %> multiple versions. Review these carefully to avoid runtime issues.</p>
+    </div>
+  <% } %>
+
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Dependency Name</th>
+        <th>Group ID</th>
+        <th>Versions</th>
+        <th>Scopes</th>
+        <th>Locations</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% bomData.forEach(function(dep) { %>
+        <tr class="<%= dep.hasConflict ? 'conflict-row' : '' %>">
+          <td class="dep-name"><%= dep.name %></td>
+          <td class="dep-group"><%= dep.groupId || 'N/A' %></td>
+          <td class="dep-versions">
+            <% if (dep.hasConflict) { %>
+              <span class="version-conflict" title="Multiple versions detected">
+                <%= dep.versions.join(', ') %>
+              </span>
+            <% } else { %>
+              <%= dep.versions[0] %>
+            <% } %>
+          </td>
+          <td class="dep-scopes"><%= (dep.scopes || []).join(', ') || 'compile' %></td>
+          <td class="dep-locations" title="<%= dep.locations.join('\n') %>">
+            <%= dep.locations.length %> <%= dep.locations.length === 1 ? 'file' : 'files' %>
+          </td>
+          <td class="dep-status">
+            <% if (dep.hasConflict) { %>
+              <span class="badge badge-warning">⚠️ Conflict</span>
+            <% } else { %>
+              <span class="badge badge-success">✓ OK</span>
+            <% } %>
+          </td>
+        </tr>
+      <% }); %>
+    </tbody>
+  </table>
+<% } else { %>
+  <p class="note-paragraph">No build files with dependencies were found in this project.</p>
+<% } %>

@@ -1,5 +1,7 @@
 import "reflect-metadata";
-import * as visualizationsExports from "../../../../../src/app/components/reporting/sections/visualizations";
+import * as domainModelExports from "../../../../../src/app/components/reporting/sections/domain-model";
+import * as currentArchitectureExports from "../../../../../src/app/components/reporting/sections/current-architecture";
+import * as futureArchitectureExports from "../../../../../src/app/components/reporting/sections/future-architecture";
 import * as overviewExports from "../../../../../src/app/components/reporting/sections/overview";
 import * as dataProcessingExports from "../../../../../src/app/components/reporting/data-processing";
 
@@ -12,34 +14,41 @@ import * as dataProcessingExports from "../../../../../src/app/components/report
  * 3. Section-specific extractors are co-located with their consuming sections
  */
 describe("barrel exports", () => {
-  describe("visualizations/index.ts", () => {
-    it("should export section classes", () => {
-      expect(visualizationsExports.DomainModelSection).toBeDefined();
-      expect(visualizationsExports.MicroservicesArchitectureSection).toBeDefined();
-      expect(visualizationsExports.CurrentArchitectureSection).toBeDefined();
+  describe("domain-model/index.ts", () => {
+    it("should export DomainModelSection", () => {
+      expect(domainModelExports.DomainModelSection).toBeDefined();
     });
 
     it("should export DomainModelTransformer", () => {
-      expect(visualizationsExports.DomainModelTransformer).toBeDefined();
+      expect(domainModelExports.DomainModelTransformer).toBeDefined();
     });
 
-    it("should export co-located data extractors for this section", () => {
-      // These are now co-located with the visualizations section
-      expect(visualizationsExports.extractMicroservicesData).toBeDefined();
-      expect(typeof visualizationsExports.extractMicroservicesData).toBe("function");
-
-      expect(visualizationsExports.extractInferredArchitectureData).toBeDefined();
-      expect(typeof visualizationsExports.extractInferredArchitectureData).toBe("function");
-    });
-
-    it("should export domain model types", () => {
-      // Type exports won't show up in Object.keys at runtime, but we can verify
-      // the barrel file structure by checking that the expected exports exist
-      const exports = Object.keys(visualizationsExports);
+    it("should export domain model types via the module", () => {
+      const exports = Object.keys(domainModelExports);
       expect(exports).toContain("DomainModelSection");
-      expect(exports).toContain("MicroservicesArchitectureSection");
-      expect(exports).toContain("CurrentArchitectureSection");
       expect(exports).toContain("DomainModelTransformer");
+    });
+  });
+
+  describe("current-architecture/index.ts", () => {
+    it("should export CurrentArchitectureSection", () => {
+      expect(currentArchitectureExports.CurrentArchitectureSection).toBeDefined();
+    });
+
+    it("should export extractInferredArchitectureData", () => {
+      expect(currentArchitectureExports.extractInferredArchitectureData).toBeDefined();
+      expect(typeof currentArchitectureExports.extractInferredArchitectureData).toBe("function");
+    });
+  });
+
+  describe("future-architecture/index.ts", () => {
+    it("should export MicroservicesArchitectureSection", () => {
+      expect(futureArchitectureExports.MicroservicesArchitectureSection).toBeDefined();
+    });
+
+    it("should export extractMicroservicesData", () => {
+      expect(futureArchitectureExports.extractMicroservicesData).toBeDefined();
+      expect(typeof futureArchitectureExports.extractMicroservicesData).toBe("function");
     });
   });
 
@@ -71,8 +80,8 @@ describe("barrel exports", () => {
       expect(typeof dataProcessingExports.isCategorizedDataNameDescArray).toBe("function");
     });
 
-    it("should NOT export section-specific extractors (moved to visualizations)", () => {
-      // These have been moved to visualizations section
+    it("should NOT export section-specific extractors (moved to specific sections)", () => {
+      // These have been moved to their respective section modules
       const exports = Object.keys(dataProcessingExports);
       expect(exports).not.toContain("extractMicroservicesData");
       expect(exports).not.toContain("extractInferredArchitectureData");

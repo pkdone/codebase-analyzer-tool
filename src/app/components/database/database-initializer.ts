@@ -8,7 +8,7 @@ import {
   COLLECTION_TYPES,
   type CollectionType,
   type DatabaseConfigType,
-} from "./database.config";
+} from "../../config/database.config";
 import { logErr } from "../../../common/utils/logging";
 import { getJSONSchema as getSourcesJSONSchema } from "../../repositories/sources/sources.model";
 import { SOURCE_FIELDS } from "../../schemas/sources.constants";

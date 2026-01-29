@@ -1,4 +1,4 @@
-import { databaseConfig } from "../../../src/app/components/database/database.config";
+import { databaseConfig } from "../../../src/app/config/database.config";
 import { SOURCE_FIELDS } from "../../../src/app/schemas/sources.constants";
 
 describe("databaseConfig", () => {

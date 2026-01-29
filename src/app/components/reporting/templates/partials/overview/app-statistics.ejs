@@ -1,0 +1,28 @@
+<%- include('../common/section-header', { title: 'Statistics', jsonFile: jsonFilesConfig.jsonDataFiles.appStats, jsonIconSvg: jsonIconSvg }) %>
+
+<div class="stats-grid">
+  <div class="card">
+    <span class="card-title">Project Name</span>
+    <span class="card-value"><%= appStats.projectName %></span>
+  </div>
+  
+  <div class="card">
+    <span class="card-title">Snapshot Date</span>
+    <span class="card-value"><%= appStats.currentDate %></span>
+  </div>
+  
+  <div class="card">
+    <span class="card-title">LLM Models</span>
+    <span class="card-value long-text"><%= appStats.llmModels %></span>
+  </div>
+  
+  <div class="card">
+    <span class="card-title">Files Count</span>
+    <span class="card-value"><%= appStats.fileCount %></span>
+  </div>
+  
+  <div class="card">
+    <span class="card-title">Lines of Code</span>
+    <span class="card-value"><%= appStats.linesOfCode %></span>
+  </div>
+</div>

@@ -1,10 +1,8 @@
 import "reflect-metadata";
-import {
-  DomainModelSection,
-  MicroservicesArchitectureSection,
-  CurrentArchitectureSection,
-  DomainModelTransformer,
-} from "../../../../../src/app/components/reporting/sections/visualizations";
+import { DomainModelSection } from "../../../../../src/app/components/reporting/sections/domain-model";
+import { DomainModelTransformer } from "../../../../../src/app/components/reporting/sections/domain-model/domain-model-transformer";
+import { CurrentArchitectureSection } from "../../../../../src/app/components/reporting/sections/current-architecture";
+import { MicroservicesArchitectureSection } from "../../../../../src/app/components/reporting/sections/future-architecture";
 import {
   DomainModelDiagramGenerator,
   ArchitectureDiagramGenerator,

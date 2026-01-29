@@ -4,7 +4,7 @@ import type {
   DomainBoundedContext,
   DomainAggregate,
   DomainEntity,
-} from "../../sections/visualizations/domain-model-transformer";
+} from "../../sections/domain-model/domain-model-transformer";
 import { BaseDiagramGenerator, type BaseDiagramOptions } from "./base-diagram-generator";
 import { domainModelConfig } from "../diagrams.config";
 import { createFlowchartBuilder } from "../builders";

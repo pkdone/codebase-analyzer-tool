@@ -1,0 +1,47 @@
+<%- include('../common/section-header', { title: 'File Types', jsonFile: jsonFilesConfig.jsonDataFiles.fileTypes, jsonIconSvg: jsonIconSvg }) %>
+<div style="text-align: center; margin: 20px 0;">
+  <% if (pieChartData.totalFiles > 0) { %>
+  <svg width="<%= pieChartData.svgWidth %>" height="<%= pieChartData.svgHeight %>" xmlns="http://www.w3.org/2000/svg" style="max-width: 100%; height: auto; border: 1px solid #ddd; border-radius: 8px; background: #fafafa;">
+    <!-- Pie slices -->
+    <% pieChartData.slices.forEach((slice) => { %>
+      <% if (slice.percentage > 0) { %>
+        <path d="<%= slice.pathData %>" 
+              fill="<%= slice.color %>" 
+              stroke="#ffffff" 
+              stroke-width="2"/>
+        <% if (slice.showLabel) { %>
+          <text x="<%= slice.labelX %>" y="<%= slice.labelY %>" 
+                text-anchor="middle" 
+                dominant-baseline="middle"
+                font-family="system-ui, sans-serif" 
+                font-size="14" 
+                font-weight="bold"
+                fill="#ffffff"
+                stroke="#000000"
+                stroke-width="0.5"><%= slice.percentage.toFixed(1) %>%</text>
+        <% } %>
+      <% } %>
+    <% }); %>
+    
+    <!-- Legend -->
+    <% pieChartData.slices.forEach((slice, index) => { 
+      const y = pieChartData.config.legendY + index * pieChartData.config.legendItemHeight;
+    %>
+      <rect x="<%= pieChartData.config.legendX %>" y="<%= y %>" 
+            width="<%= pieChartData.config.legendBoxSize %>" height="<%= pieChartData.config.legendBoxSize %>" 
+            fill="<%= slice.color %>" 
+            stroke="#cccccc" 
+            stroke-width="1"/>
+      <text x="<%= pieChartData.config.legendX + pieChartData.config.legendBoxSize + 8 %>" y="<%= y + pieChartData.config.legendBoxSize - 2 %>" 
+            font-family="system-ui, sans-serif" 
+            font-size="13" 
+            fill="#333333"><%= slice.label %> (<%= slice.value %> files)</text>
+    <% }); %>
+  </svg>
+  <% } else { %>
+  <svg width="400" height="100" xmlns="http://www.w3.org/2000/svg" style="border: 1px solid #ddd; border-radius: 8px; background: #fafafa;">
+    <text x="200" y="50" text-anchor="middle" font-family="system-ui, sans-serif" font-size="14" fill="#666666">No file types data available</text>
+  </svg>
+  <% } %>
+</div>    
+<%- include('../common/table', { viewModel: fileTypesTableViewModel }) %>

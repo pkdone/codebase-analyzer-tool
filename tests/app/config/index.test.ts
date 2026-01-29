@@ -1,4 +1,4 @@
-import { databaseConfig } from "../../../src/app/components/database/database.config";
+import { databaseConfig } from "../../../src/app/config/database.config";
 import {
   fileProcessingRules as fileProcessingConfig,
   getCanonicalFileType,

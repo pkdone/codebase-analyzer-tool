@@ -15,19 +15,17 @@ import { DatabaseReportDataProvider } from "../../components/reporting/sections/
 import { IntegrationPointsDataProvider } from "../../components/reporting/sections/integration-points/integration-points-data-provider";
 import { AppStatisticsDataProvider } from "../../components/reporting/sections/overview/app-statistics-data-provider";
 import { CategorizedSectionDataBuilder } from "../../components/reporting/data-processing";
-import { DomainModelTransformer } from "../../components/reporting/sections/visualizations/domain-model-transformer";
+import { DomainModelTransformer } from "../../components/reporting/sections/domain-model/domain-model-transformer";
 import AppReportGenerator from "../../components/reporting/app-report-generator";
 import { FileTypesSection } from "../../components/reporting/sections/file-types/file-types-section";
 import { DatabaseSection } from "../../components/reporting/sections/database/database-section";
 import { IntegrationPointsSection } from "../../components/reporting/sections/integration-points/integration-points-section";
 import { BusinessProcessesSection } from "../../components/reporting/sections/business-processes/business-processes-section";
 
-// Visualization sections
-import {
-  DomainModelSection,
-  MicroservicesArchitectureSection,
-  CurrentArchitectureSection,
-} from "../../components/reporting/sections/visualizations";
+// Visualization sections (domain-organized)
+import { DomainModelSection } from "../../components/reporting/sections/domain-model";
+import { CurrentArchitectureSection } from "../../components/reporting/sections/current-architecture";
+import { MicroservicesArchitectureSection } from "../../components/reporting/sections/future-architecture";
 
 // Focused report sections
 import { DependenciesSection } from "../../components/reporting/sections/dependencies/dependencies-section";

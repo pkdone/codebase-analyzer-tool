@@ -23,11 +23,11 @@
       <button class="tab-button" data-target="tab-integration">Integration & APIs</button>
     </nav>
     <div id="tab-overview" class="tab-content active">
-      <%- include('partials/app-statistics', { appStats: appStats, jsonFilesConfig: jsonFilesConfig }) %>
+      <%- include('partials/overview/app-statistics', { appStats: appStats, jsonFilesConfig: jsonFilesConfig }) %>
       
       <% categorizedData.forEach(category => { %>
         <% if (category.category === 'technologies') { %>
-          <%- include('partials/technologies', { 
+          <%- include('partials/overview/technologies', { 
             label: category.label, 
             jsonFile: jsonFilesConfig.getCategoryJSONFilename(category.category),
             data: category.data 
@@ -35,17 +35,17 @@
         <% } %>
       <% }); %>
       
-      <%- include('partials/app-description', { appStats: appStats, jsonFilesConfig: jsonFilesConfig }) %>
+      <%- include('partials/overview/app-description', { appStats: appStats, jsonFilesConfig: jsonFilesConfig }) %>
       
-      <%- include('partials/file-types-summary', { fileTypesData: fileTypesData, fileTypesTableViewModel: fileTypesTableViewModel, jsonFilesConfig: jsonFilesConfig }) %>
+      <%- include('partials/overview/file-types-summary', { fileTypesData: fileTypesData, fileTypesTableViewModel: fileTypesTableViewModel, jsonFilesConfig: jsonFilesConfig }) %>
       
-      <%- include('partials/section-header', { title: 'Bill of Materials (Dependencies)', jsonFile: 'bill-of-materials.json', jsonIconSvg: jsonIconSvg }) %>
-      <%- include('partials/bom', { bomData: billOfMaterials, bomStats: bomStatistics }) %>
+      <%- include('partials/common/section-header', { title: 'Bill of Materials (Dependencies)', jsonFile: 'bill-of-materials.json', jsonIconSvg: jsonIconSvg }) %>
+      <%- include('partials/dependencies/bom', { bomData: billOfMaterials, bomStats: bomStatistics }) %>
     </div>
 
     <div id="tab-business" class="tab-content">
       <% if (businessProcessesFlowchartSvgs && businessProcessesFlowchartSvgs.length > 0) { %>
-        <%- include('partials/business-processes', { 
+        <%- include('partials/processes/business-processes', { 
           label: 'Existing Business Processes', 
           jsonFile: jsonFilesConfig.getCategoryJSONFilename('businessProcesses'),
           data: categorizedData.find(c => c.category === 'businessProcesses')?.data || [],
@@ -57,7 +57,7 @@
 
     <div id="tab-current-arch" class="tab-content">
       <% if (inferredArchitectureData && inferredArchitectureData.internalComponents && inferredArchitectureData.internalComponents.length > 0) { %>
-        <%- include('partials/current-architecture', { 
+        <%- include('partials/visualizations/current-architecture', { 
           inferredArchitectureData: inferredArchitectureData,
           currentArchitectureDiagramSvg: currentArchitectureDiagramSvg
         }) %>
@@ -70,7 +70,7 @@
 
     <div id="tab-arch" class="tab-content">
       <% if (microservicesData && microservicesData.length > 0) { %>
-        <%- include('partials/microservices-architecture', { 
+        <%- include('partials/visualizations/microservices-architecture', { 
           microservicesData: microservicesData,
           architectureDiagramSvg: architectureDiagramSvg,
           integrationPointsTableViewModel: integrationPointsTableViewModel
@@ -80,7 +80,7 @@
 
     <div id="tab-domain" class="tab-content">
       <% if (domainModelData && domainModelData.boundedContexts.length > 0) { %>
-        <%- include('partials/domain-model-diagrams', { 
+        <%- include('partials/visualizations/domain-model-diagrams', { 
           domainModelData: domainModelData,
           contextDiagramSvgs: contextDiagramSvgs
         }) %>
@@ -88,26 +88,26 @@
     </div>
 
     <div id="tab-quality" class="tab-content">
-      <%- include('partials/section-header', { title: 'Code Quality Summary', jsonFile: 'code-quality-summary.json', jsonIconSvg: jsonIconSvg }) %>
-      <%- include('partials/code-quality', { codeQualitySummary: codeQualitySummary }) %>
+      <%- include('partials/common/section-header', { title: 'Code Quality Summary', jsonFile: 'code-quality-summary.json', jsonIconSvg: jsonIconSvg }) %>
+      <%- include('partials/analysis/code-quality', { codeQualitySummary: codeQualitySummary }) %>
       <% if (scheduledJobsSummary && scheduledJobsSummary.jobs.length > 0) { %>
-        <%- include('partials/section-header', { title: 'Scheduled Jobs and Batch Processes', jsonFile: 'scheduled-jobs-summary.json', jsonIconSvg: jsonIconSvg }) %>
-        <%- include('partials/scheduled-jobs', { jobsData: scheduledJobsSummary, jobsStats: jobsStatistics }) %>
+        <%- include('partials/common/section-header', { title: 'Scheduled Jobs and Batch Processes', jsonFile: 'scheduled-jobs-summary.json', jsonIconSvg: jsonIconSvg }) %>
+        <%- include('partials/processes/scheduled-jobs', { jobsData: scheduledJobsSummary, jobsStats: jobsStatistics }) %>
       <% } %>
       
       <% if (moduleCoupling && moduleCoupling.couplings.length > 0) { %>
-        <%- include('partials/section-header', { title: 'Module Coupling Analysis', jsonFile: 'module-coupling.json', jsonIconSvg: jsonIconSvg }) %>
-        <%- include('partials/module-coupling', { couplingData: moduleCoupling, couplingStats: couplingStatistics }) %>
+        <%- include('partials/common/section-header', { title: 'Module Coupling Analysis', jsonFile: 'module-coupling.json', jsonIconSvg: jsonIconSvg }) %>
+        <%- include('partials/analysis/module-coupling', { couplingData: moduleCoupling, couplingStats: couplingStatistics }) %>
       <% } %>
     </div>
 
     <div id="tab-ui" class="tab-content">
-      <%- include('partials/section-header', { title: 'UI Technology Deep-Dive Analysis', jsonFile: 'ui-technology-analysis.json', jsonIconSvg: jsonIconSvg }) %>
-      <%- include('partials/ui-analysis', { uiData: uiTechnologyAnalysis }) %>
+      <%- include('partials/common/section-header', { title: 'UI Technology Deep-Dive Analysis', jsonFile: 'ui-technology-analysis.json', jsonIconSvg: jsonIconSvg }) %>
+      <%- include('partials/analysis/ui-analysis', { uiData: uiTechnologyAnalysis }) %>
     </div>
 
     <div id="tab-db" class="tab-content">
-      <%- include('partials/db-integrations', { 
+      <%- include('partials/database/db-integrations', { 
         dbInteractions: dbInteractions, 
         procsAndTriggers: procsAndTriggers, 
         dbInteractionsTableViewModel: dbInteractionsTableViewModel, 
@@ -118,7 +118,7 @@
     </div>
 
     <div id="tab-integration" class="tab-content">
-      <%- include('partials/integration-points', { 
+      <%- include('partials/processes/integration-points', { 
         integrationPoints: integrationPoints, 
         integrationPointsTableViewModel: integrationPointsTableViewModel, 
         jsonFilesConfig: jsonFilesConfig 
@@ -179,4 +179,4 @@
       });
     </script>
   </body>
-</html> 
+</html>

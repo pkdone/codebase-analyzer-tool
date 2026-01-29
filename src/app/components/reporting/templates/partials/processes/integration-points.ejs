@@ -1,0 +1,18 @@
+<%- include('../common/section-header', { title: 'Integration Points', jsonFile: jsonFilesConfig.jsonDataFiles.integrationPoints, jsonIconSvg: jsonIconSvg }) %>
+
+<% if (integrationPoints && integrationPoints.length > 0) { %>
+  <div class="card-grid">
+    <% integrationPoints.forEach(item => { %>
+      <div class="info-card">
+        <h3><%= item.name %></h3>
+        <p><strong>Namespace:</strong> <code><%= item.namespace %></code></p>
+        <p><strong>Mechanism:</strong> <code><%= item.mechanism %></code></p>
+        <p><strong>Direction:</strong> <%= item.direction || 'N/A' %></p>
+        <p><strong>Path/Topic:</strong> <code><%= item.path || item.queueOrTopicName || 'N/A' %></code></p>
+        <p><strong>Description:</strong> <%= item.description %></p>
+      </div>
+    <% }); %>
+  </div>
+<% } else { %>
+  <p>No integration points found.</p>
+<% } %>

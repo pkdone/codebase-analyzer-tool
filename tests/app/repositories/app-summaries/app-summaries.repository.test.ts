@@ -5,7 +5,7 @@ import {
   AppSummaryRecord,
   PartialAppSummaryRecord,
 } from "../../../../src/app/repositories/app-summaries/app-summaries.model";
-import { databaseConfig } from "../../../../src/app/components/database/database.config";
+import { databaseConfig } from "../../../../src/app/config/database.config";
 import * as mdbErrorUtils from "../../../../src/common/mongodb/mdb-error-utils";
 
 // Mock dependencies

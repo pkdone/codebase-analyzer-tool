@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import { DomainModelTransformer } from "../../../../../src/app/components/reporting/sections/visualizations/domain-model-transformer";
+import { DomainModelTransformer } from "../../../../../src/app/components/reporting/sections/domain-model/domain-model-transformer";
 import type {
   CategorizedSectionItem,
   BoundedContextsArray,

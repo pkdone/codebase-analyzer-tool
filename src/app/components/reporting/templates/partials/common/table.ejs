@@ -1,0 +1,50 @@
+<% if (viewModel.hasData()) { %>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <% 
+          const headers = viewModel.getDisplayHeaders();
+          const rows = viewModel.getProcessedRows();
+        %>
+        <% headers.forEach((header) => { %>
+          <th><%= header %></th>
+        <% }); %>
+      </tr>
+    </thead>
+    <tbody>
+      <% rows.forEach(row => { %>
+        <tr>
+          <% row.forEach((cell) => { %>
+            <% if (cell.type === 'link') { %>
+              <td><a href="<%= cell.content %>" target="_blank">Link</a></td>
+            <% } else if (cell.type === 'code') { %>
+              <td><pre><code><%- cell.content %></code></pre></td>
+            <% } else if (cell.type === 'list') { %>
+              <td>
+                <ul>
+                  <% cell.content.forEach(item => { %>
+                    <% if (item.type === 'object') { %>
+                      <li>
+                        <% const keys = Object.keys(item.content); %>
+                        <% keys.forEach((key, index) => { %>
+                          <% if (index > 0) { %> | <% } %>
+                          <strong><%= key %>:</strong> <%- item.content[key] %>
+                        <% }); %>
+                      </li>
+                    <% } else { %>
+                      <li><%- item.content %></li>
+                    <% } %>
+                  <% }); %>
+                </ul>
+              </td>
+            <% } else { %>
+              <td><%- cell.content %></td>
+            <% } %>
+          <% }); %>
+        </tr>
+      <% }); %>
+    </tbody>
+  </table>
+<% } else { %>
+  <p>None Found</p>
+<% } %>

@@ -1,0 +1,82 @@
+<% if (jobsData && jobsData.jobs.length > 0) { %>
+  <div class="stats-grid">
+    <div class="card">
+      <span class="card-title">Total Jobs</span>
+      <span class="card-value"><%= jobsStats.total %></span>
+    </div>
+    <div class="card">
+      <span class="card-title">Trigger Types</span>
+      <span class="card-value"><%= jobsStats.triggerTypesCount %></span>
+    </div>
+    <div class="card">
+      <span class="card-title">Script Files</span>
+      <span class="card-value"><%= jobsStats.jobFilesCount %></span>
+    </div>
+  </div>
+
+  <% if (jobsData.triggerTypes.length > 0) { %>
+    <div class="note-box">
+      <p><strong>Trigger Types Found:</strong> <%= jobsData.triggerTypes.join(', ') %></p>
+    </div>
+  <% } %>
+
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Job Name</th>
+        <th>Source File</th>
+        <th>Trigger</th>
+        <th>Purpose</th>
+        <th>Input Resources</th>
+        <th>Output Resources</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% jobsData.jobs.forEach(function(job) { %>
+        <tr>
+          <td class="job-name"><strong><%= job.jobName %></strong></td>
+          <td class="job-file" title="<%= job.sourceFile %>">
+            <%= job.sourceFile.split('/').pop() %>
+          </td>
+          <td class="job-trigger">
+            <span class="badge badge-trigger"><%= job.trigger %></span>
+          </td>
+          <td class="job-purpose"><%= job.purpose %></td>
+          <td class="job-resources">
+            <% if (job.inputResources && job.inputResources.length > 0) { %>
+              <ul class="resource-list">
+                <% job.inputResources.forEach(function(resource) { %>
+                  <li><%= resource %></li>
+                <% }); %>
+              </ul>
+            <% } else { %>
+              <span class="no-data-cell">None</span>
+            <% } %>
+          </td>
+          <td class="job-resources">
+            <% if (job.outputResources && job.outputResources.length > 0) { %>
+              <ul class="resource-list">
+                <% job.outputResources.forEach(function(resource) { %>
+                  <li><%= resource %></li>
+                <% }); %>
+              </ul>
+            <% } else { %>
+              <span class="no-data-cell">None</span>
+            <% } %>
+          </td>
+        </tr>
+        <% if (job.dependencies && job.dependencies.length > 0) { %>
+          <tr class="dependencies-row">
+            <td colspan="6">
+              <div class="dependencies-info">
+                <strong>Dependencies:</strong> <%= job.dependencies.join(', ') %>
+              </div>
+            </td>
+          </tr>
+        <% } %>
+      <% }); %>
+    </tbody>
+  </table>
+<% } else { %>
+  <p class="note-paragraph">No scheduled jobs or batch processes were found in this project.</p>
+<% } %>

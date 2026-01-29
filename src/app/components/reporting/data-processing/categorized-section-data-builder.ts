@@ -3,23 +3,42 @@ import { getCategoryLabel } from "../../../config/category-labels.config";
 import { AppSummaryCategories } from "../../../schemas/app-summaries.schema";
 import type { AppSummaryCategoryType } from "../../insights/insights.types";
 import type { AppSummaryRecordWithId } from "../../../repositories/app-summaries/app-summaries.model";
+import type { CategorizedSectionItem } from "./category-data-type-guards";
+import type { CategoryDataHandler, ProcessableCategory } from "./handlers";
 import {
-  type CategorizedSectionItem,
-  isAppSummaryNameDescArray,
-  isPotentialMicroservicesArray,
-  isBoundedContextsArray,
-  isBusinessProcessesArray,
-  parseInferredArchitectureData,
-  wrapInferredArchitectureAsArray,
-} from "./category-data-type-guards";
+  technologiesHandler,
+  businessProcessesHandler,
+  boundedContextsHandler,
+  potentialMicroservicesHandler,
+  inferredArchitectureHandler,
+} from "./handlers";
 
 // Re-export types and type guards that consumers may need
 export type { CategorizedSectionItem, BoundedContextsArray } from "./category-data-type-guards";
 export { isCategorizedDataNameDescArray } from "./category-data-type-guards";
 
 /**
+ * Registry of category handlers.
+ * Maps each processable category to its corresponding handler.
+ *
+ * To add a new category:
+ * 1. Create a new handler in ./handlers/
+ * 2. Add it to this registry
+ */
+const categoryHandlers: ReadonlyMap<ProcessableCategory, CategoryDataHandler> = new Map([
+  [technologiesHandler.category, technologiesHandler],
+  [businessProcessesHandler.category, businessProcessesHandler],
+  [boundedContextsHandler.category, boundedContextsHandler],
+  [potentialMicroservicesHandler.category, potentialMicroservicesHandler],
+  [inferredArchitectureHandler.category, inferredArchitectureHandler],
+]);
+
+/**
  * Builds categorized section data from app summary records for report generation.
  * Transforms and validates app summary data into a format suitable for report sections.
+ *
+ * Uses a handler registry pattern (Open/Closed Principle) - new categories can be added
+ * by creating new handlers without modifying this class.
  *
  * Returns a discriminated union (CategorizedSectionItem[]) where each item's `data` type
  * is narrowed based on the `category` discriminator.
@@ -43,7 +62,7 @@ export class CategorizedSectionDataBuilder {
     // Exclude appDescription which is rendered separately in the overview section
     // Note: boundedContexts is included here because the DomainModelTransformer needs it
     const standardCategoryKeys = AppSummaryCategories.options.filter(
-      (key): key is Exclude<AppSummaryCategoryType, "appDescription"> => key !== "appDescription",
+      (key): key is ProcessableCategory => key !== "appDescription",
     );
 
     const results: CategorizedSectionItem[] = [];
@@ -52,8 +71,8 @@ export class CategorizedSectionDataBuilder {
       const label = getCategoryLabel(category);
       const fieldData = appSummaryData[category];
 
-      // Build category-specific items with proper type narrowing
-      const item = this.buildCategorizedItem(category, label, fieldData);
+      // Use handler registry to process each category
+      const item = this.processCategory(category, label, fieldData);
       if (item !== null) {
         results.push(item);
         console.log(`Generated ${label} table`);
@@ -64,51 +83,19 @@ export class CategorizedSectionDataBuilder {
   }
 
   /**
-   * Builds a categorized item with the correct data type based on category.
-   * Returns null if the data is invalid for the category.
+   * Processes a category using its registered handler.
+   * Returns null if no handler is registered or if data is invalid.
    */
-  private buildCategorizedItem(
-    category: Exclude<AppSummaryCategoryType, "appDescription">,
+  private processCategory(
+    category: ProcessableCategory,
     label: string,
     fieldData: unknown,
   ): CategorizedSectionItem | null {
-    switch (category) {
-      case "technologies":
-        return {
-          category,
-          label,
-          data: isAppSummaryNameDescArray(fieldData) ? fieldData : [],
-        };
-
-      case "businessProcesses":
-        return {
-          category,
-          label,
-          data: isBusinessProcessesArray(fieldData) ? fieldData : [],
-        };
-
-      case "boundedContexts":
-        return {
-          category,
-          label,
-          data: isBoundedContextsArray(fieldData) ? fieldData : [],
-        };
-
-      case "potentialMicroservices":
-        return {
-          category,
-          label,
-          data: isPotentialMicroservicesArray(fieldData) ? fieldData : [],
-        };
-
-      case "inferredArchitecture": {
-        const parsedArchData = parseInferredArchitectureData(fieldData);
-        return {
-          category,
-          label,
-          data: parsedArchData !== null ? wrapInferredArchitectureAsArray(parsedArchData) : [],
-        };
-      }
+    const handler = categoryHandlers.get(category);
+    if (!handler) {
+      console.warn(`No handler registered for category: ${category}`);
+      return null;
     }
+    return handler.process(label, fieldData);
   }
 }

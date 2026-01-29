@@ -21,3 +21,6 @@ export type {
   PotentialMicroservicesArray,
   BusinessProcessesArray,
 } from "./category-data-type-guards";
+
+// Handler types for extensibility
+export type { CategoryDataHandler, ProcessableCategory } from "./handlers";

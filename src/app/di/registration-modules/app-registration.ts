@@ -32,7 +32,7 @@ import { ListAvailableModelsTask } from "../../tasks/dev/list-available-models.t
 import { ReportGenerationTask } from "../../tasks/main/report-generation.task";
 
 // Configuration imports
-import { databaseConfig } from "../../components/database/database.config";
+import { databaseConfig } from "../../config/database.config";
 import { outputConfig } from "../../config/output.config";
 import { fileProcessingRules } from "../../config/file-handling";
 import { concurrencyConfig } from "../../config/concurrency.config";

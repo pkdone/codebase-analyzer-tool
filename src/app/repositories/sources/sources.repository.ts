@@ -16,7 +16,7 @@ import {
   ProjectedCodeSmellStatistic,
   ProjectedCodeQualityStatistics,
 } from "./sources.model";
-import { databaseConfig } from "../../components/database/database.config";
+import { databaseConfig } from "../../config/database.config";
 import { logErr } from "../../../common/utils/logging";
 import { BaseRepository } from "../base/base-repository";
 import { coreTokens } from "../../di/tokens";

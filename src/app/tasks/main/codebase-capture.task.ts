@@ -5,7 +5,7 @@ import type LLMExecutionStats from "../../../common/llm/tracking/llm-execution-s
 import type LLMRouter from "../../../common/llm/llm-router";
 import type { EnvVars } from "../../env/env.types";
 import { DatabaseInitializer } from "../../components/database/database-initializer";
-import { databaseConfig } from "../../components/database/database.config";
+import { databaseConfig } from "../../config/database.config";
 import { llmTokens, coreTokens } from "../../di/tokens";
 import { captureTokens } from "../../di/tokens";
 import { BaseAnalysisTask } from "../base-analysis-task";

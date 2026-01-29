@@ -1,4 +1,4 @@
-import { databaseConfig } from "../../../src/app/components/database/database.config";
+import { databaseConfig } from "../../../src/app/config/database.config";
 
 describe("databaseConfig - dynamic VECTOR_INDEX_CONFIGS", () => {
   it("should generate VECTOR_INDEX_CONFIGS from field and index name constants", () => {
