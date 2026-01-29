@@ -62,9 +62,7 @@ describe("Category Handlers", () => {
         {
           name: "Order Processing",
           description: "Handles orders",
-          keyBusinessActivities: [
-            { activity: "Receive Order", description: "Initial step" },
-          ],
+          keyBusinessActivities: [{ activity: "Receive Order", description: "Initial step" }],
         },
       ];
       const result = handler.process("Business Processes", data);
