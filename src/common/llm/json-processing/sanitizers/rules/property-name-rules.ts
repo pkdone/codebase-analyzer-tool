@@ -12,50 +12,7 @@
 
 import type { ReplacementRule } from "./replacement-rule.types";
 import { isAfterJsonDelimiter, isInPropertyContext } from "../../utils/parser-context-utils";
-import { matchPropertyName, inferFromShortFragment } from "../../utils/property-name-matcher";
-
-/**
- * Infers a property name from a truncated fragment using schema metadata when available.
- * Falls back to common short fragment inference or generic "name" default.
- *
- * @param fragment - The truncated property name fragment
- * @param knownProperties - List of known property names from schema (optional)
- * @returns The inferred property name
- */
-function inferPropertyName(fragment: string, knownProperties?: readonly string[]): string {
-  // Strategy 1: If we have known properties, try dynamic matching
-  if (knownProperties && knownProperties.length > 0) {
-    const matchResult = matchPropertyName(fragment, knownProperties);
-    if (matchResult.matched && matchResult.confidence > 0.5) {
-      return matchResult.matched;
-    }
-  }
-
-  // Strategy 2: Try inference from common short fragments
-  const inferred = inferFromShortFragment(fragment, knownProperties);
-  if (inferred) {
-    return inferred;
-  }
-
-  // Strategy 3: Fallback to "name" as the most common property name
-  return "name";
-}
-
-/**
- * Checks if a property name is known based on schema metadata.
- *
- * @param propertyName - The property name to check
- * @param knownProperties - List of known property names from schema (optional)
- * @returns True if the property is known or if no schema is available
- */
-function isKnownProperty(propertyName: string, knownProperties?: readonly string[]): boolean {
-  if (!knownProperties || knownProperties.length === 0) {
-    // No schema available, use hardcoded common property names
-    const commonProperties = ["name", "type", "value", "id", "key", "kind", "text", "purpose"];
-    return commonProperties.includes(propertyName.toLowerCase());
-  }
-  return knownProperties.some((p) => p.toLowerCase() === propertyName.toLowerCase());
-}
+import { inferPropertyName, isKnownProperty } from "../../utils/property-name-inference";
 
 /**
  * Rules for fixing property name issues in JSON content.
