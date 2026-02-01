@@ -11,7 +11,7 @@ import {
 } from "../../config/database.config";
 import { logErr } from "../../../common/utils/logging";
 import { getJSONSchema as getSourcesJSONSchema } from "../../repositories/sources/sources.model";
-import { SOURCE_FIELDS } from "../../schemas/sources.constants";
+import { SOURCE_FIELDS } from "../../schemas/source-file.schema";
 import { getJSONSchema as getAppSummariesJSONSchema } from "../../repositories/app-summaries/app-summaries.model";
 import {
   VectorSearchFilter,

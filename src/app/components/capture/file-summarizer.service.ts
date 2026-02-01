@@ -3,7 +3,7 @@ import { z } from "zod";
 import { logErr } from "../../../common/utils/logging";
 import type LLMRouter from "../../../common/llm/llm-router";
 import { LLMOutputFormat } from "../../../common/llm/types/llm-request.types";
-import { sourceSummarySchema } from "../../schemas/sources.schema";
+import { sourceSummarySchema } from "../../schemas/source-file.schema";
 import type { CanonicalFileType } from "../../schemas/canonical-file-types";
 import { getLlmArtifactCorrections } from "../../llm";
 import { llmTokens, captureTokens } from "../../di/tokens";

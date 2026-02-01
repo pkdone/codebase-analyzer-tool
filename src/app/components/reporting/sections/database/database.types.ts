@@ -1,5 +1,8 @@
-import { procedureTriggerSchema } from "../../../../schemas/sources.schema";
-import { COMPLEXITY_VALUES_SET, type ComplexityValue } from "../../../../schemas/sources.enums";
+import {
+  procedureTriggerSchema,
+  COMPLEXITY_VALUES_SET,
+  type ComplexityValue,
+} from "../../../../schemas/source-file.schema";
 import type { TypeOf } from "zod";
 
 /**

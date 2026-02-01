@@ -6,8 +6,8 @@ import {
   type JSONSchemaPromptConfig,
 } from "../../../../src/common/prompts/json-schema-prompt";
 import { DEFAULT_PERSONA_INTRODUCTION } from "../../../../src/app/prompts/prompts.constants";
-import { getCanonicalFileType } from "../../../../src/app/config/file-handling";
-import { sourceSummarySchema } from "../../../../src/app/schemas/sources.schema";
+import { getCanonicalFileType } from "../../../../src/app/components/capture";
+import { sourceSummarySchema } from "../../../../src/app/schemas/source-file.schema";
 import { SourceSummaryType } from "../../../../src/app/components/capture/file-summarizer.service";
 
 /**

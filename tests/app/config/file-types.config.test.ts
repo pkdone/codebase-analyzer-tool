@@ -1,9 +1,10 @@
+import "reflect-metadata";
 import {
   CANONICAL_FILE_TYPES,
   canonicalFileTypeSchema,
   type CanonicalFileType,
 } from "../../../src/app/schemas/canonical-file-types";
-import { getCanonicalFileType } from "../../../src/app/config/file-handling";
+import { getCanonicalFileType } from "../../../src/app/components/capture";
 
 describe("file-types.config", () => {
   describe("CANONICAL_FILE_TYPES", () => {

@@ -1,5 +1,5 @@
 import { isComplexityLevel } from "../../../../src/app/components/reporting/sections/database/database.types";
-import type { ComplexityValue as Complexity } from "../../../../src/app/schemas/sources.enums";
+import type { ComplexityValue as Complexity } from "../../../../src/app/schemas/source-file.schema";
 
 /**
  * Tests for report-data.types, specifically testing the Set-based membership

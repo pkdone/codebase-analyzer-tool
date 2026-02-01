@@ -1,5 +1,5 @@
 import { describe, it, expect } from "@jest/globals";
-import { databaseIntegrationSchema } from "../../../src/app/schemas/sources.schema";
+import { databaseIntegrationSchema } from "../../../src/app/schemas/source-file.schema";
 
 describe("databaseIntegrationSchema mechanism coercion", () => {
   it("accepts valid value unchanged", () => {

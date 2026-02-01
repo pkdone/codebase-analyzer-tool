@@ -2,7 +2,7 @@ import "reflect-metadata";
 import {
   CurrentArchitectureDiagramGenerator,
   type InferredArchitectureData,
-} from "../../../../../src/app/components/reporting/diagrams";
+} from "../../../../../src/app/components/reporting/sections/inferred-architecture";
 
 describe("CurrentArchitectureDiagramGenerator", () => {
   let generator: CurrentArchitectureDiagramGenerator;

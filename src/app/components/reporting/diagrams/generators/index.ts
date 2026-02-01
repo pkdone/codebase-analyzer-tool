@@ -1,23 +1,15 @@
 /**
  * Diagram generators - public API
+ *
+ * Note: Domain-specific diagram generators have been moved to their respective section folders:
+ * - DomainModelDiagramGenerator -> sections/domain-model/
+ * - CurrentArchitectureDiagramGenerator -> sections/inferred-architecture/
+ * - ArchitectureDiagramGenerator -> sections/future-architecture/
+ *
+ * This module now only exports shared/base generators.
  */
 export { BaseDiagramGenerator } from "./base-diagram-generator";
 export type { BaseDiagramOptions, DiagramInitDirectiveType } from "./base-diagram-generator";
-
-export { ArchitectureDiagramGenerator } from "./architecture-diagram-generator";
-export type { Microservice, ArchitectureDiagramOptions } from "./architecture-diagram-generator";
-
-export { CurrentArchitectureDiagramGenerator } from "./current-architecture-diagram-generator";
-export type {
-  InferredInternalComponent,
-  InferredExternalDependency,
-  InferredComponentDependency,
-  InferredArchitectureData,
-  CurrentArchitectureDiagramOptions,
-} from "./current-architecture-diagram-generator";
-
-export { DomainModelDiagramGenerator } from "./domain-model-diagram-generator";
-export type { DomainDiagramOptions } from "./domain-model-diagram-generator";
 
 export { FlowchartDiagramGenerator } from "./flowchart-diagram-generator";
 export type {

@@ -7,9 +7,11 @@ import type {
   ProcsOrTrigsListItem,
 } from "./database.types";
 import { isComplexityLevel } from "./database.types";
-import type { ComplexityValue } from "../../../../schemas/sources.enums";
-import { procedureTriggerSchema } from "../../../../schemas/sources.schema";
-import { DEFAULT_COMPLEXITY } from "../../../../schemas/sources.enums";
+import {
+  type ComplexityValue,
+  procedureTriggerSchema,
+  DEFAULT_COMPLEXITY,
+} from "../../../../schemas/source-file.schema";
 import type { z } from "zod";
 import { logWarn } from "../../../../../common/utils/logging";
 import { DATABASE_OBJECT_TYPE_LABELS } from "../../config/reporting.config";

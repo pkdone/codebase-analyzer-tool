@@ -6,7 +6,7 @@
  * code context, making these generic instructions effective for most use cases.
  */
 
-import { INTEGRATION_MECHANISM_VALUES } from "../../../../schemas/sources.enums";
+import { INTEGRATION_MECHANISM_VALUES } from "../../../../schemas/source-file.schema";
 
 /**
  * Type for integration mechanism values that have mechanism descriptions.

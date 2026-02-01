@@ -4,6 +4,8 @@
 
 export { DomainModelSection } from "./domain-model-section";
 export { DomainModelTransformer } from "./domain-model-transformer";
+export { DomainModelDiagramGenerator } from "./domain-model-diagram-generator";
+export type { DomainDiagramOptions } from "./domain-model-diagram-generator";
 
 // Domain model types
 export type {

@@ -1,13 +1,17 @@
 import "reflect-metadata";
-import { DomainModelSection } from "../../../../../src/app/components/reporting/sections/domain-model";
-import { DomainModelTransformer } from "../../../../../src/app/components/reporting/sections/domain-model/domain-model-transformer";
-import { InferredArchitectureSection } from "../../../../../src/app/components/reporting/sections/inferred-architecture";
-import { PotentialMicroservicesSection } from "../../../../../src/app/components/reporting/sections/future-architecture";
 import {
+  DomainModelSection,
   DomainModelDiagramGenerator,
-  ArchitectureDiagramGenerator,
+} from "../../../../../src/app/components/reporting/sections/domain-model";
+import { DomainModelTransformer } from "../../../../../src/app/components/reporting/sections/domain-model/domain-model-transformer";
+import {
+  InferredArchitectureSection,
   CurrentArchitectureDiagramGenerator,
-} from "../../../../../src/app/components/reporting/diagrams";
+} from "../../../../../src/app/components/reporting/sections/inferred-architecture";
+import {
+  PotentialMicroservicesSection,
+  ArchitectureDiagramGenerator,
+} from "../../../../../src/app/components/reporting/sections/future-architecture";
 import type { ReportData } from "../../../../../src/app/components/reporting/report-data.types";
 import type {
   CategorizedSectionItem,

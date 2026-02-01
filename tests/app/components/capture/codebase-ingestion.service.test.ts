@@ -10,10 +10,8 @@ import * as pathUtils from "../../../../src/common/fs/path-utils";
 import * as textAnalysis from "../../../../src/common/utils/text-utils";
 import { ok, err } from "../../../../src/common/types/result.types";
 import { LLMError, LLMErrorCode } from "../../../../src/common/llm/types/llm-errors.types";
-import {
-  getCanonicalFileType,
-  type FileProcessingRulesType,
-} from "../../../../src/app/config/file-handling";
+import { getCanonicalFileType } from "../../../../src/app/components/capture/utils";
+import { type FileProcessingRulesType } from "../../../../src/app/config/file-handling";
 import type { LlmConcurrencyService } from "../../../../src/app/components/concurrency";
 
 // Mock dependencies
@@ -26,7 +24,7 @@ jest.mock("../../../../src/common/utils/logging", () => ({
   logWarn: jest.fn(),
   logErr: jest.fn(),
 }));
-jest.mock("../../../../src/app/config/file-handling", () => ({
+jest.mock("../../../../src/app/components/capture/utils", () => ({
   getCanonicalFileType: jest.fn().mockReturnValue("javascript"),
 }));
 

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { sourceSchema, sourceSummarySchema } from "../../schemas/sources.schema";
+import { sourceSchema, sourceSummarySchema } from "../../schemas/source-file.schema";
 import {
   zodToJsonSchemaForMDB,
   zBsonObjectId,

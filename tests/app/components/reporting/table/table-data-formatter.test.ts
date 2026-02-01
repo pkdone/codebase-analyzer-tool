@@ -1,7 +1,7 @@
 import {
   formatRow,
   type ProcessedListItem,
-} from "../../../../../src/app/components/reporting/table";
+} from "../../../../../src/app/components/reporting/presentation";
 import { SPECIAL_TABLE_COLUMNS } from "../../../../../src/app/components/reporting/config/reporting.config";
 
 describe("TableDataFormatter", () => {

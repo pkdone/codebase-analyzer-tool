@@ -13,8 +13,8 @@ export {
   type PartialSourceSummaryType,
 } from "./file-summarizer.service";
 
-// Configuration - File handling
-export { getCanonicalFileType } from "../../config/file-handling";
+// Utilities - File type mapping
+export { getCanonicalFileType } from "./utils";
 
 // Types - Canonical file types
 export { CANONICAL_FILE_TYPES, type CanonicalFileType } from "../../schemas/canonical-file-types";

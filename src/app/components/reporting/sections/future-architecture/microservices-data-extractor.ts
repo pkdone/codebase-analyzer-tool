@@ -5,7 +5,7 @@
  * categorized app summary data for use in the microservices architecture diagram.
  */
 import type { CategorizedSectionItem } from "../../data-processing/categorized-section-data-builder";
-import type { Microservice } from "../../diagrams/generators";
+import type { Microservice } from "./architecture-diagram-generator";
 
 /**
  * Extracts microservices data from categorized data.

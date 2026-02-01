@@ -5,12 +5,11 @@ import { reportingTokens } from "../tokens";
 import { HtmlReportWriter } from "../../components/reporting/html-report-writer";
 import { HtmlReportAssetService } from "../../components/reporting/services/html-report-asset.service";
 import { JsonReportWriter } from "../../components/reporting/json-report-writer";
-import {
-  FlowchartDiagramGenerator,
-  DomainModelDiagramGenerator,
-  ArchitectureDiagramGenerator,
-  CurrentArchitectureDiagramGenerator,
-} from "../../components/reporting/diagrams";
+import { FlowchartDiagramGenerator } from "../../components/reporting/diagrams";
+// Domain-specific diagram generators are co-located with their sections
+import { DomainModelDiagramGenerator } from "../../components/reporting/sections/domain-model";
+import { ArchitectureDiagramGenerator } from "../../components/reporting/sections/future-architecture";
+import { CurrentArchitectureDiagramGenerator } from "../../components/reporting/sections/inferred-architecture";
 import { DatabaseReportDataProvider } from "../../components/reporting/sections/database/database-report-data-provider";
 import { IntegrationPointsDataProvider } from "../../components/reporting/sections/integration-points/integration-points-data-provider";
 import { AppStatisticsDataProvider } from "../../components/reporting/sections/overview/app-statistics-data-provider";

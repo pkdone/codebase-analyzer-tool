@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { fileTypePromptRegistry } from "../../../../../src/app/prompts/sources/sources.definitions";
-import { sourceSummarySchema } from "../../../../../src/app/schemas/sources.schema";
+import { sourceSummarySchema } from "../../../../../src/app/schemas/source-file.schema";
 import {
   CANONICAL_FILE_TYPES,
   type CanonicalFileType,

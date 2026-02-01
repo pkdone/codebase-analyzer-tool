@@ -2,7 +2,7 @@ import { injectable, inject } from "tsyringe";
 import { BaseReportSection } from "../base-report-section";
 import { repositoryTokens } from "../../../../di/tokens";
 import type { SourcesRepository } from "../../../../repositories/sources/sources.repository.interface";
-import { TableViewModel } from "../../table";
+import { TableViewModel } from "../../presentation";
 import type { PreparedHtmlReportData } from "../../types/html-report-data.types";
 import type { PreparedJsonData } from "../../json-report-writer";
 import type { ReportData } from "../../report-data.types";

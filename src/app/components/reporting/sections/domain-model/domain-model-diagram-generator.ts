@@ -1,13 +1,13 @@
 import { injectable } from "tsyringe";
-import { generateNodeId } from "../utils";
+import { generateNodeId } from "../../diagrams/utils";
 import type {
   DomainBoundedContext,
   DomainAggregate,
   DomainEntity,
-} from "../../sections/domain-model/domain-model-transformer";
-import { BaseDiagramGenerator, type BaseDiagramOptions } from "./base-diagram-generator";
-import { domainModelConfig } from "../diagrams.config";
-import { createFlowchartBuilder } from "../builders";
+} from "./domain-model.types";
+import { BaseDiagramGenerator, type BaseDiagramOptions } from "../../diagrams/generators/base-diagram-generator";
+import { domainModelConfig } from "../../diagrams/diagrams.config";
+import { createFlowchartBuilder } from "../../diagrams/builders";
 import { DIAGRAM_CSS_CLASSES } from "../../config/diagram-css-classes.config";
 
 export type DomainDiagramOptions = BaseDiagramOptions;

@@ -15,7 +15,7 @@ import {
   getFilesWithHighScriptletCountCssClass,
   shouldShowHighDebtAlert,
   getScriptletUsageInsight,
-} from "../../view-models/presentation-helpers";
+} from "../../presentation";
 import { outputConfig } from "../../../../config/output.config";
 import { UNKNOWN_VALUE_PLACEHOLDER } from "../../config/placeholders.config";
 

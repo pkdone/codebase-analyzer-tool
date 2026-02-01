@@ -1,5 +1,5 @@
 import type { IndexSpecification } from "mongodb";
-import { SOURCE_FIELDS } from "../schemas/sources.constants";
+import { SOURCE_FIELDS } from "../schemas/source-file.schema";
 
 /**
  * Vector index naming constants.

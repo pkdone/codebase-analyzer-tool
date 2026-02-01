@@ -7,7 +7,7 @@ import type { PreparedJsonData } from "../../json-report-writer";
 import type { ReportData } from "../../report-data.types";
 import { SECTION_NAMES } from "../../config/reporting.config";
 import type { CodeQualitySummary } from "./code-quality.types";
-import { getCodeSmellRecommendation } from "../../view-models/presentation-helpers";
+import { getCodeSmellRecommendation } from "../../presentation";
 
 /**
  * Report section for code quality metrics.

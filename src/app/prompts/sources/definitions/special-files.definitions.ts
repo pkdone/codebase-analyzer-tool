@@ -16,7 +16,7 @@ import {
   createScheduledJobConfig,
   type SourceConfigEntry,
 } from "./source-config-factories";
-import { sourceSummarySchema } from "../../../schemas/sources.schema";
+import { sourceSummarySchema } from "../../../schemas/source-file.schema";
 
 /**
  * Source prompt definitions for special file types (SQL, Markdown, XML, JSP, scripts, etc.).

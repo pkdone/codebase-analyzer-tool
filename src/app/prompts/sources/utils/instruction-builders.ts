@@ -7,7 +7,7 @@
  */
 
 import { INSTRUCTION_SECTION_TITLES, type InstructionSectionTitle } from "../../prompts.constants";
-import { DATABASE_MECHANISM_VALUES } from "../../../schemas/sources.enums";
+import { DATABASE_MECHANISM_VALUES } from "../../../schemas/source-file.schema";
 
 // Re-export for consumers that import from this module
 export { INSTRUCTION_SECTION_TITLES, type InstructionSectionTitle };

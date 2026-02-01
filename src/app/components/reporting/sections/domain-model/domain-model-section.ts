@@ -3,7 +3,7 @@ import type { ReportSection } from "../report-section.interface";
 import type { RequestableAppSummaryField } from "../../../../repositories/app-summaries/app-summaries.model";
 import { reportingTokens } from "../../../../di/tokens";
 import { DomainModelTransformer } from "./domain-model-transformer";
-import { DomainModelDiagramGenerator } from "../../diagrams";
+import { DomainModelDiagramGenerator } from "./domain-model-diagram-generator";
 import type { PreparedHtmlReportData } from "../../types/html-report-data.types";
 import type { PreparedJsonData } from "../../json-report-writer";
 import type { ReportData } from "../../report-data.types";

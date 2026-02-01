@@ -1,6 +1,9 @@
 import path from "node:path";
-import type { CanonicalFileType } from "../../schemas/canonical-file-types";
-import { DERIVED_EXTENSION_TO_TYPE_MAP, DERIVED_FILENAME_TO_TYPE_MAP } from "./file-type-registry";
+import type { CanonicalFileType } from "../../../schemas/canonical-file-types";
+import {
+  DERIVED_EXTENSION_TO_TYPE_MAP,
+  DERIVED_FILENAME_TO_TYPE_MAP,
+} from "../../../config/file-handling/file-type-registry";
 
 /**
  * Map of file extensions to canonical file types.

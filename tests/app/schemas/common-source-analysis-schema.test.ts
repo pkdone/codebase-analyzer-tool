@@ -3,7 +3,7 @@ import {
   commonSourceAnalysisSchema,
   sourceSummarySchema,
   type CommonSourceAnalysis,
-} from "../../../src/app/schemas/sources.schema";
+} from "../../../src/app/schemas/source-file.schema";
 
 describe("commonSourceAnalysisSchema", () => {
   /**

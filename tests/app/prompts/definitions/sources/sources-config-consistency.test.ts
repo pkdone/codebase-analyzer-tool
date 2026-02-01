@@ -5,7 +5,7 @@ import {
 } from "../../../../../src/app/prompts/sources/sources.definitions";
 import { INSTRUCTION_SECTION_TITLES } from "../../../../../src/app/prompts/sources/utils";
 import { createCompositeSourceConfig } from "../../../../../src/app/prompts/sources/definitions/source-config-factories";
-import { commonSourceAnalysisSchema } from "../../../../../src/app/schemas/sources.schema";
+import { commonSourceAnalysisSchema } from "../../../../../src/app/schemas/source-file.schema";
 
 describe("Source Config Consistency", () => {
   /**

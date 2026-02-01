@@ -1,5 +1,5 @@
 import { fileTypePromptRegistry } from "../../../src/app/prompts/sources/sources.definitions";
-import { sourceSummarySchema } from "../../../src/app/schemas/sources.schema";
+import { sourceSummarySchema } from "../../../src/app/schemas/source-file.schema";
 
 describe("Python prompt metadata schema", () => {
   it("should define python entry with expected response schema fields", () => {

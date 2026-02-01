@@ -19,7 +19,7 @@ export {
   type ProcsAndTriggers,
   type DatabaseIntegrationInfo,
 } from "./sections/database/database.types";
-export type { ComplexityValue as Complexity } from "../../schemas/sources.enums";
+export type { ComplexityValue as Complexity } from "../../schemas/source-file.schema";
 export { type IntegrationPointInfo } from "./sections/integration-points/integration-points.types";
 
 // Types from focused sections

@@ -1,8 +1,7 @@
+import "reflect-metadata";
 import { databaseConfig } from "../../../src/app/config/database.config";
-import {
-  fileProcessingRules as fileProcessingConfig,
-  getCanonicalFileType,
-} from "../../../src/app/config/file-handling";
+import { fileProcessingRules as fileProcessingConfig } from "../../../src/app/config/file-handling";
+import { getCanonicalFileType } from "../../../src/app/components/capture";
 import { outputConfig } from "../../../src/app/config/output.config";
 
 describe("individual config modules", () => {

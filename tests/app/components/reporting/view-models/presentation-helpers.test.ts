@@ -10,7 +10,7 @@ import {
   uiAnalysisConfig,
   type CouplingLevelPresentation,
   type DebtLevelPresentation,
-} from "../../../../../src/app/components/reporting/view-models/presentation-helpers";
+} from "../../../../../src/app/components/reporting/presentation";
 import { CouplingLevel } from "../../../../../src/app/components/reporting/config/module-coupling.config";
 import { DebtLevel } from "../../../../../src/app/components/reporting/config/ui-analysis.config";
 

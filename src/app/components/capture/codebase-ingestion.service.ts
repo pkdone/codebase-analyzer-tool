@@ -1,7 +1,8 @@
 import { injectable, inject } from "tsyringe";
 import type LLMRouter from "../../../common/llm/llm-router";
 import path from "path";
-import { getCanonicalFileType, type FileProcessingRulesType } from "../../config/file-handling";
+import { type FileProcessingRulesType } from "../../config/file-handling";
+import { getCanonicalFileType } from "./utils";
 import type { CanonicalFileType } from "../../schemas/canonical-file-types";
 import { readFile } from "../../../common/fs/file-operations";
 import { findFilesWithSize } from "../../../common/fs/directory-operations";

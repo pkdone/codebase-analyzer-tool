@@ -5,7 +5,7 @@
  * eliminating cross-layer dependencies between repository and database config.
  */
 
-import { SOURCE_FIELDS } from "../../../src/app/schemas/sources.constants";
+import { SOURCE_FIELDS } from "../../../src/app/schemas/source-file.schema";
 
 describe("sources.constants", () => {
   describe("SOURCE_FIELDS", () => {

@@ -11,7 +11,7 @@ import {
   componentDependencySchema as coreComponentDependencySchema,
 } from "../../../../schemas/app-summaries.schema";
 import type { CategorizedSectionItem } from "../../data-processing/categorized-section-data-builder";
-import type { InferredArchitectureData } from "../../diagrams/generators";
+import type { InferredArchitectureData } from "./current-architecture-diagram-generator";
 
 /**
  * Schema derived from core schemas for inferred architecture validation.

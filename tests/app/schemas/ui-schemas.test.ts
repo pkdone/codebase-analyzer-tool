@@ -4,7 +4,7 @@ import {
   jspMetricsSchema,
   uiFrameworkSchema,
   sourceSummarySchema,
-} from "../../../src/app/schemas/sources.schema";
+} from "../../../src/app/schemas/source-file.schema";
 
 describe("Custom Tag Schema", () => {
   it("should validate a valid custom tag", () => {

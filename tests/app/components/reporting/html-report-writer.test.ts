@@ -80,7 +80,7 @@ describe("HtmlReportWriter", () => {
         label: "Business Entities",
         data: [{ name: "User", description: "User entity" }],
         tableViewModel: new (jest.requireActual(
-          "../../../../src/app/components/reporting/table",
+          "../../../../src/app/components/reporting/presentation",
         ).TableViewModel)([]),
       },
     ],
@@ -130,16 +130,16 @@ describe("HtmlReportWriter", () => {
     },
     convertToDisplayName: (text: string) => text.replace(/_/g, " "),
     fileTypesTableViewModel: new (jest.requireActual(
-      "../../../../src/app/components/reporting/table",
+      "../../../../src/app/components/reporting/presentation",
     ).TableViewModel)([]),
     dbInteractionsTableViewModel: new (jest.requireActual(
-      "../../../../src/app/components/reporting/table",
+      "../../../../src/app/components/reporting/presentation",
     ).TableViewModel)([]),
     procsAndTriggersTableViewModel: new (jest.requireActual(
-      "../../../../src/app/components/reporting/table",
+      "../../../../src/app/components/reporting/presentation",
     ).TableViewModel)([]),
     integrationPointsTableViewModel: new (jest.requireActual(
-      "../../../../src/app/components/reporting/table",
+      "../../../../src/app/components/reporting/presentation",
     ).TableViewModel)([]),
     billOfMaterials: [],
     bomStatistics: {

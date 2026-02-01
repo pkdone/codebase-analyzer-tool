@@ -1,4 +1,4 @@
-import { dependencySchema } from "../../../src/app/schemas/sources.schema";
+import { dependencySchema } from "../../../src/app/schemas/source-file.schema";
 
 describe("dependencySchema", () => {
   describe("version field", () => {

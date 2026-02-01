@@ -1,12 +1,13 @@
 import { z } from "zod";
-import { sourceSummarySchema, scheduledJobSchema } from "../../../src/app/schemas/sources.schema";
 import {
+  sourceSummarySchema,
+  scheduledJobSchema,
   SOURCE_ENTITY_KIND_VALUES,
   COMPLEXITY_VALUES,
   DEFAULT_COMPLEXITY,
   COMPLEXITY_VALUES_SET,
   type ComplexityValue,
-} from "../../../src/app/schemas/sources.enums";
+} from "../../../src/app/schemas/source-file.schema";
 
 /**
  * Tests for source schema field names - NEW field names (after refactoring)

@@ -1,4 +1,4 @@
-import { SOURCE_FIELDS } from "../../../../src/app/schemas/sources.constants";
+import { SOURCE_FIELDS } from "../../../../src/app/schemas/source-file.schema";
 
 describe("SOURCE_FIELDS Constants", () => {
   describe("top-level field paths", () => {

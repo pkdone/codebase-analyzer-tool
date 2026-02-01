@@ -7,7 +7,7 @@ import {
   COMPOSITES,
 } from "../fragments";
 import type { LanguageSpecificFragments } from "../sources.types";
-import { sourceSummarySchema, commonSourceAnalysisSchema } from "../../../schemas/sources.schema";
+import { sourceSummarySchema, commonSourceAnalysisSchema } from "../../../schemas/source-file.schema";
 import { INSTRUCTION_SECTION_TITLES, buildInstructionBlock } from "../utils";
 import type { BasePromptConfigEntry } from "../../prompts.types";
 

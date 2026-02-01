@@ -1,5 +1,5 @@
 import { databaseConfig } from "../../../src/app/config/database.config";
-import { SOURCE_FIELDS } from "../../../src/app/schemas/sources.constants";
+import { SOURCE_FIELDS } from "../../../src/app/schemas/source-file.schema";
 
 describe("databaseConfig", () => {
   describe("basic configuration", () => {
