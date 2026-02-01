@@ -46,6 +46,10 @@ export {
   BEDROCK_NOVA_FAMILY,
 } from "./bedrock/nova/bedrock-nova.manifest";
 
+// Response processing
+export { LLMResponseProcessor } from "./llm-response-processor";
+export type { ResponseBase, LLMResponseProcessorDeps } from "./llm-response-processor";
+
 // Type exports
 export type {
   LLMProviderManifest,

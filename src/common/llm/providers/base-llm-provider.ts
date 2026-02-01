@@ -1,16 +1,7 @@
 import { z } from "zod";
-import {
-  LLMContext,
-  LLMPurpose,
-  LLMCompletionOptions,
-  LLMOutputFormat,
-} from "../types/llm-request.types";
+import { LLMContext, LLMPurpose, LLMCompletionOptions, LLMOutputFormat } from "../types/llm-request.types";
 import type { ResolvedLLMModelMetadata } from "../types/llm-model.types";
-import {
-  LLMResponseStatus,
-  LLMGeneratedContent,
-  LLMFunctionResponse,
-} from "../types/llm-response.types";
+import { LLMResponseStatus, LLMFunctionResponse } from "../types/llm-response.types";
 import type { LLMModelKeyFunction, LLMEmbeddingFunction } from "../types/llm-function.types";
 import type { LLMErrorMsgRegExPattern } from "../types/llm-stats.types";
 import type { LLMProvider } from "../types/llm-provider.interface";
@@ -21,8 +12,6 @@ import {
   ProviderInit,
 } from "./llm-provider.types";
 import { formatError } from "../../utils/error-formatters";
-import { logWarn } from "../../utils/logging";
-import { parseAndValidateLLMJson } from "../json-processing";
 import { calculateTokenUsageFromError } from "../utils/error-parser";
 import { normalizeTokenUsage } from "../utils/token-usage-normalizer";
 import { LLMError, LLMErrorCode } from "../types/llm-errors.types";
@@ -32,6 +21,7 @@ import {
   getCompletionModelKeysFromChain,
   getEmbeddingModelKeysFromChain,
 } from "../utils/provider-init-builder";
+import { LLMResponseProcessor } from "./llm-response-processor";
 
 /**
  * Base class for LLM provider implementations - provides shared functionality and
@@ -46,7 +36,7 @@ export default abstract class BaseLLMProvider implements LLMProvider {
   private readonly embeddingModelKeys: readonly string[];
   private readonly errorPatterns: readonly LLMErrorMsgRegExPattern[];
   private readonly providerFamily: string;
-  private readonly errorLogger: LLMErrorLogger;
+  private readonly responseProcessor: LLMResponseProcessor;
 
   /**
    * Constructor accepting a ProviderInit configuration object.
@@ -69,8 +59,13 @@ export default abstract class BaseLLMProvider implements LLMProvider {
     this.errorPatterns = manifest.errorPatterns;
     this.providerSpecificConfig = manifest.providerSpecificConfig;
     this.providerFamily = manifest.providerFamily;
-    this.errorLogger = new LLMErrorLogger(errorLogging);
     this.providerParams = providerParams;
+
+    // Initialize response processor with required dependencies
+    this.responseProcessor = new LLMResponseProcessor({
+      errorLogger: new LLMErrorLogger(errorLogging),
+      llmModelsMetadata: this.llmModelsMetadata,
+    });
   }
 
   /**
@@ -232,12 +227,12 @@ export default abstract class BaseLLMProvider implements LLMProvider {
           tokensUsage: normalizeTokenUsage(modelKey, tokenUsage, this.llmModelsMetadata, request),
         };
       } else {
-        return await this.formatAndValidateResponse(
+        // Delegate response processing to the dedicated processor
+        return await this.responseProcessor.formatAndValidateResponse(
           responseBase,
           taskType,
           responseContent,
           finalOptions,
-          context,
         );
       }
     } catch (error: unknown) {
@@ -259,148 +254,13 @@ export default abstract class BaseLLMProvider implements LLMProvider {
           ),
         };
       } else {
-        if (doDebugErrorLogging) this.debugUnhandledError(error, modelKey);
+        if (doDebugErrorLogging) this.responseProcessor.debugUnhandledError(error, modelKey);
         return {
           ...responseBase,
           status: LLMResponseStatus.ERRORED,
           error,
         };
       }
-    }
-  }
-
-  /**
-   * Post-process the LLM response, converting it to JSON if necessary, and build the
-   * response metadata object with type-safe JSON validation.
-   */
-  private async formatAndValidateResponse<S extends z.ZodType<unknown>>(
-    responseBase: { request: string; context: LLMContext; modelKey: string },
-    taskType: LLMPurpose,
-    responseContent: LLMGeneratedContent,
-    completionOptions: LLMCompletionOptions<S>,
-    context: LLMContext,
-  ): Promise<LLMFunctionResponse<z.infer<S>>> {
-    // Early return for non-completion tasks
-    if (taskType !== LLMPurpose.COMPLETIONS) {
-      return {
-        ...responseBase,
-        status: LLMResponseStatus.COMPLETED,
-        // TYPE ASSERTION RATIONALE: For non-completion tasks (embeddings), the type contract
-        // is enforced at the call boundary. generateEmbeddings() explicitly binds S to
-        // z.ZodType<number[]>, and invokeEmbeddingProvider() implementations return number[]
-        // by contract. The generic method cannot know the specific S at compile time, so
-        // we cast here to bridge the typed caller with the generic implementation.
-        generated: responseContent as z.infer<S>,
-      };
-    }
-
-    // Early return for non-JSON output format (TEXT mode)
-    if (completionOptions.outputFormat !== LLMOutputFormat.JSON) {
-      return this.validateTextResponse(responseBase, responseContent, completionOptions, context);
-    }
-
-    // Configuration validation: JSON format requires a jsonSchema.
-    if (!completionOptions.jsonSchema) {
-      throw new LLMError(
-        LLMErrorCode.BAD_CONFIGURATION,
-        "Configuration error: outputFormat is JSON but no jsonSchema was provided. " +
-          "JSON output requires a schema for type-safe validation.",
-      );
-    }
-
-    // Process JSON with schema-aware type inference.
-    const jsonProcessingResult = parseAndValidateLLMJson(
-      responseContent,
-      context,
-      completionOptions,
-      true,
-      completionOptions.sanitizerConfig,
-    );
-
-    if (jsonProcessingResult.success) {
-      return {
-        ...responseBase,
-        status: LLMResponseStatus.COMPLETED,
-        generated: jsonProcessingResult.data,
-        repairs: jsonProcessingResult.repairs,
-        pipelineSteps: jsonProcessingResult.pipelineSteps,
-      };
-    } else {
-      const parseError = formatError(jsonProcessingResult.error);
-      await this.errorLogger.recordJsonProcessingError(
-        jsonProcessingResult.error,
-        responseContent,
-        context,
-      );
-      return { ...responseBase, status: LLMResponseStatus.INVALID, error: parseError };
-    }
-  }
-
-  /**
-   * Validates and formats TEXT output responses.
-   */
-  private validateTextResponse<S extends z.ZodType<unknown>>(
-    responseBase: { request: string; context: LLMContext; modelKey: string },
-    responseContent: LLMGeneratedContent,
-    completionOptions: LLMCompletionOptions<S>,
-    context: LLMContext,
-  ): LLMFunctionResponse<z.infer<S>> {
-    // Configuration validation: TEXT format should not have a jsonSchema.
-    if (completionOptions.jsonSchema !== undefined) {
-      throw new LLMError(
-        LLMErrorCode.BAD_CONFIGURATION,
-        "Configuration error: jsonSchema was provided but outputFormat is TEXT. " +
-          "Use outputFormat: LLMOutputFormat.JSON when providing a schema, " +
-          "or remove the jsonSchema for TEXT output.",
-      );
-    }
-
-    // Runtime validation: TEXT format must return string.
-    if (typeof responseContent !== "string") {
-      throw new LLMError(
-        LLMErrorCode.BAD_RESPONSE_CONTENT,
-        `Expected string response for TEXT output format, but received ${typeof responseContent}`,
-        responseContent,
-      );
-    }
-
-    // Empty response validation for TEXT format.
-    if (!responseContent.trim()) {
-      logWarn("LLM returned empty TEXT response", context);
-      return {
-        ...responseBase,
-        status: LLMResponseStatus.INVALID,
-        error: "LLM returned empty TEXT response",
-      };
-    }
-
-    return {
-      ...responseBase,
-      status: LLMResponseStatus.COMPLETED,
-      // TYPE ASSERTION RATIONALE: For TEXT output format, the runtime validation above
-      // confirms responseContent is a string, and the configuration validation (lines 344-350)
-      // ensures callers cannot provide a jsonSchema with TEXT mode. When no schema is provided,
-      // S defaults to z.ZodType<unknown>, making z.infer<S> resolve to unknown. String is
-      // assignable to unknown, making this cast safe. Callers expecting typed JSON must use
-      // JSON output format with a schema.
-      generated: responseContent as z.infer<S>,
-    };
-  }
-
-  /**
-   * Used for debugging purposes - prints the error type and message to the console.
-   */
-  private debugUnhandledError(error: unknown, modelKey: string) {
-    const urn = this.llmModelsMetadata[modelKey].urn;
-    const details = formatError(error);
-
-    if (error instanceof Error) {
-      console.log(
-        `[DEBUG] Error Name: ${error.name}, Constructor: ${error.constructor.name}, ` +
-          `Details: ${details}, URN: ${urn}`,
-      );
-    } else {
-      console.log(`[DEBUG] Non-Error type: ${typeof error}, Details: ${details}, URN: ${urn}`);
     }
   }
 
