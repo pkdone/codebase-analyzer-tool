@@ -261,8 +261,8 @@ describe("OpenAI LLM Provider", () => {
         responseContent: [0.1, 0.2, 0.3],
         tokenUsage: {
           promptTokens: 10,
-          completionTokens: -1,
-          maxTotalTokens: -1,
+          completionTokens: undefined,
+          maxTotalTokens: undefined,
         },
       });
     });
@@ -314,7 +314,7 @@ describe("OpenAI LLM Provider", () => {
         tokenUsage: {
           promptTokens: 15,
           completionTokens: 25,
-          maxTotalTokens: -1,
+          maxTotalTokens: undefined,
         },
       });
     });
@@ -391,9 +391,9 @@ describe("OpenAI LLM Provider", () => {
       });
 
       expect(result.tokenUsage).toEqual({
-        promptTokens: -1,
-        completionTokens: -1,
-        maxTotalTokens: -1,
+        promptTokens: undefined,
+        completionTokens: undefined,
+        maxTotalTokens: undefined,
       });
     });
   });

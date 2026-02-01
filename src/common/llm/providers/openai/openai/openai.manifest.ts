@@ -5,19 +5,21 @@ import { LLMPurpose } from "../../../types/llm-request.types";
 import type { LLMModelFeature } from "../../../types/llm-model.types";
 import { OPENAI_COMMON_ERROR_PATTERNS } from "../common/openai-error-patterns";
 import { defaultOpenAIProviderConfig } from "../common/openai-defaults.config";
-import type { OpenAIConfig } from "./openai.types";
+import { assertOpenAIConfig, type OpenAIConfig } from "./openai.types";
 
 // Environment variable name constants
 const OPENAI_LLM_API_KEY_KEY = "OPENAI_LLM_API_KEY";
 
 /**
- * Extracts typed OpenAI configuration from raw environment parameters.
+ * Extracts and validates typed OpenAI configuration from raw environment parameters.
+ * Throws an LLMError if validation fails, ensuring fail-fast at provider instantiation.
  * This decouples the provider implementation from specific env var names.
  */
 function extractOpenAIConfig(providerParams: Record<string, unknown>): OpenAIConfig {
-  return {
-    apiKey: providerParams[OPENAI_LLM_API_KEY_KEY] as string,
+  const rawConfig = {
+    apiKey: providerParams[OPENAI_LLM_API_KEY_KEY],
   };
+  return assertOpenAIConfig(rawConfig);
 }
 
 // Provider family constant - exported for use in provider registry

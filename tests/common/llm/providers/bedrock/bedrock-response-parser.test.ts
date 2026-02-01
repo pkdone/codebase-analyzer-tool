@@ -197,9 +197,9 @@ describe("bedrock-response-parser", () => {
       "TestProvider",
     );
 
-    // Type guards should convert undefined to -1
-    expect(summary.tokenUsage.promptTokens).toBe(-1);
-    expect(summary.tokenUsage.completionTokens).toBe(-1);
+    // Type guards should keep undefined for unknown token counts
+    expect(summary.tokenUsage.promptTokens).toBeUndefined();
+    expect(summary.tokenUsage.completionTokens).toBeUndefined();
   });
 
   it("safely handles undefined stop reason using type guard", () => {
@@ -251,7 +251,7 @@ describe("bedrock-response-parser", () => {
       expect(summary.tokenUsage.completionTokens).toBe(24);
     });
 
-    it("should default to -1 when token values are null", () => {
+    it("should return undefined when token values are null", () => {
       const schemaWithNull = z
         .object({
           content: z.array(z.object({ text: z.string() })).optional(),
@@ -284,11 +284,11 @@ describe("bedrock-response-parser", () => {
         "TestProvider",
       );
 
-      expect(summary.tokenUsage.promptTokens).toBe(-1);
-      expect(summary.tokenUsage.completionTokens).toBe(-1);
+      expect(summary.tokenUsage.promptTokens).toBeUndefined();
+      expect(summary.tokenUsage.completionTokens).toBeUndefined();
     });
 
-    it("should default to -1 when token values are other types", () => {
+    it("should return undefined when token values are other types", () => {
       const schemaWithString = z
         .object({
           content: z.array(z.object({ text: z.string() })).optional(),
@@ -321,8 +321,8 @@ describe("bedrock-response-parser", () => {
         "TestProvider",
       );
 
-      expect(summary.tokenUsage.promptTokens).toBe(-1);
-      expect(summary.tokenUsage.completionTokens).toBe(-1);
+      expect(summary.tokenUsage.promptTokens).toBeUndefined();
+      expect(summary.tokenUsage.completionTokens).toBeUndefined();
     });
   });
 
@@ -372,8 +372,8 @@ describe("bedrock-response-parser", () => {
       const result = extractEmbeddingResponse(response);
 
       expect(result.responseContent).toEqual([0.1, 0.2]);
-      expect(result.tokenUsage.promptTokens).toBe(-1);
-      expect(result.tokenUsage.completionTokens).toBe(-1);
+      expect(result.tokenUsage.promptTokens).toBeUndefined();
+      expect(result.tokenUsage.completionTokens).toBeUndefined();
     });
 
     it("throws LLMError for invalid response structure", () => {

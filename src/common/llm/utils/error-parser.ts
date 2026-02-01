@@ -5,20 +5,22 @@ import { llmConfig } from "../config/llm.config";
 
 /**
  * Default result when no pattern matches or parsing fails.
+ * Uses undefined to indicate unknown values (idiomatic TypeScript).
  */
 const DEFAULT_RESULT: LLMResponseTokensUsage = {
-  promptTokens: -1,
+  promptTokens: undefined,
   completionTokens: 0,
-  maxTotalTokens: -1,
+  maxTotalTokens: undefined,
 };
 
 /**
- * Safely parses a string to an integer, returning fallback if undefined or NaN.
+ * Safely parses a string to an integer, returning undefined if the string is
+ * undefined or produces NaN.
  */
-function parseIntOrFallback(value: string | undefined, fallback: number): number {
-  if (value === undefined) return fallback;
+function parseIntOrUndefined(value: string | undefined): number | undefined {
+  if (value === undefined) return undefined;
   const parsed = parseInt(value, 10);
-  return Number.isNaN(parsed) ? fallback : parsed;
+  return Number.isNaN(parsed) ? undefined : parsed;
 }
 
 /**
@@ -29,12 +31,13 @@ function extractTokenValues(
   groups: TokenErrorGroups,
   fallbackMaxTokens: number,
 ): LLMResponseTokensUsage {
-  const maxTotalTokens = parseIntOrFallback(groups.max, -1);
-  const promptTokens = parseIntOrFallback(groups.prompt, -1);
-  const completionTokens = parseIntOrFallback(groups.completion, 0);
+  const maxTotalTokens = parseIntOrUndefined(groups.max);
+  const promptTokens = parseIntOrUndefined(groups.prompt);
+  const completionTokens = parseIntOrUndefined(groups.completion) ?? 0;
 
   return {
-    maxTotalTokens: maxTotalTokens > 0 ? maxTotalTokens : fallbackMaxTokens,
+    maxTotalTokens:
+      maxTotalTokens !== undefined && maxTotalTokens > 0 ? maxTotalTokens : fallbackMaxTokens,
     promptTokens,
     completionTokens,
   };
@@ -49,10 +52,10 @@ function extractCharValues(
   modelKey: string,
   llmModelsMetadata: Record<string, ResolvedLLMModelMetadata>,
 ): LLMResponseTokensUsage {
-  const charLimit = parseIntOrFallback(groups.charLimit, -1);
-  const charPrompt = parseIntOrFallback(groups.charPrompt, -1);
+  const charLimit = parseIntOrUndefined(groups.charLimit);
+  const charPrompt = parseIntOrUndefined(groups.charPrompt);
 
-  if (charLimit <= 0 || charPrompt <= 0) {
+  if (charLimit === undefined || charLimit <= 0 || charPrompt === undefined || charPrompt <= 0) {
     return { ...DEFAULT_RESULT };
   }
 
@@ -112,6 +115,7 @@ function calculateTokensFromChars(
 /**
  * Calculate token usage information and limit from LLM error message. Derives values
  * for all prompt/completions/maxTokens if not found in the error message.
+ * Returns a fully-resolved token usage record with all values defined.
  */
 export function calculateTokenUsageFromError(
   modelKey: string,
@@ -119,24 +123,31 @@ export function calculateTokenUsageFromError(
   errorMsg: string,
   modelsMetadata: Record<string, ResolvedLLMModelMetadata>,
   errorPatterns?: readonly LLMErrorMsgRegExPattern[],
-): LLMResponseTokensUsage {
+): Required<LLMResponseTokensUsage> {
   const {
     maxTotalTokens: parsedMaxTokens,
     promptTokens: parsedPromptTokens,
-    completionTokens,
+    completionTokens: parsedCompletionTokens,
   } = parseTokenUsageFromLLMError(modelKey, errorMsg, modelsMetadata, errorPatterns);
   const publishedMaxTotalTokens = modelsMetadata[modelKey].maxTotalTokens;
-  let maxTotalTokens = parsedMaxTokens;
-  let promptTokens = parsedPromptTokens;
 
-  if (promptTokens < 0) {
-    const assumedMaxTotalTokens = maxTotalTokens > 0 ? maxTotalTokens : publishedMaxTotalTokens;
+  // Resolve maxTotalTokens: use parsed value if valid, otherwise fall back to metadata
+  const maxTotalTokens =
+    parsedMaxTokens !== undefined && parsedMaxTokens > 0
+      ? parsedMaxTokens
+      : publishedMaxTotalTokens;
+
+  // Resolve completionTokens: default to 0 if undefined
+  const completionTokens = parsedCompletionTokens ?? 0;
+
+  // Resolve promptTokens: estimate if undefined
+  let promptTokens = parsedPromptTokens;
+  if (promptTokens === undefined) {
     const estimatedPromptTokensConsumed = Math.floor(
       prompt.length / llmConfig.AVERAGE_CHARS_PER_TOKEN,
     );
-    promptTokens = Math.max(estimatedPromptTokensConsumed, assumedMaxTotalTokens + 1);
+    promptTokens = Math.max(estimatedPromptTokensConsumed, maxTotalTokens + 1);
   }
 
-  if (maxTotalTokens <= 0) maxTotalTokens = publishedMaxTotalTokens;
   return { promptTokens, completionTokens, maxTotalTokens };
 }

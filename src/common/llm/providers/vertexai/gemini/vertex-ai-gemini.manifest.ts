@@ -5,7 +5,7 @@ import { LLMPurpose } from "../../../types/llm-request.types";
 import { llmConfig } from "../../../config/llm.config";
 import { VERTEXAI_COMMON_ERROR_PATTERNS } from "./vertex-ai-error-patterns";
 import { defaultVertexAIProviderConfig } from "./vertex-ai-gemini-defaults.config";
-import type { VertexAIGeminiConfig } from "./vertex-ai-gemini.types";
+import { assertVertexAIGeminiConfig, type VertexAIGeminiConfig } from "./vertex-ai-gemini.types";
 
 // Environment variable name constants
 const VERTEXAI_PROJECTID_KEY = "VERTEXAI_PROJECTID";
@@ -13,15 +13,17 @@ const VERTEXAI_EMBEDDINGS_LOCATION_KEY = "VERTEXAI_EMBEDDINGS_LOCATION";
 const VERTEXAI_COMPLETIONS_LOCATION_KEY = "VERTEXAI_COMPLETIONS_LOCATION";
 
 /**
- * Extracts typed VertexAI configuration from raw environment parameters.
+ * Extracts and validates typed VertexAI configuration from raw environment parameters.
+ * Throws an LLMError if validation fails, ensuring fail-fast at provider instantiation.
  * This decouples the provider implementation from specific env var names.
  */
 function extractVertexAIConfig(providerParams: Record<string, unknown>): VertexAIGeminiConfig {
-  return {
-    projectId: providerParams[VERTEXAI_PROJECTID_KEY] as string,
-    embeddingsLocation: providerParams[VERTEXAI_EMBEDDINGS_LOCATION_KEY] as string,
-    completionsLocation: providerParams[VERTEXAI_COMPLETIONS_LOCATION_KEY] as string,
+  const rawConfig = {
+    projectId: providerParams[VERTEXAI_PROJECTID_KEY],
+    embeddingsLocation: providerParams[VERTEXAI_EMBEDDINGS_LOCATION_KEY],
+    completionsLocation: providerParams[VERTEXAI_COMPLETIONS_LOCATION_KEY],
   };
+  return assertVertexAIGeminiConfig(rawConfig);
 }
 
 // Provider family constant - exported for use in provider registry

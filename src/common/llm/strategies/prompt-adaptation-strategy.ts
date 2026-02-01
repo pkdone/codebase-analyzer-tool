@@ -27,7 +27,7 @@ export function adaptPromptFromResponse(
   }
 
   if (prompt.trim() === "") return prompt;
-  const { promptTokens, completionTokens, maxTotalTokens } = llmResponse.tokensUsage;
+  const { promptTokens = 0, completionTokens = 0, maxTotalTokens = 0 } = llmResponse.tokensUsage;
   const maxCompletionTokensLimit = modelsMetadata[llmResponse.modelKey].maxCompletionTokens;
   let reductionRatio = 1;
 
@@ -43,7 +43,7 @@ export function adaptPromptFromResponse(
   }
 
   // If the total tokens used is more than the total tokens available then reduce the prompt size proportionally
-  if (reductionRatio >= 1) {
+  if (reductionRatio >= 1 && maxTotalTokens > 0) {
     reductionRatio = Math.min(
       maxTotalTokens / (promptTokens + completionTokens + 1),
       llmConfig.MAX_PROMPT_REDUCTION_RATIO,

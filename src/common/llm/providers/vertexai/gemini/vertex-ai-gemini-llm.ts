@@ -27,7 +27,7 @@ import {
   VERTEXAI_TERMINAL_FINISH_REASONS,
   VERTEXAI_GLOBAL_LOCATION,
 } from "./vertex-ai-gemini.constants";
-import { isVertexAIGeminiConfig } from "./vertex-ai-gemini.types";
+import type { VertexAIGeminiConfig } from "./vertex-ai-gemini.types";
 
 /**
  * Class for the GCP Vertex AI Gemini service.
@@ -49,20 +49,16 @@ export default class VertexAIGeminiLLM extends BaseLLMProvider {
    * - embeddingsLocation: Regional location for embeddings (e.g., "us-central1")
    * - completionsLocation: Location for completions (can be "global" for preview models)
    *
-   * Uses typed configuration extracted via the manifest's extractConfig function,
+   * Uses typed configuration extracted and validated via the manifest's extractConfig function,
    * decoupling this provider from specific environment variable names.
+   * Config validation is performed in the manifest layer - no need to re-validate here.
    */
   constructor(init: import("../../llm-provider.types").ProviderInit) {
     super(init);
 
-    // Use typed extracted config instead of hardcoded env var key lookups
-    if (!isVertexAIGeminiConfig(init.extractedConfig)) {
-      throw new LLMError(
-        LLMErrorCode.BAD_CONFIGURATION,
-        "Invalid VertexAI Gemini configuration - missing required fields (projectId, embeddingsLocation, completionsLocation)",
-      );
-    }
-    const { projectId, embeddingsLocation, completionsLocation } = init.extractedConfig;
+    // Config is pre-validated by manifest's extractConfig (assertVertexAIGeminiConfig)
+    const { projectId, embeddingsLocation, completionsLocation } =
+      init.extractedConfig as VertexAIGeminiConfig;
 
     // For 'global' location, the API endpoint is the base domain (no region prefix)
     // For regional locations, the SDK automatically constructs '{location}-aiplatform.googleapis.com'

@@ -19,26 +19,24 @@ export const LLMResponseStatus = {
 export type LLMResponseStatus = (typeof LLMResponseStatus)[keyof typeof LLMResponseStatus];
 
 /**
- * Type to define the token counts
+ * Type to define the token counts.
+ * All fields are optional - undefined indicates the value is unknown.
+ * This is more idiomatic TypeScript than using sentinel values like -1.
  */
 export interface LLMResponseTokensUsage {
-  readonly promptTokens: number;
-  readonly completionTokens: number;
-  readonly maxTotalTokens: number;
+  readonly promptTokens?: number;
+  readonly completionTokens?: number;
+  readonly maxTotalTokens?: number;
 }
 
-/** Default value for unknown token counts */
-const UNKNOWN_TOKEN_COUNT = -1;
-
 /**
- * Creates a standardized token usage record with consistent defaults.
- * This helper normalizes raw (potentially undefined) token counts into a
- * standardized LLMResponseTokensUsage object, ensuring all providers use
- * the same default value (-1) for unknown token counts.
+ * Creates a standardized token usage record, passing through undefined for unknown values.
+ * This helper accepts raw (potentially undefined) token counts and preserves them
+ * in the output, using undefined to represent unknown values rather than magic numbers.
  *
- * @param promptTokens - Number of tokens in the prompt (default: -1)
- * @param completionTokens - Number of tokens in the completion (default: -1)
- * @param maxTotalTokens - Maximum total tokens allowed (default: -1)
+ * @param promptTokens - Number of tokens in the prompt (undefined if unknown)
+ * @param completionTokens - Number of tokens in the completion (undefined if unknown)
+ * @param maxTotalTokens - Maximum total tokens allowed (undefined if unknown)
  * @returns A standardized LLMResponseTokensUsage object
  */
 export function createTokenUsageRecord(
@@ -47,9 +45,9 @@ export function createTokenUsageRecord(
   maxTotalTokens?: number,
 ): LLMResponseTokensUsage {
   return {
-    promptTokens: promptTokens ?? UNKNOWN_TOKEN_COUNT,
-    completionTokens: completionTokens ?? UNKNOWN_TOKEN_COUNT,
-    maxTotalTokens: maxTotalTokens ?? UNKNOWN_TOKEN_COUNT,
+    promptTokens,
+    completionTokens,
+    maxTotalTokens,
   };
 }
 

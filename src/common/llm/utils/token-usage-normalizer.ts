@@ -14,32 +14,27 @@ import { llmConfig } from "../config/llm.config";
  *   set to exceed the limit to trigger cropping behavior
  *
  * @param modelKey - The key identifying the model in the metadata
- * @param tokenUsage - Raw token usage data (may contain -1 for unknown values)
+ * @param tokenUsage - Raw token usage data (undefined values indicate unknown)
  * @param modelsMetadata - Metadata for available models
  * @param request - The original request content (used for prompt token estimation)
- * @returns Normalized token usage with all values resolved
+ * @returns Normalized token usage with all values resolved to defined numbers
  */
 export function normalizeTokenUsage(
   modelKey: string,
   tokenUsage: LLMResponseTokensUsage,
   modelsMetadata: Record<string, ResolvedLLMModelMetadata>,
   request: string,
-): LLMResponseTokensUsage {
-  let { promptTokens, completionTokens, maxTotalTokens } = tokenUsage;
-
-  // Default completion tokens to 0 if unknown (indicated by negative value)
-  if (completionTokens < 0) {
-    completionTokens = 0;
-  }
+): Required<LLMResponseTokensUsage> {
+  // Default completion tokens to 0 if unknown
+  const completionTokens = tokenUsage.completionTokens ?? 0;
 
   // Resolve max total tokens from model metadata if unknown
-  if (maxTotalTokens < 0) {
-    maxTotalTokens = modelsMetadata[modelKey].maxTotalTokens;
-  }
+  const maxTotalTokens = tokenUsage.maxTotalTokens ?? modelsMetadata[modelKey].maxTotalTokens;
 
   // Estimate prompt tokens if unknown, ensuring the value exceeds the limit
   // to trigger cropping behavior in the execution pipeline
-  if (promptTokens < 0) {
+  let promptTokens = tokenUsage.promptTokens;
+  if (promptTokens === undefined) {
     const estimatedPromptTokensConsumed = Math.floor(
       request.length / llmConfig.AVERAGE_CHARS_PER_TOKEN,
     );

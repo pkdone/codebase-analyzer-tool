@@ -42,12 +42,32 @@ interface LLMExecutionParams<T extends LLMResponsePayload> {
 }
 
 /**
+ * Parameters for completion execution (subset of full params with completion-specific defaults).
+ */
+export interface CompletionExecutionParams<T extends LLMResponsePayload> {
+  readonly resourceName: string;
+  readonly content: string;
+  readonly context: LLMContext;
+  readonly candidates: ExecutableCandidate<T>[];
+}
+
+/**
+ * Parameters for embedding execution (subset of full params with embedding-specific defaults).
+ */
+export interface EmbeddingExecutionParams {
+  readonly resourceName: string;
+  readonly content: string;
+  readonly context: LLMContext;
+  readonly candidates: ExecutableCandidate<number[]>[];
+}
+
+/**
  * Encapsulates the complex orchestration logic for executing LLM functions with retries,
  * fallbacks, and prompt adaptation.
  *
  * Handles both completions and embeddings through a unified code path:
- * - Completions: Pass multiple bound functions for fallback support
- * - Embeddings: Pass a single-element array (no fallback, but still gets retries and cropping)
+ * - Completions: Use executeCompletion() for retry-on-invalid and JSON mutation tracking
+ * - Embeddings: Use executeEmbedding() for simpler execution without JSON features
  */
 export class LLMExecutionPipeline {
   constructor(
@@ -55,6 +75,38 @@ export class LLMExecutionPipeline {
     private readonly llmStats: LLMExecutionStats,
     private readonly pipelineConfig: LLMPipelineConfig,
   ) {}
+
+  /**
+   * Execute a completion request with completion-appropriate settings.
+   * Enables retry on invalid JSON and tracks JSON mutations.
+   *
+   * @param params Completion execution parameters
+   * @returns Execution result with the generated content
+   */
+  async executeCompletion<T extends LLMResponsePayload>(
+    params: CompletionExecutionParams<T>,
+  ): Promise<LLMExecutionResult<T>> {
+    return this.execute({
+      ...params,
+      retryOnInvalid: true,
+      trackJsonMutations: true,
+    });
+  }
+
+  /**
+   * Execute an embedding request with embedding-appropriate settings.
+   * Disables retry on invalid (embeddings don't have JSON parsing) and JSON mutation tracking.
+   *
+   * @param params Embedding execution parameters
+   * @returns Execution result with the embedding vector
+   */
+  async executeEmbedding(params: EmbeddingExecutionParams): Promise<LLMExecutionResult<number[]>> {
+    return this.execute({
+      ...params,
+      retryOnInvalid: false,
+      trackJsonMutations: false,
+    });
+  }
 
   /**
    * Executes LLM functions applying a series of before and after non-functional aspects

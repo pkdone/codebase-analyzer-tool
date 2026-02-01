@@ -251,11 +251,12 @@ describe("Abstract LLM Token Extraction", () => {
   });
 
   describe("Token extraction from metadata", () => {
-    test("extracts tokens with missing maxTotalTokens", async () => {
+    test("normalizes tokens with undefined maxTotalTokens from model metadata", async () => {
+      // Test that undefined values get normalized/resolved from model metadata
       const tokenUsage = {
         promptTokens: 200,
         completionTokens: 0,
-        maxTotalTokens: -1,
+        maxTotalTokens: undefined,
       };
       testLLM.setMockTokenUsage(tokenUsage);
 
@@ -265,18 +266,19 @@ describe("Abstract LLM Token Extraction", () => {
         testContext,
       );
 
+      // normalizeTokenUsage resolves undefined maxTotalTokens from model metadata
       expect(result.tokensUsage).toStrictEqual({
         completionTokens: 0,
         promptTokens: 200,
-        maxTotalTokens: 32768,
+        maxTotalTokens: 32768, // Resolved from model metadata
       });
     });
 
-    test("extracts tokens with missing completionTokens", async () => {
+    test("normalizes tokens with undefined completionTokens to 0", async () => {
       const tokenUsage = {
         promptTokens: 32760,
-        completionTokens: -1,
-        maxTotalTokens: -1,
+        completionTokens: undefined,
+        maxTotalTokens: undefined,
       };
       testLLM.setMockTokenUsage(tokenUsage);
 
@@ -286,18 +288,19 @@ describe("Abstract LLM Token Extraction", () => {
         testContext,
       );
 
+      // normalizeTokenUsage defaults completionTokens to 0 and resolves maxTotalTokens
       expect(result.tokensUsage).toStrictEqual({
-        completionTokens: 0,
+        completionTokens: 0, // Defaulted to 0
         promptTokens: 32760,
-        maxTotalTokens: 32768,
+        maxTotalTokens: 32768, // Resolved from model metadata
       });
     });
 
-    test("extracts tokens with missing promptTokens", async () => {
+    test("estimates promptTokens when undefined", async () => {
       const tokenUsage = {
-        promptTokens: -1,
+        promptTokens: undefined,
         completionTokens: 200,
-        maxTotalTokens: -1,
+        maxTotalTokens: undefined,
       };
       testLLM.setMockTokenUsage(tokenUsage);
 
@@ -307,10 +310,11 @@ describe("Abstract LLM Token Extraction", () => {
         testContext,
       );
 
+      // normalizeTokenUsage estimates promptTokens to exceed limit (triggering cropping)
       expect(result.tokensUsage).toStrictEqual({
         completionTokens: 200,
-        promptTokens: 32769,
-        maxTotalTokens: 32768,
+        promptTokens: 32769, // Estimated to exceed limit
+        maxTotalTokens: 32768, // Resolved from model metadata
       });
     });
 
@@ -359,8 +363,8 @@ describe("Abstract LLM Token Extraction", () => {
       const llamaLLM = new TestLlamaLLM();
       const tokenUsage = {
         promptTokens: 243,
-        completionTokens: -1,
-        maxTotalTokens: -1,
+        completionTokens: undefined,
+        maxTotalTokens: undefined,
       };
       llamaLLM.setMockTokenUsage(tokenUsage);
 
@@ -370,10 +374,11 @@ describe("Abstract LLM Token Extraction", () => {
         testContext,
       );
 
+      // normalizeTokenUsage resolves undefined values from model metadata and defaults
       expect(result.tokensUsage).toStrictEqual({
-        completionTokens: 0,
+        completionTokens: 0, // Defaulted to 0
         promptTokens: 243,
-        maxTotalTokens: 128000,
+        maxTotalTokens: 128000, // Resolved from Llama model metadata
       });
     });
   });

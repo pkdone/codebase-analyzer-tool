@@ -1,26 +1,24 @@
 import { createTokenUsageRecord } from "../../../../src/common/llm/types/llm-response.types";
 
 describe("createTokenUsageRecord", () => {
-  const DEFAULT_VALUE = -1;
-
   describe("default values", () => {
-    it("should return all -1 values when called with no arguments", () => {
+    it("should return all undefined values when called with no arguments", () => {
       const result = createTokenUsageRecord();
 
       expect(result).toEqual({
-        promptTokens: DEFAULT_VALUE,
-        completionTokens: DEFAULT_VALUE,
-        maxTotalTokens: DEFAULT_VALUE,
+        promptTokens: undefined,
+        completionTokens: undefined,
+        maxTotalTokens: undefined,
       });
     });
 
-    it("should return all -1 values when called with all undefined", () => {
+    it("should return all undefined values when called with all undefined", () => {
       const result = createTokenUsageRecord(undefined, undefined, undefined);
 
       expect(result).toEqual({
-        promptTokens: DEFAULT_VALUE,
-        completionTokens: DEFAULT_VALUE,
-        maxTotalTokens: DEFAULT_VALUE,
+        promptTokens: undefined,
+        completionTokens: undefined,
+        maxTotalTokens: undefined,
       });
     });
   });
@@ -30,8 +28,8 @@ describe("createTokenUsageRecord", () => {
       const result = createTokenUsageRecord(100);
 
       expect(result.promptTokens).toBe(100);
-      expect(result.completionTokens).toBe(DEFAULT_VALUE);
-      expect(result.maxTotalTokens).toBe(DEFAULT_VALUE);
+      expect(result.completionTokens).toBeUndefined();
+      expect(result.maxTotalTokens).toBeUndefined();
     });
 
     it("should use provided promptTokens and completionTokens values", () => {
@@ -39,7 +37,7 @@ describe("createTokenUsageRecord", () => {
 
       expect(result.promptTokens).toBe(100);
       expect(result.completionTokens).toBe(50);
-      expect(result.maxTotalTokens).toBe(DEFAULT_VALUE);
+      expect(result.maxTotalTokens).toBeUndefined();
     });
 
     it("should use all provided values", () => {
@@ -58,14 +56,14 @@ describe("createTokenUsageRecord", () => {
       const result = createTokenUsageRecord(100, undefined, 8192);
 
       expect(result.promptTokens).toBe(100);
-      expect(result.completionTokens).toBe(DEFAULT_VALUE);
+      expect(result.completionTokens).toBeUndefined();
       expect(result.maxTotalTokens).toBe(8192);
     });
 
     it("should handle undefined as first argument with values for others", () => {
       const result = createTokenUsageRecord(undefined, 50, 8192);
 
-      expect(result.promptTokens).toBe(DEFAULT_VALUE);
+      expect(result.promptTokens).toBeUndefined();
       expect(result.completionTokens).toBe(50);
       expect(result.maxTotalTokens).toBe(8192);
     });
@@ -108,13 +106,29 @@ describe("createTokenUsageRecord", () => {
       const result = createTokenUsageRecord(100, 50, 8192);
 
       // These assertions verify the shape matches the interface
-      const promptTokens: number = result.promptTokens;
-      const completionTokens: number = result.completionTokens;
-      const maxTotalTokens: number = result.maxTotalTokens;
+      // Values are optional numbers, so we check if defined before asserting type
+      expect(result.promptTokens).toBeDefined();
+      expect(result.completionTokens).toBeDefined();
+      expect(result.maxTotalTokens).toBeDefined();
 
-      expect(typeof promptTokens).toBe("number");
-      expect(typeof completionTokens).toBe("number");
-      expect(typeof maxTotalTokens).toBe("number");
+      if (result.promptTokens !== undefined) {
+        expect(typeof result.promptTokens).toBe("number");
+      }
+      if (result.completionTokens !== undefined) {
+        expect(typeof result.completionTokens).toBe("number");
+      }
+      if (result.maxTotalTokens !== undefined) {
+        expect(typeof result.maxTotalTokens).toBe("number");
+      }
+    });
+
+    it("should return undefined for unknown token values (not sentinel values)", () => {
+      // This documents the change from -1 sentinel values to undefined
+      const result = createTokenUsageRecord();
+
+      expect(result.promptTokens).toBeUndefined();
+      expect(result.completionTokens).toBeUndefined();
+      expect(result.maxTotalTokens).toBeUndefined();
     });
   });
 });

@@ -22,10 +22,10 @@ describe("normalizeTokenUsage", () => {
   });
 
   describe("completion tokens normalization", () => {
-    test("should default completion tokens to 0 when unknown (negative value)", () => {
+    test("should default completion tokens to 0 when undefined", () => {
       const tokenUsage: LLMResponseTokensUsage = {
         promptTokens: 100,
-        completionTokens: -1,
+        completionTokens: undefined,
         maxTotalTokens: 8192,
       };
 
@@ -58,11 +58,11 @@ describe("normalizeTokenUsage", () => {
   });
 
   describe("max total tokens normalization", () => {
-    test("should resolve max total tokens from model metadata when unknown (negative value)", () => {
+    test("should resolve max total tokens from model metadata when undefined", () => {
       const tokenUsage: LLMResponseTokensUsage = {
         promptTokens: 100,
         completionTokens: 50,
-        maxTotalTokens: -1,
+        maxTotalTokens: undefined,
       };
 
       const result = normalizeTokenUsage(
@@ -94,9 +94,9 @@ describe("normalizeTokenUsage", () => {
   });
 
   describe("prompt tokens estimation", () => {
-    test("should estimate prompt tokens when unknown and ensure they exceed limit for cropping", () => {
+    test("should estimate prompt tokens when undefined and ensure they exceed limit for cropping", () => {
       const tokenUsage: LLMResponseTokensUsage = {
-        promptTokens: -1,
+        promptTokens: undefined,
         completionTokens: 50,
         maxTotalTokens: 8192,
       };
@@ -117,7 +117,7 @@ describe("normalizeTokenUsage", () => {
 
     test("should use estimated tokens when they exceed the limit", () => {
       const tokenUsage: LLMResponseTokensUsage = {
-        promptTokens: -1,
+        promptTokens: undefined,
         completionTokens: 50,
         maxTotalTokens: 100,
       };
@@ -157,9 +157,9 @@ describe("normalizeTokenUsage", () => {
   describe("combined normalization", () => {
     test("should normalize all unknown values simultaneously", () => {
       const tokenUsage: LLMResponseTokensUsage = {
-        promptTokens: -1,
-        completionTokens: -1,
-        maxTotalTokens: -1,
+        promptTokens: undefined,
+        completionTokens: undefined,
+        maxTotalTokens: undefined,
       };
 
       const result = normalizeTokenUsage(
@@ -175,7 +175,7 @@ describe("normalizeTokenUsage", () => {
       expect(result.promptTokens).toBe(4097);
     });
 
-    test("should return immutable-like result (new object)", () => {
+    test("should return result with all required fields defined", () => {
       const tokenUsage: LLMResponseTokensUsage = {
         promptTokens: 100,
         completionTokens: 50,
@@ -189,7 +189,10 @@ describe("normalizeTokenUsage", () => {
         "test request",
       );
 
-      expect(result).not.toBe(tokenUsage);
+      // Result should have Required<LLMResponseTokensUsage> type - all fields defined
+      expect(result.promptTokens).toBeDefined();
+      expect(result.completionTokens).toBeDefined();
+      expect(result.maxTotalTokens).toBeDefined();
       expect(result).toEqual({
         promptTokens: 100,
         completionTokens: 50,
@@ -201,9 +204,9 @@ describe("normalizeTokenUsage", () => {
   describe("edge cases", () => {
     test("should handle empty request string", () => {
       const tokenUsage: LLMResponseTokensUsage = {
-        promptTokens: -1,
-        completionTokens: -1,
-        maxTotalTokens: -1,
+        promptTokens: undefined,
+        completionTokens: undefined,
+        maxTotalTokens: undefined,
       };
 
       const result = normalizeTokenUsage("test-model", tokenUsage, createModelMetadata(1000), "");
@@ -215,7 +218,7 @@ describe("normalizeTokenUsage", () => {
 
     test("should handle very large request content", () => {
       const tokenUsage: LLMResponseTokensUsage = {
-        promptTokens: -1,
+        promptTokens: undefined,
         completionTokens: 0,
         maxTotalTokens: 100,
       };
@@ -232,6 +235,21 @@ describe("normalizeTokenUsage", () => {
       const expectedEstimate = Math.floor(1_000_000 / llmConfig.AVERAGE_CHARS_PER_TOKEN);
       expect(result.promptTokens).toBe(expectedEstimate);
       expect(result.promptTokens).toBeGreaterThan(100);
+    });
+
+    test("should handle empty tokenUsage object (all fields omitted)", () => {
+      const tokenUsage: LLMResponseTokensUsage = {};
+
+      const result = normalizeTokenUsage(
+        "test-model",
+        tokenUsage,
+        createModelMetadata(2000),
+        "test request",
+      );
+
+      expect(result.completionTokens).toBe(0);
+      expect(result.maxTotalTokens).toBe(2000);
+      expect(result.promptTokens).toBe(2001); // exceeds limit to trigger cropping
     });
   });
 });

@@ -1,3 +1,5 @@
+import { LLMError, LLMErrorCode } from "../../../types/llm-errors.types";
+
 /**
  * Typed configuration for VertexAI Gemini provider.
  * This interface decouples the provider implementation from specific environment variable names,
@@ -15,14 +17,39 @@ export interface VertexAIGeminiConfig {
 }
 
 /**
- * Type guard to check if an object is a valid VertexAIGeminiConfig.
+ * Validates and asserts that an object is a valid VertexAIGeminiConfig.
+ * Throws an LLMError if validation fails, centralizing validation in the manifest layer.
+ *
+ * @param obj - The object to validate
+ * @returns The validated VertexAIGeminiConfig
+ * @throws LLMError with BAD_CONFIGURATION code if validation fails
  */
-export function isVertexAIGeminiConfig(obj: unknown): obj is VertexAIGeminiConfig {
-  if (!obj || typeof obj !== "object") return false;
+export function assertVertexAIGeminiConfig(obj: unknown): VertexAIGeminiConfig {
+  if (!obj || typeof obj !== "object") {
+    throw new LLMError(
+      LLMErrorCode.BAD_CONFIGURATION,
+      "Invalid VertexAI Gemini configuration - expected an object",
+    );
+  }
   const config = obj as Record<string, unknown>;
-  return (
-    typeof config.projectId === "string" &&
-    typeof config.embeddingsLocation === "string" &&
-    typeof config.completionsLocation === "string"
-  );
+  const missingFields: string[] = [];
+
+  if (typeof config.projectId !== "string" || config.projectId.length === 0) {
+    missingFields.push("projectId");
+  }
+  if (typeof config.embeddingsLocation !== "string" || config.embeddingsLocation.length === 0) {
+    missingFields.push("embeddingsLocation");
+  }
+  if (typeof config.completionsLocation !== "string" || config.completionsLocation.length === 0) {
+    missingFields.push("completionsLocation");
+  }
+
+  if (missingFields.length > 0) {
+    throw new LLMError(
+      LLMErrorCode.BAD_CONFIGURATION,
+      `Invalid VertexAI Gemini configuration - missing or empty required fields: ${missingFields.join(", ")}`,
+    );
+  }
+
+  return config as VertexAIGeminiConfig;
 }
