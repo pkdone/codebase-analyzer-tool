@@ -68,7 +68,8 @@ export const SPECIAL_TABLE_COLUMNS = {
 /**
  * Type representing valid special table column keys.
  */
-export type SpecialTableColumnKey = (typeof SPECIAL_TABLE_COLUMNS)[keyof typeof SPECIAL_TABLE_COLUMNS];
+export type SpecialTableColumnKey =
+  (typeof SPECIAL_TABLE_COLUMNS)[keyof typeof SPECIAL_TABLE_COLUMNS];
 
 /**
  * Job trigger type identifiers used in background process reports.

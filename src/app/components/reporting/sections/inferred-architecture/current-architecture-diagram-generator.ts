@@ -1,6 +1,14 @@
 import { injectable } from "tsyringe";
-import { escapeMermaidLabel, generateNodeId, buildArrow, applyStyleClass } from "../../diagrams/utils";
-import { BaseDiagramGenerator, type BaseDiagramOptions } from "../../diagrams/generators/base-diagram-generator";
+import {
+  escapeMermaidLabel,
+  generateNodeId,
+  buildArrow,
+  applyStyleClass,
+} from "../../diagrams/utils";
+import {
+  BaseDiagramGenerator,
+  type BaseDiagramOptions,
+} from "../../diagrams/generators/base-diagram-generator";
 import { currentArchitectureConfig } from "../../diagrams/diagrams.config";
 import { DIAGRAM_CSS_CLASSES } from "../../config/diagram-css-classes.config";
 

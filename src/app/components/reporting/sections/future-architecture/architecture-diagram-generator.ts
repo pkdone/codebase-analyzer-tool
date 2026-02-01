@@ -1,6 +1,9 @@
 import { injectable } from "tsyringe";
 import { generateNodeId } from "../../diagrams/utils";
-import { BaseDiagramGenerator, type BaseDiagramOptions } from "../../diagrams/generators/base-diagram-generator";
+import {
+  BaseDiagramGenerator,
+  type BaseDiagramOptions,
+} from "../../diagrams/generators/base-diagram-generator";
 import { architectureConfig } from "../../diagrams/diagrams.config";
 import { createFlowchartBuilder } from "../../diagrams/builders";
 import { DIAGRAM_CSS_CLASSES } from "../../config/diagram-css-classes.config";

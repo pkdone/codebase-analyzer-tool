@@ -73,7 +73,10 @@ export function computeStringBoundaries(content: string): StringBoundary[] {
  * @param boundaries - Pre-computed string boundaries (sorted by start)
  * @returns True if the position is inside a string literal
  */
-export function isPositionInString(position: number, boundaries: readonly StringBoundary[]): boolean {
+export function isPositionInString(
+  position: number,
+  boundaries: readonly StringBoundary[],
+): boolean {
   if (boundaries.length === 0) return false;
 
   let left = 0;

@@ -194,11 +194,7 @@ describe("directory-operations", () => {
 
       expect(result).toHaveLength(3);
       // All have same size - toSorted maintains stable order
-      expect(result.map((f) => f.filepath)).toEqual([
-        "/test/a.ts",
-        "/test/b.ts",
-        "/test/c.ts",
-      ]);
+      expect(result.map((f) => f.filepath)).toEqual(["/test/a.ts", "/test/b.ts", "/test/c.ts"]);
     });
   });
 

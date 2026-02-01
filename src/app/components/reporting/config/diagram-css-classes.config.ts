@@ -45,6 +45,5 @@ export type DiagramCssClassName = (typeof DIAGRAM_CSS_CLASSES)[keyof typeof DIAG
  * Array of all diagram CSS class names for iteration purposes.
  * Useful for tests and validation.
  */
-export const ALL_DIAGRAM_CSS_CLASS_NAMES: readonly DiagramCssClassName[] = Object.values(
-  DIAGRAM_CSS_CLASSES,
-);
+export const ALL_DIAGRAM_CSS_CLASS_NAMES: readonly DiagramCssClassName[] =
+  Object.values(DIAGRAM_CSS_CLASSES);

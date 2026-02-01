@@ -63,7 +63,8 @@ export const DATABASE_MECHANISM_VALUES = [
   "ORM",
   "MICRO-ORM",
   "DRIVER",
-  // Database Operations (consider if these should remain - could use operationType instead)
+  // SQL Script Types - for files that ARE database scripts (distinct from operationType
+  // which describes what operations application code performs against a database)
   "DDL",
   "DML",
   "STORED-PROCEDURE",

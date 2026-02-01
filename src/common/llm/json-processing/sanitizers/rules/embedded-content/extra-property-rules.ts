@@ -154,9 +154,7 @@ export const EXTRA_PROPERTY_RULES: readonly ReplacementRule[] = [
     name: "invalidPropertyBlock",
     pattern: /([}\],]|\n|^)(\s*)((?:extra_|_llm_|_ai_)[a-z_]+):\s*{/gi,
     replacement: (_match, groups, context) => {
-      // This is a complex pattern that needs to find the matching closing brace
-      // For the rule-based system, we'll handle simple cases
-      // The main sanitizer will handle complex nested cases
+      // Find the matching closing brace for this invalid property block
       const { fullContent, offset } = context;
       const matchStr = _match;
 
@@ -175,9 +173,7 @@ export const EXTRA_PROPERTY_RULES: readonly ReplacementRule[] = [
       const delimiterStr = delimiter ?? "";
       const whitespaceStr = whitespace ?? "";
 
-      // Return the replacement that will remove the entire block
-      // Note: This only works for simple cases; complex nested cases
-      // need the full sanitizer logic
+      // Return the replacement that removes the entire invalid property block
       return `${delimiterStr}${whitespaceStr}`;
     },
     diagnosticMessage: (_match, groups) => {

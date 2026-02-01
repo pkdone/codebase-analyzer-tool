@@ -14,7 +14,10 @@ import {
 import { formatError } from "../../utils/error-formatters";
 import { logWarn } from "../../utils/logging";
 import { parseAndValidateLLMJson, repairAndValidateJson } from "../json-processing";
-import { extractSchemaMetadata, schemaMetadataToSanitizerConfig } from "../json-processing/utils/zod-schema-metadata";
+import {
+  extractSchemaMetadata,
+  schemaMetadataToSanitizerConfig,
+} from "../json-processing/utils/zod-schema-metadata";
 import { LLMError, LLMErrorCode } from "../types/llm-errors.types";
 import type { LLMErrorLogger } from "../tracking/llm-error-logger";
 import type { LLMSanitizerConfig } from "../config/llm-module-config.types";
