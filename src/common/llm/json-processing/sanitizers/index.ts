@@ -2,7 +2,7 @@
  * Barrel export for all JSON sanitizers.
  */
 // Consolidated sanitizers (primary API)
-export { fixJsonStructureAndNoise } from "./structural-sanitizer.js";
+export { sanitizeJsonStructure } from "./structural-sanitizer.js";
 export { fixJsonSyntax } from "./syntax-sanitizer.js";
 
 // Individual sanitizers (still available for specific use cases)

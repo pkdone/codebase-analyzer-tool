@@ -44,7 +44,7 @@ describe("InferResponseType Helper Type", () => {
 
       type InferredType = InferResponseType<OptionsWithTextFormat>;
 
-      // InferredType should be string (not LLMGeneratedContent)
+      // InferredType should be string (not LLMResponsePayload)
       const stringValue: InferredType = "string value";
 
       expect(stringValue).toBe("string value");
@@ -150,7 +150,7 @@ describe("InferResponseType Helper Type", () => {
 
   describe("Edge cases", () => {
     test("should handle empty options", () => {
-      // Empty options should resolve to LLMGeneratedContent
+      // Empty options should resolve to LLMResponsePayload
       type InferredType = InferResponseType<LLMCompletionOptions>;
 
       // Should accept string, record, number array, or null

@@ -24,7 +24,7 @@ export interface HtmlReportAssets {
  * - Loading inline CSS and SVG assets for report embedding
  * - Ensuring external assets (like Mermaid.js) are available in the output directory
  *
- * This service is injected into HtmlReportWriter and AppReportGenerator.
+ * This service is injected into HtmlReportWriter and ReportArtifactGenerator.
  */
 @injectable()
 export class HtmlReportAssetService {

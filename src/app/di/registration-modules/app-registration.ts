@@ -13,11 +13,11 @@ import { AppSummariesRepository } from "../../repositories/app-summaries/app-sum
 import { registerReportingComponents } from "./reporting-registration";
 
 // Capture component imports
-import CodebaseCaptureService from "../../components/capture/codebase-capture.service";
+import CodebaseIngestionService from "../../components/capture/codebase-ingestion.service";
 
 // Insights component imports
 import InsightsFromDBGenerator from "../../components/insights/generators/db-insights-generator";
-import { PromptFileInsightsGenerator } from "../../components/insights/generators/prompt-file-insights-generator";
+import { RequirementPromptExecutor } from "../../components/insights/generators/requirement-prompt-executor";
 import { SinglePassInsightStrategy } from "../../components/insights/strategies/single-pass-insight-strategy";
 import { MapReduceInsightStrategy } from "../../components/insights/strategies/map-reduce-insight-strategy";
 
@@ -98,13 +98,10 @@ function registerComponents(): void {
   container.registerSingleton(coreTokens.DatabaseInitializer, DatabaseInitializer);
 
   // Register capture components
-  container.registerSingleton(captureTokens.CodebaseCaptureService, CodebaseCaptureService);
+  container.registerSingleton(captureTokens.CodebaseIngestionService, CodebaseIngestionService);
 
   // Register insights components
-  container.registerSingleton(
-    insightsTokens.PromptFileInsightsGenerator,
-    PromptFileInsightsGenerator,
-  );
+  container.registerSingleton(insightsTokens.RequirementPromptExecutor, RequirementPromptExecutor);
   container.registerSingleton(insightsTokens.InsightsFromDBGenerator, InsightsFromDBGenerator);
   container.registerSingleton(insightsTokens.SinglePassInsightStrategy, SinglePassInsightStrategy);
   container.registerSingleton(insightsTokens.MapReduceInsightStrategy, MapReduceInsightStrategy);

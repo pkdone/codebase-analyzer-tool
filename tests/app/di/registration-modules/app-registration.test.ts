@@ -13,13 +13,13 @@ describe("App Registration Module", () => {
     it("should register capture components as singletons", () => {
       registerAppDependencies();
 
-      expect(container.isRegistered(captureTokens.CodebaseCaptureService)).toBe(true);
+      expect(container.isRegistered(captureTokens.CodebaseIngestionService)).toBe(true);
     });
 
     it("should register insights components as singletons", () => {
       registerAppDependencies();
 
-      expect(container.isRegistered(insightsTokens.PromptFileInsightsGenerator)).toBe(true);
+      expect(container.isRegistered(insightsTokens.RequirementPromptExecutor)).toBe(true);
       expect(container.isRegistered(insightsTokens.InsightsFromDBGenerator)).toBe(true);
     });
 
@@ -37,10 +37,10 @@ describe("App Registration Module", () => {
 
     it("should register components only once even on multiple calls", () => {
       registerAppDependencies();
-      const isRegistered1 = container.isRegistered(captureTokens.CodebaseCaptureService);
+      const isRegistered1 = container.isRegistered(captureTokens.CodebaseIngestionService);
 
       registerAppDependencies();
-      const isRegistered2 = container.isRegistered(captureTokens.CodebaseCaptureService);
+      const isRegistered2 = container.isRegistered(captureTokens.CodebaseIngestionService);
 
       expect(isRegistered1).toBe(true);
       expect(isRegistered2).toBe(true);

@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import { injectable, inject } from "tsyringe";
 import { outputConfig } from "../../config/output.config";
-import { PromptFileInsightsGenerator } from "../../components/insights/generators/prompt-file-insights-generator";
+import { RequirementPromptExecutor } from "../../components/insights/generators/requirement-prompt-executor";
 import type LLMExecutionStats from "../../../common/llm/tracking/llm-execution-stats";
 import type { EnvVars } from "../../env/env.types";
 import type { LLMModuleConfig } from "../../../common/llm/config/llm-module-config.types";
@@ -9,7 +9,7 @@ import { llmTokens, insightsTokens, coreTokens } from "../../di/tokens";
 import { BaseAnalysisTask } from "../base-analysis-task";
 
 /**
- * Task to generate file-based insights from prompt files in the input/requirements directory.
+ * Task to execute requirement prompts from files in the input/requirements directory.
  * This task uses a file-driven workflow that bypasses the database-centric approach.
  * Extends BaseAnalysisTask to share the common lifecycle pattern with LLM stats tracking.
  */
@@ -23,24 +23,24 @@ export class FileBasedInsightsGenerationTask extends BaseAnalysisTask {
     @inject(coreTokens.ProjectName) projectName: string,
     @inject(coreTokens.EnvVars) private readonly env: EnvVars,
     @inject(llmTokens.LLMModuleConfig) private readonly llmConfig: LLMModuleConfig,
-    @inject(insightsTokens.PromptFileInsightsGenerator)
-    private readonly insightsFileGenerator: PromptFileInsightsGenerator,
+    @inject(insightsTokens.RequirementPromptExecutor)
+    private readonly requirementPromptExecutor: RequirementPromptExecutor,
   ) {
     super(llmStats, projectName);
   }
 
   protected getStartMessage(): string {
-    return "Generating insights for project";
+    return "Executing requirement prompts for project";
   }
 
   protected getFinishMessage(): string {
-    return "Finished generating insights for the project";
+    return "Finished executing requirement prompts for the project";
   }
 
   protected async runTask(): Promise<void> {
     // Get a description of the configured models for logging
     const modelsDescription = this.getLLMModelsDescription();
-    await this.insightsFileGenerator.generateInsightsToFiles(
+    await this.requirementPromptExecutor.executeRequirementsToFiles(
       this.env.CODEBASE_DIR_PATH,
       modelsDescription,
     );

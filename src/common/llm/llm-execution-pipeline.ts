@@ -1,7 +1,7 @@
 import type { LLMContext } from "./types/llm-request.types";
 import type { ResolvedLLMModelMetadata } from "./types/llm-model.types";
 import type { ExecutableCandidate } from "./types/llm-function.types";
-import type { LLMGeneratedContent, LLMCompletedResponse } from "./types/llm-response.types";
+import type { LLMResponsePayload, LLMCompletedResponse } from "./types/llm-response.types";
 import { isCompletedResponse, isErrorResponse } from "./types/llm-response.types";
 import type { LLMRetryConfig } from "./providers/llm-provider.types";
 import { RetryStrategy } from "./strategies/retry-strategy";
@@ -29,7 +29,7 @@ export interface LLMPipelineConfig {
  * Generic over the response data type T, enabling unified handling of both
  * completions (T = z.infer<S>) and embeddings (T = number[]).
  */
-interface LLMExecutionParams<T extends LLMGeneratedContent> {
+interface LLMExecutionParams<T extends LLMResponsePayload> {
   readonly resourceName: string;
   readonly content: string;
   readonly context: LLMContext;
@@ -66,7 +66,7 @@ export class LLMExecutionPipeline {
    *
    * Generic over the response data type T for type-safe results.
    */
-  async execute<T extends LLMGeneratedContent>(
+  async execute<T extends LLMResponsePayload>(
     params: LLMExecutionParams<T>,
   ): Promise<LLMExecutionResult<T>> {
     const {
@@ -141,7 +141,7 @@ export class LLMExecutionPipeline {
    *
    * Generic over the response data type T.
    */
-  private async tryFallbackChain<T extends LLMGeneratedContent>(
+  private async tryFallbackChain<T extends LLMResponsePayload>(
     resourceName: string,
     initialContent: string,
     initialContext: LLMContext,

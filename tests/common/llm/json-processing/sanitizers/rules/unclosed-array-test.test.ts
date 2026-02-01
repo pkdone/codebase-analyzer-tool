@@ -4,7 +4,7 @@ import {
   ALL_RULES,
 } from "../../../../../../src/common/llm/json-processing/sanitizers/rules";
 import { parseJsonWithSanitizers } from "../../../../../../src/common/llm/json-processing/core/json-parsing";
-import { fixJsonStructureAndNoise } from "../../../../../../src/common/llm/json-processing/sanitizers/structural-sanitizer";
+import { sanitizeJsonStructure } from "../../../../../../src/common/llm/json-processing/sanitizers/structural-sanitizer";
 
 describe("unclosedArrayBeforeProperty rule", () => {
   describe("STRUCTURAL_RULES", () => {
@@ -55,7 +55,7 @@ describe("unclosedArrayBeforeProperty rule", () => {
     });
   });
 
-  describe("fixJsonStructureAndNoise (early phase fix)", () => {
+  describe("sanitizeJsonStructure (early phase fix)", () => {
     it("should fix unclosed array before property in Phase 1", () => {
       const input = `{
   "name": "TestClass",
@@ -72,7 +72,7 @@ describe("unclosedArrayBeforeProperty rule", () => {
   ]
 }`;
 
-      const result = fixJsonStructureAndNoise(input);
+      const result = sanitizeJsonStructure(input);
 
       expect(result.changed).toBe(true);
       expect(result.repairs).toContain("Fixed unclosed array before property name");
@@ -97,7 +97,7 @@ describe("unclosedArrayBeforeProperty rule", () => {
   ]
 }`;
 
-      const result = fixJsonStructureAndNoise(input);
+      const result = sanitizeJsonStructure(input);
 
       expect(result.changed).toBe(true);
       expect(() => JSON.parse(result.content)).not.toThrow();
@@ -112,7 +112,7 @@ describe("unclosedArrayBeforeProperty rule", () => {
   "returnType": "void"
 }`;
 
-      const result = fixJsonStructureAndNoise(input);
+      const result = sanitizeJsonStructure(input);
 
       // Should not change valid JSON
       expect(result.changed).toBe(false);

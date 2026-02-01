@@ -2,7 +2,7 @@ import { z } from "zod";
 import type { LLMProvider } from "../types/llm-provider.interface";
 import type { LLMModelMetadata } from "../types/llm-model.types";
 import type { LLMErrorMsgRegExPattern } from "../types/llm-stats.types";
-import type { LLMGeneratedContent, LLMResponseTokensUsage } from "../types/llm-response.types";
+import type { LLMResponsePayload, LLMResponseTokensUsage } from "../types/llm-response.types";
 import type { LLMErrorLoggingConfig, ResolvedModelChain } from "../config/llm-module-config.types";
 import type { JsonValue } from "../types/json-value.types";
 
@@ -111,6 +111,6 @@ export interface LLMProviderManifest {
  */
 export interface LLMImplSpecificResponseSummary {
   isIncompleteResponse: boolean;
-  responseContent: LLMGeneratedContent;
+  responseContent: LLMResponsePayload;
   tokenUsage: LLMResponseTokensUsage;
 }

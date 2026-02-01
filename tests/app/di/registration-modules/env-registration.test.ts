@@ -65,8 +65,8 @@ describe("Environment Registration Module", () => {
     MONGODB_URL: "mongodb://localhost:27017/test",
     CODEBASE_DIR_PATH: "/test/project",
     SKIP_ALREADY_PROCESSED_FILES: false,
-    LLM_COMPLETIONS: "TestProvider:test-completion",
-    LLM_EMBEDDINGS: "TestProvider:test-embeddings",
+    LLM_COMPLETION_MODEL_CHAIN: "TestProvider:test-completion",
+    LLM_EMBEDDING_MODEL_CHAIN: "TestProvider:test-embeddings",
   };
 
   beforeEach(() => {
@@ -75,8 +75,8 @@ describe("Environment Registration Module", () => {
     container.reset();
 
     // Reset process.env for each test
-    delete process.env.LLM_COMPLETIONS;
-    delete process.env.LLM_EMBEDDINGS;
+    delete process.env.LLM_COMPLETION_MODEL_CHAIN;
+    delete process.env.LLM_EMBEDDING_MODEL_CHAIN;
     delete process.env.TEST_API_KEY;
     delete process.env.TEST_ENDPOINT;
     delete process.env.MONGODB_URL;
@@ -129,8 +129,8 @@ describe("Environment Registration Module", () => {
   describe("registerLlmEnvDependencies", () => {
     it("should register LLM environment variables with valid configuration", async () => {
       // Set up successful scenario
-      process.env.LLM_COMPLETIONS = "TestProvider:test-completion";
-      process.env.LLM_EMBEDDINGS = "TestProvider:test-embeddings";
+      process.env.LLM_COMPLETION_MODEL_CHAIN = "TestProvider:test-completion";
+      process.env.LLM_EMBEDDING_MODEL_CHAIN = "TestProvider:test-embeddings";
       process.env.TEST_API_KEY = "test-key";
       process.env.TEST_EMBEDDINGS_URN = "test-embed-urn";
       process.env.TEST_COMPLETION_URN = "test-comp-urn";
@@ -154,8 +154,8 @@ describe("Environment Registration Module", () => {
     });
 
     it("should fall back to base registration when LLM chains are empty", async () => {
-      process.env.LLM_COMPLETIONS = "";
-      process.env.LLM_EMBEDDINGS = "";
+      process.env.LLM_COMPLETION_MODEL_CHAIN = "";
+      process.env.LLM_EMBEDDING_MODEL_CHAIN = "";
       process.env.MONGODB_URL = "mongodb://localhost:27017/test";
       process.env.CODEBASE_DIR_PATH = "/test/project";
 
@@ -165,8 +165,8 @@ describe("Environment Registration Module", () => {
     });
 
     it("should fall back to base registration when loadManifestForProviderFamily errors", async () => {
-      process.env.LLM_COMPLETIONS = "TestProvider:test-completion";
-      process.env.LLM_EMBEDDINGS = "TestProvider:test-embeddings";
+      process.env.LLM_COMPLETION_MODEL_CHAIN = "TestProvider:test-completion";
+      process.env.LLM_EMBEDDING_MODEL_CHAIN = "TestProvider:test-embeddings";
       process.env.MONGODB_URL = "mongodb://localhost:27017/test";
       process.env.CODEBASE_DIR_PATH = "/test/project";
 

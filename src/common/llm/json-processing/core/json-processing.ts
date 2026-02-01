@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { LLMGeneratedContent } from "../../types/llm-response.types";
+import { LLMResponsePayload } from "../../types/llm-response.types";
 import { LLMCompletionOptions, LLMContext } from "../../types/llm-request.types";
 import { JsonProcessingError, JsonProcessingErrorType } from "../types/json-processing.errors";
 import { JsonProcessorResult } from "../types/json-processing-result.types";
@@ -96,7 +96,7 @@ type ContentValidationResult =
  * @returns A result with trimmed content on success, or an error on failure
  */
 function validateContentInput(
-  content: LLMGeneratedContent,
+  content: LLMResponsePayload,
   context: LLMContext,
   loggingEnabled: boolean,
 ): ContentValidationResult {
@@ -308,7 +308,7 @@ function buildEffectiveSanitizerConfig(
  * @returns A JsonProcessorResult indicating success with validated data and repairs, or failure with an error
  */
 export function parseAndValidateLLMJson<S extends z.ZodType = z.ZodType<unknown>>(
-  content: LLMGeneratedContent,
+  content: LLMResponsePayload,
   context: LLMContext,
   completionOptions: LLMCompletionOptions<S>,
   loggingEnabled = true,

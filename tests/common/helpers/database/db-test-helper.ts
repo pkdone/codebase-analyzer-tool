@@ -21,10 +21,12 @@ let testDbName: string | null = null;
  * Exported for reuse in integration tests that need to create test vectors.
  */
 export async function getVectorDimensions(): Promise<number> {
-  // Parse the LLM_EMBEDDINGS chain to get the first model key
-  const embeddingsChain = process.env.LLM_EMBEDDINGS;
+  // Parse the LLM_EMBEDDING_MODEL_CHAIN chain to get the first model key
+  const embeddingsChain = process.env.LLM_EMBEDDING_MODEL_CHAIN;
   if (!embeddingsChain) {
-    console.warn("LLM_EMBEDDINGS environment variable is not set. Using default 1536 dimensions.");
+    console.warn(
+      "LLM_EMBEDDING_MODEL_CHAIN environment variable is not set. Using default 1536 dimensions.",
+    );
     return databaseConfig.DEFAULT_VECTOR_DIMENSIONS;
   }
 

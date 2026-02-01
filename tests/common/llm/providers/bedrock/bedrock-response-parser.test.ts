@@ -136,7 +136,7 @@ describe("bedrock-response-parser", () => {
       "TestProvider",
     );
 
-    // Should convert undefined to null (to match LLMGeneratedContent type)
+    // Should convert undefined to null (to match LLMResponsePayload type)
     expect(summary.responseContent).toBeNull();
     expect(summary.isIncompleteResponse).toBe(true);
   });
@@ -424,7 +424,7 @@ describe("bedrock-response-parser", () => {
      * properly validates that extracted content is JSON-serializable before assignment.
      */
 
-    it("should accept nested object content as valid LLMGeneratedContent", () => {
+    it("should accept nested object content as valid LLMResponsePayload", () => {
       // Schema that allows any type for the text field (to simulate edge cases)
       const flexibleSchema = z
         .object({
@@ -455,12 +455,12 @@ describe("bedrock-response-parser", () => {
         "TestProvider",
       );
 
-      // Objects are valid LLMGeneratedContent (JSON-serializable)
+      // Objects are valid LLMResponsePayload (JSON-serializable)
       expect(summary.responseContent).toEqual({ nested: "object", with: ["array", "values"] });
       expect(summary.isIncompleteResponse).toBe(false);
     });
 
-    it("should accept array content as valid LLMGeneratedContent", () => {
+    it("should accept array content as valid LLMResponsePayload", () => {
       const flexibleSchema = z
         .object({
           content: z.array(z.object({ text: z.any() })).optional(),
@@ -490,7 +490,7 @@ describe("bedrock-response-parser", () => {
         "TestProvider",
       );
 
-      // Arrays are valid LLMGeneratedContent (JSON-serializable)
+      // Arrays are valid LLMResponsePayload (JSON-serializable)
       expect(summary.responseContent).toEqual(["item1", "item2", "item3"]);
       expect(summary.isIncompleteResponse).toBe(false);
     });
@@ -525,7 +525,7 @@ describe("bedrock-response-parser", () => {
         "TestProvider",
       );
 
-      // Numbers are not directly valid as LLMGeneratedContent (string | object | array | null)
+      // Numbers are not directly valid as LLMResponsePayload (string | object | array | null)
       // The type guard should convert to string for safety
       expect(summary.responseContent).toBe("42");
     });
@@ -560,7 +560,7 @@ describe("bedrock-response-parser", () => {
         "TestProvider",
       );
 
-      // Booleans are not directly valid as LLMGeneratedContent
+      // Booleans are not directly valid as LLMResponsePayload
       // The type guard should convert to string for safety
       expect(summary.responseContent).toBe("true");
     });

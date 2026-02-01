@@ -16,7 +16,7 @@ export { appSummaryCategorySchemas, type AppSummaryCategorySchemas } from "./ins
 
 // Generators - these are injectable services
 export { default as InsightsFromDBGenerator } from "./generators/db-insights-generator";
-export { PromptFileInsightsGenerator } from "./generators/prompt-file-insights-generator";
+export { RequirementPromptExecutor } from "./generators/requirement-prompt-executor";
 
 // Strategies
 export type { IInsightGenerationStrategy } from "./strategies/insight-generation-strategy.interface";

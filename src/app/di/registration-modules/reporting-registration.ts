@@ -16,7 +16,7 @@ import { IntegrationPointsDataProvider } from "../../components/reporting/sectio
 import { AppStatisticsDataProvider } from "../../components/reporting/sections/overview/app-statistics-data-provider";
 import { CategorizedSectionDataBuilder } from "../../components/reporting/data-processing";
 import { DomainModelTransformer } from "../../components/reporting/sections/domain-model/domain-model-transformer";
-import AppReportGenerator from "../../components/reporting/app-report-generator";
+import ReportArtifactGenerator from "../../components/reporting/report-artifact-generator";
 import { FileTypesSection } from "../../components/reporting/sections/file-types/file-types-section";
 import { DatabaseSection } from "../../components/reporting/sections/database/database-section";
 import { IntegrationPointsSection } from "../../components/reporting/sections/integration-points/integration-points-section";
@@ -83,7 +83,7 @@ export function registerReportingComponents(): void {
     CategorizedSectionDataBuilder,
   );
   container.registerSingleton(reportingTokens.DomainModelTransformer, DomainModelTransformer);
-  container.registerSingleton(reportingTokens.AppReportGenerator, AppReportGenerator);
+  container.registerSingleton(reportingTokens.ReportArtifactGenerator, ReportArtifactGenerator);
 
   // Register data providers for focused sections
   container.registerSingleton(reportingTokens.BomDataProvider, BomDataProvider);

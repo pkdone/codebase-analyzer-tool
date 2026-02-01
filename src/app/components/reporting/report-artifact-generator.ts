@@ -20,12 +20,12 @@ import { HtmlReportAssetService } from "./services/html-report-asset.service";
 import { CORE_REQUIRED_APP_SUMMARY_FIELDS } from "./config/reporting.config";
 
 /**
- * Class responsible for orchestrating report generation using a modular section-based architecture.
+ * Class responsible for orchestrating report artifact generation using a modular section-based architecture.
  * Report sections are injected via multi-injection and handle their own data fetching, processing,
  * and preparation for both HTML and JSON outputs.
  */
 @injectable()
-export default class AppReportGenerator {
+export default class ReportArtifactGenerator {
   /**
    * Constructor
    * @param sections - Array of report sections (injected via multi-injection)
@@ -47,10 +47,10 @@ export default class AppReportGenerator {
   ) {}
 
   /**
-   * Generate the HTML static file report using the HtmlReportWriter and write JSON files using JsonReportWriter.
+   * Generate report artifacts (HTML and JSON files) using the HtmlReportWriter and JsonReportWriter.
    * Uses a modular section-based architecture where each section handles its own data fetching and processing.
    */
-  async generateReport(
+  async generateReportArtifacts(
     projectName: string,
     outputDir: string,
     outputFilename: string,

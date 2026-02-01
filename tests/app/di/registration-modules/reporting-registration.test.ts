@@ -18,7 +18,7 @@ describe("Reporting Registration Module", () => {
       expect(container.isRegistered(reportingTokens.FlowchartDiagramGenerator)).toBe(true);
       expect(container.isRegistered(reportingTokens.DomainModelDiagramGenerator)).toBe(true);
       expect(container.isRegistered(reportingTokens.ArchitectureDiagramGenerator)).toBe(true);
-      expect(container.isRegistered(reportingTokens.AppReportGenerator)).toBe(true);
+      expect(container.isRegistered(reportingTokens.ReportArtifactGenerator)).toBe(true);
     });
 
     it("should register components only once even on multiple calls", () => {

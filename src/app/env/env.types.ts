@@ -39,8 +39,8 @@ export const baseEnvVarsSchema = z.object({
   SKIP_ALREADY_PROCESSED_FILES: z
     .preprocess((val) => String(val).toLowerCase() === "true", z.boolean())
     .default(false),
-  LLM_COMPLETIONS: modelChainSchema,
-  LLM_EMBEDDINGS: modelChainSchema,
+  LLM_COMPLETION_MODEL_CHAIN: modelChainSchema,
+  LLM_EMBEDDING_MODEL_CHAIN: modelChainSchema,
 });
 
 export type BaseEnvVars = z.infer<typeof baseEnvVarsSchema>;

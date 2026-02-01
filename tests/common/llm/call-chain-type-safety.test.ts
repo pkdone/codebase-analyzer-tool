@@ -123,7 +123,7 @@ describe("LLM Call Chain Type Safety", () => {
         generated: "This is a text response",
       };
 
-      // Type should be string, not LLMGeneratedContent
+      // Type should be string, not LLMResponsePayload
       expect(typeof mockTextResponse.generated).toBe("string");
 
       // Compile-time check: should be able to use string methods
@@ -391,14 +391,14 @@ describe("LLM Call Chain Type Safety", () => {
       expect(jsonValue.id).toBe(1);
     });
 
-    test("should fall back to LLMGeneratedContent for JSON without schema", () => {
+    test("should fall back to LLMResponsePayload for JSON without schema", () => {
       interface JsonOptionsNoSchema {
         outputFormat: LLMOutputFormat.JSON;
       }
       type InferredType =
         import("../../../src/common/llm/types/llm-response.types").InferResponseType<JsonOptionsNoSchema>;
 
-      // Without jsonSchema, InferResponseType falls back to LLMGeneratedContent (string | object | null)
+      // Without jsonSchema, InferResponseType falls back to LLMResponsePayload (string | object | null)
       // At runtime, JSON responses without schema are objects, so we cast for property access
       const jsonValue: InferredType = { any: "value" };
       const asRecord = jsonValue as Record<string, unknown>;

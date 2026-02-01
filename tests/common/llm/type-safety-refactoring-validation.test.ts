@@ -12,7 +12,7 @@ import {
   isCompletedResponse,
   isErrorResponse,
   InferResponseType,
-  LLMGeneratedContent,
+  LLMResponsePayload,
 } from "../../../src/common/llm/types/llm-response.types";
 import {
   LLMFunction,
@@ -87,7 +87,7 @@ describe("Type Safety Refactoring Validation", () => {
    * Helper to create a bound mock LLM function for use with RetryStrategy.
    * Returns a BoundLLMFunction<T> which is what executeWithRetries expects.
    */
-  function createBoundMockLLMFunction<T extends LLMGeneratedContent>(
+  function createBoundMockLLMFunction<T extends LLMResponsePayload>(
     mockData: T,
   ): BoundLLMFunction<T> {
     return async (_content: string, _context: LLMContext): Promise<LLMFunctionResponse<T>> => {
@@ -291,7 +291,7 @@ describe("Type Safety Refactoring Validation", () => {
 
     test("should return last response when all retries exhausted for OVERLOADED", async () => {
       // Create a bound function that always returns OVERLOADED
-      const failingFunction: BoundLLMFunction<LLMGeneratedContent> = async (
+      const failingFunction: BoundLLMFunction<LLMResponsePayload> = async (
         _content: string,
         _context: LLMContext,
       ): Promise<LLMFunctionResponse> => {
@@ -430,7 +430,7 @@ describe("Type Safety Refactoring Validation", () => {
 
     test("should return failure when LLM returns ERRORED status", async () => {
       // Create a candidate that returns ERRORED
-      const errorCandidate: ExecutableCandidate<LLMGeneratedContent> = {
+      const errorCandidate: ExecutableCandidate<LLMResponsePayload> = {
         execute: async (content: string, context: LLMContext) => ({
           status: LLMResponseStatus.ERRORED,
           request: content,

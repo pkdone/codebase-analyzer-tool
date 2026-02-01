@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import { LLMErrorLogger } from "../../../../src/common/llm/tracking/llm-error-logger";
 import type { LLMContext } from "../../../../src/common/llm/types/llm-request.types";
-import type { LLMGeneratedContent } from "../../../../src/common/llm/types/llm-response.types";
+import type { LLMResponsePayload } from "../../../../src/common/llm/types/llm-response.types";
 import { writeFile } from "../../../../src/common/fs/file-operations";
 import { ensureDirectoryExists } from "../../../../src/common/fs/directory-operations";
 import { logWarn, logErr } from "../../../../src/common/utils/logging";
@@ -21,7 +21,7 @@ const mockLogOneLineError = logErr as jest.MockedFunction<typeof logErr>;
 describe("LLMErrorLogger", () => {
   let logger: LLMErrorLogger;
   let mockContext: LLMContext;
-  let mockResponseContent: LLMGeneratedContent;
+  let mockResponseContent: LLMResponsePayload;
 
   beforeEach(() => {
     const mockConfig = {

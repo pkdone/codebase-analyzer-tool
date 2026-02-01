@@ -1,41 +1,41 @@
 import { describe, test, expect } from "@jest/globals";
 import { z } from "zod";
-import { LLMGeneratedContent } from "../../../../src/common/llm/types/llm-response.types";
+import { LLMResponsePayload } from "../../../../src/common/llm/types/llm-response.types";
 
 /**
- * Unit tests for LLMGeneratedContent type.
+ * Unit tests for LLMResponsePayload type.
  *
- * These tests verify that the LLMGeneratedContent type correctly supports
+ * These tests verify that the LLMResponsePayload type correctly supports
  * all expected content types including generic arrays, ensuring type compatibility
  * with schema-inferred types through the LLM call chain.
  */
-describe("LLMGeneratedContent Type", () => {
+describe("LLMResponsePayload Type", () => {
   describe("Type Assignability", () => {
     test("should accept string values", () => {
-      const content: LLMGeneratedContent = "text response";
+      const content: LLMResponsePayload = "text response";
       expect(typeof content).toBe("string");
     });
 
     test("should accept null values", () => {
-      const content: LLMGeneratedContent = null;
+      const content: LLMResponsePayload = null;
       expect(content).toBeNull();
     });
 
     test("should accept object values", () => {
-      const content: LLMGeneratedContent = { name: "test", count: 42 };
+      const content: LLMResponsePayload = { name: "test", count: 42 };
       expect(content).toEqual({ name: "test", count: 42 });
     });
 
     test("should accept number[] (embedding) arrays", () => {
       // Embeddings are arrays of numbers
       const embeddings: number[] = [0.1, 0.2, 0.3, 0.4, 0.5];
-      const content: LLMGeneratedContent = embeddings;
+      const content: LLMResponsePayload = embeddings;
       expect(Array.isArray(content)).toBe(true);
       expect(content).toEqual([0.1, 0.2, 0.3, 0.4, 0.5]);
     });
 
     test("should accept string[] arrays", () => {
-      const content: LLMGeneratedContent = ["item1", "item2", "item3"];
+      const content: LLMResponsePayload = ["item1", "item2", "item3"];
       expect(Array.isArray(content)).toBe(true);
       expect(content).toEqual(["item1", "item2", "item3"]);
     });
@@ -46,7 +46,7 @@ describe("LLMGeneratedContent Type", () => {
         { id: 1, name: "Alice" },
         { id: 2, name: "Bob" },
       ];
-      const content: LLMGeneratedContent = objectArray;
+      const content: LLMResponsePayload = objectArray;
       expect(Array.isArray(content)).toBe(true);
       expect(content).toEqual([
         { id: 1, name: "Alice" },
@@ -56,7 +56,7 @@ describe("LLMGeneratedContent Type", () => {
 
     test("should accept mixed arrays", () => {
       const mixedArray: unknown[] = [1, "two", { three: 3 }, null];
-      const content: LLMGeneratedContent = mixedArray;
+      const content: LLMResponsePayload = mixedArray;
       expect(Array.isArray(content)).toBe(true);
       expect(content).toHaveLength(4);
     });
@@ -66,16 +66,16 @@ describe("LLMGeneratedContent Type", () => {
         { user: { profile: { name: "John" } } },
         { user: { profile: { name: "Jane" } } },
       ];
-      const content: LLMGeneratedContent = nestedArray;
+      const content: LLMResponsePayload = nestedArray;
       expect(Array.isArray(content)).toBe(true);
     });
   });
 
-  describe("Generic Constraint Compatibility (T extends LLMGeneratedContent)", () => {
+  describe("Generic Constraint Compatibility (T extends LLMResponsePayload)", () => {
     /**
      * This test verifies that types inferred from Zod schemas are assignable
-     * to LLMGeneratedContent, which is required for the generic constraint
-     * `T extends LLMGeneratedContent` used in LLMExecutionPipeline.
+     * to LLMResponsePayload, which is required for the generic constraint
+     * `T extends LLMResponsePayload` used in LLMExecutionPipeline.
      */
 
     test("should be compatible with z.infer<z.ZodObject>", () => {
@@ -85,8 +85,8 @@ describe("LLMGeneratedContent Type", () => {
       // Simulating what would come from parseAndValidateLLMJson or repairAndValidateJson
       const data: InferredType = { id: 1, name: "test" };
 
-      // The inferred type should be assignable to LLMGeneratedContent
-      const content: LLMGeneratedContent = data;
+      // The inferred type should be assignable to LLMResponsePayload
+      const content: LLMResponsePayload = data;
       expect(content).toEqual({ id: 1, name: "test" });
     });
 
@@ -101,7 +101,7 @@ describe("LLMGeneratedContent Type", () => {
       ];
 
       // After the fix, this should compile and work
-      const content: LLMGeneratedContent = data;
+      const content: LLMResponsePayload = data;
       expect(content).toEqual([
         { id: 1, name: "Alice" },
         { id: 2, name: "Bob" },
@@ -113,7 +113,7 @@ describe("LLMGeneratedContent Type", () => {
       type InferredType = z.infer<typeof _schema>;
 
       const data: InferredType = ["one", "two", "three"];
-      const content: LLMGeneratedContent = data;
+      const content: LLMResponsePayload = data;
       expect(content).toEqual(["one", "two", "three"]);
     });
 
@@ -123,7 +123,7 @@ describe("LLMGeneratedContent Type", () => {
       type InferredType = z.infer<typeof _schema>;
 
       const data: InferredType = [1, 2, 3, 4, 5];
-      const content: LLMGeneratedContent = data;
+      const content: LLMResponsePayload = data;
       expect(content).toEqual([1, 2, 3, 4, 5]);
     });
 
@@ -132,18 +132,18 @@ describe("LLMGeneratedContent Type", () => {
       type InferredType = z.infer<typeof _schema>;
 
       const data: InferredType = "text response";
-      const content: LLMGeneratedContent = data;
+      const content: LLMResponsePayload = data;
       expect(content).toBe("text response");
     });
   });
 
   describe("Extends Constraint Simulation", () => {
     /**
-     * These tests simulate the `T extends LLMGeneratedContent` generic constraint
+     * These tests simulate the `T extends LLMResponsePayload` generic constraint
      * used in LLMExecutionPipeline, LLMExecutionParams, and RetryStrategy.
      */
 
-    function acceptsGeneratedContent<T extends LLMGeneratedContent>(value: T): T {
+    function acceptsGeneratedContent<T extends LLMResponsePayload>(value: T): T {
       return value;
     }
 
@@ -188,11 +188,11 @@ describe("LLMGeneratedContent Type", () => {
 
   describe("LLMExecutionParams Type Compatibility", () => {
     /**
-     * These tests verify that the updated LLMGeneratedContent type works correctly
-     * with the LLMExecutionParams interface which uses `T extends LLMGeneratedContent`.
+     * These tests verify that the updated LLMResponsePayload type works correctly
+     * with the LLMExecutionParams interface which uses `T extends LLMResponsePayload`.
      */
 
-    interface MockExecutionParams<T extends LLMGeneratedContent> {
+    interface MockExecutionParams<T extends LLMResponsePayload> {
       content: string;
       result?: T;
     }
@@ -237,11 +237,11 @@ describe("LLMGeneratedContent Type", () => {
 
   describe("Type Narrowing", () => {
     /**
-     * Helper function to demonstrate type narrowing with LLMGeneratedContent.
-     * The function signature accepts LLMGeneratedContent, allowing TypeScript
+     * Helper function to demonstrate type narrowing with LLMResponsePayload.
+     * The function signature accepts LLMResponsePayload, allowing TypeScript
      * to properly narrow the type within the function body.
      */
-    function narrowContent(content: LLMGeneratedContent): string {
+    function narrowContent(content: LLMResponsePayload): string {
       if (typeof content === "string") {
         // TypeScript narrows to string
         return content.toUpperCase();
@@ -278,7 +278,7 @@ describe("LLMGeneratedContent Type", () => {
     });
 
     test("should support Array.isArray type guard", () => {
-      function processArrayContent(content: LLMGeneratedContent): number {
+      function processArrayContent(content: LLMResponsePayload): number {
         if (Array.isArray(content)) {
           // Should be narrowed to unknown[]
           return content.length;

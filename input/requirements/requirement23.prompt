@@ -2,5 +2,5 @@ Call Chain For JSON Validation Losing Typing: Act as a senior programmer analyzi
 
 Do NOT include any of the following topics in your recommendations:
 
- * Type Constraints used in the execution pipeline (`LLMExecutionPipeline`) and the response types (`LLMGeneratedContent`) being overly restrictive and artificially limiting the supported JSON types to `string | object | null`
+ * Type Constraints used in the execution pipeline (`LLMExecutionPipeline`) and the response types (`LLMResponsePayload`) being overly restrictive and artificially limiting the supported JSON types to `string | object | null`
  

@@ -43,7 +43,7 @@ describe("TEXT Format Type Safety", () => {
 
       type InferredType = InferResponseType<TextOnlyOptions>;
 
-      // Should be string, not LLMGeneratedContent
+      // Should be string, not LLMResponsePayload
       const result: InferredType = "text result";
       expect(typeof result).toBe("string");
     });
@@ -164,13 +164,13 @@ describe("TEXT Format Type Safety", () => {
   });
 
   describe("Edge cases and fallbacks", () => {
-    test("should default to LLMGeneratedContent when format is not specified", () => {
-      // Options without outputFormat should fall back to LLMGeneratedContent
+    test("should default to LLMResponsePayload when format is not specified", () => {
+      // Options without outputFormat should fall back to LLMResponsePayload
       type MinimalOptions = LLMCompletionOptions;
 
       type InferredType = InferResponseType<MinimalOptions>;
 
-      // Should accept any LLMGeneratedContent value
+      // Should accept any LLMResponsePayload value
       const stringVal: InferredType = "string";
       const recordVal: InferredType = { key: "value" };
       const arrayVal: InferredType = [1, 2, 3];

@@ -171,7 +171,9 @@ describe("LLMResponseProcessor", () => {
         } catch (error) {
           expect(error).toBeInstanceOf(LLMError);
           expect((error as LLMError).code).toBe(LLMErrorCode.BAD_CONFIGURATION);
-          expect((error as LLMError).message).toContain("jsonSchema was provided but outputFormat is TEXT");
+          expect((error as LLMError).message).toContain(
+            "jsonSchema was provided but outputFormat is TEXT",
+          );
         }
       });
 
@@ -353,11 +355,9 @@ describe("LLMResponseProcessor", () => {
     it("should return completed response for valid text", () => {
       const responseBase = createResponseBase();
 
-      const result = processor.validateTextResponse(
-        responseBase,
-        "Valid text content",
-        { outputFormat: LLMOutputFormat.TEXT },
-      );
+      const result = processor.validateTextResponse(responseBase, "Valid text content", {
+        outputFormat: LLMOutputFormat.TEXT,
+      });
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
       expect(isCompletedResponse(result)).toBe(true);
@@ -402,15 +402,23 @@ describe("LLMResponseProcessor", () => {
       const responseBase = createResponseBase();
 
       expect(() =>
-        processor.validateTextResponse(responseBase, { notString: true }, {
-          outputFormat: LLMOutputFormat.TEXT,
-        }),
+        processor.validateTextResponse(
+          responseBase,
+          { notString: true },
+          {
+            outputFormat: LLMOutputFormat.TEXT,
+          },
+        ),
       ).toThrow(LLMError);
 
       try {
-        processor.validateTextResponse(responseBase, { notString: true }, {
-          outputFormat: LLMOutputFormat.TEXT,
-        });
+        processor.validateTextResponse(
+          responseBase,
+          { notString: true },
+          {
+            outputFormat: LLMOutputFormat.TEXT,
+          },
+        );
       } catch (error) {
         expect((error as LLMError).code).toBe(LLMErrorCode.BAD_RESPONSE_CONTENT);
       }

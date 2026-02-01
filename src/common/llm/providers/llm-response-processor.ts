@@ -1,7 +1,16 @@
 import { z } from "zod";
-import { LLMContext, LLMPurpose, LLMCompletionOptions, LLMOutputFormat } from "../types/llm-request.types";
+import {
+  LLMContext,
+  LLMPurpose,
+  LLMCompletionOptions,
+  LLMOutputFormat,
+} from "../types/llm-request.types";
 import type { ResolvedLLMModelMetadata } from "../types/llm-model.types";
-import { LLMResponseStatus, LLMGeneratedContent, LLMFunctionResponse } from "../types/llm-response.types";
+import {
+  LLMResponseStatus,
+  LLMResponsePayload,
+  LLMFunctionResponse,
+} from "../types/llm-response.types";
 import { formatError } from "../../utils/error-formatters";
 import { logWarn } from "../../utils/logging";
 import { parseAndValidateLLMJson } from "../json-processing";
@@ -69,7 +78,7 @@ export class LLMResponseProcessor {
   async formatAndValidateResponse<S extends z.ZodType<unknown>>(
     responseBase: ResponseBase,
     taskType: LLMPurpose,
-    responseContent: LLMGeneratedContent,
+    responseContent: LLMResponsePayload,
     completionOptions: LLMCompletionOptions<S>,
   ): Promise<LLMFunctionResponse<z.infer<S>>> {
     // Early return for non-completion tasks
@@ -138,7 +147,7 @@ export class LLMResponseProcessor {
    */
   validateTextResponse<S extends z.ZodType<unknown>>(
     responseBase: ResponseBase,
-    responseContent: LLMGeneratedContent,
+    responseContent: LLMResponsePayload,
     completionOptions: LLMCompletionOptions<S>,
   ): LLMFunctionResponse<z.infer<S>> {
     // Configuration validation: TEXT format should not have a jsonSchema.

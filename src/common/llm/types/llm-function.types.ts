@@ -36,7 +36,7 @@ export type LLMModelKeyFunction = <S extends z.ZodType<unknown>>(
  *
  * The return type uses z.infer<S> for schema-based inference. For TEXT format
  * or when no schema is provided, the generated content will be string or
- * LLMGeneratedContent at runtime.
+ * LLMResponsePayload at runtime.
  *
  * Note: This type is specifically for completions. For embeddings, use
  * LLMEmbeddingFunction instead.

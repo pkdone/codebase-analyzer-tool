@@ -35,8 +35,8 @@ export interface BedrockTestData {
  * Includes base environment variables, LLM chain configuration, and URNs.
  *
  * @param _providerFamily - The LLM provider family (e.g., "BedrockClaude") - kept for backward compatibility but no longer used
- * @param embeddingsChain - Array of embedding model keys for the LLM_EMBEDDINGS chain
- * @param completionsChain - Array of completion model keys for the LLM_COMPLETIONS chain
+ * @param embeddingsChain - Array of embedding model keys for the LLM_EMBEDDING_MODEL_CHAIN chain
+ * @param completionsChain - Array of completion model keys for the LLM_COMPLETION_MODEL_CHAIN chain
  * @param urns - Record of URN environment variable keys to their values
  * @returns Mock environment object
  */
@@ -53,8 +53,8 @@ export function createBedrockMockEnv(
     MONGODB_URL: baseEnv.MONGODB_URL,
     CODEBASE_DIR_PATH: "/test/path",
     SKIP_ALREADY_PROCESSED_FILES: false,
-    LLM_COMPLETIONS: completionsChain.join(","),
-    LLM_EMBEDDINGS: embeddingsChain.join(","),
+    LLM_COMPLETION_MODEL_CHAIN: completionsChain.join(","),
+    LLM_EMBEDDING_MODEL_CHAIN: embeddingsChain.join(","),
     ...urns,
   };
 

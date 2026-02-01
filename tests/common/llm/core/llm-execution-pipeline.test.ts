@@ -10,7 +10,7 @@ import { LLMContext, LLMPurpose } from "../../../../src/common/llm/types/llm-req
 import {
   LLMResponseStatus,
   LLMFunctionResponse,
-  LLMGeneratedContent,
+  LLMResponsePayload,
 } from "../../../../src/common/llm/types/llm-response.types";
 import {
   BoundLLMFunction,
@@ -22,7 +22,7 @@ import { REPAIR_STEP } from "../../../../src/common/llm/json-processing/sanitize
  * Helper to create a mock BoundLLMFunction.
  * BoundLLMFunction is a function that returns a specific response type.
  */
-function createMockLLMFunction<T extends LLMGeneratedContent>(
+function createMockLLMFunction<T extends LLMResponsePayload>(
   response: LLMFunctionResponse<T>,
 ): BoundLLMFunction<T> {
   // Use explicit async function to avoid Jest mock type inference issues
@@ -32,7 +32,7 @@ function createMockLLMFunction<T extends LLMGeneratedContent>(
 /**
  * Helper to create a mock ExecutableCandidate for unified pipeline testing.
  */
-function createMockCandidate<T extends LLMGeneratedContent>(
+function createMockCandidate<T extends LLMResponsePayload>(
   response: LLMFunctionResponse<T>,
   modelKey = "test-model",
 ): ExecutableCandidate<T> {
@@ -302,7 +302,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
 
     test("should return LLMExecutionError with typed context when LLM function throws", async () => {
       const thrownError = new Error("Unexpected error");
-      const throwingCandidate: ExecutableCandidate<LLMGeneratedContent> = {
+      const throwingCandidate: ExecutableCandidate<LLMResponsePayload> = {
         execute: async () => {
           throw thrownError;
         },
@@ -509,11 +509,11 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
     /**
      * Tests that verify the pipeline correctly distinguishes between:
      * - undefined: No content was generated (error case)
-     * - null: Content is null, which is a valid value in LLMGeneratedContent
+     * - null: Content is null, which is a valid value in LLMResponsePayload
      */
 
     test("should return success when generated content is null", async () => {
-      // null is a valid member of LLMGeneratedContent representing "absence of content"
+      // null is a valid member of LLMResponsePayload representing "absence of content"
       // but still a valid response that was intentionally returned
       const candidate = createMockCandidate({
         status: LLMResponseStatus.COMPLETED,
@@ -535,7 +535,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         candidates: [candidate],
       });
 
-      // null is a valid response type in LLMGeneratedContent, should succeed
+      // null is a valid response type in LLMResponsePayload, should succeed
       expect(result.success).toBe(true);
       if (result.success) {
         expect(result.data).toBeNull();

@@ -2,7 +2,7 @@ import { z } from "zod";
 import { getNestedValue, getNestedValueWithFallbacks } from "../../../../utils/object-utils";
 import { isDefined } from "../../../../utils/type-guards";
 import { LLMError, LLMErrorCode } from "../../../types/llm-errors.types";
-import { LLMGeneratedContent, createTokenUsageRecord } from "../../../types/llm-response.types";
+import { LLMResponsePayload, createTokenUsageRecord } from "../../../types/llm-response.types";
 import type { LLMImplSpecificResponseSummary } from "../../llm-provider.types";
 
 /**
@@ -14,16 +14,16 @@ const parseNumericOrDefault = (value: unknown): number | undefined =>
   typeof value === "number" ? value : undefined;
 
 /**
- * Converts an unknown value to LLMGeneratedContent with proper type validation.
- * LLMGeneratedContent accepts: string | object | null
+ * Converts an unknown value to LLMResponsePayload with proper type validation.
+ * LLMResponsePayload accepts: string | object | null
  *
- * - undefined → null (LLMGeneratedContent doesn't include undefined)
+ * - undefined → null (LLMResponsePayload doesn't include undefined)
  * - null → null (preserved)
  * - string → string (preserved)
  * - object/array → preserved as-is (JSON-serializable, typeof "object" covers both)
  * - number/boolean/other → converted to string for safety
  */
-function convertToLLMGeneratedContent(value: unknown): LLMGeneratedContent {
+function convertToLLMResponsePayload(value: unknown): LLMResponsePayload {
   if (value === undefined || value === null) return null;
   if (typeof value === "string") return value;
   // typeof "object" covers both objects and arrays; null is already handled above
@@ -140,9 +140,9 @@ export function extractTextCompletionResponse(
   );
   const responseContentRaw = getNestedValueWithFallbacks(response, contentPaths);
   // Preserve null values from LLM (null has different semantic meaning than empty string)
-  // Convert undefined to null to match LLMGeneratedContent type (which doesn't include undefined)
-  // Validate the extracted value is a valid LLMGeneratedContent type (string, object, array, or null)
-  const responseContent = convertToLLMGeneratedContent(responseContentRaw);
+  // Convert undefined to null to match LLMResponsePayload type (which doesn't include undefined)
+  // Validate the extracted value is a valid LLMResponsePayload type (string, object, array, or null)
+  const responseContent = convertToLLMResponsePayload(responseContentRaw);
   const stopReasonPaths = [pathConfig.stopReasonPath, pathConfig.alternativeStopReasonPath].filter(
     isDefined,
   );

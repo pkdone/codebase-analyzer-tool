@@ -39,8 +39,8 @@ describe("bedrock-test-helper", () => {
         MONGODB_URL: "mongodb://test-url:27017",
         CODEBASE_DIR_PATH: "/test/path",
         SKIP_ALREADY_PROCESSED_FILES: false,
-        LLM_COMPLETIONS: "bedrock-claude-opus-4.5,bedrock-claude-sonnet-4.5",
-        LLM_EMBEDDINGS: "bedrock-amazon-titan-embed-text",
+        LLM_COMPLETION_MODEL_CHAIN: "bedrock-claude-opus-4.5,bedrock-claude-sonnet-4.5",
+        LLM_EMBEDDING_MODEL_CHAIN: "bedrock-amazon-titan-embed-text",
         BEDROCK_AMAZON_TITAN_EMBED_TEXT_MODEL_URN: "amazon.titan-embed-text-v1",
         BEDROCK_CLAUDE_OPUS_45_MODEL_URN: "anthropic.claude-3-5-sonnet-20240620-v1:0",
       });
@@ -56,8 +56,8 @@ describe("bedrock-test-helper", () => {
         },
       );
 
-      expect(result.LLM_EMBEDDINGS).toBe("");
-      expect(result.LLM_COMPLETIONS).toBe("bedrock-claude-opus-4.5");
+      expect(result.LLM_EMBEDDING_MODEL_CHAIN).toBe("");
+      expect(result.LLM_COMPLETION_MODEL_CHAIN).toBe("bedrock-claude-opus-4.5");
     });
 
     it("should correctly generate chain entries with just model keys", () => {
@@ -71,7 +71,7 @@ describe("bedrock-test-helper", () => {
       );
 
       // Model keys are globally unique, so no provider prefix is needed
-      expect(llamaResult.LLM_COMPLETIONS).toBe("bedrock-meta-llama3-3-70b-instruct");
+      expect(llamaResult.LLM_COMPLETION_MODEL_CHAIN).toBe("bedrock-meta-llama3-3-70b-instruct");
     });
   });
 

@@ -210,8 +210,8 @@ describe("LLM Router tests", () => {
 
     // Create mock EnvVars
     const mockEnvVars: Partial<EnvVars> = {
-      LLM_COMPLETIONS: "openai:GPT_COMPLETIONS_GPT4,openai:GPT_COMPLETIONS_GPT35",
-      LLM_EMBEDDINGS: "openai:GPT_EMBEDDINGS_ADA002",
+      LLM_COMPLETION_MODEL_CHAIN: "openai:GPT_COMPLETIONS_GPT4,openai:GPT_COMPLETIONS_GPT35",
+      LLM_EMBEDDING_MODEL_CHAIN: "openai:GPT_EMBEDDINGS_ADA002",
       OPENAI_EMBEDDINGS_MODEL_URN: "text-embedding-ada-002",
       OPENAI_GPT4_MODEL_URN: "gpt-4",
       OPENAI_GPT35_MODEL_URN: "gpt-3.5-turbo",
@@ -1092,7 +1092,7 @@ describe("LLM Router tests", () => {
     });
 
     test("should handle completion with null generated content as success", async () => {
-      // null is a valid member of LLMGeneratedContent, representing "absence of content"
+      // null is a valid member of LLMResponsePayload, representing "absence of content"
       // but still a valid response that was intentionally returned by the LLM
       const { router, mockProvider } = createLLMRouter();
       (mockProvider.executeCompletion as any).mockResolvedValue({
@@ -1111,7 +1111,7 @@ describe("LLM Router tests", () => {
         null,
       );
 
-      // null is a valid response type in LLMGeneratedContent, should succeed
+      // null is a valid response type in LLMResponsePayload, should succeed
       expect(isOk(result)).toBe(true);
       if (isOk(result)) {
         expect(result.value).toBeNull();

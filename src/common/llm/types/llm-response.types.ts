@@ -54,7 +54,7 @@ export function createTokenUsageRecord(
 }
 
 /**
- * Type representing all possible generated content types from LLM responses.
+ * Type representing all possible payload types returned by LLM providers.
  *
  * This union type covers:
  * - `string`: Raw text responses (TEXT output format)
@@ -65,12 +65,12 @@ export function createTokenUsageRecord(
  * type compatibility while maintaining the same runtime behavior. All JSON-serializable
  * values (objects and arrays) extend `object`, and actual type safety is enforced through
  * Zod schema validation at the call site. This enables strict Zod schemas (without
- * `.passthrough()`) to satisfy the `T extends LLMGeneratedContent` constraint.
+ * `.passthrough()`) to satisfy the `T extends LLMResponsePayload` constraint.
  *
  * For type-safe JSON value operations, use the types from json-value.types.ts
  * (JsonValue, JsonObject, JsonArray, JsonPrimitive) for stronger typing.
  */
-export type LLMGeneratedContent = string | object | null;
+export type LLMResponsePayload = string | object | null;
 
 /**
  * Helper type to infer the response data type from LLMCompletionOptions.
@@ -78,7 +78,7 @@ export type LLMGeneratedContent = string | object | null;
  * - When outputFormat is JSON with a schema, infers the type from that schema
  * - When outputFormat is JSON without a schema, returns Record<string, unknown>
  * - When outputFormat is TEXT, returns string
- * - Otherwise, defaults to LLMGeneratedContent
+ * - Otherwise, defaults to LLMResponsePayload
  *
  * This enables end-to-end type safety through the LLM call chain by allowing
  * the return type to be inferred from the options passed at the call site.
@@ -92,7 +92,7 @@ export type InferResponseType<TOptions extends LLMCompletionOptions> = TOptions 
     : Record<string, unknown>
   : TOptions extends { outputFormat: LLMOutputFormat.TEXT }
     ? string
-    : LLMGeneratedContent;
+    : LLMResponsePayload;
 
 /**
  * Base fields common to all LLM response variants.
@@ -107,9 +107,9 @@ interface LLMResponseBase {
  * Response variant for successful completion with generated content.
  * Status is COMPLETED and the `generated` field contains the result.
  *
- * @template T - The type of the generated content. Defaults to LLMGeneratedContent.
+ * @template T - The type of the generated content. Defaults to LLMResponsePayload.
  */
-export interface LLMCompletedResponse<T = LLMGeneratedContent> extends LLMResponseBase {
+export interface LLMCompletedResponse<T = LLMResponsePayload> extends LLMResponseBase {
   readonly status: typeof LLMResponseStatus.COMPLETED;
   readonly generated: T;
   readonly tokensUsage?: LLMResponseTokensUsage;
@@ -164,10 +164,10 @@ export interface LLMStatusResponse extends LLMResponseBase {
  * }
  * ```
  *
- * @template T - The type of the generated content. Defaults to LLMGeneratedContent to allow
+ * @template T - The type of the generated content. Defaults to LLMResponsePayload to allow
  * use as a base type when the specific content type isn't relevant (e.g., error handling, status checking).
  */
-export type LLMFunctionResponse<T = LLMGeneratedContent> =
+export type LLMFunctionResponse<T = LLMResponsePayload> =
   | LLMCompletedResponse<T>
   | LLMErroredResponse
   | LLMStatusResponse;

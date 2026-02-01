@@ -23,12 +23,12 @@ import { isOk } from "../../../common/types/result.types";
 import type { LlmConcurrencyService } from "../concurrency";
 
 /**
- * Service that orchestrates the capture of source files from a codebase into the database.
+ * Service that orchestrates the ingestion of source files from a codebase into the database.
  * Handles file discovery, content reading, LLM-based summarization, embedding generation,
  * and persistence of source records.
  */
 @injectable()
-export default class CodebaseCaptureService {
+export default class CodebaseIngestionService {
   /**
    * Constructor with dependency injection.
    * @param sourcesRepository - Repository for storing source file data
@@ -52,10 +52,10 @@ export default class CodebaseCaptureService {
   /**
    * Generate the set of representations of source files including each one's content and metadata.
    */
-  async captureCodebaseToDatabase(
+  async ingestCodebaseToDatabase(
     projectName: string,
     srcDirPath: string,
-    skipIfAlreadyCaptured: boolean,
+    skipIfAlreadyIngested: boolean,
   ): Promise<void> {
     const srcFilepaths = await findFilesRecursively(srcDirPath, {
       folderIgnoreList: this.fileProcessingConfig.FOLDER_IGNORE_LIST,
@@ -68,7 +68,7 @@ export default class CodebaseCaptureService {
       sortedFilepaths,
       projectName,
       srcDirPath,
-      skipIfAlreadyCaptured,
+      skipIfAlreadyIngested,
     );
   }
 
@@ -79,20 +79,20 @@ export default class CodebaseCaptureService {
     filepaths: readonly string[],
     projectName: string,
     srcDirPath: string,
-    skipIfAlreadyCaptured: boolean,
+    skipIfAlreadyIngested: boolean,
   ) {
     console.log(
-      `Captuing data on ${filepaths.length} files to go into the MongoDB database sources collection`,
+      `Ingesting data on ${filepaths.length} files to go into the MongoDB database sources collection`,
     );
     let existingFiles: ReadonlySet<string> = new Set<string>();
 
-    if (skipIfAlreadyCaptured) {
+    if (skipIfAlreadyIngested) {
       const existingFilePaths = await this.sourcesRepository.getProjectFilesPaths(projectName);
       existingFiles = new Set(existingFilePaths);
 
       if (existingFiles.size > 0) {
         console.log(
-          `Not capturing some of the metadata files into the database because they've already been captured by a previous run - change env var 'SKIP_ALREADY_PROCESSED_FILES' to force re-processing of all files`,
+          `Not ingesting some of the metadata files into the database because they've already been ingested by a previous run - change env var 'SKIP_ALREADY_PROCESSED_FILES' to force re-processing of all files`,
         );
       }
     } else {
@@ -111,7 +111,7 @@ export default class CodebaseCaptureService {
             filepath,
             projectName,
             srcDirPath,
-            skipIfAlreadyCaptured,
+            skipIfAlreadyIngested,
             existingFiles,
           );
           successes++;
@@ -138,7 +138,7 @@ export default class CodebaseCaptureService {
     fullFilepath: string,
     projectName: string,
     srcDirPath: string,
-    skipIfAlreadyCaptured: boolean,
+    skipIfAlreadyIngested: boolean,
     existingFiles: ReadonlySet<string>,
   ) {
     const fileType = getFileExtension(fullFilepath).toLowerCase();
@@ -152,7 +152,7 @@ export default class CodebaseCaptureService {
     }
 
     const filepath = path.relative(srcDirPath, fullFilepath);
-    if (skipIfAlreadyCaptured && existingFiles.has(filepath)) return;
+    if (skipIfAlreadyIngested && existingFiles.has(filepath)) return;
     const rawContent = await readFile(fullFilepath);
     const content = rawContent.trim();
     if (!content) return; // Skip empty files

@@ -64,7 +64,7 @@ function registerProjectNameFromEnvVars(envVars: EnvVars): void {
 
 /**
  * Load environment variables including LLM-specific ones.
- * The new architecture uses model chain configuration via LLM_COMPLETIONS and LLM_EMBEDDINGS.
+ * The new architecture uses model chain configuration via LLM_COMPLETION_MODEL_CHAIN and LLM_EMBEDDING_MODEL_CHAIN.
  */
 function loadEnvIncludingLLMVars(): EnvVars {
   try {
@@ -77,11 +77,11 @@ function loadEnvIncludingLLMVars(): EnvVars {
       throw baseResult.error;
     }
 
-    const { LLM_COMPLETIONS, LLM_EMBEDDINGS } = baseResult.data;
+    const { LLM_COMPLETION_MODEL_CHAIN, LLM_EMBEDDING_MODEL_CHAIN } = baseResult.data;
 
     // Parse chains to get unique provider families
-    const completionsChain = parseModelChain(LLM_COMPLETIONS);
-    const embeddingsChain = parseModelChain(LLM_EMBEDDINGS);
+    const completionsChain = parseModelChain(LLM_COMPLETION_MODEL_CHAIN);
+    const embeddingsChain = parseModelChain(LLM_EMBEDDING_MODEL_CHAIN);
     const allFamilies = getUniqueProviderFamilies([...completionsChain, ...embeddingsChain]);
 
     console.log(

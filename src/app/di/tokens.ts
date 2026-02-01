@@ -41,7 +41,7 @@ export type TaskToken = keyof typeof taskTokens;
 
 // Capture module tokens
 export const captureTokens = {
-  CodebaseCaptureService: Symbol("CodebaseCaptureService"),
+  CodebaseIngestionService: Symbol("CodebaseIngestionService"),
   FileSummarizerService: Symbol("FileSummarizerService"),
   FileTypePromptRegistry: Symbol("FileTypePromptRegistry"),
 } as const;
@@ -51,7 +51,7 @@ export type CaptureToken = keyof typeof captureTokens;
 // Insights module tokens
 export const insightsTokens = {
   InsightsFromDBGenerator: Symbol("InsightsFromDBGenerator"),
-  PromptFileInsightsGenerator: Symbol("PromptFileInsightsGenerator"),
+  RequirementPromptExecutor: Symbol("RequirementPromptExecutor"),
   SinglePassInsightStrategy: Symbol("SinglePassInsightStrategy"),
   MapReduceInsightStrategy: Symbol("MapReduceInsightStrategy"),
 } as const;
@@ -100,7 +100,7 @@ export const reportingTokens = {
   AppStatisticsDataProvider: Symbol("AppStatisticsDataProvider"),
   CategorizedSectionDataBuilder: Symbol("CategorizedSectionDataBuilder"),
   DomainModelTransformer: Symbol("DomainModelTransformer"),
-  AppReportGenerator: Symbol("AppReportGenerator"),
+  ReportArtifactGenerator: Symbol("ReportArtifactGenerator"),
   BomDataProvider: Symbol("BomDataProvider"),
   CodeQualityDataProvider: Symbol("CodeQualityDataProvider"),
   ScheduledJobDataProvider: Symbol("ScheduledJobDataProvider"),

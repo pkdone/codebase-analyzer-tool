@@ -5,10 +5,10 @@ import { coreTokens } from "../../di/tokens";
 import { reportingTokens } from "../../di/tokens";
 import { outputConfig } from "../../config/output.config";
 import { clearDirectory } from "../../../common/fs/directory-operations";
-import AppReportGenerator from "../../components/reporting/app-report-generator";
+import ReportArtifactGenerator from "../../components/reporting/report-artifact-generator";
 
 /**
- * Task to generate a report of an application's composition.
+ * Task to generate report artifacts for an application's composition.
  */
 @injectable()
 export class ReportGenerationTask implements Task {
@@ -17,24 +17,24 @@ export class ReportGenerationTask implements Task {
    */
   constructor(
     @inject(coreTokens.ProjectName) private readonly projectName: string,
-    @inject(reportingTokens.AppReportGenerator)
-    private readonly appReportGenerator: AppReportGenerator,
+    @inject(reportingTokens.ReportArtifactGenerator)
+    private readonly reportArtifactGenerator: ReportArtifactGenerator,
   ) {}
 
   /**
-   * Execute the service - generates a report for the codebase.
+   * Execute the service - generates report artifacts for the codebase.
    */
   async execute(): Promise<void> {
-    await this.generateReport();
+    await this.generateReportArtifacts();
   }
 
   /**
-   * Generate a report from the codebase in the specified directory.
+   * Generate report artifacts from the codebase in the specified directory.
    */
-  private async generateReport(): Promise<void> {
+  private async generateReportArtifacts(): Promise<void> {
     await clearDirectory(outputConfig.OUTPUT_DIR);
-    console.log(`Creating report for project: ${this.projectName}`);
-    await this.appReportGenerator.generateReport(
+    console.log(`Creating report artifacts for project: ${this.projectName}`);
+    await this.reportArtifactGenerator.generateReportArtifacts(
       this.projectName,
       outputConfig.OUTPUT_DIR,
       outputConfig.OUTPUT_SUMMARY_HTML_FILE,

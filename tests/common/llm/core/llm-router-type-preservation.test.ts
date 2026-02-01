@@ -31,7 +31,7 @@ jest.mock("../../../../src/common/llm/tracking/llm-execution-stats", () => {
 
 /**
  * Tests verifying that the LLMRouter implementation preserves type information
- * through the call chain without unnecessary casting to LLMGeneratedContent.
+ * through the call chain without unnecessary casting to LLMResponsePayload.
  *
  * These tests ensure that the generic type S flows correctly from the schema
  * through the pipeline to the return value.
@@ -192,7 +192,7 @@ describe("LLMRouter Type Preservation Tests", () => {
 
       expect(isOk(result)).toBe(true);
       if (isOk(result)) {
-        // Type should be z.infer<typeof specificSchema>, not LLMGeneratedContent
+        // Type should be z.infer<typeof specificSchema>, not LLMResponsePayload
         // These property accesses verify type preservation at compile time
         const field: string = result.value.uniqueField;
         const num: number = result.value.numericValue;

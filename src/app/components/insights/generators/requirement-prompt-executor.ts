@@ -28,12 +28,12 @@ interface FileRequirementPrompt {
 }
 
 /**
- * Class responsible for processing codebase insights using prompt files.
- * Generates insights directly from prompt files in the input/ directory,
+ * Executor responsible for processing codebase analysis requirements using prompt files.
+ * Executes requirement prompts from files in the input/ directory against the codebase,
  * bypassing the database-driven workflow and writing output directly to files.
  */
 @injectable()
-export class PromptFileInsightsGenerator {
+export class RequirementPromptExecutor {
   /**
    * Constructor with dependency injection.
    * @param llmRouter - Router for LLM operations
@@ -49,9 +49,9 @@ export class PromptFileInsightsGenerator {
   ) {}
 
   /**
-   * Process source files with prompts and write individual output files.
+   * Execute requirement prompts against source files and write individual output files.
    */
-  async generateInsightsToFiles(srcDirPath: string, llmName: string): Promise<string[]> {
+  async executeRequirementsToFiles(srcDirPath: string, llmName: string): Promise<string[]> {
     const prompts = await this.loadPrompts();
     const codeBlocksContent = await aggregateFilesToMarkdown(srcDirPath, {
       folderIgnoreList: this.fileProcessingConfig.FOLDER_IGNORE_LIST,

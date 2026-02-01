@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import { injectable, inject } from "tsyringe";
-import CodebaseCaptureService from "../../components/capture/codebase-capture.service";
+import CodebaseIngestionService from "../../components/capture/codebase-ingestion.service";
 import type LLMExecutionStats from "../../../common/llm/tracking/llm-execution-stats";
 import type LLMRouter from "../../../common/llm/llm-router";
 import type { EnvVars } from "../../env/env.types";
@@ -11,7 +11,7 @@ import { captureTokens } from "../../di/tokens";
 import { BaseAnalysisTask } from "../base-analysis-task";
 
 /**
- * Task to capture the codebase.
+ * Task to ingest the codebase.
  * Extends BaseAnalysisTask to share the common lifecycle pattern with LLM stats tracking.
  */
 @injectable()
@@ -26,8 +26,8 @@ export class CodebaseCaptureTask extends BaseAnalysisTask {
     @inject(coreTokens.DatabaseInitializer)
     private readonly databaseInitializer: DatabaseInitializer,
     @inject(coreTokens.EnvVars) private readonly env: EnvVars,
-    @inject(captureTokens.CodebaseCaptureService)
-    private readonly codebaseCaptureService: CodebaseCaptureService,
+    @inject(captureTokens.CodebaseIngestionService)
+    private readonly codebaseIngestionService: CodebaseIngestionService,
   ) {
     super(llmStats, projectName);
   }
@@ -44,7 +44,7 @@ export class CodebaseCaptureTask extends BaseAnalysisTask {
     const vectorDimensions =
       this.llmRouter.getEmbeddingModelDimensions() ?? databaseConfig.DEFAULT_VECTOR_DIMENSIONS;
     await this.databaseInitializer.initializeDatabaseSchema(vectorDimensions);
-    await this.codebaseCaptureService.captureCodebaseToDatabase(
+    await this.codebaseIngestionService.ingestCodebaseToDatabase(
       this.projectName,
       this.env.CODEBASE_DIR_PATH,
       this.env.SKIP_ALREADY_PROCESSED_FILES,

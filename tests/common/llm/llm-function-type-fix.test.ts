@@ -338,7 +338,7 @@ describe("LLMFunction Type Fix - Generic Type Preservation", () => {
 
       type InferredType = InferResponseType<JsonNoSchemaOptions>;
 
-      // Without jsonSchema, InferResponseType falls back to LLMGeneratedContent (string | object | null)
+      // Without jsonSchema, InferResponseType falls back to LLMResponsePayload (string | object | null)
       // At runtime, JSON responses without schema are objects, so we cast for property access
       const value: InferredType = { any: "value", count: 42 };
       const asRecord = value as Record<string, unknown>;

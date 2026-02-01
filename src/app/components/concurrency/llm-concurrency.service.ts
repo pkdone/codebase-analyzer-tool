@@ -12,12 +12,6 @@ type LimitFunction = ReturnType<typeof pLimit>;
  * Service that manages concurrency limiting for LLM operations.
  * Provides a shared concurrency pool to ensure all LLM calls (across categories and map chunks)
  * share the same pool, preventing rate limit issues from nested parallelism.
- *
- * This service is used by:
- * - CodebaseCaptureService: File capture and summarization
- * - InsightsFromDBGenerator: Category-level insight processing
- * - MapReduceInsightStrategy: Chunk-level MAP phase processing
- * - PromptFileInsightsGenerator: Prompt-based insight generation
  */
 @injectable()
 export class LlmConcurrencyService {

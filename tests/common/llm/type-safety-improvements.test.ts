@@ -48,7 +48,7 @@ describe("Type Safety Improvements", () => {
         outputFormat: LLMOutputFormat.TEXT;
       }
 
-      // InferResponseType should now resolve to string (not LLMGeneratedContent)
+      // InferResponseType should now resolve to string (not LLMResponsePayload)
       type InferredType = InferResponseType<TextOptions>;
 
       // Should be string type, allowing direct string operations
@@ -453,7 +453,7 @@ describe("Type Safety Improvements", () => {
         outputFormat: LLMOutputFormat.JSON;
       }
 
-      // Without explicit schema, should fall back to LLMGeneratedContent (string | object | null)
+      // Without explicit schema, should fall back to LLMResponsePayload (string | object | null)
       type DefaultType = InferResponseType<DefaultOptions>;
 
       // At runtime, JSON responses without schema are objects, so we cast for property access

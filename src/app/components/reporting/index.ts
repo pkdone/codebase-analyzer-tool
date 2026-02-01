@@ -6,7 +6,7 @@
  */
 
 // Core generators and writers
-export { default as AppReportGenerator } from "./app-report-generator";
+export { default as ReportArtifactGenerator } from "./report-artifact-generator";
 export { HtmlReportWriter } from "./html-report-writer";
 export type { PreparedHtmlReportData } from "./types/html-report-data.types";
 export { JsonReportWriter, type PreparedJsonData } from "./json-report-writer";

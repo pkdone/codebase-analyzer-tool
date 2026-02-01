@@ -96,8 +96,8 @@ function buildResolvedChain(
  * the generic LLM module configuration interface.
  *
  * The architecture uses model chain configuration with globally unique model keys:
- * - LLM_COMPLETIONS: Comma-separated list of model keys (e.g., "vertexai-gemini-3-pro,bedrock-claude-opus-4.5")
- * - LLM_EMBEDDINGS: Comma-separated list of model keys (e.g., "vertexai-gemini-embedding-001")
+ * - LLM_COMPLETION_MODEL_CHAIN: Comma-separated list of model keys (e.g., "vertexai-gemini-3-pro,bedrock-claude-opus-4.5")
+ * - LLM_EMBEDDING_MODEL_CHAIN: Comma-separated list of model keys (e.g., "vertexai-gemini-embedding-001")
  *
  * Provider families are automatically resolved from the app's model registry.
  * Model URNs are resolved from provider-specific environment variables (urnEnvKey in manifests).
@@ -107,8 +107,8 @@ function buildResolvedChain(
  */
 export function buildLLMModuleConfig(envVars: EnvVars): LLMModuleConfig {
   // Parse the model chains from environment variables
-  const completionsChain = parseModelChain(envVars.LLM_COMPLETIONS);
-  const embeddingsChain = parseModelChain(envVars.LLM_EMBEDDINGS);
+  const completionsChain = parseModelChain(envVars.LLM_COMPLETION_MODEL_CHAIN);
+  const embeddingsChain = parseModelChain(envVars.LLM_EMBEDDING_MODEL_CHAIN);
 
   // Validate and build resolved chains with URNs from environment variables
   const resolvedCompletions = buildResolvedChain(

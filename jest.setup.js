@@ -7,11 +7,11 @@ dotenv.config();
 
 // Mock environment variables that might be needed during testing
 process.env.NODE_ENV = 'test';
-// Note: LLM_COMPLETIONS and LLM_EMBEDDINGS should come from .env to ensure test consistency
+// Note: LLM_COMPLETION_MODEL_CHAIN and LLM_EMBEDDING_MODEL_CHAIN should come from .env to ensure test consistency
 // with production configuration. Only set defaults if not already defined in .env
 // Format: comma-separated model keys (no provider prefix needed - model keys are globally unique)
-process.env.LLM_COMPLETIONS ||= 'vertexai-gemini-3-pro';
-process.env.LLM_EMBEDDINGS ||= 'vertexai-gemini-embedding-001';
+process.env.LLM_COMPLETION_MODEL_CHAIN ||= 'vertexai-gemini-3-pro';
+process.env.LLM_EMBEDDING_MODEL_CHAIN ||= 'vertexai-gemini-embedding-001';
 process.env.CODEBASE_DIR_PATH = "/test/path/petstore1.3.2";
 // Use MONGODB_URL from .env if it exists, otherwise use a default
 process.env.MONGODB_URL ||= "mongodb://localhost:27017/test";

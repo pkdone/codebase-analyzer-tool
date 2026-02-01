@@ -1,11 +1,11 @@
-import { fixJsonStructureAndNoise } from "../../../../../src/common/llm/json-processing/sanitizers/index";
+import { sanitizeJsonStructure } from "../../../../../src/common/llm/json-processing/sanitizers/index";
 import { REPAIR_STEP } from "../../../../../src/common/llm/json-processing/constants/repair-steps.config";
 
-describe("fixJsonStructureAndNoise", () => {
+describe("sanitizeJsonStructure", () => {
   describe("should handle whitespace trimming", () => {
     it("should remove leading and trailing whitespace", () => {
       const input = '   { "key": "value" }   ';
-      const result = fixJsonStructureAndNoise(input);
+      const result = sanitizeJsonStructure(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).toBe('{ "key": "value" }');
@@ -16,7 +16,7 @@ describe("fixJsonStructureAndNoise", () => {
   describe("should remove code fences", () => {
     it("should remove markdown code fences", () => {
       const input = '```json\n{ "key": "value" }\n```';
-      const result = fixJsonStructureAndNoise(input);
+      const result = sanitizeJsonStructure(input);
 
       expect(result.changed).toBe(true);
       expect(result.content.trim()).toBe('{ "key": "value" }');
@@ -25,7 +25,7 @@ describe("fixJsonStructureAndNoise", () => {
 
     it("should remove generic code fences", () => {
       const input = '```\n{ "key": "value" }\n```';
-      const result = fixJsonStructureAndNoise(input);
+      const result = sanitizeJsonStructure(input);
 
       expect(result.changed).toBe(true);
       expect(result.content.trim()).toBe('{ "key": "value" }');
@@ -35,7 +35,7 @@ describe("fixJsonStructureAndNoise", () => {
   describe("should remove invalid prefixes", () => {
     it("should remove introductory text before opening brace", () => {
       const input = 'Here is the JSON: { "key": "value" }';
-      const result = fixJsonStructureAndNoise(input);
+      const result = sanitizeJsonStructure(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).toContain('{ "key": "value" }');
@@ -45,7 +45,7 @@ describe("fixJsonStructureAndNoise", () => {
   describe("should extract largest JSON span", () => {
     it("should extract JSON from surrounding text", () => {
       const input = 'Some text before { "key": "value" } and some text after';
-      const result = fixJsonStructureAndNoise(input);
+      const result = sanitizeJsonStructure(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).toBe('{ "key": "value" }');
@@ -56,7 +56,7 @@ describe("fixJsonStructureAndNoise", () => {
   describe("should collapse duplicate JSON objects", () => {
     it("should collapse duplicate objects", () => {
       const input = '{ "key": "value" }\n{ "key": "value" }';
-      const result = fixJsonStructureAndNoise(input);
+      const result = sanitizeJsonStructure(input);
 
       // The collapse might not always trigger, so we just check it doesn't break
       expect(result.content).toBeDefined();
@@ -67,7 +67,7 @@ describe("fixJsonStructureAndNoise", () => {
   describe("should remove truncation markers", () => {
     it("should remove truncation markers", () => {
       const input = '{ "key": "value" }\n...\n}';
-      const result = fixJsonStructureAndNoise(input);
+      const result = sanitizeJsonStructure(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).not.toContain("...");
@@ -77,7 +77,7 @@ describe("fixJsonStructureAndNoise", () => {
   describe("should handle multiple issues", () => {
     it("should handle whitespace, code fences, and extraction together", () => {
       const input = '   ```json\n{ "key": "value" }\n```   ';
-      const result = fixJsonStructureAndNoise(input);
+      const result = sanitizeJsonStructure(input);
 
       expect(result.changed).toBe(true);
       expect(result.content.trim()).toBe('{ "key": "value" }');
@@ -88,7 +88,7 @@ describe("fixJsonStructureAndNoise", () => {
   describe("should not modify valid JSON", () => {
     it("should return unchanged for clean JSON", () => {
       const input = '{ "key": "value" }';
-      const result = fixJsonStructureAndNoise(input);
+      const result = sanitizeJsonStructure(input);
 
       expect(result.changed).toBe(false);
       expect(result.content).toBe(input);
@@ -118,7 +118,7 @@ describe("fixJsonStructureAndNoise", () => {
   ]
 }`;
 
-      const result = fixJsonStructureAndNoise(input);
+      const result = sanitizeJsonStructure(input);
 
       // The input is valid JSON - should NOT be changed
       expect(result.changed).toBe(false);
@@ -167,7 +167,7 @@ describe("fixJsonStructureAndNoise", () => {
   ]
 }`;
 
-      const result = fixJsonStructureAndNoise(input);
+      const result = sanitizeJsonStructure(input);
 
       // Should NOT change valid JSON
       expect(result.changed).toBe(false);
@@ -198,7 +198,7 @@ describe("fixJsonStructureAndNoise", () => {
 }
 \`\`\``;
 
-      const result = fixJsonStructureAndNoise(input);
+      const result = sanitizeJsonStructure(input);
 
       expect(result.changed).toBe(true);
       expect(result.repairs).toContain(REPAIR_STEP.REMOVED_CODE_FENCES);
@@ -225,7 +225,7 @@ describe("fixJsonStructureAndNoise", () => {
   ]
 }`;
 
-      const result = fixJsonStructureAndNoise(input);
+      const result = sanitizeJsonStructure(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).toContain('{"name": "item2"');
@@ -244,7 +244,7 @@ describe("fixJsonStructureAndNoise", () => {
   ]
 }`;
 
-      const result = fixJsonStructureAndNoise(input);
+      const result = sanitizeJsonStructure(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).toContain('{"name": "method2"');
@@ -259,7 +259,7 @@ describe("fixJsonStructureAndNoise", () => {
 }
 Please provide the code for the next file.`;
 
-      const result = fixJsonStructureAndNoise(input);
+      const result = sanitizeJsonStructure(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).not.toContain("Please provide");
@@ -272,7 +272,7 @@ Please provide the code for the next file.`;
 }
 Here is the JSON output as requested.`;
 
-      const result = fixJsonStructureAndNoise(input);
+      const result = sanitizeJsonStructure(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).not.toContain("Here is the JSON");
@@ -284,7 +284,7 @@ Here is the JSON output as requested.`;
 }
 Note: This class has no public methods.`;
 
-      const result = fixJsonStructureAndNoise(input);
+      const result = sanitizeJsonStructure(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).not.toContain("Note:");
@@ -296,7 +296,7 @@ Note: This class has no public methods.`;
 }
 I have analyzed the code and found no issues.`;
 
-      const result = fixJsonStructureAndNoise(input);
+      const result = sanitizeJsonStructure(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).not.toContain("I have analyzed");
@@ -313,7 +313,7 @@ I have analyzed the code and found no issues.`;
   "$schema": "http://json-schema.org/draft-07/schema#"
 }`;
 
-      const result = fixJsonStructureAndNoise(input);
+      const result = sanitizeJsonStructure(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).not.toContain("$schema");
@@ -329,7 +329,7 @@ I have analyzed the code and found no issues.`;
   "type": "array"
 }`;
 
-      const result = fixJsonStructureAndNoise(input);
+      const result = sanitizeJsonStructure(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).not.toContain('"type": "array"');
@@ -344,7 +344,7 @@ I have analyzed the code and found no issues.`;
 }
 }`;
 
-      const result = fixJsonStructureAndNoise(input);
+      const result = sanitizeJsonStructure(input);
 
       expect(result.changed).toBe(true);
       // Should extract the valid JSON and remove the trailing extra brace
@@ -363,7 +363,7 @@ I have analyzed the code and found no issues.`;
 }
 }}`;
 
-      const result = fixJsonStructureAndNoise(input);
+      const result = sanitizeJsonStructure(input);
 
       expect(result.changed).toBe(true);
       const parsed = JSON.parse(result.content);
@@ -377,7 +377,7 @@ I have analyzed the code and found no issues.`;
 ]
 ]`;
 
-      const result = fixJsonStructureAndNoise(input);
+      const result = sanitizeJsonStructure(input);
 
       expect(result.changed).toBe(true);
       const parsed = JSON.parse(result.content);
@@ -447,7 +447,7 @@ I have analyzed the code and found no issues.`;
 }
 }`;
 
-      const result = fixJsonStructureAndNoise(input);
+      const result = sanitizeJsonStructure(input);
 
       expect(result.changed).toBe(true);
       // Should be valid JSON after sanitization
@@ -465,7 +465,7 @@ I have analyzed the code and found no issues.`;
 }
    }`;
 
-      const result = fixJsonStructureAndNoise(input);
+      const result = sanitizeJsonStructure(input);
 
       expect(result.changed).toBe(true);
       const parsed = JSON.parse(result.content);
@@ -475,7 +475,7 @@ I have analyzed the code and found no issues.`;
     it("should remove trailing extra closing brace on same line", () => {
       const input = '{ "key": "value" }}';
 
-      const result = fixJsonStructureAndNoise(input);
+      const result = sanitizeJsonStructure(input);
 
       expect(result.changed).toBe(true);
       const parsed = JSON.parse(result.content);
@@ -490,7 +490,7 @@ I have analyzed the code and found no issues.`;
   }
 }`;
 
-      const result = fixJsonStructureAndNoise(input);
+      const result = sanitizeJsonStructure(input);
 
       // Should not change valid JSON
       expect(result.changed).toBe(false);

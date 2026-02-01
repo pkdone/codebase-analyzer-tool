@@ -4,7 +4,7 @@ import { formatErrorMessageAndDetail } from "../../utils/error-formatters";
 import { logWarn, logErr } from "../../utils/logging";
 import { LLMErrorLoggingConfig } from "../config/llm-module-config.types";
 import type { LLMContext } from "../types/llm-request.types";
-import type { LLMGeneratedContent } from "../types/llm-response.types";
+import type { LLMResponsePayload } from "../types/llm-response.types";
 
 /**
  * Service responsible for logging LLM JSON processing errors to files.
@@ -23,7 +23,7 @@ export class LLMErrorLogger {
    */
   async recordJsonProcessingError(
     error: unknown,
-    responseContent: LLMGeneratedContent,
+    responseContent: LLMResponsePayload,
     context: LLMContext,
   ): Promise<void> {
     if (!responseContent || typeof responseContent !== "string") return;

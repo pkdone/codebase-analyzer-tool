@@ -1,6 +1,6 @@
 import { JsonProcessingError, JsonProcessingErrorType } from "../types/json-processing.errors";
 import {
-  fixJsonStructureAndNoise,
+  sanitizeJsonStructure,
   fixJsonSyntax,
   normalizeCharacters,
   removeComments,
@@ -36,7 +36,7 @@ export type ParseResult =
  *
  * Phase 1: Structural & Noise Removal (Consolidated)
  *   Removes formatting artifacts, noise, and fixes high-level structural issues
- *   - fixJsonStructureAndNoise: Consolidated sanitizer that handles:
+ *   - sanitizeJsonStructure: Consolidated sanitizer that handles:
  *     * Trimming whitespace
  *     * Removing code fences
  *     * Removing invalid prefixes
@@ -77,7 +77,7 @@ export type ParseResult =
  */
 const SANITIZATION_PIPELINE_PHASES = [
   // Phase 1: Structural & Noise Removal (Consolidated)
-  [fixJsonStructureAndNoise],
+  [sanitizeJsonStructure],
   // Phase 2: Comment Removal
   [removeComments],
   // Phase 3: Character Normalization

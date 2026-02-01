@@ -22,7 +22,7 @@ export interface ReportSection {
 
   /**
    * Get the app summary fields required by this section.
-   * The AppReportGenerator will aggregate these from all sections to fetch the necessary data.
+   * The ReportArtifactGenerator will aggregate these from all sections to fetch the necessary data.
    * This allows sections to be self-contained and reduces the need for centralized configuration.
    *
    * @returns Readonly array of typed field names required from the app summaries repository

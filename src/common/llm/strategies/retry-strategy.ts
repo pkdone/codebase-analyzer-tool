@@ -1,6 +1,6 @@
 import pRetry, { FailedAttemptError } from "p-retry";
 import type { LLMContext } from "../types/llm-request.types";
-import type { LLMFunctionResponse, LLMGeneratedContent } from "../types/llm-response.types";
+import type { LLMFunctionResponse, LLMResponsePayload } from "../types/llm-response.types";
 import type { BoundLLMFunction } from "../types/llm-function.types";
 import { LLMResponseStatus, isOverloadedResponse } from "../types/llm-response.types";
 import type { LLMRetryConfig } from "../providers/llm-provider.types";
@@ -46,7 +46,7 @@ export class RetryStrategy {
    * @param providerRetryConfig - Retry configuration from the provider
    * @param retryOnInvalid - Whether to retry on INVALID status (true for completions, false for embeddings)
    */
-  async executeWithRetries<T extends LLMGeneratedContent>(
+  async executeWithRetries<T extends LLMResponsePayload>(
     llmFunction: BoundLLMFunction<T>,
     content: string,
     context: LLMContext,

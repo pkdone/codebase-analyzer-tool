@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import AppReportGenerator from "../../../../src/app/components/reporting/app-report-generator";
+import ReportArtifactGenerator from "../../../../src/app/components/reporting/report-artifact-generator";
 import { AppSummariesRepository } from "../../../../src/app/repositories/app-summaries/app-summaries.repository.interface";
 import type { RequestableAppSummaryField } from "../../../../src/app/repositories/app-summaries/app-summaries.model";
 import { HtmlReportWriter } from "../../../../src/app/components/reporting/html-report-writer";
@@ -11,8 +11,8 @@ import type { ReportSection } from "../../../../src/app/components/reporting/sec
 // Import types for type checking only
 import type { ReportData } from "../../../../src/app/components/reporting/report-data.types";
 
-describe("AppReportGenerator", () => {
-  let generator: AppReportGenerator;
+describe("ReportArtifactGenerator", () => {
+  let generator: ReportArtifactGenerator;
   let mockAppSummariesRepository: jest.Mocked<AppSummariesRepository>;
   let mockHtmlWriter: jest.Mocked<HtmlReportWriter>;
   let mockJsonWriter: jest.Mocked<JsonReportWriter>;
@@ -99,7 +99,7 @@ describe("AppReportGenerator", () => {
       },
     } as const;
 
-    generator = new AppReportGenerator(
+    generator = new ReportArtifactGenerator(
       mockAppSummariesRepository,
       mockHtmlWriter,
       mockJsonWriter,
@@ -111,16 +111,16 @@ describe("AppReportGenerator", () => {
     );
   });
 
-  describe("generateReport", () => {
+  describe("generateReportArtifacts", () => {
     it("should throw error when no app summary data exists", async () => {
       mockAppSummariesRepository.getProjectAppSummaryFields.mockResolvedValue(null);
 
-      await expect(generator.generateReport("project", "/output", "report.html")).rejects.toThrow(
-        "Unable to generate report because no app summary data exists",
-      );
+      await expect(
+        generator.generateReportArtifacts("project", "/output", "report.html"),
+      ).rejects.toThrow("Unable to generate report because no app summary data exists");
     });
 
-    it("should generate report using sections", async () => {
+    it("should generate report artifacts using sections", async () => {
       const mockAppSummaryData = { appDescription: "Test app", projectName: "test" };
       mockAppSummariesRepository.getProjectAppSummaryFields.mockResolvedValue(mockAppSummaryData);
 
@@ -144,7 +144,7 @@ describe("AppReportGenerator", () => {
       mockAppStatsDataProvider.getAppStatistics.mockResolvedValue(mockAppStats);
       mockCategorizedDataBuilder.getStandardSectionData.mockReturnValue(mockCategorizedData);
 
-      await generator.generateReport("test-project", "/output", "report.html");
+      await generator.generateReportArtifacts("test-project", "/output", "report.html");
 
       // Verify sections were called
       expect(mockSections[0].getData).toHaveBeenCalledWith("test-project");
@@ -177,7 +177,7 @@ describe("AppReportGenerator", () => {
       mockAppStatsDataProvider.getAppStatistics.mockResolvedValue(mockAppStats);
       mockCategorizedDataBuilder.getStandardSectionData.mockReturnValue(mockCategorizedData);
 
-      await generator.generateReport("test-project", "/output", "report.html");
+      await generator.generateReportArtifacts("test-project", "/output", "report.html");
 
       // Verify all sections contributed to JSON data
       const jsonDataCall = mockJsonWriter.writeAllJSONFiles.mock.calls[0][0];
@@ -209,7 +209,7 @@ describe("AppReportGenerator", () => {
       // Mock console.warn to verify it's called for failed sections
       const consoleWarnSpy = jest.spyOn(console, "warn").mockImplementation();
 
-      await generator.generateReport("test-project", "/output", "report.html");
+      await generator.generateReportArtifacts("test-project", "/output", "report.html");
 
       // Verify that console.warn was called for the failed section
       expect(consoleWarnSpy).toHaveBeenCalledWith(
@@ -248,7 +248,7 @@ describe("AppReportGenerator", () => {
       });
       mockCategorizedDataBuilder.getStandardSectionData.mockReturnValue([]);
 
-      await generator.generateReport("test-project", "/output", "report.html");
+      await generator.generateReportArtifacts("test-project", "/output", "report.html");
 
       // Verify repository was called with aggregated fields
       const [, fieldsArg] = mockAppSummariesRepository.getProjectAppSummaryFields.mock.calls[0] as [
@@ -284,7 +284,7 @@ describe("AppReportGenerator", () => {
       });
       mockCategorizedDataBuilder.getStandardSectionData.mockReturnValue([]);
 
-      await generator.generateReport("test-project", "/output", "report.html");
+      await generator.generateReportArtifacts("test-project", "/output", "report.html");
 
       const [, fieldsArg] = mockAppSummariesRepository.getProjectAppSummaryFields.mock.calls[0] as [
         string,
@@ -316,7 +316,7 @@ describe("AppReportGenerator", () => {
       });
       mockCategorizedDataBuilder.getStandardSectionData.mockReturnValue([]);
 
-      await generator.generateReport("test-project", "/output", "report.html");
+      await generator.generateReportArtifacts("test-project", "/output", "report.html");
 
       const [, fieldsArg] = mockAppSummariesRepository.getProjectAppSummaryFields.mock.calls[0] as [
         string,

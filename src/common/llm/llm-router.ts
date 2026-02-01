@@ -67,14 +67,14 @@ export default class LLMRouter {
     if (completionCandidates.length === 0) {
       throw new LLMError(
         LLMErrorCode.BAD_CONFIGURATION,
-        "At least one completion model must be configured in LLM_COMPLETIONS",
+        "At least one completion model must be configured in LLM_COMPLETION_MODEL_CHAIN",
       );
     }
 
     if (embeddingCandidates.length === 0) {
       throw new LLMError(
         LLMErrorCode.BAD_CONFIGURATION,
-        "At least one embedding model must be configured in LLM_EMBEDDINGS",
+        "At least one embedding model must be configured in LLM_EMBEDDING_MODEL_CHAIN",
       );
     }
 

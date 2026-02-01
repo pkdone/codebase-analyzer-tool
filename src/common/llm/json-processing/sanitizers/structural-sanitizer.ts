@@ -33,7 +33,7 @@ import { isInStringAt } from "../utils/parser-context-utils";
  * @param input - The raw string content to sanitize
  * @returns Sanitizer result with structural fixes applied
  */
-export const fixJsonStructureAndNoise: Sanitizer = (input: string): SanitizerResult => {
+export const sanitizeJsonStructure: Sanitizer = (input: string): SanitizerResult => {
   try {
     if (!input) {
       return { content: input, changed: false };
@@ -113,7 +113,7 @@ export const fixJsonStructureAndNoise: Sanitizer = (input: string): SanitizerRes
       repairs: repairs.length > 0 ? repairs : undefined,
     };
   } catch (error) {
-    logWarn(`fixJsonStructureAndNoise sanitizer failed: ${String(error)}`);
+    logWarn(`sanitizeJsonStructure sanitizer failed: ${String(error)}`);
     return {
       content: input,
       changed: false,
