@@ -1,10 +1,8 @@
 /**
  * Tests for application runner's handling of forced exit when LLM provider requires it.
  * These tests verify that the application correctly handles the process.exit() call
- * when the LLM provider signals it needs forced shutdown via ShutdownBehavior enum.
+ * when the LLM provider signals it needs forced shutdown via getProvidersRequiringProcessExit().
  */
-
-import { ShutdownBehavior } from "../../../src/common/llm/types/llm-shutdown.types";
 
 describe("Application Runner Forced Exit", () => {
   let originalProcessExit: typeof process.exit;
@@ -15,7 +13,7 @@ describe("Application Runner Forced Exit", () => {
     originalProcessExit = process.exit;
     // Mock process.exit to prevent actual process termination in tests
     processExitMock = jest.fn();
-    process.exit = processExitMock as any;
+    process.exit = processExitMock as never;
   });
 
   afterEach(() => {
@@ -24,19 +22,18 @@ describe("Application Runner Forced Exit", () => {
     jest.clearAllMocks();
   });
 
-  it("should call process.exit() when LLM provider returns REQUIRES_PROCESS_EXIT", async () => {
-    // Mock LLMRouter that needs forced shutdown
+  it("should call process.exit() when LLM provider requires forced shutdown", async () => {
+    // Mock LLMRouter that needs forced shutdown (returns non-empty array)
     const mockLLMRouter = {
       shutdown: jest.fn().mockResolvedValue(undefined),
-      getProviderShutdownBehavior: jest
-        .fn()
-        .mockReturnValue(ShutdownBehavior.REQUIRES_PROCESS_EXIT),
+      getProvidersRequiringProcessExit: jest.fn().mockReturnValue(["vertexai-gemini"]),
     };
 
-    // Simulate the application runner logic
+    // Simulate the application runner logic (matches actual application-runner.ts)
     const simulateApplicationRunnerShutdown = async (llmRouter: typeof mockLLMRouter) => {
+      const providersRequiringExit = llmRouter.getProvidersRequiringProcessExit();
       await llmRouter.shutdown();
-      if (llmRouter.getProviderShutdownBehavior() === ShutdownBehavior.REQUIRES_PROCESS_EXIT) {
+      if (providersRequiringExit.length > 0) {
         process.exit(0);
       }
     };
@@ -48,24 +45,25 @@ describe("Application Runner Forced Exit", () => {
     await new Promise<void>((resolve) => {
       setTimeout(() => {
         expect(mockLLMRouter.shutdown).toHaveBeenCalled();
-        expect(mockLLMRouter.getProviderShutdownBehavior).toHaveBeenCalled();
+        expect(mockLLMRouter.getProvidersRequiringProcessExit).toHaveBeenCalled();
         expect(processExitMock).toHaveBeenCalledWith(0);
         resolve();
       }, 100);
     });
   });
 
-  it("should NOT call process.exit() when LLM provider returns GRACEFUL", async () => {
-    // Mock LLMRouter that supports graceful shutdown
+  it("should NOT call process.exit() when LLM provider supports graceful shutdown", async () => {
+    // Mock LLMRouter that supports graceful shutdown (returns empty array)
     const mockLLMRouter = {
       shutdown: jest.fn().mockResolvedValue(undefined),
-      getProviderShutdownBehavior: jest.fn().mockReturnValue(ShutdownBehavior.GRACEFUL),
+      getProvidersRequiringProcessExit: jest.fn().mockReturnValue([]),
     };
 
-    // Simulate the application runner logic
+    // Simulate the application runner logic (matches actual application-runner.ts)
     const simulateApplicationRunnerShutdown = async (llmRouter: typeof mockLLMRouter) => {
+      const providersRequiringExit = llmRouter.getProvidersRequiringProcessExit();
       await llmRouter.shutdown();
-      if (llmRouter.getProviderShutdownBehavior() === ShutdownBehavior.REQUIRES_PROCESS_EXIT) {
+      if (providersRequiringExit.length > 0) {
         process.exit(0);
       }
     };
@@ -77,7 +75,7 @@ describe("Application Runner Forced Exit", () => {
     await new Promise<void>((resolve) => {
       setTimeout(() => {
         expect(mockLLMRouter.shutdown).toHaveBeenCalled();
-        expect(mockLLMRouter.getProviderShutdownBehavior).toHaveBeenCalled();
+        expect(mockLLMRouter.getProvidersRequiringProcessExit).toHaveBeenCalled();
         expect(processExitMock).not.toHaveBeenCalled();
         resolve();
       }, 100);
@@ -88,19 +86,20 @@ describe("Application Runner Forced Exit", () => {
     // Mock LLMRouter that throws during shutdown
     const mockLLMRouter = {
       shutdown: jest.fn().mockRejectedValue(new Error("Shutdown failed")),
-      getProviderShutdownBehavior: jest.fn().mockReturnValue(ShutdownBehavior.GRACEFUL),
+      getProvidersRequiringProcessExit: jest.fn().mockReturnValue([]),
     };
 
     // Simulate the application runner logic with error handling
     const simulateApplicationRunnerShutdown = async (llmRouter: typeof mockLLMRouter) => {
       try {
+        const providersRequiringExit = llmRouter.getProvidersRequiringProcessExit();
         await llmRouter.shutdown();
-        if (llmRouter.getProviderShutdownBehavior() === ShutdownBehavior.REQUIRES_PROCESS_EXIT) {
+        if (providersRequiringExit.length > 0) {
           process.exit(0);
         }
-      } catch (error) {
+      } catch {
         // Handle error gracefully without exiting
-        console.error("Shutdown error:", error);
+        console.error("Shutdown error occurred");
       }
     };
 

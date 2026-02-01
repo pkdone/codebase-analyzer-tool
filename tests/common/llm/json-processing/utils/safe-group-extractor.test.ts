@@ -1,6 +1,5 @@
 import {
   safeGroup,
-  safeGroups,
   safeGroups3,
   safeGroups4,
   safeGroups5,
@@ -43,39 +42,6 @@ describe("safe-group-extractor", () => {
       expect(safeGroup(groups, 0)).toBe("");
       expect(safeGroup(groups, 1)).toBe("value");
       expect(safeGroup(groups, 2)).toBe("");
-    });
-  });
-
-  describe("safeGroups", () => {
-    it("should return array with requested count of safe strings", () => {
-      const groups: (string | undefined)[] = ["a", "b", "c", "d"];
-      const result = safeGroups(groups, 3);
-      expect(result).toEqual(["a", "b", "c"]);
-      expect(result).toHaveLength(3);
-    });
-
-    it("should convert undefined values to empty strings", () => {
-      const groups: (string | undefined)[] = ["a", undefined, "c", undefined];
-      const result = safeGroups(groups, 4);
-      expect(result).toEqual(["a", "", "c", ""]);
-    });
-
-    it("should pad with empty strings when requesting more than available", () => {
-      const groups: (string | undefined)[] = ["a", "b"];
-      const result = safeGroups(groups, 5);
-      expect(result).toEqual(["a", "b", "", "", ""]);
-    });
-
-    it("should return empty array for count 0", () => {
-      const groups: (string | undefined)[] = ["a", "b"];
-      const result = safeGroups(groups, 0);
-      expect(result).toEqual([]);
-    });
-
-    it("should handle empty input array", () => {
-      const groups: (string | undefined)[] = [];
-      const result = safeGroups(groups, 3);
-      expect(result).toEqual(["", "", ""]);
     });
   });
 
@@ -153,13 +119,13 @@ describe("safe-group-extractor", () => {
 
       // All functions should accept readonly arrays
       expect(safeGroup(groups, 0)).toBe("a");
-      expect(safeGroups(groups, 2)).toEqual(["a", "b"]);
       expect(safeGroups3(groups)).toEqual(["a", "b", "c"]);
+      expect(safeGroups4(groups)).toEqual(["a", "b", "c", ""]);
     });
 
     it("should return readonly arrays from safeGroups functions", () => {
       const groups: (string | undefined)[] = ["a", "b", "c"];
-      const result = safeGroups(groups, 3);
+      const result = safeGroups3(groups);
 
       // Result should be readonly
       expect(Array.isArray(result)).toBe(true);
@@ -186,18 +152,19 @@ describe("safe-group-extractor", () => {
     });
 
     it("should handle non-matching optional groups", () => {
-      // Regex with optional group
-      const regex = /([a-z]+)?(\d+)/g;
+      // Regex with optional group (using 3 capture groups to match safeGroups3)
+      const regex = /([a-z]+)?(\d+)(\s*)/g;
       const input = "123";
       const match = regex.exec(input);
 
       if (match) {
         const groups = match.slice(1) as (string | undefined)[];
-        const [letters, numbers] = safeGroups(groups, 2);
+        const [letters, numbers, whitespace] = safeGroups3(groups);
 
         // First group didn't match, should be empty string
         expect(letters).toBe("");
         expect(numbers).toBe("123");
+        expect(whitespace).toBe("");
       }
     });
   });

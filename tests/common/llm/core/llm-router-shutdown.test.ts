@@ -115,7 +115,7 @@ describe("LLMRouter Shutdown Behavior", () => {
     expect(processExitMock).not.toHaveBeenCalled();
   });
 
-  it("should return REQUIRES_PROCESS_EXIT for providers that need forced shutdown", async () => {
+  it("should return provider names for providers that need forced shutdown", async () => {
     const mockManifest = {
       providerFamily: "test",
       envSchema: {} as never,
@@ -199,16 +199,15 @@ describe("LLMRouter Shutdown Behavior", () => {
     // Router now creates its own execution pipeline internally
     const router = new LLMRouter(config);
 
-    // Check that forced shutdown is signaled via enum
-    expect(router.getProviderShutdownBehavior()).toBe(ShutdownBehavior.REQUIRES_PROCESS_EXIT);
+    // Check that forced shutdown is signaled via non-empty array
+    const providersRequiringExit = router.getProvidersRequiringProcessExit();
+    expect(providersRequiringExit.length).toBeGreaterThan(0);
+    expect(providersRequiringExit).toContain("test");
 
     await router.shutdown();
-
-    // Even after shutdown, the behavior should still indicate forced shutdown needed
-    expect(router.getProviderShutdownBehavior()).toBe(ShutdownBehavior.REQUIRES_PROCESS_EXIT);
   });
 
-  it("should return GRACEFUL for providers that support graceful shutdown", async () => {
+  it("should return empty array for providers that support graceful shutdown", async () => {
     const mockManifest = {
       providerFamily: "test",
       envSchema: {} as never,
@@ -292,6 +291,6 @@ describe("LLMRouter Shutdown Behavior", () => {
     // Router now creates its own execution pipeline internally
     const router = new LLMRouter(config);
 
-    expect(router.getProviderShutdownBehavior()).toBe(ShutdownBehavior.GRACEFUL);
+    expect(router.getProvidersRequiringProcessExit()).toEqual([]);
   });
 });

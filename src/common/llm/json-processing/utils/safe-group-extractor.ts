@@ -10,9 +10,9 @@
  * const valueStr = value ?? "";
  * ```
  *
- * Rules can now use:
+ * Rules can now use type-safe tuple extractors:
  * ```typescript
- * const [delimiter, whitespace, value] = safeGroups(groups, 3);
+ * const [delimiter, whitespace, value] = safeGroups3(groups);
  * // All values are guaranteed to be strings (empty string if undefined)
  * ```
  */
@@ -36,36 +36,8 @@ export function safeGroup(groups: readonly (string | undefined)[], index: number
 }
 
 /**
- * Safely extracts multiple regex capture groups into an array of guaranteed strings.
- * All undefined values are converted to empty strings.
- *
- * @param groups - The capture groups array from a regex match
- * @param count - Number of groups to extract (starting from index 0)
- * @returns Array of strings with the requested number of elements
- *
- * @example
- * ```typescript
- * // Extract first 3 groups as guaranteed strings
- * const [delimiter, whitespace, value] = safeGroups(groups, 3);
- *
- * // All values are strings - no null coalescing needed
- * return `${delimiter}${whitespace}"${value}"`;
- * ```
- */
-export function safeGroups(
-  groups: readonly (string | undefined)[],
-  count: number,
-): readonly string[] {
-  const result: string[] = [];
-  for (let i = 0; i < count; i++) {
-    result.push(groups[i] ?? "");
-  }
-  return result;
-}
-
-/**
  * Type-safe tuple extractor for exactly 3 capture groups.
- * Provides better type inference than the generic safeGroups function.
+ * Provides better type inference than a generic function.
  *
  * @param groups - The capture groups array from a regex match
  * @returns Tuple of 3 guaranteed strings
@@ -78,7 +50,7 @@ export function safeGroups3(
 
 /**
  * Type-safe tuple extractor for exactly 4 capture groups.
- * Provides better type inference than the generic safeGroups function.
+ * Provides better type inference than a generic function.
  *
  * @param groups - The capture groups array from a regex match
  * @returns Tuple of 4 guaranteed strings
@@ -91,7 +63,7 @@ export function safeGroups4(
 
 /**
  * Type-safe tuple extractor for exactly 5 capture groups.
- * Provides better type inference than the generic safeGroups function.
+ * Provides better type inference than a generic function.
  *
  * @param groups - The capture groups array from a regex match
  * @returns Tuple of 5 guaranteed strings

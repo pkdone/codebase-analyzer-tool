@@ -41,7 +41,7 @@ describe("FileSummarizerService", () => {
       executeCompletion: jest.fn(),
       generateEmbeddings: jest.fn(),
       shutdown: jest.fn(),
-      getProviderShutdownBehavior: jest.fn(),
+      getProvidersRequiringProcessExit: jest.fn(),
       getProviderFamily: jest.fn(),
       getModelsUsedDescription: jest.fn(),
       getEmbeddingModelDimensions: jest.fn(),

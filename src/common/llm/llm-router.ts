@@ -1,7 +1,6 @@
 import { z } from "zod";
 import type { LLMCompletionOptions } from "./types/llm-request.types";
 import type { ResolvedModelChain } from "./types/llm-model.types";
-import { ShutdownBehavior } from "./types/llm-shutdown.types";
 import { LLMError, LLMErrorCode } from "./types/llm-errors.types";
 import type { Result } from "../types/result.types";
 import type { LLMModuleConfig } from "./config/llm-module-config.types";
@@ -105,16 +104,6 @@ export default class LLMRouter {
     });
 
     console.log(`LLMRouter initialized with: ${this.getModelsUsedDescription()}`);
-  }
-
-  /**
-   * Get the shutdown behavior required by the underlying providers.
-   * Returns REQUIRES_PROCESS_EXIT if any provider requires it.
-   */
-  getProviderShutdownBehavior(): ShutdownBehavior {
-    return this.providerManager.requiresProcessExit()
-      ? ShutdownBehavior.REQUIRES_PROCESS_EXIT
-      : ShutdownBehavior.GRACEFUL;
   }
 
   /**
