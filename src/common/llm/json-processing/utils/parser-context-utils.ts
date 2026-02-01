@@ -10,9 +10,126 @@
 import { parsingHeuristics } from "../constants/json-processing.config";
 import type { ContextInfo } from "../sanitizers/rules/replacement-rule.types";
 
+// ============================================================================
+// String Boundary Cache - O(log N) lookups for repeated isInString checks
+// ============================================================================
+
+/**
+ * Represents a string literal boundary in JSON content.
+ * Start is the position of the opening quote, end is the position after the closing quote.
+ */
+export interface StringBoundary {
+  /** Position of the opening quote (inclusive) */
+  start: number;
+  /** Position after the closing quote (exclusive) */
+  end: number;
+}
+
+/**
+ * Pre-computes string literal boundaries for a content string.
+ * This allows O(log N) lookups instead of O(N) scanning when checking
+ * multiple positions in the same content string.
+ *
+ * @param content - The JSON content string to analyze
+ * @returns Array of string boundaries sorted by start position
+ */
+export function computeStringBoundaries(content: string): StringBoundary[] {
+  const boundaries: StringBoundary[] = [];
+  let i = 0;
+
+  while (i < content.length) {
+    const char = content[i];
+
+    if (char === '"') {
+      const start = i;
+      i++; // Move past opening quote
+
+      // Find the closing quote, handling escapes
+      while (i < content.length) {
+        if (content[i] === "\\") {
+          i += 2; // Skip escaped character
+          continue;
+        }
+        if (content[i] === '"') {
+          i++; // Move past closing quote
+          boundaries.push({ start, end: i });
+          break;
+        }
+        i++;
+      }
+    } else {
+      i++;
+    }
+  }
+
+  return boundaries;
+}
+
+/**
+ * Binary search to check if a position falls inside any string boundary.
+ * Uses the pre-computed boundaries array for O(log N) lookup.
+ *
+ * @param position - The character position to check
+ * @param boundaries - Pre-computed string boundaries (sorted by start)
+ * @returns True if the position is inside a string literal
+ */
+export function isPositionInString(position: number, boundaries: readonly StringBoundary[]): boolean {
+  if (boundaries.length === 0) return false;
+
+  let left = 0;
+  let right = boundaries.length - 1;
+
+  while (left <= right) {
+    const mid = Math.floor((left + right) / 2);
+    const boundary = boundaries[mid];
+
+    if (position >= boundary.start && position < boundary.end) {
+      // Position is inside this string (between opening quote and after closing quote)
+      // But we need to check if it's actually inside the string content (after opening quote)
+      return position > boundary.start;
+    }
+
+    if (position < boundary.start) {
+      right = mid - 1;
+    } else {
+      left = mid + 1;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * Creates a cached string boundary checker for efficient repeated lookups.
+ * Pre-computes string boundaries once, then provides O(log N) lookups.
+ *
+ * Use this when you need to check multiple positions in the same content string,
+ * such as during regex replacement callbacks in sanitizers.
+ *
+ * @param content - The JSON content string to analyze
+ * @returns A function that checks if a position is inside a string literal
+ *
+ * @example
+ * ```typescript
+ * const isInString = createStringBoundaryChecker(jsonContent);
+ * // Now each check is O(log N) instead of O(N)
+ * sanitized = sanitized.replace(pattern, (match, offset) => {
+ *   if (isInString(offset)) return match;
+ *   // ... process match
+ * });
+ * ```
+ */
+export function createStringBoundaryChecker(content: string): (position: number) => boolean {
+  const boundaries = computeStringBoundaries(content);
+  return (position: number) => isPositionInString(position, boundaries);
+}
+
 /**
  * Checks if a given position in a string is inside a JSON string literal.
  * Handles escaped quotes correctly.
+ *
+ * Note: For repeated checks on the same content, use `createStringBoundaryChecker`
+ * which pre-computes boundaries for O(log N) lookups instead of O(N) scanning.
  *
  * @param position - The character position to check
  * @param content - The full content string

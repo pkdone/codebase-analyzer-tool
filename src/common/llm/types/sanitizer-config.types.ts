@@ -27,6 +27,11 @@ export interface ContextInfo {
   readonly groups: readonly (string | undefined)[];
   /** Optional sanitizer configuration for schema-aware rules */
   readonly config?: LLMSanitizerConfig;
+  /**
+   * Cached string boundary checker for O(log N) lookups.
+   * Use this instead of scanning fullContent when checking if a position is inside a string.
+   */
+  readonly isInString?: (position: number) => boolean;
 }
 
 /**

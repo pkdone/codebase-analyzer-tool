@@ -1,6 +1,6 @@
 import { Sanitizer, SanitizerResult } from "./sanitizers-types";
 import { REPAIR_STEP } from "../constants/repair-steps.config";
-import { isInStringAt, isInArrayContext } from "../utils/parser-context-utils";
+import { createStringBoundaryChecker, isInArrayContext } from "../utils/parser-context-utils";
 
 /**
  * Post-processing sanitizer that fixes advanced JSON structure issues.
@@ -40,11 +40,15 @@ export const fixJsonStructure: Sanitizer = (input: string): SanitizerResult => {
   // Pattern: "propertyName " (with space inside quotes) followed by comma, closing brace, or newline
   // Must ensure we're not inside a string and that there's no colon after the quote
   const beforeDanglingProperties = finalContent;
+
+  // Create cached string boundary checker for O(log N) lookups
+  let isInString = createStringBoundaryChecker(finalContent);
+
   // Match: "propertyName " where space is inside the quotes, followed by delimiter
   const danglingPropertyPattern = /"([a-zA-Z_$][a-zA-Z0-9_$]*)\s+"(?=[,}\n])/g;
   finalContent = finalContent.replace(danglingPropertyPattern, (match, propertyName, offset) => {
     const offsetNum = typeof offset === "number" ? offset : 0;
-    if (isInStringAt(offsetNum, finalContent)) {
+    if (isInString(offsetNum)) {
       return match;
     }
 
@@ -133,13 +137,17 @@ export const fixJsonStructure: Sanitizer = (input: string): SanitizerResult => {
 
   // Post-processing pass 3: Fix stray characters after property values
   const beforeStrayChars = finalContent;
+
+  // Recreate cached string boundary checker after content changes
+  isInString = createStringBoundaryChecker(finalContent);
+
   const strayCharsAfterValuePattern =
     /("(?:[^"\\]|\\.)*")(?:\s+)?([a-zA-Z_$0-9]+)(?=\s*[,}\]]|\s*\n)/g;
   finalContent = finalContent.replace(
     strayCharsAfterValuePattern,
     (match, quotedValue, strayChars, offset) => {
       const offsetNum = typeof offset === "number" ? offset : 0;
-      if (isInStringAt(offsetNum, finalContent)) {
+      if (isInString(offsetNum)) {
         return match;
       }
 
@@ -169,13 +177,17 @@ export const fixJsonStructure: Sanitizer = (input: string): SanitizerResult => {
 
   // Post-processing pass 4: Fix corrupted property/value pairs
   const beforeCorruptedPairs = finalContent;
+
+  // Recreate cached string boundary checker after content changes
+  isInString = createStringBoundaryChecker(finalContent);
+
   const corruptedPattern1 =
     /"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:\s*([A-Z][a-zA-Z0-9_]*)"\s*:\s*"([^"]+)"/g;
   finalContent = finalContent.replace(
     corruptedPattern1,
     (match, propertyName, corruptedValue, nextPropertyValue, offset) => {
       const offsetNum = typeof offset === "number" ? offset : 0;
-      if (isInStringAt(offsetNum, finalContent)) {
+      if (isInString(offsetNum)) {
         return match;
       }
 
@@ -202,7 +214,7 @@ export const fixJsonStructure: Sanitizer = (input: string): SanitizerResult => {
     corruptedPattern2,
     (match, propertyName, corruptedValue, _nextPropertyValue, typeValue, offset) => {
       const offsetNum = typeof offset === "number" ? offset : 0;
-      if (isInStringAt(offsetNum, finalContent)) {
+      if (isInString(offsetNum)) {
         return match;
       }
 

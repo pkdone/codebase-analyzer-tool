@@ -7,6 +7,9 @@ import {
   isInArrayContextSimple,
   isDeepArrayContext,
   findJsonValueEnd,
+  computeStringBoundaries,
+  isPositionInString,
+  createStringBoundaryChecker,
 } from "../../../../../src/common/llm/json-processing/utils/parser-context-utils";
 import type { ContextInfo } from "../../../../../src/common/llm/json-processing/sanitizers/rules/replacement-rule.types";
 
@@ -581,6 +584,141 @@ describe("parser-context-utils", () => {
         expect(result.success).toBe(true);
         expect(result.endPosition).toBe(content.length);
       });
+    });
+  });
+
+  // ============================================================================
+  // String Boundary Cache Tests
+  // ============================================================================
+
+  describe("computeStringBoundaries", () => {
+    it("should return empty array for content with no strings", () => {
+      const content = "{key: 123}";
+      const boundaries = computeStringBoundaries(content);
+      expect(boundaries).toEqual([]);
+    });
+
+    it("should find single string boundary", () => {
+      const content = '"hello"';
+      const boundaries = computeStringBoundaries(content);
+      expect(boundaries).toHaveLength(1);
+      expect(boundaries[0]).toEqual({ start: 0, end: 7 });
+    });
+
+    it("should find multiple string boundaries", () => {
+      const content = '{"key": "value"}';
+      const boundaries = computeStringBoundaries(content);
+      expect(boundaries).toHaveLength(2);
+      expect(boundaries[0]).toEqual({ start: 1, end: 6 }); // "key"
+      expect(boundaries[1]).toEqual({ start: 8, end: 15 }); // "value"
+    });
+
+    it("should handle escaped quotes within strings", () => {
+      const content = '"hello \\"world\\""';
+      const boundaries = computeStringBoundaries(content);
+      expect(boundaries).toHaveLength(1);
+      expect(boundaries[0]).toEqual({ start: 0, end: content.length });
+    });
+
+    it("should handle escaped backslashes", () => {
+      const content = '"path\\\\to\\\\file"';
+      const boundaries = computeStringBoundaries(content);
+      expect(boundaries).toHaveLength(1);
+      expect(boundaries[0]).toEqual({ start: 0, end: content.length });
+    });
+
+    it("should handle empty strings", () => {
+      const content = '{"key": ""}';
+      const boundaries = computeStringBoundaries(content);
+      expect(boundaries).toHaveLength(2);
+      expect(boundaries[0]).toEqual({ start: 1, end: 6 }); // "key"
+      expect(boundaries[1]).toEqual({ start: 8, end: 10 }); // ""
+    });
+
+    it("should handle complex nested JSON", () => {
+      const content = '{"a": "b", "c": {"d": "e"}}';
+      const boundaries = computeStringBoundaries(content);
+      // 5 strings: "a", "b", "c", "d", "e"
+      expect(boundaries).toHaveLength(5);
+    });
+  });
+
+  describe("isPositionInString", () => {
+    it("should return false for empty boundaries", () => {
+      expect(isPositionInString(5, [])).toBe(false);
+    });
+
+    it("should return true for position inside string content", () => {
+      const boundaries = [{ start: 0, end: 7 }]; // "hello"
+      // Position 1 is after opening quote, inside string
+      expect(isPositionInString(1, boundaries)).toBe(true);
+      expect(isPositionInString(3, boundaries)).toBe(true);
+      expect(isPositionInString(6, boundaries)).toBe(true);
+    });
+
+    it("should return false for position at opening quote", () => {
+      const boundaries = [{ start: 0, end: 7 }];
+      // Position 0 is AT the opening quote, not inside string content
+      expect(isPositionInString(0, boundaries)).toBe(false);
+    });
+
+    it("should return false for position outside string", () => {
+      const boundaries = [{ start: 5, end: 12 }];
+      expect(isPositionInString(0, boundaries)).toBe(false);
+      expect(isPositionInString(4, boundaries)).toBe(false);
+      expect(isPositionInString(12, boundaries)).toBe(false);
+      expect(isPositionInString(15, boundaries)).toBe(false);
+    });
+
+    it("should handle multiple boundaries with binary search", () => {
+      const boundaries = [
+        { start: 0, end: 5 },
+        { start: 10, end: 15 },
+        { start: 20, end: 25 },
+      ];
+      expect(isPositionInString(2, boundaries)).toBe(true);
+      expect(isPositionInString(7, boundaries)).toBe(false);
+      expect(isPositionInString(12, boundaries)).toBe(true);
+      expect(isPositionInString(17, boundaries)).toBe(false);
+      expect(isPositionInString(22, boundaries)).toBe(true);
+    });
+  });
+
+  describe("createStringBoundaryChecker", () => {
+    it("should create a working checker function", () => {
+      const content = '{"key": "value"}';
+      const isInString = createStringBoundaryChecker(content);
+
+      expect(typeof isInString).toBe("function");
+      expect(isInString(0)).toBe(false); // Before any string
+      expect(isInString(2)).toBe(true); // Inside "key"
+      expect(isInString(7)).toBe(false); // Colon and space
+      expect(isInString(9)).toBe(true); // Inside "value"
+      expect(isInString(15)).toBe(false); // After closing brace
+    });
+
+    it("should match isInStringAt behavior", () => {
+      const content = '{"key1": "value1", "key2": "value2"}';
+      const isInString = createStringBoundaryChecker(content);
+
+      // Test multiple positions and compare with isInStringAt
+      for (let i = 0; i < content.length; i++) {
+        expect(isInString(i)).toBe(isInStringAt(i, content));
+      }
+    });
+
+    it("should handle escaped quotes correctly", () => {
+      const content = '{"key": "value with \\"quote\\""}';
+      const isInString = createStringBoundaryChecker(content);
+
+      // Position inside the escaped quote should still be in string
+      const quotePos = content.indexOf('\\"');
+      expect(isInString(quotePos + 1)).toBe(true);
+    });
+
+    it("should handle empty content", () => {
+      const isInString = createStringBoundaryChecker("");
+      expect(isInString(0)).toBe(false);
     });
   });
 });

@@ -6,7 +6,7 @@
 
 import type { LLMSanitizerConfig } from "../../../config/llm-module-config.types";
 import type { SanitizerStrategy, StrategyResult } from "../pipeline/sanitizer-pipeline.types";
-import { findJsonValueEnd, isInStringAt } from "../../utils/parser-context-utils";
+import { findJsonValueEnd, createStringBoundaryChecker } from "../../utils/parser-context-utils";
 
 /**
  * Checks if a property name looks like an LLM artifact property.
@@ -83,6 +83,9 @@ export const extraPropertiesRemover: SanitizerStrategy = {
     const repairs: string[] = [];
     let hasChanges = false;
 
+    // Create cached string boundary checker for O(log N) lookups
+    let isInString = createStringBoundaryChecker(sanitized);
+
     // Pattern 1: Handle malformed LLM artifact properties like `extra_text="  "property":`
     // Generic pattern catches extra_*, llm_*, ai_* prefixed properties with malformed syntax
     const malformedArtifactPattern =
@@ -90,7 +93,7 @@ export const extraPropertiesRemover: SanitizerStrategy = {
     sanitized = sanitized.replace(
       malformedArtifactPattern,
       (match, delimiter, artifactProp, propertyNameWithQuote, offset: number) => {
-        if (isInStringAt(offset, sanitized)) {
+        if (isInString(offset)) {
           return match;
         }
 
@@ -111,10 +114,12 @@ export const extraPropertiesRemover: SanitizerStrategy = {
     let previousUnquoted = "";
     while (previousUnquoted !== sanitized) {
       previousUnquoted = sanitized;
+      // Recreate checker for each iteration since content may have changed
+      isInString = createStringBoundaryChecker(sanitized);
       const matches: { start: number; end: number; delimiter: string; propName: string }[] = [];
       for (const match of sanitized.matchAll(unquotedArtifactPropertyPattern)) {
         const numericOffset = match.index;
-        if (isInStringAt(numericOffset, sanitized)) {
+        if (isInString(numericOffset)) {
           continue;
         }
 
@@ -201,10 +206,12 @@ export const extraPropertiesRemover: SanitizerStrategy = {
     let previousExtraProperty = "";
     while (previousExtraProperty !== sanitized) {
       previousExtraProperty = sanitized;
+      // Recreate checker for each iteration since content may have changed
+      isInString = createStringBoundaryChecker(sanitized);
       const matches: { start: number; end: number; delimiter: string; propName: string }[] = [];
       for (const match of sanitized.matchAll(quotedArtifactPropertyPattern)) {
         const numericOffset = match.index;
-        if (isInStringAt(numericOffset, sanitized)) {
+        if (isInString(numericOffset)) {
           continue;
         }
 

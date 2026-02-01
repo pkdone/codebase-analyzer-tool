@@ -6,7 +6,7 @@
 
 import type { LLMSanitizerConfig } from "../../../config/llm-module-config.types";
 import type { SanitizerStrategy, StrategyResult } from "../pipeline/sanitizer-pipeline.types";
-import { isInStringAt } from "../../utils/parser-context-utils";
+import { createStringBoundaryChecker } from "../../utils/parser-context-utils";
 import { looksLikeStrayText } from "../../utils/stray-text-detection";
 import { DiagnosticCollector } from "../../utils/diagnostic-collector";
 import {
@@ -33,13 +33,16 @@ export const strayContentRemover: SanitizerStrategy = {
     const diagnostics = new DiagnosticCollector(processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY);
     let hasChanges = false;
 
+    // Create cached string boundary checker for O(log N) lookups
+    const isInString = createStringBoundaryChecker(sanitized);
+
     // Pattern 1: Fix stray single characters before property names
     const strayCharBeforePropertyPattern =
       /([}\],]|\n|^)(\s*)([a-zA-Z])\s+"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:/g;
     sanitized = sanitized.replace(
       strayCharBeforePropertyPattern,
       (match, delimiter, whitespace, strayChar, propertyName, offset: number) => {
-        if (isInStringAt(offset, sanitized)) {
+        if (isInString(offset)) {
           return match;
         }
 
@@ -75,7 +78,7 @@ export const strayContentRemover: SanitizerStrategy = {
     sanitized = sanitized.replace(
       strayCharBeforeQuotedValuePattern,
       (match, propertyName, strayChar, value, terminator, offset: number) => {
-        if (isInStringAt(offset, sanitized)) {
+        if (isInString(offset)) {
           return match;
         }
 
@@ -96,7 +99,7 @@ export const strayContentRemover: SanitizerStrategy = {
     sanitized = sanitized.replace(
       strayCharBeforeCommaPattern,
       (match, propertyName, strayChar, terminator, offset: number) => {
-        if (isInStringAt(offset, sanitized)) {
+        if (isInString(offset)) {
           return match;
         }
 
@@ -132,7 +135,7 @@ export const strayContentRemover: SanitizerStrategy = {
     const aiWarningPattern =
       /AI-generated\s+content\.\s+Review\s+and\s+use\s+carefully\.\s+Content\s+may\s+be\s+inaccurate\./gi;
     sanitized = sanitized.replace(aiWarningPattern, (match, offset: number) => {
-      if (isInStringAt(offset, sanitized)) {
+      if (isInString(offset)) {
         return match;
       }
       hasChanges = true;
@@ -145,7 +148,7 @@ export const strayContentRemover: SanitizerStrategy = {
     sanitized = sanitized.replace(
       extraAttributePattern,
       (match, delimiter, _whitespace, strayText, newline, offset: number) => {
-        if (isInStringAt(offset, sanitized)) {
+        if (isInString(offset)) {
           return match;
         }
         const delimiterStr = typeof delimiter === "string" ? delimiter : "";
@@ -163,7 +166,7 @@ export const strayContentRemover: SanitizerStrategy = {
     sanitized = sanitized.replace(
       strayTextOnOwnLinePattern,
       (match, delimiter, strayText, continuation, offset: number) => {
-        if (isInStringAt(offset, sanitized)) {
+        if (isInString(offset)) {
           return match;
         }
 
@@ -196,7 +199,7 @@ export const strayContentRemover: SanitizerStrategy = {
     sanitized = sanitized.replace(
       yamlBlockPattern,
       (match, delimiter, _whitespace, yamlKey, _yamlContent, continuation, offset: number) => {
-        if (isInStringAt(offset, sanitized)) {
+        if (isInString(offset)) {
           return match;
         }
 
@@ -226,7 +229,7 @@ export const strayContentRemover: SanitizerStrategy = {
         terminator,
         offset: number,
       ) => {
-        if (isInStringAt(offset, sanitized)) {
+        if (isInString(offset)) {
           return match;
         }
 
@@ -278,7 +281,7 @@ export const strayContentRemover: SanitizerStrategy = {
     sanitized = sanitized.replace(
       sentenceBeforePropertyPattern,
       (match, delimiter, sentenceText, continuation, offset: number) => {
-        if (isInStringAt(offset, sanitized)) {
+        if (isInString(offset)) {
           return match;
         }
 

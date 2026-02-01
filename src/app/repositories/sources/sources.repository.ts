@@ -72,6 +72,21 @@ export default class SourcesRepositoryImpl
   }
 
   /**
+   * Insert multiple source file records into the database in a single batch operation.
+   * More efficient than multiple individual insertSource calls for bulk ingestion.
+   *
+   * TYPE ASSERTION RATIONALE: Same as insertSource - the cast is safe because
+   * MongoDB's insertMany will auto-generate _id if not provided.
+   */
+  async insertSources(sourceFileDataList: readonly SourceRecord[]): Promise<void> {
+    if (sourceFileDataList.length === 0) return;
+    await this.collection.insertMany(
+      sourceFileDataList as unknown as SourceRecordWithId[],
+      { ordered: false }, // Continue inserting even if some documents fail
+    );
+  }
+
+  /**
    * Delete all source files for a specific project
    */
   async deleteSourcesByProject(projectName: string): Promise<void> {

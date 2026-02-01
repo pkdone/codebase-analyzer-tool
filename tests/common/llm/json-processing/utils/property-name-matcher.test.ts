@@ -83,6 +83,20 @@ describe("property-name-matcher", () => {
       expect(levenshteinDistance("Hello", "hello")).toBe(1);
       expect(levenshteinDistance("HELLO", "hello")).toBe(5);
     });
+
+    it("should early exit when length difference exceeds threshold", () => {
+      // When length difference > 3, the function returns the length difference immediately
+      expect(levenshteinDistance("a", "abcde")).toBe(4);
+      expect(levenshteinDistance("short", "verylongstring")).toBe(9);
+      expect(levenshteinDistance("", "longstring")).toBe(10);
+    });
+
+    it("should compute full distance when length difference is within threshold", () => {
+      // When length difference <= 3, the function computes the full distance
+      expect(levenshteinDistance("cat", "cats")).toBe(1); // diff = 1
+      expect(levenshteinDistance("hello", "hi")).toBe(4); // diff = 3, actual distance = 4
+      expect(levenshteinDistance("abc", "abcdef")).toBe(3); // diff = 3, actual distance = 3
+    });
   });
 
   describe("matchPropertyName", () => {

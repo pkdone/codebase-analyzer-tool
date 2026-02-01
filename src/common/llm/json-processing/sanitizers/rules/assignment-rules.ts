@@ -11,7 +11,6 @@
  */
 
 import type { ReplacementRule, ContextInfo } from "./replacement-rule.types";
-import { isInStringAt } from "../../utils/parser-context-utils";
 import { isJsonKeyword } from "../../utils/stray-text-detection";
 
 /** Pattern for JSON numeric values (integers, floats, scientific notation) */
@@ -136,8 +135,8 @@ export const ASSIGNMENT_RULES: readonly ReplacementRule[] = [
       const propertyNameStr = propertyName ?? "";
       const valueStr = value ?? "";
 
-      // Skip if inside a string literal
-      if (isInStringAt(context.offset, context.fullContent)) {
+      // Skip if inside a string literal (use cached checker from context)
+      if (context.isInString?.(context.offset)) {
         return null;
       }
 
@@ -213,8 +212,8 @@ export const ASSIGNMENT_RULES: readonly ReplacementRule[] = [
       const unquotedValueStr = unquotedValue?.trim() ?? "";
       const terminatorStr = terminator ?? "";
 
-      // Skip if inside a string literal
-      if (isInStringAt(context.offset, context.fullContent)) {
+      // Skip if inside a string literal (use cached checker from context)
+      if (context.isInString?.(context.offset)) {
         return null;
       }
 

@@ -1,13 +1,13 @@
 /**
  * Rule executor engine for JSON sanitization.
  * Provides centralized execution of replacement rules with:
- * - Automatic isInStringAt checking
+ * - Automatic string context checking (using cached boundary lookup)
  * - DiagnosticCollector management
  * - Context information for advanced rules
  * - Multi-pass execution support
  */
 
-import { isInStringAt } from "../../utils/parser-context-utils";
+import { createStringBoundaryChecker } from "../../utils/parser-context-utils";
 import { DiagnosticCollector } from "../../utils/diagnostic-collector";
 import { processingConfig, parsingHeuristics } from "../../constants/json-processing.config";
 import type {
@@ -26,6 +26,7 @@ const DEFAULT_MAX_PASSES = 10;
  * @param content - The content to process
  * @param rule - The rule to execute
  * @param diagnostics - DiagnosticCollector for tracking changes
+ * @param isInString - Cached string boundary checker function
  * @param config - Optional sanitizer configuration for schema-aware rules
  * @returns Object containing the modified content and whether changes were made
  */
@@ -33,6 +34,7 @@ function executeRule(
   content: string,
   rule: ReplacementRule,
   diagnostics: DiagnosticCollector,
+  isInString: (position: number) => boolean,
   config?: import("../../../config/llm-module-config.types").LLMSanitizerConfig,
 ): { content: string; changed: boolean } {
   let hasChanges = false;
@@ -48,7 +50,7 @@ function executeRule(
       const groups = args.slice(0, -2) as (string | undefined)[];
 
       // Skip if inside a string literal (unless disabled)
-      if (skipInString && isInStringAt(offset, content)) {
+      if (skipInString && isInString(offset)) {
         return match;
       }
 
@@ -59,6 +61,7 @@ function executeRule(
         fullContent: content,
         groups,
         config,
+        isInString,
       };
 
       // Apply context check if provided
@@ -126,7 +129,11 @@ export function executeRules(
     passCount++;
 
     for (const rule of rules) {
-      const result = executeRule(content, rule, diagnostics, config);
+      // Create cached string boundary checker for each rule since content may change
+      // This ensures O(log N) lookups while maintaining correctness after modifications
+      const isInString = createStringBoundaryChecker(content);
+
+      const result = executeRule(content, rule, diagnostics, isInString, config);
       content = result.content;
       if (result.changed) {
         passChanged = true;

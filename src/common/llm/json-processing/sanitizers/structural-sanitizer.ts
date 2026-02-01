@@ -7,7 +7,7 @@ import {
 import { CODE_FENCE_REGEXES } from "../constants/regex.constants";
 import { REPAIR_STEP } from "../constants/repair-steps.config";
 import { logWarn } from "../../../utils/logging";
-import { isInStringAt } from "../utils/parser-context-utils";
+import { createStringBoundaryChecker } from "../utils/parser-context-utils";
 
 /**
  * Consolidated structural sanitizer that handles high-level structural issues and noise.
@@ -146,12 +146,15 @@ function removeInvalidPrefixesInternal(jsonString: string, repairs: string[]): s
     return "";
   });
 
+  // Create cached string boundary checker for O(log N) lookups
+  const isInString = createStringBoundaryChecker(sanitized);
+
   // Pattern 2: Remove introductory text before opening braces
   const genericPrefixPattern = /(^|\n|\r)\s*([a-zA-Z_]{2,20})\s*[:]?\s*\{/g;
   sanitized = sanitized.replace(genericPrefixPattern, (match, prefix, word, offset: number) => {
     const wordStr = typeof word === "string" ? word : "";
 
-    if (isInStringAt(offset, sanitized)) {
+    if (isInString(offset)) {
       return match;
     }
 
@@ -178,7 +181,7 @@ function removeInvalidPrefixesInternal(jsonString: string, repairs: string[]): s
   sanitized = sanitized.replace(
     strayTextPattern,
     (match, delimiter, whitespace, strayText, propertyName, offset: number) => {
-      if (isInStringAt(offset, sanitized)) {
+      if (isInString(offset)) {
         return match;
       }
 
@@ -211,7 +214,7 @@ function removeInvalidPrefixesInternal(jsonString: string, repairs: string[]): s
   sanitized = sanitized.replace(
     missingOpeningBracePattern,
     (match, prefix, strayChar, propertyName, offset: number) => {
-      if (isInStringAt(offset, sanitized)) {
+      if (isInString(offset)) {
         return match;
       }
 
@@ -249,7 +252,7 @@ function removeInvalidPrefixesInternal(jsonString: string, repairs: string[]): s
   sanitized = sanitized.replace(
     missingBraceAndQuotePattern,
     (match, prefix, propertyName, offset: number) => {
-      if (isInStringAt(offset, sanitized)) {
+      if (isInString(offset)) {
         return match;
       }
 
@@ -301,6 +304,9 @@ function removeInvalidPrefixesInternal(jsonString: string, repairs: string[]): s
 function fixUnclosedArraysBeforePropertiesInternal(jsonString: string, repairs: string[]): string {
   let sanitized = jsonString;
 
+  // Create cached string boundary checker for O(log N) lookups
+  const isInString = createStringBoundaryChecker(sanitized);
+
   // Pattern: closing brace, comma, newline + whitespace, then a property name with colon
   // This indicates an unclosed array if we're inside an array context
   const unclosedArrayPattern = /(\})\s*,\s*\n(\s*)("[a-zA-Z_$][a-zA-Z0-9_$]*"\s*:)/g;
@@ -308,7 +314,7 @@ function fixUnclosedArraysBeforePropertiesInternal(jsonString: string, repairs: 
   sanitized = sanitized.replace(
     unclosedArrayPattern,
     (match, closingBrace, whitespace, propertyName, offset: number) => {
-      if (isInStringAt(offset, sanitized)) {
+      if (isInString(offset)) {
         return match;
       }
 
@@ -576,6 +582,9 @@ function collapseDuplicateJsonObjectInternal(input: string): string {
 function removeTruncationMarkersInternal(jsonString: string, repairs: string[]): string {
   let sanitized = jsonString;
 
+  // Create cached string boundary checker for O(log N) lookups
+  const isInString = createStringBoundaryChecker(sanitized);
+
   // Pattern 1: Remove standalone truncation marker lines
   const truncationMarkerPattern =
     /(,\s*)?\n(\s*)(\.\.\.|\[\.\.\.\]|\(truncated\)|\.\.\.\s*\(truncated\)|truncated|\.\.\.\s*truncated)(\s*)\n/g;
@@ -583,7 +592,7 @@ function removeTruncationMarkersInternal(jsonString: string, repairs: string[]):
   sanitized = sanitized.replace(
     truncationMarkerPattern,
     (match, optionalComma, _whitespaceBefore, marker, _whitespaceAfter, offset: number) => {
-      if (isInStringAt(offset, sanitized)) {
+      if (isInString(offset)) {
         return match;
       }
 
@@ -606,7 +615,7 @@ function removeTruncationMarkersInternal(jsonString: string, repairs: string[]):
   sanitized = sanitized.replace(
     incompleteStringPattern,
     (_match, stringContent, _marker, _whitespace1, whitespace2, delimiter, offset: number) => {
-      if (isInStringAt(offset, sanitized)) {
+      if (isInString(offset)) {
         return _match;
       }
 
@@ -639,7 +648,7 @@ function removeTruncationMarkersInternal(jsonString: string, repairs: string[]):
       delimiter,
       offset: number,
     ) => {
-      if (isInStringAt(offset, sanitized)) {
+      if (isInString(offset)) {
         return _match;
       }
 
@@ -666,7 +675,7 @@ function removeTruncationMarkersInternal(jsonString: string, repairs: string[]):
   sanitized = sanitized.replace(
     underscoreTruncatedPattern,
     (match, before, _whitespace, marker, _whitespace2, after, offset: number) => {
-      if (isInStringAt(offset, sanitized)) {
+      if (isInString(offset)) {
         return match;
       }
 
@@ -693,7 +702,7 @@ function removeTruncationMarkersInternal(jsonString: string, repairs: string[]):
   sanitized = sanitized.replace(
     llmInstructionAfterJsonPattern,
     (match, delimiter, _instruction, offset: number) => {
-      if (isInStringAt(offset, sanitized)) {
+      if (isInString(offset)) {
         return match;
       }
 
@@ -714,7 +723,7 @@ function removeTruncationMarkersInternal(jsonString: string, repairs: string[]):
   sanitized = sanitized.replace(
     extraJsonAfterMainPattern,
     (match, delimiter1, delimiter2, offset: number) => {
-      if (isInStringAt(offset, sanitized)) {
+      if (isInString(offset)) {
         return match;
       }
 

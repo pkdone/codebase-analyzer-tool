@@ -84,6 +84,63 @@ export async function findFilesRecursively(
 }
 
 /**
+ * Result type for files discovered with their sizes.
+ */
+export interface FileWithSize {
+  /** Absolute path to the file */
+  filepath: string;
+  /** File size in bytes */
+  size: number;
+}
+
+/**
+ * Build the list of files with their sizes descending from a directory.
+ * Uses fast-glob's stats option to retrieve file sizes in a single pass,
+ * avoiding separate fs.stat calls for each file.
+ *
+ * Files are returned sorted by size (largest first) for optimal work distribution
+ * during concurrent processing.
+ *
+ * @param srcDirPath - The root directory to search
+ * @param config - Configuration for file discovery filtering
+ * @returns Promise resolving to array of file paths with sizes, sorted by size descending
+ */
+export async function findFilesWithSize(
+  srcDirPath: string,
+  config: FileDiscoveryConfig,
+): Promise<FileWithSize[]> {
+  const { folderIgnoreList, filenameIgnorePrefix, filenameIgnoreList = [] } = config;
+  const ignorePatterns = [
+    ...folderIgnoreList.map((folder) => `**/${folder}/**`),
+    `**/${filenameIgnorePrefix}*`,
+    ...filenameIgnoreList.map((filename) => `**/${filename}`),
+  ];
+
+  const globOptions = {
+    cwd: srcDirPath,
+    absolute: true,
+    onlyFiles: true,
+    ignore: ignorePatterns,
+    stats: true, // Include file stats in the result
+  };
+
+  const entries = await glob("**/*", globOptions);
+
+  // Map entries to FileWithSize and sort by size descending
+  const filesWithSize: FileWithSize[] = entries.map((entry) => {
+    // When stats: true, fast-glob returns Entry objects with stats property
+    const entryWithStats = entry as unknown as { path: string; stats?: { size: number } };
+    return {
+      filepath: entryWithStats.path,
+      size: entryWithStats.stats?.size ?? 0,
+    };
+  });
+
+  // Sort by size descending (largest first) for better work distribution
+  return filesWithSize.toSorted((a, b) => b.size - a.size);
+}
+
+/**
  * Ensures a directory exists by creating it if it doesn't exist
  */
 export async function ensureDirectoryExists(dirPath: string): Promise<void> {

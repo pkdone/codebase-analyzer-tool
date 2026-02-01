@@ -55,6 +55,7 @@ describe("JavaUiTechnologyDataProvider", () => {
       getProjectSourcesSummariesByFileType: jest.fn(),
       getProjectSourcesSummariesByCanonicalType: jest.fn(),
       insertSource: jest.fn(),
+      insertSources: jest.fn(),
       deleteSourcesByProject: jest.fn(),
       doesProjectSourceExist: jest.fn(),
       getProjectDatabaseIntegrations: jest.fn(),

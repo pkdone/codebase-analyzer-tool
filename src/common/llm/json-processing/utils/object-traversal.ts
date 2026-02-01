@@ -107,9 +107,11 @@ export function deepMap(
   visited.add(value);
   const result: PlainObject = {};
 
-  // Process string keys
-  for (const [key, val] of Object.entries(value)) {
-    result[key] = deepMap(val, visitor, visited);
+  // Process string keys using for...in loop to avoid Object.entries allocation
+  for (const key in value) {
+    if (Object.prototype.hasOwnProperty.call(value, key)) {
+      result[key] = deepMap(value[key], visitor, visited);
+    }
   }
 
   // Handle symbol keys (preserve them as-is)
@@ -189,26 +191,30 @@ export function deepMapObject(
   }
   const result: PlainObject = {};
 
-  // Process string keys with optional transformation
-  for (const [key, val] of Object.entries(visitedValue)) {
-    // Recursively process the value
-    const transformedVal = deepMapObject(val, visitor, options, visited);
+  // Process string keys with optional transformation using for...in loop to avoid Object.entries allocation
+  for (const key in visitedValue) {
+    if (Object.prototype.hasOwnProperty.call(visitedValue, key)) {
+      const val = visitedValue[key];
 
-    // Check if property should be included
-    if (options.shouldInclude && !options.shouldInclude(key, transformedVal)) {
-      continue;
-    }
+      // Recursively process the value
+      const transformedVal = deepMapObject(val, visitor, options, visited);
 
-    // Transform key if needed
-    let finalKey: string | null | undefined = key;
-    if (options.transformKey) {
-      finalKey = options.transformKey(key, transformedVal, visitedValue);
-      if (finalKey === null || finalKey === undefined) {
-        continue; // Skip this property
+      // Check if property should be included
+      if (options.shouldInclude && !options.shouldInclude(key, transformedVal)) {
+        continue;
       }
-    }
 
-    result[finalKey] = transformedVal;
+      // Transform key if needed
+      let finalKey: string | null | undefined = key;
+      if (options.transformKey) {
+        finalKey = options.transformKey(key, transformedVal, visitedValue);
+        if (finalKey === null || finalKey === undefined) {
+          continue; // Skip this property
+        }
+      }
+
+      result[finalKey] = transformedVal;
+    }
   }
 
   // Handle symbol keys (preserve them as-is, no transformation)

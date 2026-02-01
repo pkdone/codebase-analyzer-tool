@@ -1,13 +1,17 @@
 /**
  * Count the lines in a piece of text.
- * Uses matchAll iterator (ES2020) to avoid allocating an array of substrings,
- * providing better memory efficiency for large source files.
+ * Uses a simple for-loop with charCodeAt for maximum performance.
+ * V8 heavily optimizes this pattern, making it faster than regex/iterator approaches.
  */
 export function countLines(text: string): number {
-  let count = 1;
+  if (text.length === 0) return 1;
 
-  for (const _ of text.matchAll(/\n/g)) {
-    count++;
+  let count = 1;
+  for (let i = 0; i < text.length; i++) {
+    if (text.charCodeAt(i) === 10) {
+      // 10 is the char code for \n
+      count++;
+    }
   }
 
   return count;

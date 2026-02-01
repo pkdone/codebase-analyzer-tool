@@ -22,6 +22,12 @@ export interface SourcesRepository {
   insertSource(sourceFileData: SourceRecord): Promise<void>;
 
   /**
+   * Insert multiple source file records into the database in a single batch operation.
+   * More efficient than multiple individual insertSource calls for bulk ingestion.
+   */
+  insertSources(sourceFileDataList: readonly SourceRecord[]): Promise<void>;
+
+  /**
    * Delete all source files for a specific project
    */
   deleteSourcesByProject(projectName: string): Promise<void>;

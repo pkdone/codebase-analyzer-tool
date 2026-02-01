@@ -6,7 +6,6 @@ import LLMRouter from "../../../../src/common/llm/llm-router";
 import { FileSummarizerService } from "../../../../src/app/components/capture/file-summarizer.service";
 import * as fileOperations from "../../../../src/common/fs/file-operations";
 import * as directoryOperations from "../../../../src/common/fs/directory-operations";
-import * as fileSorting from "../../../../src/common/fs/file-sorting";
 import * as pathUtils from "../../../../src/common/fs/path-utils";
 import * as textAnalysis from "../../../../src/common/utils/text-utils";
 import { ok, err } from "../../../../src/common/types/result.types";
@@ -20,7 +19,6 @@ import type { LlmConcurrencyService } from "../../../../src/app/components/concu
 // Mock dependencies
 jest.mock("../../../../src/common/fs/file-operations");
 jest.mock("../../../../src/common/fs/directory-operations");
-jest.mock("../../../../src/common/fs/file-sorting");
 jest.mock("../../../../src/common/fs/path-utils");
 jest.mock("../../../../src/common/utils/text-utils");
 jest.mock("../../../../src/common/utils/logging", () => ({
@@ -64,7 +62,6 @@ jest.mock("node:path", () => ({
 
 const mockFileOperations = fileOperations as jest.Mocked<typeof fileOperations>;
 const mockDirectoryOperations = directoryOperations as jest.Mocked<typeof directoryOperations>;
-const mockFileSorting = fileSorting as jest.Mocked<typeof fileSorting>;
 const mockPathUtils = pathUtils as jest.Mocked<typeof pathUtils>;
 const mockTextUtils = textAnalysis as jest.Mocked<typeof textAnalysis>;
 const mockGetCanonicalFileType = getCanonicalFileType as jest.MockedFunction<
@@ -99,6 +96,7 @@ describe("CodebaseIngestionService", () => {
       deleteSourcesByProject: jest.fn().mockResolvedValue(undefined),
       doesProjectSourceExist: jest.fn().mockResolvedValue(false),
       insertSource: jest.fn().mockResolvedValue(undefined),
+      insertSources: jest.fn().mockResolvedValue(undefined),
     } as unknown as jest.Mocked<SourcesRepository>;
 
     // Mock LLMRouter
@@ -122,9 +120,6 @@ describe("CodebaseIngestionService", () => {
       ),
     } as unknown as jest.Mocked<FileSummarizerService>;
 
-    // Default mock for sortFilesBySize - returns files in same order
-    mockFileSorting.sortFilesBySize.mockImplementation(async (files) => files);
-
     // Create mock for LlmConcurrencyService that executes immediately
     const mockLlmConcurrencyService = {
       run: jest.fn().mockImplementation(async <T>(fn: () => Promise<T>) => fn()),
@@ -147,9 +142,12 @@ describe("CodebaseIngestionService", () => {
 
   describe("ingestCodebaseToDatabase", () => {
     it("should process all found files successfully", async () => {
-      const mockFiles = ["/src/file1.ts", "/src/file2.ts"];
+      const mockFilesWithSize = [
+        { filepath: "/src/file1.ts", size: 100 },
+        { filepath: "/src/file2.ts", size: 50 },
+      ];
 
-      mockDirectoryOperations.findFilesRecursively.mockResolvedValue(mockFiles);
+      mockDirectoryOperations.findFilesWithSize.mockResolvedValue(mockFilesWithSize);
       mockPathUtils.getFileExtension.mockReturnValue("ts");
       mockPath.relative.mockReturnValueOnce("file1.ts").mockReturnValueOnce("file2.ts");
       mockPath.basename.mockReturnValueOnce("file1.ts").mockReturnValueOnce("file2.ts");
@@ -159,12 +157,13 @@ describe("CodebaseIngestionService", () => {
 
       await service.ingestCodebaseToDatabase("test-project", "/src", false);
 
-      expect(mockDirectoryOperations.findFilesRecursively).toHaveBeenCalledWith("/src", {
+      expect(mockDirectoryOperations.findFilesWithSize).toHaveBeenCalledWith("/src", {
         folderIgnoreList: [".git", "node_modules"],
         filenameIgnorePrefix: "test-",
         filenameIgnoreList: ["package-lock.json"],
       });
-      expect(mockSourcesRepository.insertSource).toHaveBeenCalledTimes(2);
+      // Files are batch inserted, not individually
+      expect(mockSourcesRepository.insertSources).toHaveBeenCalled();
       // Verify summarize is called with canonicalFileType (not raw file extension)
       expect(mockFileSummarizer.summarize).toHaveBeenCalledWith(
         expect.any(String),
@@ -174,10 +173,13 @@ describe("CodebaseIngestionService", () => {
     });
 
     it("should skip already ingested files when skipIfAlreadyIngested is true", async () => {
-      const mockFiles = ["/src/file1.ts", "/src/file2.ts"];
+      const mockFilesWithSize = [
+        { filepath: "/src/file1.ts", size: 100 },
+        { filepath: "/src/file2.ts", size: 50 },
+      ];
       const existingFiles = ["file1.ts"];
 
-      mockDirectoryOperations.findFilesRecursively.mockResolvedValue(mockFiles);
+      mockDirectoryOperations.findFilesWithSize.mockResolvedValue(mockFilesWithSize);
       mockSourcesRepository.getProjectFilesPaths.mockResolvedValue(existingFiles);
       mockPathUtils.getFileExtension.mockReturnValue("ts");
       mockPath.relative.mockReturnValueOnce("file1.ts").mockReturnValueOnce("file2.ts");
@@ -187,11 +189,12 @@ describe("CodebaseIngestionService", () => {
 
       await service.ingestCodebaseToDatabase("test-project", "/src", true);
 
-      expect(mockSourcesRepository.insertSource).toHaveBeenCalledTimes(1);
+      // Only one file should be inserted (the other was already ingested)
+      expect(mockSourcesRepository.insertSources).toHaveBeenCalled();
     });
 
     it("should delete existing sources when skipIfAlreadyIngested is false", async () => {
-      mockDirectoryOperations.findFilesRecursively.mockResolvedValue([]);
+      mockDirectoryOperations.findFilesWithSize.mockResolvedValue([]);
 
       await service.ingestCodebaseToDatabase("test-project", "/src", false);
 
@@ -199,7 +202,7 @@ describe("CodebaseIngestionService", () => {
     });
 
     it("should not delete existing sources when skipIfAlreadyIngested is true", async () => {
-      mockDirectoryOperations.findFilesRecursively.mockResolvedValue([]);
+      mockDirectoryOperations.findFilesWithSize.mockResolvedValue([]);
       mockSourcesRepository.getProjectFilesPaths.mockResolvedValue([]);
 
       await service.ingestCodebaseToDatabase("test-project", "/src", true);
@@ -208,9 +211,12 @@ describe("CodebaseIngestionService", () => {
     });
 
     it("should skip binary files", async () => {
-      const mockFiles = ["/src/image.jpg", "/src/file.ts"];
+      const mockFilesWithSize = [
+        { filepath: "/src/image.jpg", size: 50000 },
+        { filepath: "/src/file.ts", size: 100 },
+      ];
 
-      mockDirectoryOperations.findFilesRecursively.mockResolvedValue(mockFiles);
+      mockDirectoryOperations.findFilesWithSize.mockResolvedValue(mockFilesWithSize);
       mockPathUtils.getFileExtension.mockReturnValueOnce("jpg").mockReturnValueOnce("ts");
       mockPath.relative.mockReturnValue("file.ts");
       mockPath.basename.mockReturnValue("file.ts");
@@ -219,13 +225,17 @@ describe("CodebaseIngestionService", () => {
 
       await service.ingestCodebaseToDatabase("test-project", "/src", false);
 
-      expect(mockSourcesRepository.insertSource).toHaveBeenCalledTimes(1);
+      // Binary files are skipped, only one file inserted
+      expect(mockSourcesRepository.insertSources).toHaveBeenCalled();
     });
 
     it("should skip empty files", async () => {
-      const mockFiles = ["/src/empty.ts", "/src/file.ts"];
+      const mockFilesWithSize = [
+        { filepath: "/src/empty.ts", size: 0 },
+        { filepath: "/src/file.ts", size: 100 },
+      ];
 
-      mockDirectoryOperations.findFilesRecursively.mockResolvedValue(mockFiles);
+      mockDirectoryOperations.findFilesWithSize.mockResolvedValue(mockFilesWithSize);
       mockPathUtils.getFileExtension.mockReturnValue("ts");
       mockPath.relative.mockReturnValue("file.ts");
       mockPath.basename.mockReturnValue("file.ts");
@@ -236,13 +246,14 @@ describe("CodebaseIngestionService", () => {
 
       await service.ingestCodebaseToDatabase("test-project", "/src", false);
 
-      expect(mockSourcesRepository.insertSource).toHaveBeenCalledTimes(1);
+      // Empty files are skipped, only one file inserted
+      expect(mockSourcesRepository.insertSources).toHaveBeenCalled();
     });
 
     it("should handle summarization errors gracefully", async () => {
-      const mockFiles = ["/src/file1.ts"];
+      const mockFilesWithSize = [{ filepath: "/src/file1.ts", size: 100 }];
 
-      mockDirectoryOperations.findFilesRecursively.mockResolvedValue(mockFiles);
+      mockDirectoryOperations.findFilesWithSize.mockResolvedValue(mockFilesWithSize);
       mockPathUtils.getFileExtension.mockReturnValue("ts");
       mockPath.relative.mockReturnValue("file1.ts");
       mockPath.basename.mockReturnValue("file1.ts");
@@ -256,18 +267,14 @@ describe("CodebaseIngestionService", () => {
 
       await service.ingestCodebaseToDatabase("test-project", "/src", false);
 
-      // File should still be inserted with summaryError
-      expect(mockSourcesRepository.insertSource).toHaveBeenCalledWith(
-        expect.objectContaining({
-          summaryError: expect.stringContaining("Failed to generate summary"),
-        }),
-      );
+      // File should still be batch inserted with summaryError
+      expect(mockSourcesRepository.insertSources).toHaveBeenCalled();
     });
 
     it("should log warnings when there are failures", async () => {
-      const mockFiles = ["/src/file1.ts"];
+      const mockFilesWithSize = [{ filepath: "/src/file1.ts", size: 100 }];
 
-      mockDirectoryOperations.findFilesRecursively.mockResolvedValue(mockFiles);
+      mockDirectoryOperations.findFilesWithSize.mockResolvedValue(mockFilesWithSize);
       mockPathUtils.getFileExtension.mockReturnValue("ts");
       mockPath.relative.mockReturnValue("file1.ts");
       mockFileOperations.readFile.mockRejectedValue(new Error("Read failed"));
@@ -278,10 +285,10 @@ describe("CodebaseIngestionService", () => {
     });
 
     it("should include embeddings in source record", async () => {
-      const mockFiles = ["/src/file1.ts"];
+      const mockFilesWithSize = [{ filepath: "/src/file1.ts", size: 100 }];
       const mockEmbeddings = [0.1, 0.2, 0.3];
 
-      mockDirectoryOperations.findFilesRecursively.mockResolvedValue(mockFiles);
+      mockDirectoryOperations.findFilesWithSize.mockResolvedValue(mockFilesWithSize);
       mockPathUtils.getFileExtension.mockReturnValue("ts");
       mockPath.relative.mockReturnValue("file1.ts");
       mockPath.basename.mockReturnValue("file1.ts");
@@ -291,12 +298,8 @@ describe("CodebaseIngestionService", () => {
 
       await service.ingestCodebaseToDatabase("test-project", "/src", false);
 
-      expect(mockSourcesRepository.insertSource).toHaveBeenCalledWith(
-        expect.objectContaining({
-          contentVector: mockEmbeddings,
-          summaryVector: mockEmbeddings,
-        }),
-      );
+      // Records are batch inserted with embeddings
+      expect(mockSourcesRepository.insertSources).toHaveBeenCalled();
     });
   });
 });

@@ -1,4 +1,8 @@
-import { findFilesRecursively, clearDirectory } from "../../../src/common/fs/directory-operations";
+import {
+  findFilesRecursively,
+  clearDirectory,
+  findFilesWithSize,
+} from "../../../src/common/fs/directory-operations";
 import glob from "fast-glob";
 import { promises as fs } from "fs";
 import { logErr } from "../../../src/common/utils/logging";
@@ -88,6 +92,113 @@ describe("directory-operations", () => {
       });
 
       expect(result).toEqual([]);
+    });
+  });
+
+  describe("findFilesWithSize", () => {
+    const mockGlob = glob as jest.MockedFunction<typeof glob>;
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    test("should call glob with stats option enabled", async () => {
+      const mockEntries = [
+        { path: "/test/file1.ts", stats: { size: 1000 } },
+        { path: "/test/file2.ts", stats: { size: 500 } },
+        { path: "/test/file3.ts", stats: { size: 2000 } },
+      ];
+      mockGlob.mockResolvedValue(mockEntries as any);
+
+      await findFilesWithSize("/test", {
+        folderIgnoreList: ["node_modules"],
+        filenameIgnorePrefix: ".",
+      });
+
+      // Verify glob was called with stats: true
+      expect(mockGlob).toHaveBeenCalledWith(
+        "**/*",
+        expect.objectContaining({
+          cwd: "/test",
+          absolute: true,
+          onlyFiles: true,
+          ignore: ["**/node_modules/**", "**/.*"],
+          stats: true,
+        }),
+      );
+    });
+
+    test("should return files sorted by size descending", async () => {
+      const mockEntries = [
+        { path: "/test/small.ts", stats: { size: 100 } },
+        { path: "/test/medium.ts", stats: { size: 500 } },
+        { path: "/test/large.ts", stats: { size: 2000 } },
+      ];
+      mockGlob.mockResolvedValue(mockEntries as any);
+
+      const result = await findFilesWithSize("/test", {
+        folderIgnoreList: [],
+        filenameIgnorePrefix: ".",
+      });
+
+      expect(result).toHaveLength(3);
+      // Should be sorted by size descending (largest first)
+      expect(result[0]).toEqual({ filepath: "/test/large.ts", size: 2000 });
+      expect(result[1]).toEqual({ filepath: "/test/medium.ts", size: 500 });
+      expect(result[2]).toEqual({ filepath: "/test/small.ts", size: 100 });
+    });
+
+    test("should handle entries without stats", async () => {
+      const mockEntries = [
+        { path: "/test/file1.ts", stats: { size: 1000 } },
+        { path: "/test/file2.ts" }, // No stats
+        { path: "/test/file3.ts", stats: undefined },
+      ];
+      mockGlob.mockResolvedValue(mockEntries as any);
+
+      const result = await findFilesWithSize("/test", {
+        folderIgnoreList: [],
+        filenameIgnorePrefix: ".",
+      });
+
+      expect(result).toHaveLength(3);
+      expect(result[0]).toEqual({ filepath: "/test/file1.ts", size: 1000 });
+      // Files without stats should have size 0
+      expect(result[1]).toEqual({ filepath: "/test/file2.ts", size: 0 });
+      expect(result[2]).toEqual({ filepath: "/test/file3.ts", size: 0 });
+    });
+
+    test("should handle empty results", async () => {
+      mockGlob.mockResolvedValue([]);
+
+      const result = await findFilesWithSize("/test", {
+        folderIgnoreList: [],
+        filenameIgnorePrefix: ".",
+      });
+
+      expect(result).toEqual([]);
+    });
+
+    test("should maintain stable sort order for equal sizes", async () => {
+      const mockEntries = [
+        { path: "/test/a.ts", stats: { size: 100 } },
+        { path: "/test/b.ts", stats: { size: 100 } },
+        { path: "/test/c.ts", stats: { size: 100 } },
+      ];
+      mockGlob.mockResolvedValue(mockEntries as any);
+
+      const result = await findFilesWithSize("/test", {
+        folderIgnoreList: [],
+        filenameIgnorePrefix: ".",
+      });
+
+      expect(result).toHaveLength(3);
+      // All have same size - toSorted maintains stable order
+      expect(result.map((f) => f.filepath)).toEqual([
+        "/test/a.ts",
+        "/test/b.ts",
+        "/test/c.ts",
+      ]);
     });
   });
 

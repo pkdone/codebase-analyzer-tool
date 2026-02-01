@@ -37,6 +37,7 @@ describe("SourcesRepositoryImpl", () => {
     // Mock collection
     mockCollection = {
       insertOne: jest.fn(),
+      insertMany: jest.fn(),
       deleteMany: jest.fn(),
       findOne: jest.fn(),
       find: jest.fn().mockReturnValue(mockFindCursor),
@@ -94,6 +95,82 @@ describe("SourcesRepositoryImpl", () => {
 
       await expect(repository.insertSource(mockSourceRecord)).rejects.toThrow(mongoError);
       expect(mockMdbErrorUtils.logMongoValidationErrorIfPresent).toHaveBeenCalledWith(mongoError);
+    });
+  });
+
+  describe("insertSources", () => {
+    it("should insert multiple source records in a single batch operation", async () => {
+      const mockSourceRecords: SourceRecord[] = [
+        {
+          projectName: "test-project",
+          filename: "test1.ts",
+          filepath: "src/test1.ts",
+          fileType: "ts",
+          linesCount: 10,
+          content: "console.log('test1');",
+        },
+        {
+          projectName: "test-project",
+          filename: "test2.ts",
+          filepath: "src/test2.ts",
+          fileType: "ts",
+          linesCount: 20,
+          content: "console.log('test2');",
+        },
+      ];
+
+      mockCollection.insertMany.mockResolvedValue({} as any);
+
+      await repository.insertSources(mockSourceRecords);
+
+      expect(mockCollection.insertMany).toHaveBeenCalledWith(mockSourceRecords, { ordered: false });
+    });
+
+    it("should not call insertMany when records array is empty", async () => {
+      await repository.insertSources([]);
+
+      expect(mockCollection.insertMany).not.toHaveBeenCalled();
+    });
+
+    it("should handle MongoDB errors during batch insert", async () => {
+      const mockSourceRecords: SourceRecord[] = [
+        {
+          projectName: "test-project",
+          filename: "test1.ts",
+          filepath: "src/test1.ts",
+          fileType: "ts",
+          linesCount: 10,
+          content: "console.log('test1');",
+        },
+      ];
+
+      const mongoError = new Error("MongoDB batch insert error");
+      mockCollection.insertMany.mockRejectedValue(mongoError);
+
+      await expect(repository.insertSources(mockSourceRecords)).rejects.toThrow(mongoError);
+    });
+
+    it("should use ordered: false to continue on individual document failures", async () => {
+      const mockSourceRecords: SourceRecord[] = [
+        {
+          projectName: "test-project",
+          filename: "test1.ts",
+          filepath: "src/test1.ts",
+          fileType: "ts",
+          linesCount: 10,
+          content: "console.log('test1');",
+        },
+      ];
+
+      mockCollection.insertMany.mockResolvedValue({} as any);
+
+      await repository.insertSources(mockSourceRecords);
+
+      // Verify ordered: false is passed (allows continuing even if some docs fail)
+      expect(mockCollection.insertMany).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({ ordered: false }),
+      );
     });
   });
 

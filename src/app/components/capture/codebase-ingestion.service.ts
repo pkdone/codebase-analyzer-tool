@@ -4,8 +4,7 @@ import path from "path";
 import { getCanonicalFileType, type FileProcessingRulesType } from "../../config/file-handling";
 import type { CanonicalFileType } from "../../schemas/canonical-file-types";
 import { readFile } from "../../../common/fs/file-operations";
-import { findFilesRecursively } from "../../../common/fs/directory-operations";
-import { sortFilesBySize } from "../../../common/fs/file-sorting";
+import { findFilesWithSize } from "../../../common/fs/directory-operations";
 import { getFileExtension } from "../../../common/fs/path-utils";
 import { countLines } from "../../../common/utils/text-utils";
 import { logErr } from "../../../common/utils/logging";
@@ -22,6 +21,9 @@ import {
 import { isOk } from "../../../common/types/result.types";
 import type { LlmConcurrencyService } from "../concurrency";
 
+/** Default batch size for bulk database inserts */
+const DEFAULT_BATCH_SIZE = 50;
+
 /**
  * Service that orchestrates the ingestion of source files from a codebase into the database.
  * Handles file discovery, content reading, LLM-based summarization, embedding generation,
@@ -29,6 +31,9 @@ import type { LlmConcurrencyService } from "../concurrency";
  */
 @injectable()
 export default class CodebaseIngestionService {
+  /** Buffer for collecting records to batch insert */
+  private recordBuffer: SourceRecord[] = [];
+
   /**
    * Constructor with dependency injection.
    * @param sourcesRepository - Repository for storing source file data
@@ -57,13 +62,14 @@ export default class CodebaseIngestionService {
     srcDirPath: string,
     skipIfAlreadyIngested: boolean,
   ): Promise<void> {
-    const srcFilepaths = await findFilesRecursively(srcDirPath, {
+    // Use findFilesWithSize for efficient file discovery with sizes in a single pass
+    // Files are pre-sorted by size (largest first) for better work distribution
+    const filesWithSize = await findFilesWithSize(srcDirPath, {
       folderIgnoreList: this.fileProcessingConfig.FOLDER_IGNORE_LIST,
       filenameIgnorePrefix: this.fileProcessingConfig.FILENAME_PREFIX_IGNORE,
       filenameIgnoreList: this.fileProcessingConfig.FILENAME_IGNORE_LIST,
     });
-    // Sort files by size (largest first) to distribute work more evenly during concurrent processing
-    const sortedFilepaths = await sortFilesBySize(srcFilepaths);
+    const sortedFilepaths = filesWithSize.map((f) => f.filepath);
     await this.processAndStoreFiles(
       sortedFilepaths,
       projectName,
@@ -102,6 +108,9 @@ export default class CodebaseIngestionService {
       await this.sourcesRepository.deleteSourcesByProject(projectName);
     }
 
+    // Clear the record buffer before starting
+    this.recordBuffer = [];
+
     let successes = 0;
     let failures = 0;
     const tasks = filepaths.map(async (filepath) => {
@@ -122,12 +131,41 @@ export default class CodebaseIngestionService {
       });
     });
     await Promise.allSettled(tasks);
+
+    // Flush any remaining records in the buffer
+    await this.flushRecordBuffer();
+
     console.log(
       `Processed ${filepaths.length} files. Succeeded: ${successes}, Failed: ${failures}`,
     );
 
     if (failures > 0) {
       console.warn(`Warning: ${failures} files failed to process. Check logs for details.`);
+    }
+  }
+
+  /**
+   * Flushes the record buffer by batch inserting all buffered records.
+   * Called when buffer reaches capacity or at the end of processing.
+   */
+  private async flushRecordBuffer(): Promise<void> {
+    if (this.recordBuffer.length === 0) return;
+
+    const batch = [...this.recordBuffer];
+    this.recordBuffer = [];
+
+    try {
+      await this.sourcesRepository.insertSources(batch);
+    } catch (error: unknown) {
+      // If batch insert fails, fall back to individual inserts
+      logErr(`Batch insert failed, falling back to individual inserts`, error);
+      for (const record of batch) {
+        try {
+          await this.sourcesRepository.insertSource(record);
+        } catch (insertError: unknown) {
+          logErr(`Failed to insert record for: ${record.filepath}`, insertError);
+        }
+      }
     }
   }
 
@@ -160,12 +198,15 @@ export default class CodebaseIngestionService {
     const linesCount = countLines(content);
     // Compute canonical type once and pass it through the call chain
     const canonicalType = getCanonicalFileType(filepath, fileType);
-    const { summary, summaryError, summaryVector } = await this.generateSummaryAndEmbeddings(
-      filepath,
-      canonicalType,
-      content,
-    );
-    const contentVector = await this.getContentEmbeddings(filepath, content);
+
+    // Run summary generation and content embeddings in parallel for better throughput
+    // These are independent LLM operations that don't depend on each other
+    const [summaryResult, contentVector] = await Promise.all([
+      this.generateSummaryAndEmbeddings(filepath, canonicalType, content),
+      this.getContentEmbeddings(filepath, content),
+    ]);
+    const { summary, summaryError, summaryVector } = summaryResult;
+
     const sourceFileRecord: SourceRecord = {
       projectName,
       filename,
@@ -179,7 +220,12 @@ export default class CodebaseIngestionService {
       ...(summaryVector && { summaryVector }),
       ...(contentVector && { contentVector }),
     };
-    await this.sourcesRepository.insertSource(sourceFileRecord);
+
+    // Add to buffer and flush when batch size is reached
+    this.recordBuffer.push(sourceFileRecord);
+    if (this.recordBuffer.length >= DEFAULT_BATCH_SIZE) {
+      await this.flushRecordBuffer();
+    }
   }
 
   /**

@@ -39,6 +39,7 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
 
     mockSourcesRepository = {
       insertSource: jest.fn().mockResolvedValue(undefined),
+      insertSources: jest.fn().mockResolvedValue(undefined),
       deleteSourcesByProject: jest.fn().mockResolvedValue(undefined),
       doesProjectSourceExist: jest.fn().mockResolvedValue(false),
       getProjectSourcesSummariesByFileType: jest.fn().mockResolvedValue([]),

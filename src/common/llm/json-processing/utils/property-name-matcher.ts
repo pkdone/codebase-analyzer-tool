@@ -83,6 +83,12 @@ export function levenshteinDistance(str1: string, str2: string): number {
   if (m === 0) return n;
   if (n === 0) return m;
 
+  // Early exit: if length difference exceeds reasonable edit distance threshold,
+  // return the length difference immediately. This avoids expensive computation
+  // when the strings are clearly too different to match.
+  const lengthDiff = Math.abs(m - n);
+  if (lengthDiff > 3) return lengthDiff;
+
   // Use two rows instead of full matrix for memory efficiency
   let prevRow: number[] = new Array(n + 1).fill(0) as number[];
   let currRow: number[] = new Array(n + 1).fill(0) as number[];
