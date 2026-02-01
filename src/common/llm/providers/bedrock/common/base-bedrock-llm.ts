@@ -167,6 +167,25 @@ export default abstract class BaseBedrockLLM extends BaseLLMProvider {
   }
 
   /**
+   * Get the required maxCompletionTokens for a model, throwing if not configured.
+   * Centralizes the validation pattern used across all Bedrock providers.
+   *
+   * @param modelKey - The model key to look up
+   * @returns The maxCompletionTokens value (guaranteed to be defined)
+   * @throws LLMError with BAD_CONFIGURATION code if maxCompletionTokens is undefined
+   */
+  protected getRequiredMaxCompletionTokens(modelKey: string): number {
+    const maxCompletionTokens = this.llmModelsMetadata[modelKey].maxCompletionTokens;
+    if (maxCompletionTokens === undefined) {
+      throw new LLMError(
+        LLMErrorCode.BAD_CONFIGURATION,
+        `maxCompletionTokens is undefined for model key: ${modelKey}`,
+      );
+    }
+    return maxCompletionTokens;
+  }
+
+  /**
    * Build common Bedrock API parameters structure.
    * Extracts the common pattern of modelId, contentType, accept, and body.
    */

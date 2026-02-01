@@ -1,18 +1,11 @@
-import type { CategoryDataHandler } from "./category-handler.interface";
-import type { CategorizedSectionItem } from "../category-data-type-guards";
+import { createCategoryHandler } from "./handler-factory";
 import { isBusinessProcessesArray } from "../category-data-type-guards";
 
 /**
  * Handler for business processes category data.
+ * Uses the factory pattern with the BusinessProcessesArray type guard.
  */
-export const businessProcessesHandler: CategoryDataHandler = {
-  category: "businessProcesses",
-
-  process(label: string, fieldData: unknown): CategorizedSectionItem | null {
-    return {
-      category: "businessProcesses",
-      label,
-      data: isBusinessProcessesArray(fieldData) ? fieldData : [],
-    };
-  },
-};
+export const businessProcessesHandler = createCategoryHandler(
+  "businessProcesses",
+  isBusinessProcessesArray,
+);

@@ -311,6 +311,155 @@ describe("BaseBedrockLLM - JSON stringification centralization", () => {
   });
 });
 
+describe("BaseBedrockLLM - getRequiredMaxCompletionTokens", () => {
+  const mockModelsMetadata: Record<string, ResolvedLLMModelMetadata> = {
+    EMBEDDINGS: {
+      modelKey: "EMBEDDINGS",
+      urnEnvKey: "TEST_EMBED",
+      urn: "test-embeddings-model",
+      purpose: LLMPurpose.EMBEDDINGS,
+      dimensions: 1536,
+      maxTotalTokens: 8192,
+    },
+    COMPLETION: {
+      modelKey: "COMPLETION",
+      urnEnvKey: "TEST_COMPLETE",
+      urn: "test-completion-model",
+      purpose: LLMPurpose.COMPLETIONS,
+      maxCompletionTokens: 4096,
+      maxTotalTokens: 100000,
+    },
+    COMPLETION_NO_MAX_TOKENS: {
+      modelKey: "COMPLETION_NO_MAX_TOKENS",
+      urnEnvKey: "TEST_COMPLETE_NO_MAX",
+      urn: "test-completion-no-max",
+      purpose: LLMPurpose.COMPLETIONS,
+      maxTotalTokens: 100000,
+      // maxCompletionTokens intentionally undefined
+    },
+  };
+
+  const mockConfig: LLMProviderSpecificConfig = {
+    requestTimeoutMillis: 60000,
+    maxRetryAttempts: 3,
+    minRetryDelayMillis: 1000,
+    maxRetryDelayMillis: 10000,
+    temperature: 0,
+    topP: 0.95,
+  };
+
+  function createTestProviderInitForMaxTokens(
+    overrideMetadata?: Record<string, ResolvedLLMModelMetadata>,
+  ): ProviderInit {
+    const metadata = overrideMetadata ?? mockModelsMetadata;
+    const completionKey = Object.keys(metadata).find(
+      (k) => metadata[k].purpose === LLMPurpose.COMPLETIONS,
+    )!;
+
+    const manifest: LLMProviderManifest = {
+      providerFamily: "test-bedrock",
+      envSchema: z.object({}),
+      models: {
+        embeddings: [
+          {
+            modelKey: "EMBEDDINGS",
+            urnEnvKey: "TEST_EMBED",
+            purpose: LLMPurpose.EMBEDDINGS,
+            maxTotalTokens: metadata.EMBEDDINGS.maxTotalTokens,
+            dimensions: metadata.EMBEDDINGS.dimensions,
+          },
+        ],
+        completions: [
+          {
+            modelKey: completionKey,
+            urnEnvKey: "TEST_COMPLETE",
+            purpose: LLMPurpose.COMPLETIONS,
+            maxCompletionTokens: metadata[completionKey].maxCompletionTokens,
+            maxTotalTokens: metadata[completionKey].maxTotalTokens,
+          },
+        ],
+      },
+      errorPatterns: [],
+      providerSpecificConfig: mockConfig,
+      extractConfig: () => ({}),
+      implementation: TestBedrockLLM as any,
+    };
+
+    return {
+      manifest,
+      providerParams: {},
+      resolvedModelChain: {
+        embeddings: [
+          {
+            providerFamily: "test-bedrock",
+            modelKey: "EMBEDDINGS",
+            modelUrn: metadata.EMBEDDINGS.urn,
+          },
+        ],
+        completions: [
+          {
+            providerFamily: "test-bedrock",
+            modelKey: completionKey,
+            modelUrn: metadata[completionKey].urn,
+          },
+        ],
+      },
+      errorLogging: createMockErrorLoggingConfig(),
+      extractedConfig: {},
+    };
+  }
+
+  it("should return maxCompletionTokens when defined", () => {
+    const llm = new TestBedrockLLM(createTestProviderInitForMaxTokens());
+
+    // eslint-disable-next-line @typescript-eslint/dot-notation
+    const result = llm["getRequiredMaxCompletionTokens"]("COMPLETION");
+
+    expect(result).toBe(4096);
+  });
+
+  it("should throw LLMError with BAD_CONFIGURATION when maxCompletionTokens is undefined", () => {
+    const metadataWithoutMaxTokens: Record<string, ResolvedLLMModelMetadata> = {
+      EMBEDDINGS: mockModelsMetadata.EMBEDDINGS,
+      COMPLETION_NO_MAX_TOKENS: mockModelsMetadata.COMPLETION_NO_MAX_TOKENS,
+    };
+
+    const llm = new TestBedrockLLM(createTestProviderInitForMaxTokens(metadataWithoutMaxTokens));
+
+    expect(() => {
+      // eslint-disable-next-line @typescript-eslint/dot-notation
+      llm["getRequiredMaxCompletionTokens"]("COMPLETION_NO_MAX_TOKENS");
+    }).toThrow(LLMError);
+
+    try {
+      // eslint-disable-next-line @typescript-eslint/dot-notation
+      llm["getRequiredMaxCompletionTokens"]("COMPLETION_NO_MAX_TOKENS");
+    } catch (error) {
+      expect(error).toBeInstanceOf(LLMError);
+      expect((error as LLMError).code).toBe(LLMErrorCode.BAD_CONFIGURATION);
+      expect((error as LLMError).message).toContain("maxCompletionTokens is undefined");
+      expect((error as LLMError).message).toContain("COMPLETION_NO_MAX_TOKENS");
+    }
+  });
+
+  it("should include model key in error message when throwing", () => {
+    const metadataWithoutMaxTokens: Record<string, ResolvedLLMModelMetadata> = {
+      EMBEDDINGS: mockModelsMetadata.EMBEDDINGS,
+      COMPLETION_NO_MAX_TOKENS: mockModelsMetadata.COMPLETION_NO_MAX_TOKENS,
+    };
+
+    const llm = new TestBedrockLLM(createTestProviderInitForMaxTokens(metadataWithoutMaxTokens));
+
+    try {
+      // eslint-disable-next-line @typescript-eslint/dot-notation
+      llm["getRequiredMaxCompletionTokens"]("COMPLETION_NO_MAX_TOKENS");
+      fail("Expected error to be thrown");
+    } catch (error) {
+      expect((error as LLMError).message).toContain("COMPLETION_NO_MAX_TOKENS");
+    }
+  });
+});
+
 describe("BaseBedrockLLM - validateCredentials", () => {
   const mockModelsMetadata: Record<string, ResolvedLLMModelMetadata> = {
     EMBEDDINGS: {

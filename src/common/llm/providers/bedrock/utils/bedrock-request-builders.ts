@@ -1,5 +1,4 @@
 import { llmConfig } from "../../../config/llm.config";
-import type { ResolvedLLMModelMetadata } from "../../../types/llm-model.types";
 import type { JsonObject } from "../../../types/json-value.types";
 
 /**
@@ -9,20 +8,13 @@ import type { JsonObject } from "../../../types/json-value.types";
  * This helper reduces duplication in BedrockDeepseekLLM and BedrockMistralLLM implementations.
  *
  * @param prompt The prompt text to include in the messages array
- * @param modelKey The model key to look up metadata
- * @param modelsMetadata The models metadata dictionary
+ * @param maxCompletionTokens The validated max completion tokens value
  * @returns A request body object with messages, max_tokens, temperature, and top_p
  */
 export function buildStandardMessagesArray(
   prompt: string,
-  modelKey: string,
-  modelsMetadata: Record<string, ResolvedLLMModelMetadata>,
+  maxCompletionTokens: number,
 ): JsonObject {
-  const maxCompletionTokens = modelsMetadata[modelKey].maxCompletionTokens;
-  if (maxCompletionTokens === undefined) {
-    throw new Error(`maxCompletionTokens is undefined for model key: ${modelKey}`);
-  }
-
   return {
     messages: [
       {

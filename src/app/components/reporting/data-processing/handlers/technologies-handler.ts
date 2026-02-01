@@ -1,18 +1,8 @@
-import type { CategoryDataHandler } from "./category-handler.interface";
-import type { CategorizedSectionItem } from "../category-data-type-guards";
+import { createCategoryHandler } from "./handler-factory";
 import { isAppSummaryNameDescArray } from "../category-data-type-guards";
 
 /**
  * Handler for technologies category data.
+ * Uses the factory pattern with the AppSummaryNameDescArray type guard.
  */
-export const technologiesHandler: CategoryDataHandler = {
-  category: "technologies",
-
-  process(label: string, fieldData: unknown): CategorizedSectionItem | null {
-    return {
-      category: "technologies",
-      label,
-      data: isAppSummaryNameDescArray(fieldData) ? fieldData : [],
-    };
-  },
-};
+export const technologiesHandler = createCategoryHandler("technologies", isAppSummaryNameDescArray);

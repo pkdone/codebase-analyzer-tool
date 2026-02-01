@@ -13,6 +13,7 @@
 import type { ReplacementRule } from "./replacement-rule.types";
 import { isAfterJsonDelimiter, isInPropertyContext } from "../../utils/parser-context-utils";
 import { inferPropertyName, isKnownProperty } from "../../utils/property-name-inference";
+import { safeGroup, safeGroups3, safeGroups4 } from "../../utils/safe-group-extractor";
 
 /**
  * Rules for fixing property name issues in JSON content.
@@ -25,14 +26,12 @@ export const PROPERTY_NAME_RULES: readonly ReplacementRule[] = [
     name: "corruptedPropertyNameExtraText",
     pattern: /"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:\s*([a-zA-Z0-9_]+)\s*":(\s*[,}])/g,
     replacement: (_match, groups) => {
-      const [propertyName, , terminator] = groups;
-      const propertyNameStr = propertyName ?? "";
-      const terminatorStr = terminator ?? "";
-      return `"${propertyNameStr}":${terminatorStr}`;
+      const [propertyName, , terminator] = safeGroups3(groups);
+      return `"${propertyName}":${terminator}`;
     },
     diagnosticMessage: (_match, groups) => {
-      const propertyName = groups[0] ?? "";
-      const extraText = groups[1] ?? "";
+      const propertyName = safeGroup(groups, 0);
+      const extraText = safeGroup(groups, 1);
       return `Fixed corrupted property name: "${propertyName}":${extraText}": -> "${propertyName}":`;
     },
   },
@@ -44,15 +43,12 @@ export const PROPERTY_NAME_RULES: readonly ReplacementRule[] = [
     name: "corruptedPropertyValue",
     pattern: /"([^"]+)"\s*:\s*_[A-Z]+`(\d+)(\s*[,}])/g,
     replacement: (_match, groups) => {
-      const [propertyName, digits, terminator] = groups;
-      const propertyNameStr = propertyName ?? "";
-      const digitsStr = digits ?? "";
-      const terminatorStr = terminator ?? "";
-      return `"${propertyNameStr}": ${digitsStr}${terminatorStr}`;
+      const [propertyName, digits, terminator] = safeGroups3(groups);
+      return `"${propertyName}": ${digits}${terminator}`;
     },
     diagnosticMessage: (_match, groups) => {
-      const propertyName = groups[0] ?? "";
-      const digits = groups[1] ?? "";
+      const propertyName = safeGroup(groups, 0);
+      const digits = safeGroup(groups, 1);
       return `Fixed corrupted property value: "${propertyName}":_...\`${digits} -> "${propertyName}": ${digits}`;
     },
   },
@@ -63,15 +59,11 @@ export const PROPERTY_NAME_RULES: readonly ReplacementRule[] = [
     name: "missingQuotesOnPropertyWithArrayObject",
     pattern: /([}\],]|\n|^)(\s*)([a-zA-Z_$][a-zA-Z0-9_$]*)\s*:\s*(\[|{)/g,
     replacement: (_match, groups) => {
-      const [delimiter, whitespace, propertyName, valueStart] = groups;
-      const delimiterStr = delimiter ?? "";
-      const whitespaceStr = whitespace ?? "";
-      const propertyNameStr = propertyName ?? "";
-      const valueStartStr = valueStart ?? "";
-      return `${delimiterStr}${whitespaceStr}"${propertyNameStr}": ${valueStartStr}`;
+      const [delimiter, whitespace, propertyName, valueStart] = safeGroups4(groups);
+      return `${delimiter}${whitespace}"${propertyName}": ${valueStart}`;
     },
     diagnosticMessage: (_match, groups) => {
-      const propertyName = groups[2] ?? "";
+      const propertyName = safeGroup(groups, 2);
       return `Fixed missing quotes on property: ${propertyName}: -> "${propertyName}":`;
     },
     contextCheck: isInPropertyContext,
@@ -83,12 +75,9 @@ export const PROPERTY_NAME_RULES: readonly ReplacementRule[] = [
     name: "missingOpeningQuoteOnProperty",
     pattern: /([}\],]|\n|^)(\s*)([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:/g,
     replacement: (_match, groups, context) => {
-      const [delimiter, whitespace, propertyName] = groups;
-      const delimiterStr = delimiter ?? "";
-      const whitespaceStr = whitespace ?? "";
-      const propertyNameStr = propertyName ?? "";
+      const [delimiter, whitespace, propertyName] = safeGroups3(groups);
       // Skip underscore-prefixed uppercase names - handled by missingPropertyNameWithFragment
-      if (/^_[A-Z0-9_]+$/.test(propertyNameStr)) {
+      if (/^_[A-Z0-9_]+$/.test(propertyName)) {
         return null;
       }
       // Skip cases in array context with `: "value",` pattern
@@ -120,10 +109,10 @@ export const PROPERTY_NAME_RULES: readonly ReplacementRule[] = [
           }
         }
       }
-      return `${delimiterStr}${whitespaceStr}"${propertyNameStr}":`;
+      return `${delimiter}${whitespace}"${propertyName}":`;
     },
     diagnosticMessage: (_match, groups) => {
-      const propertyName = groups[2] ?? "";
+      const propertyName = safeGroup(groups, 2);
       return `Fixed missing opening quote: ${propertyName}" -> "${propertyName}"`;
     },
     contextCheck: isAfterJsonDelimiter,
@@ -135,13 +124,11 @@ export const PROPERTY_NAME_RULES: readonly ReplacementRule[] = [
     name: "spaceBeforeQuoteInProperty",
     pattern: /"([a-zA-Z_$][a-zA-Z0-9_$]*)\s+"([^"]+)"/g,
     replacement: (_match, groups) => {
-      const [propertyName, value] = groups;
-      const propertyNameStr = propertyName ?? "";
-      const valueStr = value ?? "";
-      return `"${propertyNameStr}": "${valueStr}"`;
+      const [propertyName, value] = safeGroups3(groups);
+      return `"${propertyName}": "${value}"`;
     },
     diagnosticMessage: (_match, groups) => {
-      const propertyName = groups[0] ?? "";
+      const propertyName = safeGroup(groups, 0);
       return `Fixed space before quote: "${propertyName} " -> "${propertyName}": "..."`;
     },
     contextCheck: isInPropertyContext,
@@ -153,15 +140,13 @@ export const PROPERTY_NAME_RULES: readonly ReplacementRule[] = [
     name: "malformedPropertyColonQuote",
     pattern: /"([^"]+)"\s*:\s*([a-z]{2,10})"\s*:\s*"([^"]+)"/g,
     replacement: (_match, groups) => {
-      const [propertyName, , actualValue] = groups;
-      const propertyNameStr = propertyName ?? "";
-      const actualValueStr = actualValue ?? "";
-      return `"${propertyNameStr}": "${actualValueStr}"`;
+      const [propertyName, , actualValue] = safeGroups3(groups);
+      return `"${propertyName}": "${actualValue}"`;
     },
     diagnosticMessage: (_match, groups) => {
-      const propertyName = groups[0] ?? "";
-      const insertedWord = groups[1] ?? "";
-      const actualValue = groups[2] ?? "";
+      const propertyName = safeGroup(groups, 0);
+      const insertedWord = safeGroup(groups, 1);
+      const actualValue = safeGroup(groups, 2);
       return `Fixed malformed property: "${propertyName}":${insertedWord}": "${actualValue}" -> "${propertyName}": "${actualValue}"`;
     },
     contextCheck: isInPropertyContext,
@@ -173,13 +158,11 @@ export const PROPERTY_NAME_RULES: readonly ReplacementRule[] = [
     name: "missingColonAfterProperty",
     pattern: /"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s+"([^"]+)"/g,
     replacement: (_match, groups) => {
-      const [propertyName, value] = groups;
-      const propertyNameStr = propertyName ?? "";
-      const valueStr = value ?? "";
-      return `"${propertyNameStr}": "${valueStr}"`;
+      const [propertyName, value] = safeGroups3(groups);
+      return `"${propertyName}": "${value}"`;
     },
     diagnosticMessage: (_match, groups) => {
-      const propertyName = groups[0] ?? "";
+      const propertyName = safeGroup(groups, 0);
       return `Fixed missing colon: "${propertyName}" "..." -> "${propertyName}": "..."`;
     },
     contextCheck: isInPropertyContext,
@@ -192,20 +175,16 @@ export const PROPERTY_NAME_RULES: readonly ReplacementRule[] = [
     name: "truncatedPropertyName",
     pattern: /([}\],]|\n|^)(\s*)([a-z]{1,3})"\s*:\s*"([^"]{20,})/g,
     replacement: (_match, groups, context) => {
-      const [delimiter, whitespace, truncatedPart, valueStart] = groups;
-      const delimiterStr = delimiter ?? "";
-      const whitespaceStr = whitespace ?? "";
-      const truncatedStr = truncatedPart ?? "";
-      const valueStartStr = valueStart ?? "";
+      const [delimiter, whitespace, truncatedPart, valueStart] = safeGroups4(groups);
 
       // Use schema-aware inference when config is available
       const knownProperties = context.config?.knownProperties;
-      const fullProperty = inferPropertyName(truncatedStr, knownProperties);
+      const fullProperty = inferPropertyName(truncatedPart, knownProperties);
 
-      return `${delimiterStr}${whitespaceStr}"${fullProperty}": "${valueStartStr}`;
+      return `${delimiter}${whitespace}"${fullProperty}": "${valueStart}`;
     },
     diagnosticMessage: (_match, groups) => {
-      const truncated = groups[2] ?? "";
+      const truncated = safeGroup(groups, 2);
       return `Fixed truncated property name: ${truncated}" -> inferred property`;
     },
     contextCheck: isInPropertyContext,
@@ -218,15 +197,13 @@ export const PROPERTY_NAME_RULES: readonly ReplacementRule[] = [
     name: "missingPropertyNameBeforeColon",
     pattern: /([{,]\s+)"\s*:\s*"([^"]{20,})"/g,
     replacement: (_match, groups, context) => {
-      const [prefix, value] = groups;
-      const prefixStr = prefix ?? "";
-      const valueStr = value ?? "";
+      const [prefix, value] = safeGroups3(groups);
 
       // Use schema-aware inference when config is available
       const knownProperties = context.config?.knownProperties;
       const inferredProperty = inferPropertyName("", knownProperties);
 
-      return `${prefixStr}"${inferredProperty}": "${valueStr}"`;
+      return `${prefix}"${inferredProperty}": "${value}"`;
     },
     diagnosticMessage: () => 'Fixed missing property name before colon: ": -> inferred property',
   },
@@ -237,12 +214,12 @@ export const PROPERTY_NAME_RULES: readonly ReplacementRule[] = [
     name: "missingPropertyNameWithFragment",
     pattern: /\{\s*([_][a-zA-Z0-9_]+)"\s*:\s*"([^"]+)"/g,
     replacement: (_match, groups) => {
-      const fragment = groups[0] ?? "";
+      const fragment = safeGroup(groups, 0);
       const fixedValue = fragment.substring(1); // Remove leading underscore
       return `{"name": "${fixedValue}"`;
     },
     diagnosticMessage: (_match, groups) => {
-      const fragment = groups[0] ?? "";
+      const fragment = safeGroup(groups, 0);
       const fixedValue = fragment.substring(1);
       return `Fixed missing property name with fragment: {${fragment}" -> {"name": "${fixedValue}"`;
     },
@@ -255,13 +232,11 @@ export const PROPERTY_NAME_RULES: readonly ReplacementRule[] = [
     name: "duplicatePropertyName",
     pattern: /"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:\s*"\1"\s*:\s*"([^"]+)"/g,
     replacement: (_match, groups) => {
-      const [propertyName, value] = groups;
-      const propertyNameStr = propertyName ?? "";
-      const valueStr = value ?? "";
-      return `"${propertyNameStr}": "${valueStr}"`;
+      const [propertyName, value] = safeGroups3(groups);
+      return `"${propertyName}": "${value}"`;
     },
     diagnosticMessage: (_match, groups) => {
-      const propertyName = groups[0] ?? "";
+      const propertyName = safeGroup(groups, 0);
       return `Fixed duplicate property name: "${propertyName}": "${propertyName}": -> "${propertyName}":`;
     },
   },
@@ -272,15 +247,11 @@ export const PROPERTY_NAME_RULES: readonly ReplacementRule[] = [
     name: "missingOpeningQuoteOnPropertyWithValue",
     pattern: /([}\],]|\n|^)(\s*)([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:\s*([^,}\]]+)/g,
     replacement: (_match, groups, context) => {
-      const [delimiter, whitespace, propertyName, value] = groups;
-      const delimiterStr = delimiter ?? "";
-      const whitespaceStr = whitespace ?? "";
-      const propertyNameStr = propertyName ?? "";
-      const valueStr = value ?? "";
+      const [delimiter, whitespace, propertyName, value] = safeGroups4(groups);
 
       // Skip cases directly in array context with string value
       // (handled by missingQuoteBeforePropertyValueInArray)
-      if (/^"[^"]+"$/.test(valueStr.trim())) {
+      if (/^"[^"]+"$/.test(value.trim())) {
         const { fullContent, offset } = context;
         // Check what comes after this match - if comma, it's likely an array element
         const matchLen = typeof _match === "string" ? _match.length : 0;
@@ -333,10 +304,10 @@ export const PROPERTY_NAME_RULES: readonly ReplacementRule[] = [
         }
       }
 
-      return `${delimiterStr}${whitespaceStr}"${propertyNameStr}": ${valueStr}`;
+      return `${delimiter}${whitespace}"${propertyName}": ${value}`;
     },
     diagnosticMessage: (_match, groups) => {
-      const propertyName = groups[2] ?? "";
+      const propertyName = safeGroup(groups, 2);
       return `Fixed missing opening quote: ${propertyName}" -> "${propertyName}"`;
     },
     contextCheck: isInPropertyContext,
@@ -348,14 +319,12 @@ export const PROPERTY_NAME_RULES: readonly ReplacementRule[] = [
     name: "malformedPropertyBacktickColon",
     pattern: /"([^"]+)"\s*:\s*`:\s*([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:/g,
     replacement: (_match, groups) => {
-      const [propertyName, value] = groups;
-      const propertyNameStr = propertyName ?? "";
-      const valueStr = value ?? "";
-      return `"${propertyNameStr}": "${valueStr}",`;
+      const [propertyName, value] = safeGroups3(groups);
+      return `"${propertyName}": "${value}",`;
     },
     diagnosticMessage: (_match, groups) => {
-      const propertyName = groups[0] ?? "";
-      const value = groups[1] ?? "";
+      const propertyName = safeGroup(groups, 0);
+      const value = safeGroup(groups, 1);
       return `Fixed malformed property: "${propertyName}":\`:${value}": -> "${propertyName}": "${value}",`;
     },
   },
@@ -367,31 +336,25 @@ export const PROPERTY_NAME_RULES: readonly ReplacementRule[] = [
     name: "propertyNameWithEmbeddedValue",
     pattern: /"([a-zA-Z_$][a-zA-Z0-9_$]*)\s+([^"]+)":\s*"([^"]+)"/gi,
     replacement: (_match, groups, context) => {
-      const [propertyNamePart, embeddedPart, value] = groups;
-      const propertyNamePartStr = propertyNamePart ?? "";
-      const embeddedPartStr = embeddedPart ?? "";
-      const valueStr = value ?? "";
+      const [propertyNamePart, embeddedPart, value] = safeGroups3(groups);
 
       // Check if the property name part is a known property (schema-aware or fallback)
       const knownProperties = context.config?.knownProperties;
-      if (!isKnownProperty(propertyNamePartStr, knownProperties)) {
+      if (!isKnownProperty(propertyNamePart, knownProperties)) {
         // Not a known property, skip this replacement
         return null;
       }
 
       // Check if embedded matches value
-      if (
-        embeddedPartStr === valueStr ||
-        embeddedPartStr.toLowerCase() === valueStr.toLowerCase()
-      ) {
-        return `"${propertyNamePartStr}": "${valueStr}"`;
+      if (embeddedPart === value || embeddedPart.toLowerCase() === value.toLowerCase()) {
+        return `"${propertyNamePart}": "${value}"`;
       }
       // Return null to skip if not a match
       return null;
     },
     diagnosticMessage: (_match, groups) => {
-      const propertyNamePart = groups[0] ?? "";
-      const embeddedPart = groups[1] ?? "";
+      const propertyNamePart = safeGroup(groups, 0);
+      const embeddedPart = safeGroup(groups, 1);
       return `Fixed property with embedded value: "${propertyNamePart} ${embeddedPart}" -> "${propertyNamePart}"`;
     },
   },
@@ -402,14 +365,11 @@ export const PROPERTY_NAME_RULES: readonly ReplacementRule[] = [
     name: "nonAsciiQuoteBeforeProperty",
     pattern: /([}\],]|\n|^)(\s*)[\u02BB\u2018\u2019\u201C\u201D]([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:/g,
     replacement: (_match, groups) => {
-      const [delimiter, whitespace, propertyName] = groups;
-      const delimiterStr = delimiter ?? "";
-      const whitespaceStr = whitespace ?? "";
-      const propertyNameStr = propertyName ?? "";
-      return `${delimiterStr}${whitespaceStr}"${propertyNameStr}":`;
+      const [delimiter, whitespace, propertyName] = safeGroups3(groups);
+      return `${delimiter}${whitespace}"${propertyName}":`;
     },
     diagnosticMessage: (_match, groups) => {
-      const propertyName = groups[2] ?? "";
+      const propertyName = safeGroup(groups, 2);
       return `Fixed non-ASCII quote before property: "${propertyName}"`;
     },
   },
@@ -421,19 +381,18 @@ export const PROPERTY_NAME_RULES: readonly ReplacementRule[] = [
     name: "typeWithEmbeddedWord",
     pattern: /"([a-zA-Z_$][a-zA-Z0-9_$]*)\s+[a-z]+"\s*:\s*"([^"]+)"/gi,
     replacement: (_match, groups, context) => {
-      const propertyNameStr = groups[0] ?? "";
-      const value = groups[1] ?? "";
+      const [propertyName, value] = safeGroups3(groups);
 
       // Check if the property name is known (schema-aware or fallback)
       const knownProperties = context.config?.knownProperties;
-      if (!isKnownProperty(propertyNameStr, knownProperties)) {
+      if (!isKnownProperty(propertyName, knownProperties)) {
         return null;
       }
 
-      return `"${propertyNameStr}": "${value}"`;
+      return `"${propertyName}": "${value}"`;
     },
     diagnosticMessage: (_match, groups) => {
-      const propertyName = groups[0] ?? "";
+      const propertyName = safeGroup(groups, 0);
       return `Fixed property with embedded word: "${propertyName} ..." -> "${propertyName}"`;
     },
   },
@@ -444,15 +403,12 @@ export const PROPERTY_NAME_RULES: readonly ReplacementRule[] = [
     name: "missingOpeningQuoteOnPropertyValue",
     pattern: /"([^"]+)"\s*:\s*([a-zA-Z_$][a-zA-Z0-9_$]*)"(\s*[,}])/g,
     replacement: (_match, groups) => {
-      const [propertyName, value, terminator] = groups;
-      const propertyNameStr = propertyName ?? "";
-      const valueStr = value ?? "";
-      const terminatorStr = terminator ?? "";
-      return `"${propertyNameStr}": "${valueStr}"${terminatorStr}`;
+      const [propertyName, value, terminator] = safeGroups3(groups);
+      return `"${propertyName}": "${value}"${terminator}`;
     },
     diagnosticMessage: (_match, groups) => {
-      const propertyName = groups[0] ?? "";
-      const value = groups[1] ?? "";
+      const propertyName = safeGroup(groups, 0);
+      const value = safeGroup(groups, 1);
       return `Fixed missing opening quote on value: "${propertyName}":${value}" -> "${propertyName}": "${value}"`;
     },
   },
@@ -463,15 +419,13 @@ export const PROPERTY_NAME_RULES: readonly ReplacementRule[] = [
     name: "corruptedPropertyAssignment",
     pattern: /"([^"]+)"\s*:\s*([a-zA-Z]+)"\s*:\s*"([^"]+)"/g,
     replacement: (_match, groups) => {
-      const [propertyName, , value] = groups;
-      const propertyNameStr = propertyName ?? "";
-      const valueStr = value ?? "";
-      return `"${propertyNameStr}": "${valueStr}"`;
+      const [propertyName, , value] = safeGroups3(groups);
+      return `"${propertyName}": "${value}"`;
     },
     diagnosticMessage: (_match, groups) => {
-      const propertyName = groups[0] ?? "";
-      const corruptedPart = groups[1] ?? "";
-      const value = groups[2] ?? "";
+      const propertyName = safeGroup(groups, 0);
+      const corruptedPart = safeGroup(groups, 1);
+      const value = safeGroup(groups, 2);
       return `Fixed corrupted property assignment: "${propertyName}":${corruptedPart}": "${value}" -> "${propertyName}": "${value}"`;
     },
   },
@@ -482,14 +436,12 @@ export const PROPERTY_NAME_RULES: readonly ReplacementRule[] = [
     name: "malformedParameterObject",
     pattern: /"([^"]+)"\s*:\s*([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:\s*"([^"]+)"/g,
     replacement: (_match, groups) => {
-      const [propertyName, unquotedValue] = groups;
-      const propertyNameStr = propertyName ?? "";
-      const unquotedValueStr = unquotedValue ?? "";
-      return `"${propertyNameStr}": "${unquotedValueStr}"`;
+      const [propertyName, unquotedValue] = safeGroups3(groups);
+      return `"${propertyName}": "${unquotedValue}"`;
     },
     diagnosticMessage: (_match, groups) => {
-      const propertyName = groups[0] ?? "";
-      const unquotedValue = groups[1] ?? "";
+      const propertyName = safeGroup(groups, 0);
+      const unquotedValue = safeGroup(groups, 1);
       return `Fixed malformed parameter: "${propertyName}":${unquotedValue}": ... -> "${propertyName}": "${unquotedValue}"`;
     },
   },
@@ -500,11 +452,8 @@ export const PROPERTY_NAME_RULES: readonly ReplacementRule[] = [
     name: "dashBeforePropertyName",
     pattern: /([}\],]|\n|^)(\s*)-\s+("([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:)/g,
     replacement: (_match, groups) => {
-      const [delimiter, whitespace, propertyWithQuote] = groups;
-      const delimiterStr = delimiter ?? "";
-      const whitespaceStr = whitespace ?? "";
-      const propertyWithQuoteStr = propertyWithQuote ?? "";
-      return `${delimiterStr}${whitespaceStr}${propertyWithQuoteStr}`;
+      const [delimiter, whitespace, propertyWithQuote] = safeGroups3(groups);
+      return `${delimiter}${whitespace}${propertyWithQuote}`;
     },
     diagnosticMessage: "Removed dash before property name",
     contextCheck: isAfterJsonDelimiter,
@@ -524,14 +473,13 @@ export const PROPERTY_NAME_RULES: readonly ReplacementRule[] = [
       const whitespaceFromGroups = groups[0] ? groupsRegex.exec(groups[0])?.[1] : undefined;
       const whitespace = whitespaceMatch ? whitespaceMatch[1] : (whitespaceFromGroups ?? "      ");
 
-      const fragment = groups[1];
-      const fragmentStr = fragment ?? "";
+      const fragment = safeGroup(groups, 1);
       // Remove leading underscore and use fragment as the value, ignore the original value
-      const fixedValue = fragmentStr.substring(1);
+      const fixedValue = fragment.substring(1);
       return `${whitespace}"name": "${fixedValue}"`;
     },
     diagnosticMessage: (_match, groups) => {
-      const fragment = groups[1] ?? "";
+      const fragment = safeGroup(groups, 1);
       const fixedValue = fragment.substring(1);
       return `Fixed missing property name with fragment: ${fragment}" -> "name": "${fixedValue}"`;
     },
@@ -544,13 +492,11 @@ export const PROPERTY_NAME_RULES: readonly ReplacementRule[] = [
     name: "duplicatePropertyNameInDescription",
     pattern: /"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:\s*"\1"\s*:\s*"([^"]+)"/g,
     replacement: (_match, groups) => {
-      const [propertyName, value] = groups;
-      const propertyNameStr = propertyName ?? "";
-      const valueStr = value ?? "";
-      return `"${propertyNameStr}": "${valueStr}"`;
+      const [propertyName, value] = safeGroups3(groups);
+      return `"${propertyName}": "${value}"`;
     },
     diagnosticMessage: (_match, groups) => {
-      const propertyName = groups[0] ?? "";
+      const propertyName = safeGroup(groups, 0);
       return `Fixed duplicate property name: "${propertyName}": "${propertyName}": -> "${propertyName}":`;
     },
   },
