@@ -51,17 +51,11 @@ describe("json-processing", () => {
     });
 
     describe("parse failure scenarios", () => {
-      it("should return failure result for non-string content", () => {
-        const nonString = 12345 as any;
-        const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-        const result = parseAndValidateLLMJson(nonString, context, completionOptions);
-
-        expect(result.success).toBe(false);
-        if (!result.success) {
-          expect(result.error).toBeInstanceOf(JsonProcessingError);
-          expect(result.error.type).toBe(JsonProcessingErrorType.PARSE);
-        }
-      });
+      // Note: The "non-string content" test was removed because parseAndValidateLLMJson now
+      // accepts `string` type only (not LLMResponsePayload). Non-string content is handled
+      // at the call site (LLMResponseProcessor.formatAndValidateResponse) which routes
+      // pre-parsed objects to repairAndValidateJson directly. Type safety is now enforced
+      // at compile time by TypeScript.
 
       it("should return parse error for completely invalid JSON", () => {
         const invalid = "not valid json at all";

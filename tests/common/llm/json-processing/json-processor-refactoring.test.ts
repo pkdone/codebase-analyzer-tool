@@ -280,36 +280,9 @@ describe("JsonProcessor - Refactored Methods", () => {
     });
   });
 
-  describe("non-string content handling", () => {
-    it("should handle non-string content appropriately", () => {
-      const nonStringContent = { some: "object" };
-
-      const result = parseAndValidateLLMJson(
-        nonStringContent as any,
-        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
-        {
-          outputFormat: LLMOutputFormat.JSON,
-        },
-      );
-
-      expect(result.success).toBe(false);
-      if (!result.success) {
-        expect(result.error.message).toContain("not a string");
-      }
-    });
-
-    it("should handle null content", () => {
-      const result = parseAndValidateLLMJson(
-        null as any,
-        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
-        {
-          outputFormat: LLMOutputFormat.JSON,
-        },
-      );
-
-      expect(result.success).toBe(false);
-    });
-
-    // Removed - undefined causes a different error path that's not worth testing here
-  });
+  // Note: The "non-string content handling" describe block was removed because
+  // parseAndValidateLLMJson now accepts `string` type only (not LLMResponsePayload).
+  // Non-string content (null, objects) is handled at the call site in
+  // LLMResponseProcessor.formatAndValidateResponse.
+  // See tests/common/llm/providers/llm-response-processor.test.ts for those tests.
 });

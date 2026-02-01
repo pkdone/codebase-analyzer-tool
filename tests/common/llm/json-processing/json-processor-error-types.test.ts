@@ -34,22 +34,10 @@ describe("JsonProcessor - Enhanced Error Reporting", () => {
       }
     });
 
-    it("should return parse error for non-string content", () => {
-      const result = parseAndValidateLLMJson(
-        123 as any,
-        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
-        {
-          outputFormat: LLMOutputFormat.JSON,
-        },
-      );
-
-      expect(result.success).toBe(false);
-      if (!result.success) {
-        expect(result.error).toBeInstanceOf(JsonProcessingError);
-        expect(result.error.type).toBe("parse");
-        expect(result.error.message).toContain("is not a string");
-      }
-    });
+    // Note: The "non-string content" test was removed because parseAndValidateLLMJson now
+    // accepts `string` type only (not LLMResponsePayload). Non-string content (null, objects)
+    // is handled at the call site in LLMResponseProcessor.formatAndValidateResponse.
+    // See tests/common/llm/providers/llm-response-processor.test.ts for those tests.
 
     it("should return parse error when all sanitizers are exhausted", () => {
       const malformedJson = "definitely not json at all";

@@ -74,22 +74,13 @@ describe("JSON utilities", () => {
       }
     });
 
-    test("returns failure result for non-string input", () => {
-      const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-      const testCases = [{ input: { key: "value" } }, { input: [1, 2, 3] }, { input: null }];
-
-      testCases.forEach(({ input }) => {
-        const result = parseAndValidateLLMJson(
-          input,
-          { resource: "content", purpose: LLMPurpose.COMPLETIONS },
-          completionOptions,
-        );
-        expect(result.success).toBe(false);
-        if (!result.success) {
-          expect(result.error.message).toMatch(/LLM response for resource/);
-        }
-      });
-    });
+    // Note: Non-string input handling was removed from this test because parseAndValidateLLMJson
+    // now accepts only `string` type (not LLMResponsePayload). This change provides:
+    // 1. Compile-time type safety - TypeScript prevents non-string input at build time
+    // 2. Clearer API contract - the function name "parse" implies string input
+    // 3. Separation of concerns - non-string handling (null, pre-parsed objects) is now done
+    //    at the call site in LLMResponseProcessor.formatAndValidateResponse
+    // See tests/common/llm/providers/llm-response-processor.test.ts for null/object handling tests.
 
     test("returns typed result with schema-based type inference", () => {
       const userJson =

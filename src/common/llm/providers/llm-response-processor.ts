@@ -13,9 +13,11 @@ import {
 } from "../types/llm-response.types";
 import { formatError } from "../../utils/error-formatters";
 import { logWarn } from "../../utils/logging";
-import { parseAndValidateLLMJson } from "../json-processing";
+import { parseAndValidateLLMJson, repairAndValidateJson } from "../json-processing";
+import { extractSchemaMetadata, schemaMetadataToSanitizerConfig } from "../json-processing/utils/zod-schema-metadata";
 import { LLMError, LLMErrorCode } from "../types/llm-errors.types";
 import type { LLMErrorLogger } from "../tracking/llm-error-logger";
+import type { LLMSanitizerConfig } from "../config/llm-module-config.types";
 
 /**
  * Base fields common to all LLM response variants.
@@ -109,7 +111,28 @@ export class LLMResponseProcessor {
       );
     }
 
-    // Process JSON with schema-aware type inference.
+    // Handle null response content
+    if (responseContent === null) {
+      logWarn("LLM returned null response for JSON output format", responseBase.context);
+      return {
+        ...responseBase,
+        status: LLMResponseStatus.INVALID,
+        error: "LLM returned null response for JSON output format",
+      };
+    }
+
+    // Handle pre-parsed object content (some LLM APIs return objects directly in JSON mode).
+    // Route directly to validation, bypassing string parsing.
+    if (typeof responseContent === "object") {
+      return this.validatePreParsedJsonObject(
+        responseBase,
+        responseContent,
+        completionOptions.jsonSchema,
+        completionOptions.sanitizerConfig,
+      );
+    }
+
+    // Handle string content - parse and validate through the standard pipeline.
     const jsonProcessingResult = parseAndValidateLLMJson(
       responseContent,
       responseBase.context,
@@ -210,5 +233,77 @@ export class LLMResponseProcessor {
     } else {
       console.log(`[DEBUG] Non-Error type: ${typeof error}, Details: ${details}, URN: ${urn}`);
     }
+  }
+
+  // ============================================================================
+  // Private Methods
+  // ============================================================================
+
+  /**
+   * Validates a pre-parsed JSON object against the provided schema.
+   *
+   * This method handles the case where an LLM API returns a parsed JSON object
+   * directly (e.g., via native JSON mode) rather than a string. It bypasses
+   * the parsing/sanitization pipeline and routes directly to validation.
+   *
+   * @param responseBase - Base fields for the response
+   * @param content - The pre-parsed JSON object to validate
+   * @param jsonSchema - The Zod schema to validate against
+   * @param sanitizerConfig - Optional sanitizer configuration for transforms
+   * @returns A validated JSON response or an error response
+   */
+  private validatePreParsedJsonObject<S extends z.ZodType<unknown>>(
+    responseBase: ResponseBase,
+    content: object,
+    jsonSchema: S,
+    sanitizerConfig?: LLMSanitizerConfig,
+  ): LLMFunctionResponse<z.infer<S>> {
+    // Build effective sanitizer config from schema metadata
+    const effectiveConfig = this.buildEffectiveSanitizerConfig(jsonSchema, sanitizerConfig);
+
+    // Validate directly using repairAndValidateJson (skips parsing)
+    const validationResult = repairAndValidateJson(content, jsonSchema, effectiveConfig);
+
+    if (validationResult.success) {
+      return {
+        ...responseBase,
+        status: LLMResponseStatus.COMPLETED,
+        generated: validationResult.data,
+        repairs: [...validationResult.transformRepairs],
+        pipelineSteps: ["Pre-parsed object (skipped string parsing)"],
+      };
+    }
+
+    // Validation failed
+    const validationError = new Error(
+      `Schema validation failed for pre-parsed object: ${JSON.stringify(validationResult.issues)}`,
+    );
+    logWarn("Pre-parsed JSON object failed schema validation", {
+      ...responseBase.context,
+      issues: validationResult.issues,
+      appliedTransforms: validationResult.transformRepairs.join(", "),
+    });
+    return {
+      ...responseBase,
+      status: LLMResponseStatus.INVALID,
+      error: formatError(validationError),
+    };
+  }
+
+  /**
+   * Builds the effective sanitizer configuration by combining schema metadata
+   * with explicit configuration.
+   *
+   * @param jsonSchema - The Zod schema to extract metadata from
+   * @param explicitConfig - Optional explicit configuration to merge
+   * @returns The effective sanitizer configuration
+   */
+  private buildEffectiveSanitizerConfig(
+    jsonSchema: z.ZodType,
+    explicitConfig?: LLMSanitizerConfig,
+  ): LLMSanitizerConfig | undefined {
+    const schemaMetadata = extractSchemaMetadata(jsonSchema);
+    if (schemaMetadata.allProperties.length === 0 && !explicitConfig) return undefined;
+    return schemaMetadataToSanitizerConfig(schemaMetadata, explicitConfig);
   }
 }

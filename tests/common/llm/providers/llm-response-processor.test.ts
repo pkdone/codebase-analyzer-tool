@@ -348,6 +348,172 @@ describe("LLMResponseProcessor", () => {
           expect(data.metadata.total).toBe(2);
         }
       });
+
+      describe("null content handling", () => {
+        it("should return INVALID status for null response content", async () => {
+          const responseBase = createResponseBase();
+          const schema = z.object({ name: z.string() });
+
+          const result = await processor.formatAndValidateResponse(
+            responseBase,
+            LLMPurpose.COMPLETIONS,
+            null,
+            { outputFormat: LLMOutputFormat.JSON, jsonSchema: schema },
+          );
+
+          expect(result.status).toBe(LLMResponseStatus.INVALID);
+          expect(isErrorResponse(result)).toBe(true);
+          if (isErrorResponse(result)) {
+            expect(result.error).toBe("LLM returned null response for JSON output format");
+          }
+        });
+      });
+
+      describe("pre-parsed object handling", () => {
+        it("should validate pre-parsed object directly (bypassing string parsing)", async () => {
+          const responseBase = createResponseBase();
+          const schema = z.object({
+            name: z.string(),
+            count: z.number(),
+          });
+
+          // Pass a pre-parsed object instead of a JSON string
+          const preParsedObject = { name: "test", count: 42 };
+
+          const result = await processor.formatAndValidateResponse(
+            responseBase,
+            LLMPurpose.COMPLETIONS,
+            preParsedObject,
+            { outputFormat: LLMOutputFormat.JSON, jsonSchema: schema },
+          );
+
+          expect(result.status).toBe(LLMResponseStatus.COMPLETED);
+          expect(isCompletedResponse(result)).toBe(true);
+          if (isCompletedResponse(result)) {
+            expect(result.generated).toEqual({ name: "test", count: 42 });
+            expect(result.pipelineSteps).toContain("Pre-parsed object (skipped string parsing)");
+          }
+        });
+
+        it("should return INVALID status for pre-parsed object that fails schema validation", async () => {
+          const responseBase = createResponseBase();
+          const schema = z.object({
+            name: z.string(),
+            count: z.number(),
+          });
+
+          // Object with wrong type for 'count' field
+          const invalidObject = { name: "test", count: "not a number" };
+
+          const result = await processor.formatAndValidateResponse(
+            responseBase,
+            LLMPurpose.COMPLETIONS,
+            invalidObject,
+            { outputFormat: LLMOutputFormat.JSON, jsonSchema: schema },
+          );
+
+          expect(result.status).toBe(LLMResponseStatus.INVALID);
+          expect(isErrorResponse(result)).toBe(true);
+        });
+
+        it("should apply schema-fixing transforms to pre-parsed objects", async () => {
+          const responseBase = createResponseBase();
+          const schema = z.object({
+            name: z.string(),
+            groupId: z.string().optional(), // Does not allow null, only undefined
+          });
+
+          // Object with null value that will be transformed
+          const objectWithNull = { name: "test", groupId: null };
+
+          const result = await processor.formatAndValidateResponse(
+            responseBase,
+            LLMPurpose.COMPLETIONS,
+            objectWithNull,
+            { outputFormat: LLMOutputFormat.JSON, jsonSchema: schema },
+          );
+
+          expect(result.status).toBe(LLMResponseStatus.COMPLETED);
+          expect(isCompletedResponse(result)).toBe(true);
+          if (isCompletedResponse(result)) {
+            expect(result.generated.name).toBe("test");
+            // null should have been converted to undefined
+            expect("groupId" in result.generated).toBe(false);
+            // Repairs should include the transform that was applied
+            expect(result.repairs).toBeDefined();
+          }
+        });
+
+        it("should handle pre-parsed array objects", async () => {
+          const responseBase = createResponseBase();
+          const schema = z.array(
+            z.object({
+              id: z.number(),
+              name: z.string(),
+            }),
+          );
+
+          const preParsedArray = [
+            { id: 1, name: "Alice" },
+            { id: 2, name: "Bob" },
+          ];
+
+          const result = await processor.formatAndValidateResponse(
+            responseBase,
+            LLMPurpose.COMPLETIONS,
+            preParsedArray,
+            { outputFormat: LLMOutputFormat.JSON, jsonSchema: schema },
+          );
+
+          expect(result.status).toBe(LLMResponseStatus.COMPLETED);
+          expect(isCompletedResponse(result)).toBe(true);
+          if (isCompletedResponse(result)) {
+            expect(result.generated).toHaveLength(2);
+            expect(result.generated[0].name).toBe("Alice");
+          }
+        });
+
+        it("should handle complex nested pre-parsed objects", async () => {
+          const responseBase = createResponseBase();
+          const complexSchema = z.object({
+            users: z.array(
+              z.object({
+                id: z.number(),
+                profile: z.object({
+                  name: z.string(),
+                  email: z.string().optional(),
+                }),
+              }),
+            ),
+            metadata: z.object({
+              total: z.number(),
+            }),
+          });
+
+          const preParsedComplex = {
+            users: [
+              { id: 1, profile: { name: "Alice", email: "alice@example.com" } },
+              { id: 2, profile: { name: "Bob" } },
+            ],
+            metadata: { total: 2 },
+          };
+
+          const result = await processor.formatAndValidateResponse(
+            responseBase,
+            LLMPurpose.COMPLETIONS,
+            preParsedComplex,
+            { outputFormat: LLMOutputFormat.JSON, jsonSchema: complexSchema },
+          );
+
+          expect(result.status).toBe(LLMResponseStatus.COMPLETED);
+          expect(isCompletedResponse(result)).toBe(true);
+          if (isCompletedResponse(result)) {
+            expect(result.generated.users).toHaveLength(2);
+            expect(result.generated.users[0].profile.name).toBe("Alice");
+            expect(result.generated.metadata.total).toBe(2);
+          }
+        });
+      });
     });
   });
 

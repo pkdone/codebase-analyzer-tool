@@ -709,20 +709,10 @@ describe("json-tools", () => {
       }
     });
 
-    test("should return failure result for non-string input", () => {
-      const nonStringInput = 123;
-      const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-
-      const result = parseAndValidateLLMJson(
-        nonStringInput as unknown as string,
-        { resource: "content", purpose: LLMPurpose.COMPLETIONS },
-        completionOptions,
-      );
-      expect(result.success).toBe(false);
-      if (!result.success) {
-        expect(result.error.message).toMatch(/LLM response for resource/);
-      }
-    });
+    // Note: The "non-string input" test was removed because parseAndValidateLLMJson now
+    // accepts `string` type only (not LLMResponsePayload). Non-string content (null, objects)
+    // is handled at the call site in LLMResponseProcessor.formatAndValidateResponse.
+    // See tests/common/llm/providers/llm-response-processor.test.ts for those tests.
 
     test("should sanitize Java style string concatenations retaining first literal", () => {
       const jsonWithConcat = `{

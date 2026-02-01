@@ -277,21 +277,10 @@ describe("Simplified Type Chain - parseAndValidateLLMJson", () => {
   });
 
   describe("Edge cases and error handling", () => {
-    it("should handle non-string content", () => {
-      const schema = z.object({ data: z.string() });
-      const content = { not: "a string" } as unknown as string;
-      const options: LLMCompletionOptions<typeof schema> = {
-        outputFormat: LLMOutputFormat.JSON,
-        jsonSchema: schema,
-      };
-
-      const result = parseAndValidateLLMJson(content, mockContext, options);
-
-      expect(result.success).toBe(false);
-      if (!result.success) {
-        expect(result.error.message).toContain("not a string");
-      }
-    });
+    // Note: The "non-string content" test was removed because parseAndValidateLLMJson now
+    // accepts `string` type only (not LLMResponsePayload). Non-string content (null, objects)
+    // is handled at the call site in LLMResponseProcessor.formatAndValidateResponse.
+    // See tests/common/llm/providers/llm-response-processor.test.ts for those tests.
 
     it("should handle content without JSON structure", () => {
       const schema = z.object({ data: z.string() });

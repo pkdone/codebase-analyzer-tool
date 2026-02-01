@@ -64,18 +64,10 @@ describe("parseAndValidateLLMJson", () => {
   });
 
   describe("error handling", () => {
-    it("should return failure result for non-string content", () => {
-      const nonString = 12345 as any;
-      const result = parseAndValidateLLMJson(
-        nonString,
-        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
-        completionOptions,
-      );
-      expect(result.success).toBe(false);
-      if (!result.success) {
-        expect(result.error).toBeInstanceOf(JsonProcessingError);
-      }
-    });
+    // Note: The "non-string content" test was removed because parseAndValidateLLMJson now
+    // accepts `string` type only (not LLMResponsePayload). Non-string content (null, objects)
+    // is handled at the call site in LLMResponseProcessor.formatAndValidateResponse.
+    // See tests/common/llm/providers/llm-response-processor.test.ts for those tests.
 
     it("should return JsonProcessingError for invalid JSON with no recovery", () => {
       const invalid = "not valid json at all";
@@ -143,7 +135,7 @@ describe("parseAndValidateLLMJson", () => {
         }
       }
 
-      // Test whitespace-only strings (treated as no JSON structure since trimmed content is empty)
+      // Test whitespace-only strings (treated as empty string after trimming)
       const whitespaceCase = "   ";
       const whitespaceResult = parseAndValidateLLMJson(
         whitespaceCase,
@@ -152,7 +144,8 @@ describe("parseAndValidateLLMJson", () => {
       );
       expect(whitespaceResult.success).toBe(false);
       if (!whitespaceResult.success) {
-        expect(whitespaceResult.error.message).toContain("contains no JSON structure");
+        // After trimming, whitespace-only becomes empty and gets a specific error
+        expect(whitespaceResult.error.message).toContain("is just an empty string");
         expect(whitespaceResult.error.type).toBe(JsonProcessingErrorType.PARSE);
       }
 

@@ -21,10 +21,25 @@
 // ============================================
 
 /**
- * Main entry point for parsing and validating LLM-generated JSON content.
+ * Main entry point for parsing and validating LLM-generated JSON string content.
  * Handles sanitization, parsing, and schema validation in a single call.
+ *
+ * Note: Accepts string content only. For pre-parsed JSON objects, use
+ * repairAndValidateJson directly.
  */
 export { parseAndValidateLLMJson } from "./core/json-processing";
+
+/**
+ * Validates and repairs pre-parsed JSON data against a Zod schema.
+ * Use this when content is already a parsed object (e.g., from LLM APIs with native JSON mode)
+ * rather than a string that needs parsing.
+ *
+ * This function implements a test-fix-test pattern:
+ * 1. First attempts validation without modifications
+ * 2. If validation fails, applies schema-fixing transforms
+ * 3. Re-validates after repairs
+ */
+export { repairAndValidateJson, type ValidationWithTransformsResult } from "./core/json-validating";
 
 // ============================================
 // Error Types

@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { LLMResponsePayload } from "../../types/llm-response.types";
 import { LLMCompletionOptions, LLMContext } from "../../types/llm-request.types";
 import { JsonProcessingError, JsonProcessingErrorType } from "../types/json-processing.errors";
 import { JsonProcessorResult } from "../types/json-processing-result.types";
@@ -87,28 +86,24 @@ type ContentValidationResult =
   | { success: false; error: JsonProcessingError };
 
 /**
- * Validates the raw LLM content before JSON parsing.
+ * Validates the raw LLM string content before JSON parsing.
  * Checks that content is a non-empty string with JSON-like structure.
  *
- * @param content - The LLM-generated content to validate
+ * Note: This function accepts `string` rather than `LLMResponsePayload` because
+ * parseAndValidateLLMJson is specifically for parsing string content. Pre-parsed
+ * objects should be handled at the call site (e.g., LLMResponseProcessor) and
+ * routed directly to validation via repairAndValidateJson.
+ *
+ * @param content - The LLM-generated string content to validate
  * @param context - Context information about the LLM request
  * @param loggingEnabled - Whether to enable logging for validation issues
  * @returns A result with trimmed content on success, or an error on failure
  */
 function validateContentInput(
-  content: LLMResponsePayload,
+  content: string,
   context: LLMContext,
   loggingEnabled: boolean,
 ): ContentValidationResult {
-  if (typeof content !== "string") {
-    logProblem(
-      `LLM response is not a string. Content: ${JSON.stringify(content).substring(0, 100)}`,
-      context,
-      loggingEnabled,
-    );
-    return { success: false, error: createParseError("is not a string", context) };
-  }
-
   // ES2023: Check for malformed Unicode (lone surrogates) which can occur in
   // truncated LLM streaming responses or encoding issues
   if (!content.isWellFormed()) {
@@ -122,7 +117,7 @@ function validateContentInput(
 
   const trimmedContent = content.trim();
 
-  if (!content) {
+  if (!trimmedContent) {
     logProblem(`LLM response is just an empty string`, context, loggingEnabled);
     return { success: false, error: createParseError("is just an empty string", context) };
   }
@@ -279,8 +274,9 @@ function buildEffectiveSanitizerConfig(
 }
 
 /**
- * Parses and validates LLM-generated content through a multi-stage sanitization and repair pipeline,
- * then validates it against a Zod schema. Returns a result object indicating success or failure.
+ * Parses and validates LLM-generated string content through a multi-stage sanitization and
+ * repair pipeline, then validates it against a Zod schema. Returns a result object indicating
+ * success or failure.
  *
  * This is the high-level public API for LLM JSON processing, orchestrating parsing and validation
  * with comprehensive logging. The function handles:
@@ -288,6 +284,11 @@ function buildEffectiveSanitizerConfig(
  * 2. JSON parsing with error recovery
  * 3. Schema validation against the provided Zod schema
  * 4. Schema-fixing transforms (coercion)
+ *
+ * IMPORTANT: This function accepts `string` content only. For pre-parsed JSON objects
+ * (returned by some LLM APIs with native JSON mode), callers should use `repairAndValidateJson`
+ * directly, which performs schema validation without the parsing step. The `LLMResponseProcessor`
+ * handles this type branching automatically.
  *
  * Type safety behavior:
  * - When jsonSchema is provided, the return type is inferred from the schema (z.infer<S>)
@@ -300,7 +301,7 @@ function buildEffectiveSanitizerConfig(
  *
  * @template S - The Zod schema type. When provided, the return type is inferred from the schema.
  *               When not provided, defaults to z.ZodType<unknown> for type-safe handling.
- * @param content - The LLM-generated content to parse and validate
+ * @param content - The LLM-generated string content to parse and validate
  * @param context - Context information about the LLM request
  * @param completionOptions - Options including output format and optional JSON schema
  * @param loggingEnabled - Whether to enable sanitization step logging. Defaults to true.
@@ -308,7 +309,7 @@ function buildEffectiveSanitizerConfig(
  * @returns A JsonProcessorResult indicating success with validated data and repairs, or failure with an error
  */
 export function parseAndValidateLLMJson<S extends z.ZodType = z.ZodType<unknown>>(
-  content: LLMResponsePayload,
+  content: string,
   context: LLMContext,
   completionOptions: LLMCompletionOptions<S>,
   loggingEnabled = true,
