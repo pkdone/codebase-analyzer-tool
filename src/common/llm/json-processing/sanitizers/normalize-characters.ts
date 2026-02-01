@@ -230,19 +230,26 @@ export const normalizeCharacters: Sanitizer = (input: string): SanitizerResult =
       // Handle characters based on whether we're inside or outside a string
       if (inString) {
         // Inside string: escape control characters that need escaping
+        // JSON does NOT allow raw control characters inside string literals - they must be escaped
         if (code >= 0x00 && code <= 0x1f) {
-          // Control character
+          // Control character - all control chars must be escaped in JSON strings
           if (code === 0x09) {
-            // Tab - already valid as \t, keep as is
-            processedResult += char;
+            // Tab - escape as \t
+            processedResult += "\\t";
+            hasChanges = true;
+            controlCharsEscaped++;
           } else if (code === 0x0a) {
-            // Newline - already valid as \n, keep as is
-            processedResult += char;
+            // Newline (LF) - escape as \n (raw newline is NOT valid in JSON strings)
+            processedResult += "\\n";
+            hasChanges = true;
+            controlCharsEscaped++;
           } else if (code === 0x0d) {
-            // Carriage return - already valid as \r, keep as is
-            processedResult += char;
+            // Carriage return - escape as \r
+            processedResult += "\\r";
+            hasChanges = true;
+            controlCharsEscaped++;
           } else {
-            // Other control characters need to be escaped
+            // Other control characters need to be escaped as unicode
             const hex = code.toString(16).padStart(4, "0");
             processedResult += `\\u${hex}`;
             hasChanges = true;

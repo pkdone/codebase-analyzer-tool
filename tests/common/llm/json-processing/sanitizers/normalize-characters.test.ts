@@ -208,12 +208,17 @@ describe("normalizeCharacters", () => {
       expect(() => JSON.parse(result.content)).not.toThrow();
     });
 
-    it("should preserve valid whitespace control chars (\\t, \\n, \\r) in strings", () => {
+    it("should escape raw whitespace control chars (\\t, \\n, \\r) in strings to valid JSON", () => {
+      // Raw control characters (including tab, newline, carriage return) are NOT valid in JSON strings
+      // per RFC 8259 - they must be escaped as \t, \n, \r sequences
       const input = '{"text": "tab\tnewline\nreturn\r"}';
       const result = normalizeCharacters(input);
 
-      expect(result.changed).toBe(false);
-      expect(result.content).toBe(input);
+      expect(result.changed).toBe(true);
+      // Raw characters should be escaped to their valid JSON escape sequences
+      expect(result.content).toBe('{"text": "tab\\tnewline\\nreturn\\r"}');
+      // The result should now be valid JSON
+      expect(() => JSON.parse(result.content)).not.toThrow();
     });
 
     it("should escape null character in string", () => {
