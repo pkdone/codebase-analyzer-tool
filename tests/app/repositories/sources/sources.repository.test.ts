@@ -528,6 +528,152 @@ describe("SourcesRepositoryImpl", () => {
     });
   });
 
+  describe("getTopComplexFunctions", () => {
+    it("should return top complex functions with correct type structure", async () => {
+      const projectName = "test-project";
+      const mockResults = [
+        {
+          functionName: "com.example.Service::processData",
+          filePath: "src/service/DataService.java",
+          complexity: 25,
+          linesOfCode: 150,
+          codeSmells: ["LONG_METHOD", "HIGH_COMPLEXITY"],
+        },
+        {
+          functionName: "com.example.Utils::parseInput",
+          filePath: "src/utils/Parser.java",
+          complexity: 18,
+          linesOfCode: 80,
+          codeSmells: [],
+        },
+      ];
+      mockAggregationCursor.toArray.mockResolvedValue(mockResults);
+
+      const result = await repository.getTopComplexFunctions(projectName, 10);
+
+      expect(result).toEqual(mockResults);
+      expect(result[0].functionName).toBe("com.example.Service::processData");
+      expect(result[0].filePath).toBe("src/service/DataService.java");
+      expect(result[0].complexity).toBe(25);
+      expect(result[0].linesOfCode).toBe(150);
+      expect(result[0].codeSmells).toEqual(["LONG_METHOD", "HIGH_COMPLEXITY"]);
+      expect(mockCollection.aggregate).toHaveBeenCalled();
+    });
+
+    it("should return empty array when no complex functions exist", async () => {
+      const projectName = "test-project";
+      mockAggregationCursor.toArray.mockResolvedValue([]);
+
+      const result = await repository.getTopComplexFunctions(projectName);
+
+      expect(result).toEqual([]);
+    });
+
+    it("should use default limit of 10", async () => {
+      const projectName = "test-project";
+      mockAggregationCursor.toArray.mockResolvedValue([]);
+
+      await repository.getTopComplexFunctions(projectName);
+
+      const aggregateCalls = mockCollection.aggregate.mock.calls;
+      expect(aggregateCalls.length).toBeGreaterThan(0);
+      const pipeline = aggregateCalls[0][0] as Record<string, unknown>[];
+      const limitStage = pipeline.find((stage) => "$limit" in stage);
+      expect(limitStage).toEqual({ $limit: 10 });
+    });
+
+    it("should accept custom limit parameter", async () => {
+      const projectName = "test-project";
+      mockAggregationCursor.toArray.mockResolvedValue([]);
+
+      await repository.getTopComplexFunctions(projectName, 5);
+
+      const aggregateCalls = mockCollection.aggregate.mock.calls;
+      expect(aggregateCalls.length).toBeGreaterThan(0);
+      const pipeline = aggregateCalls[0][0] as Record<string, unknown>[];
+      const limitStage = pipeline.find((stage) => "$limit" in stage);
+      expect(limitStage).toEqual({ $limit: 5 });
+    });
+  });
+
+  describe("getCodeSmellStatistics", () => {
+    it("should return code smell statistics with correct type structure", async () => {
+      const projectName = "test-project";
+      const mockResults = [
+        {
+          smellType: "LONG_METHOD",
+          occurrences: 15,
+          affectedFiles: 8,
+        },
+        {
+          smellType: "HIGH_COMPLEXITY",
+          occurrences: 10,
+          affectedFiles: 5,
+        },
+      ];
+      mockAggregationCursor.toArray.mockResolvedValue(mockResults);
+
+      const result = await repository.getCodeSmellStatistics(projectName);
+
+      expect(result).toEqual(mockResults);
+      expect(result[0].smellType).toBe("LONG_METHOD");
+      expect(result[0].occurrences).toBe(15);
+      expect(result[0].affectedFiles).toBe(8);
+    });
+
+    it("should return empty array when no code smells exist", async () => {
+      const projectName = "test-project";
+      mockAggregationCursor.toArray.mockResolvedValue([]);
+
+      const result = await repository.getCodeSmellStatistics(projectName);
+
+      expect(result).toEqual([]);
+    });
+  });
+
+  describe("getCodeQualityStatistics", () => {
+    it("should return code quality statistics with correct type structure", async () => {
+      const projectName = "test-project";
+      const mockResults = [
+        {
+          totalFunctions: 100,
+          averageComplexity: 5.5,
+          highComplexityCount: 10,
+          veryHighComplexityCount: 3,
+          averageFunctionLength: 25.2,
+          longFunctionCount: 8,
+        },
+      ];
+      mockAggregationCursor.toArray.mockResolvedValue(mockResults);
+
+      const result = await repository.getCodeQualityStatistics(projectName);
+
+      expect(result).toEqual(mockResults[0]);
+      expect(result.totalFunctions).toBe(100);
+      expect(result.averageComplexity).toBe(5.5);
+      expect(result.highComplexityCount).toBe(10);
+      expect(result.veryHighComplexityCount).toBe(3);
+      expect(result.averageFunctionLength).toBe(25.2);
+      expect(result.longFunctionCount).toBe(8);
+    });
+
+    it("should return default values when no functions exist", async () => {
+      const projectName = "test-project";
+      mockAggregationCursor.toArray.mockResolvedValue([]);
+
+      const result = await repository.getCodeQualityStatistics(projectName);
+
+      expect(result).toEqual({
+        totalFunctions: 0,
+        averageComplexity: 0,
+        highComplexityCount: 0,
+        veryHighComplexityCount: 0,
+        averageFunctionLength: 0,
+        longFunctionCount: 0,
+      });
+    });
+  });
+
   describe("getProjectIntegrationPoints", () => {
     it("should return integration points for a project", async () => {
       const projectName = "test-project";

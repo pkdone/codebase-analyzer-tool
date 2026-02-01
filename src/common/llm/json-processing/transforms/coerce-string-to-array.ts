@@ -165,7 +165,7 @@ export function coerceStringToArray(
       }
 
       // Handle arrays - return as-is (already processed by deepMap)
-      // Cast required: Array.isArray() narrows unknown to any[], explicit cast satisfies strict linting
+      // Array.isArray() narrows to any[] in TypeScript; cast to unknown[] for strict type safety
       if (Array.isArray(val)) {
         return val as unknown[];
       }
