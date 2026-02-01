@@ -1,6 +1,7 @@
 import "reflect-metadata";
 import { extractTriggerType } from "../../../../../src/app/components/reporting/sections/background-processes/job-trigger-parser";
 import { UNKNOWN_VALUE_PLACEHOLDER } from "../../../../../src/app/components/reporting/config/placeholders.config";
+import { JOB_TRIGGER_TYPES } from "../../../../../src/app/components/reporting/config/reporting.config";
 
 describe("job-trigger-parser", () => {
   describe("extractTriggerType", () => {
@@ -109,6 +110,53 @@ describe("job-trigger-parser", () => {
       expect(extractTriggerType("  cron: 0 2 * * *")).toBe("cron");
       expect(extractTriggerType("cron: 0 2 * * *  ")).toBe("cron");
       expect(extractTriggerType("  manual  ")).toBe("manual");
+    });
+  });
+
+  describe("JOB_TRIGGER_TYPES constant integration", () => {
+    it("should return values matching JOB_TRIGGER_TYPES constants", () => {
+      // Verify that extractTriggerType returns values from JOB_TRIGGER_TYPES
+      expect(extractTriggerType("cron: 0 2 * * *")).toBe(JOB_TRIGGER_TYPES.CRON);
+      expect(extractTriggerType("task scheduler")).toBe(JOB_TRIGGER_TYPES.TASK_SCHEDULER);
+      expect(extractTriggerType("scheduled job")).toBe(JOB_TRIGGER_TYPES.SCHEDULED);
+      expect(extractTriggerType("manual trigger")).toBe(JOB_TRIGGER_TYPES.MANUAL);
+      expect(extractTriggerType("event-driven")).toBe(JOB_TRIGGER_TYPES.EVENT_DRIVEN);
+      expect(extractTriggerType("systemd timer")).toBe(JOB_TRIGGER_TYPES.SYSTEMD_TIMER);
+    });
+
+    it("should have JOB_TRIGGER_TYPES constants with expected values", () => {
+      // Verify the constant values match what the parser returns
+      expect(JOB_TRIGGER_TYPES.CRON).toBe("cron");
+      expect(JOB_TRIGGER_TYPES.TASK_SCHEDULER).toBe("task-scheduler");
+      expect(JOB_TRIGGER_TYPES.SCHEDULED).toBe("scheduled");
+      expect(JOB_TRIGGER_TYPES.MANUAL).toBe("manual");
+      expect(JOB_TRIGGER_TYPES.EVENT_DRIVEN).toBe("event-driven");
+      expect(JOB_TRIGGER_TYPES.SYSTEMD_TIMER).toBe("systemd-timer");
+    });
+
+    it("should have exactly 6 trigger types defined in JOB_TRIGGER_TYPES", () => {
+      expect(Object.keys(JOB_TRIGGER_TYPES)).toHaveLength(6);
+    });
+
+    it("should use centralized constants (not hardcoded strings) in parser output", () => {
+      // This test ensures the parser uses JOB_TRIGGER_TYPES, not magic strings
+      const allTriggerTypes = Object.values(JOB_TRIGGER_TYPES);
+
+      // Each known trigger type should be in the JOB_TRIGGER_TYPES constant
+      const testCases = [
+        { input: "cron expression", expectedType: "cron" },
+        { input: "task scheduler job", expectedType: "task-scheduler" },
+        { input: "scheduled daily", expectedType: "scheduled" },
+        { input: "manual execution", expectedType: "manual" },
+        { input: "event based", expectedType: "event-driven" },
+        { input: "systemd service", expectedType: "systemd-timer" },
+      ];
+
+      for (const { input, expectedType } of testCases) {
+        const result = extractTriggerType(input);
+        expect(result).toBe(expectedType);
+        expect(allTriggerTypes).toContain(result);
+      }
     });
   });
 });

@@ -3,6 +3,10 @@ import {
   DATABASE_OBJECT_TYPE_LABELS,
   CORE_REQUIRED_APP_SUMMARY_FIELDS,
   HTML_TABLE_COLUMN_HEADERS,
+  SPECIAL_TABLE_COLUMNS,
+  JOB_TRIGGER_TYPES,
+  type SpecialTableColumnKey,
+  type JobTriggerType,
 } from "../../../../../src/app/components/reporting/config/reporting.config";
 
 describe("reporting.config", () => {
@@ -146,6 +150,93 @@ describe("reporting.config", () => {
         // Cast to string since we've verified it is a string above
         expect((field as string).length).toBeGreaterThan(0);
       });
+    });
+  });
+
+  describe("SPECIAL_TABLE_COLUMNS", () => {
+    it("should be defined", () => {
+      expect(SPECIAL_TABLE_COLUMNS).toBeDefined();
+    });
+
+    it("should have LINK column key", () => {
+      expect(SPECIAL_TABLE_COLUMNS.LINK).toBe("link");
+    });
+
+    it("should have CODE_EXAMPLE column key", () => {
+      expect(SPECIAL_TABLE_COLUMNS.CODE_EXAMPLE).toBe("codeExample");
+    });
+
+    it("should have exactly 2 special column keys", () => {
+      expect(Object.keys(SPECIAL_TABLE_COLUMNS)).toHaveLength(2);
+    });
+
+    it("should have unique column key values", () => {
+      const values = Object.values(SPECIAL_TABLE_COLUMNS);
+      const uniqueValues = new Set(values);
+      expect(uniqueValues.size).toBe(values.length);
+    });
+
+    it("should have valid camelCase column keys (compatible with JSON field names)", () => {
+      const values = Object.values(SPECIAL_TABLE_COLUMNS);
+      for (const value of values) {
+        expect(value).toMatch(/^[a-zA-Z][a-zA-Z0-9]*$/);
+      }
+    });
+  });
+
+  describe("SpecialTableColumnKey type", () => {
+    it("should accept valid column keys", () => {
+      // TypeScript compile-time check - if this compiles, the type is correct
+      const validKey: SpecialTableColumnKey = "link";
+      expect(validKey).toBe("link");
+    });
+  });
+
+  describe("JOB_TRIGGER_TYPES", () => {
+    it("should be defined", () => {
+      expect(JOB_TRIGGER_TYPES).toBeDefined();
+    });
+
+    it("should have CRON trigger type", () => {
+      expect(JOB_TRIGGER_TYPES.CRON).toBe("cron");
+    });
+
+    it("should have TASK_SCHEDULER trigger type", () => {
+      expect(JOB_TRIGGER_TYPES.TASK_SCHEDULER).toBe("task-scheduler");
+    });
+
+    it("should have SCHEDULED trigger type", () => {
+      expect(JOB_TRIGGER_TYPES.SCHEDULED).toBe("scheduled");
+    });
+
+    it("should have MANUAL trigger type", () => {
+      expect(JOB_TRIGGER_TYPES.MANUAL).toBe("manual");
+    });
+
+    it("should have EVENT_DRIVEN trigger type", () => {
+      expect(JOB_TRIGGER_TYPES.EVENT_DRIVEN).toBe("event-driven");
+    });
+
+    it("should have SYSTEMD_TIMER trigger type", () => {
+      expect(JOB_TRIGGER_TYPES.SYSTEMD_TIMER).toBe("systemd-timer");
+    });
+
+    it("should have exactly 6 trigger types", () => {
+      expect(Object.keys(JOB_TRIGGER_TYPES)).toHaveLength(6);
+    });
+
+    it("should have unique trigger type values", () => {
+      const values = Object.values(JOB_TRIGGER_TYPES);
+      const uniqueValues = new Set(values);
+      expect(uniqueValues.size).toBe(values.length);
+    });
+  });
+
+  describe("JobTriggerType type", () => {
+    it("should accept valid trigger types", () => {
+      // TypeScript compile-time check - if this compiles, the type is correct
+      const validType: JobTriggerType = "cron";
+      expect(validType).toBe("cron");
     });
   });
 });

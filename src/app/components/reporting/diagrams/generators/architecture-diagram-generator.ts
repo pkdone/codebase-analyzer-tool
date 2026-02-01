@@ -3,6 +3,7 @@ import { generateNodeId } from "../utils";
 import { BaseDiagramGenerator, type BaseDiagramOptions } from "./base-diagram-generator";
 import { architectureConfig } from "../diagrams.config";
 import { createFlowchartBuilder } from "../builders";
+import { DIAGRAM_CSS_CLASSES } from "../../config/diagram-css-classes.config";
 
 export interface Microservice {
   name: string;
@@ -104,7 +105,7 @@ export class ArchitectureDiagramGenerator extends BaseDiagramGenerator<Architect
     // Apply styles to all service nodes
     for (let i = 0; i < microservices.length; i++) {
       const serviceId = generateNodeId(microservices[i].name, i);
-      builder.applyStyle(serviceId, "service");
+      builder.applyStyle(serviceId, DIAGRAM_CSS_CLASSES.SERVICE);
     }
 
     return builder.render();

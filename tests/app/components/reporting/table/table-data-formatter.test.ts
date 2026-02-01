@@ -2,6 +2,7 @@ import {
   formatRow,
   type ProcessedListItem,
 } from "../../../../../src/app/components/reporting/table";
+import { SPECIAL_TABLE_COLUMNS } from "../../../../../src/app/components/reporting/config/reporting.config";
 
 describe("TableDataFormatter", () => {
   describe("formatRow() - formatCell() integration", () => {
@@ -75,6 +76,24 @@ describe("TableDataFormatter", () => {
           type: "code",
           content: "const x = 5;",
         });
+      });
+
+      it("should use SPECIAL_TABLE_COLUMNS.LINK constant value for link detection", () => {
+        // Verify the constant value matches what the formatter expects
+        expect(SPECIAL_TABLE_COLUMNS.LINK).toBe("link");
+        const result = formatRow([SPECIAL_TABLE_COLUMNS.LINK], {
+          [SPECIAL_TABLE_COLUMNS.LINK]: "https://example.com",
+        });
+        expect(result[0].type).toBe("link");
+      });
+
+      it("should use SPECIAL_TABLE_COLUMNS.CODE_EXAMPLE constant value for code detection", () => {
+        // Verify the constant value matches what the formatter expects
+        expect(SPECIAL_TABLE_COLUMNS.CODE_EXAMPLE).toBe("codeExample");
+        const result = formatRow([SPECIAL_TABLE_COLUMNS.CODE_EXAMPLE], {
+          [SPECIAL_TABLE_COLUMNS.CODE_EXAMPLE]: "const x = 5;",
+        });
+        expect(result[0].type).toBe("code");
       });
 
       it("should format non-string link fields as text", () => {

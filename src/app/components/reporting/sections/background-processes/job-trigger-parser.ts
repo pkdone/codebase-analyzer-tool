@@ -4,18 +4,23 @@
  */
 
 import { UNKNOWN_VALUE_PLACEHOLDER } from "../../config/placeholders.config";
+import { JOB_TRIGGER_TYPES, type JobTriggerType } from "../../config/reporting.config";
 
 /**
  * Trigger type patterns ordered from most specific to least specific.
  * More specific patterns must come first to prevent false matches.
+ * Uses centralized JOB_TRIGGER_TYPES constants for the type values.
  */
-const TRIGGER_PATTERNS: { type: string; keywords: string[] }[] = [
-  { type: "cron", keywords: ["cron", "crontab"] },
-  { type: "task-scheduler", keywords: ["task scheduler", "schtasks", "task_scheduler"] },
-  { type: "scheduled", keywords: ["scheduled", "schedule"] },
-  { type: "manual", keywords: ["manual"] },
-  { type: "event-driven", keywords: ["event"] },
-  { type: "systemd-timer", keywords: ["systemd", "timer"] },
+const TRIGGER_PATTERNS: { type: JobTriggerType; keywords: string[] }[] = [
+  { type: JOB_TRIGGER_TYPES.CRON, keywords: ["cron", "crontab"] },
+  {
+    type: JOB_TRIGGER_TYPES.TASK_SCHEDULER,
+    keywords: ["task scheduler", "schtasks", "task_scheduler"],
+  },
+  { type: JOB_TRIGGER_TYPES.SCHEDULED, keywords: ["scheduled", "schedule"] },
+  { type: JOB_TRIGGER_TYPES.MANUAL, keywords: ["manual"] },
+  { type: JOB_TRIGGER_TYPES.EVENT_DRIVEN, keywords: ["event"] },
+  { type: JOB_TRIGGER_TYPES.SYSTEMD_TIMER, keywords: ["systemd", "timer"] },
 ];
 
 /**

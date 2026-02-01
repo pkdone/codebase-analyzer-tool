@@ -52,3 +52,45 @@ export const CORE_REQUIRED_APP_SUMMARY_FIELDS: readonly RequestableAppSummaryFie
   "llmModels",
   "technologies",
 ] as const;
+
+/**
+ * Special table column keys that receive custom rendering treatment.
+ * Used by table-data-formatter.ts to determine how to render specific columns.
+ * Data providers must use these exact keys for the special rendering to apply.
+ */
+export const SPECIAL_TABLE_COLUMNS = {
+  /** Column key for link values - rendered as clickable hyperlinks */
+  LINK: "link",
+  /** Column key for code example values - rendered with code formatting */
+  CODE_EXAMPLE: "codeExample",
+} as const;
+
+/**
+ * Type representing valid special table column keys.
+ */
+export type SpecialTableColumnKey = (typeof SPECIAL_TABLE_COLUMNS)[keyof typeof SPECIAL_TABLE_COLUMNS];
+
+/**
+ * Job trigger type identifiers used in background process reports.
+ * Used by job-trigger-parser.ts to normalize raw trigger strings into known types.
+ * UI components can rely on these types for consistent badge/icon rendering.
+ */
+export const JOB_TRIGGER_TYPES = {
+  /** Cron-scheduled jobs (cron, crontab) */
+  CRON: "cron",
+  /** Windows Task Scheduler jobs */
+  TASK_SCHEDULER: "task-scheduler",
+  /** Generic scheduled jobs */
+  SCHEDULED: "scheduled",
+  /** Manually triggered jobs */
+  MANUAL: "manual",
+  /** Event-driven jobs */
+  EVENT_DRIVEN: "event-driven",
+  /** Systemd timer-based jobs */
+  SYSTEMD_TIMER: "systemd-timer",
+} as const;
+
+/**
+ * Type representing valid job trigger types.
+ */
+export type JobTriggerType = (typeof JOB_TRIGGER_TYPES)[keyof typeof JOB_TRIGGER_TYPES];

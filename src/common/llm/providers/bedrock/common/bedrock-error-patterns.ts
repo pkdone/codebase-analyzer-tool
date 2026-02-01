@@ -1,6 +1,20 @@
 import { LLMErrorMsgRegExPattern } from "../../../types/llm-stats.types";
 
 /**
+ * Keywords that indicate a token limit error in Bedrock error messages.
+ * Used by isTokenLimitExceeded() in base-bedrock-llm.ts for error classification.
+ * Co-located with BEDROCK_COMMON_ERROR_PATTERNS for consistency.
+ */
+export const BEDROCK_TOKEN_LIMIT_KEYWORDS = [
+  "too many input tokens",
+  "expected maxlength",
+  "input is too long",
+  "input length",
+  "too large for model",
+  "please reduce the length of the prompt",
+] as const;
+
+/**
  * Common error patterns for Bedrock model providers.
  * Uses named capture groups for readable, maintainable extraction.
  */

@@ -19,15 +19,7 @@ import {
   extractEmbeddingResponse,
   type ResponsePathConfig,
 } from "./bedrock-response-parser";
-
-const TOKEN_LIMIT_ERROR_KEYWORDS = [
-  "too many input tokens",
-  "expected maxlength",
-  "input is too long",
-  "input length",
-  "too large for model",
-  "please reduce the length of the prompt",
-] as const;
+import { BEDROCK_TOKEN_LIMIT_KEYWORDS } from "./bedrock-error-patterns";
 
 /**
  * Complete configuration for response extraction including schema and provider information
@@ -171,7 +163,7 @@ export default abstract class BaseBedrockLLM extends BaseLLMProvider {
   protected isTokenLimitExceeded(error: unknown): error is ValidationException {
     if (!(error instanceof ValidationException)) return false;
     const lowercaseContent = formatError(error).toLowerCase();
-    return TOKEN_LIMIT_ERROR_KEYWORDS.some((keyword) => lowercaseContent.includes(keyword));
+    return BEDROCK_TOKEN_LIMIT_KEYWORDS.some((keyword) => lowercaseContent.includes(keyword));
   }
 
   /**

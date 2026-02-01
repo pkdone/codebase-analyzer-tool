@@ -1,4 +1,5 @@
 import { convertToDisplayName } from "../../../../common/utils/text-utils";
+import { SPECIAL_TABLE_COLUMNS } from "../config/reporting.config";
 
 /**
  * Interface for processed table cell data.
@@ -38,15 +39,15 @@ export interface ProcessedListItem {
  * @returns A ProcessedTableCell ready for template rendering
  */
 function formatCell(key: string, value: unknown): ProcessedTableCell {
-  // Handle special column types
-  if (key === "link" && typeof value === "string") {
+  // Handle special column types using centralized constants
+  if (key === SPECIAL_TABLE_COLUMNS.LINK && typeof value === "string") {
     return {
       type: "link",
       content: value,
     };
   }
 
-  if (key === "codeExample" && typeof value === "string") {
+  if (key === SPECIAL_TABLE_COLUMNS.CODE_EXAMPLE && typeof value === "string") {
     return {
       type: "code",
       content: value,

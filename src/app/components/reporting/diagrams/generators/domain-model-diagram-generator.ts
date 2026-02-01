@@ -8,6 +8,7 @@ import type {
 import { BaseDiagramGenerator, type BaseDiagramOptions } from "./base-diagram-generator";
 import { domainModelConfig } from "../diagrams.config";
 import { createFlowchartBuilder } from "../builders";
+import { DIAGRAM_CSS_CLASSES } from "../../config/diagram-css-classes.config";
 
 export type DomainDiagramOptions = BaseDiagramOptions;
 
@@ -63,7 +64,7 @@ export class DomainModelDiagramGenerator extends BaseDiagramGenerator<DomainDiag
     // Create context node at the top (hexagon shape with name only)
     const contextId = generateNodeId(context.name, 0);
     builder.addNode(contextId, context.name, "hexagon");
-    builder.applyStyle(contextId, "boundedContext");
+    builder.applyStyle(contextId, DIAGRAM_CSS_CLASSES.BOUNDED_CONTEXT);
 
     // Track aggregate IDs for entity connections
     const aggregateIds = new Map<string, string>();
@@ -84,8 +85,8 @@ export class DomainModelDiagramGenerator extends BaseDiagramGenerator<DomainDiag
           sub.addNode(aggId, aggregate.name, "stadium");
           sub.addNode(repoId, aggregate.repository.name, "circle");
           sub.addEdge(aggId, repoId, undefined, "dashed");
-          sub.applyStyle(aggId, "aggregate");
-          sub.applyStyle(repoId, "repository");
+          sub.applyStyle(aggId, DIAGRAM_CSS_CLASSES.AGGREGATE);
+          sub.applyStyle(repoId, DIAGRAM_CSS_CLASSES.REPOSITORY);
         },
         "LR",
       );
@@ -106,7 +107,7 @@ export class DomainModelDiagramGenerator extends BaseDiagramGenerator<DomainDiag
           context.entities.forEach((entity, index) => {
             const entityId = generateNodeId(`entity_${entity.name}`, index);
             sub.addNode(entityId, entity.name, "rounded");
-            sub.applyStyle(entityId, "entity");
+            sub.applyStyle(entityId, DIAGRAM_CSS_CLASSES.ENTITY);
           });
         },
         "LR",
