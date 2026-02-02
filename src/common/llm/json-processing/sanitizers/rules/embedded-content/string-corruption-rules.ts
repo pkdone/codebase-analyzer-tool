@@ -123,7 +123,7 @@ export const STRING_CORRUPTION_RULES: readonly ReplacementRule[] = [
     skipInString: false,
   },
 
-  // Rule: Fix JSON structure embedded in string values
+  // Rule: Fix JSON structure embedded in string values (escaped version)
   // Pattern: `"value": "0\",\n    \"type\": \"String"` - LLM "leaking" JSON into string values
   // This happens when the LLM confuses the context and starts outputting JSON structure inside a string
   {
@@ -145,6 +145,65 @@ export const STRING_CORRUPTION_RULES: readonly ReplacementRule[] = [
     skipInString: false,
   },
 
+  // Rule: Fix JSON structure embedded in string values (literal newline version)
+  // Pattern: `"value": "yyyy-MM-dd",\n    "type": "String"` embedded IN a string value
+  // This occurs when the LLM outputs what looks like object properties inside a string,
+  // with actual newlines and quotes that break the JSON structure.
+  // Examples from errors:
+  //   "value": "yyyy-MM-dd\",\n    \"type\": \"String"
+  //   "returnType": "Builder\",\n      \"description\": \"This method..."
+  {
+    name: "embeddedJsonInStringValueLiteralNewline",
+    // Match property value containing literal quote-comma-newline-quote pattern
+    // This is the signature of JSON properties being output inside a string
+    pattern:
+      /("(?:[a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:\s*")([^"]{0,200}?)\\",\n\s*\\"([a-zA-Z_$][a-zA-Z0-9_$]*)\\"\s*:\s*\\"/g,
+    replacement: (_match, groups) => {
+      const [propertyStart, value] = groups;
+      const propertyStartStr = propertyStart ?? "";
+      const valueStr = value ?? "";
+
+      // Close the string properly with just the original value
+      return `${propertyStartStr}${valueStr}"`;
+    },
+    diagnosticMessage: "Fixed JSON structure with literal newlines embedded in string value",
+    skipInString: false,
+  },
+
+  // Rule: Fix extended embedded JSON that continues for multiple properties
+  // Pattern: LLM outputs many JSON-like properties inside a string value, continuing for many lines
+  // Example from errors - the content continues with more and more escaped JSON
+  {
+    name: "extendedEmbeddedJsonInString",
+    // Match patterns where a string contains multiple embedded JSON-like properties
+    // Looking for repeated patterns of \",\n  \"propName\": \"value
+    pattern:
+      /("(?:[a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:\s*")([^"]{0,100}?)((?:\\",\n\s*\\"[a-zA-Z_$][a-zA-Z0-9_$]*\\"\s*:\s*){2,})/g,
+    replacement: (_match, groups) => {
+      const [propertyStart, value, embeddedJson] = groups;
+      const propertyStartStr = propertyStart ?? "";
+      const valueStr = value ?? "";
+      const embeddedJsonStr = embeddedJson ?? "";
+
+      // Count how many embedded properties there are
+      const propertyCount = (embeddedJsonStr.match(/\\",\n\s*\\"/g) ?? []).length;
+
+      // Only apply if there are at least 2 embedded property patterns
+      if (propertyCount < 2) {
+        return null;
+      }
+
+      // Close the string properly with just the original value
+      return `${propertyStartStr}${valueStr}"`;
+    },
+    diagnosticMessage: (_match, groups) => {
+      const embeddedJson = groups[2] ?? "";
+      const count = (embeddedJson.match(/\\",\n\s*\\"/g) ?? []).length;
+      return `Fixed ${count} embedded JSON properties in string value`;
+    },
+    skipInString: false,
+  },
+
   // Rule: Remove LLM instruction text appended after JSON
   // Pattern: `}\n[instruction]Fix the bug in the following code...`
   // This happens when the LLM appends instructions or code examples after the JSON output
@@ -159,12 +218,12 @@ export const STRING_CORRUPTION_RULES: readonly ReplacementRule[] = [
     diagnosticMessage: "Removed LLM instruction text appended after JSON",
   },
 
-  // Rule: Fix property values that have embedded JSON-like content
-  // Pattern: `"returnType": "int\",\n      \"description\": \"...`
+  // Rule: Fix property values that have embedded JSON-like content (escaped \\n version)
+  // Pattern: `"returnType": "int\\",\\n      \\"description\\": \\"...`
   // The LLM outputs escaped JSON within what should be a simple string value
   {
     name: "escapedJsonInPropertyValue",
-    // Match property values that contain escaped JSON structure patterns
+    // Match property values that contain escaped JSON structure patterns with \\n
     pattern:
       /("(?:[a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:\s*")([^"]{1,100}?)\\",\s*\\n\s*\\"([a-zA-Z_$][a-zA-Z0-9_$]*)\\"\s*:\s*\\"[^"]*$/g,
     replacement: (_match, groups) => {
@@ -176,6 +235,27 @@ export const STRING_CORRUPTION_RULES: readonly ReplacementRule[] = [
       return `${propertyStartStr}${valueStr}"\n}`;
     },
     diagnosticMessage: "Fixed escaped JSON structure in property value",
+    skipInString: false,
+  },
+
+  // Rule: Fix property values that have embedded JSON-like content (literal newline version)
+  // Pattern: `"returnType": "int\",\n      \"description\": \"...` (with actual newlines)
+  // This is similar to the above but matches actual newlines instead of escaped \\n
+  {
+    name: "escapedJsonInPropertyValueLiteralNewline",
+    // Match property values that contain escaped JSON structure with actual newlines
+    // The pattern looks for: "propName": "value\",\n   \"anotherProp\": \"...
+    pattern:
+      /("(?:[a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:\s*")([^"]{1,200}?)\\",\n\s*\\"([a-zA-Z_$][a-zA-Z0-9_$]*)\\"\s*:\s*\\"[^"]*$/g,
+    replacement: (_match, groups) => {
+      const [propertyStart, value] = groups;
+      const propertyStartStr = propertyStart ?? "";
+      const valueStr = value ?? "";
+
+      // Close the string with just the value before the corruption
+      return `${propertyStartStr}${valueStr}"\n}`;
+    },
+    diagnosticMessage: "Fixed escaped JSON structure with literal newlines in property value",
     skipInString: false,
   },
 

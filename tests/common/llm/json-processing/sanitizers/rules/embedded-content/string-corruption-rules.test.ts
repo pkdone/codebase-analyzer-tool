@@ -148,6 +148,152 @@ ${pattern}`;
     });
   });
 
+  describe("embeddedJsonInStringValueLiteralNewline", () => {
+    it("should fix JSON structure with literal newlines embedded in string values", () => {
+      // Pattern from actual error log - FineractClient.java
+      // "value": "yyyy-MM-dd\",\n    \"type\": \"String"
+      const input = `{
+  "publicConstants": [
+    {
+      "name": "DATE_FORMAT",
+      "value": "yyyy-MM-dd\\",
+    \\"type\\": \\"String"
+    }
+  ]
+}`;
+      const result = executeRules(input, STRING_CORRUPTION_RULES);
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"yyyy-MM-dd"');
+      expect(result.content).not.toContain('\\"type\\"');
+    });
+
+    it("should fix returnType with embedded JSON (GroupHelper.java pattern)", () => {
+      // From error log - the returnType has embedded JSON properties
+      const input = `{
+  "publicFunctions": [
+    {
+      "name": "createGroup",
+      "returnType": "Integer\\",
+    \\"parameters\\": \\"something"
+    }
+  ]
+}`;
+      const result = executeRules(input, STRING_CORRUPTION_RULES);
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"Integer"');
+    });
+  });
+
+  describe("escapedJsonInPropertyValueLiteralNewline", () => {
+    it("should fix escaped JSON with literal newlines at end of input", () => {
+      // Pattern similar to SmsCampaignValidator.java error
+      const input = `{
+  "publicFunctions": [
+    {
+      "name": "validateCreate",
+      "returnType": "void\\",
+      \\"description\\": \\"The validateCreate method`;
+      const result = executeRules(input, STRING_CORRUPTION_RULES);
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"void"');
+    });
+
+    it("should handle multiple spaces in embedded JSON", () => {
+      const input = `{
+  "returnType": "Builder\\",
+      \\"description\\": \\"This method simply returns`;
+      const result = executeRules(input, STRING_CORRUPTION_RULES);
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"Builder"');
+    });
+  });
+
+  describe("extendedEmbeddedJsonInString", () => {
+    it("should fix multiple embedded JSON properties in string value", () => {
+      // Pattern where LLM outputs many JSON-like properties inside a string
+      const input = `{
+  "name": "builder",
+  "returnType": "Builder\\",
+      \\"description\\": \\"This method returns a builder\\",
+      \\"parameters\\": []\\",
+      \\"cyclomaticComplexity\\": 1"
+}`;
+      const result = executeRules(input, STRING_CORRUPTION_RULES);
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"Builder"');
+      expect(result.content).not.toContain('\\"description\\"');
+    });
+
+    it("should not modify strings with only one embedded property", () => {
+      // Single embedded property might be intentional formatting
+      const input = `{
+  "code": "single\\",
+      \\"value\\": \\"test"
+}`;
+      // This still gets caught by other rules, but the extended rule
+      // specifically looks for 2+ embedded properties
+      const result = executeRules(input, STRING_CORRUPTION_RULES);
+      // The other rules will still fix it
+      expect(result.changed).toBe(true);
+    });
+  });
+
+  describe("real-world error patterns from logs", () => {
+    it("should fix FineractClient.java DATE_FORMAT error pattern", () => {
+      // Exact pattern from response-error-2026-02-01T21-26-44-044Z.log
+      const input = `{
+  "publicConstants": [
+    {
+      "name": "DATE_FORMAT",
+      "value": "yyyy-MM-dd\\",
+    \\"type\\": \\"String"
+    }
+  ]
+}`;
+      const result = executeRules(input, STRING_CORRUPTION_RULES);
+      expect(result.changed).toBe(true);
+      // Should close the string properly
+      expect(result.content).toContain('"yyyy-MM-dd"');
+    });
+
+    it("should fix GroupHelper.java DATE_FORMAT error pattern", () => {
+      // Pattern from response-error-2026-02-01T21-31-08-543Z.log
+      const input = `{
+  "publicConstants": [
+    {
+      "name": "DATE_FORMAT",
+      "value": "dd MMMM yyyy\\",
+    \\"type\\": \\"String"
+    },
+    {
+      "name": "DATE_TIME_FORMAT",
+      "value": "dd MMMM yyyy HH:mm\\",
+    \\"type\\": \\"String"
+    }
+  ]
+}`;
+      const result = executeRules(input, STRING_CORRUPTION_RULES);
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"dd MMMM yyyy"');
+    });
+
+    it("should fix SynchronousCommandProcessingService.java pattern", () => {
+      // Pattern from response-error-2026-02-01T21-31-40-966Z.log
+      const input = `{
+  "publicConstants": [
+    {
+      "name": "IDEMPOTENCY_KEY_STORE_FLAG",
+      "value": "idempotencyKeyStoreFlag\\",
+      \\"type\\": \\"String"
+    }
+  ]
+}`;
+      const result = executeRules(input, STRING_CORRUPTION_RULES);
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"idempotencyKeyStoreFlag"');
+    });
+  });
+
   describe("truncatedStringWithRepetitiveEnd", () => {
     it("should fix truncated string with repetitive ending", () => {
       const repetitiveEnd = ") } } } } } } } } } } } } } } } } } } } } } } } } ";

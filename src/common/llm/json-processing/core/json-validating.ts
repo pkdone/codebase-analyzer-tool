@@ -1,6 +1,7 @@
 import { z } from "zod";
 import {
   convertNullToUndefined,
+  convertNullToEmptyStringForRequiredFields,
   fixCommonPropertyNameTypos,
   coerceStringToArray,
   unwrapJsonSchemaStructure,
@@ -24,6 +25,7 @@ export type ValidationWithTransformsResult<T> =
  * Transform order:
  * - removeIncompleteArrayItems: Removes truncated items from end of arrays (must run early)
  * - coerceStringToArray: Converts string values to empty arrays for predefined property names (generic)
+ * - convertNullToEmptyStringForRequiredFields: Converts null to "" for required string fields (before null→undefined)
  * - convertNullToUndefined: Converts null to undefined for optional fields (generic)
  * - fixCommonPropertyNameTypos: Fixes typos in property names ending with underscore (generic)
  * - coerceNumericProperties: Converts string values to numbers for known numeric properties (generic)
@@ -32,6 +34,7 @@ export type ValidationWithTransformsResult<T> =
 const SCHEMA_FIXING_TRANSFORMS: readonly SchemaFixingTransform[] = [
   removeIncompleteArrayItems,
   coerceStringToArray,
+  convertNullToEmptyStringForRequiredFields,
   convertNullToUndefined,
   fixCommonPropertyNameTypos,
   coerceNumericProperties,
