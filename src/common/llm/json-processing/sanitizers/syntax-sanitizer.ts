@@ -505,7 +505,6 @@ function completeTruncatedStructuresInternal(input: string): SanitizerResult {
       changed: true,
       description: REPAIR_STEP.COMPLETED_TRUNCATED_STRUCTURES,
       repairs: [
-        REPAIR_STEP.COMPLETED_TRUNCATED_STRUCTURES,
         `Added ${addedDelimiters.length} closing delimiter${addedDelimiters.length !== 1 ? "s" : ""}${inString ? " and closed incomplete string" : ""}`,
       ],
     };
