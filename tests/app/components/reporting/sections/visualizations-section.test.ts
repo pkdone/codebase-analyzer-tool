@@ -11,7 +11,7 @@ import {
 import {
   PotentialMicroservicesSection,
   ArchitectureDiagramGenerator,
-} from "../../../../../src/app/components/reporting/sections/future-architecture";
+} from "../../../../../src/app/components/reporting/sections/potential-microservices";
 import type { ReportData } from "../../../../../src/app/components/reporting/report-data.types";
 import type {
   CategorizedSectionItem,

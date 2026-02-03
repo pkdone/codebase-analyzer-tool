@@ -1,4 +1,4 @@
-import { unifiedSyntaxSanitizer } from "../../../../../src/common/llm/json-processing/sanitizers/index";
+import { propertyAndValueSyntaxSanitizer } from "../../../../../src/common/llm/json-processing/sanitizers/index";
 
 /**
  * Additional tests for generic patterns added in refactoring:
@@ -8,7 +8,7 @@ import { unifiedSyntaxSanitizer } from "../../../../../src/common/llm/json-proce
  */
 
 /**
- * Comprehensive tests for unifiedSyntaxSanitizer sanitizer.
+ * Comprehensive tests for propertyAndValueSyntaxSanitizer sanitizer.
  * This sanitizer consolidates:
  * 1. fixPropertyNames - Fixes all property name issues
  * 2. normalizePropertyAssignment - Normalizes property assignment syntax
@@ -18,7 +18,7 @@ import { unifiedSyntaxSanitizer } from "../../../../../src/common/llm/json-proce
  * 6. fixUnescapedQuotesInStrings - Escapes unescaped quotes inside string values
  */
 
-describe("unifiedSyntaxSanitizer", () => {
+describe("propertyAndValueSyntaxSanitizer", () => {
   describe("unquoted property names with arrays/objects", () => {
     it("should fix unquoted property name followed by array", () => {
       const input = `{
@@ -26,7 +26,7 @@ describe("unifiedSyntaxSanitizer", () => {
   parameters: []
 }`;
 
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"parameters": []');
@@ -40,7 +40,7 @@ describe("unifiedSyntaxSanitizer", () => {
   codeSmells: {}
 }`;
 
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"codeSmells": {}');
@@ -55,7 +55,7 @@ describe("unifiedSyntaxSanitizer", () => {
   codeSmells: []
 }`;
 
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"parameters": []');
@@ -72,7 +72,7 @@ describe("unifiedSyntaxSanitizer", () => {
   cyclomaticComplexity: 5
 }`;
 
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"returnType": "String"');
@@ -88,7 +88,7 @@ describe("unifiedSyntaxSanitizer", () => {
   codeSmells: []
 }`;
 
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"purpose": "Test purpose"');
@@ -118,7 +118,7 @@ describe("unifiedSyntaxSanitizer", () => {
   ]
 }`;
 
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"name": "insertDirectCampaignIntoSmsOutboundTable"');
@@ -132,7 +132,7 @@ describe("unifiedSyntaxSanitizer", () => {
   describe("concatenation chains", () => {
     it("should replace identifier-only chains with empty string", () => {
       const input = '{"k": partA + partB + partC}';
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
       expect(result.changed).toBe(true);
       expect(result.content).toBe('{"k": ""}');
       expect(result.repairs).toBeDefined();
@@ -141,7 +141,7 @@ describe("unifiedSyntaxSanitizer", () => {
 
     it("should keep only literal when identifiers precede it", () => {
       const input = '{"k": someIdent + "literal"}';
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
       expect(result.changed).toBe(true);
       expect(result.content).toBe('{"k": "literal"}');
       expect(result.repairs).toBeDefined();
@@ -149,7 +149,7 @@ describe("unifiedSyntaxSanitizer", () => {
 
     it("should keep only literal when identifiers follow it", () => {
       const input = '{"k": "hello" + someVar}';
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
       expect(result.changed).toBe(true);
       expect(result.content).toBe('{"k": "hello"}');
       expect(result.repairs).toBeDefined();
@@ -157,7 +157,7 @@ describe("unifiedSyntaxSanitizer", () => {
 
     it("should merge consecutive string literals", () => {
       const input = '{"message": "Hello" + " " + "World!"}';
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
       expect(result.changed).toBe(true);
       expect(result.content).toBe('{"message": "Hello World!"}');
       expect(result.repairs).toBeDefined();
@@ -165,7 +165,7 @@ describe("unifiedSyntaxSanitizer", () => {
 
     it("should not modify valid JSON strings containing plus signs", () => {
       const input = '{"description": "This function performs a + b"}';
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
       expect(result.changed).toBe(false);
       expect(result.content).toBe(input);
     });
@@ -174,7 +174,7 @@ describe("unifiedSyntaxSanitizer", () => {
   describe("property names - concatenated", () => {
     it("should merge concatenated string literals in property names", () => {
       const input = '"cyclomati" + "cComplexity": 10';
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).toBe('"cyclomaticComplexity": 10');
@@ -184,7 +184,7 @@ describe("unifiedSyntaxSanitizer", () => {
 
     it("should handle multiple concatenated parts", () => {
       const input = '"referen" + "ces": []';
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).toBe('"references": []');
@@ -192,7 +192,7 @@ describe("unifiedSyntaxSanitizer", () => {
 
     it("should not modify concatenation in string values", () => {
       const input = '{"description": "Use BASE + \'/path\'"}';
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
 
       expect(result.changed).toBe(false);
       expect(result.content).toBe(input);
@@ -203,7 +203,7 @@ describe("unifiedSyntaxSanitizer", () => {
     it("should fix truncated property names with quotes", () => {
       const input = '{"eferences": []}';
       const config = { propertyNameMappings: { eferences: "references" } };
-      const result = unifiedSyntaxSanitizer(input, config);
+      const result = propertyAndValueSyntaxSanitizer(input, config);
 
       expect(result.changed).toBe(true);
       expect(result.content).toBe('{"references": []}');
@@ -212,7 +212,7 @@ describe("unifiedSyntaxSanitizer", () => {
     it("should fix truncated names with missing opening quote", () => {
       const input = '{eferences": []}';
       const config = { propertyNameMappings: { eferences: "references" } };
-      const result = unifiedSyntaxSanitizer(input, config);
+      const result = propertyAndValueSyntaxSanitizer(input, config);
 
       expect(result.changed).toBe(true);
       expect(result.content).toBe('{"references": []}');
@@ -225,7 +225,7 @@ describe("unifiedSyntaxSanitizer", () => {
         knownProperties: ["name", "type", "value"],
         propertyNameMappings: { e: "name" },
       };
-      const result = unifiedSyntaxSanitizer(input, config);
+      const result = propertyAndValueSyntaxSanitizer(input, config);
 
       expect(result.changed).toBe(true);
       expect(result.content).toBe('{"name": "value"}');
@@ -234,7 +234,7 @@ describe("unifiedSyntaxSanitizer", () => {
     it("should fix tail-end truncations", () => {
       const input = '{alues": []}';
       const config = { propertyNameMappings: { alues: "codeSmells" } };
-      const result = unifiedSyntaxSanitizer(input, config);
+      const result = propertyAndValueSyntaxSanitizer(input, config);
 
       expect(result.changed).toBe(true);
       expect(result.content).toBe('{"codeSmells": []}');
@@ -244,7 +244,7 @@ describe("unifiedSyntaxSanitizer", () => {
   describe("property names - unquoted", () => {
     it("should add quotes around unquoted property names", () => {
       const input = '{name: "value", unquotedProp: "test"}';
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).toBe('{"name": "value", "unquotedProp": "test"}');
@@ -252,7 +252,7 @@ describe("unifiedSyntaxSanitizer", () => {
 
     it("should not change already quoted property names", () => {
       const input = '{"name": "value", "quotedProp": "test"}';
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
 
       expect(result.changed).toBe(false);
       expect(result.content).toBe(input);
@@ -260,7 +260,7 @@ describe("unifiedSyntaxSanitizer", () => {
 
     it("should handle various property name patterns", () => {
       const input = '{name_with_underscore: "value", name-with-dash: "value"}';
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).toBe('{"name_with_underscore": "value", "name-with-dash": "value"}');
@@ -270,7 +270,7 @@ describe("unifiedSyntaxSanitizer", () => {
   describe("property names - missing quotes", () => {
     it("should add missing opening quotes", () => {
       const input = '{description": "value"}';
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).toBe('{"description": "value"}');
@@ -278,7 +278,7 @@ describe("unifiedSyntaxSanitizer", () => {
 
     it("should fix missing closing quote and colon", () => {
       const input = '{"name "value"}';
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).toBe('{"name": "value"}');
@@ -288,7 +288,7 @@ describe("unifiedSyntaxSanitizer", () => {
   describe("property names - typos", () => {
     it("should fix trailing underscores", () => {
       const input = '{"type_": "String", "name_": "value"}';
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).toBe('{"type": "String", "name": "value"}');
@@ -296,7 +296,7 @@ describe("unifiedSyntaxSanitizer", () => {
 
     it("should fix double underscores", () => {
       const input = '{"property__name": "value"}';
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).toBe('{"property_name": "value"}');
@@ -306,7 +306,7 @@ describe("unifiedSyntaxSanitizer", () => {
   describe("undefined values", () => {
     it("should convert undefined values to null", () => {
       const input = '{"field": undefined}';
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).toBe('{"field": null}');
@@ -317,7 +317,7 @@ describe("unifiedSyntaxSanitizer", () => {
 
     it("should handle undefined values with whitespace", () => {
       const input = '{"field":   undefined  }';
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).toBe('{"field":   null  }');
@@ -325,7 +325,7 @@ describe("unifiedSyntaxSanitizer", () => {
 
     it("should handle multiple undefined values", () => {
       const input = '{"field1": undefined, "field2": "value", "field3": undefined}';
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).toBe('{"field1": null, "field2": "value", "field3": null}');
@@ -333,7 +333,7 @@ describe("unifiedSyntaxSanitizer", () => {
 
     it("should not change string 'undefined'", () => {
       const input = '{"field": "undefined"}';
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
 
       expect(result.changed).toBe(false);
       expect(result.content).toBe(input);
@@ -343,7 +343,7 @@ describe("unifiedSyntaxSanitizer", () => {
   describe("corrupted numeric values", () => {
     it("should fix corrupted numeric values with underscore prefix", () => {
       const input = '{"linesOfCode": _3}';
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).toBe('{"linesOfCode": 3}');
@@ -353,7 +353,7 @@ describe("unifiedSyntaxSanitizer", () => {
 
     it("should handle corrupted numeric values with whitespace", () => {
       const input = '{"value": _42}';
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).toBe('{"value": 42}');
@@ -361,7 +361,7 @@ describe("unifiedSyntaxSanitizer", () => {
 
     it("should not modify underscores in string values", () => {
       const input = '{"field": "_value"}';
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
 
       expect(result.changed).toBe(false);
       expect(result.content).toBe(input);
@@ -371,7 +371,7 @@ describe("unifiedSyntaxSanitizer", () => {
   describe("property assignment syntax", () => {
     it("should replace := with :", () => {
       const input = '"name":= "value"';
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).toBe('"name": "value"');
@@ -384,7 +384,7 @@ describe("unifiedSyntaxSanitizer", () => {
       // The sanitizer is conservative to avoid false positives
       // This test documents the current behavior
       const input = '{"name":ax": "totalCredits"}';
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
 
       // The sanitizer may fix other issues (like adding quotes around "ax")
       // but may not fix the stray text pattern in all contexts
@@ -395,7 +395,7 @@ describe("unifiedSyntaxSanitizer", () => {
 
     it("should fix missing opening quotes after colon", () => {
       const input = '"name":GetChargeCalculation",';
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).toBe('"name": "GetChargeCalculation",');
@@ -403,7 +403,7 @@ describe("unifiedSyntaxSanitizer", () => {
 
     it("should quote unquoted string values", () => {
       const input = '{"name":toBeCredited"}';
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
 
       expect(result.changed).toBe(true);
       // The pattern matches "name":toBeCredited" and adds quotes
@@ -414,7 +414,7 @@ describe("unifiedSyntaxSanitizer", () => {
   describe("unescaped quotes in strings", () => {
     it("should escape unescaped quotes in HTML attribute patterns", () => {
       const input = '{"implementation": "The class uses `<input type="hidden">` element."}';
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).toBe(
@@ -425,7 +425,7 @@ describe("unifiedSyntaxSanitizer", () => {
 
     it("should not change already escaped quotes", () => {
       const input = '{"description": "This has \\"escaped quotes\\" inside"}';
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
 
       expect(result.changed).toBe(false);
       expect(result.content).toBe(input);
@@ -433,7 +433,7 @@ describe("unifiedSyntaxSanitizer", () => {
 
     it("should fix escaped quotes followed by unescaped quotes", () => {
       const input = '{"description": "text `[\\"" + clientId + "\\"]` more"}';
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
 
       expect(result.changed).toBe(true);
       expect(result.repairs).toBeDefined();
@@ -452,7 +452,7 @@ describe("unifiedSyntaxSanitizer", () => {
         propertyNameMappings: { eferences: "references" },
         propertyTypoCorrections: { type_: "type" },
       };
-      const result = unifiedSyntaxSanitizer(input, config);
+      const result = propertyAndValueSyntaxSanitizer(input, config);
 
       expect(result.changed).toBe(true);
       expect(result.content).toBe(
@@ -464,7 +464,7 @@ describe("unifiedSyntaxSanitizer", () => {
     it("should handle complex JSON with multiple property issues", () => {
       // Test with a simpler set of combined issues to avoid strategy interference
       const input = '{name: "test", "description": "value", "references": []}';
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"name": "test"');
@@ -475,7 +475,7 @@ describe("unifiedSyntaxSanitizer", () => {
   describe("edge cases", () => {
     it("should return unchanged when no issues present", () => {
       const input = '{"name": "value", "description": "test"}';
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
 
       expect(result.changed).toBe(false);
       expect(result.content).toBe(input);
@@ -483,7 +483,7 @@ describe("unifiedSyntaxSanitizer", () => {
 
     it("should handle empty string", () => {
       const input = "";
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
 
       expect(result.changed).toBe(false);
       expect(result.content).toBe("");
@@ -491,7 +491,7 @@ describe("unifiedSyntaxSanitizer", () => {
 
     it("should not modify property names in string values", () => {
       const input = '{"description": "Property name: unquotedProp"}';
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
 
       expect(result.changed).toBe(false);
       expect(result.content).toBe(input);
@@ -499,7 +499,7 @@ describe("unifiedSyntaxSanitizer", () => {
 
     it("should handle nested structures", () => {
       const input = '{"nested": {name: "value"}}';
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).toBe('{"nested": {"name": "value"}}');
@@ -507,7 +507,7 @@ describe("unifiedSyntaxSanitizer", () => {
 
     it("should handle arrays", () => {
       const input = '[{"name": "value"}, {unquoted: "test"}]';
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).toBe('[{"name": "value"}, {"unquoted": "test"}]');
@@ -521,7 +521,7 @@ describe("unifiedSyntaxSanitizer", () => {
   describe("missing quotes around array string elements", () => {
     it("should fix missing opening quote in array element", () => {
       const input = '{"refs": [org.apache.commons.lang3.StringUtils"]}';
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"org.apache.commons.lang3.StringUtils"');
       expect(() => JSON.parse(result.content)).not.toThrow();
@@ -530,7 +530,7 @@ describe("unifiedSyntaxSanitizer", () => {
     it("should fix multiple missing quotes in array", () => {
       const input =
         '{"refs": [org.apache.fineract.core.api.JsonCommand", "org.apache.fineract.core.domain.ExternalId"]}';
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"org.apache.fineract.core.api.JsonCommand"');
       expect(() => JSON.parse(result.content)).not.toThrow();
@@ -539,7 +539,7 @@ describe("unifiedSyntaxSanitizer", () => {
     it("should not modify valid array elements", () => {
       const input =
         '{"refs": ["org.apache.fineract.core.api.JsonCommand", "org.apache.fineract.core.domain.ExternalId"]}';
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
       expect(result.changed).toBe(false);
     });
   });
@@ -547,7 +547,7 @@ describe("unifiedSyntaxSanitizer", () => {
   describe("unquoted property names before structures", () => {
     it("should fix unquoted property name before array", () => {
       const input = '{"name": "Test", parameters: [{"name": "param1"}]}';
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"parameters": [');
       expect(() => JSON.parse(result.content)).not.toThrow();
@@ -555,7 +555,7 @@ describe("unifiedSyntaxSanitizer", () => {
 
     it("should fix unquoted property name before object", () => {
       const input = '{"name": "Test", databaseIntegration: {"mechanism": "JPA"}}';
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"databaseIntegration": {');
       expect(() => JSON.parse(result.content)).not.toThrow();
@@ -563,7 +563,7 @@ describe("unifiedSyntaxSanitizer", () => {
 
     it("should not modify valid property names", () => {
       const input = '{"name": "Test", "parameters": [{"name": "param1"}]}';
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
       expect(result.changed).toBe(false);
     });
   });
@@ -578,7 +578,7 @@ describe("unifiedSyntaxSanitizer", () => {
   "parameters []",
   "returnType": "void"
 }`;
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
       // This sanitizer may not fix this pattern (it's handled by fix-malformed-json-patterns)
       // but it should not break on the input
       expect(result).toBeDefined();
@@ -591,7 +591,7 @@ describe("unifiedSyntaxSanitizer", () => {
   "parameters {}",
   "returnType": "void"
 }`;
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
       // This sanitizer may not fix this pattern (it's handled by fix-malformed-json-patterns)
       // but it should not break on the input
       expect(result).toBeDefined();
@@ -600,7 +600,7 @@ describe("unifiedSyntaxSanitizer", () => {
 
     it("should not modify valid property assignments", () => {
       const input = '{"name": "Test", "parameters": []}';
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
       expect(result.changed).toBe(false);
     });
   });
@@ -613,7 +613,7 @@ describe("unifiedSyntaxSanitizer", () => {
     from "org.apache.commons.lang3.StringUtils"
   ]
 }`;
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"org.apache.commons.lang3.StringUtils"');
       expect(result.content).not.toContain('from "org.apache.commons.lang3.StringUtils"');
@@ -627,7 +627,7 @@ describe("unifiedSyntaxSanitizer", () => {
     stop"org.springframework.transaction.annotation.Transactional"
   ]
 }`;
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
       expect(result.changed).toBe(true);
       expect(result.content).toContain(
         '"org.springframework.transaction.annotation.Transactional"',
@@ -638,7 +638,7 @@ describe("unifiedSyntaxSanitizer", () => {
 
     it("should not modify valid array elements", () => {
       const input = '{"refs": ["org.apache.fineract.core.api.JsonCommand"]}';
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
       expect(result.changed).toBe(false);
     });
   });
@@ -654,7 +654,7 @@ describe("unifiedSyntaxSanitizer", () => {
   ]
 }`;
 
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"name": "repaymentDate"');
@@ -668,7 +668,7 @@ describe("unifiedSyntaxSanitizer", () => {
   "description": "Test description"
 }`;
 
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"purpose": "Test purpose"');
@@ -687,7 +687,7 @@ describe("unifiedSyntaxSanitizer", () => {
   ]
 }`;
 
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"name": "getMeetingIntervalFromFrequency"');
@@ -709,7 +709,7 @@ CRM_URL_TOKEN_KEY
   ]
 }`;
 
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"CRM_URL_TOKEN_KEY"');
@@ -727,7 +727,7 @@ CRM_URL_TOKEN_KEY
   ]
 }`;
 
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"CONSTANT_ONE"');
@@ -742,7 +742,7 @@ CRM_URL_TOKEN_KEY
   ]
 }`;
 
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
 
       // Should not change short identifiers (length <= 3)
       expect(result.content).toContain("ABC");
@@ -763,7 +763,7 @@ extractions.loanproduct.data.LoanProductBorrowerCycleVariationData",
         // Use dot-terminated prefix for precise matching
         packageNamePrefixReplacements: { "extractions.": "org.apache.fineract.portfolio." },
       };
-      const result = unifiedSyntaxSanitizer(input, config);
+      const result = propertyAndValueSyntaxSanitizer(input, config);
 
       expect(result.changed).toBe(true);
       // The sanitizer should fix the truncation: extractions.loanproduct -> org.apache.fineract.portfolio.loanproduct
@@ -789,7 +789,7 @@ extractions.loanproduct.data.LoanProductBorrowerCycleVariationData",
         // Use dot-terminated prefix for precise matching
         packageNamePrefixReplacements: { "extractions.": "org.apache.fineract.portfolio." },
       };
-      const result = unifiedSyntaxSanitizer(input, config);
+      const result = propertyAndValueSyntaxSanitizer(input, config);
 
       expect(result.changed).toBe(true);
       // The sanitizer should fix the truncation: extractions.loanproduct -> org.apache.fineract.portfolio.loanproduct
@@ -815,7 +815,7 @@ extractions.loanproduct.data.LoanProductBorrowerCycleVariationData",
         // Use dot-terminated prefix for precise matching
         packageNamePrefixReplacements: { "extractions.": "org.apache.fineract.portfolio." },
       };
-      const result = unifiedSyntaxSanitizer(input, config);
+      const result = propertyAndValueSyntaxSanitizer(input, config);
 
       expect(result.changed).toBe(true);
       expect(result.content).toContain(
@@ -843,7 +843,7 @@ orgapache.fineract.portfolio.loanproduct.data.LoanProductBorrowerCycleVariationD
           },
         ],
       };
-      const result = unifiedSyntaxSanitizer(input, config);
+      const result = propertyAndValueSyntaxSanitizer(input, config);
 
       expect(result.changed).toBe(true);
       expect(result.content).toContain(
@@ -866,7 +866,7 @@ orgapache.fineract.portfolio.loanproduct.data.LoanProductBorrowerCycleVariationD
   ]
 }`;
 
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"type": "Long"');
@@ -884,7 +884,7 @@ orgapache.fineract.portfolio.loanproduct.data.LoanProductBorrowerCycleVariationD
   ]
 }`;
 
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"name": "param1"');
@@ -905,7 +905,7 @@ orgapache.fineract.portfolio.loanproduct.data.LoanProductBorrowerCycleVariationD
   ]
 }`;
 
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"name": "Savings Account Transactions"');
@@ -924,7 +924,7 @@ orgapache.fineract.portfolio.loanproduct.data.LoanProductBorrowerCycleVariationD
   ]
 }`;
 
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"name": "insertDirectCampaignIntoSmsOutboundTable"');
@@ -950,7 +950,7 @@ orgapache.fineract.portfolio.loanproduct.data.LoanProductBorrowerCycleVariationD
       const config = {
         propertyNameMappings: { se: "purpose" },
       };
-      const result = unifiedSyntaxSanitizer(input, config);
+      const result = propertyAndValueSyntaxSanitizer(input, config);
 
       expect(result.changed).toBe(true);
       // The sanitizer should fix the truncated property name
@@ -973,7 +973,7 @@ orgapache.fineract.portfolio.loanproduct.data.LoanProductBorrowerCycleVariationD
         knownProperties: ["name", "purpose", "description"],
         propertyNameMappings: { me: "name", pu: "purpose", de: "description" },
       };
-      const result = unifiedSyntaxSanitizer(input, config);
+      const result = propertyAndValueSyntaxSanitizer(input, config);
 
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"name": "testMethod"');
@@ -998,7 +998,7 @@ se": "This method provides read-only access to the client's mobile number.",
       const config = {
         propertyNameMappings: { se: "purpose" },
       };
-      const result = unifiedSyntaxSanitizer(input, config);
+      const result = propertyAndValueSyntaxSanitizer(input, config);
 
       expect(result.changed).toBe(true);
       // The pattern should fix the truncated property name
@@ -1026,7 +1026,7 @@ se": "This method provides read-only access to the client's mobile number.",
       const config = {
         propertyTypoCorrections: { nameprobably: "name" },
       };
-      const result = unifiedSyntaxSanitizer(input, config);
+      const result = propertyAndValueSyntaxSanitizer(input, config);
 
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"name": "apptableId"');
@@ -1047,7 +1047,7 @@ se": "This method provides read-only access to the client's mobile number.",
       const config = {
         propertyTypoCorrections: { namelikely: "name" },
       };
-      const result = unifiedSyntaxSanitizer(input, config);
+      const result = propertyAndValueSyntaxSanitizer(input, config);
 
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"name": "testMethod"');
@@ -1063,7 +1063,7 @@ se": "This method provides read-only access to the client's mobile number.",
 a  "publicConstants": []
 }`;
 
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"publicConstants": []');
@@ -1078,7 +1078,7 @@ a  "publicConstants": []
 b  "publicFunctions": []
 }`;
 
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"publicFunctions": []');
@@ -1094,7 +1094,7 @@ b  "publicFunctions": []
   "type": a"boolean"
 }`;
 
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"type": "boolean"');
@@ -1123,7 +1123,7 @@ b  "publicFunctions": []
           },
         ],
       };
-      const result = unifiedSyntaxSanitizer(input, config);
+      const result = propertyAndValueSyntaxSanitizer(input, config);
 
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"org.apache.fineract.client.models.PostClientsRequest"');
@@ -1147,7 +1147,7 @@ b  "publicFunctions": []
           },
         ],
       };
-      const result = unifiedSyntaxSanitizer(input, config);
+      const result = propertyAndValueSyntaxSanitizer(input, config);
 
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"org.apache.fineract.integrationtests.common.Utils"');
@@ -1171,7 +1171,7 @@ b  "publicFunctions": []
           },
         ],
       };
-      const result = unifiedSyntaxSanitizer(input, config);
+      const result = propertyAndValueSyntaxSanitizer(input, config);
 
       expect(result.changed).toBe(true);
       expect(result.content).toContain(
@@ -1191,7 +1191,7 @@ AI-generated content. Review and use carefully. Content may be inaccurate.
   "publicFunctions": []
 }`;
 
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).not.toContain("AI-generated content");
@@ -1207,7 +1207,7 @@ ovo je json
   "purpose": "Test"
 }`;
 
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).not.toContain("ovo je json");
@@ -1221,7 +1221,7 @@ extra_text=""""
   "purpose": "Test"
 }`;
 
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).not.toContain("extra_text");
@@ -1238,7 +1238,7 @@ extra_text=""""
   ]
 }`;
 
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"lombok.Data"');
@@ -1254,7 +1254,7 @@ extra_text=""""
 → "purpose": "Test purpose"
 }`;
 
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"purpose": "Test purpose"');
@@ -1268,7 +1268,7 @@ extra_text=""""
 ➤ "description": "Test description"
 }`;
 
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"description": "Test description"');
@@ -1282,7 +1282,7 @@ extra_text=""""
 ▹ "type": "String"
 }`;
 
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"type": "String"');
@@ -1296,7 +1296,7 @@ extra_text=""""
 ◆ "value": 42
 }`;
 
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"value": 42');
@@ -1312,7 +1312,7 @@ extra_text=""""
   "type": "String"
 }`;
 
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).not.toContain('"name":123":');
@@ -1325,7 +1325,7 @@ extra_text=""""
   "type": "String"
 }`;
 
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).not.toContain('"name":abc123":');
@@ -1338,7 +1338,7 @@ extra_text=""""
   "type": "String"
 }`;
 
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).not.toContain('"name":test_value":');
@@ -1355,7 +1355,7 @@ extra_text=""""
   ] arrayKey: "value4"
 }`;
 
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"unquotedKey":');
@@ -1369,7 +1369,7 @@ extra_text=""""
   newProperty: "value2"
 }`;
 
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"newProperty":');
@@ -1383,7 +1383,7 @@ extra_text=""""
   $special: "value4"
 }`;
 
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"camelCase":');
@@ -1401,7 +1401,7 @@ extra_text=""""
   "description": someText
 }`;
 
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"name": "unquotedValue"');
@@ -1418,7 +1418,7 @@ extra_text=""""
   "decimal": 3.14
 }`;
 
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
 
       // Should not change valid JSON literals
       expect(result.content).toContain('"number": 123');
@@ -1434,7 +1434,7 @@ extra_text=""""
   "array": [1, 2, 3]
 }`;
 
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
 
       expect(result.content).toContain('"object": {');
       expect(result.content).toContain('"array": [');
@@ -1447,7 +1447,7 @@ extra_text=""""
   "prop3": value3]
 }`;
 
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"prop1": "value1"');
@@ -1464,7 +1464,7 @@ extra_text=""""
   "description_": "value3"
 }`;
 
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"name":');
@@ -1480,7 +1480,7 @@ extra_text=""""
   "triple___underscore": "value3"
 }`;
 
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"property_name":');
@@ -1493,7 +1493,7 @@ extra_text=""""
   "name__with__underscores_": "value"
 }`;
 
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"name_with_underscores":');
@@ -1504,7 +1504,7 @@ extra_text=""""
   "description": "This has name_ and property__name in it"
 }`;
 
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
 
       expect(result.changed).toBe(false);
       expect(result.content).toContain('"This has name_ and property__name in it"');
@@ -1518,7 +1518,7 @@ extra_text=""""
   "purpose": "Test purpose"
 }`;
 
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"name": "payLoanCharge"');
@@ -1532,7 +1532,7 @@ extra_text=""""
   "purpose": "Test"
 }`;
 
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"name": "differentValue"');
@@ -1547,7 +1547,7 @@ extra_text=""""
   "type": "String"
 }`;
 
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"name": "interestPostingPeriodType"');
@@ -1561,7 +1561,7 @@ extra_text=""""
   "type": "Staff"
 }`;
 
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"name": "fieldOfficer"');
@@ -1579,7 +1579,7 @@ extra_text=""""
   ]
 }`;
 
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).toContain(
@@ -1593,7 +1593,7 @@ extra_text=""""
   "internalReferences": ["value1" "value2"]
 }`;
 
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"value1", "value2"');
@@ -1605,7 +1605,7 @@ extra_text=""""
   "internalReferences": ["value1", "value2"]
 }`;
 
-      const result = unifiedSyntaxSanitizer(input);
+      const result = propertyAndValueSyntaxSanitizer(input);
 
       expect(result.changed).toBe(false);
       expect(() => JSON.parse(result.content)).not.toThrow();

@@ -1,6 +1,6 @@
-import { fixHeuristicJsonErrors } from "../../../../../src/common/llm/json-processing/sanitizers/index";
+import { fixLlmArtifactPatterns } from "../../../../../src/common/llm/json-processing/sanitizers/index";
 
-describe("fixHeuristicJsonErrors", () => {
+describe("fixLlmArtifactPatterns", () => {
   describe("Pattern 0: Property name typos (trailing underscores)", () => {
     it("should fix property names ending with single underscore", () => {
       const input = `{
@@ -13,7 +13,7 @@ describe("fixHeuristicJsonErrors", () => {
   ]
 }`;
 
-      const result = fixHeuristicJsonErrors(input);
+      const result = fixLlmArtifactPatterns(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"type": "string"');
@@ -31,7 +31,7 @@ describe("fixHeuristicJsonErrors", () => {
   "value_": 123
 }`;
 
-      const result = fixHeuristicJsonErrors(input);
+      const result = fixLlmArtifactPatterns(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"name": "test"');
@@ -46,7 +46,7 @@ describe("fixHeuristicJsonErrors", () => {
   "name__": "test"
 }`;
 
-      const result = fixHeuristicJsonErrors(input);
+      const result = fixLlmArtifactPatterns(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"name": "test"');
@@ -60,7 +60,7 @@ describe("fixHeuristicJsonErrors", () => {
   "type": "string"
 }`;
 
-      const result = fixHeuristicJsonErrors(input);
+      const result = fixLlmArtifactPatterns(input);
 
       expect(result.changed).toBe(false);
       expect(result.content).toBe(input);
@@ -72,7 +72,7 @@ describe("fixHeuristicJsonErrors", () => {
   "type": "string_"
 }`;
 
-      const result = fixHeuristicJsonErrors(input);
+      const result = fixLlmArtifactPatterns(input);
 
       expect(result.changed).toBe(false);
       expect(result.content).toBe(input);
@@ -85,7 +85,7 @@ describe("fixHeuristicJsonErrors", () => {
   }
 }`;
 
-      const result = fixHeuristicJsonErrors(input);
+      const result = fixLlmArtifactPatterns(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"inner": "value"');
@@ -100,7 +100,7 @@ describe("fixHeuristicJsonErrors", () => {
   ]
 }`;
 
-      const result = fixHeuristicJsonErrors(input);
+      const result = fixLlmArtifactPatterns(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"name": "item1"');
@@ -118,7 +118,7 @@ describe("fixHeuristicJsonErrors", () => {
   ]
 }`;
 
-      const result = fixHeuristicJsonErrors(input);
+      const result = fixLlmArtifactPatterns(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"java.util.Map"');
@@ -137,7 +137,7 @@ from the API layer
   ]
 }`;
 
-      const result = fixHeuristicJsonErrors(input);
+      const result = fixLlmArtifactPatterns(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).toContain(
@@ -156,7 +156,7 @@ from the API layer
 }
 _llm_thought: The user wants me to act as a senior developer and analyze the provided Java code.`;
 
-      const result = fixHeuristicJsonErrors(input);
+      const result = fixLlmArtifactPatterns(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"kind": "CLASS"\n}');
@@ -174,7 +174,7 @@ _llm_thought: The user wants me to act as a senior developer and analyze the pro
 so    "connectionInfo": "n/a"
 }`;
 
-      const result = fixHeuristicJsonErrors(input);
+      const result = fixLlmArtifactPatterns(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"connectionInfo": "n/a"');
@@ -196,7 +196,7 @@ so    "connectionInfo": "n/a"
   ]
 }`;
 
-      const result = fixHeuristicJsonErrors(input);
+      const result = fixLlmArtifactPatterns(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"cyclomaticComplexity": 2');
@@ -212,7 +212,7 @@ so    "connectionInfo": "n/a"
   "kind": "CLASS"
 }`;
 
-      const result = fixHeuristicJsonErrors(input);
+      const result = fixLlmArtifactPatterns(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"returnType": "void"');
@@ -240,7 +240,7 @@ so    "connectionInfo": "n/a"
   ]
 }`;
 
-      const result = fixHeuristicJsonErrors(input);
+      const result = fixLlmArtifactPatterns(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"cyclomaticComplexity": 2');
@@ -264,7 +264,7 @@ so    "connectionInfo": "n/a"
   ]
 }`;
 
-      const result = fixHeuristicJsonErrors(input);
+      const result = fixLlmArtifactPatterns(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).toContain("    },");
@@ -293,7 +293,7 @@ so    "connectionInfo": "n/a"
   ]
 }`;
 
-      const result = fixHeuristicJsonErrors(input);
+      const result = fixLlmArtifactPatterns(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).toContain("    },");
@@ -318,7 +318,7 @@ to be continued...
   ]
 }`;
 
-      const result = fixHeuristicJsonErrors(input);
+      const result = fixLlmArtifactPatterns(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).not.toContain("to be continued");
@@ -340,7 +340,7 @@ to be conti...
   ]
 }`;
 
-      const result = fixHeuristicJsonErrors(input);
+      const result = fixLlmArtifactPatterns(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).not.toContain("to be conti");
@@ -361,7 +361,7 @@ I need to produce a JSON output that conforms to a very specific schema.
   "externalReferences": []
 }`;
 
-      const result = fixHeuristicJsonErrors(input);
+      const result = fixLlmArtifactPatterns(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).not.toContain("extra_thoughts");
@@ -378,7 +378,7 @@ extra_text: "  \\"externalReferences\\": []",
   "externalReferences": []
 }`;
 
-      const result = fixHeuristicJsonErrors(input);
+      const result = fixLlmArtifactPatterns(input);
 
       expect(result.changed).toBe(true);
       expect(result.content).not.toContain("extra_text");
@@ -398,7 +398,7 @@ extra_text: "  \\"externalReferences\\": []",
   ]
 }`;
 
-        const result = fixHeuristicJsonErrors(input);
+        const result = fixLlmArtifactPatterns(input);
 
         expect(result.changed).toBe(true);
         expect(result.content).toContain(
@@ -417,7 +417,7 @@ extra_text: "  \\"externalReferences\\": []",
   ]
 }`;
 
-        const result = fixHeuristicJsonErrors(input);
+        const result = fixLlmArtifactPatterns(input);
 
         expect(result.changed).toBe(true);
         expect(result.content).toContain(
@@ -436,7 +436,7 @@ extra_text: "  \\"externalReferences\\": []",
   ]
 }`;
 
-        const result = fixHeuristicJsonErrors(input);
+        const result = fixLlmArtifactPatterns(input);
 
         expect(result.changed).toBe(true);
         expect(result.content).toContain(
@@ -455,7 +455,7 @@ extra_text: "  \\"externalReferences\\": []",
   "kind": "CLASS"
 }`;
 
-        const result = fixHeuristicJsonErrors(input);
+        const result = fixLlmArtifactPatterns(input);
 
         expect(result.changed).toBe(true);
         expect(result.content).toContain('"abcd": "some value"');
@@ -476,7 +476,7 @@ extra_text: "  \\"externalReferences\\": []",
         const config = {
           propertyNameMappings: { se: "purpose" },
         };
-        const result = fixHeuristicJsonErrors(input, config);
+        const result = fixLlmArtifactPatterns(input, config);
 
         expect(result.changed).toBe(true);
         expect(result.content).toContain('"purpose": "some purpose value"');
@@ -497,7 +497,7 @@ since it is used in the API layer
   ]
 }`;
 
-        const result = fixHeuristicJsonErrors(input);
+        const result = fixLlmArtifactPatterns(input);
 
         expect(result.changed).toBe(true);
         expect(result.content).toContain(
@@ -516,7 +516,7 @@ as this class is part of the domain model
   ]
 }`;
 
-        const result = fixHeuristicJsonErrors(input);
+        const result = fixLlmArtifactPatterns(input);
 
         expect(result.changed).toBe(true);
         expect(result.content).toContain(
@@ -535,7 +535,7 @@ as this class is part of the domain model
 }
 I shall continue with the analysis here.`;
 
-        const result = fixHeuristicJsonErrors(input);
+        const result = fixLlmArtifactPatterns(input);
 
         expect(result.changed).toBe(true);
         expect(result.content).toContain('"kind": "CLASS"\n}');
@@ -550,7 +550,7 @@ I shall continue with the analysis here.`;
 }
 I can see that this is a complex class.`;
 
-        const result = fixHeuristicJsonErrors(input);
+        const result = fixLlmArtifactPatterns(input);
 
         expect(result.changed).toBe(true);
         expect(result.content).toContain('"kind": "CLASS"\n}');
@@ -569,7 +569,7 @@ after the initial setup is complete
   ]
 }`;
 
-        const result = fixHeuristicJsonErrors(input);
+        const result = fixLlmArtifactPatterns(input);
 
         expect(result.changed).toBe(true);
         expect(result.content).toContain(
@@ -588,7 +588,7 @@ during the execution phase
   ]
 }`;
 
-        const result = fixHeuristicJsonErrors(input);
+        const result = fixLlmArtifactPatterns(input);
 
         expect(result.changed).toBe(true);
         expect(result.content).toContain(
@@ -607,7 +607,7 @@ provided that the conditions are met
   ]
 }`;
 
-        const result = fixHeuristicJsonErrors(input);
+        const result = fixLlmArtifactPatterns(input);
 
         expect(result.changed).toBe(true);
         expect(result.content).toContain(
@@ -627,7 +627,7 @@ provided that the conditions are met
 the    "connectionInfo": "n/a"
 }`;
 
-        const result = fixHeuristicJsonErrors(input);
+        const result = fixLlmArtifactPatterns(input);
 
         // 'the' is a short lowercase word (3 chars) outside of string context
         // It should be removed as stray text since structural context ensures we're not in a string
@@ -646,7 +646,7 @@ the    "connectionInfo": "n/a"
 true    "connectionInfo": "n/a"
 }`;
 
-        const result = fixHeuristicJsonErrors(input);
+        const result = fixLlmArtifactPatterns(input);
 
         // JSON keywords should never be removed even though they're short
         expect(result.content).toContain("true");
@@ -662,7 +662,7 @@ Next, I will analyze the methods in this class.
   "publicFunctions": []
 }`;
 
-        const result = fixHeuristicJsonErrors(input);
+        const result = fixLlmArtifactPatterns(input);
 
         expect(result.changed).toBe(true);
         expect(result.content).not.toContain("Next, I will");
@@ -678,7 +678,7 @@ Let me continue analyzing the remaining methods.
   "publicFunctions": []
 }`;
 
-        const result = fixHeuristicJsonErrors(input);
+        const result = fixLlmArtifactPatterns(input);
 
         expect(result.changed).toBe(true);
         expect(result.content).not.toContain("Let me continue");
@@ -698,7 +698,7 @@ Now let me add the remaining methods.
   "externalReferences": []
 }`;
 
-        const result = fixHeuristicJsonErrors(input);
+        const result = fixLlmArtifactPatterns(input);
 
         expect(result.changed).toBe(true);
         expect(result.content).not.toContain("Now let me");
@@ -719,7 +719,7 @@ ano
   "purpose": "test purpose"
 }`;
 
-        const result = fixHeuristicJsonErrors(input);
+        const result = fixLlmArtifactPatterns(input);
 
         expect(result.changed).toBe(true);
         expect(result.content).not.toContain("ano");
@@ -734,7 +734,7 @@ abcd
   "nextProperty": "value"
 }`;
 
-        const result = fixHeuristicJsonErrors(input);
+        const result = fixLlmArtifactPatterns(input);
 
         expect(result.changed).toBe(true);
         expect(result.content).not.toContain("abcd");
@@ -748,7 +748,7 @@ abcd
   "data": null
 }`;
 
-        const result = fixHeuristicJsonErrors(input);
+        const result = fixLlmArtifactPatterns(input);
 
         // Should not change valid JSON
         expect(result.changed).toBe(false);

@@ -19,7 +19,7 @@ function createMockUiAnalysisData(
     totalDeclarations: 0,
     averageScriptletsPerFile: 0,
     filesWithHighScriptletCount: 0,
-    customTagLibraries: [],
+    detectedTagLibraries: [],
     topScriptletFiles: [],
     ...overrides,
   };
@@ -120,7 +120,7 @@ describe("UiAnalysisSection", () => {
 
     it("should add tagTypeClass to custom tag libraries", async () => {
       const rawData = createMockUiAnalysisData({
-        customTagLibraries: [
+        detectedTagLibraries: [
           {
             prefix: "c",
             uri: "http://java.sun.com/jsp/jstl/core",
@@ -144,7 +144,7 @@ describe("UiAnalysisSection", () => {
         "/tmp",
       );
 
-      const tagLibs = result?.uiTechnologyAnalysis?.customTagLibraries ?? [];
+      const tagLibs = result?.uiTechnologyAnalysis?.detectedTagLibraries ?? [];
       expect(tagLibs[0].tagTypeClass).toBe("badge-info"); // JSTL
       expect(tagLibs[1].tagTypeClass).toBe("badge-info"); // Spring
       expect(tagLibs[2].tagTypeClass).toBe("badge-warning"); // Custom

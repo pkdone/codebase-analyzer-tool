@@ -8,10 +8,10 @@ export { fixJsonSyntax } from "./syntax-sanitizer.js";
 // Individual sanitizers (still available for specific use cases)
 export { normalizeCharacters } from "./normalize-characters.js";
 export { removeComments } from "./remove-comments.js";
-export { fixJsonStructure } from "./fix-json-structure.js";
-export { unifiedSyntaxSanitizer } from "./unified-syntax-sanitizer.js";
+export { postProcessJsonStructure } from "./post-process-json-structure.js";
+export { propertyAndValueSyntaxSanitizer } from "./property-and-value-syntax-sanitizer.js";
 export { fixLlmTokenArtifacts } from "./fix-llm-token-artifacts.js";
-export { fixHeuristicJsonErrors } from "./fix-heuristic-json-errors.js";
+export { fixLlmArtifactPatterns } from "./fix-llm-artifact-patterns.js";
 export { fixMalformedJsonPatterns } from "./fix-malformed-json-patterns.js";
 
 export type { Sanitizer, SanitizerResult, SchemaFixingTransform } from "./sanitizers-types.js";

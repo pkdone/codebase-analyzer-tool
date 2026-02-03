@@ -4,10 +4,10 @@ import {
   fixJsonSyntax,
   normalizeCharacters,
   removeComments,
-  fixJsonStructure,
-  unifiedSyntaxSanitizer,
+  postProcessJsonStructure,
+  propertyAndValueSyntaxSanitizer,
   fixLlmTokenArtifacts,
-  fixHeuristicJsonErrors,
+  fixLlmArtifactPatterns,
   fixMalformedJsonPatterns,
   type Sanitizer,
 } from "../sanitizers/index.js";
@@ -63,9 +63,9 @@ export type ParseResult =
  *
  * Phase 5: Property & Value Fixes
  *   Fixes property names and value syntax issues
- *   - fixJsonStructure: Post-processing fixes for various structural issues
- *   - unifiedSyntaxSanitizer: Unified property and value syntax fixes
- *   - fixHeuristicJsonErrors: Fixes assorted malformed patterns
+ *   - postProcessJsonStructure: Post-processing fixes for various structural issues
+ *   - propertyAndValueSyntaxSanitizer: Property and value syntax fixes
+ *   - fixLlmArtifactPatterns: Fixes assorted LLM artifact patterns
  *   - fixMalformedJsonPatterns: Fixes specific malformed patterns
  *
  * Phase 6: Content Fixes
@@ -85,7 +85,12 @@ const SANITIZATION_PIPELINE_PHASES = [
   // Phase 4: Syntax Fixes (Consolidated)
   [fixJsonSyntax],
   // Phase 5: Property & Value Fixes
-  [fixJsonStructure, unifiedSyntaxSanitizer, fixHeuristicJsonErrors, fixMalformedJsonPatterns],
+  [
+    postProcessJsonStructure,
+    propertyAndValueSyntaxSanitizer,
+    fixLlmArtifactPatterns,
+    fixMalformedJsonPatterns,
+  ],
   // Phase 6: Content Fixes
   [fixLlmTokenArtifacts],
 ] as const satisfies readonly (readonly Sanitizer[])[];

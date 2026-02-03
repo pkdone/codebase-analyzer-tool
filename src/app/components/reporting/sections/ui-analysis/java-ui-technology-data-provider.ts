@@ -52,7 +52,7 @@ export class JavaUiTechnologyDataProvider {
     const topScriptletFiles = this.jspMetricsAnalyzer.computeTopScriptletFiles(
       jspAnalysis.jspFileMetrics,
     );
-    const customTagLibraries = this.jspMetricsAnalyzer.computeTagLibraries(
+    const detectedTagLibraries = this.jspMetricsAnalyzer.computeTagLibraries(
       jspAnalysis.tagLibraryMap,
     );
 
@@ -69,7 +69,7 @@ export class JavaUiTechnologyDataProvider {
       totalDeclarations: jspAnalysis.totalDeclarations,
       averageScriptletsPerFile,
       filesWithHighScriptletCount: jspAnalysis.filesWithHighScriptletCount,
-      customTagLibraries,
+      detectedTagLibraries,
       topScriptletFiles,
     };
   }

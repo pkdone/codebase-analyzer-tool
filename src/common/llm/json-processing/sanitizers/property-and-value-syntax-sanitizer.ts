@@ -1,5 +1,5 @@
 /**
- * Unified sanitizer that fixes property names, property assignment syntax, and value syntax issues.
+ * Property and value syntax sanitizer that fixes property names, property assignment syntax, and value syntax issues.
  *
  * This sanitizer combines the functionality of multiple pattern categories:
  * 1. Concatenation chains (JavaScript-style string concatenation)
@@ -33,7 +33,7 @@ import {
 } from "./strategies";
 
 /**
- * The unified syntax sanitizer pipeline.
+ * The property and value syntax sanitizer pipeline.
  * Strategies are applied in the order that produces correct results:
  * 1. Concatenation chains first (may create property name issues)
  * 2. Assignment syntax (fix stray text early, before property name fixes)
@@ -43,7 +43,7 @@ import {
  * 6. Unescaped quotes (escape quotes in strings)
  * 7. Stray content (cleanup AI warnings, comments, etc.)
  */
-const unifiedSyntaxPipeline = createPipeline([
+const propertyAndValueSyntaxPipeline = createPipeline([
   concatenationFixer,
   assignmentSyntaxFixer,
   arrayElementFixer,
@@ -54,15 +54,15 @@ const unifiedSyntaxPipeline = createPipeline([
 ]);
 
 /**
- * Unified syntax sanitizer function.
+ * Property and value syntax sanitizer function.
  * Delegates to the pipeline-based implementation.
  */
-export const unifiedSyntaxSanitizer: Sanitizer = (input, config): SanitizerResult => {
+export const propertyAndValueSyntaxSanitizer: Sanitizer = (input, config): SanitizerResult => {
   if (!input) {
     return { content: input, changed: false };
   }
 
-  const pipelineResult = unifiedSyntaxPipeline(input, config);
+  const pipelineResult = propertyAndValueSyntaxPipeline(input, config);
 
   return {
     content: pipelineResult.content,

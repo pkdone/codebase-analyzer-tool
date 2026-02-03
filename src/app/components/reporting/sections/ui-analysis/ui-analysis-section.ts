@@ -62,7 +62,7 @@ export class UiAnalysisSection extends BaseReportSection {
         version: framework.version ?? UNKNOWN_VALUE_PLACEHOLDER,
       })),
       // Add CSS classes to tag libraries
-      customTagLibraries: rawData.customTagLibraries.map((tagLib) => ({
+      detectedTagLibraries: rawData.detectedTagLibraries.map((tagLib) => ({
         ...tagLib,
         tagTypeClass: TAG_LIBRARY_BADGE_CLASSES[tagLib.tagType],
       })),

@@ -8,7 +8,7 @@ import { JsonReportWriter } from "../../components/reporting/json-report-writer"
 import { FlowchartDiagramGenerator } from "../../components/reporting/diagrams";
 // Domain-specific diagram generators are co-located with their sections
 import { DomainModelDiagramGenerator } from "../../components/reporting/sections/domain-model";
-import { ArchitectureDiagramGenerator } from "../../components/reporting/sections/future-architecture";
+import { ArchitectureDiagramGenerator } from "../../components/reporting/sections/potential-microservices";
 import { CurrentArchitectureDiagramGenerator } from "../../components/reporting/sections/inferred-architecture";
 import { DatabaseReportDataProvider } from "../../components/reporting/sections/database/database-report-data-provider";
 import { IntegrationPointsDataProvider } from "../../components/reporting/sections/integration-points/integration-points-data-provider";
@@ -24,7 +24,7 @@ import { BusinessProcessesSection } from "../../components/reporting/sections/bu
 // Visualization sections (domain-organized)
 import { DomainModelSection } from "../../components/reporting/sections/domain-model";
 import { InferredArchitectureSection } from "../../components/reporting/sections/inferred-architecture";
-import { PotentialMicroservicesSection } from "../../components/reporting/sections/future-architecture";
+import { PotentialMicroservicesSection } from "../../components/reporting/sections/potential-microservices";
 
 // Focused report sections
 import { DependenciesSection } from "../../components/reporting/sections/dependencies/dependencies-section";

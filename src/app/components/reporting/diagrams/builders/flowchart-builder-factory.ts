@@ -9,16 +9,9 @@ import {
   MermaidFlowchartBuilder,
   type FlowchartDirection,
 } from "../../../../../common/diagrams/mermaid";
-import {
-  buildMermaidInitDirective,
-  buildArchitectureInitDirective,
-} from "../utils/mermaid-builders";
+import { buildCompactInitDirective, buildSpaciousInitDirective } from "../utils/mermaid-builders";
 import { buildStyleDefinitions } from "../utils/mermaid-styles";
-
-/**
- * Type of initialization directive to use for the diagram.
- */
-export type InitDirectiveType = "standard" | "architecture";
+import type { DiagramLayoutPreset } from "../generators/base-diagram-generator";
 
 /**
  * Options for creating a flowchart builder.
@@ -31,10 +24,10 @@ export interface CreateFlowchartBuilderOptions {
   direction?: FlowchartDirection;
 
   /**
-   * The type of init directive to use.
-   * @default "standard"
+   * The layout preset to use for spacing and padding.
+   * @default "compact"
    */
-  initDirectiveType?: InitDirectiveType;
+  layoutPreset?: DiagramLayoutPreset;
 }
 
 /**
@@ -56,12 +49,10 @@ export interface CreateFlowchartBuilderOptions {
 export function createFlowchartBuilder(
   options: CreateFlowchartBuilderOptions = {},
 ): MermaidFlowchartBuilder {
-  const { direction = "TB", initDirectiveType = "standard" } = options;
+  const { direction = "TB", layoutPreset = "compact" } = options;
 
   const initDirective =
-    initDirectiveType === "architecture"
-      ? buildArchitectureInitDirective()
-      : buildMermaidInitDirective();
+    layoutPreset === "spacious" ? buildSpaciousInitDirective() : buildCompactInitDirective();
 
   const styleDefinitions = buildStyleDefinitions();
 

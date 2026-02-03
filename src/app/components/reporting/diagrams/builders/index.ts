@@ -23,6 +23,8 @@ export {
 // Export the app-specific factory for creating builders with configured styles
 export {
   createFlowchartBuilder,
-  type InitDirectiveType,
   type CreateFlowchartBuilderOptions,
 } from "./flowchart-builder-factory";
+
+// Re-export DiagramLayoutPreset from generators for convenience
+export type { DiagramLayoutPreset } from "../generators/base-diagram-generator";

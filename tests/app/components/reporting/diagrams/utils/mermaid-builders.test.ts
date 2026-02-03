@@ -7,8 +7,8 @@
  */
 
 import {
-  buildMermaidInitDirective,
-  buildArchitectureInitDirective,
+  buildCompactInitDirective,
+  buildSpaciousInitDirective,
   generateEmptyDiagramSvg,
   // These are re-exported from common - verify they're accessible
   escapeMermaidLabel,
@@ -17,9 +17,9 @@ import {
 } from "../../../../../../src/app/components/reporting/diagrams/utils/mermaid-builders";
 
 describe("mermaid-builders (app-specific)", () => {
-  describe("buildMermaidInitDirective", () => {
+  describe("buildCompactInitDirective", () => {
     it("should return a valid Mermaid init directive", () => {
-      const directive = buildMermaidInitDirective();
+      const directive = buildCompactInitDirective();
 
       expect(directive).toMatch(/^%%\{init:/);
       expect(directive).toMatch(/\}%%$/);
@@ -28,24 +28,24 @@ describe("mermaid-builders (app-specific)", () => {
     });
 
     it("should include numeric padding value", () => {
-      const directive = buildMermaidInitDirective();
+      const directive = buildCompactInitDirective();
 
       // Should contain a numeric padding value
       expect(directive).toMatch(/diagramPadding.*\d+/);
     });
   });
 
-  describe("buildArchitectureInitDirective", () => {
+  describe("buildSpaciousInitDirective", () => {
     it("should return a valid Mermaid init directive", () => {
-      const directive = buildArchitectureInitDirective();
+      const directive = buildSpaciousInitDirective();
 
       expect(directive).toMatch(/^%%\{init:/);
       expect(directive).toMatch(/\}%%$/);
       expect(directive).toContain("flowchart");
     });
 
-    it("should include architecture-specific spacing configuration", () => {
-      const directive = buildArchitectureInitDirective();
+    it("should include spacious spacing configuration", () => {
+      const directive = buildSpaciousInitDirective();
 
       expect(directive).toContain("diagramPadding");
       expect(directive).toContain("nodeSpacing");

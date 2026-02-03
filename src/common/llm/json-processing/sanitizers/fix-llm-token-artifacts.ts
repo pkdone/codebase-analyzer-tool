@@ -19,13 +19,13 @@ import { isInStringAt } from "../utils/parser-context-utils";
  *
  * Examples of issues this sanitizer handles:
  * - `<y_bin_305>` -> removed (LLM token artifact)
- * - `<y_bin_XXX>OfCode":` -> `OfCode":` (removes artifact, let unifiedSyntaxSanitizer handle the typo)
+ * - `<y_bin_XXX>OfCode":` -> `OfCode":` (removes artifact, let propertyAndValueSyntaxSanitizer handle the typo)
  * - `<|endoftext|>` -> removed (OpenAI end-of-text token)
  * - `[EOS]` -> removed (end-of-sequence token)
  *
  * Strategy:
  * Simply removes all LLM token artifacts. The resulting typos (e.g., `OfCode"` instead of `linesOfCode"`)
- * will be handled by the `unifiedSyntaxSanitizer` sanitizer, which is more robust and maintainable.
+ * will be handled by the `propertyAndValueSyntaxSanitizer` sanitizer, which is more robust and maintainable.
  * This approach is safer than trying to reconstruct property names heuristically.
  */
 export const fixLlmTokenArtifacts: Sanitizer = (jsonString: string): SanitizerResult => {

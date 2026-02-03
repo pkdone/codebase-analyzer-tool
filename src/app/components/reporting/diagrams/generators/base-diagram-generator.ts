@@ -1,14 +1,16 @@
 import {
   generateEmptyDiagramSvg,
-  buildMermaidInitDirective,
-  buildArchitectureInitDirective,
+  buildCompactInitDirective,
+  buildSpaciousInitDirective,
 } from "../utils";
 import { buildStyleDefinitions } from "../utils";
 
 /**
- * Type of initialization directive to use for the diagram.
+ * Diagram layout preset determining spacing and padding configuration.
+ * - "compact": Minimal padding around diagram content
+ * - "spacious": Additional spacing for better node distribution (used for architecture diagrams)
  */
-export type DiagramInitDirectiveType = "standard" | "architecture";
+export type DiagramLayoutPreset = "compact" | "spacious";
 
 /**
  * Base interface for diagram options with standard width and height properties.
@@ -56,17 +58,15 @@ export abstract class BaseDiagramGenerator<TOptions extends BaseDiagramOptions> 
    * This consolidates the common initialization pattern used across all diagram generators.
    *
    * @param graphDeclaration - The graph type declaration (e.g., "flowchart TB", "graph LR")
-   * @param directiveType - The type of init directive to use ("standard" or "architecture")
+   * @param layoutPreset - The layout preset to use ("compact" or "spacious")
    * @returns Array of lines with the diagram preamble already added
    */
   protected initializeDiagram(
     graphDeclaration: string,
-    directiveType: DiagramInitDirectiveType = "standard",
+    layoutPreset: DiagramLayoutPreset = "compact",
   ): string[] {
     const initDirective =
-      directiveType === "architecture"
-        ? buildArchitectureInitDirective()
-        : buildMermaidInitDirective();
+      layoutPreset === "spacious" ? buildSpaciousInitDirective() : buildCompactInitDirective();
 
     return [initDirective, graphDeclaration, buildStyleDefinitions()];
   }

@@ -94,7 +94,7 @@ export class CurrentArchitectureDiagramGenerator extends BaseDiagramGenerator<Cu
     architectureData: InferredArchitectureData,
   ): string {
     // Use TB layout with increased padding for better spacing
-    const lines = this.initializeDiagram("flowchart TB", "architecture");
+    const lines = this.initializeDiagram("flowchart TB", "spacious");
 
     // Build a map of component names to node IDs for dependency resolution
     const nodeIdMap = new Map<string, string>();

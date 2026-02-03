@@ -38,8 +38,8 @@ describe("createFlowchartBuilder factory", () => {
       expect(result).toContain("diagramPadding");
     });
 
-    it("should include architecture init directive when specified", () => {
-      const builder = createFlowchartBuilder({ initDirectiveType: "architecture" });
+    it("should include spacious init directive when specified", () => {
+      const builder = createFlowchartBuilder({ layoutPreset: "spacious" });
       const result = builder.render();
 
       expect(result).toContain("%%{init:");

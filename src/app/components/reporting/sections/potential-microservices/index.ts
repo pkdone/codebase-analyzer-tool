@@ -1,5 +1,5 @@
 /**
- * Future architecture section - visualization of potential microservices architecture.
+ * Potential microservices section - visualization of potential microservices architecture.
  */
 
 export { PotentialMicroservicesSection } from "./potential-microservices-section";

@@ -174,17 +174,17 @@ describe("UI Technology Analysis Integration Test", () => {
     expect(uiAnalysisResult.frameworks[0].configFiles).toContain("WEB-INF/struts-config.xml");
 
     // Verify custom tag libraries de-duplicated and counted
-    expect(uiAnalysisResult.customTagLibraries).toHaveLength(3); // c, fmt, custom
+    expect(uiAnalysisResult.detectedTagLibraries).toHaveLength(3); // c, fmt, custom
 
-    const coreTag = uiAnalysisResult.customTagLibraries.find((t) => t.prefix === "c");
+    const coreTag = uiAnalysisResult.detectedTagLibraries.find((t) => t.prefix === "c");
     expect(coreTag).toBeDefined();
     expect(coreTag?.usageCount).toBe(3); // Used in all 3 JSP files
 
-    const fmtTag = uiAnalysisResult.customTagLibraries.find((t) => t.prefix === "fmt");
+    const fmtTag = uiAnalysisResult.detectedTagLibraries.find((t) => t.prefix === "fmt");
     expect(fmtTag).toBeDefined();
     expect(fmtTag?.usageCount).toBe(1); // Used only in home.tsp
 
-    const customTag = uiAnalysisResult.customTagLibraries.find((t) => t.prefix === "custom");
+    const customTag = uiAnalysisResult.detectedTagLibraries.find((t) => t.prefix === "custom");
     expect(customTag).toBeDefined();
     expect(customTag?.usageCount).toBe(1); // Used only in admin.tsp
 
@@ -223,7 +223,7 @@ describe("UI Technology Analysis Integration Test", () => {
     expect(result.totalJspFiles).toBe(0);
     expect(result.totalScriptlets).toBe(0);
     expect(result.frameworks).toHaveLength(0);
-    expect(result.customTagLibraries).toHaveLength(0);
+    expect(result.detectedTagLibraries).toHaveLength(0);
     expect(result.topScriptletFiles).toHaveLength(0);
   });
 

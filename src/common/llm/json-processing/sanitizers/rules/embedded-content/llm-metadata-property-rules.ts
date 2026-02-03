@@ -1,5 +1,5 @@
 /**
- * Replacement rules for handling extra_*, _llm_*, and _ai_* property patterns.
+ * Replacement rules for handling LLM metadata property patterns (extra_*, _llm_*, _ai_*).
  * This module handles:
  * - extra_text= style attributes
  * - Invalid extra_* property structures
@@ -101,9 +101,9 @@ export function isValidEmbeddedContentContext(context: ContextInfo): boolean {
 }
 
 /**
- * Rules for removing extra_*, _llm_*, and _ai_* property patterns.
+ * Rules for removing LLM metadata property patterns (extra_*, _llm_*, _ai_*).
  */
-export const EXTRA_PROPERTY_RULES: readonly ReplacementRule[] = [
+export const LLM_METADATA_PROPERTY_RULES: readonly ReplacementRule[] = [
   // Rule: Remove extra_text= style attributes
   // Pattern: `extra_text="  "externalReferences": [` -> `"externalReferences": [`
   {

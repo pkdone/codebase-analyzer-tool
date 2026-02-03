@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import StandardMessagesBedrockLLM from "../../../../../../src/common/llm/providers/bedrock/common/standard-messages-bedrock-llm";
+import MessagesPayloadBedrockLLM from "../../../../../../src/common/llm/providers/bedrock/common/messages-payload-bedrock-llm";
 import { createMockErrorLoggingConfig } from "../../../../helpers/llm/mock-error-logger";
 import { LLMPurpose } from "../../../../../../src/common/llm/types/llm-request.types";
 import { ResolvedLLMModelMetadata } from "../../../../../../src/common/llm/types/llm-model.types";
@@ -12,7 +12,7 @@ import { llmConfig } from "../../../../../../src/common/llm/config/llm.config";
 import { z } from "zod";
 
 // Mock concrete implementation for testing abstract class
-class TestStandardMessagesBedrockLLM extends StandardMessagesBedrockLLM {
+class TestMessagesPayloadBedrockLLM extends MessagesPayloadBedrockLLM {
   protected getResponseExtractionConfig() {
     return {
       schema: z.object({ content: z.string() }),
@@ -28,7 +28,7 @@ class TestStandardMessagesBedrockLLM extends StandardMessagesBedrockLLM {
   }
 }
 
-describe("StandardMessagesBedrockLLM", () => {
+describe("MessagesPayloadBedrockLLM", () => {
   const TEST_MODEL_KEY = "TEST_COMPLETION_MODEL";
 
   const mockModelsMetadata: Record<string, ResolvedLLMModelMetadata> = {
@@ -84,7 +84,7 @@ describe("StandardMessagesBedrockLLM", () => {
       errorPatterns: [],
       providerSpecificConfig: mockConfig,
       extractConfig: () => ({}),
-      implementation: TestStandardMessagesBedrockLLM,
+      implementation: TestMessagesPayloadBedrockLLM,
     };
 
     return {
@@ -113,7 +113,7 @@ describe("StandardMessagesBedrockLLM", () => {
 
   describe("buildCompletionRequestBody", () => {
     it("should build request body with standard messages array format", () => {
-      const llm = new TestStandardMessagesBedrockLLM(createTestProviderInit());
+      const llm = new TestMessagesPayloadBedrockLLM(createTestProviderInit());
       const testPrompt = "Analyze this code";
 
       // Access protected method for testing
@@ -127,7 +127,7 @@ describe("StandardMessagesBedrockLLM", () => {
     });
 
     it("should include user message with correct role and content", () => {
-      const llm = new TestStandardMessagesBedrockLLM(createTestProviderInit());
+      const llm = new TestMessagesPayloadBedrockLLM(createTestProviderInit());
       const testPrompt = "Test prompt content";
 
       // eslint-disable-next-line @typescript-eslint/dot-notation
@@ -140,7 +140,7 @@ describe("StandardMessagesBedrockLLM", () => {
     });
 
     it("should use maxCompletionTokens from model metadata", () => {
-      const llm = new TestStandardMessagesBedrockLLM(createTestProviderInit());
+      const llm = new TestMessagesPayloadBedrockLLM(createTestProviderInit());
 
       // eslint-disable-next-line @typescript-eslint/dot-notation
       const requestBody = llm["buildCompletionRequestBody"](TEST_MODEL_KEY, "test");
@@ -149,7 +149,7 @@ describe("StandardMessagesBedrockLLM", () => {
     });
 
     it("should use default temperature and top_p values", () => {
-      const llm = new TestStandardMessagesBedrockLLM(createTestProviderInit());
+      const llm = new TestMessagesPayloadBedrockLLM(createTestProviderInit());
 
       // eslint-disable-next-line @typescript-eslint/dot-notation
       const requestBody = llm["buildCompletionRequestBody"](TEST_MODEL_KEY, "test");
@@ -160,7 +160,7 @@ describe("StandardMessagesBedrockLLM", () => {
     });
 
     it("should handle prompts with special characters", () => {
-      const llm = new TestStandardMessagesBedrockLLM(createTestProviderInit());
+      const llm = new TestMessagesPayloadBedrockLLM(createTestProviderInit());
       const complexPrompt = "Special chars: <>&\"'\nNewlines\tTabs";
 
       // eslint-disable-next-line @typescript-eslint/dot-notation
@@ -173,7 +173,7 @@ describe("StandardMessagesBedrockLLM", () => {
 
   describe("getResponseExtractionConfig", () => {
     it("should be implemented by subclass", () => {
-      const llm = new TestStandardMessagesBedrockLLM(createTestProviderInit());
+      const llm = new TestMessagesPayloadBedrockLLM(createTestProviderInit());
 
       // eslint-disable-next-line @typescript-eslint/dot-notation
       const config = llm["getResponseExtractionConfig"]();

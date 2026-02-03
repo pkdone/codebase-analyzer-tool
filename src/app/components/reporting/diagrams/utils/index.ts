@@ -11,8 +11,8 @@ export {
 } from "../../config/brand-theme.config";
 
 export {
-  buildMermaidInitDirective,
-  buildArchitectureInitDirective,
+  buildCompactInitDirective,
+  buildSpaciousInitDirective,
   generateEmptyDiagramSvg,
   escapeMermaidLabel,
   generateNodeId,

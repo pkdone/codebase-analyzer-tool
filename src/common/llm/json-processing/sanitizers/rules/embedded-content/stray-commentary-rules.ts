@@ -15,7 +15,7 @@ import type { ReplacementRule } from "../replacement-rule.types";
 import { parsingHeuristics } from "../../../constants/json-processing.config";
 import { looksLikeSentenceStructure } from "../../../utils/stray-text-detection";
 import { safeGroup, safeGroups3, safeGroups4 } from "../../../utils/safe-group-extractor";
-import { isValidEmbeddedContentContext } from "./extra-property-rules";
+import { isValidEmbeddedContentContext } from "./llm-metadata-property-rules";
 
 /**
  * Rules for removing stray commentary and LLM conversational artifacts from JSON.

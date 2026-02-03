@@ -1,4 +1,4 @@
-import StandardMessagesBedrockLLM from "../common/standard-messages-bedrock-llm";
+import MessagesPayloadBedrockLLM from "../common/messages-payload-bedrock-llm";
 import { z } from "zod";
 
 /**
@@ -26,9 +26,9 @@ const MistralCompletionResponseSchema = z.object({
 
 /**
  * Class for the AWS Bedrock Mistral LLMs.
- * Extends StandardMessagesBedrockLLM which provides the common request body building logic.
+ * Extends MessagesPayloadBedrockLLM which provides the common request body building logic.
  */
-export default class BedrockMistralLLM extends StandardMessagesBedrockLLM {
+export default class BedrockMistralLLM extends MessagesPayloadBedrockLLM {
   /**
    * Get the provider-specific response extraction configuration.
    */

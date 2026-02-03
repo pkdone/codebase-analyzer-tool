@@ -2,7 +2,7 @@ import "reflect-metadata";
 import {
   BaseDiagramGenerator,
   type BaseDiagramOptions,
-  type DiagramInitDirectiveType,
+  type DiagramLayoutPreset,
   DIAGRAM_STYLES,
 } from "../../../../../../src/app/components/reporting/diagrams";
 
@@ -31,11 +31,8 @@ class TestDiagramGeneratorImpl extends BaseDiagramGenerator<TestDiagramOptions> 
     return this.mergeOptions(options);
   }
 
-  testInitializeDiagram(
-    graphDeclaration: string,
-    directiveType?: DiagramInitDirectiveType,
-  ): string[] {
-    return this.initializeDiagram(graphDeclaration, directiveType);
+  testInitializeDiagram(graphDeclaration: string, layoutPreset?: DiagramLayoutPreset): string[] {
+    return this.initializeDiagram(graphDeclaration, layoutPreset);
   }
 
   getDefaultOptions(): Required<TestDiagramOptions> {
@@ -161,11 +158,11 @@ describe("BaseDiagramGenerator", () => {
       expect(result[0]).toContain("%%{init:");
     });
 
-    it("should use architecture init directive when specified", () => {
-      const result = generator.testInitializeDiagram("flowchart TB", "architecture");
+    it("should use spacious init directive when specified", () => {
+      const result = generator.testInitializeDiagram("flowchart TB", "spacious");
 
       expect(result[0]).toContain("%%{init:");
-      // Architecture directive should have specific padding settings
+      // Spacious directive should have specific padding settings
     });
 
     it("should preserve graph declaration exactly as provided", () => {

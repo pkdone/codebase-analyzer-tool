@@ -1,10 +1,10 @@
 import { executeRules } from "../../../../../../../src/common/llm/json-processing/sanitizers/rules/rule-executor";
 import {
-  EXTRA_PROPERTY_RULES,
+  LLM_METADATA_PROPERTY_RULES,
   isValidEmbeddedContentContext,
-} from "../../../../../../../src/common/llm/json-processing/sanitizers/rules/embedded-content/extra-property-rules";
+} from "../../../../../../../src/common/llm/json-processing/sanitizers/rules/embedded-content/llm-metadata-property-rules";
 
-describe("EXTRA_PROPERTY_RULES", () => {
+describe("LLM_METADATA_PROPERTY_RULES", () => {
   describe("extraTextAttribute", () => {
     it("should remove extra_text= attribute on a line", () => {
       const input = `{
@@ -12,7 +12,7 @@ describe("EXTRA_PROPERTY_RULES", () => {
 },
 extra_text="some text"
 }`;
-      const result = executeRules(input, EXTRA_PROPERTY_RULES);
+      const result = executeRules(input, LLM_METADATA_PROPERTY_RULES);
       expect(result.changed).toBe(true);
       expect(result.content).not.toContain("extra_text");
     });
@@ -23,7 +23,7 @@ extra_text="some text"
 }
 extra_notes="analysis"
 }`;
-      const result = executeRules(input, EXTRA_PROPERTY_RULES);
+      const result = executeRules(input, LLM_METADATA_PROPERTY_RULES);
       expect(result.changed).toBe(true);
       expect(result.content).not.toContain("extra_notes");
     });
@@ -36,7 +36,7 @@ extra_notes="analysis"
 }
 extra_text = some value
 }`;
-      const result = executeRules(input, EXTRA_PROPERTY_RULES);
+      const result = executeRules(input, LLM_METADATA_PROPERTY_RULES);
       expect(result.changed).toBe(true);
       expect(result.content).not.toContain("extra_text");
     });
@@ -50,7 +50,7 @@ extra_text = some value
 extra_analysis="some complex stuff here",
 "property": "value"
 }`;
-      const result = executeRules(input, EXTRA_PROPERTY_RULES);
+      const result = executeRules(input, LLM_METADATA_PROPERTY_RULES);
       expect(result.changed).toBe(true);
       expect(result.content).not.toContain("extra_analysis");
     });
@@ -63,7 +63,7 @@ extra_analysis="some complex stuff here",
 extra_text: some value
   "property": "value"
 }`;
-      const result = executeRules(input, EXTRA_PROPERTY_RULES);
+      const result = executeRules(input, LLM_METADATA_PROPERTY_RULES);
       expect(result.changed).toBe(true);
       // The rule adds a comma, which helps subsequent rules
       expect(result.content).toContain("],");
@@ -75,7 +75,7 @@ extra_text: some value
 _llm_thoughts: thinking about this
   "result": "done"
 }`;
-      const result = executeRules(input, EXTRA_PROPERTY_RULES);
+      const result = executeRules(input, LLM_METADATA_PROPERTY_RULES);
       expect(result.changed).toBe(true);
       expect(result.content).toContain("],");
     });
@@ -86,7 +86,7 @@ _llm_thoughts: thinking about this
 _ai_analysis: analysis here
   "conclusion": "final"
 }`;
-      const result = executeRules(input, EXTRA_PROPERTY_RULES);
+      const result = executeRules(input, LLM_METADATA_PROPERTY_RULES);
       expect(result.changed).toBe(true);
       expect(result.content).toContain("],");
     });
@@ -100,7 +100,7 @@ _ai_analysis: analysis here
 extra_thoughts: I've identified all the relevant information
   "property": "value"
 }`;
-      const result = executeRules(input, EXTRA_PROPERTY_RULES);
+      const result = executeRules(input, LLM_METADATA_PROPERTY_RULES);
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"property": "value"');
       expect(result.content).not.toContain("extra_thoughts");
@@ -113,7 +113,7 @@ extra_thoughts: I've identified all the relevant information
 extra_notes: Additional context about the analysis
   "nextProperty": []
 }`;
-      const result = executeRules(input, EXTRA_PROPERTY_RULES);
+      const result = executeRules(input, LLM_METADATA_PROPERTY_RULES);
       expect(result.changed).toBe(true);
       expect(result.content).not.toContain("extra_notes");
     });
@@ -126,7 +126,7 @@ extra_notes: Additional context about the analysis
 }
 extra_text= some random text
 }`;
-      const result = executeRules(input, EXTRA_PROPERTY_RULES);
+      const result = executeRules(input, LLM_METADATA_PROPERTY_RULES);
       expect(result.changed).toBe(true);
       expect(result.content).not.toContain("extra_text");
     });
@@ -137,7 +137,7 @@ extra_text= some random text
 }
 extra_info additional metadata
 }`;
-      const result = executeRules(input, EXTRA_PROPERTY_RULES);
+      const result = executeRules(input, LLM_METADATA_PROPERTY_RULES);
       expect(result.changed).toBe(true);
       expect(result.content).not.toContain("extra_info");
     });
@@ -153,7 +153,7 @@ extra_metadata: {
 }
 "property": "value"
 }`;
-      const result = executeRules(input, EXTRA_PROPERTY_RULES);
+      const result = executeRules(input, LLM_METADATA_PROPERTY_RULES);
       expect(result.changed).toBe(true);
       expect(result.content).not.toContain("extra_metadata");
     });
@@ -167,7 +167,7 @@ _llm_context: {
 }
 "result": "final"
 }`;
-      const result = executeRules(input, EXTRA_PROPERTY_RULES);
+      const result = executeRules(input, LLM_METADATA_PROPERTY_RULES);
       expect(result.changed).toBe(true);
       expect(result.content).not.toContain("_llm_context");
     });
@@ -181,7 +181,7 @@ _ai_internal: {
 }
 "output": "result"
 }`;
-      const result = executeRules(input, EXTRA_PROPERTY_RULES);
+      const result = executeRules(input, LLM_METADATA_PROPERTY_RULES);
       expect(result.changed).toBe(true);
       expect(result.content).not.toContain("_ai_internal");
     });
@@ -204,7 +204,7 @@ extra_analysis: {
 }
 "result": "final"
 }`;
-      const result = executeRules(input, EXTRA_PROPERTY_RULES);
+      const result = executeRules(input, LLM_METADATA_PROPERTY_RULES);
       expect(result.changed).toBe(true);
       // The prefix "extra_analysis:" is removed
       expect(result.content).not.toContain("extra_analysis");
@@ -224,7 +224,7 @@ _ai_context: {
 }
 "property": "next"
 }`;
-      const result = executeRules(input, EXTRA_PROPERTY_RULES);
+      const result = executeRules(input, LLM_METADATA_PROPERTY_RULES);
       expect(result.changed).toBe(true);
       // The rule matches and applies when braces are balanced
       expect(result.content).not.toContain("_ai_context");
@@ -241,7 +241,7 @@ _llm_metadata: {
 }
 "result": "final"
 }`;
-      const result = executeRules(input, EXTRA_PROPERTY_RULES);
+      const result = executeRules(input, LLM_METADATA_PROPERTY_RULES);
       expect(result.changed).toBe(true);
       // The prefix "_llm_metadata:" is removed
       expect(result.content).not.toContain("_llm_metadata");
@@ -258,7 +258,7 @@ extra_thoughts: This is my analysis
 extra_notes= "additional info"
   "publicMethods": []
 }`;
-      const result = executeRules(input, EXTRA_PROPERTY_RULES);
+      const result = executeRules(input, LLM_METADATA_PROPERTY_RULES);
       expect(result.changed).toBe(true);
       expect(result.content).not.toContain("extra_thoughts");
       expect(result.content).not.toContain("extra_notes");
@@ -272,7 +272,7 @@ extra_notes= "additional info"
   "name": "Test",
   "my_thought_process": "analyzing this code"
 }`;
-      const result = executeRules(input, EXTRA_PROPERTY_RULES);
+      const result = executeRules(input, LLM_METADATA_PROPERTY_RULES);
       // The pattern should detect "my_thought_process" as an LLM artifact
       expect(result.changed).toBe(true);
       expect(result.content).not.toContain("my_thought_process");
@@ -283,7 +283,7 @@ extra_notes= "additional info"
   "data": [],
   "internal_thinking": "step by step"
 }`;
-      const result = executeRules(input, EXTRA_PROPERTY_RULES);
+      const result = executeRules(input, LLM_METADATA_PROPERTY_RULES);
       expect(result.changed).toBe(true);
       expect(result.content).not.toContain("internal_thinking");
     });
@@ -293,7 +293,7 @@ extra_notes= "additional info"
   "value": 42,
   "llm_reasoning_output": "because of X"
 }`;
-      const result = executeRules(input, EXTRA_PROPERTY_RULES);
+      const result = executeRules(input, LLM_METADATA_PROPERTY_RULES);
       expect(result.changed).toBe(true);
       expect(result.content).not.toContain("llm_reasoning_output");
     });
@@ -303,7 +303,7 @@ extra_notes= "additional info"
   "result": "done",
   "model_scratchpad_notes": "working memory"
 }`;
-      const result = executeRules(input, EXTRA_PROPERTY_RULES);
+      const result = executeRules(input, LLM_METADATA_PROPERTY_RULES);
       expect(result.changed).toBe(true);
       expect(result.content).not.toContain("model_scratchpad_notes");
     });
@@ -315,7 +315,7 @@ extra_notes= "additional info"
   "summary": "complete",
   "llm_internal_analysis": "detailed breakdown"
 }`;
-      const result = executeRules(input, EXTRA_PROPERTY_RULES);
+      const result = executeRules(input, LLM_METADATA_PROPERTY_RULES);
       expect(result.changed).toBe(true);
       expect(result.content).not.toContain("llm_internal_analysis");
     });
@@ -327,7 +327,7 @@ extra_notes= "additional info"
   "summary": "complete",
   "internal_analysis_data": "detailed breakdown"
 }`;
-      const result = executeRules(input, EXTRA_PROPERTY_RULES);
+      const result = executeRules(input, LLM_METADATA_PROPERTY_RULES);
       // Should NOT be removed since "analysis" is in the middle, not a suffix
       expect(result.content).toContain("internal_analysis_data");
     });
@@ -340,7 +340,7 @@ extra_notes= "additional info"
   "name": "Test",
   "type": "class"
 }`;
-      const result = executeRules(input, EXTRA_PROPERTY_RULES, {
+      const result = executeRules(input, LLM_METADATA_PROPERTY_RULES, {
         config: { knownProperties: ["name", "type"] },
       });
       // Valid properties should be preserved

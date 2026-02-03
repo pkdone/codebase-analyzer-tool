@@ -1,5 +1,5 @@
 import { injectable } from "tsyringe";
-import type { CustomTagLibraryData, JspFileMetricsData } from "../ui-analysis.types";
+import type { DetectedTagLibraryData, JspFileMetricsData } from "../ui-analysis.types";
 import { uiAnalysisConfig } from "../../../config/ui-analysis.config";
 import { classifyTagLibrary } from "../../../domain/ui-analysis-calculator";
 import type { ProjectedSourceSummaryFields } from "../../../../../repositories/sources/sources.model";
@@ -7,7 +7,7 @@ import type { ProjectedSourceSummaryFields } from "../../../../../repositories/s
 /**
  * Intermediate type for tag library aggregation before type classification.
  */
-type RawCustomTagLibrary = Omit<CustomTagLibraryData, "tagType">;
+type RawDetectedTagLibrary = Omit<DetectedTagLibraryData, "tagType">;
 
 /**
  * Result of JSP file analysis containing metrics and tag library data.
@@ -18,7 +18,7 @@ export interface JspAnalysisResult {
   totalDeclarations: number;
   filesWithHighScriptletCount: number;
   jspFileMetrics: JspFileMetricsData[];
-  tagLibraryMap: Map<string, RawCustomTagLibrary>;
+  tagLibraryMap: Map<string, RawDetectedTagLibrary>;
 }
 
 /**
@@ -35,7 +35,7 @@ export class JspMetricsAnalyzer {
    * @returns Analysis result containing metrics and tag library aggregations
    */
   analyzeJspMetrics(sourceFiles: readonly ProjectedSourceSummaryFields[]): JspAnalysisResult {
-    const tagLibraryMap = new Map<string, RawCustomTagLibrary>();
+    const tagLibraryMap = new Map<string, RawDetectedTagLibrary>();
     const jspFileMetrics: JspFileMetricsData[] = [];
     const jspFiles = sourceFiles.filter((f) => f.summary?.jspMetrics);
 
@@ -102,7 +102,7 @@ export class JspMetricsAnalyzer {
    * @param tagLibraryMap - Map of tag library keys to raw tag library data
    * @returns Sorted array of tag libraries with type classification
    */
-  computeTagLibraries(tagLibraryMap: Map<string, RawCustomTagLibrary>): CustomTagLibraryData[] {
+  computeTagLibraries(tagLibraryMap: Map<string, RawDetectedTagLibrary>): DetectedTagLibraryData[] {
     return Array.from(tagLibraryMap.values())
       .map((tagLib) => {
         const tagType = classifyTagLibrary(tagLib.uri);
@@ -125,7 +125,7 @@ export class JspMetricsAnalyzer {
    */
   private aggregateTagLibraries(
     customTags: { prefix: string; uri: string }[] | undefined,
-    tagLibraryMap: Map<string, RawCustomTagLibrary>,
+    tagLibraryMap: Map<string, RawDetectedTagLibrary>,
   ): void {
     if (!customTags || customTags.length === 0) return;
 

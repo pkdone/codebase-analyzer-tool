@@ -17,18 +17,18 @@ export {
 } from "../../../../../common/diagrams/mermaid/mermaid-utils";
 
 /**
- * Generate the Mermaid init directive for consistent diagram configuration.
- * This adds padding around the diagram content.
+ * Generate the Mermaid init directive for compact diagrams.
+ * This adds minimal padding around the diagram content.
  */
-export function buildMermaidInitDirective(): string {
+export function buildCompactInitDirective(): string {
   return `%%{init: {'flowchart': {'diagramPadding': ${DIAGRAM_STYLES.diagramPadding}}}}%%`;
 }
 
 /**
- * Generate the Mermaid init directive for architecture diagrams.
+ * Generate the Mermaid init directive for spacious diagrams.
  * Includes additional spacing configuration for better node distribution.
  */
-export function buildArchitectureInitDirective(): string {
+export function buildSpaciousInitDirective(): string {
   const { mermaidInit } = currentArchitectureConfig;
   return `%%{init: {'flowchart': {'diagramPadding': ${mermaidInit.DIAGRAM_PADDING}, 'nodeSpacing': ${mermaidInit.NODE_SPACING}, 'rankSpacing': ${mermaidInit.RANK_SPACING}}}}%%`;
 }

@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import * as domainModelExports from "../../../../../src/app/components/reporting/sections/domain-model";
 import * as inferredArchitectureExports from "../../../../../src/app/components/reporting/sections/inferred-architecture";
-import * as futureArchitectureExports from "../../../../../src/app/components/reporting/sections/future-architecture";
+import * as potentialMicroservicesExports from "../../../../../src/app/components/reporting/sections/potential-microservices";
 import * as overviewExports from "../../../../../src/app/components/reporting/sections/overview";
 import * as dataProcessingExports from "../../../../../src/app/components/reporting/data-processing";
 
@@ -41,14 +41,14 @@ describe("barrel exports", () => {
     });
   });
 
-  describe("future-architecture/index.ts", () => {
+  describe("potential-microservices/index.ts", () => {
     it("should export PotentialMicroservicesSection", () => {
-      expect(futureArchitectureExports.PotentialMicroservicesSection).toBeDefined();
+      expect(potentialMicroservicesExports.PotentialMicroservicesSection).toBeDefined();
     });
 
     it("should export extractMicroservicesData", () => {
-      expect(futureArchitectureExports.extractMicroservicesData).toBeDefined();
-      expect(typeof futureArchitectureExports.extractMicroservicesData).toBe("function");
+      expect(potentialMicroservicesExports.extractMicroservicesData).toBeDefined();
+      expect(typeof potentialMicroservicesExports.extractMicroservicesData).toBe("function");
     });
   });
 

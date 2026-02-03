@@ -90,7 +90,7 @@ describe("JavaUiTechnologyDataProvider", () => {
       expect(result.frameworks).toEqual([]);
       expect(result.totalJspFiles).toBe(0);
       expect(result.totalScriptlets).toBe(0);
-      expect(result.customTagLibraries).toEqual([]);
+      expect(result.detectedTagLibraries).toEqual([]);
       expect(result.topScriptletFiles).toEqual([]);
     });
 
@@ -179,8 +179,8 @@ describe("JavaUiTechnologyDataProvider", () => {
 
       const result = await provider.getUiTechnologyAnalysis("test-project");
 
-      expect(result.customTagLibraries).toHaveLength(2);
-      const coreLib = result.customTagLibraries.find((t) => t.prefix === "c");
+      expect(result.detectedTagLibraries).toHaveLength(2);
+      const coreLib = result.detectedTagLibraries.find((t) => t.prefix === "c");
       expect(coreLib?.usageCount).toBe(2);
     });
 
@@ -201,8 +201,8 @@ describe("JavaUiTechnologyDataProvider", () => {
 
       const result = await provider.getUiTechnologyAnalysis("test-project");
 
-      expect(result.customTagLibraries[0].prefix).toBe("b");
-      expect(result.customTagLibraries[0].usageCount).toBe(3);
+      expect(result.detectedTagLibraries[0].prefix).toBe("b");
+      expect(result.detectedTagLibraries[0].usageCount).toBe(3);
     });
 
     it("should identify top scriptlet files sorted by total blocks", async () => {
@@ -296,10 +296,10 @@ describe("JavaUiTechnologyDataProvider", () => {
       const result = await provider.getUiTechnologyAnalysis("test-project");
 
       // Should have tagType (domain classification)
-      const jstlLib = result.customTagLibraries.find((t) => t.prefix === "c");
+      const jstlLib = result.detectedTagLibraries.find((t) => t.prefix === "c");
       expect(jstlLib?.tagType).toBe("JSTL");
 
-      const springLib = result.customTagLibraries.find((t) => t.prefix === "spring");
+      const springLib = result.detectedTagLibraries.find((t) => t.prefix === "spring");
       expect(springLib?.tagType).toBe("Spring");
 
       // Should NOT have tagTypeClass (presentation field)
@@ -325,7 +325,7 @@ describe("JavaUiTechnologyDataProvider", () => {
 
       expect(result.frameworks).toHaveLength(1);
       expect(result.totalJspFiles).toBe(1);
-      expect(result.customTagLibraries).toHaveLength(1);
+      expect(result.detectedTagLibraries).toHaveLength(1);
     });
   });
 });

@@ -1,8 +1,8 @@
 import "reflect-metadata";
 import {
   DIAGRAM_STYLES,
-  buildMermaidInitDirective,
-  buildArchitectureInitDirective,
+  buildCompactInitDirective,
+  buildSpaciousInitDirective,
   generateEmptyDiagramSvg,
   escapeMermaidLabel,
   generateNodeId,
@@ -41,9 +41,9 @@ describe("mermaid-definition-builders", () => {
     });
   });
 
-  describe("buildMermaidInitDirective", () => {
+  describe("buildCompactInitDirective", () => {
     it("should generate init directive with diagram padding", () => {
-      const result = buildMermaidInitDirective();
+      const result = buildCompactInitDirective();
 
       expect(result).toContain("%%{init:");
       expect(result).toContain("flowchart");
@@ -52,21 +52,21 @@ describe("mermaid-definition-builders", () => {
     });
 
     it("should use correct padding value from DIAGRAM_STYLES", () => {
-      const result = buildMermaidInitDirective();
+      const result = buildCompactInitDirective();
 
       expect(result).toContain(`'diagramPadding': ${DIAGRAM_STYLES.diagramPadding}`);
     });
 
     it("should generate valid Mermaid init directive syntax", () => {
-      const result = buildMermaidInitDirective();
+      const result = buildCompactInitDirective();
 
       expect(result).toMatch(/^%%{init:.*}%%$/);
     });
   });
 
-  describe("buildArchitectureInitDirective", () => {
+  describe("buildSpaciousInitDirective", () => {
     it("should generate init directive with architecture-specific settings", () => {
-      const result = buildArchitectureInitDirective();
+      const result = buildSpaciousInitDirective();
 
       expect(result).toContain("%%{init:");
       expect(result).toContain("flowchart");
@@ -77,7 +77,7 @@ describe("mermaid-definition-builders", () => {
 
     it("should use values from current architecture config", () => {
       const { mermaidInit } = currentArchitectureConfig;
-      const result = buildArchitectureInitDirective();
+      const result = buildSpaciousInitDirective();
 
       expect(result).toContain(`'diagramPadding': ${mermaidInit.DIAGRAM_PADDING}`);
       expect(result).toContain(`'nodeSpacing': ${mermaidInit.NODE_SPACING}`);
@@ -85,14 +85,14 @@ describe("mermaid-definition-builders", () => {
     });
 
     it("should generate valid Mermaid init directive syntax", () => {
-      const result = buildArchitectureInitDirective();
+      const result = buildSpaciousInitDirective();
 
       expect(result).toMatch(/^%%{init:.*}%%$/);
     });
 
     it("should differ from the basic init directive", () => {
-      const basicDirective = buildMermaidInitDirective();
-      const archDirective = buildArchitectureInitDirective();
+      const basicDirective = buildCompactInitDirective();
+      const archDirective = buildSpaciousInitDirective();
 
       // Architecture directive has more settings
       expect(archDirective.length).toBeGreaterThan(basicDirective.length);

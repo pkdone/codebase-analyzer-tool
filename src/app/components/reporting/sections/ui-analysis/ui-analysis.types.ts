@@ -14,10 +14,11 @@ export interface UiFramework {
 }
 
 /**
- * Custom tag library usage in JSP files.
+ * Detected tag library usage in JSP files.
+ * Represents any detected tag library (JSTL, Spring, Custom, or Other).
  * Raw data type without presentation fields.
  */
-export interface CustomTagLibraryData {
+export interface DetectedTagLibraryData {
   prefix: string;
   uri: string;
   usageCount: number;
@@ -26,9 +27,9 @@ export interface CustomTagLibraryData {
 }
 
 /**
- * Custom tag library with presentation fields for HTML rendering.
+ * Detected tag library with presentation fields for HTML rendering.
  */
-export interface CustomTagLibrary extends CustomTagLibraryData {
+export interface DetectedTagLibrary extends DetectedTagLibraryData {
   /** CSS class for the tag type badge */
   tagTypeClass: string;
 }
@@ -67,7 +68,7 @@ export interface UiTechnologyAnalysisData {
   totalDeclarations: number;
   averageScriptletsPerFile: number;
   filesWithHighScriptletCount: number;
-  customTagLibraries: CustomTagLibraryData[];
+  detectedTagLibraries: DetectedTagLibraryData[];
   topScriptletFiles: JspFileMetricsData[];
 }
 
@@ -83,7 +84,7 @@ export interface UiTechnologyAnalysis {
   totalDeclarations: number;
   averageScriptletsPerFile: number;
   filesWithHighScriptletCount: number;
-  customTagLibraries: CustomTagLibrary[];
+  detectedTagLibraries: DetectedTagLibrary[];
   topScriptletFiles: JspFileMetrics[];
   /** CSS class for total scriptlets warning display */
   totalScriptletsCssClass: string;

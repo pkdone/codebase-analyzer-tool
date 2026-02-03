@@ -40,7 +40,7 @@ export { STRUCTURAL_RULES } from "./structural-rules";
 export {
   EMBEDDED_CONTENT_RULES,
   YAML_CONTENT_RULES,
-  EXTRA_PROPERTY_RULES,
+  LLM_METADATA_PROPERTY_RULES,
   LLM_ARTIFACT_RULES,
   STRAY_COMMENTARY_RULES,
 } from "./embedded-content";

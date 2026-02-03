@@ -26,7 +26,7 @@ import { createStringBoundaryChecker, isInArrayContext } from "../utils/parser-c
  * @param input - The raw string content to sanitize
  * @returns Sanitizer result with post-processing fixes applied
  */
-export const fixJsonStructure: Sanitizer = (input: string): SanitizerResult => {
+export const postProcessJsonStructure: Sanitizer = (input: string): SanitizerResult => {
   const trimmed = input.trim();
   if (!trimmed) {
     return { content: input, changed: false };

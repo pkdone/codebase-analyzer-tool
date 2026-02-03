@@ -5,7 +5,7 @@
 import "reflect-metadata";
 import * as DomainModelModule from "../../../../../src/app/components/reporting/sections/domain-model";
 import * as InferredArchModule from "../../../../../src/app/components/reporting/sections/inferred-architecture";
-import * as FutureArchModule from "../../../../../src/app/components/reporting/sections/future-architecture";
+import * as PotentialMicroservicesModule from "../../../../../src/app/components/reporting/sections/potential-microservices";
 
 describe("diagram generator section exports", () => {
   describe("domain-model section", () => {
@@ -42,20 +42,20 @@ describe("diagram generator section exports", () => {
     });
   });
 
-  describe("future-architecture section", () => {
+  describe("potential-microservices section", () => {
     it("should export PotentialMicroservicesSection", () => {
-      expect(FutureArchModule.PotentialMicroservicesSection).toBeDefined();
-      expect(typeof FutureArchModule.PotentialMicroservicesSection).toBe("function");
+      expect(PotentialMicroservicesModule.PotentialMicroservicesSection).toBeDefined();
+      expect(typeof PotentialMicroservicesModule.PotentialMicroservicesSection).toBe("function");
     });
 
     it("should export ArchitectureDiagramGenerator", () => {
-      expect(FutureArchModule.ArchitectureDiagramGenerator).toBeDefined();
-      expect(typeof FutureArchModule.ArchitectureDiagramGenerator).toBe("function");
+      expect(PotentialMicroservicesModule.ArchitectureDiagramGenerator).toBeDefined();
+      expect(typeof PotentialMicroservicesModule.ArchitectureDiagramGenerator).toBe("function");
     });
 
     it("should export extractMicroservicesData", () => {
-      expect(FutureArchModule.extractMicroservicesData).toBeDefined();
-      expect(typeof FutureArchModule.extractMicroservicesData).toBe("function");
+      expect(PotentialMicroservicesModule.extractMicroservicesData).toBeDefined();
+      expect(typeof PotentialMicroservicesModule.extractMicroservicesData).toBe("function");
     });
   });
 
@@ -74,7 +74,7 @@ describe("diagram generator section exports", () => {
     });
 
     it("should be able to instantiate ArchitectureDiagramGenerator", () => {
-      const generator = new FutureArchModule.ArchitectureDiagramGenerator();
+      const generator = new PotentialMicroservicesModule.ArchitectureDiagramGenerator();
       expect(generator).toBeDefined();
       expect(typeof generator.generateArchitectureDiagram).toBe("function");
     });

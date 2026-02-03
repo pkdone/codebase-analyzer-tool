@@ -96,9 +96,9 @@
     </table>
   <% } %>
 
-  <!-- Custom Tag Libraries -->
-  <% if (uiData.customTagLibraries && uiData.customTagLibraries.length > 0) { %>
-    <h3>Custom Tag Libraries Used</h3>
+  <!-- Detected Tag Libraries -->
+  <% if (uiData.detectedTagLibraries && uiData.detectedTagLibraries.length > 0) { %>
+    <h3>Detected Tag Libraries</h3>
     <table class="data-table taglibs-table">
       <thead>
         <tr>
@@ -109,7 +109,7 @@
         </tr>
       </thead>
       <tbody>
-        <% uiData.customTagLibraries.forEach(function(taglib) { %>
+        <% uiData.detectedTagLibraries.forEach(function(taglib) { %>
           <tr>
             <td class="tag-prefix"><code><%= taglib.prefix %></code></td>
             <td class="tag-uri"><%= taglib.uri %></td>
@@ -137,10 +137,10 @@
             These can often be replaced with EL (Expression Language) for cleaner code.
           </li>
         <% } %>
-        <% if (uiData.customTagLibraries.length > 0) { %>
+        <% if (uiData.detectedTagLibraries.length > 0) { %>
           <li>
-            <strong>Tag Libraries:</strong> <%= uiData.customTagLibraries.length %> different tag libraries in use. 
-            Review custom tag libraries for migration planning.
+            <strong>Tag Libraries:</strong> <%= uiData.detectedTagLibraries.length %> different tag libraries in use. 
+            Review detected tag libraries for migration planning.
           </li>
         <% } %>
         <% if (uiData.frameworks.length === 0 && uiData.totalJspFiles > 0) { %>
