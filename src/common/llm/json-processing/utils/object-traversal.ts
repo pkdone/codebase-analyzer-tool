@@ -73,6 +73,7 @@ export function deepMap<T>(value: T, visitor: DeepMapVisitor, visited?: WeakSet<
 
 /**
  * Implementation of deepMap.
+ * Optimized to avoid unnecessary object allocation when nothing changes.
  */
 export function deepMap(
   value: unknown,
@@ -106,22 +107,40 @@ export function deepMap(
   // Handle plain objects - value is now narrowed to PlainObject
   visited.add(value);
   const result: PlainObject = {};
+  let hasChanges = false;
 
   // Process string keys using for...in loop to avoid Object.entries allocation
   for (const key in value) {
     if (Object.prototype.hasOwnProperty.call(value, key)) {
-      result[key] = deepMap(value[key], visitor, visited);
+      const original = value[key];
+      const transformed = deepMap(original, visitor, visited);
+      result[key] = transformed;
+      if (transformed !== original) {
+        hasChanges = true;
+      }
     }
   }
 
   // Handle symbol keys (preserve them as-is)
   const symbols = Object.getOwnPropertySymbols(value);
   for (const sym of symbols) {
-    result[sym] = deepMap(value[sym], visitor, visited);
+    const original = value[sym];
+    const transformed = deepMap(original, visitor, visited);
+    result[sym] = transformed;
+    if (transformed !== original) {
+      hasChanges = true;
+    }
   }
 
   visited.delete(value);
-  return visitor(result, visited);
+
+  // If nothing changed internally, pass the original value to the visitor
+  // The visitor might still transform the object itself
+  const sourceValue = hasChanges ? result : value;
+  const visitorResult = visitor(sourceValue, visited);
+
+  // If the visitor also returns the value unchanged, return original reference
+  return visitorResult === sourceValue && !hasChanges ? value : visitorResult;
 }
 
 /**
@@ -145,6 +164,7 @@ export function deepMapObject<T>(
 
 /**
  * Implementation of deepMapObject.
+ * Optimized to avoid unnecessary object allocation when nothing changes.
  */
 export function deepMapObject(
   value: unknown,
@@ -190,6 +210,8 @@ export function deepMapObject(
     visited.add(value);
   }
   const result: PlainObject = {};
+  let hasChanges = visitedValue !== value; // Already changed if visitor transformed it
+  let propertiesSkipped = false;
 
   // Process string keys with optional transformation using for...in loop to avoid Object.entries allocation
   for (const key in visitedValue) {
@@ -201,6 +223,7 @@ export function deepMapObject(
 
       // Check if property should be included
       if (options.shouldInclude && !options.shouldInclude(key, transformedVal)) {
+        propertiesSkipped = true;
         continue;
       }
 
@@ -209,29 +232,46 @@ export function deepMapObject(
       if (options.transformKey) {
         finalKey = options.transformKey(key, transformedVal, visitedValue);
         if (finalKey === null || finalKey === undefined) {
+          propertiesSkipped = true;
           continue; // Skip this property
+        }
+        if (finalKey !== key) {
+          hasChanges = true;
         }
       }
 
       result[finalKey] = transformedVal;
+      if (transformedVal !== val) {
+        hasChanges = true;
+      }
     }
   }
 
   // Handle symbol keys (preserve them as-is, no transformation)
   const symbols = Object.getOwnPropertySymbols(visitedValue);
   for (const sym of symbols) {
-    const transformedVal = deepMapObject(visitedValue[sym], visitor, options, visited);
+    const original = visitedValue[sym];
+    const transformedVal = deepMapObject(original, visitor, options, visited);
 
     // Check if property should be included
     if (options.shouldInclude && !options.shouldInclude(String(sym), transformedVal)) {
+      propertiesSkipped = true;
       continue;
     }
 
     result[sym] = transformedVal;
+    if (transformedVal !== original) {
+      hasChanges = true;
+    }
   }
 
   if (typeof value === "object" && value !== null) {
     visited.delete(value);
+  }
+
+  // Return original object if nothing changed and no properties were skipped
+  if (!hasChanges && !propertiesSkipped && isPlainObject(value)) {
+    return value;
   }
   return result;
 }

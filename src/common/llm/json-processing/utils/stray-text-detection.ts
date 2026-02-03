@@ -38,6 +38,30 @@ const DEFAULT_OPTIONS: Required<StrayTextDetectionOptions> = {
 };
 
 /**
+ * Cache for dynamically generated length pattern RegExp objects.
+ * Keyed by "minLength-maxLength" to avoid recreating the same pattern.
+ */
+const LENGTH_PATTERN_CACHE = new Map<string, RegExp>();
+
+/**
+ * Gets a cached RegExp for the stray text length pattern.
+ * Creates and caches the pattern if not already cached.
+ *
+ * @param minLength - Minimum length for the pattern
+ * @param maxLength - Maximum length for the pattern
+ * @returns The cached RegExp pattern
+ */
+function getCachedLengthPattern(minLength: number, maxLength: number): RegExp {
+  const cacheKey = `${minLength}-${maxLength}`;
+  let pattern = LENGTH_PATTERN_CACHE.get(cacheKey);
+  if (!pattern) {
+    pattern = new RegExp(`^[a-z][a-z0-9_-]{${minLength - 1},${maxLength - 1}}$`, "i");
+    LENGTH_PATTERN_CACHE.set(cacheKey, pattern);
+  }
+  return pattern;
+}
+
+/**
  * Checks if text is a JSON keyword that should never be removed.
  *
  * @param text - The text to check (case-insensitive)
@@ -76,11 +100,8 @@ export function looksLikeStrayText(text: string, options: StrayTextDetectionOpti
     return true;
   }
 
-  // Short lowercase words within configured bounds
-  const lengthPattern = new RegExp(
-    `^[a-z][a-z0-9_-]{${opts.minLength - 1},${opts.maxLength - 1}}$`,
-    "i",
-  );
+  // Short lowercase words within configured bounds (using cached pattern)
+  const lengthPattern = getCachedLengthPattern(opts.minLength, opts.maxLength);
   if (lengthPattern.test(trimmed)) {
     return true;
   }

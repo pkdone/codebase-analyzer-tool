@@ -247,6 +247,84 @@ describe("rule-executor", () => {
     });
   });
 
+  describe("boundary checker optimization", () => {
+    it("should correctly handle multiple rules where only some make changes", () => {
+      // First rule makes no changes, second rule does
+      const noOpRule: ReplacementRule = {
+        name: "noOpRule",
+        pattern: /notfound/g,
+        replacement: () => "replaced",
+        diagnosticMessage: "This should not trigger",
+        skipInString: false,
+      };
+
+      const changeRule: ReplacementRule = {
+        name: "changeRule",
+        pattern: /foo/g,
+        replacement: () => "bar",
+        diagnosticMessage: "Replaced foo",
+        skipInString: false,
+      };
+
+      const result = executeRules("foo baz foo", [noOpRule, changeRule]);
+      expect(result.changed).toBe(true);
+      expect(result.content).toBe("bar baz bar");
+    });
+
+    it("should maintain correct string boundary detection across rule changes", () => {
+      // First rule modifies content, second rule should use updated boundaries
+      const addQuoteRule: ReplacementRule = {
+        name: "addQuote",
+        pattern: /MARKER/g,
+        replacement: () => '"MARKER"',
+        diagnosticMessage: "Added quotes",
+        skipInString: false,
+      };
+
+      const replaceTextRule: ReplacementRule = {
+        name: "replaceText",
+        pattern: /MARKER/g,
+        replacement: () => "REPLACED",
+        diagnosticMessage: "Replaced marker",
+        // skipInString is true by default - should skip the quoted one
+      };
+
+      // After first rule: '"MARKER"' - the second rule should NOT replace
+      // because MARKER is now inside a string
+      const result = executeRules("MARKER", [addQuoteRule, replaceTextRule]);
+      expect(result.content).toBe('"MARKER"');
+    });
+
+    it("should handle sequential rules where each modifies content", () => {
+      const rule1: ReplacementRule = {
+        name: "rule1",
+        pattern: /a/g,
+        replacement: () => "b",
+        diagnosticMessage: "a->b",
+        skipInString: false,
+      };
+
+      const rule2: ReplacementRule = {
+        name: "rule2",
+        pattern: /b/g,
+        replacement: () => "c",
+        diagnosticMessage: "b->c",
+        skipInString: false,
+      };
+
+      const rule3: ReplacementRule = {
+        name: "rule3",
+        pattern: /c/g,
+        replacement: () => "d",
+        diagnosticMessage: "c->d",
+        skipInString: false,
+      };
+
+      const result = executeRules("aaa", [rule1, rule2, rule3]);
+      expect(result.content).toBe("ddd");
+    });
+  });
+
   describe("context check helpers", () => {
     describe("isAfterJsonDelimiter", () => {
       it("should return true when after closing brace", () => {

@@ -128,16 +128,19 @@ export function executeRules(
     let passChanged = false;
     passCount++;
 
-    for (const rule of rules) {
-      // Create cached string boundary checker for each rule since content may change
-      // This ensures O(log N) lookups while maintaining correctness after modifications
-      const isInString = createStringBoundaryChecker(content);
+    // Create cached string boundary checker once per pass for O(log N) lookups.
+    // Only recreate when content actually changes to avoid redundant O(N) scans.
+    let isInString = createStringBoundaryChecker(content);
 
+    for (const rule of rules) {
       const result = executeRule(content, rule, diagnostics, isInString, config);
-      content = result.content;
+
       if (result.changed) {
+        content = result.content;
         passChanged = true;
         totalChanged = true;
+        // Recreate boundary checker only when content was modified
+        isInString = createStringBoundaryChecker(content);
       }
     }
 

@@ -77,6 +77,50 @@ describe("stray-text-detection", () => {
       expect(looksLikeStrayText("verylongwordhere", { maxLength: 10 })).toBe(false);
       expect(looksLikeStrayText("shortword", { maxLength: 10 })).toBe(true);
     });
+
+    it("should respect minLength option", () => {
+      expect(looksLikeStrayText("ab", { minLength: 3 })).toBe(false);
+      expect(looksLikeStrayText("abc", { minLength: 3 })).toBe(true);
+    });
+
+    describe("regex caching behavior", () => {
+      it("should produce consistent results with same options across multiple calls", () => {
+        const options = { minLength: 2, maxLength: 10 };
+        // Multiple calls with same options should use cached pattern
+        expect(looksLikeStrayText("hello", options)).toBe(true);
+        expect(looksLikeStrayText("world", options)).toBe(true);
+        expect(looksLikeStrayText("test", options)).toBe(true);
+        expect(looksLikeStrayText("x", options)).toBe(true); // Single char detected by single char check
+        expect(looksLikeStrayText("true", options)).toBe(false); // JSON keyword
+      });
+
+      it("should produce correct results with different option combinations", () => {
+        // Different min/max combinations should create different cached patterns
+        expect(looksLikeStrayText("ab", { minLength: 1, maxLength: 5 })).toBe(true);
+        expect(looksLikeStrayText("ab", { minLength: 3, maxLength: 5 })).toBe(false);
+        expect(looksLikeStrayText("abcdefghij", { minLength: 1, maxLength: 8 })).toBe(false);
+        expect(looksLikeStrayText("abcdefghij", { minLength: 1, maxLength: 12 })).toBe(true);
+      });
+
+      it("should handle default options consistently", () => {
+        // Default options (minLength: 1, maxLength: 15)
+        // Calling repeatedly with defaults should use cached pattern
+        for (let i = 0; i < 5; i++) {
+          expect(looksLikeStrayText("stray")).toBe(true);
+          expect(looksLikeStrayText("true")).toBe(false);
+          expect(looksLikeStrayText("verylongwordthatexceedslimit")).toBe(false);
+        }
+      });
+
+      it("should handle words at boundary lengths correctly", () => {
+        // Test boundary conditions for the length pattern
+        const options = { minLength: 3, maxLength: 6 };
+        expect(looksLikeStrayText("ab", options)).toBe(false); // too short (2 chars)
+        expect(looksLikeStrayText("abc", options)).toBe(true); // min length (3 chars)
+        expect(looksLikeStrayText("abcdef", options)).toBe(true); // max length (6 chars)
+        expect(looksLikeStrayText("abcdefg", options)).toBe(false); // too long (7 chars)
+      });
+    });
   });
 
   describe("looksLikeStrayArrayPrefix", () => {

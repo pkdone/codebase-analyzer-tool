@@ -248,6 +248,118 @@ describe("type safety", () => {
   });
 });
 
+describe("object allocation optimization", () => {
+  describe("deepMap reference preservation for plain objects", () => {
+    it("should return same object reference when no properties change", () => {
+      const input = { a: 1, b: 2 };
+      // Identity visitor that doesn't modify values
+      const result = deepMap(input, (v: unknown) => v);
+      expect(result).toBe(input); // Same reference
+    });
+
+    it("should return same nested object references when nothing changes", () => {
+      const nested = { value: 42 };
+      const input = { outer: nested };
+      const result = deepMap(input, (v: unknown) => v);
+      expect(result).toBe(input);
+      expect(result.outer).toBe(nested);
+    });
+
+    it("should create new array when mapping (arrays always create new references)", () => {
+      const input = [1, 2, 3];
+      const result = deepMap(input, (v: unknown) => v);
+      // Arrays always create new references due to the .map() call
+      expect(result).not.toBe(input);
+      expect(result).toEqual(input);
+    });
+
+    it("should create new object when properties change", () => {
+      const input = { a: 1, b: 2 };
+      const result = deepMap(input, (v: unknown) => (typeof v === "number" ? v * 2 : v));
+      expect(result).not.toBe(input); // Different reference
+      expect(result).toEqual({ a: 2, b: 4 });
+    });
+
+    it("should preserve unchanged nested object references while creating new parent", () => {
+      const unchangedNested = { unchanged: true };
+      const changedNested = { value: 1 };
+      const input = { keep: unchangedNested, change: changedNested };
+
+      const result = deepMap(input, (v: unknown) => {
+        if (typeof v === "number") return v * 2;
+        return v;
+      });
+
+      // Parent object should be new because changedNested was modified
+      expect(result).not.toBe(input);
+      // But the unchanged nested object should be the same reference
+      expect(result.keep).toBe(unchangedNested);
+      // The changed nested object should be a new reference
+      expect(result.change).not.toBe(changedNested);
+    });
+
+    it("should handle deeply nested structures with partial changes", () => {
+      const deepUnchanged = { level: "deep" };
+      const input = {
+        level1: {
+          level2: {
+            unchanged: deepUnchanged,
+            changed: { value: 10 },
+          },
+        },
+      };
+
+      const result = deepMap(input, (v: unknown) => {
+        if (typeof v === "number") return v * 2;
+        return v;
+      });
+
+      // The unchanged deep object should be same reference (no numbers to transform)
+      expect(result.level1.level2.unchanged).toBe(deepUnchanged);
+    });
+  });
+
+  describe("deepMapObject reference preservation for plain objects", () => {
+    it("should return same object reference when nothing changes and no options filter", () => {
+      const input = { a: 1, b: "test" };
+      const result = deepMapObject(input, (v: unknown) => v);
+      expect(result).toBe(input);
+    });
+
+    it("should create new array when mapping (arrays always create new references)", () => {
+      const input = ["a", "b", "c"];
+      const result = deepMapObject(input, (v: unknown) => v);
+      // Arrays always create new references due to the .map() call
+      expect(result).not.toBe(input);
+      expect(result).toEqual(input);
+    });
+
+    it("should create new object when visitor transforms values", () => {
+      const input = { value: null };
+      const result = deepMapObject(input, (v: unknown) => (v === null ? undefined : v));
+      expect(result).not.toBe(input);
+    });
+
+    it("should create new object when properties are filtered out", () => {
+      const input = { keep: 1, remove: 2 };
+      const result = deepMapObject(input, (v: unknown) => v, {
+        shouldInclude: (key: string) => key !== "remove",
+      });
+      expect(result).not.toBe(input);
+      expect(result).toEqual({ keep: 1 });
+    });
+
+    it("should create new object when keys are transformed", () => {
+      const input = { old_key: "value" };
+      const result = deepMapObject(input, (v: unknown) => v, {
+        transformKey: (key: string) => key.replace("old_", "new_"),
+      });
+      expect(result).not.toBe(input);
+      expect(result).toEqual({ new_key: "value" });
+    });
+  });
+});
+
 describe("isPlainObject", () => {
   describe("positive cases - plain objects", () => {
     it("should return true for empty object literal", () => {
