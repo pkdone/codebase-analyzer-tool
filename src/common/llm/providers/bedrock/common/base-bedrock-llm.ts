@@ -26,7 +26,7 @@ import { BEDROCK_TOKEN_LIMIT_KEYWORDS } from "./bedrock-error-patterns";
  */
 interface ResponseExtractionConfig {
   /** Zod schema to validate the response structure */
-  schema: z.ZodType;
+  schema: z.ZodType<unknown>;
   /** Path configuration for extracting data from the response */
   pathConfig: ResponsePathConfig;
   /** Provider name for error messages */

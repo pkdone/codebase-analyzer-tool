@@ -304,7 +304,7 @@ export class LLMResponseProcessor {
    * @returns The effective sanitizer configuration
    */
   private buildEffectiveSanitizerConfig(
-    jsonSchema: z.ZodType,
+    jsonSchema: z.ZodType<unknown>,
     explicitConfig?: LLMSanitizerConfig,
   ): LLMSanitizerConfig | undefined {
     const schemaMetadata = extractSchemaMetadata(jsonSchema);

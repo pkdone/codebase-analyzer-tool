@@ -629,5 +629,79 @@ describe("json-processing", () => {
         }
       });
     });
+
+    describe("z.ZodType<unknown> constraint type safety", () => {
+      it("should preserve deeply nested type information through parsing", () => {
+        const nestedSchema = z.object({
+          config: z.object({
+            settings: z.array(
+              z.object({
+                key: z.string(),
+                value: z.union([z.string(), z.number(), z.boolean()]),
+              }),
+            ),
+          }),
+        });
+        const json = '{"config": {"settings": [{"key": "debug", "value": true}]}}';
+        const completionOptions = {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: nestedSchema,
+        };
+
+        const result = parseAndValidateLLMJson(json, context, completionOptions);
+
+        expect(result.success).toBe(true);
+        if (result.success) {
+          // Type inference should work for deeply nested access
+          const firstKey: string = result.data.config.settings[0].key;
+          const firstValue: string | number | boolean = result.data.config.settings[0].value;
+          expect(firstKey).toBe("debug");
+          expect(firstValue).toBe(true);
+        }
+      });
+
+      it("should correctly type record schemas", () => {
+        const recordSchema = z.object({
+          metadata: z.record(z.string(), z.number()),
+        });
+        const json = '{"metadata": {"count": 10, "total": 100}}';
+        const completionOptions = {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: recordSchema,
+        };
+
+        const result = parseAndValidateLLMJson(json, context, completionOptions);
+
+        expect(result.success).toBe(true);
+        if (result.success) {
+          // Record type should be properly inferred
+          const count: number | undefined = result.data.metadata.count;
+          expect(count).toBe(10);
+        }
+      });
+
+      it("should handle enum-like union schemas", () => {
+        const statusSchema = z.object({
+          status: z.union([z.literal("pending"), z.literal("active"), z.literal("completed")]),
+          message: z.string(),
+        });
+        const json = '{"status": "active", "message": "Processing"}';
+        const completionOptions = {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: statusSchema,
+        };
+
+        const result = parseAndValidateLLMJson(json, context, completionOptions);
+
+        expect(result.success).toBe(true);
+        if (result.success) {
+          // Union type should be properly inferred
+          const status: "pending" | "active" | "completed" = result.data.status;
+          const message: string = result.data.message;
+          expect(status).toBe("active");
+          expect(message).toBe("Processing");
+        }
+      });
+    });
   });
 });

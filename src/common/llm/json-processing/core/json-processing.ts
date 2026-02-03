@@ -264,7 +264,7 @@ function validateAndBuildResult<S extends z.ZodType<unknown>>(
  * @returns The effective sanitizer configuration, or undefined if neither source provides data
  */
 function buildEffectiveSanitizerConfig(
-  jsonSchema: z.ZodType | undefined,
+  jsonSchema: z.ZodType<unknown> | undefined,
   explicitConfig: LLMSanitizerConfig | undefined,
 ): LLMSanitizerConfig | undefined {
   if (!jsonSchema) return explicitConfig;
@@ -308,7 +308,7 @@ function buildEffectiveSanitizerConfig(
  * @param config - Optional sanitizer configuration to pass to transforms
  * @returns A JsonProcessorResult indicating success with validated data and repairs, or failure with an error
  */
-export function parseAndValidateLLMJson<S extends z.ZodType = z.ZodType<unknown>>(
+export function parseAndValidateLLMJson<S extends z.ZodType<unknown> = z.ZodType<unknown>>(
   content: string,
   context: LLMExecutionContext,
   completionOptions: LLMCompletionOptions<S>,

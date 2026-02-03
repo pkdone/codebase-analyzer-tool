@@ -443,4 +443,103 @@ describe("json-validating", () => {
       }
     });
   });
+
+  describe("z.ZodType<unknown> constraint type safety", () => {
+    it("should preserve type safety with complex nested schemas", () => {
+      const complexSchema = z.object({
+        level1: z.object({
+          level2: z.array(
+            z.object({
+              id: z.number(),
+              tags: z.array(z.string()),
+            }),
+          ),
+        }),
+      });
+
+      const testData = {
+        level1: {
+          level2: [
+            { id: 1, tags: ["a", "b"] },
+            { id: 2, tags: ["c"] },
+          ],
+        },
+      };
+
+      const result = repairAndValidateJson(testData, complexSchema);
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        // Deep type inference should work without casts
+        const firstId: number = result.data.level1.level2[0].id;
+        const firstTag: string = result.data.level1.level2[0].tags[0];
+        expect(firstId).toBe(1);
+        expect(firstTag).toBe("a");
+      }
+    });
+
+    it("should correctly type union schemas", () => {
+      const unionSchema = z.discriminatedUnion("type", [
+        z.object({ type: z.literal("user"), name: z.string() }),
+        z.object({ type: z.literal("admin"), permissions: z.array(z.string()) }),
+      ]);
+
+      const userData = { type: "user" as const, name: "Alice" };
+      const result = repairAndValidateJson(userData, unionSchema);
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.type).toBe("user");
+        if (result.data.type === "user") {
+          const userName: string = result.data.name;
+          expect(userName).toBe("Alice");
+        }
+      }
+    });
+
+    it("should handle schemas with optional and nullable properties", () => {
+      const schema = z.object({
+        required: z.string(),
+        optional: z.string().optional(),
+        nullable: z.string().nullable(),
+      });
+
+      const data = { required: "value", nullable: null };
+      const result = repairAndValidateJson(data, schema);
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        const requiredValue: string = result.data.required;
+        const optionalValue: string | undefined = result.data.optional;
+        const nullableValue: string | null = result.data.nullable;
+
+        expect(requiredValue).toBe("value");
+        expect(optionalValue).toBeUndefined();
+        expect(nullableValue).toBeNull();
+      }
+    });
+
+    it("should preserve literal types in schemas", () => {
+      const literalSchema = z.object({
+        status: z.literal("active"),
+        count: z.literal(42),
+        flag: z.literal(true),
+      });
+
+      const data = { status: "active", count: 42, flag: true };
+      const result = repairAndValidateJson(data, literalSchema);
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        // Type should be narrowed to literal types
+        const status: "active" = result.data.status;
+        const count: 42 = result.data.count;
+        const flag: true = result.data.flag;
+
+        expect(status).toBe("active");
+        expect(count).toBe(42);
+        expect(flag).toBe(true);
+      }
+    });
+  });
 });

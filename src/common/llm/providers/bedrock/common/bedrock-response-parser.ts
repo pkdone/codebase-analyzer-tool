@@ -122,7 +122,7 @@ interface ResponsePathConfig {
  */
 export function extractTextCompletionResponse(
   llmResponse: unknown,
-  schema: z.ZodType,
+  schema: z.ZodType<unknown>,
   pathConfig: ResponsePathConfig,
   providerName: string,
 ): LLMImplSpecificResponseSummary {
@@ -133,8 +133,8 @@ export function extractTextCompletionResponse(
       `Invalid ${providerName} response structure`,
       llmResponse,
     );
-  // Cast to unknown: z.ZodType without params gives 'any', explicit cast satisfies strict linting
-  const response = validation.data as unknown;
+  // z.ZodType<unknown> ensures validation.data is typed as unknown (not any)
+  const response = validation.data;
   const contentPaths = [pathConfig.contentPath, pathConfig.alternativeContentPath].filter(
     isDefined,
   );
