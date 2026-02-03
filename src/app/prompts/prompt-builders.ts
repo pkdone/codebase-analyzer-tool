@@ -23,6 +23,7 @@ import {
   DEFAULT_PERSONA_INTRODUCTION,
   FRAGMENTED_DATA_BLOCK_HEADER,
   CODEBASE_QUERY_TEMPLATE,
+  PARTIAL_ANALYSIS_NOTE_TEMPLATE,
 } from "./prompts.constants";
 
 /**
@@ -117,7 +118,7 @@ export function createPromptGenerator(
  */
 function buildPartialAnalysisNote(dataBlockHeader: string): string {
   const formattedHeader = dataBlockHeader.toLowerCase().replace(/_/g, " ");
-  return `Note, this is a partial analysis of what is a much larger set of ${formattedHeader}; focus on extracting insights from this subset of ${formattedHeader} only.\n\n`;
+  return fillPrompt(PARTIAL_ANALYSIS_NOTE_TEMPLATE, { header: formattedHeader });
 }
 
 /**

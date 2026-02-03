@@ -31,6 +31,14 @@ export const FILE_SUMMARIES_DATA_BLOCK_HEADER = "FILE_SUMMARIES" as const;
 export const FRAGMENTED_DATA_BLOCK_HEADER = "FRAGMENTED_DATA" as const;
 
 /**
+ * Template for the contextual note added to partial analysis prompts.
+ * Used in map-reduce workflows to indicate that the current content is a subset of a larger analysis.
+ * {{header}} will be replaced by the formatted data block header (e.g., "file summaries").
+ */
+export const PARTIAL_ANALYSIS_NOTE_TEMPLATE =
+  "Note, this is a partial analysis of what is a much larger set of {{header}}; focus on extracting insights from this subset of {{header}} only.\n\n";
+
+/**
  * Template for querying the codebase with a specific question.
  * Used for RAG (Retrieval-Augmented Generation) workflows where vector search results
  * are provided as context for answering developer questions about the codebase.
