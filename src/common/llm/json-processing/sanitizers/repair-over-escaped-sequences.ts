@@ -5,8 +5,6 @@
  * with code snippets (especially SQL, regex, or strings that contain quotes). This
  * module provides functions to progressively reduce the number of backslashes to
  * produce valid JSON.
- *
- * Extracted from normalize-characters.ts for better modularity and reusability.
  */
 
 /**

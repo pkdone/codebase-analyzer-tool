@@ -31,10 +31,10 @@ export const pieChartConfig = {
    * visualization (15+ categories), while the MongoDB brand palette only contains 7 colors.
    * Using Material Design colors here provides better visual separation between slices.
    *
-   * If more than 15 slices are needed, the pie-chart-calculator generates additional colors
+   * If more than 15 slices are needed, pie-chart-data-builder generates additional colors
    * using the golden angle algorithm for even hue distribution.
    *
-   * @see pie-chart-calculator.ts for color assignment logic
+   * @see pie-chart-data-builder.ts for color assignment logic
    * @see brand-theme.config.ts for MongoDB brand colors used in semantic UI elements
    */
   COLORS: [

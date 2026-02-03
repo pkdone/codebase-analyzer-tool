@@ -1,6 +1,6 @@
 /**
  * Type definitions for pie chart visualization data.
- * These types are used by pie-chart-calculator.ts and consumed by html-report-writer.ts.
+ * These types are used by pie-chart-data-builder.ts and consumed by html-report-writer.ts.
  */
 
 /**
