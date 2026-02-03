@@ -615,13 +615,14 @@ export const jspMetricsSchema = z
   .passthrough();
 
 /**
- * Schema for UI framework identification
+ * Schema for UI framework identification.
+ * Note: The configuration file path is tracked separately using the source file's
+ * authoritative filepath, not from LLM output (which would be unreliable).
  */
 export const uiFrameworkSchema = z
   .object({
     name: z.string().describe("Framework name (e.g., 'Struts', 'JSF', 'Spring MVC')"),
     version: z.string().optional().describe("Framework version if identifiable"),
-    configFile: z.string().describe("Configuration file where framework was detected"),
   })
   .passthrough();
 

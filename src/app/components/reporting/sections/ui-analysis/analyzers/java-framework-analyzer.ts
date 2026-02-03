@@ -31,13 +31,15 @@ export class JavaFrameworkAnalyzer {
         frameworkMap.set(key, {
           name: existing.name,
           version: existing.version,
-          configFiles: [...existing.configFiles, framework.configFile],
+          // Use authoritative file.filepath instead of LLM-provided configFile
+          configFiles: [...existing.configFiles, file.filepath],
         });
       } else {
         frameworkMap.set(key, {
           name: framework.name,
           version: framework.version,
-          configFiles: [framework.configFile],
+          // Use authoritative file.filepath instead of LLM-provided configFile
+          configFiles: [file.filepath],
         });
       }
     }

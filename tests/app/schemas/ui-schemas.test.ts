@@ -190,9 +190,9 @@ describe("UI Framework Schema", () => {
   });
 
   it("should validate UI framework without version", () => {
+    // Note: configFile was removed - file paths are tracked using authoritative source filepath
     const testData = {
       name: "Spring MVC",
-      configFile: "WEB-INF/spring-servlet.xml",
     };
 
     const result = uiFrameworkSchema.safeParse(testData);
@@ -200,23 +200,11 @@ describe("UI Framework Schema", () => {
     if (result.success) {
       expect(result.data.name).toBe("Spring MVC");
       expect(result.data.version).toBeUndefined();
-      expect(result.data.configFile).toBe("WEB-INF/spring-servlet.xml");
     }
   });
 
   it("should fail when name is missing", () => {
     const testData = {
-      version: "2.2",
-      configFile: "WEB-INF/faces-config.xml",
-    };
-
-    const result = uiFrameworkSchema.safeParse(testData);
-    expect(result.success).toBe(false);
-  });
-
-  it("should fail when configFile is missing", () => {
-    const testData = {
-      name: "JSF",
       version: "2.2",
     };
 
@@ -230,7 +218,6 @@ describe("UI Framework Schema", () => {
     frameworks.forEach((name) => {
       const testData = {
         name,
-        configFile: "WEB-INF/web.xml",
       };
 
       const result = uiFrameworkSchema.safeParse(testData);
@@ -248,7 +235,6 @@ describe("UI Framework Schema", () => {
       const testData = {
         name: "TestFramework",
         version,
-        configFile: "config.xml",
       };
 
       const result = uiFrameworkSchema.safeParse(testData);
@@ -469,19 +455,18 @@ describe("TypeScript Type Inference - UI Schemas", () => {
   it("should infer correct types for UI framework", () => {
     type UiFramework = z.infer<typeof uiFrameworkSchema>;
 
+    // Note: configFile was removed from schema as file paths are tracked
+    // using the authoritative source file filepath instead of LLM output
     const framework: UiFramework = {
       name: "Struts",
       version: "1.3",
-      configFile: "WEB-INF/web.xml",
     };
 
     // Type assertions
     const name: string = framework.name;
     const version: string | undefined = framework.version;
-    const configFile: string = framework.configFile;
 
     expect(name).toBe("Struts");
     expect(version).toBe("1.3");
-    expect(configFile).toBe("WEB-INF/web.xml");
   });
 });

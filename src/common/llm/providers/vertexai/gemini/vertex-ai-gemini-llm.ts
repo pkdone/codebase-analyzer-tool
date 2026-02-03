@@ -209,14 +209,7 @@ export default class VertexAIGeminiLLM extends BaseLLMProvider {
     if (!llmResponse)
       throw new LLMError(LLMErrorCode.BAD_RESPONSE_CONTENT, "LLM response was completely empty");
 
-    // Capture response content
-    // llmResponse is verified to exist above with the guard check.
-    // Per SDK types, content and parts are required. Access the first part's text if available.
-    // Parts array is typed as non-empty per SDK, so parts[0] is guaranteed to exist.
-    const firstPart = llmResponse.content.parts[0];
-    const responseContent = firstPart.text ?? null;
-
-    // Capture finish reason
+    // Capture finish reason first to handle safety blocks before accessing content
     const finishReason = llmResponse.finishReason ?? FinishReason.OTHER;
     if (VERTEXAI_TERMINAL_FINISH_REASONS.includes(finishReason))
       throw new LLMError(
@@ -224,6 +217,13 @@ export default class VertexAIGeminiLLM extends BaseLLMProvider {
         `LLM response was not safely completed - reason given: ${finishReason}`,
         finishReason,
       );
+
+    // Capture response content
+    // After the terminal finish reason check above, we can safely access content/parts.
+    // Per Vertex AI SDK types, content and parts are required on non-terminal responses.
+    // The parts array may be empty in edge cases, so check length before accessing.
+    const parts = llmResponse.content.parts;
+    const responseContent = parts.length > 0 ? (parts[0].text ?? null) : null;
     const isIncompleteResponse = finishReason !== FinishReason.STOP || responseContent == null;
 
     // Capture token usage

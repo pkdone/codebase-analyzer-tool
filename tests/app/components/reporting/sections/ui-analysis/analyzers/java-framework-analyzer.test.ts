@@ -4,10 +4,11 @@ import type { ProjectedSourceSummaryFields } from "../../../../../../../src/app/
 
 /**
  * Helper function to create mock source file with UI framework data.
+ * Note: configFile is not included as the analyzer uses the authoritative filepath instead.
  */
 function createMockFrameworkFile(
   filepath: string,
-  framework: { name: string; version?: string; configFile: string },
+  framework: { name: string; version?: string },
 ): ProjectedSourceSummaryFields {
   return {
     filepath,
@@ -62,13 +63,13 @@ describe("JavaFrameworkAnalyzer", () => {
         createMockFrameworkFile("struts-config.xml", {
           name: "Struts",
           version: "1.3.10",
-          configFile: "struts-config.xml",
         }),
       ];
 
       const result = analyzer.analyzeFrameworks(sourceFiles);
 
       expect(result).toHaveLength(1);
+      // configFiles comes from the authoritative filepath, not from LLM output
       expect(result[0]).toEqual({
         name: "Struts",
         version: "1.3.10",
@@ -81,12 +82,10 @@ describe("JavaFrameworkAnalyzer", () => {
         createMockFrameworkFile("struts-config.xml", {
           name: "Struts",
           version: "1.3.10",
-          configFile: "struts-config.xml",
         }),
         createMockFrameworkFile("faces-config.xml", {
           name: "JSF",
           version: "2.0",
-          configFile: "faces-config.xml",
         }),
       ];
 
@@ -102,12 +101,10 @@ describe("JavaFrameworkAnalyzer", () => {
         createMockFrameworkFile("module1/struts-config.xml", {
           name: "Struts",
           version: "1.3.10",
-          configFile: "module1/struts-config.xml",
         }),
         createMockFrameworkFile("module2/struts-config.xml", {
           name: "Struts",
           version: "1.3.10",
-          configFile: "module2/struts-config.xml",
         }),
       ];
 
@@ -115,6 +112,7 @@ describe("JavaFrameworkAnalyzer", () => {
 
       expect(result).toHaveLength(1);
       expect(result[0].configFiles).toHaveLength(2);
+      // configFiles comes from authoritative filepaths
       expect(result[0].configFiles).toContain("module1/struts-config.xml");
       expect(result[0].configFiles).toContain("module2/struts-config.xml");
     });
@@ -124,12 +122,10 @@ describe("JavaFrameworkAnalyzer", () => {
         createMockFrameworkFile("old/struts-config.xml", {
           name: "Struts",
           version: "1.2.9",
-          configFile: "old/struts-config.xml",
         }),
         createMockFrameworkFile("new/struts-config.xml", {
           name: "Struts",
           version: "1.3.10",
-          configFile: "new/struts-config.xml",
         }),
       ];
 
@@ -143,7 +139,6 @@ describe("JavaFrameworkAnalyzer", () => {
         createMockFrameworkFile("config.xml", {
           name: "Unknown Framework",
           version: undefined,
-          configFile: "config.xml",
         }),
       ];
 
@@ -158,17 +153,14 @@ describe("JavaFrameworkAnalyzer", () => {
         createMockFrameworkFile("spring.xml", {
           name: "Spring MVC",
           version: "5.0",
-          configFile: "spring.xml",
         }),
         createMockFrameworkFile("faces.xml", {
           name: "JSF",
           version: "2.0",
-          configFile: "faces.xml",
         }),
         createMockFrameworkFile("struts.xml", {
           name: "Struts",
           version: "1.3",
-          configFile: "struts.xml",
         }),
       ];
 
@@ -185,7 +177,6 @@ describe("JavaFrameworkAnalyzer", () => {
         createMockFrameworkFile("struts-config.xml", {
           name: "Struts",
           version: "1.3",
-          configFile: "struts-config.xml",
         }),
         createMockNonFrameworkFile("src/Main.java"),
         { filepath: "empty.xml", summary: undefined },
