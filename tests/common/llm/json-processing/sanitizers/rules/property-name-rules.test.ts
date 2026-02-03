@@ -125,6 +125,25 @@ describe("PROPERTY_NAME_RULES", () => {
       // The rule preserves the terminator which includes the space
       expect(result.content).toBe('{"name": ,}');
     });
+
+    it("should fix corrupted property name with numeric garbage", () => {
+      // The generalized pattern catches alphanumeric garbage
+      const input = '{"name":123abc": ,}';
+      const result = executeRules(input, PROPERTY_NAME_RULES);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toBe('{"name": ,}');
+    });
+
+    it("should fix corrupted property name with mixed garbage characters", () => {
+      // The pattern now uses generic character class [^\s":,}\][\n]
+      // to catch any non-structural garbage
+      const input = '{"value":xyz_123": ,}';
+      const result = executeRules(input, PROPERTY_NAME_RULES);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toBe('{"value": ,}');
+    });
   });
 
   describe("missingQuotesOnPropertyWithArrayObject rule", () => {
@@ -177,12 +196,67 @@ describe("PROPERTY_NAME_RULES", () => {
   });
 
   describe("nonAsciiQuoteBeforeProperty rule", () => {
-    it("should fix non-ASCII quote before property", () => {
+    it("should fix non-ASCII quote before property (modifier letter)", () => {
       const input = '{\n  \u02BBlinesOfCode": 3\n}';
       const result = executeRules(input, PROPERTY_NAME_RULES);
 
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"linesOfCode":');
+    });
+
+    it("should fix curly single quote before property", () => {
+      // U+2018 LEFT SINGLE QUOTATION MARK
+      const input = '{\n  \u2018value": "test"\n}';
+      const result = executeRules(input, PROPERTY_NAME_RULES);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"value":');
+    });
+
+    it("should fix curly double quote before property", () => {
+      // U+201C LEFT DOUBLE QUOTATION MARK
+      const input = '{\n  \u201CpropName": "test"\n}';
+      const result = executeRules(input, PROPERTY_NAME_RULES);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"propName":');
+    });
+
+    it("should fix backtick before property", () => {
+      // U+0060 GRAVE ACCENT (backtick)
+      const input = '{\n  `myField": "test"\n}';
+      const result = executeRules(input, PROPERTY_NAME_RULES);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"myField":');
+    });
+
+    it("should fix acute accent before property", () => {
+      // U+00B4 ACUTE ACCENT
+      const input = '{\n  \u00B4fieldName": "test"\n}';
+      const result = executeRules(input, PROPERTY_NAME_RULES);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"fieldName":');
+    });
+  });
+
+  describe("corruptedPropertyValue rule", () => {
+    it("should fix corrupted property value with encoding marker", () => {
+      const input = '{"count":_CODE`42,}';
+      const result = executeRules(input, PROPERTY_NAME_RULES);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toBe('{"count": 42,}');
+    });
+
+    it("should fix corrupted property value with underscore in marker", () => {
+      // Generalized pattern catches _UPPER_CASE markers
+      const input = '{"size":_DATA_VALUE`100,}';
+      const result = executeRules(input, PROPERTY_NAME_RULES);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toBe('{"size": 100,}');
     });
   });
 });

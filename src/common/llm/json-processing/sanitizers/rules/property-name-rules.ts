@@ -22,9 +22,11 @@ export const PROPERTY_NAME_RULES: readonly ReplacementRule[] = [
   // Rule: Fix corrupted property names with extra text after colon
   // Pattern: `"name":g": "value"` -> `"name": "value"`
   // Pattern: `"name":123": "value"` -> `"name": "value"` (alphanumeric corruption)
+  // Pattern: `"name":@#$": "value"` -> `"name": "value"` (special char corruption)
+  // Uses generic character class to catch any non-structural garbage characters
   {
     name: "corruptedPropertyNameExtraText",
-    pattern: /"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:\s*([a-zA-Z0-9_]+)\s*":(\s*[,}])/g,
+    pattern: /"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:\s*([^\s":,}\][\n]{1,20})\s*":(\s*[,}])/g,
     replacement: (_match, groups) => {
       const [propertyName, , terminator] = safeGroups3(groups);
       return `"${propertyName}":${terminator}`;
@@ -38,10 +40,12 @@ export const PROPERTY_NAME_RULES: readonly ReplacementRule[] = [
 
   // Rule: Fix corrupted property values with encoding markers
   // Pattern: `"propertyName":_CODE\`4,` -> `"propertyName": 4,`
-  // Generic pattern catches _CODE, _VALUE, _DATA, etc. followed by backtick and number
+  // Pattern: `"propertyName":_VALUE\`123,` -> `"propertyName": 123,`
+  // Pattern: `"propertyName":__TAG__\`5,` -> `"propertyName": 5,`
+  // Generic pattern catches any _UPPERCASE marker (including underscores) followed by backtick and number
   {
     name: "corruptedPropertyValue",
-    pattern: /"([^"]+)"\s*:\s*_[A-Z]+`(\d+)(\s*[,}])/g,
+    pattern: /"([^"]+)"\s*:\s*_[A-Z_]+`(\d+)(\s*[,}])/g,
     replacement: (_match, groups) => {
       const [propertyName, digits, terminator] = safeGroups3(groups);
       return `"${propertyName}": ${digits}${terminator}`;
@@ -361,9 +365,15 @@ export const PROPERTY_NAME_RULES: readonly ReplacementRule[] = [
 
   // Rule: Fix non-ASCII quotes before property names
   // Pattern: `ʻlinesOfCode": 3` -> `"linesOfCode": 3`
+  // Uses Unicode category for "quotation mark-like" characters including:
+  // - U+02BB (ʻ), U+02BC (ʼ) - modifier letters
+  // - U+2018-U+201F - general punctuation quotes (', ', ", ", ‟, etc.)
+  // - U+0060 (`) - backtick (grave accent)
+  // - U+00B4 (´) - acute accent
   {
     name: "nonAsciiQuoteBeforeProperty",
-    pattern: /([}\],]|\n|^)(\s*)[\u02BB\u2018\u2019\u201C\u201D]([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:/g,
+    pattern:
+      /([}\],]|\n|^)(\s*)[\u02BB\u02BC\u2018\u2019\u201A\u201B\u201C\u201D\u201E\u201F\u0060\u00B4]([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:/g,
     replacement: (_match, groups) => {
       const [delimiter, whitespace, propertyName] = safeGroups3(groups);
       return `${delimiter}${whitespace}"${propertyName}":`;

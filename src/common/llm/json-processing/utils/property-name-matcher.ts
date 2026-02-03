@@ -10,7 +10,7 @@
 export interface PropertyMatcherConfig {
   /** Minimum length for a fragment to be considered for prefix matching */
   readonly minPrefixLength: number;
-  /** Maximum Levenshtein distance allowed for fuzzy matching */
+  /** Maximum Levenshtein distance allowed for fuzzy matching (use 0 for dynamic threshold) */
   readonly maxLevenshteinDistance: number;
   /** Minimum length for a fragment to be considered for fuzzy matching */
   readonly minFuzzyLength: number;
@@ -18,6 +18,10 @@ export interface PropertyMatcherConfig {
   readonly caseInsensitive: boolean;
   /** Whether to normalize identifiers (camelCase/snake_case/kebab-case) before comparison */
   readonly normalizeIdentifiers: boolean;
+  /** Minimum length for a fragment to be considered for contains matching */
+  readonly minContainsLength: number;
+  /** Whether to use dynamic Levenshtein threshold based on string length */
+  readonly useDynamicLevenshteinThreshold: boolean;
 }
 
 /**
@@ -29,7 +33,36 @@ export const DEFAULT_MATCHER_CONFIG: PropertyMatcherConfig = {
   minFuzzyLength: 4,
   caseInsensitive: true,
   normalizeIdentifiers: true,
+  minContainsLength: 4,
+  useDynamicLevenshteinThreshold: true,
 };
+
+/**
+ * Calculates a dynamic Levenshtein distance threshold based on string length.
+ * Longer strings can tolerate more edits while still being considered a match.
+ *
+ * @param length - The length of the string being matched
+ * @param baseThreshold - The base threshold from config (used as minimum)
+ * @returns The calculated threshold
+ *
+ * @example
+ * calculateDynamicLevenshteinThreshold(4) // 2 (minimum)
+ * calculateDynamicLevenshteinThreshold(8) // 2
+ * calculateDynamicLevenshteinThreshold(12) // 3
+ * calculateDynamicLevenshteinThreshold(20) // 4
+ */
+export function calculateDynamicLevenshteinThreshold(length: number, baseThreshold = 2): number {
+  // For short strings (< 6 chars), use the base threshold
+  if (length < 6) {
+    return baseThreshold;
+  }
+  // For medium strings (6-10 chars), allow up to 2 edits
+  if (length < 10) {
+    return Math.max(baseThreshold, 2);
+  }
+  // For longer strings, allow ~20% of length as edits, capped at 5
+  return Math.min(5, Math.max(baseThreshold, Math.floor(length * 0.2)));
+}
 
 /**
  * Normalizes an identifier by converting from various naming conventions to a common format.
@@ -62,7 +95,7 @@ export interface PropertyMatchResult {
   /** The matched property name, or undefined if no match */
   readonly matched: string | undefined;
   /** The type of match that was found */
-  readonly matchType: "exact" | "prefix" | "fuzzy" | "none";
+  readonly matchType: "exact" | "prefix" | "suffix" | "contains" | "fuzzy" | "none";
   /** Confidence score (0-1) for the match */
   readonly confidence: number;
 }
@@ -122,7 +155,9 @@ export function levenshteinDistance(str1: string, str2: string): number {
  * 1. Exact match (case-insensitive if configured)
  * 2. Prefix match - fragment is the start of a known property
  * 3. Suffix match - fragment is the end of a known property (for truncated starts)
- * 4. Fuzzy match - Levenshtein distance within threshold
+ * 4. Normalized identifier match (camelCase/snake_case agnostic)
+ * 5. Contains match - fragment appears in the middle of a known property
+ * 6. Fuzzy match - Levenshtein distance within threshold (dynamic or fixed)
  *
  * @param fragment - The potentially corrupted property name fragment
  * @param knownProperties - List of valid property names to match against
@@ -183,7 +218,7 @@ export function matchPropertyName(
     if (suffixMatches.length > 0) {
       const sortedMatches = suffixMatches.toSorted((a, b) => a.length - b.length);
       const confidence = Math.min(0.85, fragment.length / sortedMatches[0].length + 0.2);
-      return { matched: sortedMatches[0].prop, matchType: "prefix", confidence };
+      return { matched: sortedMatches[0].prop, matchType: "suffix", confidence };
     }
   }
 
@@ -224,22 +259,56 @@ export function matchPropertyName(
     }
   }
 
-  // Strategy 5: Fuzzy match using Levenshtein distance
+  // Strategy 5: Contains match (fragment appears in the middle of a property)
+  // Useful for medium-length fragments that are not at the start or end
+  if (fragment.length >= opts.minContainsLength) {
+    const containsMatches: { prop: string; length: number; index: number }[] = [];
+
+    for (const prop of knownProperties) {
+      const normalizedProp = opts.caseInsensitive ? prop.toLowerCase() : prop;
+      const index = normalizedProp.indexOf(normalizedFragment);
+      // Only match if fragment is truly "contained" (not at start or end)
+      if (index > 0 && index + normalizedFragment.length < normalizedProp.length) {
+        containsMatches.push({ prop, length: prop.length, index });
+      }
+    }
+
+    if (containsMatches.length > 0) {
+      // Prefer shorter properties (more specific match) and earlier position
+      const sortedMatches = containsMatches.toSorted((a, b) => {
+        if (a.length !== b.length) return a.length - b.length;
+        return a.index - b.index;
+      });
+      // Lower confidence than prefix/suffix since position is ambiguous
+      const confidence = Math.min(0.75, fragment.length / sortedMatches[0].length + 0.1);
+      return { matched: sortedMatches[0].prop, matchType: "contains", confidence };
+    }
+  }
+
+  // Strategy 6: Fuzzy match using Levenshtein distance
   if (fragment.length >= opts.minFuzzyLength) {
+    // Calculate the effective threshold - dynamic or fixed
+    const effectiveThreshold = opts.useDynamicLevenshteinThreshold
+      ? calculateDynamicLevenshteinThreshold(fragment.length, opts.maxLevenshteinDistance)
+      : opts.maxLevenshteinDistance;
+
     let bestMatch: { prop: string; distance: number } | undefined;
 
     for (const prop of knownProperties) {
       const normalizedProp = opts.caseInsensitive ? prop.toLowerCase() : prop;
 
-      // Skip if length difference is too large
-      if (
-        Math.abs(normalizedFragment.length - normalizedProp.length) > opts.maxLevenshteinDistance
-      ) {
+      // Skip if length difference is too large (use max of fragment and prop length for threshold)
+      const maxLength = Math.max(normalizedFragment.length, normalizedProp.length);
+      const dynamicThresholdForPair = opts.useDynamicLevenshteinThreshold
+        ? calculateDynamicLevenshteinThreshold(maxLength, opts.maxLevenshteinDistance)
+        : opts.maxLevenshteinDistance;
+
+      if (Math.abs(normalizedFragment.length - normalizedProp.length) > dynamicThresholdForPair) {
         continue;
       }
 
       const distance = levenshteinDistance(normalizedFragment, normalizedProp);
-      if (distance <= opts.maxLevenshteinDistance) {
+      if (distance <= effectiveThreshold) {
         if (!bestMatch || distance < bestMatch.distance) {
           bestMatch = { prop, distance };
         }

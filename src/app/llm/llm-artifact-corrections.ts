@@ -18,44 +18,41 @@ import { JAVA_SPECIFIC_RULES } from "../prompts/sources/languages/java";
 /**
  * Mapping of truncated property name fragments to their full property names.
  *
- * The dynamic matcher handles most truncation patterns (e.g., "purpos" -> "purpose")
- * automatically via prefix matching. Only add entries here for patterns that:
- * 1. Cannot be resolved by prefix/suffix/fuzzy matching
- * 2. Are confirmed to occur in real LLM outputs
+ * The dynamic matcher in `property-name-matcher.ts` now handles most truncation patterns
+ * automatically via prefix, suffix, contains, and fuzzy matching strategies with
+ * dynamic Levenshtein thresholds. This includes:
+ * - Suffix truncations (e.g., "ameters" -> "parameters")
+ * - Prefix truncations (e.g., "purpos" -> "purpose")
+ * - Contains matches for medium-length fragments
+ *
+ * **Only add entries here for patterns that:**
+ * 1. Require semantic mapping (fragment maps to different word, not just truncation)
+ * 2. Have ambiguous suffix matches (fragment could match multiple properties)
+ * 3. Are confirmed edge cases that the dynamic matcher cannot handle
+ *
+ * @see src/common/llm/json-processing/utils/property-name-matcher.ts
  */
 const PROPERTY_NAME_MAPPINGS: Readonly<Record<string, string>> = {
-  // Edge cases where the truncation doesn't match any prefix
-  se: "purpose", // "se" could be truncated from "purpo-se" (corrupted)
-  alues: "codeSmells", // Truncated "v-alues" suffix
-  lues: "codeSmells",
-  ues: "codeSmells",
-  es: "codeSmells",
+  // Semantic mappings: LLM outputs abbreviated/alternative names for schema properties
+  // These require explicit mapping because they're not truncations of the target property
+  ethods: "publicFunctions", // LLM outputs "methods" (suffix) but schema uses "publicFunctions"
+  thods: "publicFunctions", // Same semantic issue: "methods" -> "publicFunctions"
 
-  // LLM hallucination patterns (observed in real outputs)
-  ethods: "publicFunctions",
-  thods: "publicFunctions",
-  unctions: "publicFunctions",
-  nctions: "publicFunctions",
-  nstants: "publicConstants",
-  stants: "publicConstants",
-  ants: "publicConstants",
+  // Corrupted/ambiguous edge cases that dynamic matching cannot reliably resolve
+  se: "purpose", // Could be from "purpo-se" corruption or other sources
+  es: "codeSmells", // Very short, could match many properties ending in "es"
 
-  // Truncated compound property names
-  egrationPoints: "integrationPoints",
-  grationPoints: "integrationPoints",
-  rationPoints: "integrationPoints",
-  ationPoints: "integrationPoints",
-  ernalReferences: "internalReferences",
-  alReferences: "externalReferences",
-  aseIntegration: "databaseIntegration",
-  seIntegration: "databaseIntegration",
-  QualityMetrics: "codeQualityMetrics",
-
-  // Parameter field truncations
-  ameters: "parameters",
-  meters: "parameters",
-  eters: "parameters",
-  ferences: "references",
+  // NOTE: The following entries were removed because enhanced suffix matching handles them:
+  // - alues/lues/ues -> codeSmells (suffix match)
+  // - unctions/nctions -> publicFunctions (suffix match)
+  // - nstants/stants/ants -> publicConstants (suffix match)
+  // - egrationPoints/.../ationPoints -> integrationPoints (suffix match)
+  // - ernalReferences -> internalReferences (suffix match)
+  // - alReferences -> externalReferences (suffix match)
+  // - aseIntegration/seIntegration -> databaseIntegration (suffix match)
+  // - QualityMetrics -> codeQualityMetrics (suffix match)
+  // - ameters/meters/eters -> parameters (suffix match)
+  // - ferences -> references (suffix match)
 } as const;
 
 /**

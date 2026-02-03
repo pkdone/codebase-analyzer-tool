@@ -26,9 +26,17 @@ describe("regex.constants", () => {
       expect(matches).toBe(true);
     });
 
-    it("should match generic code fences", () => {
-      const testString = '```\n{ "key": "value" }\n```';
+    it("should match any language code fences", () => {
+      // Index 3 now matches any language identifier (e.g., ```python, ```yaml)
+      const testString = '```python\n{ "key": "value" }\n```';
       const matches = CODE_FENCE_REGEXES[3].test(testString);
+      expect(matches).toBe(true);
+    });
+
+    it("should match generic code fences", () => {
+      // Index 4 is now the generic fence pattern (```)
+      const testString = '```\n{ "key": "value" }\n```';
+      const matches = CODE_FENCE_REGEXES[4].test(testString);
       expect(matches).toBe(true);
     });
 

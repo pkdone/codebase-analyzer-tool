@@ -9,6 +9,7 @@ import {
   looksLikeDotSeparatedIdentifier,
   inferFromShortFragment,
   normalizeIdentifier,
+  calculateDynamicLevenshteinThreshold,
   DEFAULT_MATCHER_CONFIG,
 } from "../../../../../src/common/llm/json-processing/utils/property-name-matcher";
 
@@ -54,6 +55,34 @@ describe("property-name-matcher", () => {
     it("should handle single character", () => {
       expect(normalizeIdentifier("a")).toBe("a");
       expect(normalizeIdentifier("A")).toBe("a");
+    });
+  });
+
+  describe("calculateDynamicLevenshteinThreshold", () => {
+    it("should return base threshold for short strings", () => {
+      expect(calculateDynamicLevenshteinThreshold(4, 2)).toBe(2);
+      expect(calculateDynamicLevenshteinThreshold(5, 2)).toBe(2);
+    });
+
+    it("should return at least 2 for medium strings", () => {
+      expect(calculateDynamicLevenshteinThreshold(6, 1)).toBe(2);
+      expect(calculateDynamicLevenshteinThreshold(8, 1)).toBe(2);
+    });
+
+    it("should scale with length for longer strings", () => {
+      expect(calculateDynamicLevenshteinThreshold(10, 2)).toBe(2);
+      expect(calculateDynamicLevenshteinThreshold(15, 2)).toBe(3);
+      expect(calculateDynamicLevenshteinThreshold(20, 2)).toBe(4);
+    });
+
+    it("should cap at 5 for very long strings", () => {
+      expect(calculateDynamicLevenshteinThreshold(30, 2)).toBe(5);
+      expect(calculateDynamicLevenshteinThreshold(50, 2)).toBe(5);
+    });
+
+    it("should respect base threshold as minimum", () => {
+      expect(calculateDynamicLevenshteinThreshold(10, 3)).toBe(3);
+      expect(calculateDynamicLevenshteinThreshold(5, 3)).toBe(3);
     });
   });
 
@@ -173,13 +202,59 @@ describe("property-name-matcher", () => {
         // "eferences" is the end of "internalReferences" and "externalReferences"
         const result = matchPropertyName("eferences", knownProperties);
         expect(result.matched).toBeDefined();
-        expect(result.matchType).toBe("prefix"); // suffix matching returns "prefix" type
+        expect(result.matchType).toBe("suffix");
       });
 
       it("should match truncated starts like 'unctions'", () => {
         const result = matchPropertyName("unctions", knownProperties);
         // Should match publicFunctions
         expect(result.matched).toBe("publicFunctions");
+        expect(result.matchType).toBe("suffix");
+      });
+
+      it("should prefer shorter matches when multiple properties match suffix", () => {
+        // Both "internalReferences" and "externalReferences" end with "References"
+        const result = matchPropertyName("References", knownProperties);
+        expect(result.matched).toBeDefined();
+        expect(result.matchType).toBe("suffix");
+        // Should match the shorter one
+        expect(
+          result.matched === "internalReferences" || result.matched === "externalReferences",
+        ).toBe(true);
+      });
+    });
+
+    describe("contains matching", () => {
+      it("should match fragments that appear in the middle of property names", () => {
+        // "tegration" appears in the middle of "integrationPoints"
+        const result = matchPropertyName("tegration", knownProperties);
+        expect(result.matched).toBe("integrationPoints");
+        expect(result.matchType).toBe("contains");
+      });
+
+      it("should not match contains when fragment is at start or end", () => {
+        // "integration" is at the start, should be prefix match, not contains
+        const result = matchPropertyName("integration", knownProperties);
+        expect(result.matchType).toBe("prefix");
+      });
+
+      it("should have lower confidence than prefix/suffix matches", () => {
+        const containsResult = matchPropertyName("tegration", knownProperties);
+        const prefixResult = matchPropertyName("integration", knownProperties);
+        expect(containsResult.confidence).toBeLessThan(prefixResult.confidence);
+      });
+
+      it("should respect minContainsLength config", () => {
+        // "teg" is too short with default minContainsLength of 4
+        const result = matchPropertyName("teg", knownProperties, { minContainsLength: 4 });
+        expect(result.matchType).not.toBe("contains");
+      });
+
+      it("should match common truncation patterns in compound words", () => {
+        // "ternalRef" appears in the middle of "internalReferences"
+        const result = matchPropertyName("ternalRef", knownProperties);
+        expect(result.matched).toBe("internalReferences");
+        expect(result.matchType).toBe("contains");
       });
     });
 
@@ -249,6 +324,42 @@ describe("property-name-matcher", () => {
         expect(DEFAULT_MATCHER_CONFIG.maxLevenshteinDistance).toBe(2);
         expect(DEFAULT_MATCHER_CONFIG.caseInsensitive).toBe(true);
         expect(DEFAULT_MATCHER_CONFIG.normalizeIdentifiers).toBe(true);
+        expect(DEFAULT_MATCHER_CONFIG.minContainsLength).toBe(4);
+        expect(DEFAULT_MATCHER_CONFIG.useDynamicLevenshteinThreshold).toBe(true);
+      });
+
+      it("should allow disabling dynamic Levenshtein threshold", () => {
+        // With dynamic threshold disabled and fixed threshold of 2, longer strings
+        // with more edits won't match
+        const result = matchPropertyName("cyclomticCompxity", knownProperties, {
+          useDynamicLevenshteinThreshold: false,
+          maxLevenshteinDistance: 2,
+        });
+        // "cyclomticCompxity" has 3 edits from "cyclomaticComplexity"
+        // With fixed threshold of 2, it shouldn't match
+        expect(result.matchType).toBe("none");
+      });
+    });
+
+    describe("dynamic Levenshtein threshold", () => {
+      it("should match longer strings with more edits when enabled", () => {
+        // "cyclomticCompxity" has ~3 edits from "cyclomaticComplexity"
+        // With dynamic threshold, it should still match for longer strings
+        const result = matchPropertyName("cyclomticCompxity", knownProperties, {
+          useDynamicLevenshteinThreshold: true,
+        });
+        expect(result.matched).toBe("cyclomaticComplexity");
+        expect(result.matchType).toBe("fuzzy");
+      });
+
+      it("should use base threshold for short strings", () => {
+        // For short strings (< 6 chars), the base threshold is used
+        // "nxxe" has 2 edits from "name" (a->x and m->x), which exceeds threshold of 1
+        const result = matchPropertyName("nxxe", knownProperties, {
+          useDynamicLevenshteinThreshold: true,
+          maxLevenshteinDistance: 1,
+        });
+        expect(result.matchType).toBe("none");
       });
     });
 
@@ -429,7 +540,7 @@ describe("property-name-matcher", () => {
       // Common pattern where "codeSmells" gets corrupted to end with "alues"
       const result = matchPropertyName("alues", ["values", "codeSmells"]);
       expect(result.matched).toBe("values");
-      expect(result.matchType).toBe("prefix"); // suffix match
+      expect(result.matchType).toBe("suffix");
     });
 
     it("should handle 'eferences' truncation", () => {

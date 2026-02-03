@@ -8,6 +8,11 @@ import { CODE_FENCE_MARKERS } from "./json-processing.config";
 /**
  * Code fence regex patterns for removing markdown code blocks.
  * These patterns match various code fence formats that LLMs use to wrap JSON responses.
+ *
+ * The patterns are ordered from most specific to most generic:
+ * 1. Specific language fences (json, javascript, ts)
+ * 2. Generic language fence (```anyLanguage)
+ * 3. Plain fence (```)
  */
 export const CODE_FENCE_REGEXES = Object.freeze([
   /**
@@ -22,6 +27,13 @@ export const CODE_FENCE_REGEXES = Object.freeze([
    * Matches TypeScript code fences: ```ts with optional whitespace
    */
   new RegExp(`${CODE_FENCE_MARKERS.TYPESCRIPT}\\s*`, "gi"),
+  /**
+   * Matches any code fence with a language identifier: ```anyLanguage
+   * This catches languages like python, yaml, xml, html, css, etc.
+   * that LLMs might use when wrapping JSON responses.
+   * Pattern: ``` followed by 1-20 lowercase letters/digits/hyphens and optional whitespace
+   */
+  /```[a-z][a-z0-9-]{0,19}\s*/gi,
   /**
    * Matches generic code fences: ``` (must be last to avoid matching specific ones)
    */

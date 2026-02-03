@@ -265,6 +265,89 @@ extra_notes= "additional info"
       expect(result.content).toContain('"publicMethods": []');
     });
   });
+
+  describe("llmArtifactPropertyByPattern", () => {
+    it("should detect properties containing 'thought' in name", () => {
+      const input = `{
+  "name": "Test",
+  "my_thought_process": "analyzing this code"
+}`;
+      const result = executeRules(input, EXTRA_PROPERTY_RULES);
+      // The pattern should detect "my_thought_process" as an LLM artifact
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain("my_thought_process");
+    });
+
+    it("should detect properties containing 'thinking' in name", () => {
+      const input = `{
+  "data": [],
+  "internal_thinking": "step by step"
+}`;
+      const result = executeRules(input, EXTRA_PROPERTY_RULES);
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain("internal_thinking");
+    });
+
+    it("should detect properties containing 'reasoning' in name", () => {
+      const input = `{
+  "value": 42,
+  "llm_reasoning_output": "because of X"
+}`;
+      const result = executeRules(input, EXTRA_PROPERTY_RULES);
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain("llm_reasoning_output");
+    });
+
+    it("should detect properties containing 'scratchpad' in name", () => {
+      const input = `{
+  "result": "done",
+  "model_scratchpad_notes": "working memory"
+}`;
+      const result = executeRules(input, EXTRA_PROPERTY_RULES);
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain("model_scratchpad_notes");
+    });
+
+    it("should detect properties ending with '_analysis' suffix", () => {
+      // The pattern catches properties that END with _analysis (LLM artifact suffix)
+      // but not properties where "analysis" is in the middle (could be legitimate)
+      const input = `{
+  "summary": "complete",
+  "llm_internal_analysis": "detailed breakdown"
+}`;
+      const result = executeRules(input, EXTRA_PROPERTY_RULES);
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain("llm_internal_analysis");
+    });
+
+    it("should preserve properties with 'analysis' in the middle of name", () => {
+      // Properties like "analysis_data" or "internal_analysis_data" could be legitimate
+      // The pattern is conservative to avoid false positives
+      const input = `{
+  "summary": "complete",
+  "internal_analysis_data": "detailed breakdown"
+}`;
+      const result = executeRules(input, EXTRA_PROPERTY_RULES);
+      // Should NOT be removed since "analysis" is in the middle, not a suffix
+      expect(result.content).toContain("internal_analysis_data");
+    });
+
+    it("should preserve properties that are in knownProperties list", () => {
+      // When knownProperties is provided, known properties should be preserved
+      // This is handled by the executeRules context.config.knownProperties
+      // The rule only removes properties that match artifact patterns AND are unknown
+      const input = `{
+  "name": "Test",
+  "type": "class"
+}`;
+      const result = executeRules(input, EXTRA_PROPERTY_RULES, {
+        config: { knownProperties: ["name", "type"] },
+      });
+      // Valid properties should be preserved
+      expect(result.content).toContain('"name": "Test"');
+      expect(result.content).toContain('"type": "class"');
+    });
+  });
 });
 
 describe("isValidEmbeddedContentContext", () => {
