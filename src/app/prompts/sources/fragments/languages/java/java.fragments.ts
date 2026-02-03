@@ -1,6 +1,6 @@
-import { createDbMechanismInstructions, dbMech } from "../../utils";
-import type { LanguageSpecificFragments } from "../../sources.types";
-import { MECHANISM_DESCRIPTIONS } from "../../fragments/features/common.fragments";
+import { createDbMechanismInstructions, dbMech } from "../../../utils";
+import type { LanguageSpecificFragments } from "../../../sources.types";
+import { MECHANISM_DESCRIPTIONS } from "../../features/common.fragments";
 
 /**
  * Java-specific instruction fragments.

@@ -6,7 +6,7 @@ import {
   executeRules,
   executeRulesMultiPass,
 } from "../../../../../../src/common/llm/json-processing/sanitizers/rules/rule-executor";
-import { ASSIGNMENT_RULES } from "../../../../../../src/common/llm/json-processing/sanitizers/rules/assignment-rules";
+import { ASSIGNMENT_RULES } from "../../../../../../src/common/llm/json-processing/sanitizers/rules/properties";
 
 describe("ASSIGNMENT_RULES", () => {
   describe("strayTextDirectlyAfterColon", () => {

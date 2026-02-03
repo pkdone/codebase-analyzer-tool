@@ -1,5 +1,5 @@
 import type { LLMSanitizerConfig } from "../../common/llm/config/llm-module-config.types";
-import { JAVA_SPECIFIC_RULES } from "../prompts/sources/languages/java";
+import { JAVA_SPECIFIC_RULES } from "../prompts/sources/fragments/languages/java";
 
 /**
  * LLM artifact corrections for handling output issues that cannot be derived from Zod schemas.

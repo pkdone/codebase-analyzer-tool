@@ -3,7 +3,7 @@
  */
 
 // Programming languages
-export { JAVA_SPECIFIC_FRAGMENTS } from "../../languages/java";
+export { JAVA_SPECIFIC_FRAGMENTS } from "./java";
 export { JAVASCRIPT_SPECIFIC_FRAGMENTS } from "./javascript.fragments";
 export { CSHARP_SPECIFIC_FRAGMENTS } from "./csharp.fragments";
 export { PYTHON_SPECIFIC_FRAGMENTS, PYTHON_COMPLEXITY_METRICS } from "./python.fragments";

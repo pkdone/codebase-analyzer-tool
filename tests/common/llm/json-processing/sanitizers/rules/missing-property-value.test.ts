@@ -1,5 +1,5 @@
 import { executeRules } from "../../../../../../src/common/llm/json-processing/sanitizers/rules/rule-executor";
-import { STRUCTURAL_RULES } from "../../../../../../src/common/llm/json-processing/sanitizers/rules/structural-rules";
+import { STRUCTURAL_RULES } from "../../../../../../src/common/llm/json-processing/sanitizers/rules/structural";
 
 describe("STRUCTURAL_RULES - missingPropertyValue", () => {
   describe("missing value before closing brace", () => {

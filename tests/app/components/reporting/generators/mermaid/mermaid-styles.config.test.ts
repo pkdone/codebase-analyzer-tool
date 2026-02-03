@@ -1,4 +1,8 @@
-import { buildStyleDefinitions } from "../../../../../../src/app/components/reporting/diagrams/utils/mermaid-styles";
+import {
+  buildStyleDefinitions,
+  DEFAULT_DIAGRAM_THEME,
+  type DiagramThemeConfig,
+} from "../../../../../../src/app/components/reporting/diagrams/utils/mermaid-styles";
 import { applyStyleClass } from "../../../../../../src/app/components/reporting/diagrams/utils";
 import { BRAND_COLORS } from "../../../../../../src/app/components/reporting/config/brand-theme.config";
 
@@ -73,6 +77,50 @@ describe("mermaid-styles.config", () => {
       expect(result).toMatch(/aggregate.*fill:#e3f2fd/);
       expect(result).toMatch(/entity.*fill:#f3e5f5/);
       expect(result).toMatch(/repository.*fill:#fff5f0/);
+    });
+
+    it("should accept custom theme configuration", () => {
+      const customConfig: DiagramThemeConfig = {
+        brandColors: {
+          greenDark: "#123456",
+          black: "#000000",
+          white: "#ffffff",
+        },
+      };
+
+      const result = buildStyleDefinitions(customConfig);
+
+      // Should use custom green dark color in strokes
+      expect(result).toContain("stroke:#123456");
+      // Should use custom black color for text
+      expect(result).toContain("color:#000000");
+    });
+
+    it("should use DEFAULT_DIAGRAM_THEME values when no config provided", () => {
+      const result = buildStyleDefinitions();
+
+      // Should use default brand colors
+      expect(result).toContain(`stroke:${DEFAULT_DIAGRAM_THEME.brandColors.greenDark}`);
+      expect(result).toContain(`color:${DEFAULT_DIAGRAM_THEME.brandColors.black}`);
+    });
+
+    it("should allow partial theme configuration", () => {
+      const partialConfig: DiagramThemeConfig = {
+        brandColors: {
+          greenDark: "#custom00",
+          black: "#111111",
+          white: "#eeeeee",
+        },
+        // elementColors and cssClasses use defaults
+      };
+
+      const result = buildStyleDefinitions(partialConfig);
+
+      // Should use custom brand colors
+      expect(result).toContain("stroke:#custom00");
+      expect(result).toContain("color:#111111");
+      // Should still use default element colors
+      expect(result).toContain("fill:#e8f5e8"); // boundedContextFill default
     });
   });
 

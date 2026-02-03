@@ -10,10 +10,10 @@
  * property name inference, with graceful fallback to generic defaults.
  */
 
-import type { ReplacementRule } from "./replacement-rule.types";
-import { isAfterJsonDelimiter, isInPropertyContext } from "../../utils/parser-context-utils";
-import { inferPropertyName, isKnownProperty } from "../../utils/property-name-inference";
-import { safeGroup, safeGroups3, safeGroups4 } from "../../utils/safe-group-extractor";
+import type { ReplacementRule } from "../replacement-rule.types";
+import { isAfterJsonDelimiter, isInPropertyContext } from "../../../utils/parser-context-utils";
+import { inferPropertyName, isKnownProperty } from "../../../utils/property-name-inference";
+import { safeGroup, safeGroups3, safeGroups4 } from "../../../utils/safe-group-extractor";
 
 /**
  * Rules for fixing property name issues in JSON content.

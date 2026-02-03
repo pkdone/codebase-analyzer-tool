@@ -19,7 +19,14 @@ export {
   buildArrow,
 } from "./mermaid-builders";
 
-export { buildStyleDefinitions } from "./mermaid-styles";
+export {
+  buildStyleDefinitions,
+  DEFAULT_DIAGRAM_THEME,
+  type DiagramThemeConfig,
+  type DiagramBrandColors,
+  type DiagramElementColors,
+  type DiagramCssClassNames,
+} from "./mermaid-styles";
 
 // Re-export applyStyleClass from common module for diagram generators
 export { applyStyleClass } from "../../../../../common/diagrams/mermaid/mermaid-utils";

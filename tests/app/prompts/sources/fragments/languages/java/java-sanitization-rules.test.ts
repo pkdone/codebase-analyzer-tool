@@ -1,5 +1,5 @@
-import { executeRules } from "../../../../../../src/common/llm/json-processing/sanitizers/rules/rule-executor";
-import { JAVA_SPECIFIC_RULES } from "../../../../../../src/app/prompts/sources/languages/java";
+import { executeRules } from "../../../../../../../src/common/llm/json-processing/sanitizers/rules/rule-executor";
+import { JAVA_SPECIFIC_RULES } from "../../../../../../../src/app/prompts/sources/fragments/languages/java";
 
 describe("JAVA_SPECIFIC_RULES", () => {
   describe("javaPackageInJson", () => {

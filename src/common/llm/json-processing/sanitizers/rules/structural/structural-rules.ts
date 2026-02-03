@@ -8,9 +8,9 @@
  * - Trailing commas
  */
 
-import type { ReplacementRule, ContextInfo } from "./replacement-rule.types";
-import { isAfterJsonDelimiter, isInArrayContextSimple } from "../../utils/parser-context-utils";
-import { parsingHeuristics } from "../../constants/json-processing.config";
+import type { ReplacementRule, ContextInfo } from "../replacement-rule.types";
+import { isAfterJsonDelimiter, isInArrayContextSimple } from "../../../utils/parser-context-utils";
+import { parsingHeuristics } from "../../../constants/json-processing.config";
 
 /**
  * Checks if a context is valid for structural fixes.

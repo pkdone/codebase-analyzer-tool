@@ -6,7 +6,7 @@
  * code context, making these generic instructions effective for most use cases.
  */
 
-import { INTEGRATION_MECHANISM_VALUES } from "../../../../schemas/source-file.schema";
+import { INTEGRATION_MECHANISM_VALUES } from "../../../../schemas/schema-value.constants";
 
 /**
  * Type for integration mechanism values that have mechanism descriptions.

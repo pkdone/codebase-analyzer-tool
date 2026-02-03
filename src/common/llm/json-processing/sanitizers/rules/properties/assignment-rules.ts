@@ -10,8 +10,8 @@
  * with a declarative approach consistent with other rule modules.
  */
 
-import type { ReplacementRule, ContextInfo } from "./replacement-rule.types";
-import { isJsonKeyword } from "../../utils/stray-text-detection";
+import type { ReplacementRule, ContextInfo } from "../replacement-rule.types";
+import { isJsonKeyword } from "../../../utils/stray-text-detection";
 
 /** Pattern for JSON numeric values (integers, floats, scientific notation) */
 const JSON_NUMBER_PATTERN = /^-?\d+(\.\d+)?([eE][+-]?\d+)?$/;

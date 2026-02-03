@@ -1,5 +1,5 @@
 import { executeRules } from "../../../../../../src/common/llm/json-processing/sanitizers/rules/rule-executor";
-import { STRAY_CHARACTER_RULES } from "../../../../../../src/common/llm/json-processing/sanitizers/rules/stray-character-rules";
+import { STRAY_CHARACTER_RULES } from "../../../../../../src/common/llm/json-processing/sanitizers/rules/characters";
 
 describe("STRAY_CHARACTER_RULES", () => {
   describe("extraCharBeforeProperty", () => {

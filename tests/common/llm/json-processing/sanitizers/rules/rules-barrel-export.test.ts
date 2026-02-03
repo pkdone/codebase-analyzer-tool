@@ -14,6 +14,7 @@ import {
   isInArrayContextSimple,
   STRAY_CHARACTER_RULES,
   PROPERTY_NAME_RULES,
+  ASSIGNMENT_RULES,
   ARRAY_ELEMENT_RULES,
   STRUCTURAL_RULES,
   EMBEDDED_CONTENT_RULES,
@@ -63,6 +64,12 @@ describe("rules barrel export", () => {
       expect(PROPERTY_NAME_RULES).toBeDefined();
       expect(Array.isArray(PROPERTY_NAME_RULES)).toBe(true);
       expect(PROPERTY_NAME_RULES.length).toBeGreaterThan(0);
+    });
+
+    it("should export ASSIGNMENT_RULES array", () => {
+      expect(ASSIGNMENT_RULES).toBeDefined();
+      expect(Array.isArray(ASSIGNMENT_RULES)).toBe(true);
+      expect(ASSIGNMENT_RULES.length).toBeGreaterThan(0);
     });
 
     it("should export ARRAY_ELEMENT_RULES array", () => {

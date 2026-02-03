@@ -9,7 +9,7 @@
 import type { LLMSanitizerConfig } from "../../../config/llm-module-config.types";
 import type { SanitizerStrategy, StrategyResult } from "../pipeline/sanitizer-pipeline.types";
 import { executeRulesMultiPass } from "../rules/rule-executor";
-import { ASSIGNMENT_RULES } from "../rules/assignment-rules";
+import { ASSIGNMENT_RULES } from "../rules/properties";
 
 /**
  * Strategy that normalizes property assignment syntax in JSON.

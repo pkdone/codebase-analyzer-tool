@@ -16,7 +16,7 @@
  * ```
  */
 
-import type { ReplacementRule } from "../../../../../common/llm/json-processing/sanitizers/rules/replacement-rule.types";
+import type { ReplacementRule } from "../../../../../../common/llm/json-processing/sanitizers/rules/replacement-rule.types";
 
 /**
  * Rules for removing Java code artifacts from JSON content.

@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import { container } from "tsyringe";
-import { captureTokens, insightsTokens, taskTokens } from "../../../../src/app/di/tokens";
+import { insightsTokens, taskTokens } from "../../../../src/app/di/tokens";
 import { registerAppDependencies } from "../../../../src/app/di/registration-modules/app-registration";
 
 describe("App Registration Module", () => {
@@ -10,11 +10,8 @@ describe("App Registration Module", () => {
   });
 
   describe("registerAppDependencies", () => {
-    it("should register capture components as singletons", () => {
-      registerAppDependencies();
-
-      expect(container.isRegistered(captureTokens.CodebaseIngestionService)).toBe(true);
-    });
+    // Note: Capture components (CodebaseIngestionService, etc.) are now registered
+    // in capture-registration.ts for better module cohesion
 
     it("should register insights components as singletons", () => {
       registerAppDependencies();
@@ -37,10 +34,10 @@ describe("App Registration Module", () => {
 
     it("should register components only once even on multiple calls", () => {
       registerAppDependencies();
-      const isRegistered1 = container.isRegistered(captureTokens.CodebaseIngestionService);
+      const isRegistered1 = container.isRegistered(insightsTokens.RequirementPromptExecutor);
 
       registerAppDependencies();
-      const isRegistered2 = container.isRegistered(captureTokens.CodebaseIngestionService);
+      const isRegistered2 = container.isRegistered(insightsTokens.RequirementPromptExecutor);
 
       expect(isRegistered1).toBe(true);
       expect(isRegistered2).toBe(true);

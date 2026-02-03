@@ -7,7 +7,7 @@
  * missingOpeningQuoteOnProperty may add quotes before truncatedPropertyName can fire.
  */
 
-import { PROPERTY_NAME_RULES } from "../../../../../../src/common/llm/json-processing/sanitizers/rules/property-name-rules";
+import { PROPERTY_NAME_RULES } from "../../../../../../src/common/llm/json-processing/sanitizers/rules/properties";
 import { executeRules } from "../../../../../../src/common/llm/json-processing/sanitizers/rules/rule-executor";
 
 describe("PROPERTY_NAME_RULES", () => {

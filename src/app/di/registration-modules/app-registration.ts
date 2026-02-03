@@ -1,5 +1,5 @@
 import { container } from "tsyringe";
-import { coreTokens, captureTokens, insightsTokens, configTokens, serviceTokens } from "../tokens";
+import { coreTokens, insightsTokens, configTokens, serviceTokens } from "../tokens";
 import { repositoryTokens } from "../tokens";
 import { taskTokens } from "../tokens";
 
@@ -11,9 +11,6 @@ import { AppSummariesRepository } from "../../repositories/app-summaries/app-sum
 
 // Domain-specific registration function
 import { registerReportingComponents } from "./reporting-registration";
-
-// Capture component imports
-import CodebaseIngestionService from "../../components/capture/codebase-ingestion.service";
 
 // Insights component imports
 import InsightsFromDBGenerator from "../../components/insights/generators/db-insights-generator";
@@ -91,6 +88,9 @@ function registerRepositories(): void {
  * Note: LLM core components (RetryStrategy, LLMExecutionPipeline) are NOT registered
  * here because the LLMRouter is created via a factory pattern in llm-registration.ts
  * to keep the src/common/llm module framework-agnostic.
+ *
+ * Note: Capture components (CodebaseIngestionService, etc.) are registered in
+ * capture-registration.ts for better module cohesion.
  */
 function registerComponents(): void {
   // Register concurrency services (shared across modules)
@@ -98,9 +98,6 @@ function registerComponents(): void {
 
   // Register database components
   container.registerSingleton(coreTokens.DatabaseInitializer, DatabaseInitializer);
-
-  // Register capture components
-  container.registerSingleton(captureTokens.CodebaseIngestionService, CodebaseIngestionService);
 
   // Register insights components
   container.registerSingleton(insightsTokens.RequirementPromptExecutor, RequirementPromptExecutor);

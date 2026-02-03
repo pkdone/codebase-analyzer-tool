@@ -6,15 +6,15 @@
  * - Stray text before and after JSON structures
  */
 
-import type { ReplacementRule } from "./replacement-rule.types";
+import type { ReplacementRule } from "../replacement-rule.types";
 import {
   isAfterJsonDelimiter,
   isInArrayContextSimple,
   isDeepArrayContext,
-} from "../../utils/parser-context-utils";
-import { isJsonKeyword, looksLikeStrayText } from "../../utils/stray-text-detection";
-import { parsingHeuristics } from "../../constants/json-processing.config";
-import { safeGroup, safeGroups4, safeGroups5 } from "../../utils/safe-group-extractor";
+} from "../../../utils/parser-context-utils";
+import { isJsonKeyword, looksLikeStrayText } from "../../../utils/stray-text-detection";
+import { parsingHeuristics } from "../../../constants/json-processing.config";
+import { safeGroup, safeGroups4, safeGroups5 } from "../../../utils/safe-group-extractor";
 
 /**
  * Checks if text looks like stray non-JSON content before a property.

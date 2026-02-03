@@ -32,11 +32,11 @@ export {
   isInArrayContextSimple,
 } from "../../utils/parser-context-utils";
 
-// Rule category exports
-export { STRAY_CHARACTER_RULES } from "./stray-character-rules";
-export { PROPERTY_NAME_RULES } from "./property-name-rules";
-export { ARRAY_ELEMENT_RULES } from "./array-element-rules";
-export { STRUCTURAL_RULES } from "./structural-rules";
+// Rule category exports - organized by subfolder
+export { STRAY_CHARACTER_RULES } from "./characters";
+export { STRUCTURAL_RULES } from "./structural";
+export { PROPERTY_NAME_RULES, ASSIGNMENT_RULES } from "./properties";
+export { ARRAY_ELEMENT_RULES } from "./arrays";
 export {
   EMBEDDED_CONTENT_RULES,
   YAML_CONTENT_RULES,
@@ -47,10 +47,10 @@ export {
 
 // Import all rules for aggregation
 import type { ReplacementRule } from "./replacement-rule.types";
-import { STRAY_CHARACTER_RULES } from "./stray-character-rules";
-import { PROPERTY_NAME_RULES } from "./property-name-rules";
-import { ARRAY_ELEMENT_RULES } from "./array-element-rules";
-import { STRUCTURAL_RULES } from "./structural-rules";
+import { STRAY_CHARACTER_RULES } from "./characters";
+import { STRUCTURAL_RULES } from "./structural";
+import { PROPERTY_NAME_RULES } from "./properties";
+import { ARRAY_ELEMENT_RULES } from "./arrays";
 import { EMBEDDED_CONTENT_RULES } from "./embedded-content";
 
 /**

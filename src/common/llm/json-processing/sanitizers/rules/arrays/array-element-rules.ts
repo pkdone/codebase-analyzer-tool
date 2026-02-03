@@ -7,9 +7,9 @@
  * - Minus signs and markdown markers
  */
 
-import type { ReplacementRule } from "./replacement-rule.types";
-import { isInArrayContextSimple, isDeepArrayContext } from "../../utils/parser-context-utils";
-import { safeGroup, safeGroups3, safeGroups4 } from "../../utils/safe-group-extractor";
+import type { ReplacementRule } from "../replacement-rule.types";
+import { isInArrayContextSimple, isDeepArrayContext } from "../../../utils/parser-context-utils";
+import { safeGroup, safeGroups3, safeGroups4 } from "../../../utils/safe-group-extractor";
 
 /**
  * Rules for fixing array element issues in JSON content.
