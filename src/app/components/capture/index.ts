@@ -12,6 +12,7 @@ export {
   type SourceSummaryType,
   type PartialSourceSummaryType,
 } from "./file-summarizer.service";
+export { BufferedSourcesWriter } from "./buffered-sources-writer";
 
 // Utilities - File type mapping
 export { getCanonicalFileType } from "./utils";

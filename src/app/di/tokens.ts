@@ -44,6 +44,7 @@ export const captureTokens = {
   CodebaseIngestionService: Symbol("CodebaseIngestionService"),
   FileSummarizerService: Symbol("FileSummarizerService"),
   FileTypePromptRegistry: Symbol("FileTypePromptRegistry"),
+  BufferedSourcesWriter: Symbol("BufferedSourcesWriter"),
 } as const;
 
 export type CaptureToken = keyof typeof captureTokens;

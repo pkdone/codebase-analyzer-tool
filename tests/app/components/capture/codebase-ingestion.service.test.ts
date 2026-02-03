@@ -4,6 +4,7 @@ import CodebaseIngestionService from "../../../../src/app/components/capture/cod
 import { SourcesRepository } from "../../../../src/app/repositories/sources/sources.repository.interface";
 import LLMRouter from "../../../../src/common/llm/llm-router";
 import { FileSummarizerService } from "../../../../src/app/components/capture/file-summarizer.service";
+import { BufferedSourcesWriter } from "../../../../src/app/components/capture/buffered-sources-writer";
 import * as fileOperations from "../../../../src/common/fs/file-operations";
 import * as directoryOperations from "../../../../src/common/fs/directory-operations";
 import * as pathUtils from "../../../../src/common/fs/path-utils";
@@ -76,6 +77,7 @@ describe("CodebaseIngestionService", () => {
   let mockSourcesRepository: jest.Mocked<SourcesRepository>;
   let mockLLMRouter: jest.Mocked<LLMRouter>;
   let mockFileSummarizer: jest.Mocked<FileSummarizerService>;
+  let mockBufferedWriter: jest.Mocked<BufferedSourcesWriter>;
   let mockConsoleLog: jest.SpyInstance;
   let mockConsoleWarn: jest.SpyInstance;
 
@@ -118,6 +120,14 @@ describe("CodebaseIngestionService", () => {
       ),
     } as unknown as jest.Mocked<FileSummarizerService>;
 
+    // Mock BufferedSourcesWriter
+    mockBufferedWriter = {
+      add: jest.fn().mockResolvedValue(undefined),
+      flush: jest.fn().mockResolvedValue(undefined),
+      reset: jest.fn(),
+      bufferedCount: 0,
+    } as unknown as jest.Mocked<BufferedSourcesWriter>;
+
     // Create mock for LlmConcurrencyService that executes immediately
     const mockLlmConcurrencyService = {
       run: jest.fn().mockImplementation(async <T>(fn: () => Promise<T>) => fn()),
@@ -130,6 +140,7 @@ describe("CodebaseIngestionService", () => {
       mockFileSummarizer,
       mockFileProcessingRules,
       mockLlmConcurrencyService,
+      mockBufferedWriter,
     );
   });
 
@@ -160,8 +171,10 @@ describe("CodebaseIngestionService", () => {
         filenameIgnorePrefix: "test-",
         filenameIgnoreList: ["package-lock.json"],
       });
-      // Files are batch inserted, not individually
-      expect(mockSourcesRepository.insertSources).toHaveBeenCalled();
+      // Files are added to the buffered writer
+      expect(mockBufferedWriter.add).toHaveBeenCalledTimes(2);
+      // Buffer is flushed at the end
+      expect(mockBufferedWriter.flush).toHaveBeenCalled();
       // Verify summarize is called with canonicalFileType (not raw file extension)
       expect(mockFileSummarizer.summarize).toHaveBeenCalledWith(
         expect.any(String),
@@ -187,8 +200,9 @@ describe("CodebaseIngestionService", () => {
 
       await service.ingestCodebaseToDatabase("test-project", "/src", true);
 
-      // Only one file should be inserted (the other was already ingested)
-      expect(mockSourcesRepository.insertSources).toHaveBeenCalled();
+      // Only one file should be added (the other was already ingested)
+      expect(mockBufferedWriter.add).toHaveBeenCalledTimes(1);
+      expect(mockBufferedWriter.flush).toHaveBeenCalled();
     });
 
     it("should delete existing sources when skipIfAlreadyIngested is false", async () => {
@@ -223,8 +237,9 @@ describe("CodebaseIngestionService", () => {
 
       await service.ingestCodebaseToDatabase("test-project", "/src", false);
 
-      // Binary files are skipped, only one file inserted
-      expect(mockSourcesRepository.insertSources).toHaveBeenCalled();
+      // Binary files are skipped, only one file added
+      expect(mockBufferedWriter.add).toHaveBeenCalledTimes(1);
+      expect(mockBufferedWriter.flush).toHaveBeenCalled();
     });
 
     it("should skip empty files", async () => {
@@ -244,8 +259,9 @@ describe("CodebaseIngestionService", () => {
 
       await service.ingestCodebaseToDatabase("test-project", "/src", false);
 
-      // Empty files are skipped, only one file inserted
-      expect(mockSourcesRepository.insertSources).toHaveBeenCalled();
+      // Empty files are skipped, only one file added
+      expect(mockBufferedWriter.add).toHaveBeenCalledTimes(1);
+      expect(mockBufferedWriter.flush).toHaveBeenCalled();
     });
 
     it("should handle summarization errors gracefully", async () => {
@@ -265,8 +281,9 @@ describe("CodebaseIngestionService", () => {
 
       await service.ingestCodebaseToDatabase("test-project", "/src", false);
 
-      // File should still be batch inserted with summaryError
-      expect(mockSourcesRepository.insertSources).toHaveBeenCalled();
+      // File should still be added with summaryError
+      expect(mockBufferedWriter.add).toHaveBeenCalled();
+      expect(mockBufferedWriter.flush).toHaveBeenCalled();
     });
 
     it("should log warnings when there are failures", async () => {
@@ -296,8 +313,21 @@ describe("CodebaseIngestionService", () => {
 
       await service.ingestCodebaseToDatabase("test-project", "/src", false);
 
-      // Records are batch inserted with embeddings
-      expect(mockSourcesRepository.insertSources).toHaveBeenCalled();
+      // Records are added to buffer with embeddings
+      expect(mockBufferedWriter.add).toHaveBeenCalledWith(
+        expect.objectContaining({
+          contentVector: mockEmbeddings,
+        }),
+      );
+      expect(mockBufferedWriter.flush).toHaveBeenCalled();
+    });
+
+    it("should reset buffered writer before processing", async () => {
+      mockDirectoryOperations.findFilesWithSize.mockResolvedValue([]);
+
+      await service.ingestCodebaseToDatabase("test-project", "/src", false);
+
+      expect(mockBufferedWriter.reset).toHaveBeenCalled();
     });
   });
 });

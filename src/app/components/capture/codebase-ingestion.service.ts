@@ -10,6 +10,7 @@ import { getFileExtension } from "../../../common/fs/path-utils";
 import { countLines } from "../../../common/utils/text-utils";
 import { logErr } from "../../../common/utils/logging";
 import { FileSummarizerService, type PartialSourceSummaryType } from "./file-summarizer.service";
+import { BufferedSourcesWriter } from "./buffered-sources-writer";
 import type { SourcesRepository } from "../../repositories/sources/sources.repository.interface";
 import type { SourceRecord } from "../../repositories/sources/sources.model";
 import {
@@ -22,9 +23,6 @@ import {
 import { isOk } from "../../../common/types/result.types";
 import type { LlmConcurrencyService } from "../concurrency";
 
-/** Default batch size for bulk database inserts */
-const DEFAULT_BATCH_SIZE = 50;
-
 /**
  * Service that orchestrates the ingestion of source files from a codebase into the database.
  * Handles file discovery, content reading, LLM-based summarization, embedding generation,
@@ -32,9 +30,6 @@ const DEFAULT_BATCH_SIZE = 50;
  */
 @injectable()
 export default class CodebaseIngestionService {
-  /** Buffer for collecting records to batch insert */
-  private recordBuffer: SourceRecord[] = [];
-
   /**
    * Constructor with dependency injection.
    * @param sourcesRepository - Repository for storing source file data
@@ -42,6 +37,7 @@ export default class CodebaseIngestionService {
    * @param fileSummarizer - Service for generating file summaries
    * @param fileProcessingConfig - Configuration for file processing rules
    * @param llmConcurrencyService - Service for managing LLM call concurrency
+   * @param bufferedWriter - Buffered writer for batching database inserts
    */
   constructor(
     @inject(repositoryTokens.SourcesRepository)
@@ -53,6 +49,8 @@ export default class CodebaseIngestionService {
     private readonly fileProcessingConfig: FileProcessingRulesType,
     @inject(serviceTokens.LlmConcurrencyService)
     private readonly llmConcurrencyService: LlmConcurrencyService,
+    @inject(captureTokens.BufferedSourcesWriter)
+    private readonly bufferedWriter: BufferedSourcesWriter,
   ) {}
 
   /**
@@ -109,8 +107,8 @@ export default class CodebaseIngestionService {
       await this.sourcesRepository.deleteSourcesByProject(projectName);
     }
 
-    // Clear the record buffer before starting
-    this.recordBuffer = [];
+    // Reset the buffered writer before starting
+    this.bufferedWriter.reset();
 
     let successes = 0;
     let failures = 0;
@@ -134,7 +132,7 @@ export default class CodebaseIngestionService {
     await Promise.allSettled(tasks);
 
     // Flush any remaining records in the buffer
-    await this.flushRecordBuffer();
+    await this.bufferedWriter.flush();
 
     console.log(
       `Processed ${filepaths.length} files. Succeeded: ${successes}, Failed: ${failures}`,
@@ -142,31 +140,6 @@ export default class CodebaseIngestionService {
 
     if (failures > 0) {
       console.warn(`Warning: ${failures} files failed to process. Check logs for details.`);
-    }
-  }
-
-  /**
-   * Flushes the record buffer by batch inserting all buffered records.
-   * Called when buffer reaches capacity or at the end of processing.
-   */
-  private async flushRecordBuffer(): Promise<void> {
-    if (this.recordBuffer.length === 0) return;
-
-    const batch = [...this.recordBuffer];
-    this.recordBuffer = [];
-
-    try {
-      await this.sourcesRepository.insertSources(batch);
-    } catch (error: unknown) {
-      // If batch insert fails, fall back to individual inserts
-      logErr(`Batch insert failed, falling back to individual inserts`, error);
-      for (const record of batch) {
-        try {
-          await this.sourcesRepository.insertSource(record);
-        } catch (insertError: unknown) {
-          logErr(`Failed to insert record for: ${record.filepath}`, insertError);
-        }
-      }
     }
   }
 
@@ -222,11 +195,8 @@ export default class CodebaseIngestionService {
       ...(contentVector && { contentVector }),
     };
 
-    // Add to buffer and flush when batch size is reached
-    this.recordBuffer.push(sourceFileRecord);
-    if (this.recordBuffer.length >= DEFAULT_BATCH_SIZE) {
-      await this.flushRecordBuffer();
-    }
+    // Add to buffered writer (automatically flushes when batch size is reached)
+    await this.bufferedWriter.add(sourceFileRecord);
   }
 
   /**
