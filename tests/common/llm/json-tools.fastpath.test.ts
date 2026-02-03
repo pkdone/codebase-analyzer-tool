@@ -22,7 +22,7 @@ describe("json-tools enhanced fast path", () => {
       const validJson = `{"purpose": "Test", "value": 42}`;
       const result = parseAndValidateLLMJson(
         validJson,
-        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         baseOptions,
       );
 
@@ -38,7 +38,7 @@ describe("json-tools enhanced fast path", () => {
       const validJson = `   \n\t{"purpose": "Test", "value": 42}`;
       const result = parseAndValidateLLMJson(
         validJson,
-        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         baseOptions,
       );
 
@@ -53,7 +53,7 @@ describe("json-tools enhanced fast path", () => {
       const validJson = `{"purpose": "Test", "value": 42}\n\t   `;
       const result = parseAndValidateLLMJson(
         validJson,
-        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         baseOptions,
       );
 
@@ -68,7 +68,7 @@ describe("json-tools enhanced fast path", () => {
       const validJson = `  [1, 2, 3, 4, 5]  `;
       const result = parseAndValidateLLMJson(
         validJson,
-        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         baseOptions,
       );
 
@@ -91,7 +91,7 @@ describe("json-tools enhanced fast path", () => {
       }`;
       const result = parseAndValidateLLMJson(
         validJson,
-        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         baseOptions,
       );
 
@@ -108,7 +108,7 @@ describe("json-tools enhanced fast path", () => {
       const jsonWithFence = '```json\n{"value": 42}\n```';
       const result = parseAndValidateLLMJson(
         jsonWithFence,
-        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         baseOptions,
       );
 
@@ -124,7 +124,7 @@ describe("json-tools enhanced fast path", () => {
       const jsonWithText = 'Here is the JSON: {"value": 42} and that\'s it';
       const result = parseAndValidateLLMJson(
         jsonWithText,
-        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         baseOptions,
       );
 
@@ -139,7 +139,7 @@ describe("json-tools enhanced fast path", () => {
       const invalidJson = `{"value": 42,}`; // trailing comma
       const result = parseAndValidateLLMJson(
         invalidJson,
-        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         baseOptions,
       );
 
@@ -157,7 +157,7 @@ describe("json-tools enhanced fast path", () => {
       const jsonWithFence = '```json\n{"value": 42}\n```';
       const result = parseAndValidateLLMJson(
         jsonWithFence,
-        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         baseOptions,
         false, // loggingEnabled = false
       );
@@ -174,7 +174,7 @@ describe("json-tools enhanced fast path", () => {
       const jsonWithText = 'Here is the data: {"value": 42} end';
       const result = parseAndValidateLLMJson(
         jsonWithText,
-        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         baseOptions,
       );
 
@@ -189,7 +189,7 @@ describe("json-tools enhanced fast path", () => {
       const jsonWithText = 'Here is the data: {"value": 42} end';
       const result = parseAndValidateLLMJson(
         jsonWithText,
-        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         baseOptions,
       );
 
@@ -206,7 +206,7 @@ describe("json-tools enhanced fast path", () => {
       const malformedJson = '```\n\u200B{"a": 1, "b": [1,2,3,],}\u200C\n```';
       const result = parseAndValidateLLMJson(
         malformedJson,
-        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         baseOptions,
       );
 
@@ -237,7 +237,7 @@ describe("json-tools enhanced fast path", () => {
       const jsonWithFence = '```json\n{"notValue": 42}\n```';
       const result = parseAndValidateLLMJson(
         jsonWithFence,
-        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         options,
       );
 
@@ -257,7 +257,7 @@ describe("json-tools enhanced fast path", () => {
       const emptyObject = "{}";
       const result = parseAndValidateLLMJson(
         emptyObject,
-        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         baseOptions,
       );
 
@@ -272,7 +272,7 @@ describe("json-tools enhanced fast path", () => {
       const emptyArray = "[]";
       const result = parseAndValidateLLMJson(
         emptyArray,
-        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         baseOptions,
       );
 
@@ -287,7 +287,7 @@ describe("json-tools enhanced fast path", () => {
       const unicodeJson = `{"emoji": "🚀", "text": "Hello, 世界"}`;
       const result = parseAndValidateLLMJson(
         unicodeJson,
-        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         baseOptions,
       );
 
@@ -303,7 +303,7 @@ describe("json-tools enhanced fast path", () => {
       const escapedJson = `{"text": "He said \\"Hello\\""}`;
       const result = parseAndValidateLLMJson(
         escapedJson,
-        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         baseOptions,
       );
 

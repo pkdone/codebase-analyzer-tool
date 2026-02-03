@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { LLMContext, LLMCompletionOptions } from "./types/llm-request.types";
+import type { LLMRequestContext, LLMCompletionOptions } from "./types/llm-request.types";
 import { LLMPurpose } from "./types/llm-request.types";
 import type { ResolvedModelChain } from "./types/llm-model.types";
 import type {
@@ -192,7 +192,8 @@ export default class LLMRouter {
     content: string,
     modelIndexOverride: number | null = null,
   ): Promise<number[] | null> {
-    const baseContext: Omit<LLMContext, "modelKey"> = {
+    // Create request context without modelKey - the pipeline will add it
+    const requestContext: LLMRequestContext = {
       resource: resourceName,
       purpose: LLMPurpose.EMBEDDINGS,
     };
@@ -204,20 +205,15 @@ export default class LLMRouter {
     } catch {
       logWarn(
         `No embedding candidates available at index ${modelIndexOverride ?? 0}. Chain has ${this.embeddingCandidates.length} models.`,
-        baseContext as LLMContext,
+        requestContext,
       );
       return null;
     }
 
-    const context: LLMContext = {
-      ...baseContext,
-      modelKey: candidates[0].modelKey,
-    };
-
     const result = await this.executionPipeline.executeEmbedding({
       resourceName,
       content,
-      context,
+      context: requestContext,
       candidates,
     });
 
@@ -228,7 +224,7 @@ export default class LLMRouter {
     if (!Array.isArray(result.value)) {
       logWarn(
         `Embedding response has invalid type: expected number[] but got ${typeof result.value}`,
-        context,
+        requestContext,
       );
       return null;
     }
@@ -282,11 +278,10 @@ export default class LLMRouter {
       modelIndexOverride,
     );
 
-    const firstCandidate = candidates[0];
-    const context: LLMContext = {
+    // Create request context without modelKey - the pipeline will add it for each candidate
+    const requestContext: LLMRequestContext = {
       resource: resourceName,
       purpose: LLMPurpose.COMPLETIONS,
-      modelKey: firstCandidate.modelKey,
       outputFormat: options.outputFormat,
     };
 
@@ -299,16 +294,16 @@ export default class LLMRouter {
     const result = await this.executionPipeline.executeCompletion<InferredType>({
       resourceName,
       content: prompt,
-      context,
+      context: requestContext,
       candidates: candidates as ExecutableCandidate<InferredType>[],
     });
 
     if (isErr(result)) {
-      logWarn(`Failed to execute completion: ${result.error.message}`, context);
+      logWarn(`Failed to execute completion: ${result.error.message}`, requestContext);
       return err(
         new LLMError(LLMErrorCode.BAD_RESPONSE_CONTENT, result.error.message, {
           resourceName,
-          context,
+          context: requestContext,
         }),
       );
     }

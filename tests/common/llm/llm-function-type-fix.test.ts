@@ -2,7 +2,7 @@ import { describe, test, expect } from "@jest/globals";
 import { z } from "zod";
 import {
   LLMCompletionOptions,
-  LLMContext,
+  LLMExecutionContext,
   LLMOutputFormat,
   LLMPurpose,
 } from "../../../src/common/llm/types/llm-request.types";
@@ -23,9 +23,10 @@ import { LLMFunction } from "../../../src/common/llm/types/llm-function.types";
  * the LLMFunction type now uses z.infer<S> for schema-based type inference.
  */
 describe("LLMFunction Type Fix - Generic Type Preservation", () => {
-  const mockContext: LLMContext = {
+  const mockContext: LLMExecutionContext = {
     resource: "test-resource",
     purpose: LLMPurpose.COMPLETIONS,
+    modelKey: "test-model",
     outputFormat: LLMOutputFormat.JSON,
   };
 
@@ -35,7 +36,7 @@ describe("LLMFunction Type Fix - Generic Type Preservation", () => {
   function createMockLLMFunction(mockData: unknown): LLMFunction {
     return async <S extends z.ZodType>(
       _content: string,
-      _context: LLMContext,
+      _context: LLMExecutionContext,
       _options?: LLMCompletionOptions<S>,
     ): Promise<LLMFunctionResponse<z.infer<S>>> => {
       return {
@@ -353,7 +354,7 @@ describe("LLMFunction Type Fix - Generic Type Preservation", () => {
 
       const mockLLMFunction: LLMFunction = async <S extends z.ZodType>(
         _content: string,
-        _context: LLMContext,
+        _context: LLMExecutionContext,
         _options?: LLMCompletionOptions<S>,
       ): Promise<LLMFunctionResponse<z.infer<S>>> => {
         // With discriminated union, EXCEEDED responses are LLMStatusResponse
@@ -379,7 +380,7 @@ describe("LLMFunction Type Fix - Generic Type Preservation", () => {
 
       const mockLLMFunction: LLMFunction = async <S extends z.ZodType>(
         _content: string,
-        _context: LLMContext,
+        _context: LLMExecutionContext,
         _options?: LLMCompletionOptions<S>,
       ): Promise<LLMFunctionResponse<z.infer<S>>> => {
         // With discriminated union, ERRORED responses must have error field

@@ -41,15 +41,54 @@ export interface LLMCompletionOptions<S extends z.ZodType<unknown> = z.ZodType<u
 }
 
 /**
- * Interface to define the context object that is passed to and from the LLM provider.
+ * Base context for LLM requests before a specific model is selected.
+ * Used when initiating a request that may be routed to multiple models via fallback chain.
  */
-export interface LLMContext {
+export interface LLMRequestContext {
   /** The resource name being processed */
   resource: string;
   /** The LLM purpose (embeddings or completions) */
   purpose: LLMPurpose;
-  /** The model key being used (e.g., "openai-gpt-4o", "bedrock-claude-opus-4.5") */
-  modelKey?: string;
   /** The desired output format */
   outputFormat?: LLMOutputFormat;
 }
+
+/**
+ * Execution context with mandatory model key.
+ * Used when executing against a specific model - the modelKey is known and required.
+ * This type provides stronger type safety by ensuring modelKey is always present
+ * during actual LLM invocation.
+ */
+export interface LLMExecutionContext extends LLMRequestContext {
+  /** The model key being used (e.g., "openai-gpt-4o", "bedrock-claude-opus-4.5") - required for execution */
+  modelKey: string;
+}
+
+/**
+ * Type guard to check if a context is an execution context (has modelKey).
+ */
+export function isExecutionContext(
+  context: LLMRequestContext | LLMExecutionContext,
+): context is LLMExecutionContext {
+  return "modelKey" in context && typeof context.modelKey === "string";
+}
+
+/**
+ * Creates an execution context from a request context by adding the model key.
+ */
+export function toExecutionContext(
+  requestContext: LLMRequestContext,
+  modelKey: string,
+): LLMExecutionContext {
+  return {
+    ...requestContext,
+    modelKey,
+  };
+}
+
+/**
+ * @deprecated Use LLMRequestContext or LLMExecutionContext instead.
+ * This type alias is kept for backwards compatibility during migration.
+ * LLMContext with optional modelKey - prefer using the specific context types.
+ */
+export type LLMContext = LLMRequestContext & { modelKey?: string };

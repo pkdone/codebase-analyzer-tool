@@ -3,7 +3,7 @@
  */
 
 import { z } from "zod";
-import type { LLMContext, LLMCompletionOptions } from "./llm-request.types";
+import type { LLMExecutionContext, LLMCompletionOptions } from "./llm-request.types";
 import type { LLMFunctionResponse } from "./llm-response.types";
 
 /**
@@ -19,7 +19,7 @@ import type { LLMFunctionResponse } from "./llm-response.types";
 export type LLMModelKeyFunction = <S extends z.ZodType<unknown>>(
   modelKey: string,
   content: string,
-  context: LLMContext,
+  context: LLMExecutionContext,
   options?: LLMCompletionOptions<S>,
 ) => Promise<LLMFunctionResponse<z.infer<S>>>;
 
@@ -43,7 +43,7 @@ export type LLMModelKeyFunction = <S extends z.ZodType<unknown>>(
  */
 export type LLMFunction = <S extends z.ZodType<unknown>>(
   content: string,
-  context: LLMContext,
+  context: LLMExecutionContext,
   options?: LLMCompletionOptions<S>,
 ) => Promise<LLMFunctionResponse<z.infer<S>>>;
 
@@ -54,7 +54,7 @@ export type LLMFunction = <S extends z.ZodType<unknown>>(
 export type LLMEmbeddingFunction = (
   modelKey: string,
   content: string,
-  context: LLMContext,
+  context: LLMExecutionContext,
   options?: LLMCompletionOptions,
 ) => Promise<LLMFunctionResponse<number[]>>;
 
@@ -71,7 +71,7 @@ export type LLMEmbeddingFunction = (
  */
 export type BoundLLMFunction<T> = (
   content: string,
-  context: LLMContext,
+  context: LLMExecutionContext,
 ) => Promise<LLMFunctionResponse<T>>;
 
 /**
@@ -99,7 +99,10 @@ export interface LLMCandidateFunction {
  */
 export interface EmbeddingCandidate {
   /** The embedding function bound to a specific model */
-  readonly func: (content: string, context: LLMContext) => Promise<LLMFunctionResponse<number[]>>;
+  readonly func: (
+    content: string,
+    context: LLMExecutionContext,
+  ) => Promise<LLMFunctionResponse<number[]>>;
   /** Provider family this model belongs to */
   readonly providerFamily: string;
   /** Model key within the provider */

@@ -29,7 +29,7 @@ describe("Phased Pipeline", () => {
 
       const result = parseAndValidateLLMJson(
         malformedJson,
-        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         {
           outputFormat: LLMOutputFormat.JSON,
           jsonSchema: schema,
@@ -59,7 +59,7 @@ describe("Phased Pipeline", () => {
 
       const result = parseAndValidateLLMJson(
         jsonWithNoise,
-        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         {
           outputFormat: LLMOutputFormat.JSON,
           jsonSchema: schema,
@@ -85,7 +85,7 @@ describe("Phased Pipeline", () => {
 
       const result = parseAndValidateLLMJson(
         jsonWithStructureIssues,
-        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         {
           outputFormat: LLMOutputFormat.JSON,
           jsonSchema: schema,
@@ -112,7 +112,7 @@ describe("Phased Pipeline", () => {
 
       const result = parseAndValidateLLMJson(
         jsonWithPropertyIssues,
-        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         {
           outputFormat: LLMOutputFormat.JSON,
           jsonSchema: schema,
@@ -141,7 +141,7 @@ describe("Phased Pipeline", () => {
 
       const result = parseAndValidateLLMJson(
         jsonWithContentIssues,
-        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         {
           outputFormat: LLMOutputFormat.JSON,
           jsonSchema: schema,
@@ -180,7 +180,7 @@ describe("Phased Pipeline", () => {
       for (const testCase of testCases) {
         const result = parseAndValidateLLMJson(
           testCase.input,
-          { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+          { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
           {
             outputFormat: LLMOutputFormat.JSON,
             jsonSchema: testCase.schema,

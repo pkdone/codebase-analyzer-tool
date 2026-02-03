@@ -23,7 +23,7 @@ describe("json-tools sanitation pipeline (incremental refactor wrapper)", () => 
     const json = '{"a":1,"b":2}';
     const result = parseAndValidateLLMJson(
       json,
-      { resource: "fast-path", purpose: LLMPurpose.COMPLETIONS },
+      { resource: "fast-path", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
       completionOptions,
     );
     expect(result.success).toBe(true);
@@ -38,7 +38,7 @@ describe("json-tools sanitation pipeline (incremental refactor wrapper)", () => 
     const text = 'Intro text before JSON {"hello":"world"} trailing commentary';
     const result = parseAndValidateLLMJson(
       text,
-      { resource: "extract-path", purpose: LLMPurpose.COMPLETIONS },
+      { resource: "extract-path", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
       completionOptions,
     );
     expect(result.success).toBe(true);
@@ -64,7 +64,7 @@ describe("json-tools sanitation pipeline (incremental refactor wrapper)", () => 
     const malformed = '```json\n{"key":"value",}\n``` Extra trailing';
     const result = parseAndValidateLLMJson(
       malformed,
-      { resource: "pipeline-test", purpose: LLMPurpose.COMPLETIONS },
+      { resource: "pipeline-test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
       completionOptions,
     );
     expect(result.success).toBe(true);
@@ -80,7 +80,7 @@ describe("json-tools sanitation pipeline (incremental refactor wrapper)", () => 
     const withConcat = '{"path": SOME_CONST + OTHER_CONST + THIRD_CONST}';
     const result = parseAndValidateLLMJson(
       withConcat,
-      { resource: "pre-concat", purpose: LLMPurpose.COMPLETIONS },
+      { resource: "pre-concat", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
       completionOptions,
     );
     expect(result.success).toBe(true);

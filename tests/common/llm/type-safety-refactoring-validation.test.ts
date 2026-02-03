@@ -2,7 +2,7 @@ import { describe, test, expect, beforeEach } from "@jest/globals";
 import { z } from "zod";
 import {
   LLMCompletionOptions,
-  LLMContext,
+  LLMExecutionContext,
   LLMOutputFormat,
   LLMPurpose,
 } from "../../../src/common/llm/types/llm-request.types";
@@ -40,9 +40,10 @@ import { isOk, isErr } from "../../../src/common/types/result.types";
  * z.infer<S> for schema-based type inference.
  */
 describe("Type Safety Refactoring Validation", () => {
-  const mockContext: LLMContext = {
+  const mockContext: LLMExecutionContext = {
     resource: "test-resource",
     purpose: LLMPurpose.COMPLETIONS,
+    modelKey: "test-model",
     outputFormat: LLMOutputFormat.JSON,
   };
 
@@ -71,7 +72,7 @@ describe("Type Safety Refactoring Validation", () => {
   function createTypedMockLLMFunction(mockData: unknown): LLMFunction {
     return async <S extends z.ZodType<unknown>>(
       _content: string,
-      _context: LLMContext,
+      _context: LLMExecutionContext,
       _options?: LLMCompletionOptions<S>,
     ): Promise<LLMFunctionResponse<z.infer<S>>> => {
       return {
@@ -91,7 +92,10 @@ describe("Type Safety Refactoring Validation", () => {
   function createBoundMockLLMFunction<T extends LLMResponsePayload>(
     mockData: T,
   ): BoundLLMFunction<T> {
-    return async (_content: string, _context: LLMContext): Promise<LLMFunctionResponse<T>> => {
+    return async (
+      _content: string,
+      _context: LLMExecutionContext,
+    ): Promise<LLMFunctionResponse<T>> => {
       return {
         status: LLMResponseStatus.COMPLETED,
         request: "test",
@@ -294,7 +298,7 @@ describe("Type Safety Refactoring Validation", () => {
       // Create a bound function that always returns OVERLOADED
       const failingFunction: BoundLLMFunction<LLMResponsePayload> = async (
         _content: string,
-        _context: LLMContext,
+        _context: LLMExecutionContext,
       ): Promise<LLMFunctionResponse> => {
         return {
           status: LLMResponseStatus.OVERLOADED,
@@ -335,7 +339,7 @@ describe("Type Safety Refactoring Validation", () => {
 
     // Helper to create an ExecutableCandidate from mock data
     const createCandidate = <T>(mockData: T): ExecutableCandidate<T> => ({
-      execute: async (content: string, context: LLMContext) => ({
+      execute: async (content: string, context: LLMExecutionContext) => ({
         status: LLMResponseStatus.COMPLETED,
         request: content,
         modelKey: "test-model",
@@ -432,7 +436,7 @@ describe("Type Safety Refactoring Validation", () => {
     test("should return failure when LLM returns ERRORED status", async () => {
       // Create a candidate that returns ERRORED
       const errorCandidate: ExecutableCandidate<LLMResponsePayload> = {
-        execute: async (content: string, context: LLMContext) => ({
+        execute: async (content: string, context: LLMExecutionContext) => ({
           status: LLMResponseStatus.ERRORED,
           request: content,
           modelKey: "test-model",
@@ -508,7 +512,7 @@ describe("Type Safety Refactoring Validation", () => {
 
     // Helper to create an ExecutableCandidate from mock data
     const createCandidate = <T>(mockData: T): ExecutableCandidate<T> => ({
-      execute: async (content: string, context: LLMContext) => ({
+      execute: async (content: string, context: LLMExecutionContext) => ({
         status: LLMResponseStatus.COMPLETED,
         request: content,
         modelKey: "test-model",

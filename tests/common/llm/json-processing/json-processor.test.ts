@@ -14,7 +14,7 @@ describe("parseAndValidateLLMJson", () => {
       const json = '{"key": "value", "number": 42}';
       const result = parseAndValidateLLMJson(
         json,
-        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
       expect(result.success).toBe(true);
@@ -27,7 +27,7 @@ describe("parseAndValidateLLMJson", () => {
       const json = '[{"item": 1}, {"item": 2}]';
       const result = parseAndValidateLLMJson(
         json,
-        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
       expect(result.success).toBe(true);
@@ -40,7 +40,7 @@ describe("parseAndValidateLLMJson", () => {
       const json = '  \n\t  {"key": "value"}  \n\t  ';
       const result = parseAndValidateLLMJson(
         json,
-        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
       expect(result.success).toBe(true);
@@ -53,7 +53,7 @@ describe("parseAndValidateLLMJson", () => {
       const json = '{"outer": {"inner": {"deep": "value"}}}';
       const result = parseAndValidateLLMJson(
         json,
-        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
       expect(result.success).toBe(true);
@@ -73,7 +73,7 @@ describe("parseAndValidateLLMJson", () => {
       const invalid = "not valid json at all";
       const result = parseAndValidateLLMJson(
         invalid,
-        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
       expect(result.success).toBe(false);
@@ -86,7 +86,7 @@ describe("parseAndValidateLLMJson", () => {
       const invalid = "not valid json";
       const result = parseAndValidateLLMJson(
         invalid,
-        { resource: "my-resource", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "my-resource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
       expect(result.success).toBe(false);
@@ -99,7 +99,7 @@ describe("parseAndValidateLLMJson", () => {
       const plainText = "This is not JSON at all";
       const result = parseAndValidateLLMJson(
         plainText,
-        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
 
@@ -125,7 +125,7 @@ describe("parseAndValidateLLMJson", () => {
       for (const input of plainTextCases) {
         const result = parseAndValidateLLMJson(
           input,
-          { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+          { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
           completionOptions,
         );
         expect(result.success).toBe(false);
@@ -139,7 +139,7 @@ describe("parseAndValidateLLMJson", () => {
       const whitespaceCase = "   ";
       const whitespaceResult = parseAndValidateLLMJson(
         whitespaceCase,
-        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
       expect(whitespaceResult.success).toBe(false);
@@ -152,7 +152,7 @@ describe("parseAndValidateLLMJson", () => {
       // Test empty string (gets a more specific "empty string" error)
       const emptyResult = parseAndValidateLLMJson(
         "",
-        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
       expect(emptyResult.success).toBe(false);
@@ -174,7 +174,7 @@ describe("parseAndValidateLLMJson", () => {
       for (const input of testCases) {
         const result = parseAndValidateLLMJson(
           input,
-          { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+          { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
           completionOptions,
         );
         // These should go through the normal sanitization pipeline, not be caught by early detection
@@ -191,7 +191,7 @@ describe("parseAndValidateLLMJson", () => {
       const json = '{"simple": true}';
       const result = parseAndValidateLLMJson(
         json,
-        { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
       expect(result.success).toBe(true);
@@ -213,7 +213,7 @@ describe("parseAndValidateLLMJson", () => {
       for (const { input, expected } of testCases) {
         const result = parseAndValidateLLMJson(
           input,
-          { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+          { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
           completionOptions,
         );
         expect(result.success).toBe(true);
@@ -229,7 +229,7 @@ describe("parseAndValidateLLMJson", () => {
       const text = 'Some text before {"key": "value"} some text after';
       const result = parseAndValidateLLMJson(
         text,
-        { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
       expect(result.success).toBe(true);
@@ -242,7 +242,7 @@ describe("parseAndValidateLLMJson", () => {
       const fenced = '```json\n{"key": "value"}\n```';
       const result = parseAndValidateLLMJson(
         fenced,
-        { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
       expect(result.success).toBe(true);
@@ -255,7 +255,7 @@ describe("parseAndValidateLLMJson", () => {
       const malformed = '{"key": "value",}';
       const result = parseAndValidateLLMJson(
         malformed,
-        { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
       expect(result.success).toBe(true);
@@ -268,7 +268,7 @@ describe("parseAndValidateLLMJson", () => {
       const overEscaped = String.raw`{"text": "Line 1\nLine 2"}`;
       const result = parseAndValidateLLMJson(
         overEscaped,
-        { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
       expect(result.success).toBe(true);
@@ -281,7 +281,7 @@ describe("parseAndValidateLLMJson", () => {
       const duplicated = '{"a":1}{"a":1}';
       const result = parseAndValidateLLMJson(
         duplicated,
-        { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
       expect(result.success).toBe(true);
@@ -297,7 +297,7 @@ describe("parseAndValidateLLMJson", () => {
       const messy = '```json\n  {"key": "value",}  \n```';
       const result = parseAndValidateLLMJson(
         messy,
-        { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
       expect(result.success).toBe(true);
@@ -316,7 +316,7 @@ describe("parseAndValidateLLMJson", () => {
         }`;
       const result = parseAndValidateLLMJson(
         complex,
-        { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
       expect(result.success).toBe(true);
@@ -334,12 +334,12 @@ describe("parseAndValidateLLMJson", () => {
 
       const result1 = parseAndValidateLLMJson(
         json1,
-        { resource: "test1", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test1", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
       const result2 = parseAndValidateLLMJson(
         json2,
-        { resource: "test2", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test2", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
 
@@ -354,12 +354,12 @@ describe("parseAndValidateLLMJson", () => {
     it("should not share state between different calls", () => {
       const result1 = parseAndValidateLLMJson(
         '{"a": 1}',
-        { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
       const result2 = parseAndValidateLLMJson(
         '{"b": 2}',
-        { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
 
@@ -386,7 +386,7 @@ describe("parseAndValidateLLMJson", () => {
       };
       const result = parseAndValidateLLMJson(
         json,
-        { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         optionsWithSchema,
       );
       expect(result.success).toBe(true);
@@ -405,7 +405,7 @@ describe("parseAndValidateLLMJson", () => {
       };
       const result = parseAndValidateLLMJson(
         json,
-        { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         optionsWithSchema,
       );
       expect(result.success).toBe(true);
@@ -422,7 +422,7 @@ describe("parseAndValidateLLMJson", () => {
       const json = 'Some text {"key": "value"} after';
       const result = parseAndValidateLLMJson(
         json,
-        { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
       expect(result.success).toBe(true);
@@ -432,7 +432,7 @@ describe("parseAndValidateLLMJson", () => {
       const json = 'Prefix {"key": "value"} suffix';
       const result = parseAndValidateLLMJson(
         json,
-        { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
       expect(result.success).toBe(true);
@@ -444,7 +444,7 @@ describe("parseAndValidateLLMJson", () => {
       const json = "{}";
       const result = parseAndValidateLLMJson(
         json,
-        { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
       expect(result.success).toBe(true);
@@ -457,7 +457,7 @@ describe("parseAndValidateLLMJson", () => {
       const json = "[]";
       const result = parseAndValidateLLMJson(
         json,
-        { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
       expect(result.success).toBe(true);
@@ -470,7 +470,7 @@ describe("parseAndValidateLLMJson", () => {
       const json = '{"a":{"b":{"c":{"d":{"e":"deep"}}}}}';
       const result = parseAndValidateLLMJson(
         json,
-        { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
       expect(result.success).toBe(true);
@@ -483,7 +483,7 @@ describe("parseAndValidateLLMJson", () => {
       const largeArray = JSON.stringify(Array.from({ length: 1000 }, (_, i) => ({ id: i })));
       const result = parseAndValidateLLMJson(
         largeArray,
-        { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
       expect(result.success).toBe(true);
@@ -497,7 +497,7 @@ describe("parseAndValidateLLMJson", () => {
       const json = '{"emoji": "😀", "chinese": "你好", "arabic": "مرحبا"}';
       const result = parseAndValidateLLMJson(
         json,
-        { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
       expect(result.success).toBe(true);
@@ -514,7 +514,7 @@ describe("parseAndValidateLLMJson", () => {
       const invalid = "completely invalid json content here";
       const result = parseAndValidateLLMJson(
         invalid,
-        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
       expect(result.success).toBe(false);
@@ -528,7 +528,7 @@ describe("parseAndValidateLLMJson", () => {
       const invalid = "{ this is not valid json at all }";
       const result = parseAndValidateLLMJson(
         invalid,
-        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
       expect(result.success).toBe(false);
@@ -542,7 +542,7 @@ describe("parseAndValidateLLMJson", () => {
       const withCodeFence = "```json\n{invalid json}\n```";
       const result = parseAndValidateLLMJson(
         withCodeFence,
-        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
       expect(result.success).toBe(false);
@@ -556,7 +556,7 @@ describe("parseAndValidateLLMJson", () => {
       const invalid = "not valid json";
       const result = parseAndValidateLLMJson(
         invalid,
-        { resource: "my-custom-resource", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "my-custom-resource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
       expect(result.success).toBe(false);
@@ -570,7 +570,7 @@ describe("parseAndValidateLLMJson", () => {
       const almostValid = '{"key": "value", but with extra text}';
       const result = parseAndValidateLLMJson(
         almostValid,
-        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
       expect(result.success).toBe(false);
@@ -585,7 +585,7 @@ describe("parseAndValidateLLMJson", () => {
       const invalid = "not valid json";
       const result = parseAndValidateLLMJson(
         invalid,
-        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
       expect(result.success).toBe(false);
@@ -601,7 +601,11 @@ describe("parseAndValidateLLMJson", () => {
       const input = '   \n{"simple":true}';
       const result = parseAndValidateLLMJson(
         input,
-        { resource: "early-stop-resource", purpose: LLMPurpose.COMPLETIONS },
+        {
+          resource: "early-stop-resource",
+          purpose: LLMPurpose.COMPLETIONS,
+          modelKey: "test-model",
+        },
         completionOptions,
       );
       expect(result.success).toBe(true);
@@ -618,7 +622,7 @@ describe("parseAndValidateLLMJson", () => {
       // Logging is controlled via function parameter
       const result = parseAndValidateLLMJson(
         malformed,
-        { resource: "diag-resource", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "diag-resource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
         true, // loggingEnabled
       );

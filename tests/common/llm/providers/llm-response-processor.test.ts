@@ -76,6 +76,7 @@ function createResponseBase(overrides?: Partial<ResponseBase>): ResponseBase {
     context: {
       resource: "test-resource",
       purpose: LLMPurpose.COMPLETIONS,
+      modelKey: TEST_MODEL_KEY,
     },
     modelKey: TEST_MODEL_KEY,
     ...overrides,
@@ -697,6 +698,7 @@ describe("LLMResponseProcessor", () => {
       const customContext = {
         resource: "custom-resource-path",
         purpose: LLMPurpose.COMPLETIONS,
+        modelKey: "test-model",
       };
       const responseBase = createResponseBase({ context: customContext });
       const schema = z.object({ name: z.string() });

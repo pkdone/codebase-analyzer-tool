@@ -1,4 +1,5 @@
-import type { LLMContext } from "./types/llm-request.types";
+import type { LLMRequestContext, LLMExecutionContext } from "./types/llm-request.types";
+import { toExecutionContext } from "./types/llm-request.types";
 import type { ResolvedLLMModelMetadata } from "./types/llm-model.types";
 import type { ExecutableCandidate } from "./types/llm-function.types";
 import type { LLMResponsePayload, LLMCompletedResponse } from "./types/llm-response.types";
@@ -28,11 +29,14 @@ export interface LLMPipelineConfig {
  * Parameters for executing LLM functions with the execution pipeline.
  * Generic over the response data type T, enabling unified handling of both
  * completions (T = z.infer<S>) and embeddings (T = number[]).
+ *
+ * Uses LLMRequestContext because the specific model is not yet determined -
+ * the pipeline will construct LLMExecutionContext when iterating through candidates.
  */
 interface LLMExecutionParams<T extends LLMResponsePayload> {
   readonly resourceName: string;
   readonly content: string;
-  readonly context: LLMContext;
+  readonly context: LLMRequestContext;
   /** Unified candidates with bound functions and metadata. For embeddings, pass a single-element array. */
   readonly candidates: ExecutableCandidate<T>[];
   /** Whether to retry on INVALID status. Default true (for completions). Set false for embeddings. */
@@ -43,21 +47,23 @@ interface LLMExecutionParams<T extends LLMResponsePayload> {
 
 /**
  * Parameters for completion execution (subset of full params with completion-specific defaults).
+ * Uses LLMRequestContext because the specific model is determined by the fallback chain.
  */
 export interface CompletionExecutionParams<T extends LLMResponsePayload> {
   readonly resourceName: string;
   readonly content: string;
-  readonly context: LLMContext;
+  readonly context: LLMRequestContext;
   readonly candidates: ExecutableCandidate<T>[];
 }
 
 /**
  * Parameters for embedding execution (subset of full params with embedding-specific defaults).
+ * Uses LLMRequestContext because the specific model is determined by the fallback chain.
  */
 export interface EmbeddingExecutionParams {
   readonly resourceName: string;
   readonly content: string;
-  readonly context: LLMContext;
+  readonly context: LLMRequestContext;
   readonly candidates: ExecutableCandidate<number[]>[];
 }
 
@@ -188,12 +194,15 @@ export class LLMExecutionPipeline {
    * - Completions with multiple candidates: Full fallback support across N models
    * - Embeddings with single candidate: No fallback (naturally handled by array length check)
    *
+   * Accepts LLMRequestContext (without modelKey) and constructs LLMExecutionContext
+   * for each candidate by adding the candidate's modelKey.
+   *
    * Generic over the response data type T.
    */
   private async tryFallbackChain<T extends LLMResponsePayload>(
     resourceName: string,
     initialContent: string,
-    initialContext: LLMContext,
+    requestContext: LLMRequestContext,
     candidates: ExecutableCandidate<T>[],
     retryOnInvalid = true,
   ): Promise<LLMCompletedResponse<T> | null> {
@@ -205,15 +214,16 @@ export class LLMExecutionPipeline {
     // (to enable trying cropped prompt with same model as last iteration)
     while (candidateIndex < candidates.length) {
       const candidate = candidates[candidateIndex];
-      const currentContext: LLMContext = {
-        ...initialContext,
-        modelKey: candidate.modelKey,
-      };
+      // Construct execution context with mandatory modelKey from candidate
+      const executionContext: LLMExecutionContext = toExecutionContext(
+        requestContext,
+        candidate.modelKey,
+      );
 
       const llmResponse = await this.retryStrategy.executeWithRetries(
         candidate.execute,
         currentContent,
-        currentContext,
+        executionContext,
         this.pipelineConfig.retryConfig,
         retryOnInvalid,
       );
@@ -222,7 +232,7 @@ export class LLMExecutionPipeline {
         this.llmStats.recordSuccess();
         return llmResponse;
       } else if (llmResponse && isErrorResponse(llmResponse)) {
-        logWarn("LLM Error for resource", { ...currentContext, error: llmResponse.error });
+        logWarn("LLM Error for resource", { ...executionContext, error: llmResponse.error });
         break;
       }
 
@@ -230,7 +240,7 @@ export class LLMExecutionPipeline {
         llmResponse,
         candidateIndex,
         candidates.length,
-        currentContext,
+        executionContext,
         resourceName,
       );
       if (nextAction.shouldTerminate) break;
@@ -246,7 +256,7 @@ export class LLMExecutionPipeline {
         if (currentContent.trim() === "") {
           logWarn(
             `Prompt became empty after cropping for resource '${resourceName}', terminating attempts.`,
-            currentContext,
+            executionContext,
           );
           break;
         }

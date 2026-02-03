@@ -124,6 +124,7 @@ describe("Type Safety Improvements", () => {
       const context = {
         resource: "test-resource",
         purpose: LLMPurpose.COMPLETIONS,
+        modelKey: "test-model",
       };
 
       const jsonContent = '{"purpose": "test purpose", "count": 5}';
@@ -150,6 +151,7 @@ describe("Type Safety Improvements", () => {
       const context = {
         resource: "test-resource",
         purpose: LLMPurpose.COMPLETIONS,
+        modelKey: "test-model",
       };
 
       const jsonContent = '{"anyKey": "anyValue", "number": 123}';
@@ -179,6 +181,7 @@ describe("Type Safety Improvements", () => {
       const context = {
         resource: "test-resource",
         purpose: LLMPurpose.COMPLETIONS,
+        modelKey: "test-model",
       };
 
       // Missing required field

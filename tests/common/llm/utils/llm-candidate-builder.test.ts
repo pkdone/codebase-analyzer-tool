@@ -148,7 +148,11 @@ describe("llm-candidate-builder", () => {
       expect(candidates).toHaveLength(1);
 
       // Call the bound function
-      const context = { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS };
+      const context = {
+        resource: "test-resource",
+        purpose: LLMPurpose.COMPLETIONS,
+        modelKey: "test-model",
+      };
       await candidates[0].func("test prompt", context);
 
       // Verify it called the provider's executeCompletion with the correct model key
@@ -201,7 +205,11 @@ describe("llm-candidate-builder", () => {
       expect(candidates).toHaveLength(1);
 
       // Call the bound function
-      const context = { resource: "test-resource", purpose: LLMPurpose.EMBEDDINGS };
+      const context = {
+        resource: "test-resource",
+        purpose: LLMPurpose.EMBEDDINGS,
+        modelKey: "test-model",
+      };
       await candidates[0].func("test content", context);
 
       // Verify it called the provider's generateEmbeddings with the correct model key
@@ -227,7 +235,7 @@ describe("llm-candidate-builder", () => {
         generated: { value: generatedValue },
         request: "test",
         modelKey: "test-model",
-        context: { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        context: { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
       })) as unknown as LLMCandidateFunction["func"];
     }
 
@@ -312,7 +320,7 @@ describe("llm-candidate-builder", () => {
 
     test("should bind options to the execute function and return expected response", async () => {
       const candidates = buildExecutableCandidates(mockCandidates, testOptions);
-      const context = { resource: "test", purpose: LLMPurpose.COMPLETIONS };
+      const context = { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" };
 
       // Call the bound execute function
       const result = await candidates[0].execute("test content", context);

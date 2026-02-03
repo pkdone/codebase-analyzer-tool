@@ -6,7 +6,10 @@ import {
 } from "../../../../src/common/llm/llm-execution-pipeline";
 import LLMExecutionStats from "../../../../src/common/llm/tracking/llm-execution-stats";
 import { RetryStrategy } from "../../../../src/common/llm/strategies/retry-strategy";
-import { LLMContext, LLMPurpose } from "../../../../src/common/llm/types/llm-request.types";
+import {
+  LLMExecutionContext,
+  LLMPurpose,
+} from "../../../../src/common/llm/types/llm-request.types";
 import { LLMResponseStatus } from "../../../../src/common/llm/types/llm-response.types";
 import { ExecutableCandidate } from "../../../../src/common/llm/types/llm-function.types";
 
@@ -46,11 +49,11 @@ describe("LLMExecutionPipeline - Context Immutability", () => {
   describe("Context Not Mutated During Fallback", () => {
     test("original context modelKey remains unchanged after fallback to second candidate", async () => {
       // Track what modelKey the LLM functions receive
-      const receivedContexts: LLMContext[] = [];
+      const receivedContexts: LLMExecutionContext[] = [];
 
       // First candidate fails (OVERLOADED), second succeeds
       const failingCandidate: ExecutableCandidate<string> = {
-        execute: async (_content: string, ctx: LLMContext) => {
+        execute: async (_content: string, ctx: LLMExecutionContext) => {
           receivedContexts.push({ ...ctx });
           return {
             status: LLMResponseStatus.OVERLOADED,
@@ -65,7 +68,7 @@ describe("LLMExecutionPipeline - Context Immutability", () => {
       };
 
       const successCandidate: ExecutableCandidate<string> = {
-        execute: async (_content: string, ctx: LLMContext) => {
+        execute: async (_content: string, ctx: LLMExecutionContext) => {
           receivedContexts.push({ ...ctx });
           return {
             status: LLMResponseStatus.COMPLETED,
@@ -80,7 +83,7 @@ describe("LLMExecutionPipeline - Context Immutability", () => {
         description: "test-provider/model-2",
       };
 
-      const originalContext: LLMContext = {
+      const originalContext: LLMExecutionContext = {
         resource: "test-resource",
         purpose: LLMPurpose.COMPLETIONS,
         modelKey: "initial-model",
@@ -107,10 +110,10 @@ describe("LLMExecutionPipeline - Context Immutability", () => {
     });
 
     test("original context modelKey unchanged when all candidates fail", async () => {
-      const receivedContexts: LLMContext[] = [];
+      const receivedContexts: LLMExecutionContext[] = [];
 
       const failingCandidate1: ExecutableCandidate<string> = {
-        execute: async (_content: string, ctx: LLMContext) => {
+        execute: async (_content: string, ctx: LLMExecutionContext) => {
           receivedContexts.push({ ...ctx });
           return {
             status: LLMResponseStatus.OVERLOADED,
@@ -125,7 +128,7 @@ describe("LLMExecutionPipeline - Context Immutability", () => {
       };
 
       const failingCandidate2: ExecutableCandidate<string> = {
-        execute: async (_content: string, ctx: LLMContext) => {
+        execute: async (_content: string, ctx: LLMExecutionContext) => {
           receivedContexts.push({ ...ctx });
           return {
             status: LLMResponseStatus.OVERLOADED,
@@ -139,7 +142,7 @@ describe("LLMExecutionPipeline - Context Immutability", () => {
         description: "test-provider/model-2",
       };
 
-      const originalContext: LLMContext = {
+      const originalContext: LLMExecutionContext = {
         resource: "test-resource",
         purpose: LLMPurpose.COMPLETIONS,
         modelKey: "original-key",
@@ -164,10 +167,10 @@ describe("LLMExecutionPipeline - Context Immutability", () => {
     });
 
     test("context other fields are preserved during fallback", async () => {
-      const receivedContexts: LLMContext[] = [];
+      const receivedContexts: LLMExecutionContext[] = [];
 
       const failingCandidate: ExecutableCandidate<string> = {
-        execute: async (_content: string, ctx: LLMContext) => {
+        execute: async (_content: string, ctx: LLMExecutionContext) => {
           receivedContexts.push({ ...ctx });
           return {
             status: LLMResponseStatus.OVERLOADED,
@@ -182,7 +185,7 @@ describe("LLMExecutionPipeline - Context Immutability", () => {
       };
 
       const successCandidate: ExecutableCandidate<string> = {
-        execute: async (_content: string, ctx: LLMContext) => {
+        execute: async (_content: string, ctx: LLMExecutionContext) => {
           receivedContexts.push({ ...ctx });
           return {
             status: LLMResponseStatus.COMPLETED,
@@ -197,7 +200,7 @@ describe("LLMExecutionPipeline - Context Immutability", () => {
         description: "test-provider/model-2",
       };
 
-      const originalContext: LLMContext = {
+      const originalContext: LLMExecutionContext = {
         resource: "special-resource",
         purpose: LLMPurpose.EMBEDDINGS,
         modelKey: "initial-model",
@@ -220,11 +223,11 @@ describe("LLMExecutionPipeline - Context Immutability", () => {
 
   describe("Context Per-Candidate Isolation", () => {
     test("each candidate receives isolated context object", async () => {
-      const receivedContexts: LLMContext[] = [];
+      const receivedContexts: LLMExecutionContext[] = [];
 
       // Use candidates that always fail to ensure fallback happens
       const createFailingCandidate = (modelKey: string): ExecutableCandidate<string> => ({
-        execute: async (_content: string, ctx: LLMContext) => {
+        execute: async (_content: string, ctx: LLMExecutionContext) => {
           receivedContexts.push(ctx);
           return {
             status: LLMResponseStatus.OVERLOADED,
@@ -238,9 +241,10 @@ describe("LLMExecutionPipeline - Context Immutability", () => {
         description: `test-provider/${modelKey}`,
       });
 
-      const originalContext: LLMContext = {
+      const originalContext: LLMExecutionContext = {
         resource: "test-resource",
         purpose: LLMPurpose.COMPLETIONS,
+        modelKey: "test-model",
       };
 
       await pipeline.execute({
@@ -264,11 +268,11 @@ describe("LLMExecutionPipeline - Context Immutability", () => {
     });
 
     test("modifying context in candidate does not affect next candidate", async () => {
-      const receivedContexts: LLMContext[] = [];
+      const receivedContexts: LLMExecutionContext[] = [];
 
       // Candidate that attempts to modify the context
       const mutatingCandidate: ExecutableCandidate<string> = {
-        execute: async (_content: string, ctx: LLMContext) => {
+        execute: async (_content: string, ctx: LLMExecutionContext) => {
           receivedContexts.push({ ...ctx });
           // Attempt to mutate - this should not affect other candidates
           // because pipeline creates new context objects
@@ -286,7 +290,7 @@ describe("LLMExecutionPipeline - Context Immutability", () => {
       };
 
       const nextCandidate: ExecutableCandidate<string> = {
-        execute: async (_content: string, ctx: LLMContext) => {
+        execute: async (_content: string, ctx: LLMExecutionContext) => {
           receivedContexts.push({ ...ctx });
           return {
             status: LLMResponseStatus.COMPLETED,
@@ -301,7 +305,7 @@ describe("LLMExecutionPipeline - Context Immutability", () => {
         description: "test-provider/model-2",
       };
 
-      const originalContext: LLMContext = {
+      const originalContext: LLMExecutionContext = {
         resource: "test-resource",
         purpose: LLMPurpose.COMPLETIONS,
         modelKey: "original-key",
@@ -323,12 +327,12 @@ describe("LLMExecutionPipeline - Context Immutability", () => {
 
   describe("Context During Retry", () => {
     test("context modelKey consistent during retries of same candidate", async () => {
-      const receivedContexts: LLMContext[] = [];
+      const receivedContexts: LLMExecutionContext[] = [];
       let callCount = 0;
 
       // Candidate that fails first time, succeeds second time
       const retryingCandidate: ExecutableCandidate<string> = {
-        execute: async (_content: string, ctx: LLMContext) => {
+        execute: async (_content: string, ctx: LLMExecutionContext) => {
           receivedContexts.push({ ...ctx });
           callCount++;
           if (callCount === 1) {
@@ -361,7 +365,7 @@ describe("LLMExecutionPipeline - Context Immutability", () => {
         retryConfig,
       );
 
-      const originalContext: LLMContext = {
+      const originalContext: LLMExecutionContext = {
         resource: "test-resource",
         purpose: LLMPurpose.COMPLETIONS,
         modelKey: "should-be-overwritten",

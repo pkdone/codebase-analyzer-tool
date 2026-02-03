@@ -4,7 +4,7 @@ import { z } from "zod";
 import {
   LLMOutputFormat,
   LLMPurpose,
-  type LLMContext,
+  type LLMExecutionContext,
 } from "../../../src/common/llm/types/llm-request.types";
 import { parseAndValidateLLMJson } from "../../../src/common/llm/json-processing/core/json-processing";
 
@@ -21,9 +21,10 @@ jest.mock("../../../src/common/utils/logging", () => ({
  * from schema definition through to validated results.
  */
 describe("JSON Validation Integration Tests", () => {
-  const mockContext: LLMContext = {
+  const mockContext: LLMExecutionContext = {
     resource: "integration-test",
     purpose: LLMPurpose.COMPLETIONS,
+    modelKey: "test-model",
   };
 
   describe("End-to-End Validation Flow", () => {

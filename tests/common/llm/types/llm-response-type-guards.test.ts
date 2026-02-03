@@ -22,7 +22,7 @@ describe("LLMFunctionResponse Type Guards", () => {
   const createBaseResponse = () => ({
     request: "test prompt",
     modelKey: "test-model",
-    context: { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+    context: { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
   });
 
   describe("isCompletedResponse", () => {

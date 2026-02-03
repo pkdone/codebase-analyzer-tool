@@ -3,14 +3,15 @@ import { parseAndValidateLLMJson } from "../../../../src/common/llm/json-process
 import {
   LLMOutputFormat,
   LLMPurpose,
-  type LLMContext,
+  type LLMExecutionContext,
   type LLMCompletionOptions,
 } from "../../../../src/common/llm/types/llm-request.types";
 
 describe("Simplified Type Chain - parseAndValidateLLMJson", () => {
-  const mockContext: LLMContext = {
+  const mockContext: LLMExecutionContext = {
     resource: "test-resource",
     purpose: LLMPurpose.COMPLETIONS,
+    modelKey: "test-model",
   };
 
   describe("Type inference with provided schema", () => {

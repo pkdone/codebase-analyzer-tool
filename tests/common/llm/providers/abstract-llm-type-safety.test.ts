@@ -1,6 +1,6 @@
 import {
   LLMPurpose,
-  LLMContext,
+  LLMExecutionContext,
   LLMOutputFormat,
 } from "../../../../src/common/llm/types/llm-request.types";
 import { ResolvedLLMModelMetadata } from "../../../../src/common/llm/types/llm-model.types";
@@ -221,13 +221,14 @@ class TypeSafetyTestLLM extends BaseLLMProvider {
 
 describe("Abstract LLM Type Safety", () => {
   let testLLM: TypeSafetyTestLLM;
-  let testContext: LLMContext;
+  let testContext: LLMExecutionContext;
 
   beforeEach(() => {
     testLLM = new TypeSafetyTestLLM();
     testContext = {
       resource: "test-resource",
       purpose: LLMPurpose.COMPLETIONS,
+      modelKey: "test-model",
     };
   });
 
@@ -640,9 +641,10 @@ describe("Abstract LLM Type Safety", () => {
       // This test exercises the embeddings path type assertion in formatAndValidateResponse.
       // The type assertion bridges the generic S (bound to z.ZodType<number[]> at the call site)
       // with the actual number[] returned by invokeEmbeddingProvider.
-      const embeddingContext: LLMContext = {
+      const embeddingContext: LLMExecutionContext = {
         resource: "embedding-test",
         purpose: LLMPurpose.EMBEDDINGS,
+        modelKey: "test-model",
       };
 
       const result = await testLLM.generateEmbeddings(
@@ -714,9 +716,10 @@ describe("Abstract LLM Type Safety", () => {
       // This test verifies that the type contract for embeddings is properly enforced.
       // generateEmbeddings() binds S to z.ZodType<number[]>, and the invokeEmbeddingProvider
       // implementation returns number[] by contract.
-      const embeddingContext: LLMContext = {
+      const embeddingContext: LLMExecutionContext = {
         resource: "embedding-contract-test",
         purpose: LLMPurpose.EMBEDDINGS,
+        modelKey: "test-model",
       };
 
       const result = await testLLM.generateEmbeddings(

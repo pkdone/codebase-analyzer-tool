@@ -16,7 +16,7 @@ import {
   type LLMFunctionResponse,
   type LLMResponsePayload,
 } from "../../../../src/common/llm/types/llm-response.types";
-import type { LLMContext } from "../../../../src/common/llm/types/llm-request.types";
+import type { LLMExecutionContext } from "../../../../src/common/llm/types/llm-request.types";
 import type { LLMRetryConfig } from "../../../../src/common/llm/providers/llm-provider.types";
 import type { ResolvedLLMModelMetadata } from "../../../../src/common/llm/types/llm-model.types";
 import { isOk } from "../../../../src/common/types/result.types";
@@ -39,7 +39,7 @@ describe("LLMExecutionPipeline convenience methods", () => {
       generated: data,
       request: "test",
       modelKey: "test-model",
-      context: { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+      context: { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
     });
 
     return {
@@ -86,9 +86,9 @@ describe("LLMExecutionPipeline convenience methods", () => {
       mockRetryStrategy.executeWithRetries.mockResolvedValue({
         status: LLMResponseStatus.COMPLETED,
         generated: expectedData,
-        request: "test",
         modelKey: "test-model",
-        context: { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        request: "test",
+        context: { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
       });
 
       await pipeline.executeCompletion({
@@ -97,7 +97,6 @@ describe("LLMExecutionPipeline convenience methods", () => {
         context: {
           resource: "test-resource",
           purpose: LLMPurpose.COMPLETIONS,
-          modelKey: "test-model",
         },
         candidates: [mockCandidate],
       });
@@ -118,9 +117,9 @@ describe("LLMExecutionPipeline convenience methods", () => {
       mockRetryStrategy.executeWithRetries.mockResolvedValue({
         status: LLMResponseStatus.COMPLETED,
         generated: expectedData,
-        request: "test",
         modelKey: "test-model",
-        context: { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        request: "test",
+        context: { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         repairs: ["coerceStringToArray"], // Significant repair
       });
 
@@ -132,7 +131,6 @@ describe("LLMExecutionPipeline convenience methods", () => {
         context: {
           resource: "test-resource",
           purpose: LLMPurpose.COMPLETIONS,
-          modelKey: "test-model",
         },
         candidates: [mockCandidate],
       });
@@ -146,9 +144,9 @@ describe("LLMExecutionPipeline convenience methods", () => {
       mockRetryStrategy.executeWithRetries.mockResolvedValue({
         status: LLMResponseStatus.COMPLETED,
         generated: expectedData,
-        request: "test",
         modelKey: "test-model",
-        context: { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        request: "test",
+        context: { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
       });
 
       const mockCandidate = createMockCandidate(expectedData);
@@ -159,7 +157,6 @@ describe("LLMExecutionPipeline convenience methods", () => {
         context: {
           resource: "test-resource",
           purpose: LLMPurpose.COMPLETIONS,
-          modelKey: "test-model",
         },
         candidates: [mockCandidate],
       });
@@ -181,7 +178,7 @@ describe("LLMExecutionPipeline convenience methods", () => {
         generated: expectedEmbeddings,
         request: "test",
         modelKey: "test-model",
-        context: { resource: "test", purpose: LLMPurpose.EMBEDDINGS },
+        context: { resource: "test", purpose: LLMPurpose.EMBEDDINGS, modelKey: "test-model" },
       });
 
       await pipeline.executeEmbedding({
@@ -190,7 +187,6 @@ describe("LLMExecutionPipeline convenience methods", () => {
         context: {
           resource: "test-resource",
           purpose: LLMPurpose.EMBEDDINGS,
-          modelKey: "test-model",
         },
         candidates: [mockCandidate],
       });
@@ -213,7 +209,7 @@ describe("LLMExecutionPipeline convenience methods", () => {
         generated: expectedEmbeddings,
         request: "test",
         modelKey: "test-model",
-        context: { resource: "test", purpose: LLMPurpose.EMBEDDINGS },
+        context: { resource: "test", purpose: LLMPurpose.EMBEDDINGS, modelKey: "test-model" },
         repairs: ["some-repair"], // Even with repairs, should not track for embeddings
       });
 
@@ -225,7 +221,6 @@ describe("LLMExecutionPipeline convenience methods", () => {
         context: {
           resource: "test-resource",
           purpose: LLMPurpose.EMBEDDINGS,
-          modelKey: "test-model",
         },
         candidates: [mockCandidate],
       });
@@ -242,7 +237,7 @@ describe("LLMExecutionPipeline convenience methods", () => {
         generated: expectedEmbeddings,
         request: "test",
         modelKey: "test-model",
-        context: { resource: "test", purpose: LLMPurpose.EMBEDDINGS },
+        context: { resource: "test", purpose: LLMPurpose.EMBEDDINGS, modelKey: "test-model" },
       });
 
       const mockCandidate = createMockCandidate(expectedEmbeddings);
@@ -253,7 +248,6 @@ describe("LLMExecutionPipeline convenience methods", () => {
         context: {
           resource: "test-resource",
           purpose: LLMPurpose.EMBEDDINGS,
-          modelKey: "test-model",
         },
         candidates: [mockCandidate],
       });
@@ -277,7 +271,7 @@ describe("LLMExecutionPipeline convenience methods", () => {
         async <T extends LLMResponsePayload>(
           _fn: BoundLLMFunction<T>,
           _content: string,
-          _ctx: LLMContext,
+          _ctx: LLMExecutionContext,
           _config: LLMRetryConfig,
           retryOnInvalid?: boolean,
         ): Promise<LLMFunctionResponse<T> | null> => {
@@ -287,8 +281,7 @@ describe("LLMExecutionPipeline convenience methods", () => {
             status: LLMResponseStatus.COMPLETED,
             generated: generated as T,
             request: "test",
-            modelKey: "test-model",
-            context: { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+            context: { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
           } as LLMFunctionResponse<T>;
         },
       );
@@ -300,7 +293,6 @@ describe("LLMExecutionPipeline convenience methods", () => {
         context: {
           resource: "completion-resource",
           purpose: LLMPurpose.COMPLETIONS,
-          modelKey: "test-model",
         },
         candidates: [createMockCandidate(completionData)],
       });
@@ -312,7 +304,6 @@ describe("LLMExecutionPipeline convenience methods", () => {
         context: {
           resource: "embedding-resource",
           purpose: LLMPurpose.EMBEDDINGS,
-          modelKey: "test-model",
         },
         candidates: [createMockCandidate(embeddingData)],
       });

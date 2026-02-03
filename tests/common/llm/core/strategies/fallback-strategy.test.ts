@@ -1,6 +1,9 @@
 import "reflect-metadata";
 import { determineNextAction } from "../../../../../src/common/llm/strategies/fallback-decision";
-import { LLMContext, LLMPurpose } from "../../../../../src/common/llm/types/llm-request.types";
+import {
+  LLMExecutionContext,
+  LLMPurpose,
+} from "../../../../../src/common/llm/types/llm-request.types";
 import {
   LLMFunctionResponse,
   LLMResponseStatus,
@@ -15,9 +18,10 @@ jest.mock("../../../../../src/common/utils/logging", () => ({
 
 describe("determineNextAction", () => {
   describe("fallback decision logic", () => {
-    const context: LLMContext = {
+    const context: LLMExecutionContext = {
       resource: "test-resource",
       purpose: LLMPurpose.COMPLETIONS,
+      modelKey: "test-model",
     };
 
     const testCases = [

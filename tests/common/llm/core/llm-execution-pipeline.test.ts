@@ -6,7 +6,7 @@ import {
 } from "../../../../src/common/llm/llm-execution-pipeline";
 import LLMExecutionStats from "../../../../src/common/llm/tracking/llm-execution-stats";
 import { RetryStrategy } from "../../../../src/common/llm/strategies/retry-strategy";
-import { LLMContext, LLMPurpose } from "../../../../src/common/llm/types/llm-request.types";
+import { LLMRequestContext, LLMPurpose } from "../../../../src/common/llm/types/llm-request.types";
 import {
   LLMResponseStatus,
   LLMFunctionResponse,
@@ -94,12 +94,12 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         status: LLMResponseStatus.COMPLETED,
         request: "test",
         modelKey: "test-model",
-        context: { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        context: { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         generated: { test: "value" },
         repairs: [REPAIR_STEP.TRIMMED_WHITESPACE, "Fixed trailing commas"],
       });
 
-      const context: LLMContext = {
+      const context: LLMRequestContext = {
         resource: "test-resource",
         purpose: LLMPurpose.COMPLETIONS,
       };
@@ -119,12 +119,12 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         status: LLMResponseStatus.COMPLETED,
         request: "test",
         modelKey: "test-model",
-        context: { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        context: { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         generated: { test: "value" },
         repairs: [REPAIR_STEP.TRIMMED_WHITESPACE],
       });
 
-      const context: LLMContext = {
+      const context: LLMRequestContext = {
         resource: "test-resource",
         purpose: LLMPurpose.COMPLETIONS,
       };
@@ -144,12 +144,12 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         status: LLMResponseStatus.COMPLETED,
         request: "test",
         modelKey: "test-model",
-        context: { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        context: { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         generated: { test: "value" },
         repairs: [REPAIR_STEP.REMOVED_CODE_FENCES],
       });
 
-      const context: LLMContext = {
+      const context: LLMRequestContext = {
         resource: "test-resource",
         purpose: LLMPurpose.COMPLETIONS,
       };
@@ -169,12 +169,12 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         status: LLMResponseStatus.COMPLETED,
         request: "test",
         modelKey: "test-model",
-        context: { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        context: { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         generated: { test: "value" },
         repairs: [REPAIR_STEP.TRIMMED_WHITESPACE, REPAIR_STEP.REMOVED_CODE_FENCES],
       });
 
-      const context: LLMContext = {
+      const context: LLMRequestContext = {
         resource: "test-resource",
         purpose: LLMPurpose.COMPLETIONS,
       };
@@ -194,12 +194,12 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         status: LLMResponseStatus.COMPLETED,
         request: "test",
         modelKey: "test-model",
-        context: { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        context: { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         generated: { test: "value" },
         repairs: [],
       });
 
-      const context: LLMContext = {
+      const context: LLMRequestContext = {
         resource: "test-resource",
         purpose: LLMPurpose.COMPLETIONS,
       };
@@ -219,11 +219,11 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         status: LLMResponseStatus.COMPLETED,
         request: "test",
         modelKey: "test-model",
-        context: { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        context: { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         generated: { test: "value" },
       });
 
-      const context: LLMContext = {
+      const context: LLMRequestContext = {
         resource: "test-resource",
         purpose: LLMPurpose.COMPLETIONS,
       };
@@ -243,7 +243,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         status: LLMResponseStatus.COMPLETED,
         request: "test",
         modelKey: "test-model",
-        context: { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        context: { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         generated: { test: "value" },
         repairs: [
           REPAIR_STEP.TRIMMED_WHITESPACE,
@@ -253,7 +253,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         ],
       });
 
-      const context: LLMContext = {
+      const context: LLMRequestContext = {
         resource: "test-resource",
         purpose: LLMPurpose.COMPLETIONS,
       };
@@ -276,11 +276,11 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         status: LLMResponseStatus.INVALID,
         request: "test",
         modelKey: "test-model",
-        context: { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        context: { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         error: "Validation failed",
       });
 
-      const context: LLMContext = {
+      const context: LLMRequestContext = {
         resource: "failed-resource",
         purpose: LLMPurpose.COMPLETIONS,
       };
@@ -312,7 +312,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         description: "test-provider/test-model",
       };
 
-      const context: LLMContext = {
+      const context: LLMRequestContext = {
         resource: "exception-resource",
         purpose: LLMPurpose.EMBEDDINGS,
       };
@@ -338,7 +338,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
     });
 
     test("should return LLMExecutionError with typed context and cause when tryFallbackChain throws", async () => {
-      const context: LLMContext = {
+      const context: LLMRequestContext = {
         resource: "direct-exception-resource",
         purpose: LLMPurpose.COMPLETIONS,
       };
@@ -360,7 +360,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         status: LLMResponseStatus.COMPLETED,
         request: "test",
         modelKey: "test-model",
-        context: { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        context: { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         generated: { test: "value" },
       });
 
@@ -403,11 +403,11 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         status: LLMResponseStatus.COMPLETED,
         request: "test",
         modelKey: "test-model",
-        context: { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        context: { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         generated: { enabled: true, maxItems: 10, tags: ["tag1", "tag2"] },
       });
 
-      const context: LLMContext = {
+      const context: LLMRequestContext = {
         resource: "test-resource",
         purpose: LLMPurpose.COMPLETIONS,
       };
@@ -434,14 +434,14 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         status: LLMResponseStatus.COMPLETED,
         request: "test",
         modelKey: "test-model",
-        context: { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        context: { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         generated: [
           { id: 1, name: "Item 1" },
           { id: 2, name: "Item 2" },
         ] as any,
       });
 
-      const context: LLMContext = {
+      const context: LLMRequestContext = {
         resource: "test-resource",
         purpose: LLMPurpose.COMPLETIONS,
       };
@@ -467,7 +467,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         status: LLMResponseStatus.COMPLETED,
         request: "test",
         modelKey: "test-model",
-        context: { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        context: { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         generated: {
           user: {
             id: 42,
@@ -484,7 +484,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         },
       });
 
-      const context: LLMContext = {
+      const context: LLMRequestContext = {
         resource: "test-resource",
         purpose: LLMPurpose.COMPLETIONS,
       };
@@ -520,11 +520,11 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         status: LLMResponseStatus.COMPLETED,
         request: "test",
         modelKey: "test-model",
-        context: { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        context: { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         generated: null,
       });
 
-      const context: LLMContext = {
+      const context: LLMRequestContext = {
         resource: "test-resource",
         purpose: LLMPurpose.COMPLETIONS,
       };
@@ -554,11 +554,11 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         status: LLMResponseStatus.COMPLETED,
         request: "test",
         modelKey: "test-model",
-        context: { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        context: { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         generated: "",
       });
 
-      const context: LLMContext = {
+      const context: LLMRequestContext = {
         resource: "test-resource",
         purpose: LLMPurpose.COMPLETIONS,
       };
@@ -583,11 +583,11 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         status: LLMResponseStatus.COMPLETED,
         request: "test",
         modelKey: "test-model",
-        context: { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        context: { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         generated: {},
       });
 
-      const context: LLMContext = {
+      const context: LLMRequestContext = {
         resource: "test-resource",
         purpose: LLMPurpose.COMPLETIONS,
       };
@@ -611,11 +611,11 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         status: LLMResponseStatus.COMPLETED,
         request: "test",
         modelKey: "test-model",
-        context: { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        context: { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         generated: [] as unknown[],
       });
 
-      const context: LLMContext = {
+      const context: LLMRequestContext = {
         resource: "test-resource",
         purpose: LLMPurpose.COMPLETIONS,
       };

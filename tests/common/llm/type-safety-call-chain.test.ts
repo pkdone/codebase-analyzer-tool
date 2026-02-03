@@ -12,7 +12,11 @@ import { LLMOutputFormat, LLMPurpose } from "../../../src/common/llm/types/llm-r
  * 3. The improvements address the issues identified in requirement23.result
  */
 describe("Type Safety Call Chain Improvements", () => {
-  const context = { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS };
+  const context = {
+    resource: "test-resource",
+    purpose: LLMPurpose.COMPLETIONS,
+    modelKey: "test-model",
+  };
 
   describe("parseAndValidateLLMJson type inference", () => {
     it("should infer return type from simple object schema", () => {

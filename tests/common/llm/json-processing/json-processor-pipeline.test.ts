@@ -25,7 +25,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
       const validJson = '{"clean": "json"}';
       const result = parseAndValidateLLMJson(
         validJson,
-        { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
 
@@ -42,7 +42,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
       const jsonInFence = '```json\n{"key": "value"}\n```';
       const result = parseAndValidateLLMJson(
         jsonInFence,
-        { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
 
@@ -60,7 +60,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
       const malformed = '```json\n{"a": 1,}\n```';
       const result = parseAndValidateLLMJson(
         malformed,
-        { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
 
@@ -77,7 +77,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
       const complexMalformed = '```json\n  {"x": 1,}  \n```';
       const result = parseAndValidateLLMJson(
         complexMalformed,
-        { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
 
@@ -95,7 +95,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
       const withWhitespace = '  \n\t  {"data": "value"}  \n\t  ';
       const result = parseAndValidateLLMJson(
         withWhitespace,
-        { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
 
@@ -109,7 +109,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
       const fenced = '```json\n{"fenced": true}\n```';
       const result = parseAndValidateLLMJson(
         fenced,
-        { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
 
@@ -123,7 +123,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
       const withTrailingCommas = '{"a": 1, "b": 2,}';
       const result = parseAndValidateLLMJson(
         withTrailingCommas,
-        { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
 
@@ -137,7 +137,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
       const embedded = 'Some text before {"embedded": true} some text after';
       const result = parseAndValidateLLMJson(
         embedded,
-        { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
 
@@ -151,7 +151,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
       const chain = '{"path": CONST_A + CONST_B}';
       const result = parseAndValidateLLMJson(
         chain,
-        { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
 
@@ -165,7 +165,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
       const duplicate = '{"id": 1}{"id": 1}';
       const result = parseAndValidateLLMJson(
         duplicate,
-        { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
 
@@ -180,7 +180,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
       const mismatched = '{"items": [1, 2, 3]}';
       const result = parseAndValidateLLMJson(
         mismatched,
-        { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
 
@@ -197,7 +197,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
       const multiIssue = '```json\n  {"multi": "issue", "test": true,}  \n```';
       const result = parseAndValidateLLMJson(
         multiIssue,
-        { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
 
@@ -223,7 +223,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
       `;
       const result = parseAndValidateLLMJson(
         complex,
-        { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
 
@@ -239,7 +239,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
       const simpleCase = '```\n{"simple": true}\n```';
       const result = parseAndValidateLLMJson(
         simpleCase,
-        { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
 
@@ -257,7 +257,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
       const unparseable = "This is completely not JSON at all, no braces or brackets";
       const result = parseAndValidateLLMJson(
         unparseable,
-        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
 
@@ -273,7 +273,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
       const invalid = '{"broken": "json" with syntax error}';
       const result = parseAndValidateLLMJson(
         invalid,
-        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
 
@@ -289,7 +289,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
       const almostValid = '```json\n{"almost": "valid" but not quite}\n```';
       const result = parseAndValidateLLMJson(
         almostValid,
-        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
 
@@ -310,7 +310,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
         "```json\n{{{nested broken: [[[invalid array structure without proper syntax\n```";
       const result = parseAndValidateLLMJson(
         malformed,
-        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
 
@@ -328,7 +328,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
       const malformed = 'Some text before {"test": true} some text after';
       parseAndValidateLLMJson(
         malformed,
-        { resource: "logged-resource", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "logged-resource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
 
@@ -341,7 +341,11 @@ describe("JsonProcessor - Unified Pipeline", () => {
       const malformed = '```json\n{"test": true}\n```';
       parseAndValidateLLMJson(
         malformed,
-        { resource: "not-logged-resource", purpose: LLMPurpose.COMPLETIONS },
+        {
+          resource: "not-logged-resource",
+          purpose: LLMPurpose.COMPLETIONS,
+          modelKey: "test-model",
+        },
         completionOptions,
         false, // loggingEnabled = false
       );
@@ -353,7 +357,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
       const clean = '{"clean": "json"}';
       parseAndValidateLLMJson(
         clean,
-        { resource: "clean-resource", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "clean-resource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
 
@@ -364,7 +368,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
       const multiIssue = '```json\n{"a": 1,}\n```';
       parseAndValidateLLMJson(
         multiIssue,
-        { resource: "multi-resource", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "multi-resource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
 
@@ -384,7 +388,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
       const malformed = '{"test": true,}';
       const result = parseAndValidateLLMJson(
         malformed,
-        { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
 
@@ -400,7 +404,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
       const malformed = '```json\n{"test": true,}\n```';
       const result = parseAndValidateLLMJson(
         malformed,
-        { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
 
@@ -414,7 +418,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
       const clean = '{"clean": true}';
       const result = parseAndValidateLLMJson(
         clean,
-        { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
 
@@ -431,7 +435,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
       const json = '{"already": "valid"}';
       const result = parseAndValidateLLMJson(
         json,
-        { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
 
@@ -445,7 +449,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
       const json = "{}";
       const result = parseAndValidateLLMJson(
         json,
-        { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
 
@@ -467,7 +471,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
       `;
       const result = parseAndValidateLLMJson(
         manyIssues,
-        { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
 

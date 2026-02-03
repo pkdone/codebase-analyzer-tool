@@ -27,7 +27,7 @@ describe("JsonProcessor.parseAndValidate - Mismatched Delimiters Integration Tes
       // This should NOT throw - fixJsonStructure will fix the ] to }, then remove trailing commas
       const result = parseAndValidateLLMJson(
         malformedJson,
-        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
 
@@ -145,6 +145,7 @@ describe("JsonProcessor.parseAndValidate - Mismatched Delimiters Integration Tes
           resource:
             "fineract-provider/src/main/java/org/apache/fineract/portfolio/account/domain/AccountAssociations.java",
           purpose: LLMPurpose.COMPLETIONS,
+          modelKey: "test-model",
         },
         completionOptions,
       );
@@ -174,7 +175,7 @@ describe("JsonProcessor.parseAndValidate - Mismatched Delimiters Integration Tes
 
       const result = parseAndValidateLLMJson(
         malformedJson,
-        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
 
@@ -205,7 +206,7 @@ describe("JsonProcessor.parseAndValidate - Mismatched Delimiters Integration Tes
 
       const result = parseAndValidateLLMJson(
         malformedJson,
-        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
 
@@ -235,7 +236,7 @@ describe("JsonProcessor.parseAndValidate - Mismatched Delimiters Integration Tes
 
       const result = parseAndValidateLLMJson(
         malformedJson,
-        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
 
@@ -265,7 +266,7 @@ describe("JsonProcessor.parseAndValidate - Mismatched Delimiters Integration Tes
 
       const result = parseAndValidateLLMJson(
         malformedJson,
-        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
 
@@ -293,7 +294,7 @@ describe("JsonProcessor.parseAndValidate - Mismatched Delimiters Integration Tes
 
       const result = parseAndValidateLLMJson(
         malformedJson,
-        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
 
@@ -316,7 +317,7 @@ describe("JsonProcessor.parseAndValidate - Mismatched Delimiters Integration Tes
       // Should complete the truncated structure after fixing mismatched delimiters
       const result = parseAndValidateLLMJson(
         malformedJson,
-        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
 

@@ -1,6 +1,6 @@
 import {
   LLMPurpose,
-  LLMContext,
+  LLMExecutionContext,
   LLMOutputFormat,
 } from "../../../../src/common/llm/types/llm-request.types";
 import {
@@ -240,13 +240,14 @@ class TestLLM extends BaseLLMProvider {
 
 describe("Abstract LLM Token Extraction", () => {
   let testLLM: TestLLM;
-  let testContext: LLMContext;
+  let testContext: LLMExecutionContext;
 
   beforeEach(() => {
     testLLM = new TestLLM();
     testContext = {
       resource: "test-resource",
       purpose: LLMPurpose.COMPLETIONS,
+      modelKey: "test-model",
     };
   });
 
@@ -438,13 +439,14 @@ class TestJSONLLM extends BaseLLMProvider {
 
 describe("Abstract LLM Sanitization Steps Propagation", () => {
   let testLLM: TestJSONLLM;
-  let testContext: LLMContext;
+  let testContext: LLMExecutionContext;
 
   beforeEach(() => {
     testLLM = new TestJSONLLM();
     testContext = {
       resource: "test-resource",
       purpose: LLMPurpose.COMPLETIONS,
+      modelKey: "test-model",
     };
   });
 
@@ -636,9 +638,10 @@ describe("Abstract LLM Deep Immutability", () => {
 
 describe("Abstract LLM Type Safety with InferResponseType", () => {
   let testLLM: TestJSONLLM;
-  const testContext: LLMContext = {
+  const testContext: LLMExecutionContext = {
     resource: "test-resource",
     purpose: LLMPurpose.COMPLETIONS,
+    modelKey: "test-model",
     outputFormat: LLMOutputFormat.JSON,
   };
 
@@ -744,6 +747,7 @@ describe("Abstract LLM Type Safety with InferResponseType", () => {
       const result = await testLLM.generateEmbeddings(GPT_EMBEDDINGS_GPT4, "test content", {
         resource: "test",
         purpose: LLMPurpose.EMBEDDINGS,
+        modelKey: GPT_EMBEDDINGS_GPT4,
       });
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);

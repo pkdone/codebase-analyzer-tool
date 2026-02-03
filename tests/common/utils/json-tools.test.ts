@@ -49,7 +49,7 @@ describe("JSON utilities", () => {
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
       const result = parseAndValidateLLMJson(
         input,
-        { resource: "content", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "content", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
       expect(result.success).toBe(true);
@@ -63,7 +63,7 @@ describe("JSON utilities", () => {
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
       const result = parseAndValidateLLMJson(
         text,
-        { resource: "content", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "content", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
       expect(result.success).toBe(false);
@@ -91,7 +91,7 @@ describe("JSON utilities", () => {
       };
       const result = parseAndValidateLLMJson(
         userJson,
-        { resource: "content", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "content", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
 
@@ -113,7 +113,7 @@ describe("JSON utilities", () => {
       };
       const result = parseAndValidateLLMJson(
         configJson,
-        { resource: "content", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "content", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
 
@@ -131,7 +131,7 @@ describe("JSON utilities", () => {
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
       const result = parseAndValidateLLMJson(
         input,
-        { resource: "content", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "content", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       ); // No type parameter
 

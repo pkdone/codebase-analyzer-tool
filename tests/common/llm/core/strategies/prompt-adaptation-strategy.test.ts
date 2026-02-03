@@ -38,7 +38,7 @@ describe("adaptPromptFromResponse", () => {
       status: LLMResponseStatus.EXCEEDED,
       request: prompt,
       modelKey: "GPT_COMPLETIONS_GPT4",
-      context: { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+      context: { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
       tokensUsage: {
         promptTokens: 5000,
         completionTokens: 4000,
@@ -57,7 +57,7 @@ describe("adaptPromptFromResponse", () => {
       status: LLMResponseStatus.EXCEEDED,
       request: prompt,
       modelKey: "GPT_COMPLETIONS_GPT4",
-      context: { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+      context: { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
       // tokensUsage is missing
     };
 
@@ -72,7 +72,7 @@ describe("adaptPromptFromResponse", () => {
       status: LLMResponseStatus.EXCEEDED,
       request: prompt,
       modelKey: "GPT_COMPLETIONS_GPT4",
-      context: { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+      context: { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
       tokensUsage: {
         promptTokens: 100,
         completionTokens: 50,
@@ -90,7 +90,7 @@ describe("adaptPromptFromResponse", () => {
       status: LLMResponseStatus.EXCEEDED,
       request: prompt,
       modelKey: "GPT_COMPLETIONS_GPT4",
-      context: { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+      context: { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
       tokensUsage: {
         promptTokens: 100,
         completionTokens: 50,
@@ -108,7 +108,7 @@ describe("adaptPromptFromResponse", () => {
       status: LLMResponseStatus.EXCEEDED,
       request: prompt,
       modelKey: "GPT_COMPLETIONS_GPT4",
-      context: { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+      context: { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
       tokensUsage: {
         promptTokens: 3000,
         completionTokens: 4050, // Near the 4096 limit
@@ -128,7 +128,7 @@ describe("adaptPromptFromResponse", () => {
       status: LLMResponseStatus.EXCEEDED,
       request: prompt,
       modelKey: "GPT_COMPLETIONS_GPT4",
-      context: { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+      context: { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
       tokensUsage: {
         promptTokens: 5000,
         completionTokens: 4000,
@@ -147,7 +147,7 @@ describe("adaptPromptFromResponse", () => {
       status: LLMResponseStatus.EXCEEDED,
       request: prompt,
       modelKey: "GPT_COMPLETIONS_GPT4",
-      context: { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+      context: { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
       tokensUsage: {
         promptTokens: 100,
         completionTokens: 50,

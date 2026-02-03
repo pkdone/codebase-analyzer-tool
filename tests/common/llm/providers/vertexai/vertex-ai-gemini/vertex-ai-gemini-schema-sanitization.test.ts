@@ -4,7 +4,7 @@ import * as aiplatform from "@google-cloud/aiplatform";
 import {
   LLMPurpose,
   LLMOutputFormat,
-  LLMContext,
+  LLMExecutionContext,
 } from "../../../../../../src/common/llm/types/llm-request.types";
 import { ResolvedLLMModelMetadata } from "../../../../../../src/common/llm/types/llm-model.types";
 import {
@@ -44,9 +44,10 @@ describe("VertexAIGeminiLLM Schema Sanitization", () => {
     },
   };
 
-  const mockContext: LLMContext = {
+  const mockContext: LLMExecutionContext = {
     resource: "test-resource",
     purpose: LLMPurpose.COMPLETIONS,
+    modelKey: "test-model",
   };
 
   let mockVertexAI: jest.Mocked<VertexAI>;

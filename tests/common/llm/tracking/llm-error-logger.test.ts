@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import { LLMErrorLogger } from "../../../../src/common/llm/tracking/llm-error-logger";
-import type { LLMContext } from "../../../../src/common/llm/types/llm-request.types";
+import type { LLMExecutionContext } from "../../../../src/common/llm/types/llm-request.types";
 import type { LLMResponsePayload } from "../../../../src/common/llm/types/llm-response.types";
 import { writeFile } from "../../../../src/common/fs/file-operations";
 import { ensureDirectoryExists } from "../../../../src/common/fs/directory-operations";
@@ -20,7 +20,7 @@ const mockLogOneLineError = logErr as jest.MockedFunction<typeof logErr>;
 
 describe("LLMErrorLogger", () => {
   let logger: LLMErrorLogger;
-  let mockContext: LLMContext;
+  let mockContext: LLMExecutionContext;
   let mockResponseContent: LLMResponsePayload;
 
   beforeEach(() => {
@@ -31,7 +31,7 @@ describe("LLMErrorLogger", () => {
     logger = new LLMErrorLogger(mockConfig);
     mockContext = {
       resource: "test-resource",
-    } as LLMContext;
+    } as LLMExecutionContext;
     mockResponseContent = '{"invalid": json}';
 
     jest.clearAllMocks();

@@ -155,7 +155,7 @@ describe("JsonProcessor Integration Tests", () => {
 
       const result = parseAndValidateLLMJson(
         problematicJson,
-        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         {
           outputFormat: LLMOutputFormat.JSON,
         },
@@ -190,7 +190,7 @@ describe("JsonProcessor Integration Tests", () => {
 
       const result = parseAndValidateLLMJson(
         problematicJson,
-        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         {
           outputFormat: LLMOutputFormat.JSON,
         },
@@ -222,7 +222,7 @@ describe("JsonProcessor Integration Tests", () => {
 
       const result = parseAndValidateLLMJson(
         problematicJson,
-        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         {
           outputFormat: LLMOutputFormat.JSON,
         },

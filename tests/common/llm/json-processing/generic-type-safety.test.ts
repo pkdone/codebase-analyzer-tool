@@ -19,6 +19,7 @@ describe("Generic Type Safety in parseAndValidateLLMJson", () => {
   const mockContext = {
     resource: "test-resource",
     purpose: LLMPurpose.COMPLETIONS,
+    modelKey: "test-model",
   };
 
   describe("Schema Type Propagation", () => {

@@ -13,7 +13,7 @@ describe("json-tools concatenated objects handling", () => {
 
     const result = parseAndValidateLLMJson(
       concatenated,
-      { resource: "concat-resource", purpose: LLMPurpose.COMPLETIONS },
+      { resource: "concat-resource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
       {
         outputFormat: LLMOutputFormat.JSON,
       },
@@ -32,7 +32,11 @@ describe("json-tools concatenated objects handling", () => {
 
     const result = parseAndValidateLLMJson(
       malformedConcatenated,
-      { resource: "malformed-concat-resource", purpose: LLMPurpose.COMPLETIONS },
+      {
+        resource: "malformed-concat-resource",
+        purpose: LLMPurpose.COMPLETIONS,
+        modelKey: "test-model",
+      },
       { outputFormat: LLMOutputFormat.JSON },
     );
 
@@ -49,7 +53,11 @@ describe("json-tools concatenated objects handling", () => {
 
     const result = parseAndValidateLLMJson(
       duplicateConcatenated,
-      { resource: "duplicate-concat-resource", purpose: LLMPurpose.COMPLETIONS },
+      {
+        resource: "duplicate-concat-resource",
+        purpose: LLMPurpose.COMPLETIONS,
+        modelKey: "test-model",
+      },
       { outputFormat: LLMOutputFormat.JSON },
     );
 
@@ -66,7 +74,11 @@ describe("json-tools concatenated objects handling", () => {
 
     const result = parseAndValidateLLMJson(
       textWithJson,
-      { resource: "text-wrapped-resource", purpose: LLMPurpose.COMPLETIONS },
+      {
+        resource: "text-wrapped-resource",
+        purpose: LLMPurpose.COMPLETIONS,
+        modelKey: "test-model",
+      },
       {
         outputFormat: LLMOutputFormat.JSON,
       },

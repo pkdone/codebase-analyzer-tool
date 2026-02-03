@@ -1,7 +1,7 @@
 import { z } from "zod";
 import {
   LLMPurpose,
-  LLMContext,
+  LLMExecutionContext,
   LLMOutputFormat,
 } from "../../../src/common/llm/types/llm-request.types";
 import {
@@ -140,7 +140,7 @@ class TypeSafetyChainTestLLM extends BaseLLMProvider {
 
 describe("Type Safety Chain - End to End", () => {
   let testLLM: TypeSafetyChainTestLLM;
-  let testContext: LLMContext;
+  let testContext: LLMExecutionContext;
   let retryStrategy: RetryStrategy;
   let executionPipeline: LLMExecutionPipeline;
   let llmStats: LLMExecutionStats;
@@ -150,6 +150,7 @@ describe("Type Safety Chain - End to End", () => {
     testContext = {
       resource: "test-resource",
       purpose: LLMPurpose.COMPLETIONS,
+      modelKey: "test-model",
     };
     llmStats = new LLMExecutionStats();
     retryStrategy = new RetryStrategy(llmStats);
@@ -275,7 +276,7 @@ describe("Type Safety Chain - End to End", () => {
       testLLM.setMockResponse('{"id": 1, "name": "Widget", "price": 19.99}');
 
       // Bind options to create BoundLLMFunction
-      const boundFn = async (content: string, ctx: LLMContext) =>
+      const boundFn = async (content: string, ctx: LLMExecutionContext) =>
         testLLM.executeCompletion(TEST_COMPLETIONS_MODEL, content, ctx, {
           outputFormat: LLMOutputFormat.JSON,
           jsonSchema: productSchema,
@@ -312,7 +313,7 @@ describe("Type Safety Chain - End to End", () => {
       testLLM.setMockResponse("[1, 2, 3, 4, 5]");
 
       // Bind options to create BoundLLMFunction
-      const boundFn = async (content: string, ctx: LLMContext) =>
+      const boundFn = async (content: string, ctx: LLMExecutionContext) =>
         testLLM.executeCompletion(TEST_COMPLETIONS_MODEL, content, ctx, {
           outputFormat: LLMOutputFormat.JSON,
           jsonSchema: numbersSchema,
@@ -360,7 +361,7 @@ describe("Type Safety Chain - End to End", () => {
 
       // Create unified ExecutableCandidate with bound function and metadata
       const candidate: ExecutableCandidate<z.infer<typeof complexSchema>> = {
-        execute: async (content: string, ctx: LLMContext) =>
+        execute: async (content: string, ctx: LLMExecutionContext) =>
           testLLM.executeCompletion(TEST_COMPLETIONS_MODEL, content, ctx, {
             outputFormat: LLMOutputFormat.JSON,
             jsonSchema: complexSchema,
@@ -397,7 +398,7 @@ describe("Type Safety Chain - End to End", () => {
 
       // Create unified ExecutableCandidate with bound function and metadata
       const candidate: ExecutableCandidate<z.infer<typeof unionSchema>> = {
-        execute: async (content: string, ctx: LLMContext) =>
+        execute: async (content: string, ctx: LLMExecutionContext) =>
           testLLM.executeCompletion(TEST_COMPLETIONS_MODEL, content, ctx, {
             outputFormat: LLMOutputFormat.JSON,
             jsonSchema: unionSchema,
@@ -596,7 +597,7 @@ describe("Type Safety Chain - End to End", () => {
       testLLM.setMockResponse('{"verified": true, "timestamp": "2024-01-01"}');
 
       // Bind options to create BoundLLMFunction
-      const boundFn = async (content: string, ctx: LLMContext) =>
+      const boundFn = async (content: string, ctx: LLMExecutionContext) =>
         testLLM.executeCompletion(TEST_COMPLETIONS_MODEL, content, ctx, {
           outputFormat: LLMOutputFormat.JSON,
           jsonSchema: verificationSchema,
@@ -633,7 +634,7 @@ describe("Type Safety Chain - End to End", () => {
 
       // Create unified ExecutableCandidate with bound function and metadata
       const candidate: ExecutableCandidate<z.infer<typeof pipelineSchema>> = {
-        execute: async (content: string, ctx: LLMContext) =>
+        execute: async (content: string, ctx: LLMExecutionContext) =>
           testLLM.executeCompletion(TEST_COMPLETIONS_MODEL, content, ctx, {
             outputFormat: LLMOutputFormat.JSON,
             jsonSchema: pipelineSchema,

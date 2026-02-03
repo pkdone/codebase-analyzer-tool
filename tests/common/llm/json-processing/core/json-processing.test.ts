@@ -7,7 +7,11 @@ import {
 import { z } from "zod";
 
 describe("json-processing", () => {
-  const context = { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS };
+  const context = {
+    resource: "test-resource",
+    purpose: LLMPurpose.COMPLETIONS,
+    modelKey: "test-model",
+  };
 
   describe("parseAndValidateLLMJson", () => {
     describe("successful parse and validation flow", () => {
@@ -84,7 +88,11 @@ describe("json-processing", () => {
       it("should include resource name in error message", () => {
         const invalid = "not valid json";
         const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-        const customContext = { resource: "my-resource", purpose: LLMPurpose.COMPLETIONS };
+        const customContext = {
+          resource: "my-resource",
+          purpose: LLMPurpose.COMPLETIONS,
+          modelKey: "test-model",
+        };
         const result = parseAndValidateLLMJson(invalid, customContext, completionOptions);
 
         expect(result.success).toBe(false);
@@ -170,7 +178,11 @@ describe("json-processing", () => {
           outputFormat: LLMOutputFormat.JSON,
           jsonSchema: schema,
         };
-        const customContext = { resource: "validation-resource", purpose: LLMPurpose.COMPLETIONS };
+        const customContext = {
+          resource: "validation-resource",
+          purpose: LLMPurpose.COMPLETIONS,
+          modelKey: "test-model",
+        };
         const result = parseAndValidateLLMJson(json, customContext, completionOptions);
 
         expect(result.success).toBe(false);
@@ -207,7 +219,11 @@ describe("json-processing", () => {
       it("should use context resource in error messages", () => {
         const invalid = "not valid json";
         const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-        const customContext = { resource: "custom-resource", purpose: LLMPurpose.COMPLETIONS };
+        const customContext = {
+          resource: "custom-resource",
+          purpose: LLMPurpose.COMPLETIONS,
+          modelKey: "test-model",
+        };
         const result = parseAndValidateLLMJson(invalid, customContext, completionOptions);
 
         expect(result.success).toBe(false);

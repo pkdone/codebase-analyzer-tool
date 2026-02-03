@@ -3,7 +3,7 @@ import { ensureDirectoryExists } from "../../fs/directory-operations";
 import { formatErrorMessageAndDetail } from "../../utils/error-formatters";
 import { logWarn, logErr } from "../../utils/logging";
 import { LLMErrorLoggingConfig } from "../config/llm-module-config.types";
-import type { LLMContext } from "../types/llm-request.types";
+import type { LLMExecutionContext } from "../types/llm-request.types";
 import type { LLMResponsePayload } from "../types/llm-response.types";
 
 /**
@@ -19,12 +19,12 @@ export class LLMErrorLogger {
    *
    * @param error - The error that occurred during JSON processing
    * @param responseContent - The LLM response content that failed to parse
-   * @param context - The LLM context containing resource information
+   * @param context - The execution context containing resource information
    */
   async recordJsonProcessingError(
     error: unknown,
     responseContent: LLMResponsePayload,
-    context: LLMContext,
+    context: LLMExecutionContext,
   ): Promise<void> {
     if (!responseContent || typeof responseContent !== "string") return;
 

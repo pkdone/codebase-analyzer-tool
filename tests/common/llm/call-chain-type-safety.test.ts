@@ -4,7 +4,7 @@ import { z } from "zod";
 import {
   LLMOutputFormat,
   LLMPurpose,
-  type LLMContext,
+  type LLMExecutionContext,
 } from "../../../src/common/llm/types/llm-request.types";
 import {
   LLMResponseStatus,
@@ -28,9 +28,10 @@ jest.mock("../../../src/common/llm/tracking/llm-execution-stats");
  * through all layers of the call stack without requiring unsafe casts.
  */
 describe("LLM Call Chain Type Safety", () => {
-  const mockContext: LLMContext = {
+  const mockContext: LLMExecutionContext = {
     resource: "test-resource",
     purpose: LLMPurpose.COMPLETIONS,
+    modelKey: "test-model",
     outputFormat: LLMOutputFormat.JSON,
   };
 
@@ -449,7 +450,7 @@ describe("LLM Call Chain Type Safety", () => {
       const mockLLMFunc: import("../../../src/common/llm/types/llm-function.types").LLMFunction =
         async <S extends z.ZodType>(
           _content: string,
-          _context: import("../../../src/common/llm/types/llm-request.types").LLMContext,
+          _context: import("../../../src/common/llm/types/llm-request.types").LLMExecutionContext,
           _options?: import("../../../src/common/llm/types/llm-request.types").LLMCompletionOptions<S>,
         ) => {
           type ReturnType =

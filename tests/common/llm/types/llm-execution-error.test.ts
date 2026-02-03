@@ -1,7 +1,7 @@
 import { describe, test, expect } from "@jest/globals";
 import { LLMExecutionError } from "../../../../src/common/llm/types/llm-execution-error.types";
 import {
-  LLMContext,
+  LLMRequestContext,
   LLMPurpose,
   LLMOutputFormat,
 } from "../../../../src/common/llm/types/llm-request.types";
@@ -10,7 +10,7 @@ import { err, isErr } from "../../../../src/common/types/result.types";
 describe("LLMExecutionError", () => {
   describe("constructor", () => {
     test("should create error with all parameters", () => {
-      const context: LLMContext = {
+      const context: LLMRequestContext = {
         resource: "test-resource",
         purpose: LLMPurpose.COMPLETIONS,
         outputFormat: LLMOutputFormat.JSON,
@@ -37,7 +37,7 @@ describe("LLMExecutionError", () => {
     });
 
     test("should create error without optional cause", () => {
-      const context: LLMContext = {
+      const context: LLMRequestContext = {
         resource: "test-resource",
         purpose: LLMPurpose.EMBEDDINGS,
       };
@@ -50,12 +50,11 @@ describe("LLMExecutionError", () => {
       expect(error.errorCause).toBeUndefined();
     });
 
-    test("should preserve all LLMContext properties", () => {
-      const context: LLMContext = {
+    test("should preserve all LLMRequestContext properties", () => {
+      const context: LLMRequestContext = {
         resource: "test-resource",
         purpose: LLMPurpose.COMPLETIONS,
         outputFormat: LLMOutputFormat.TEXT,
-        modelKey: "test-model",
       };
 
       const error = new LLMExecutionError("Test error message", "test-resource", context);
@@ -64,13 +63,12 @@ describe("LLMExecutionError", () => {
       expect(error.context?.resource).toBe("test-resource");
       expect(error.context?.purpose).toBe(LLMPurpose.COMPLETIONS);
       expect(error.context?.outputFormat).toBe(LLMOutputFormat.TEXT);
-      expect(error.context?.modelKey).toBe("test-model");
     });
   });
 
   describe("type safety", () => {
     test("should provide type-safe access to context properties", () => {
-      const context: LLMContext = {
+      const context: LLMRequestContext = {
         resource: "test-resource",
         purpose: LLMPurpose.COMPLETIONS,
       };
@@ -87,8 +85,8 @@ describe("LLMExecutionError", () => {
       }
     });
 
-    test("should handle minimal LLMContext with only required fields", () => {
-      const context: LLMContext = {
+    test("should handle minimal LLMRequestContext with only required fields", () => {
+      const context: LLMRequestContext = {
         resource: "minimal-resource",
         purpose: LLMPurpose.EMBEDDINGS,
       };
@@ -98,13 +96,12 @@ describe("LLMExecutionError", () => {
       expect(error.context?.resource).toBe("minimal-resource");
       expect(error.context?.purpose).toBe(LLMPurpose.EMBEDDINGS);
       expect(error.context?.outputFormat).toBeUndefined();
-      expect(error.context?.modelKey).toBeUndefined();
     });
   });
 
   describe("error properties immutability", () => {
     test("should have readonly properties", () => {
-      const context: LLMContext = {
+      const context: LLMRequestContext = {
         resource: "test-resource",
         purpose: LLMPurpose.COMPLETIONS,
       };
@@ -120,7 +117,7 @@ describe("LLMExecutionError", () => {
 
   describe("error cause handling", () => {
     test("should preserve Error objects as cause", () => {
-      const context: LLMContext = {
+      const context: LLMRequestContext = {
         resource: "test-resource",
         purpose: LLMPurpose.COMPLETIONS,
       };
@@ -135,7 +132,7 @@ describe("LLMExecutionError", () => {
     });
 
     test("should preserve non-Error objects as cause", () => {
-      const context: LLMContext = {
+      const context: LLMRequestContext = {
         resource: "test-resource",
         purpose: LLMPurpose.COMPLETIONS,
       };
@@ -147,7 +144,7 @@ describe("LLMExecutionError", () => {
     });
 
     test("should preserve primitive values as cause", () => {
-      const context: LLMContext = {
+      const context: LLMRequestContext = {
         resource: "test-resource",
         purpose: LLMPurpose.COMPLETIONS,
       };
@@ -167,7 +164,7 @@ describe("LLMExecutionError", () => {
 
   describe("integration with Result type", () => {
     test("should work correctly in ErrResult", () => {
-      const context: LLMContext = {
+      const context: LLMRequestContext = {
         resource: "test-resource",
         purpose: LLMPurpose.COMPLETIONS,
       };

@@ -10,7 +10,11 @@ describe("json-tools identifier-only chain handling", () => {
     const json = '{"path": SOME_CONST + OTHER_CONST + THIRD_CONST}';
     const result = parseAndValidateLLMJson(
       json,
-      { resource: "test-ident-only-chain", purpose: LLMPurpose.COMPLETIONS },
+      {
+        resource: "test-ident-only-chain",
+        purpose: LLMPurpose.COMPLETIONS,
+        modelKey: "test-model",
+      },
       completionOptions,
     );
     expect(result.success).toBe(true);
@@ -23,7 +27,11 @@ describe("json-tools identifier-only chain handling", () => {
     const json = '{"a": 1, "b": CONST_A + CONST_B + CONST_C, "c": 3}';
     const result = parseAndValidateLLMJson(
       json,
-      { resource: "test-ident-only-chain-struct", purpose: LLMPurpose.COMPLETIONS },
+      {
+        resource: "test-ident-only-chain-struct",
+        purpose: LLMPurpose.COMPLETIONS,
+        modelKey: "test-model",
+      },
       completionOptions,
     );
     expect(result.success).toBe(true);

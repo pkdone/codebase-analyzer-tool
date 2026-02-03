@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { LLMCompletionOptions, LLMContext } from "../../types/llm-request.types";
+import { LLMCompletionOptions, LLMExecutionContext } from "../../types/llm-request.types";
 import { JsonProcessingError, JsonProcessingErrorType } from "../types/json-processing.errors";
 import { JsonProcessorResult } from "../types/json-processing-result.types";
 import { logWarn } from "../../../utils/logging";
@@ -23,7 +23,7 @@ function hasJsonLikeStructure(content: string): boolean {
 /**
  * Builds a standardized error message with resource context.
  */
-function buildResourceErrorMessage(baseMessage: string, context: LLMContext): string {
+function buildResourceErrorMessage(baseMessage: string, context: LLMExecutionContext): string {
   return `LLM response for resource '${context.resource}' ${baseMessage}`;
 }
 
@@ -32,7 +32,7 @@ function buildResourceErrorMessage(baseMessage: string, context: LLMContext): st
  */
 function createParseError(
   message: string,
-  context: LLMContext,
+  context: LLMExecutionContext,
   cause?: Error,
 ): JsonProcessingError {
   return new JsonProcessingError(
@@ -47,7 +47,7 @@ function createParseError(
  */
 function logProblem(
   message: string,
-  context: LLMContext | Record<string, unknown>,
+  context: LLMExecutionContext | Record<string, unknown>,
   loggingEnabled: boolean,
 ): void {
   if (loggingEnabled) {
@@ -67,7 +67,7 @@ function logProblem(
  */
 function logRepairs(
   repairs: readonly string[],
-  context: LLMContext,
+  context: LLMExecutionContext,
   loggingEnabled: boolean,
 ): void {
   if (!loggingEnabled) return;
@@ -101,7 +101,7 @@ type ContentValidationResult =
  */
 function validateContentInput(
   content: string,
-  context: LLMContext,
+  context: LLMExecutionContext,
   loggingEnabled: boolean,
 ): ContentValidationResult {
   // ES2023: Check for malformed Unicode (lone surrogates) which can occur in
@@ -164,7 +164,7 @@ type SuccessfulParseResult = Extract<ParseResult, { success: true }>;
  */
 function buildSchemalessResult<S extends z.ZodType<unknown>>(
   parseResult: SuccessfulParseResult,
-  context: LLMContext,
+  context: LLMExecutionContext,
   loggingEnabled: boolean,
 ): JsonProcessorResult<z.infer<S>> {
   // Type guard ensures the data is an object or array (not a primitive or null).
@@ -205,7 +205,7 @@ function buildSchemalessResult<S extends z.ZodType<unknown>>(
 function validateAndBuildResult<S extends z.ZodType<unknown>>(
   parseResult: SuccessfulParseResult,
   jsonSchema: S,
-  context: LLMContext,
+  context: LLMExecutionContext,
   loggingEnabled: boolean,
   config?: LLMSanitizerConfig,
 ): JsonProcessorResult<z.infer<S>> {
@@ -310,7 +310,7 @@ function buildEffectiveSanitizerConfig(
  */
 export function parseAndValidateLLMJson<S extends z.ZodType = z.ZodType<unknown>>(
   content: string,
-  context: LLMContext,
+  context: LLMExecutionContext,
   completionOptions: LLMCompletionOptions<S>,
   loggingEnabled = true,
   config?: LLMSanitizerConfig,

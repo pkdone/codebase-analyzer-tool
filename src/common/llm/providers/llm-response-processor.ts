@@ -1,6 +1,6 @@
 import { z } from "zod";
 import {
-  LLMContext,
+  LLMExecutionContext,
   LLMPurpose,
   LLMCompletionOptions,
   LLMOutputFormat,
@@ -25,10 +25,12 @@ import type { LLMSanitizerConfig } from "../config/llm-module-config.types";
 /**
  * Base fields common to all LLM response variants.
  * Used as input to response processing methods.
+ * Uses LLMExecutionContext because responses are created during execution
+ * against a specific model, so modelKey is always known.
  */
 export interface ResponseBase {
   readonly request: string;
-  readonly context: LLMContext;
+  readonly context: LLMExecutionContext;
   readonly modelKey: string;
 }
 

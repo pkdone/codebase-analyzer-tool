@@ -20,7 +20,7 @@ describe("JsonProcessor - Enhanced Error Reporting", () => {
       const invalidJson = '{"key": {unclosed}';
       const result = parseAndValidateLLMJson(
         invalidJson,
-        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         {
           outputFormat: LLMOutputFormat.JSON,
         },
@@ -43,7 +43,7 @@ describe("JsonProcessor - Enhanced Error Reporting", () => {
       const malformedJson = "definitely not json at all";
       const result = parseAndValidateLLMJson(
         malformedJson,
-        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         {
           outputFormat: LLMOutputFormat.JSON,
         },
@@ -71,7 +71,7 @@ describe("JsonProcessor - Enhanced Error Reporting", () => {
 
       const result = parseAndValidateLLMJson(
         validJson,
-        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         {
           outputFormat: LLMOutputFormat.JSON,
           jsonSchema: schema,
@@ -94,7 +94,7 @@ describe("JsonProcessor - Enhanced Error Reporting", () => {
 
       const result = parseAndValidateLLMJson(
         validJson,
-        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         {
           outputFormat: LLMOutputFormat.JSON,
           jsonSchema: schema,
@@ -119,7 +119,7 @@ describe("JsonProcessor - Enhanced Error Reporting", () => {
 
       const result = parseAndValidateLLMJson(
         jsonWithIssues,
-        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         {
           outputFormat: LLMOutputFormat.JSON,
           jsonSchema: schema,
@@ -148,7 +148,7 @@ describe("JsonProcessor - Enhanced Error Reporting", () => {
       cases.forEach(({ input, expectedType }) => {
         const result = parseAndValidateLLMJson(
           input,
-          { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+          { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
           {
             outputFormat: LLMOutputFormat.JSON,
             jsonSchema: schema,
@@ -176,7 +176,7 @@ describe("JsonProcessor - Enhanced Error Reporting", () => {
     it("should provide different debugging info for parse vs validation errors", () => {
       const parseError = parseAndValidateLLMJson(
         "invalid",
-        { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         {
           outputFormat: LLMOutputFormat.JSON,
         },
@@ -184,7 +184,7 @@ describe("JsonProcessor - Enhanced Error Reporting", () => {
 
       const validationError = parseAndValidateLLMJson(
         '{"wrong": "fields"}',
-        { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         {
           outputFormat: LLMOutputFormat.JSON,
           jsonSchema: z.object({ correct: z.string() }),
@@ -210,7 +210,7 @@ describe("JsonProcessor - Enhanced Error Reporting", () => {
       const validJson = '{"name": "John"}';
       const result = parseAndValidateLLMJson(
         validJson,
-        { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         {
           outputFormat: LLMOutputFormat.JSON,
         },

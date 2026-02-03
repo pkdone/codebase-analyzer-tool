@@ -11,7 +11,7 @@
 
 import {
   LLMPurpose,
-  LLMContext,
+  LLMExecutionContext,
   LLMOutputFormat,
 } from "../../../../src/common/llm/types/llm-request.types";
 import { ResolvedLLMModelMetadata } from "../../../../src/common/llm/types/llm-model.types";
@@ -185,13 +185,14 @@ class GenericTypeFlowTestLLM extends BaseLLMProvider {
 
 describe("Completion Method Generic Type Flow", () => {
   let testLLM: GenericTypeFlowTestLLM;
-  let testContext: LLMContext;
+  let testContext: LLMExecutionContext;
 
   beforeEach(() => {
     testLLM = new GenericTypeFlowTestLLM();
     testContext = {
       resource: "test-resource",
       purpose: LLMPurpose.COMPLETIONS,
+      modelKey: "test-model",
     };
   });
 

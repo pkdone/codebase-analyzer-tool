@@ -13,7 +13,7 @@ describe("JsonProcessor lastSanitizer tracking", () => {
 
     const result = (parseAndValidateLLMJson as any)(
       malformed,
-      { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
+      { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
       completionOptions,
     );
     expect(result.success).toBe(false);

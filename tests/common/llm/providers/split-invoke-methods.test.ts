@@ -98,7 +98,11 @@ describe("Split Invoke Methods", () => {
 
   it("should call invokeEmbeddingProvider for embeddings requests", async () => {
     const provider = new TrackingTestProvider(createInit());
-    const context = { resource: "test-resource", purpose: LLMPurpose.EMBEDDINGS };
+    const context = {
+      resource: "test-resource",
+      purpose: LLMPurpose.EMBEDDINGS,
+      modelKey: "test-model",
+    };
 
     await provider.generateEmbeddings("test-embed", "test prompt", context);
 
@@ -112,7 +116,7 @@ describe("Split Invoke Methods", () => {
     await provider.executeCompletion(
       "test-complete",
       "test prompt",
-      { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+      { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
       { outputFormat: LLMOutputFormat.TEXT },
     );
 
@@ -122,9 +126,21 @@ describe("Split Invoke Methods", () => {
 
   it("should only call invokeEmbeddingProvider when generating embeddings multiple times", async () => {
     const provider = new TrackingTestProvider(createInit());
-    const context1 = { resource: "resource1", purpose: LLMPurpose.EMBEDDINGS };
-    const context2 = { resource: "resource2", purpose: LLMPurpose.EMBEDDINGS };
-    const context3 = { resource: "resource3", purpose: LLMPurpose.EMBEDDINGS };
+    const context1 = {
+      resource: "resource1",
+      purpose: LLMPurpose.EMBEDDINGS,
+      modelKey: "test-model",
+    };
+    const context2 = {
+      resource: "resource2",
+      purpose: LLMPurpose.EMBEDDINGS,
+      modelKey: "test-model",
+    };
+    const context3 = {
+      resource: "resource3",
+      purpose: LLMPurpose.EMBEDDINGS,
+      modelKey: "test-model",
+    };
 
     await provider.generateEmbeddings("test-embed", "prompt1", context1);
     await provider.generateEmbeddings("test-embed", "prompt2", context2);
@@ -137,7 +153,11 @@ describe("Split Invoke Methods", () => {
   it("should only call invokeCompletionProvider when executing completions multiple times", async () => {
     const provider = new TrackingTestProvider(createInit());
 
-    const context = { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS };
+    const context = {
+      resource: "test-resource",
+      purpose: LLMPurpose.COMPLETIONS,
+      modelKey: "test-model",
+    };
     const options = { outputFormat: LLMOutputFormat.TEXT };
 
     await provider.executeCompletion("test-complete", "prompt1", context, options);
@@ -149,10 +169,26 @@ describe("Split Invoke Methods", () => {
 
   it("should call correct methods for mixed requests", async () => {
     const provider = new TrackingTestProvider(createInit());
-    const completionContext = { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS };
-    const embeddingContext1 = { resource: "resource1", purpose: LLMPurpose.EMBEDDINGS };
-    const embeddingContext2 = { resource: "resource2", purpose: LLMPurpose.EMBEDDINGS };
-    const embeddingContext3 = { resource: "resource3", purpose: LLMPurpose.EMBEDDINGS };
+    const completionContext = {
+      resource: "test-resource",
+      purpose: LLMPurpose.COMPLETIONS,
+      modelKey: "test-model",
+    };
+    const embeddingContext1 = {
+      resource: "resource1",
+      purpose: LLMPurpose.EMBEDDINGS,
+      modelKey: "test-model",
+    };
+    const embeddingContext2 = {
+      resource: "resource2",
+      purpose: LLMPurpose.EMBEDDINGS,
+      modelKey: "test-model",
+    };
+    const embeddingContext3 = {
+      resource: "resource3",
+      purpose: LLMPurpose.EMBEDDINGS,
+      modelKey: "test-model",
+    };
     const options = { outputFormat: LLMOutputFormat.TEXT };
 
     await provider.generateEmbeddings("test-embed", "prompt1", embeddingContext1);

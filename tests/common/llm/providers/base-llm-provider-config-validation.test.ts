@@ -1,6 +1,6 @@
 import {
   LLMPurpose,
-  LLMContext,
+  LLMExecutionContext,
   LLMOutputFormat,
 } from "../../../../src/common/llm/types/llm-request.types";
 import { ResolvedLLMModelMetadata } from "../../../../src/common/llm/types/llm-model.types";
@@ -155,13 +155,14 @@ class ConfigValidationTestLLM extends BaseLLMProvider {
 
 describe("BaseLLMProvider Configuration Validation", () => {
   let testLLM: ConfigValidationTestLLM;
-  let testContext: LLMContext;
+  let testContext: LLMExecutionContext;
 
   beforeEach(() => {
     testLLM = new ConfigValidationTestLLM();
     testContext = {
       resource: "test-resource",
       purpose: LLMPurpose.COMPLETIONS,
+      modelKey: "test-model",
     };
   });
 

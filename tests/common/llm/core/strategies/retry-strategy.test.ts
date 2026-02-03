@@ -2,7 +2,10 @@ import "reflect-metadata";
 import { jest, describe, test, expect, beforeEach } from "@jest/globals";
 import { RetryStrategy } from "../../../../../src/common/llm/strategies/retry-strategy";
 import LLMExecutionStats from "../../../../../src/common/llm/tracking/llm-execution-stats";
-import { LLMContext, LLMPurpose } from "../../../../../src/common/llm/types/llm-request.types";
+import {
+  LLMExecutionContext,
+  LLMPurpose,
+} from "../../../../../src/common/llm/types/llm-request.types";
 import {
   LLMFunctionResponse,
   LLMResponseStatus,
@@ -29,9 +32,10 @@ describe("RetryStrategy", () => {
     maxRetryDelayMillis: 5000,
   };
 
-  const mockContext: LLMContext = {
+  const mockContext: LLMExecutionContext = {
     purpose: LLMPurpose.COMPLETIONS,
     resource: "test-resource",
+    modelKey: "test-model",
   };
 
   const mockSuccessResponse: LLMFunctionResponse = {
@@ -61,7 +65,7 @@ describe("RetryStrategy", () => {
   describe("Successful Execution", () => {
     test("should return result immediately on successful first attempt", async () => {
       const mockLLMFunction = jest.fn() as jest.MockedFunction<
-        (content: string, context: LLMContext) => Promise<LLMFunctionResponse>
+        (content: string, context: LLMExecutionContext) => Promise<LLMFunctionResponse>
       >;
       mockLLMFunction.mockResolvedValue(mockSuccessResponse);
 
@@ -84,7 +88,7 @@ describe("RetryStrategy", () => {
 
     test("should pass retryOnInvalid flag correctly", async () => {
       const mockLLMFunction = jest.fn() as jest.MockedFunction<
-        (content: string, context: LLMContext) => Promise<LLMFunctionResponse>
+        (content: string, context: LLMExecutionContext) => Promise<LLMFunctionResponse>
       >;
       mockLLMFunction.mockResolvedValue(mockSuccessResponse);
 
@@ -114,7 +118,7 @@ describe("RetryStrategy", () => {
       };
 
       const mockLLMFunction = jest.fn() as jest.MockedFunction<
-        (content: string, context: LLMContext) => Promise<LLMFunctionResponse>
+        (content: string, context: LLMExecutionContext) => Promise<LLMFunctionResponse>
       >;
 
       mockLLMFunction
@@ -140,7 +144,7 @@ describe("RetryStrategy", () => {
   describe("Configuration Handling", () => {
     test("should use provider retry config to build p-retry options", async () => {
       const mockLLMFunction = jest.fn() as jest.MockedFunction<
-        (content: string, context: LLMContext) => Promise<LLMFunctionResponse>
+        (content: string, context: LLMExecutionContext) => Promise<LLMFunctionResponse>
       >;
 
       mockLLMFunction.mockResolvedValue(mockSuccessResponse);
@@ -158,7 +162,7 @@ describe("RetryStrategy", () => {
 
     test("should handle minimal retry config with all required properties", async () => {
       const mockLLMFunction = jest.fn() as jest.MockedFunction<
-        (content: string, context: LLMContext) => Promise<LLMFunctionResponse>
+        (content: string, context: LLMExecutionContext) => Promise<LLMFunctionResponse>
       >;
       const minimalConfig: LLMRetryConfig = {
         requestTimeoutMillis: 60000,
@@ -185,7 +189,7 @@ describe("RetryStrategy", () => {
     test("should return null when LLM function throws before returning a response", async () => {
       const networkError = new Error("Network error");
       const mockLLMFunction = jest.fn() as jest.MockedFunction<
-        (content: string, context: LLMContext) => Promise<LLMFunctionResponse>
+        (content: string, context: LLMExecutionContext) => Promise<LLMFunctionResponse>
       >;
 
       mockLLMFunction.mockRejectedValue(networkError);
@@ -213,7 +217,7 @@ describe("RetryStrategy", () => {
       };
 
       const mockLLMFunction = jest.fn() as jest.MockedFunction<
-        (content: string, context: LLMContext) => Promise<LLMFunctionResponse>
+        (content: string, context: LLMExecutionContext) => Promise<LLMFunctionResponse>
       >;
 
       mockLLMFunction.mockResolvedValue(overloadedResponse);
@@ -245,7 +249,7 @@ describe("RetryStrategy", () => {
       };
 
       const mockLLMFunction = jest.fn() as jest.MockedFunction<
-        (content: string, context: LLMContext) => Promise<LLMFunctionResponse>
+        (content: string, context: LLMExecutionContext) => Promise<LLMFunctionResponse>
       >;
 
       mockLLMFunction.mockResolvedValue(overloadedResponse);
@@ -281,7 +285,7 @@ describe("RetryStrategy", () => {
       };
 
       const mockLLMFunction = jest.fn() as jest.MockedFunction<
-        (content: string, context: LLMContext) => Promise<LLMFunctionResponse>
+        (content: string, context: LLMExecutionContext) => Promise<LLMFunctionResponse>
       >;
 
       mockLLMFunction.mockResolvedValue(invalidResponse);
@@ -316,7 +320,7 @@ describe("RetryStrategy", () => {
       };
 
       const mockLLMFunction = jest.fn() as jest.MockedFunction<
-        (content: string, context: LLMContext) => Promise<LLMFunctionResponse>
+        (content: string, context: LLMExecutionContext) => Promise<LLMFunctionResponse>
       >;
       mockLLMFunction.mockResolvedValue(typedResponse);
       (mockPRetry as any).mockImplementation(async (fn: any) => await fn());
@@ -348,7 +352,7 @@ describe("RetryStrategy", () => {
       };
 
       const mockLLMFunction = jest.fn() as jest.MockedFunction<
-        (content: string, context: LLMContext) => Promise<LLMFunctionResponse>
+        (content: string, context: LLMExecutionContext) => Promise<LLMFunctionResponse>
       >;
       mockLLMFunction.mockResolvedValue(typedResponse);
       (mockPRetry as any).mockImplementation(async (fn: any) => await fn());
@@ -387,7 +391,7 @@ describe("RetryStrategy", () => {
       };
 
       const mockLLMFunction = jest.fn() as jest.MockedFunction<
-        (content: string, context: LLMContext) => Promise<LLMFunctionResponse>
+        (content: string, context: LLMExecutionContext) => Promise<LLMFunctionResponse>
       >;
       mockLLMFunction
         .mockResolvedValueOnce(overloadedResponse)

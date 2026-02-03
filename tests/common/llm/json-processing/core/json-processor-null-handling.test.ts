@@ -60,7 +60,7 @@ describe("Null Handling Integration", () => {
 
       const result = parseAndValidateLLMJson(
         llmResponse,
-        { resource: "billOfMaterials", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "billOfMaterials", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
 
@@ -146,7 +146,7 @@ describe("Null Handling Integration", () => {
 
       const result = (parseAndValidateLLMJson as any)(
         llmResponse,
-        { resource: "all-categories", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "all-categories", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
 
@@ -206,7 +206,7 @@ describe("Null Handling Integration", () => {
 
       const result = (parseAndValidateLLMJson as any)(
         llmResponse,
-        { resource: "nested-test", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "nested-test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
 
@@ -250,7 +250,7 @@ describe("Null Handling Integration", () => {
 
       const result = (parseAndValidateLLMJson as any)(
         problematicResponse,
-        { resource: "single-dependency", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "single-dependency", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
 
@@ -287,7 +287,7 @@ describe("Null Handling Integration", () => {
 
       const result = (parseAndValidateLLMJson as any)(
         response,
-        { resource: "multi-null-test", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "multi-null-test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
 
@@ -322,7 +322,7 @@ describe("Null Handling Integration", () => {
 
       const result = (parseAndValidateLLMJson as any)(
         response,
-        { resource: "no-null-test", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "no-null-test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
 
@@ -351,7 +351,7 @@ describe("Null Handling Integration", () => {
 
       const result = (parseAndValidateLLMJson as any)(
         response,
-        { resource: "omitted-test", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "omitted-test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         completionOptions,
       );
 

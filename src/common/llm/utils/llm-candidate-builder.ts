@@ -8,7 +8,7 @@ import type {
 } from "../types/llm-function.types";
 import type { ProviderManager } from "../provider-manager";
 import type { ResolvedModelChain } from "../types/llm-model.types";
-import type { LLMContext, LLMCompletionOptions } from "../types/llm-request.types";
+import type { LLMExecutionContext, LLMCompletionOptions } from "../types/llm-request.types";
 import type { LLMFunctionResponse } from "../types/llm-response.types";
 import { LLMError, LLMErrorCode } from "../types/llm-errors.types";
 
@@ -66,7 +66,7 @@ export function buildEmbeddingCandidatesFromChain(
     const provider = providerManager.getProvider(entry.providerFamily);
 
     // Create a bound function that routes to the correct provider and model
-    const boundFunc = async (content: string, context: LLMContext) => {
+    const boundFunc = async (content: string, context: LLMExecutionContext) => {
       return provider.generateEmbeddings(entry.modelKey, content, context);
     };
 
@@ -115,7 +115,7 @@ export function buildExecutableCandidates<S extends z.ZodType<unknown>>(
   return candidatesToUse.map((candidate, index) => {
     const boundFn: BoundLLMFunction<z.infer<S>> = async (
       content: string,
-      ctx: LLMContext,
+      ctx: LLMExecutionContext,
     ): Promise<LLMFunctionResponse<z.infer<S>>> => candidate.func(content, ctx, options);
 
     // Add debug name for better stack traces
@@ -161,7 +161,7 @@ export function buildExecutableEmbeddingCandidates(
   return candidatesToUse.map((candidate, index) => {
     const boundFn: BoundLLMFunction<number[]> = async (
       content: string,
-      ctx: LLMContext,
+      ctx: LLMExecutionContext,
     ): Promise<LLMFunctionResponse<number[]>> => candidate.func(content, ctx);
 
     // Add debug name for better stack traces

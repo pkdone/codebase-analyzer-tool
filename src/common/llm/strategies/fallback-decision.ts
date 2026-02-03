@@ -1,5 +1,5 @@
 import type { LLMFunctionResponse } from "../types/llm-response.types";
-import type { LLMContext } from "../types/llm-request.types";
+import type { LLMExecutionContext } from "../types/llm-request.types";
 import { LLMResponseStatus } from "../types/llm-response.types";
 import { logWarn } from "../../utils/logging";
 
@@ -17,10 +17,13 @@ export interface FallbackDecision {
  * This is a pure function that encapsulates the complex decision logic for handling
  * unsuccessful LLM calls. The response type doesn't affect the fallback decision logic.
  *
+ * Requires LLMExecutionContext (with mandatory modelKey) because this is called
+ * during actual execution against a specific model.
+ *
  * @param llmResponse The LLM response (or null if no response received)
  * @param currentLLMFunctionIndex The index of the current LLM function being tried
  * @param totalLLMCount The total number of available LLM functions
- * @param context The LLM context for logging purposes
+ * @param context The execution context with mandatory modelKey for logging
  * @param resourceName The name of the resource being processed
  * @returns A decision object indicating what action to take next
  */
@@ -28,7 +31,7 @@ export function determineNextAction(
   llmResponse: LLMFunctionResponse | null,
   currentLLMFunctionIndex: number,
   totalLLMCount: number,
-  context: LLMContext,
+  context: LLMExecutionContext,
   resourceName: string,
 ): FallbackDecision {
   const canSwitchModel = currentLLMFunctionIndex + 1 < totalLLMCount;

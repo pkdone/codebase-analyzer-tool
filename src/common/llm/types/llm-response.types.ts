@@ -3,7 +3,11 @@
  */
 
 import { z } from "zod";
-import type { LLMContext, LLMCompletionOptions, LLMOutputFormat } from "./llm-request.types";
+import type {
+  LLMExecutionContext,
+  LLMCompletionOptions,
+  LLMOutputFormat,
+} from "./llm-request.types";
 
 /**
  * Enum to define the LLM response status
@@ -94,11 +98,13 @@ export type InferResponseType<TOptions extends LLMCompletionOptions> = TOptions 
 
 /**
  * Base fields common to all LLM response variants.
+ * Uses LLMExecutionContext because responses are created after executing
+ * against a specific model, so modelKey is always known.
  */
 interface LLMResponseBase {
   readonly request: string;
   readonly modelKey: string;
-  readonly context: LLMContext;
+  readonly context: LLMExecutionContext;
 }
 
 /**

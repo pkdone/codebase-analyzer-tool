@@ -33,7 +33,7 @@ describe("JsonProcessor - Refactored Methods", () => {
 
       const result = parseAndValidateLLMJson(
         malformedJson,
-        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         {
           outputFormat: LLMOutputFormat.JSON,
           jsonSchema: schema,
@@ -71,7 +71,7 @@ describe("JsonProcessor - Refactored Methods", () => {
 
       const result = parseAndValidateLLMJson(
         wrappedJson,
-        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         {
           outputFormat: LLMOutputFormat.JSON,
           jsonSchema: schema,
@@ -92,7 +92,7 @@ describe("JsonProcessor - Refactored Methods", () => {
 
       const result = parseAndValidateLLMJson(
         invalidJson,
-        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         {
           outputFormat: LLMOutputFormat.JSON,
         },
@@ -114,7 +114,7 @@ describe("JsonProcessor - Refactored Methods", () => {
 
       const result = parseAndValidateLLMJson(
         complexInvalidJson,
-        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         {
           outputFormat: LLMOutputFormat.JSON,
         },
@@ -139,7 +139,7 @@ describe("JsonProcessor - Refactored Methods", () => {
 
       const result = parseAndValidateLLMJson(
         validJson,
-        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         {
           outputFormat: LLMOutputFormat.JSON,
           jsonSchema: schema,
@@ -166,7 +166,7 @@ describe("JsonProcessor - Refactored Methods", () => {
 
       const result = parseAndValidateLLMJson(
         jsonWithCodeFences,
-        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         {
           outputFormat: LLMOutputFormat.JSON,
           jsonSchema: schema,
@@ -206,7 +206,7 @@ describe("JsonProcessor - Refactored Methods", () => {
 
       const result = parseAndValidateLLMJson(
         complexMalformed,
-        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         {
           outputFormat: LLMOutputFormat.JSON,
           jsonSchema: schema,
@@ -238,7 +238,7 @@ describe("JsonProcessor - Refactored Methods", () => {
 
       const result = parseAndValidateLLMJson(
         jsonSchemaFormat,
-        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         {
           outputFormat: LLMOutputFormat.JSON,
           jsonSchema: schema,
@@ -266,7 +266,7 @@ describe("JsonProcessor - Refactored Methods", () => {
 
       const result = parseAndValidateLLMJson(
         wrappedData,
-        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
         {
           outputFormat: LLMOutputFormat.JSON,
           jsonSchema: schema,

@@ -21,7 +21,7 @@ describe("JsonProcessor.parseAndValidate (declarative sanitization pipeline)", (
     const json = '{"x":1}';
     const result = parseAndValidateLLMJson(
       json,
-      { resource: "decl-fast", purpose: LLMPurpose.COMPLETIONS },
+      { resource: "decl-fast", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
       completionOptions,
     );
     expect(result.success).toBe(true);
@@ -35,7 +35,7 @@ describe("JsonProcessor.parseAndValidate (declarative sanitization pipeline)", (
     const txt = 'Leading words {"y":2} trailing info';
     const result = parseAndValidateLLMJson(
       txt,
-      { resource: "decl-extract", purpose: LLMPurpose.COMPLETIONS },
+      { resource: "decl-extract", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
       completionOptions,
     );
     expect(result.success).toBe(true);
@@ -57,7 +57,7 @@ describe("JsonProcessor.parseAndValidate (declarative sanitization pipeline)", (
     const chain = '{"path": A_CONST + B_CONST + C_CONST}';
     const result = parseAndValidateLLMJson(
       chain,
-      { resource: "decl-concat", purpose: LLMPurpose.COMPLETIONS },
+      { resource: "decl-concat", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
       completionOptions,
     );
     expect(result.success).toBe(true);
@@ -75,7 +75,7 @@ describe("JsonProcessor.parseAndValidate (declarative sanitization pipeline)", (
     const malformed = '```json\n{"a":1,}\n``` noise after';
     const result = parseAndValidateLLMJson(
       malformed,
-      { resource: "decl-multi", purpose: LLMPurpose.COMPLETIONS },
+      { resource: "decl-multi", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
       completionOptions,
     );
     expect(result.success).toBe(true);

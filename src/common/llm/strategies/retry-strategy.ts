@@ -1,5 +1,5 @@
 import pRetry, { FailedAttemptError } from "p-retry";
-import type { LLMContext } from "../types/llm-request.types";
+import type { LLMExecutionContext } from "../types/llm-request.types";
 import type { LLMFunctionResponse, LLMResponsePayload } from "../types/llm-response.types";
 import type { BoundLLMFunction } from "../types/llm-function.types";
 import { LLMResponseStatus, isOverloadedResponse } from "../types/llm-response.types";
@@ -40,16 +40,19 @@ export class RetryStrategy {
    * response so the caller can see the actual failure reason. Returns null only when an
    * unexpected exception occurs and no valid response was ever received.
    *
+   * Requires LLMExecutionContext (with mandatory modelKey) because this is called
+   * during actual execution against a specific model.
+   *
    * @param llmFunction - A bound function ready for execution
    * @param content - The content/prompt to send to the LLM
-   * @param context - The LLM context for logging and tracking
+   * @param context - The execution context with mandatory modelKey
    * @param providerRetryConfig - Retry configuration from the provider
    * @param retryOnInvalid - Whether to retry on INVALID status (true for completions, false for embeddings)
    */
   async executeWithRetries<T extends LLMResponsePayload>(
     llmFunction: BoundLLMFunction<T>,
     content: string,
-    context: LLMContext,
+    context: LLMExecutionContext,
     providerRetryConfig: LLMRetryConfig,
     retryOnInvalid = true,
   ): Promise<LLMFunctionResponse<T> | null> {

@@ -13,7 +13,7 @@ describe("json-tools resilient parsing", () => {
   it("parses already valid JSON (fast path)", () => {
     const result = parseAndValidateLLMJson(
       sampleValid,
-      { resource: "res1", purpose: LLMPurpose.COMPLETIONS },
+      { resource: "res1", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
       baseOptions,
     );
     expect(result.success).toBe(true);
@@ -26,7 +26,7 @@ describe("json-tools resilient parsing", () => {
     const txt = "```json\n" + sampleValid + "\n```";
     const result = parseAndValidateLLMJson(
       txt,
-      { resource: "res2", purpose: LLMPurpose.COMPLETIONS },
+      { resource: "res2", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
       baseOptions,
     );
     expect(result.success).toBe(true);
@@ -39,7 +39,7 @@ describe("json-tools resilient parsing", () => {
     const txt = sampleValid + "\n-- END OF JSON --";
     const result = parseAndValidateLLMJson(
       txt,
-      { resource: "res3", purpose: LLMPurpose.COMPLETIONS },
+      { resource: "res3", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
       baseOptions,
     );
     expect(result.success).toBe(true);
@@ -52,7 +52,7 @@ describe("json-tools resilient parsing", () => {
     const dup = sampleValid + sampleValid;
     const result = parseAndValidateLLMJson(
       dup,
-      { resource: "res4", purpose: LLMPurpose.COMPLETIONS },
+      { resource: "res4", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
       baseOptions,
     );
     expect(result.success).toBe(true);
@@ -65,7 +65,7 @@ describe("json-tools resilient parsing", () => {
     const trailing = `{"a":1, "b":[1,2,3,],}`;
     const result = parseAndValidateLLMJson(
       trailing,
-      { resource: "res5", purpose: LLMPurpose.COMPLETIONS },
+      { resource: "res5", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
       baseOptions,
     );
     expect(result.success).toBe(true);
@@ -78,7 +78,7 @@ describe("json-tools resilient parsing", () => {
     const weird = `\u200B${sampleValid}\u200C`;
     const result = parseAndValidateLLMJson(
       weird,
-      { resource: "res6", purpose: LLMPurpose.COMPLETIONS },
+      { resource: "res6", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
       baseOptions,
     );
     expect(result.success).toBe(true);
@@ -91,7 +91,7 @@ describe("json-tools resilient parsing", () => {
     const combo = `{"a":1}{"b":2}`;
     const result = parseAndValidateLLMJson(
       combo,
-      { resource: "res7", purpose: LLMPurpose.COMPLETIONS },
+      { resource: "res7", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
       baseOptions,
     );
     expect(result.success).toBe(true);
@@ -104,7 +104,7 @@ describe("json-tools resilient parsing", () => {
     const noJson = "There is absolutely no JSON structure here";
     const result = parseAndValidateLLMJson(
       noJson,
-      { resource: "res8", purpose: LLMPurpose.COMPLETIONS },
+      { resource: "res8", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
       baseOptions,
     );
     expect(result.success).toBe(false);
@@ -125,7 +125,7 @@ describe("json-tools resilient parsing", () => {
     }`;
     const result = parseAndValidateLLMJson(
       large,
-      { resource: "failing-sample", purpose: LLMPurpose.COMPLETIONS },
+      { resource: "failing-sample", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
       baseOptions,
     );
     expect(result.success).toBe(true);
@@ -139,7 +139,7 @@ describe("json-tools resilient parsing", () => {
     const fenced = "Noise before block\n```json\n" + sampleValid + "\n```   trailing";
     const result = parseAndValidateLLMJson(
       fenced,
-      { resource: "res9", purpose: LLMPurpose.COMPLETIONS },
+      { resource: "res9", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
       baseOptions,
     );
     expect(result.success).toBe(true);

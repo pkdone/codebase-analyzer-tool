@@ -1,6 +1,6 @@
 import { z } from "zod";
 import {
-  LLMContext,
+  LLMExecutionContext,
   LLMPurpose,
   LLMCompletionOptions,
   LLMOutputFormat,
@@ -147,11 +147,14 @@ export default abstract class BaseLLMProvider implements LLMProvider {
    * Execute completion using the specified model.
    * Return type is inferred from options.jsonSchema at the call site.
    * Implemented as arrow function to preserve `this` context when passed to pipeline.
+   *
+   * Requires LLMExecutionContext with mandatory modelKey because this is called
+   * during actual execution against a specific model.
    */
   executeCompletion: LLMModelKeyFunction = async <S extends z.ZodType<unknown>>(
     modelKey: string,
     prompt: string,
-    context: LLMContext,
+    context: LLMExecutionContext,
     options?: LLMCompletionOptions<S>,
   ): Promise<LLMFunctionResponse<z.infer<S>>> => {
     // Validate that the model key is available
@@ -196,12 +199,15 @@ export default abstract class BaseLLMProvider implements LLMProvider {
    * Type safety is enforced through generic schema type propagation.
    * Generic over the schema type S directly to simplify type inference.
    * Return type uses z.infer<S> for schema-based type inference.
+   *
+   * Requires LLMExecutionContext with mandatory modelKey because this is called
+   * during actual execution against a specific model.
    */
   private async executeProviderFunction<S extends z.ZodType<unknown>>(
     modelKey: string,
     taskType: LLMPurpose,
     request: string,
-    context: LLMContext,
+    context: LLMExecutionContext,
     completionOptions?: LLMCompletionOptions<S>,
     doDebugErrorLogging = false,
   ): Promise<LLMFunctionResponse<z.infer<S>>> {

@@ -31,6 +31,7 @@ describe("unwrapJsonSchema integration with JsonProcessor.parseAndValidate", () 
       {
         resource: "buildSrc/src/main/resources/instructions/step13.txt.ftl",
         purpose: LLMPurpose.COMPLETIONS,
+        modelKey: "test-model",
       },
       completionOptions,
     );
@@ -71,7 +72,7 @@ describe("unwrapJsonSchema integration with JsonProcessor.parseAndValidate", () 
 
     const result = parseAndValidateLLMJson(
       llmResponse,
-      { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+      { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
       completionOptions,
     );
 
@@ -105,7 +106,7 @@ describe("unwrapJsonSchema integration with JsonProcessor.parseAndValidate", () 
 
     const result = parseAndValidateLLMJson(
       llmResponse,
-      { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+      { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
       completionOptions,
     );
 
@@ -141,7 +142,7 @@ describe("unwrapJsonSchema integration with JsonProcessor.parseAndValidate", () 
 
     const result = parseAndValidateLLMJson(
       llmResponse,
-      { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+      { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
       completionOptions,
     );
 
