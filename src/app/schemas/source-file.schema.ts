@@ -268,10 +268,26 @@ export const SOURCE_FIELDS = {
 // =============================================================================
 
 /**
- * Schema for database integration information
+ * Base schema for common fields shared between database and endpoint integration schemas.
+ * Provides consistent structure for name, description, protocol, and connectionInfo fields.
+ * Individual schemas extend this base with their specific fields.
  */
-export const databaseIntegrationSchema = z
-  .object({
+const baseIntegrationSchema = z.object({
+  name: z.string().optional().describe("Name of the service, component, or integration point"),
+  description: z.string().describe("A detailed description of the integration"),
+  protocol: z.string().optional().describe("Protocol, version, or driver details"),
+  connectionInfo: z
+    .string()
+    .optional()
+    .describe("Connection string or connection details (redacted if sensitive)"),
+});
+
+/**
+ * Schema for database integration information.
+ * Extends baseIntegrationSchema with database-specific fields.
+ */
+export const databaseIntegrationSchema = baseIntegrationSchema
+  .extend({
     mechanism: createCaseInsensitiveEnumSchema(DATABASE_MECHANISM_VALUES).describe(
       "The database integration mechanism used - only the listed values are valid.",
     ),
@@ -499,9 +515,10 @@ export const publicFunctionSchema = z
 /**
  * Schema for integration endpoints (APIs, queues, topics, SOAP services, etc.)
  * Covers REST, SOAP, messaging systems (queues/topics), WebSockets, gRPC, and more.
+ * Extends baseIntegrationSchema with endpoint-specific fields.
  */
-export const integrationEndpointSchema = z
-  .object({
+export const integrationEndpointSchema = baseIntegrationSchema
+  .extend({
     mechanism: createCaseInsensitiveEnumSchema(INTEGRATION_MECHANISM_VALUES).describe(
       "The integration mechanism type - only the listed values are valid; invalid becomes 'INVALID'.",
     ),

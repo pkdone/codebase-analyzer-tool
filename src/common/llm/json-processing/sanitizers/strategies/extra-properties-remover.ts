@@ -64,6 +64,146 @@ function shouldRemoveUnknownProperty(
 }
 
 /**
+ * Represents a matched artifact property to be removed.
+ */
+interface ArtifactMatch {
+  start: number;
+  end: number;
+  delimiter: string;
+  propName: string;
+}
+
+/**
+ * Configuration for processing artifact matches.
+ */
+interface ProcessMatchesConfig {
+  /** Whether to use fallback (comma/newline) when value parsing fails */
+  useFallbackOnParseFailure: boolean;
+  /** Prefix for repair messages */
+  repairMessagePrefix: string;
+}
+
+/**
+ * Processes artifact property matches and removes them from the content.
+ * This is a shared helper that consolidates the common while-loop pattern
+ * used for both quoted and unquoted property removal.
+ *
+ * @param content - The JSON content to process
+ * @param pattern - The regex pattern to match artifact properties
+ * @param knownProperties - Optional list of known valid property names
+ * @param config - Configuration for match processing
+ * @returns Object containing sanitized content, repairs list, and hasChanges flag
+ */
+function processArtifactMatches(
+  content: string,
+  pattern: RegExp,
+  knownProperties: readonly string[] | undefined,
+  config: ProcessMatchesConfig,
+): { sanitized: string; repairs: string[]; hasChanges: boolean } {
+  let sanitized = content;
+  const repairs: string[] = [];
+  let hasChanges = false;
+  let previousContent = "";
+
+  while (previousContent !== sanitized) {
+    previousContent = sanitized;
+    // Recreate checker for each iteration since content may have changed
+    const isInString = createStringBoundaryChecker(sanitized);
+    const matches: ArtifactMatch[] = [];
+
+    for (const match of sanitized.matchAll(pattern)) {
+      const numericOffset = match.index;
+      if (isInString(numericOffset)) {
+        continue;
+      }
+
+      const propName = match[2] || "";
+      // Validate it's an LLM artifact property or an unknown property that looks like metadata
+      if (
+        !isLLMArtifactProperty(propName) &&
+        !shouldRemoveUnknownProperty(propName, knownProperties)
+      ) {
+        continue;
+      }
+
+      const delimiterStr = match[1] || "";
+      const valueStartPos = numericOffset + match[0].length;
+
+      // Use the shared utility to find the end of the JSON value
+      const valueEndResult = findJsonValueEnd(sanitized, valueStartPos);
+      let valueEndPos = valueEndResult.endPosition;
+
+      // Handle parse failure based on configuration
+      if (!valueEndResult.success) {
+        if (config.useFallbackOnParseFailure) {
+          // Try fallback to next comma or newline
+          const nextComma = sanitized.indexOf(",", valueStartPos);
+          if (nextComma !== -1) {
+            valueEndPos = nextComma + 1;
+          } else {
+            const nextNewline = sanitized.indexOf("\n", valueStartPos);
+            if (nextNewline !== -1) {
+              valueEndPos = nextNewline;
+            } else {
+              continue;
+            }
+          }
+        } else {
+          // Skip this match if parsing failed and no fallback is allowed
+          continue;
+        }
+      }
+
+      // Skip trailing whitespace and comma
+      while (valueEndPos < sanitized.length && /\s/.test(sanitized[valueEndPos])) {
+        valueEndPos++;
+      }
+      if (valueEndPos < sanitized.length && sanitized[valueEndPos] === ",") {
+        valueEndPos++;
+      }
+
+      matches.push({
+        start: numericOffset,
+        end: valueEndPos,
+        delimiter: delimiterStr,
+        propName,
+      });
+    }
+
+    // Process matches in reverse order to preserve string positions
+    for (const m of matches.toReversed()) {
+      const before = sanitized.substring(0, m.start);
+      let after = sanitized.substring(m.end);
+
+      let replacement = "";
+      if (m.delimiter === ",") {
+        replacement = "";
+        const beforeTrimmed = before.trimEnd();
+        const afterTrimmed = after.trimStart();
+        if (
+          (beforeTrimmed.endsWith("]") || beforeTrimmed.endsWith("}")) &&
+          afterTrimmed.startsWith('"')
+        ) {
+          replacement = ",";
+        }
+        after = after.trimStart();
+        if (after.startsWith(",")) {
+          after = after.substring(1).trimStart();
+        }
+      } else if (m.delimiter === "{") {
+        replacement = "{";
+      }
+
+      sanitized = before + replacement + after;
+      hasChanges = true;
+      repairs.push(`${config.repairMessagePrefix}${m.propName}`);
+    }
+  }
+
+  return { sanitized, repairs, hasChanges };
+}
+
+/**
  * Strategy that removes LLM artifact properties like extra_thoughts, extra_text,
  * llm_notes, ai_reasoning, _internal_*, etc.
  *
@@ -81,23 +221,21 @@ export const extraPropertiesRemover: SanitizerStrategy = {
 
     let sanitized = input;
     const repairs: string[] = [];
-    let hasChanges = false;
 
     // Create cached string boundary checker for O(log N) lookups
-    let isInString = createStringBoundaryChecker(sanitized);
+    const isInString = createStringBoundaryChecker(sanitized);
 
     // Pattern 1: Handle malformed LLM artifact properties like `extra_text="  "property":`
     // Generic pattern catches extra_*, llm_*, ai_* prefixed properties with malformed syntax
     const malformedArtifactPattern =
       /([,{])\s*((?:extra|llm|ai)_[a-z_]+)\s*=\s*"\s*"\s*([a-zA-Z_$][a-zA-Z0-9_$]*"\s*:\s*)/gi;
-    sanitized = sanitized.replace(
+    const sanitizedAfterMalformed = sanitized.replace(
       malformedArtifactPattern,
       (match, delimiter, artifactProp, propertyNameWithQuote, offset: number) => {
         if (isInString(offset)) {
           return match;
         }
 
-        hasChanges = true;
         const artifactPropStr = typeof artifactProp === "string" ? artifactProp : "";
         repairs.push(`Removed malformed ${artifactPropStr} property`);
         const delimiterStr = typeof delimiter === "string" ? delimiter : "";
@@ -107,181 +245,40 @@ export const extraPropertiesRemover: SanitizerStrategy = {
         return `${delimiterStr}\n    ${fixedProperty}`;
       },
     );
+    const malformedHasChanges = sanitizedAfterMalformed !== sanitized;
+    sanitized = sanitizedAfterMalformed;
 
     // Pattern 2: Handle unquoted LLM artifact properties
     // Generic pattern matches extra_*, llm_*, ai_*, _* prefixed properties
     const unquotedArtifactPropertyPattern = /([,{])\s*((?:extra|llm|ai)_[a-z_]+|_[a-z_]+)\s*:\s*/gi;
-    let previousUnquoted = "";
-    while (previousUnquoted !== sanitized) {
-      previousUnquoted = sanitized;
-      // Recreate checker for each iteration since content may have changed
-      isInString = createStringBoundaryChecker(sanitized);
-      const matches: { start: number; end: number; delimiter: string; propName: string }[] = [];
-      for (const match of sanitized.matchAll(unquotedArtifactPropertyPattern)) {
-        const numericOffset = match.index;
-        if (isInString(numericOffset)) {
-          continue;
-        }
-
-        const propName = match[2] || "";
-        // Validate it's an LLM artifact property or an unknown property that looks like metadata
-        if (
-          !isLLMArtifactProperty(propName) &&
-          !shouldRemoveUnknownProperty(propName, knownProperties)
-        ) {
-          continue;
-        }
-
-        const delimiterStr = match[1] || "";
-        const valueStartPos = numericOffset + match[0].length;
-
-        // Use the shared utility to find the end of the JSON value
-        const valueEndResult = findJsonValueEnd(sanitized, valueStartPos);
-        let valueEndPos = valueEndResult.endPosition;
-
-        // If parsing failed (unterminated string/structure), try fallback to next comma or newline
-        if (!valueEndResult.success) {
-          const nextComma = sanitized.indexOf(",", valueStartPos);
-          if (nextComma !== -1) {
-            valueEndPos = nextComma + 1;
-          } else {
-            const nextNewline = sanitized.indexOf("\n", valueStartPos);
-            if (nextNewline !== -1) {
-              valueEndPos = nextNewline;
-            } else {
-              continue;
-            }
-          }
-        }
-
-        // Skip trailing whitespace and comma
-        while (valueEndPos < sanitized.length && /\s/.test(sanitized[valueEndPos])) {
-          valueEndPos++;
-        }
-        if (valueEndPos < sanitized.length && sanitized[valueEndPos] === ",") {
-          valueEndPos++;
-        }
-
-        matches.push({
-          start: numericOffset,
-          end: valueEndPos,
-          delimiter: delimiterStr,
-          propName,
-        });
-      }
-
-      // Process matches in reverse order to preserve string positions
-      for (const m of matches.toReversed()) {
-        const before = sanitized.substring(0, m.start);
-        let after = sanitized.substring(m.end);
-
-        let replacement = "";
-        if (m.delimiter === ",") {
-          replacement = "";
-          const beforeTrimmed = before.trimEnd();
-          const afterTrimmed = after.trimStart();
-          if (
-            (beforeTrimmed.endsWith("]") || beforeTrimmed.endsWith("}")) &&
-            afterTrimmed.startsWith('"')
-          ) {
-            replacement = ",";
-          }
-          after = after.trimStart();
-          if (after.startsWith(",")) {
-            after = after.substring(1).trimStart();
-          }
-        } else if (m.delimiter === "{") {
-          replacement = "{";
-        }
-
-        sanitized = before + replacement + after;
-        hasChanges = true;
-        repairs.push(`Removed unquoted LLM artifact property: ${m.propName}`);
-      }
-    }
+    const unquotedResult = processArtifactMatches(
+      sanitized,
+      unquotedArtifactPropertyPattern,
+      knownProperties,
+      {
+        useFallbackOnParseFailure: true,
+        repairMessagePrefix: "Removed unquoted LLM artifact property: ",
+      },
+    );
+    sanitized = unquotedResult.sanitized;
+    repairs.push(...unquotedResult.repairs);
 
     // Pattern 3: Handle quoted LLM artifact properties
     // Generic pattern matches "extra_*", "llm_*", "ai_*", "_*" prefixed properties
     const quotedArtifactPropertyPattern = /([,{])\s*"((?:extra|llm|ai)_[a-z_]+|_[a-z_]+)"\s*:\s*/gi;
-    let previousExtraProperty = "";
-    while (previousExtraProperty !== sanitized) {
-      previousExtraProperty = sanitized;
-      // Recreate checker for each iteration since content may have changed
-      isInString = createStringBoundaryChecker(sanitized);
-      const matches: { start: number; end: number; delimiter: string; propName: string }[] = [];
-      for (const match of sanitized.matchAll(quotedArtifactPropertyPattern)) {
-        const numericOffset = match.index;
-        if (isInString(numericOffset)) {
-          continue;
-        }
+    const quotedResult = processArtifactMatches(
+      sanitized,
+      quotedArtifactPropertyPattern,
+      knownProperties,
+      {
+        useFallbackOnParseFailure: false,
+        repairMessagePrefix: "Removed LLM artifact property: ",
+      },
+    );
+    sanitized = quotedResult.sanitized;
+    repairs.push(...quotedResult.repairs);
 
-        const propName = match[2] || "";
-        // Validate it's an LLM artifact property or an unknown property that looks like metadata
-        if (
-          !isLLMArtifactProperty(propName) &&
-          !shouldRemoveUnknownProperty(propName, knownProperties)
-        ) {
-          continue;
-        }
-
-        const delimiterStr = match[1] || "";
-        const valueStartPos = numericOffset + match[0].length;
-
-        // Use the shared utility to find the end of the JSON value
-        const valueEndResult = findJsonValueEnd(sanitized, valueStartPos);
-
-        // If parsing failed, skip this match
-        if (!valueEndResult.success) {
-          continue;
-        }
-
-        let valueEndPos = valueEndResult.endPosition;
-
-        // Skip trailing whitespace and comma
-        while (valueEndPos < sanitized.length && /\s/.test(sanitized[valueEndPos])) {
-          valueEndPos++;
-        }
-        if (valueEndPos < sanitized.length && sanitized[valueEndPos] === ",") {
-          valueEndPos++;
-        }
-
-        matches.push({
-          start: numericOffset,
-          end: valueEndPos,
-          delimiter: delimiterStr,
-          propName,
-        });
-      }
-
-      // Process matches in reverse order to preserve string positions
-      for (const m of matches.toReversed()) {
-        const before = sanitized.substring(0, m.start);
-        let after = sanitized.substring(m.end);
-
-        let replacement = "";
-        if (m.delimiter === ",") {
-          replacement = "";
-          const beforeTrimmed = before.trimEnd();
-          const afterTrimmed = after.trimStart();
-          if (
-            (beforeTrimmed.endsWith("]") || beforeTrimmed.endsWith("}")) &&
-            afterTrimmed.startsWith('"')
-          ) {
-            replacement = ",";
-          }
-          after = after.trimStart();
-          if (after.startsWith(",")) {
-            after = after.substring(1).trimStart();
-          }
-        } else if (m.delimiter === "{") {
-          replacement = "{";
-        }
-
-        sanitized = before + replacement + after;
-        hasChanges = true;
-        repairs.push(`Removed LLM artifact property: ${m.propName}`);
-      }
-    }
+    const hasChanges = malformedHasChanges || unquotedResult.hasChanges || quotedResult.hasChanges;
 
     return {
       content: sanitized,

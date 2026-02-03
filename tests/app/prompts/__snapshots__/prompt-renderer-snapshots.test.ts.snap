@@ -986,6 +986,22 @@ The JSON response must follow this JSON schema:
     "databaseIntegration": {
       "type": "object",
       "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of the database, service, or data access component"
+        },
+        "description": {
+          "type": "string",
+          "description": "A detailed description of the way database integration is achieved (or a note saying no database integration related code exists)."
+        },
+        "protocol": {
+          "type": "string",
+          "description": "Database protocol, version, or driver details (e.g., 'PostgreSQL 15', 'MongoDB 6.0')"
+        },
+        "connectionInfo": {
+          "type": "string",
+          "description": "Connection string, JDBC URL, or database connection details (redacted if sensitive)"
+        },
         "mechanism": {
           "allOf": [
             {
@@ -1036,14 +1052,6 @@ The JSON response must follow this JSON schema:
             }
           ],
           "description": "The database integration mechanism used - only the listed values are valid."
-        },
-        "name": {
-          "type": "string",
-          "description": "Name of the database, service, or data access component"
-        },
-        "description": {
-          "type": "string",
-          "description": "A detailed description of the way database integration is achieved (or a note saying no database integration related code exists)."
         },
         "databaseName": {
           "type": "string",
@@ -1143,22 +1151,14 @@ The JSON response must follow this JSON schema:
           ],
           "description": "Normalized transaction handling category derived from 'transactionHandling')."
         },
-        "protocol": {
-          "type": "string",
-          "description": "Database protocol, version, or driver details (e.g., 'PostgreSQL 15', 'MongoDB 6.0')"
-        },
-        "connectionInfo": {
-          "type": "string",
-          "description": "Connection string, JDBC URL, or database connection details (redacted if sensitive)"
-        },
         "codeExample": {
           "type": "string",
           "description": "A single very small redacted example of some code that performs the database integration (if no database integration, just state 'n/a')"
         }
       },
       "required": [
-        "mechanism",
         "description",
+        "mechanism",
         "codeExample"
       ],
       "additionalProperties": true,
@@ -1169,6 +1169,24 @@ The JSON response must follow this JSON schema:
       "items": {
         "type": "object",
         "properties": {
+          "name": {
+            "type": "string",
+            "default": "",
+            "description": "Name of the endpoint, queue, topic, or service operation"
+          },
+          "description": {
+            "type": "string",
+            "default": "",
+            "description": "What this integration point does"
+          },
+          "protocol": {
+            "type": "string",
+            "description": "Specific protocol details (e.g., 'HTTP/1.1', 'SOAP 1.2', 'AMQP 0.9.1')"
+          },
+          "connectionInfo": {
+            "type": "string",
+            "description": "Connection string, broker info, or WSDL location (redacted if sensitive)"
+          },
           "mechanism": {
             "allOf": [
               {
@@ -1203,16 +1221,6 @@ The JSON response must follow this JSON schema:
               }
             ],
             "description": "The integration mechanism type - only the listed values are valid; invalid becomes 'INVALID'."
-          },
-          "name": {
-            "type": "string",
-            "default": "",
-            "description": "Name of the endpoint, queue, topic, or service operation"
-          },
-          "description": {
-            "type": "string",
-            "default": "",
-            "description": "What this integration point does"
           },
           "path": {
             "type": "string",
@@ -1260,14 +1268,6 @@ The JSON response must follow this JSON schema:
           "authentication": {
             "type": "string",
             "description": "Authentication mechanism required (JWT, OAuth, SAML, etc.)"
-          },
-          "protocol": {
-            "type": "string",
-            "description": "Specific protocol details (e.g., 'HTTP/1.1', 'SOAP 1.2', 'AMQP 0.9.1')"
-          },
-          "connectionInfo": {
-            "type": "string",
-            "description": "Connection string, broker info, or WSDL location (redacted if sensitive)"
           }
         },
         "required": [
@@ -1411,6 +1411,22 @@ The JSON response must follow this JSON schema:
     "databaseIntegration": {
       "type": "object",
       "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of the database, service, or data access component"
+        },
+        "description": {
+          "type": "string",
+          "description": "A detailed description of the way database integration is achieved (or a note saying no database integration related code exists)."
+        },
+        "protocol": {
+          "type": "string",
+          "description": "Database protocol, version, or driver details (e.g., 'PostgreSQL 15', 'MongoDB 6.0')"
+        },
+        "connectionInfo": {
+          "type": "string",
+          "description": "Connection string, JDBC URL, or database connection details (redacted if sensitive)"
+        },
         "mechanism": {
           "allOf": [
             {
@@ -1461,14 +1477,6 @@ The JSON response must follow this JSON schema:
             }
           ],
           "description": "The database integration mechanism used - only the listed values are valid."
-        },
-        "name": {
-          "type": "string",
-          "description": "Name of the database, service, or data access component"
-        },
-        "description": {
-          "type": "string",
-          "description": "A detailed description of the way database integration is achieved (or a note saying no database integration related code exists)."
         },
         "databaseName": {
           "type": "string",
@@ -1568,22 +1576,14 @@ The JSON response must follow this JSON schema:
           ],
           "description": "Normalized transaction handling category derived from 'transactionHandling')."
         },
-        "protocol": {
-          "type": "string",
-          "description": "Database protocol, version, or driver details (e.g., 'PostgreSQL 15', 'MongoDB 6.0')"
-        },
-        "connectionInfo": {
-          "type": "string",
-          "description": "Connection string, JDBC URL, or database connection details (redacted if sensitive)"
-        },
         "codeExample": {
           "type": "string",
           "description": "A single very small redacted example of some code that performs the database integration (if no database integration, just state 'n/a')"
         }
       },
       "required": [
-        "mechanism",
         "description",
+        "mechanism",
         "codeExample"
       ],
       "additionalProperties": true,
@@ -2086,6 +2086,22 @@ The JSON response must follow this JSON schema:
     "databaseIntegration": {
       "type": "object",
       "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of the database, service, or data access component"
+        },
+        "description": {
+          "type": "string",
+          "description": "A detailed description of the way database integration is achieved (or a note saying no database integration related code exists)."
+        },
+        "protocol": {
+          "type": "string",
+          "description": "Database protocol, version, or driver details (e.g., 'PostgreSQL 15', 'MongoDB 6.0')"
+        },
+        "connectionInfo": {
+          "type": "string",
+          "description": "Connection string, JDBC URL, or database connection details (redacted if sensitive)"
+        },
         "mechanism": {
           "allOf": [
             {
@@ -2136,14 +2152,6 @@ The JSON response must follow this JSON schema:
             }
           ],
           "description": "The database integration mechanism used - only the listed values are valid."
-        },
-        "name": {
-          "type": "string",
-          "description": "Name of the database, service, or data access component"
-        },
-        "description": {
-          "type": "string",
-          "description": "A detailed description of the way database integration is achieved (or a note saying no database integration related code exists)."
         },
         "databaseName": {
           "type": "string",
@@ -2243,22 +2251,14 @@ The JSON response must follow this JSON schema:
           ],
           "description": "Normalized transaction handling category derived from 'transactionHandling')."
         },
-        "protocol": {
-          "type": "string",
-          "description": "Database protocol, version, or driver details (e.g., 'PostgreSQL 15', 'MongoDB 6.0')"
-        },
-        "connectionInfo": {
-          "type": "string",
-          "description": "Connection string, JDBC URL, or database connection details (redacted if sensitive)"
-        },
         "codeExample": {
           "type": "string",
           "description": "A single very small redacted example of some code that performs the database integration (if no database integration, just state 'n/a')"
         }
       },
       "required": [
-        "mechanism",
         "description",
+        "mechanism",
         "codeExample"
       ],
       "additionalProperties": true,
@@ -2269,6 +2269,24 @@ The JSON response must follow this JSON schema:
       "items": {
         "type": "object",
         "properties": {
+          "name": {
+            "type": "string",
+            "default": "",
+            "description": "Name of the endpoint, queue, topic, or service operation"
+          },
+          "description": {
+            "type": "string",
+            "default": "",
+            "description": "What this integration point does"
+          },
+          "protocol": {
+            "type": "string",
+            "description": "Specific protocol details (e.g., 'HTTP/1.1', 'SOAP 1.2', 'AMQP 0.9.1')"
+          },
+          "connectionInfo": {
+            "type": "string",
+            "description": "Connection string, broker info, or WSDL location (redacted if sensitive)"
+          },
           "mechanism": {
             "allOf": [
               {
@@ -2303,16 +2321,6 @@ The JSON response must follow this JSON schema:
               }
             ],
             "description": "The integration mechanism type - only the listed values are valid; invalid becomes 'INVALID'."
-          },
-          "name": {
-            "type": "string",
-            "default": "",
-            "description": "Name of the endpoint, queue, topic, or service operation"
-          },
-          "description": {
-            "type": "string",
-            "default": "",
-            "description": "What this integration point does"
           },
           "path": {
             "type": "string",
@@ -2360,14 +2368,6 @@ The JSON response must follow this JSON schema:
           "authentication": {
             "type": "string",
             "description": "Authentication mechanism required (JWT, OAuth, SAML, etc.)"
-          },
-          "protocol": {
-            "type": "string",
-            "description": "Specific protocol details (e.g., 'HTTP/1.1', 'SOAP 1.2', 'AMQP 0.9.1')"
-          },
-          "connectionInfo": {
-            "type": "string",
-            "description": "Connection string, broker info, or WSDL location (redacted if sensitive)"
           }
         },
         "required": [
@@ -2757,6 +2757,22 @@ The JSON response must follow this JSON schema:
     "databaseIntegration": {
       "type": "object",
       "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of the database, service, or data access component"
+        },
+        "description": {
+          "type": "string",
+          "description": "A detailed description of the way database integration is achieved (or a note saying no database integration related code exists)."
+        },
+        "protocol": {
+          "type": "string",
+          "description": "Database protocol, version, or driver details (e.g., 'PostgreSQL 15', 'MongoDB 6.0')"
+        },
+        "connectionInfo": {
+          "type": "string",
+          "description": "Connection string, JDBC URL, or database connection details (redacted if sensitive)"
+        },
         "mechanism": {
           "allOf": [
             {
@@ -2807,14 +2823,6 @@ The JSON response must follow this JSON schema:
             }
           ],
           "description": "The database integration mechanism used - only the listed values are valid."
-        },
-        "name": {
-          "type": "string",
-          "description": "Name of the database, service, or data access component"
-        },
-        "description": {
-          "type": "string",
-          "description": "A detailed description of the way database integration is achieved (or a note saying no database integration related code exists)."
         },
         "databaseName": {
           "type": "string",
@@ -2914,22 +2922,14 @@ The JSON response must follow this JSON schema:
           ],
           "description": "Normalized transaction handling category derived from 'transactionHandling')."
         },
-        "protocol": {
-          "type": "string",
-          "description": "Database protocol, version, or driver details (e.g., 'PostgreSQL 15', 'MongoDB 6.0')"
-        },
-        "connectionInfo": {
-          "type": "string",
-          "description": "Connection string, JDBC URL, or database connection details (redacted if sensitive)"
-        },
         "codeExample": {
           "type": "string",
           "description": "A single very small redacted example of some code that performs the database integration (if no database integration, just state 'n/a')"
         }
       },
       "required": [
-        "mechanism",
         "description",
+        "mechanism",
         "codeExample"
       ],
       "additionalProperties": true,
@@ -2940,6 +2940,24 @@ The JSON response must follow this JSON schema:
       "items": {
         "type": "object",
         "properties": {
+          "name": {
+            "type": "string",
+            "default": "",
+            "description": "Name of the endpoint, queue, topic, or service operation"
+          },
+          "description": {
+            "type": "string",
+            "default": "",
+            "description": "What this integration point does"
+          },
+          "protocol": {
+            "type": "string",
+            "description": "Specific protocol details (e.g., 'HTTP/1.1', 'SOAP 1.2', 'AMQP 0.9.1')"
+          },
+          "connectionInfo": {
+            "type": "string",
+            "description": "Connection string, broker info, or WSDL location (redacted if sensitive)"
+          },
           "mechanism": {
             "allOf": [
               {
@@ -2974,16 +2992,6 @@ The JSON response must follow this JSON schema:
               }
             ],
             "description": "The integration mechanism type - only the listed values are valid; invalid becomes 'INVALID'."
-          },
-          "name": {
-            "type": "string",
-            "default": "",
-            "description": "Name of the endpoint, queue, topic, or service operation"
-          },
-          "description": {
-            "type": "string",
-            "default": "",
-            "description": "What this integration point does"
           },
           "path": {
             "type": "string",
@@ -3031,14 +3039,6 @@ The JSON response must follow this JSON schema:
           "authentication": {
             "type": "string",
             "description": "Authentication mechanism required (JWT, OAuth, SAML, etc.)"
-          },
-          "protocol": {
-            "type": "string",
-            "description": "Specific protocol details (e.g., 'HTTP/1.1', 'SOAP 1.2', 'AMQP 0.9.1')"
-          },
-          "connectionInfo": {
-            "type": "string",
-            "description": "Connection string, broker info, or WSDL location (redacted if sensitive)"
           }
         },
         "required": [
@@ -3182,6 +3182,22 @@ The JSON response must follow this JSON schema:
     "databaseIntegration": {
       "type": "object",
       "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of the database, service, or data access component"
+        },
+        "description": {
+          "type": "string",
+          "description": "A detailed description of the way database integration is achieved (or a note saying no database integration related code exists)."
+        },
+        "protocol": {
+          "type": "string",
+          "description": "Database protocol, version, or driver details (e.g., 'PostgreSQL 15', 'MongoDB 6.0')"
+        },
+        "connectionInfo": {
+          "type": "string",
+          "description": "Connection string, JDBC URL, or database connection details (redacted if sensitive)"
+        },
         "mechanism": {
           "allOf": [
             {
@@ -3232,14 +3248,6 @@ The JSON response must follow this JSON schema:
             }
           ],
           "description": "The database integration mechanism used - only the listed values are valid."
-        },
-        "name": {
-          "type": "string",
-          "description": "Name of the database, service, or data access component"
-        },
-        "description": {
-          "type": "string",
-          "description": "A detailed description of the way database integration is achieved (or a note saying no database integration related code exists)."
         },
         "databaseName": {
           "type": "string",
@@ -3339,22 +3347,14 @@ The JSON response must follow this JSON schema:
           ],
           "description": "Normalized transaction handling category derived from 'transactionHandling')."
         },
-        "protocol": {
-          "type": "string",
-          "description": "Database protocol, version, or driver details (e.g., 'PostgreSQL 15', 'MongoDB 6.0')"
-        },
-        "connectionInfo": {
-          "type": "string",
-          "description": "Connection string, JDBC URL, or database connection details (redacted if sensitive)"
-        },
         "codeExample": {
           "type": "string",
           "description": "A single very small redacted example of some code that performs the database integration (if no database integration, just state 'n/a')"
         }
       },
       "required": [
-        "mechanism",
         "description",
+        "mechanism",
         "codeExample"
       ],
       "additionalProperties": true,
@@ -3669,6 +3669,22 @@ The JSON response must follow this JSON schema:
     "databaseIntegration": {
       "type": "object",
       "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of the database, service, or data access component"
+        },
+        "description": {
+          "type": "string",
+          "description": "A detailed description of the way database integration is achieved (or a note saying no database integration related code exists)."
+        },
+        "protocol": {
+          "type": "string",
+          "description": "Database protocol, version, or driver details (e.g., 'PostgreSQL 15', 'MongoDB 6.0')"
+        },
+        "connectionInfo": {
+          "type": "string",
+          "description": "Connection string, JDBC URL, or database connection details (redacted if sensitive)"
+        },
         "mechanism": {
           "allOf": [
             {
@@ -3719,14 +3735,6 @@ The JSON response must follow this JSON schema:
             }
           ],
           "description": "The database integration mechanism used - only the listed values are valid."
-        },
-        "name": {
-          "type": "string",
-          "description": "Name of the database, service, or data access component"
-        },
-        "description": {
-          "type": "string",
-          "description": "A detailed description of the way database integration is achieved (or a note saying no database integration related code exists)."
         },
         "databaseName": {
           "type": "string",
@@ -3826,22 +3834,14 @@ The JSON response must follow this JSON schema:
           ],
           "description": "Normalized transaction handling category derived from 'transactionHandling')."
         },
-        "protocol": {
-          "type": "string",
-          "description": "Database protocol, version, or driver details (e.g., 'PostgreSQL 15', 'MongoDB 6.0')"
-        },
-        "connectionInfo": {
-          "type": "string",
-          "description": "Connection string, JDBC URL, or database connection details (redacted if sensitive)"
-        },
         "codeExample": {
           "type": "string",
           "description": "A single very small redacted example of some code that performs the database integration (if no database integration, just state 'n/a')"
         }
       },
       "required": [
-        "mechanism",
         "description",
+        "mechanism",
         "codeExample"
       ],
       "additionalProperties": true,
@@ -3852,6 +3852,24 @@ The JSON response must follow this JSON schema:
       "items": {
         "type": "object",
         "properties": {
+          "name": {
+            "type": "string",
+            "default": "",
+            "description": "Name of the endpoint, queue, topic, or service operation"
+          },
+          "description": {
+            "type": "string",
+            "default": "",
+            "description": "What this integration point does"
+          },
+          "protocol": {
+            "type": "string",
+            "description": "Specific protocol details (e.g., 'HTTP/1.1', 'SOAP 1.2', 'AMQP 0.9.1')"
+          },
+          "connectionInfo": {
+            "type": "string",
+            "description": "Connection string, broker info, or WSDL location (redacted if sensitive)"
+          },
           "mechanism": {
             "allOf": [
               {
@@ -3886,16 +3904,6 @@ The JSON response must follow this JSON schema:
               }
             ],
             "description": "The integration mechanism type - only the listed values are valid; invalid becomes 'INVALID'."
-          },
-          "name": {
-            "type": "string",
-            "default": "",
-            "description": "Name of the endpoint, queue, topic, or service operation"
-          },
-          "description": {
-            "type": "string",
-            "default": "",
-            "description": "What this integration point does"
           },
           "path": {
             "type": "string",
@@ -3943,14 +3951,6 @@ The JSON response must follow this JSON schema:
           "authentication": {
             "type": "string",
             "description": "Authentication mechanism required (JWT, OAuth, SAML, etc.)"
-          },
-          "protocol": {
-            "type": "string",
-            "description": "Specific protocol details (e.g., 'HTTP/1.1', 'SOAP 1.2', 'AMQP 0.9.1')"
-          },
-          "connectionInfo": {
-            "type": "string",
-            "description": "Connection string, broker info, or WSDL location (redacted if sensitive)"
           }
         },
         "required": [
@@ -4330,6 +4330,22 @@ The JSON response must follow this JSON schema:
     "databaseIntegration": {
       "type": "object",
       "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of the database, service, or data access component"
+        },
+        "description": {
+          "type": "string",
+          "description": "A detailed description of the way database integration is achieved (or a note saying no database integration related code exists)."
+        },
+        "protocol": {
+          "type": "string",
+          "description": "Database protocol, version, or driver details (e.g., 'PostgreSQL 15', 'MongoDB 6.0')"
+        },
+        "connectionInfo": {
+          "type": "string",
+          "description": "Connection string, JDBC URL, or database connection details (redacted if sensitive)"
+        },
         "mechanism": {
           "allOf": [
             {
@@ -4380,14 +4396,6 @@ The JSON response must follow this JSON schema:
             }
           ],
           "description": "The database integration mechanism used - only the listed values are valid."
-        },
-        "name": {
-          "type": "string",
-          "description": "Name of the database, service, or data access component"
-        },
-        "description": {
-          "type": "string",
-          "description": "A detailed description of the way database integration is achieved (or a note saying no database integration related code exists)."
         },
         "databaseName": {
           "type": "string",
@@ -4487,22 +4495,14 @@ The JSON response must follow this JSON schema:
           ],
           "description": "Normalized transaction handling category derived from 'transactionHandling')."
         },
-        "protocol": {
-          "type": "string",
-          "description": "Database protocol, version, or driver details (e.g., 'PostgreSQL 15', 'MongoDB 6.0')"
-        },
-        "connectionInfo": {
-          "type": "string",
-          "description": "Connection string, JDBC URL, or database connection details (redacted if sensitive)"
-        },
         "codeExample": {
           "type": "string",
           "description": "A single very small redacted example of some code that performs the database integration (if no database integration, just state 'n/a')"
         }
       },
       "required": [
-        "mechanism",
         "description",
+        "mechanism",
         "codeExample"
       ],
       "additionalProperties": true,
@@ -4513,6 +4513,24 @@ The JSON response must follow this JSON schema:
       "items": {
         "type": "object",
         "properties": {
+          "name": {
+            "type": "string",
+            "default": "",
+            "description": "Name of the endpoint, queue, topic, or service operation"
+          },
+          "description": {
+            "type": "string",
+            "default": "",
+            "description": "What this integration point does"
+          },
+          "protocol": {
+            "type": "string",
+            "description": "Specific protocol details (e.g., 'HTTP/1.1', 'SOAP 1.2', 'AMQP 0.9.1')"
+          },
+          "connectionInfo": {
+            "type": "string",
+            "description": "Connection string, broker info, or WSDL location (redacted if sensitive)"
+          },
           "mechanism": {
             "allOf": [
               {
@@ -4547,16 +4565,6 @@ The JSON response must follow this JSON schema:
               }
             ],
             "description": "The integration mechanism type - only the listed values are valid; invalid becomes 'INVALID'."
-          },
-          "name": {
-            "type": "string",
-            "default": "",
-            "description": "Name of the endpoint, queue, topic, or service operation"
-          },
-          "description": {
-            "type": "string",
-            "default": "",
-            "description": "What this integration point does"
           },
           "path": {
             "type": "string",
@@ -4604,14 +4612,6 @@ The JSON response must follow this JSON schema:
           "authentication": {
             "type": "string",
             "description": "Authentication mechanism required (JWT, OAuth, SAML, etc.)"
-          },
-          "protocol": {
-            "type": "string",
-            "description": "Specific protocol details (e.g., 'HTTP/1.1', 'SOAP 1.2', 'AMQP 0.9.1')"
-          },
-          "connectionInfo": {
-            "type": "string",
-            "description": "Connection string, broker info, or WSDL location (redacted if sensitive)"
           }
         },
         "required": [
@@ -4832,6 +4832,22 @@ The JSON response must follow this JSON schema:
     "databaseIntegration": {
       "type": "object",
       "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of the database, service, or data access component"
+        },
+        "description": {
+          "type": "string",
+          "description": "A detailed description of the way database integration is achieved (or a note saying no database integration related code exists)."
+        },
+        "protocol": {
+          "type": "string",
+          "description": "Database protocol, version, or driver details (e.g., 'PostgreSQL 15', 'MongoDB 6.0')"
+        },
+        "connectionInfo": {
+          "type": "string",
+          "description": "Connection string, JDBC URL, or database connection details (redacted if sensitive)"
+        },
         "mechanism": {
           "allOf": [
             {
@@ -4882,14 +4898,6 @@ The JSON response must follow this JSON schema:
             }
           ],
           "description": "The database integration mechanism used - only the listed values are valid."
-        },
-        "name": {
-          "type": "string",
-          "description": "Name of the database, service, or data access component"
-        },
-        "description": {
-          "type": "string",
-          "description": "A detailed description of the way database integration is achieved (or a note saying no database integration related code exists)."
         },
         "databaseName": {
           "type": "string",
@@ -4989,22 +4997,14 @@ The JSON response must follow this JSON schema:
           ],
           "description": "Normalized transaction handling category derived from 'transactionHandling')."
         },
-        "protocol": {
-          "type": "string",
-          "description": "Database protocol, version, or driver details (e.g., 'PostgreSQL 15', 'MongoDB 6.0')"
-        },
-        "connectionInfo": {
-          "type": "string",
-          "description": "Connection string, JDBC URL, or database connection details (redacted if sensitive)"
-        },
         "codeExample": {
           "type": "string",
           "description": "A single very small redacted example of some code that performs the database integration (if no database integration, just state 'n/a')"
         }
       },
       "required": [
-        "mechanism",
         "description",
+        "mechanism",
         "codeExample"
       ],
       "additionalProperties": true,

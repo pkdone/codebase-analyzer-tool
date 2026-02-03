@@ -215,4 +215,74 @@ describe("extraPropertiesRemover", () => {
       expect(result.changed).toBe(false);
     });
   });
+
+  describe("consolidated helper function behavior", () => {
+    it("should remove multiple artifact properties in a single pass", () => {
+      const input =
+        '{"name": "test", "extra_info": "info1", "llm_notes": "notes", "ai_thoughts": "thoughts"}';
+      const result = extraPropertiesRemover.apply(input);
+      expect(result.content).not.toContain("extra_info");
+      expect(result.content).not.toContain("llm_notes");
+      expect(result.content).not.toContain("ai_thoughts");
+      expect(result.content).toContain('"name"');
+      expect(result.changed).toBe(true);
+      expect(result.repairs.length).toBe(3);
+    });
+
+    it("should handle artifact properties with array values", () => {
+      const input = '{"name": "test", "extra_data": ["item1", "item2", "item3"]}';
+      const result = extraPropertiesRemover.apply(input);
+      expect(result.content).not.toContain("extra_data");
+      expect(result.content).not.toContain("item1");
+      expect(result.changed).toBe(true);
+    });
+
+    it("should handle artifact properties with nested object values", () => {
+      const input =
+        '{"name": "test", "_internal_state": {"nested": {"deep": "value"}, "other": 123}}';
+      const result = extraPropertiesRemover.apply(input);
+      expect(result.content).not.toContain("_internal_state");
+      expect(result.content).not.toContain("nested");
+      expect(result.changed).toBe(true);
+    });
+
+    it("should remove quoted artifact properties after unquoted ones are removed", () => {
+      // Test sequential removal: first unquoted, then quoted
+      const input = '{"name": "test", "extra_info": "info", "llm_notes": "notes"}';
+      const result = extraPropertiesRemover.apply(input);
+      expect(result.content).not.toContain("extra_info");
+      expect(result.content).not.toContain("llm_notes");
+      expect(result.content).toContain('"name"');
+      expect(result.changed).toBe(true);
+    });
+
+    it("should generate appropriate repair messages for quoted properties", () => {
+      const input = '{"name": "test", "extra_thoughts": "thinking"}';
+      const result = extraPropertiesRemover.apply(input);
+      expect(result.repairs).toContain("Removed LLM artifact property: extra_thoughts");
+    });
+
+    it("should generate appropriate repair messages for unquoted properties", () => {
+      const input = '{"name": "test", extra_thoughts: "thinking"}';
+      const result = extraPropertiesRemover.apply(input);
+      expect(result.repairs).toContain("Removed unquoted LLM artifact property: extra_thoughts");
+    });
+
+    it("should handle artifact property at the beginning of object", () => {
+      const input = '{"extra_info": "remove me", "name": "test"}';
+      const result = extraPropertiesRemover.apply(input);
+      expect(result.content).not.toContain("extra_info");
+      expect(result.content).toContain('"name"');
+      expect(result.changed).toBe(true);
+    });
+
+    it("should remove property and indicate changes occurred", () => {
+      const input = '{"name": "test", "extra_info": "a", "value": 123}';
+      const result = extraPropertiesRemover.apply(input);
+      expect(result.content).not.toContain("extra_info");
+      expect(result.content).toContain('"name"');
+      expect(result.content).toContain('"value"');
+      expect(result.changed).toBe(true);
+    });
+  });
 });
