@@ -16,10 +16,12 @@ import {
   ProjectedCodeSmellStatistic,
   ProjectedCodeQualityStatistics,
 } from "./sources.model";
-import { databaseConfig } from "../../config/database.config";
+import type { DatabaseConfigType } from "../../config/database.config";
+import type { CodeQualityConfigType } from "../../config/code-quality.config";
+import { SOURCE_FIELDS } from "../../schemas/source-file.schema";
 import { logErr } from "../../../common/utils/logging";
 import { BaseRepository } from "../base/base-repository";
-import { coreTokens } from "../../di/tokens";
+import { coreTokens, configTokens } from "../../di/tokens";
 import { inject, injectable } from "tsyringe";
 
 /**
@@ -46,12 +48,19 @@ export default class SourcesRepositoryImpl
 {
   /**
    * Constructor.
+   *
+   * @param mongoClient - MongoDB client instance (injected)
+   * @param dbName - Database name (injected)
+   * @param dbConfig - Database configuration (injected)
+   * @param qualityConfig - Code quality thresholds configuration (injected)
    */
   constructor(
     @inject(coreTokens.MongoClient) mongoClient: MongoClient,
     @inject(coreTokens.DatabaseName) dbName: string,
+    @inject(configTokens.DatabaseConfig) private readonly dbConfig: DatabaseConfigType,
+    @inject(configTokens.CodeQualityConfig) private readonly qualityConfig: CodeQualityConfigType,
   ) {
-    super(mongoClient, dbName, databaseConfig.SOURCES_COLLECTION_NAME);
+    super(mongoClient, dbName, dbConfig.SOURCES_COLLECTION_NAME);
   }
 
   /**
@@ -136,19 +145,19 @@ export default class SourcesRepositoryImpl
   ): Promise<ProjectedDatabaseIntegrationFields[]> {
     const query = {
       projectName,
-      "summary.databaseIntegration": { $exists: true, $ne: null },
-      "summary.databaseIntegration.mechanism": { $ne: "NONE" },
+      [SOURCE_FIELDS.SUMMARY_DB_INTEGRATION]: { $exists: true, $ne: null },
+      [SOURCE_FIELDS.SUMMARY_DB_INTEGRATION_MECHANISM]: { $ne: "NONE" },
     };
     const options: { projection: Document; sort: Sort } = {
       projection: {
         _id: 0,
-        "summary.namespace": 1,
-        "summary.databaseIntegration": 1,
-        filepath: 1,
+        [SOURCE_FIELDS.SUMMARY_NAMESPACE]: 1,
+        [SOURCE_FIELDS.SUMMARY_DB_INTEGRATION]: 1,
+        [SOURCE_FIELDS.FILEPATH]: 1,
       },
       sort: {
-        "summary.databaseIntegration.mechanism": 1,
-        "summary.namespace": 1,
+        [SOURCE_FIELDS.SUMMARY_DB_INTEGRATION_MECHANISM]: 1,
+        [SOURCE_FIELDS.SUMMARY_NAMESPACE]: 1,
       },
     };
     return await this.collection.find<ProjectedDatabaseIntegrationFields>(query, options).toArray();
@@ -165,14 +174,14 @@ export default class SourcesRepositoryImpl
         { projectName },
         {
           $or: [
-            { "summary.storedProcedures": { $exists: true, $ne: [] } },
-            { "summary.triggers": { $exists: true, $ne: [] } },
+            { [SOURCE_FIELDS.SUMMARY_STORED_PROCEDURES]: { $exists: true, $ne: [] } },
+            { [SOURCE_FIELDS.SUMMARY_TRIGGERS]: { $exists: true, $ne: [] } },
           ],
         },
       ],
     };
     const options = {
-      projection: { _id: 0, summary: 1, filepath: 1 },
+      projection: { _id: 0, summary: 1, [SOURCE_FIELDS.FILEPATH]: 1 },
     };
     return this.collection.find<ProjectedSourceFilePathAndSummary>(query, options).toArray();
   }
@@ -185,16 +194,16 @@ export default class SourcesRepositoryImpl
   ): Promise<ProjectedIntegrationPointFields[]> {
     const query = {
       projectName,
-      "summary.integrationPoints": { $exists: true, $ne: [] },
+      [SOURCE_FIELDS.SUMMARY_INTEGRATION_POINTS]: { $exists: true, $ne: [] },
     };
     const options: { projection: Document; sort: Sort } = {
       projection: {
         _id: 0,
-        "summary.namespace": 1,
-        "summary.integrationPoints": 1,
-        filepath: 1,
+        [SOURCE_FIELDS.SUMMARY_NAMESPACE]: 1,
+        [SOURCE_FIELDS.SUMMARY_INTEGRATION_POINTS]: 1,
+        [SOURCE_FIELDS.FILEPATH]: 1,
       },
-      sort: { "summary.namespace": 1 },
+      sort: { [SOURCE_FIELDS.SUMMARY_NAMESPACE]: 1 },
     };
     return this.collection.find<ProjectedIntegrationPointFields>(query, options).toArray();
   }
@@ -216,8 +225,8 @@ export default class SourcesRepositoryImpl
     const pipeline = [
       {
         $vectorSearch: {
-          index: databaseConfig.CONTENT_VECTOR_INDEX_NAME,
-          path: databaseConfig.CONTENT_VECTOR_FIELD,
+          index: this.dbConfig.CONTENT_VECTOR_INDEX_NAME,
+          path: this.dbConfig.CONTENT_VECTOR_FIELD,
           filter: {
             projectName: { $eq: projectName },
           },
@@ -242,7 +251,7 @@ export default class SourcesRepositoryImpl
       return await this.collection.aggregate<VectorSearchResult>(pipeline).toArray();
     } catch (error: unknown) {
       logErr(
-        `Problem performing Atlas Vector Search aggregation - ensure the vector index is defined for the '${databaseConfig.SOURCES_COLLECTION_NAME}' collection`,
+        `Problem performing Atlas Vector Search aggregation - ensure the vector index is defined for the '${this.dbConfig.SOURCES_COLLECTION_NAME}' collection`,
         error,
       );
       throw error;
@@ -473,18 +482,41 @@ export default class SourcesRepositoryImpl
           },
           highComplexityCount: {
             $sum: {
-              $cond: [{ $gt: ["$summary.publicFunctions.cyclomaticComplexity", 10] }, 1, 0],
+              $cond: [
+                {
+                  $gt: [
+                    "$summary.publicFunctions.cyclomaticComplexity",
+                    this.qualityConfig.HIGH_COMPLEXITY_THRESHOLD,
+                  ],
+                },
+                1,
+                0,
+              ],
             },
           },
           veryHighComplexityCount: {
             $sum: {
-              $cond: [{ $gt: ["$summary.publicFunctions.cyclomaticComplexity", 20] }, 1, 0],
+              $cond: [
+                {
+                  $gt: [
+                    "$summary.publicFunctions.cyclomaticComplexity",
+                    this.qualityConfig.VERY_HIGH_COMPLEXITY_THRESHOLD,
+                  ],
+                },
+                1,
+                0,
+              ],
             },
           },
           longFunctionCount: {
             $sum: {
               $cond: [
-                { $gt: [{ $ifNull: ["$summary.publicFunctions.linesOfCode", 0] }, 50] },
+                {
+                  $gt: [
+                    { $ifNull: ["$summary.publicFunctions.linesOfCode", 0] },
+                    this.qualityConfig.LONG_FUNCTION_THRESHOLD,
+                  ],
+                },
                 1,
                 0,
               ],
@@ -551,17 +583,17 @@ export default class SourcesRepositoryImpl
     const options: { projection: Document; sort: Sort } = {
       projection: {
         _id: 0,
-        "summary.namespace": 1,
-        "summary.purpose": 1,
-        "summary.implementation": 1,
-        "summary.dependencies": 1,
-        "summary.scheduledJobs": 1,
-        "summary.internalReferences": 1,
-        "summary.jspMetrics": 1,
-        "summary.uiFramework": 1,
-        filepath: 1,
+        [SOURCE_FIELDS.SUMMARY_NAMESPACE]: 1,
+        [SOURCE_FIELDS.SUMMARY_PURPOSE]: 1,
+        [SOURCE_FIELDS.SUMMARY_IMPLEMENTATION]: 1,
+        [SOURCE_FIELDS.SUMMARY_DEPENDENCIES]: 1,
+        [SOURCE_FIELDS.SUMMARY_SCHEDULED_JOBS]: 1,
+        [SOURCE_FIELDS.SUMMARY_INTERNAL_REFERENCES]: 1,
+        [SOURCE_FIELDS.SUMMARY_JSP_METRICS]: 1,
+        [SOURCE_FIELDS.SUMMARY_UI_FRAMEWORK]: 1,
+        [SOURCE_FIELDS.FILEPATH]: 1,
       },
-      sort: { "summary.namespace": 1 },
+      sort: { [SOURCE_FIELDS.SUMMARY_NAMESPACE]: 1 },
     };
     return this.collection.find<ProjectedSourceSummaryFields>(query, options).toArray();
   }

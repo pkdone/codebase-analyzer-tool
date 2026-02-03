@@ -2,6 +2,7 @@ import "reflect-metadata";
 import { MongoClient, Collection } from "mongodb";
 import AppSummaryRepositoryImpl from "../../../../src/app/repositories/app-summaries/app-summaries.repository";
 import { PartialAppSummaryRecord } from "../../../../src/app/repositories/app-summaries/app-summaries.model";
+import { databaseConfig } from "../../../../src/app/config/database.config";
 import * as mdbErrorUtils from "../../../../src/common/mongodb/mdb-error-utils";
 
 // Mock dependencies
@@ -31,7 +32,8 @@ describe("AppSummaryRepositoryImpl - Partial Updates", () => {
       close: jest.fn(),
     } as unknown as jest.Mocked<MongoClient>;
 
-    repository = new AppSummaryRepositoryImpl(mockMongoClient, "test-db");
+    // Instantiate repository with injected config
+    repository = new AppSummaryRepositoryImpl(mockMongoClient, "test-db", databaseConfig);
   });
 
   describe("createOrReplaceAppSummary - Partial Update Behavior", () => {

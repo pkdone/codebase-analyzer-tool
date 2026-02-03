@@ -234,14 +234,29 @@ export const SOURCE_FIELDS = {
   FILEPATH: "filepath",
   TYPE: "type",
   CANONICAL_TYPE: "canonicalType",
+  LINES_COUNT: "linesCount",
 
   // Summary nested fields (dot notation for MongoDB)
   SUMMARY_NAMESPACE: "summary.namespace",
+  SUMMARY_PURPOSE: "summary.purpose",
+  SUMMARY_IMPLEMENTATION: "summary.implementation",
+  SUMMARY_DEPENDENCIES: "summary.dependencies",
+  SUMMARY_SCHEDULED_JOBS: "summary.scheduledJobs",
+  SUMMARY_INTERNAL_REFERENCES: "summary.internalReferences",
+  SUMMARY_JSP_METRICS: "summary.jspMetrics",
+  SUMMARY_UI_FRAMEWORK: "summary.uiFramework",
   SUMMARY_PUBLIC_FUNCTIONS: "summary.publicFunctions",
   SUMMARY_INTEGRATION_POINTS: "summary.integrationPoints",
   SUMMARY_CODE_QUALITY_FILE_SMELLS: "summary.codeQualityMetrics.fileSmells",
   SUMMARY_DB_INTEGRATION: "summary.databaseIntegration",
   SUMMARY_DB_INTEGRATION_MECHANISM: "summary.databaseIntegration.mechanism",
+  SUMMARY_STORED_PROCEDURES: "summary.storedProcedures",
+  SUMMARY_TRIGGERS: "summary.triggers",
+
+  // Nested function fields (for aggregation pipelines)
+  SUMMARY_FUNC_CYCLOMATIC_COMPLEXITY: "summary.publicFunctions.cyclomaticComplexity",
+  SUMMARY_FUNC_LINES_OF_CODE: "summary.publicFunctions.linesOfCode",
+  SUMMARY_FUNC_CODE_SMELLS: "summary.publicFunctions.codeSmells",
 
   // Vector fields
   CONTENT_VECTOR: "contentVector",

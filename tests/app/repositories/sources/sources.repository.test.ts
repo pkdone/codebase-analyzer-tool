@@ -4,6 +4,7 @@ import { Double } from "bson";
 import SourcesRepositoryImpl from "../../../../src/app/repositories/sources/sources.repository";
 import { SourceRecord } from "../../../../src/app/repositories/sources/sources.model";
 import { databaseConfig } from "../../../../src/app/config/database.config";
+import { codeQualityConfig } from "../../../../src/app/config/code-quality.config";
 import * as logging from "../../../../src/common/utils/logging";
 import * as mdbErrorUtils from "../../../../src/common/mongodb/mdb-error-utils";
 
@@ -54,7 +55,13 @@ describe("SourcesRepositoryImpl", () => {
       close: jest.fn(),
     } as unknown as jest.Mocked<MongoClient>;
 
-    repository = new SourcesRepositoryImpl(mockMongoClient, "test-db");
+    // Instantiate repository with injected configs
+    repository = new SourcesRepositoryImpl(
+      mockMongoClient,
+      "test-db",
+      databaseConfig,
+      codeQualityConfig,
+    );
   });
 
   describe("insertSource", () => {

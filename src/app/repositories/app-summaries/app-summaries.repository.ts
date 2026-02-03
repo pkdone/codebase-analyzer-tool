@@ -1,9 +1,9 @@
 import { AppSummariesRepository } from "./app-summaries.repository.interface";
 import { AppSummaryRecordWithId, PartialAppSummaryRecord } from "./app-summaries.model";
-import { databaseConfig } from "../../config/database.config";
+import type { DatabaseConfigType } from "../../config/database.config";
 import { BaseRepository } from "../base/base-repository";
 import { MongoClient } from "mongodb";
-import { coreTokens } from "../../di/tokens";
+import { coreTokens, configTokens } from "../../di/tokens";
 import { inject, injectable } from "tsyringe";
 
 /**
@@ -16,12 +16,17 @@ export default class AppSummariesRepositoryImpl
 {
   /**
    * Constructor.
+   *
+   * @param mongoClient - MongoDB client instance (injected)
+   * @param dbName - Database name (injected)
+   * @param dbConfig - Database configuration (injected)
    */
   constructor(
     @inject(coreTokens.MongoClient) mongoClient: MongoClient,
     @inject(coreTokens.DatabaseName) dbName: string,
+    @inject(configTokens.DatabaseConfig) dbConfig: DatabaseConfigType,
   ) {
-    super(mongoClient, dbName, databaseConfig.SUMMARIES_COLLECTION_NAME);
+    super(mongoClient, dbName, dbConfig.SUMMARIES_COLLECTION_NAME);
   }
 
   /**

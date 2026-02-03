@@ -77,7 +77,7 @@ describe("sources.constants", () => {
       it("should be defined as const", () => {
         // The object should have all expected fields
         const fieldCount = Object.keys(SOURCE_FIELDS).length;
-        expect(fieldCount).toBe(12);
+        expect(fieldCount).toBe(25);
       });
 
       it("should have string values for all fields", () => {

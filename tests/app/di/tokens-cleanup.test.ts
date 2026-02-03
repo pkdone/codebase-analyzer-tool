@@ -67,6 +67,7 @@ describe("DI Tokens Cleanup", () => {
         "DatabaseConfig",
         "FileProcessingRules",
         "ConcurrencyConfig",
+        "CodeQualityConfig",
       ]);
     });
   });

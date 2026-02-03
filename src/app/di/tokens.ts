@@ -76,6 +76,7 @@ export const configTokens = {
   DatabaseConfig: Symbol("DatabaseConfig"),
   FileProcessingRules: Symbol("FileProcessingRules"),
   ConcurrencyConfig: Symbol("ConcurrencyConfig"),
+  CodeQualityConfig: Symbol("CodeQualityConfig"),
 } as const;
 
 export type ConfigToken = keyof typeof configTokens;

@@ -36,6 +36,7 @@ import { databaseConfig } from "../../config/database.config";
 import { outputConfig } from "../../config/output.config";
 import { fileProcessingRules } from "../../config/file-handling";
 import { concurrencyConfig } from "../../config/concurrency.config";
+import { codeQualityConfig } from "../../config/code-quality.config";
 
 // Concurrency service import
 import { LlmConcurrencyService } from "../../components/concurrency";
@@ -61,6 +62,7 @@ function registerRepositories(): void {
   container.registerInstance(configTokens.DatabaseConfig, databaseConfig);
   container.registerInstance(configTokens.FileProcessingRules, fileProcessingRules);
   container.registerInstance(configTokens.ConcurrencyConfig, concurrencyConfig);
+  container.registerInstance(configTokens.CodeQualityConfig, codeQualityConfig);
 
   // Register the default database name for the application (derived from config)
   container.registerInstance(coreTokens.DatabaseName, databaseConfig.CODEBASE_DB_NAME);
