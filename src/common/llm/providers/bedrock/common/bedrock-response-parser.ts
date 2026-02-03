@@ -98,8 +98,8 @@ interface ResponsePathConfig {
   completionTokensPath: string;
   /** Path to extract the stop/finish reason */
   stopReasonPath: string;
-  /** The stop reason value that indicates the response was truncated due to length limits */
-  stopReasonValueForLength: string;
+  /** The stop reason value(s) that indicate the response was truncated due to length limits */
+  stopReasonValueForLength: string | string[];
   /** Optional secondary content path (for providers like Deepseek with reasoning_content) */
   alternativeContentPath?: string;
   /** Optional secondary stop reason path (for providers like Mistral with finish_reason) */
@@ -149,8 +149,11 @@ export function extractTextCompletionResponse(
   const finishReasonRaw = getNestedValueWithFallbacks(response, stopReasonPaths);
   const finishReason = typeof finishReasonRaw === "string" ? finishReasonRaw : "";
   const finishReasonLowercase = finishReason.toLowerCase();
+  const stopReasonValues = Array.isArray(pathConfig.stopReasonValueForLength)
+    ? pathConfig.stopReasonValueForLength
+    : [pathConfig.stopReasonValueForLength];
   const isIncompleteResponse =
-    finishReasonLowercase === pathConfig.stopReasonValueForLength.toLowerCase() ||
+    stopReasonValues.some((val) => finishReasonLowercase === val.toLowerCase()) ||
     responseContent == null;
   const promptTokensRaw = getNestedValue(response, pathConfig.promptTokensPath);
   const completionTokensRaw = getNestedValue(response, pathConfig.completionTokensPath);

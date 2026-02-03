@@ -85,7 +85,8 @@ export default class BedrockClaudeLLM extends BaseBedrockLLM {
         promptTokensPath: "usage.input_tokens",
         completionTokensPath: "usage.output_tokens",
         stopReasonPath: "stop_reason",
-        stopReasonValueForLength: "length",
+        // Claude uses "max_tokens" but we also support "length" for compatibility
+        stopReasonValueForLength: ["max_tokens", "length"],
       },
       providerName: "Claude",
     };

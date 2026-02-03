@@ -565,4 +565,124 @@ describe("bedrock-response-parser", () => {
       expect(summary.responseContent).toBe("true");
     });
   });
+
+  describe("stopReasonValueForLength array support", () => {
+    it("detects incomplete response when stop reason matches first value in array", () => {
+      const response = {
+        content: [{ text: "truncated content" }],
+        stop_reason: "max_tokens",
+        usage: { input_tokens: 100, output_tokens: 200 },
+      };
+
+      const summary = extractTextCompletionResponse(
+        response,
+        schema,
+        {
+          contentPath: "content[0].text",
+          promptTokensPath: "usage.input_tokens",
+          completionTokensPath: "usage.output_tokens",
+          stopReasonPath: "stop_reason",
+          stopReasonValueForLength: ["max_tokens", "length"],
+        },
+        "TestProvider",
+      );
+
+      expect(summary.isIncompleteResponse).toBe(true);
+      expect(summary.responseContent).toBe("truncated content");
+    });
+
+    it("detects incomplete response when stop reason matches second value in array", () => {
+      const response = {
+        content: [{ text: "truncated content" }],
+        stop_reason: "length",
+        usage: { input_tokens: 100, output_tokens: 200 },
+      };
+
+      const summary = extractTextCompletionResponse(
+        response,
+        schema,
+        {
+          contentPath: "content[0].text",
+          promptTokensPath: "usage.input_tokens",
+          completionTokensPath: "usage.output_tokens",
+          stopReasonPath: "stop_reason",
+          stopReasonValueForLength: ["max_tokens", "length"],
+        },
+        "TestProvider",
+      );
+
+      expect(summary.isIncompleteResponse).toBe(true);
+      expect(summary.responseContent).toBe("truncated content");
+    });
+
+    it("returns complete response when stop reason does not match any value in array", () => {
+      const response = {
+        content: [{ text: "complete content" }],
+        stop_reason: "end_turn",
+        usage: { input_tokens: 50, output_tokens: 100 },
+      };
+
+      const summary = extractTextCompletionResponse(
+        response,
+        schema,
+        {
+          contentPath: "content[0].text",
+          promptTokensPath: "usage.input_tokens",
+          completionTokensPath: "usage.output_tokens",
+          stopReasonPath: "stop_reason",
+          stopReasonValueForLength: ["max_tokens", "length"],
+        },
+        "TestProvider",
+      );
+
+      expect(summary.isIncompleteResponse).toBe(false);
+      expect(summary.responseContent).toBe("complete content");
+    });
+
+    it("performs case-insensitive comparison for array values", () => {
+      const response = {
+        content: [{ text: "truncated content" }],
+        stop_reason: "MAX_TOKENS",
+        usage: { input_tokens: 100, output_tokens: 200 },
+      };
+
+      const summary = extractTextCompletionResponse(
+        response,
+        schema,
+        {
+          contentPath: "content[0].text",
+          promptTokensPath: "usage.input_tokens",
+          completionTokensPath: "usage.output_tokens",
+          stopReasonPath: "stop_reason",
+          stopReasonValueForLength: ["max_tokens", "length"],
+        },
+        "TestProvider",
+      );
+
+      expect(summary.isIncompleteResponse).toBe(true);
+    });
+
+    it("works with single string value (backwards compatible)", () => {
+      const response = {
+        content: [{ text: "truncated content" }],
+        stop_reason: "max_tokens",
+        usage: { input_tokens: 100, output_tokens: 200 },
+      };
+
+      const summary = extractTextCompletionResponse(
+        response,
+        schema,
+        {
+          contentPath: "content[0].text",
+          promptTokensPath: "usage.input_tokens",
+          completionTokensPath: "usage.output_tokens",
+          stopReasonPath: "stop_reason",
+          stopReasonValueForLength: "max_tokens",
+        },
+        "TestProvider",
+      );
+
+      expect(summary.isIncompleteResponse).toBe(true);
+    });
+  });
 });
