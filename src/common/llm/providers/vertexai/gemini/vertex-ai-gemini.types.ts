@@ -24,6 +24,34 @@ export interface VertexAIGeminiConfig {
  * @returns The validated VertexAIGeminiConfig
  * @throws LLMError with BAD_CONFIGURATION code if validation fails
  */
+/**
+ * Type guard to check if an object is a valid VertexAIGeminiConfig.
+ * Returns a boolean for use in conditional type narrowing.
+ *
+ * @param obj - The object to validate
+ * @returns True if the object is a valid VertexAIGeminiConfig
+ */
+export function isVertexAIGeminiConfig(obj: unknown): obj is VertexAIGeminiConfig {
+  if (!obj || typeof obj !== "object") return false;
+  const config = obj as Record<string, unknown>;
+  return (
+    typeof config.projectId === "string" &&
+    config.projectId.length > 0 &&
+    typeof config.embeddingsLocation === "string" &&
+    config.embeddingsLocation.length > 0 &&
+    typeof config.completionsLocation === "string" &&
+    config.completionsLocation.length > 0
+  );
+}
+
+/**
+ * Validates and asserts that an object is a valid VertexAIGeminiConfig.
+ * Throws an LLMError if validation fails, centralizing validation in the manifest layer.
+ *
+ * @param obj - The object to validate
+ * @returns The validated VertexAIGeminiConfig
+ * @throws LLMError with BAD_CONFIGURATION code if validation fails
+ */
 export function assertVertexAIGeminiConfig(obj: unknown): VertexAIGeminiConfig {
   if (!obj || typeof obj !== "object") {
     throw new LLMError(

@@ -1,7 +1,8 @@
 import { OpenAI } from "openai";
 import BaseOpenAILLM from "../common/base-openai-llm";
 import type { ProviderInit } from "../../llm-provider.types";
-import type { OpenAIConfig } from "./openai.types";
+import { isOpenAIConfig } from "./openai.types";
+import { LLMError, LLMErrorCode } from "../../../types/llm-errors.types";
 
 /**
  * Class for the public OpenAI service.
@@ -19,8 +20,14 @@ export default class OpenAILLM extends BaseOpenAILLM {
   constructor(init: ProviderInit) {
     super(init);
 
-    // Config is pre-validated by manifest's extractConfig (assertOpenAIConfig)
-    const { apiKey } = init.extractedConfig as OpenAIConfig;
+    // Validate config at instantiation for type safety
+    if (!isOpenAIConfig(init.extractedConfig)) {
+      throw new LLMError(
+        LLMErrorCode.BAD_CONFIGURATION,
+        "Invalid OpenAI configuration - missing or empty apiKey",
+      );
+    }
+    const { apiKey } = init.extractedConfig;
     this.client = new OpenAI({ apiKey });
   }
 

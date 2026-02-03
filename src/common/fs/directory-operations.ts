@@ -1,8 +1,26 @@
 import { promises as fs, Dirent } from "fs";
 import path from "path";
-import glob from "fast-glob";
+import glob, { Entry } from "fast-glob";
 import { logErr } from "../utils/logging";
 import type { FileDiscoveryConfig } from "./file-filter.types";
+
+/**
+ * Type guard to check if a fast-glob entry has the expected structure with stats.
+ * Used when glob is called with `stats: true` option to safely access entry properties.
+ *
+ * @param entry - The entry returned by fast-glob
+ * @returns True if the entry has the expected Entry structure with path and optional stats
+ */
+export function isGlobEntryWithStats(entry: unknown): entry is Entry {
+  if (!entry || typeof entry !== "object") return false;
+  const obj = entry as Record<string, unknown>;
+  if (typeof obj.path !== "string") return false;
+  // stats is optional but if present should be an object
+  if (obj.stats !== undefined && (typeof obj.stats !== "object" || obj.stats === null)) {
+    return false;
+  }
+  return true;
+}
 
 /**
  * Get the handle of the files in a directory
@@ -129,11 +147,14 @@ export async function findFilesWithSize(
   // Map entries to FileWithSize and sort by size descending
   const filesWithSize: FileWithSize[] = entries.map((entry) => {
     // When stats: true, fast-glob returns Entry objects with stats property
-    const entryWithStats = entry as unknown as { path: string; stats?: { size: number } };
-    return {
-      filepath: entryWithStats.path,
-      size: entryWithStats.stats?.size ?? 0,
-    };
+    if (isGlobEntryWithStats(entry)) {
+      return {
+        filepath: entry.path,
+        size: entry.stats?.size ?? 0,
+      };
+    }
+    // Fallback for unexpected entry format (should not happen with stats: true)
+    return { filepath: entry, size: 0 };
   });
 
   // Sort by size descending (largest first) for better work distribution

@@ -7,6 +7,7 @@ import {
 import { ResolvedLLMModelMetadata } from "../../../../../../src/common/llm/types/llm-model.types";
 import OpenAILLM from "../../../../../../src/common/llm/providers/openai/openai/openai-llm";
 import { openAIProviderManifest } from "../../../../../../src/common/llm/providers/openai/openai/openai.manifest";
+import { isOpenAIConfig } from "../../../../../../src/common/llm/providers/openai/openai/openai.types";
 import { createMockErrorLoggingConfig } from "../../../../helpers/llm/mock-error-logger";
 import type { ProviderInit } from "../../../../../../src/common/llm/providers/llm-provider.types";
 
@@ -64,6 +65,59 @@ function createMockCompletionResponse(data: {
 
 // Mock the OpenAI client
 jest.mock("openai");
+
+describe("isOpenAIConfig", () => {
+  test("should return true for valid config", () => {
+    const validConfig = {
+      apiKey: "sk-test-api-key-12345",
+    };
+    expect(isOpenAIConfig(validConfig)).toBe(true);
+  });
+
+  test("should return false for null", () => {
+    expect(isOpenAIConfig(null)).toBe(false);
+  });
+
+  test("should return false for undefined", () => {
+    expect(isOpenAIConfig(undefined)).toBe(false);
+  });
+
+  test("should return false for non-object types", () => {
+    expect(isOpenAIConfig("string")).toBe(false);
+    expect(isOpenAIConfig(123)).toBe(false);
+    expect(isOpenAIConfig(true)).toBe(false);
+  });
+
+  test("should return false for objects missing apiKey", () => {
+    const missingApiKey = {
+      otherField: "value",
+    };
+    expect(isOpenAIConfig(missingApiKey)).toBe(false);
+  });
+
+  test("should return false when apiKey is not a string", () => {
+    const invalidApiKey = {
+      apiKey: 12345,
+    };
+    expect(isOpenAIConfig(invalidApiKey)).toBe(false);
+  });
+
+  test("should return false for empty apiKey string", () => {
+    const emptyApiKey = {
+      apiKey: "",
+    };
+    expect(isOpenAIConfig(emptyApiKey)).toBe(false);
+  });
+
+  test("should return true for config with extra fields", () => {
+    const extraFields = {
+      apiKey: "sk-test-key",
+      organization: "org-123",
+      project: "proj-456",
+    };
+    expect(isOpenAIConfig(extraFields)).toBe(true);
+  });
+});
 
 describe("OpenAI LLM Provider", () => {
   const mockModelsMetadata: Record<string, ResolvedLLMModelMetadata> = {

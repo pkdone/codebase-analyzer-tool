@@ -2,6 +2,7 @@ import {
   findFilesRecursively,
   clearDirectory,
   findFilesWithSize,
+  isGlobEntryWithStats,
 } from "../../../src/common/fs/directory-operations";
 import glob from "fast-glob";
 import { promises as fs } from "fs";
@@ -18,6 +19,89 @@ jest.mock("fs", () => ({
 }));
 
 describe("directory-operations", () => {
+  describe("isGlobEntryWithStats", () => {
+    test("should return true for valid entry with stats", () => {
+      const entry = {
+        path: "/test/file.ts",
+        name: "file.ts",
+        dirent: {},
+        stats: { size: 1000, isFile: () => true },
+      };
+      expect(isGlobEntryWithStats(entry)).toBe(true);
+    });
+
+    test("should return true for valid entry without stats", () => {
+      const entry = {
+        path: "/test/file.ts",
+        name: "file.ts",
+        dirent: {},
+      };
+      expect(isGlobEntryWithStats(entry)).toBe(true);
+    });
+
+    test("should return true for entry with undefined stats", () => {
+      const entry = {
+        path: "/test/file.ts",
+        name: "file.ts",
+        dirent: {},
+        stats: undefined,
+      };
+      expect(isGlobEntryWithStats(entry)).toBe(true);
+    });
+
+    test("should return false for null", () => {
+      expect(isGlobEntryWithStats(null)).toBe(false);
+    });
+
+    test("should return false for undefined", () => {
+      expect(isGlobEntryWithStats(undefined)).toBe(false);
+    });
+
+    test("should return false for non-object types", () => {
+      expect(isGlobEntryWithStats("string")).toBe(false);
+      expect(isGlobEntryWithStats(123)).toBe(false);
+      expect(isGlobEntryWithStats(true)).toBe(false);
+    });
+
+    test("should return false for entry missing path property", () => {
+      const entry = {
+        name: "file.ts",
+        dirent: {},
+        stats: { size: 1000 },
+      };
+      expect(isGlobEntryWithStats(entry)).toBe(false);
+    });
+
+    test("should return false when path is not a string", () => {
+      const entry = {
+        path: 123,
+        name: "file.ts",
+        dirent: {},
+      };
+      expect(isGlobEntryWithStats(entry)).toBe(false);
+    });
+
+    test("should return false when stats is not an object", () => {
+      const entry = {
+        path: "/test/file.ts",
+        name: "file.ts",
+        dirent: {},
+        stats: "invalid",
+      };
+      expect(isGlobEntryWithStats(entry)).toBe(false);
+    });
+
+    test("should return false when stats is null", () => {
+      const entry = {
+        path: "/test/file.ts",
+        name: "file.ts",
+        dirent: {},
+        stats: null,
+      };
+      expect(isGlobEntryWithStats(entry)).toBe(false);
+    });
+  });
+
   describe("findFilesRecursively", () => {
     const mockGlob = glob as jest.MockedFunction<typeof glob>;
 

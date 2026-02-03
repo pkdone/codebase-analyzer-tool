@@ -27,7 +27,7 @@ import {
   VERTEXAI_TERMINAL_FINISH_REASONS,
   VERTEXAI_GLOBAL_LOCATION,
 } from "./vertex-ai-gemini.constants";
-import type { VertexAIGeminiConfig } from "./vertex-ai-gemini.types";
+import { isVertexAIGeminiConfig } from "./vertex-ai-gemini.types";
 
 /**
  * Class for the GCP Vertex AI Gemini service.
@@ -56,9 +56,14 @@ export default class VertexAIGeminiLLM extends BaseLLMProvider {
   constructor(init: import("../../llm-provider.types").ProviderInit) {
     super(init);
 
-    // Config is pre-validated by manifest's extractConfig (assertVertexAIGeminiConfig)
-    const { projectId, embeddingsLocation, completionsLocation } =
-      init.extractedConfig as VertexAIGeminiConfig;
+    // Validate config at instantiation for type safety
+    if (!isVertexAIGeminiConfig(init.extractedConfig)) {
+      throw new LLMError(
+        LLMErrorCode.BAD_CONFIGURATION,
+        "Invalid VertexAI Gemini configuration - missing required fields (projectId, embeddingsLocation, completionsLocation)",
+      );
+    }
+    const { projectId, embeddingsLocation, completionsLocation } = init.extractedConfig;
 
     // For 'global' location, the API endpoint is the base domain (no region prefix)
     // For regional locations, the SDK automatically constructs '{location}-aiplatform.googleapis.com'
