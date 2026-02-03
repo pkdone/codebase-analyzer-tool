@@ -133,13 +133,6 @@ export class ProviderManager {
   }
 
   /**
-   * Get the loaded manifests for all required providers.
-   */
-  getManifests(): ReadonlyMap<string, LLMProviderManifest> {
-    return this.manifests;
-  }
-
-  /**
    * Get a specific manifest by provider family.
    */
   getManifest(providerFamily: string): LLMProviderManifest | undefined {
@@ -157,15 +150,6 @@ export class ProviderManager {
       const provider = this.getProvider(family);
       await provider.validateCredentials();
     }
-  }
-
-  /**
-   * Check if any provider requires forced process exit for cleanup.
-   * This method instantiates all providers if they haven't been created yet
-   * to ensure we can accurately report shutdown requirements.
-   */
-  requiresProcessExit(): boolean {
-    return this.getProvidersRequiringProcessExit().length > 0;
   }
 
   /**

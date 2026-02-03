@@ -11,22 +11,11 @@
  * that may exist within JSON string values.
  */
 
-import type { ReplacementRule, ContextInfo } from "../replacement-rule.types";
+import type { ReplacementRule } from "../replacement-rule.types";
 import { parsingHeuristics } from "../../../constants/json-processing.config";
 import { looksLikeSentenceStructure } from "../../../utils/stray-text-detection";
 import { safeGroup, safeGroups3, safeGroups4 } from "../../../utils/safe-group-extractor";
-
-/**
- * Checks if a context is valid for embedded content removal.
- */
-function isValidEmbeddedContentContext(context: ContextInfo): boolean {
-  const { beforeMatch, offset } = context;
-  return (
-    /[}\],]\s*$/.test(beforeMatch) ||
-    /^\s*$/.test(beforeMatch) ||
-    offset < parsingHeuristics.START_OF_FILE_OFFSET_LIMIT
-  );
-}
+import { isValidEmbeddedContentContext } from "./extra-property-rules";
 
 /**
  * Rules for removing stray commentary and LLM conversational artifacts from JSON.

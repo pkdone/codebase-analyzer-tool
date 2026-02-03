@@ -7,7 +7,6 @@ import {
   clearDirectory,
   findFilesRecursively,
 } from "../../../src/common/fs/directory-operations";
-import { sortFilesBySize } from "../../../src/common/fs/file-sorting";
 
 // Mock the logging module to avoid actual logging during tests
 jest.mock("../../../src/common/utils/logging", () => ({
@@ -203,22 +202,6 @@ describe("File System Utilities", () => {
           "src/utils.ts",
         ].sort(),
       );
-    });
-
-    test("should find files ordered by size (largest first)", async () => {
-      const files = await findFilesRecursively("/project", {
-        folderIgnoreList: ["node_modules", "dist", ".git"],
-        filenameIgnorePrefix: ".",
-      });
-
-      // Sort files by size to get largest first
-      const sortedFiles = await sortFilesBySize(files);
-
-      expect(sortedFiles.length).toBeGreaterThan(0);
-
-      // Check that largest file comes first (large-file.md should be largest)
-      const firstFile = path.relative("/project", sortedFiles[0]);
-      expect(firstFile).toBe("large-file.md");
     });
 
     test("should respect folder ignore list", async () => {

@@ -11,11 +11,6 @@ describe("fs module barrel exports", () => {
       expect(typeof fs.findFilesRecursively).toBe("function");
     });
 
-    it("should export sortFilesBySize", () => {
-      expect(fs.sortFilesBySize).toBeDefined();
-      expect(typeof fs.sortFilesBySize).toBe("function");
-    });
-
     it("should export listDirectoryEntries", () => {
       expect(fs.listDirectoryEntries).toBeDefined();
       expect(typeof fs.listDirectoryEntries).toBe("function");
@@ -63,9 +58,9 @@ describe("fs module barrel exports", () => {
     expect(exports.length).toBe(uniqueExports.size);
   });
 
-  it("should have at least 9 exported functions", () => {
+  it("should have at least 8 exported functions", () => {
     // Ensure we're exporting a reasonable number of utilities
     const exports = Object.keys(fs);
-    expect(exports.length).toBeGreaterThanOrEqual(9);
+    expect(exports.length).toBeGreaterThanOrEqual(8);
   });
 });
