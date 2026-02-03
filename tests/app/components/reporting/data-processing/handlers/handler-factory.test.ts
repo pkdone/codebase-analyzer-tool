@@ -1,35 +1,30 @@
 import { createCategoryHandler } from "../../../../../../src/app/components/reporting/data-processing/handlers";
 import type { CategoryDataHandler } from "../../../../../../src/app/components/reporting/data-processing/handlers";
+import {
+  isAppSummaryNameDescArray,
+  isBusinessProcessesArray,
+  isBoundedContextsArray,
+  isPotentialMicroservicesArray,
+} from "../../../../../../src/app/components/reporting/data-processing/category-data-type-guards";
+import type { AppSummaryNameDescArray } from "../../../../../../src/app/repositories/app-summaries/app-summaries.model";
 
 describe("createCategoryHandler", () => {
-  // Simple type guard for testing
-  const isStringArray = (data: unknown): data is string[] => {
-    return Array.isArray(data) && data.every((item) => typeof item === "string");
-  };
-
-  // Type guard that always returns true
-  const alwaysTrue = (data: unknown): data is unknown[] => {
-    return Array.isArray(data);
-  };
-
-  // Type guard that always returns false
-  const alwaysFalse = (_data: unknown): _data is never => {
-    return false;
-  };
-
   describe("handler creation", () => {
     it("should create a handler with the specified category", () => {
-      const handler = createCategoryHandler("technologies", isStringArray);
+      const handler = createCategoryHandler("technologies", isAppSummaryNameDescArray);
       expect(handler.category).toBe("technologies");
     });
 
     it("should create a handler with a process function", () => {
-      const handler = createCategoryHandler("technologies", isStringArray);
+      const handler = createCategoryHandler("technologies", isAppSummaryNameDescArray);
       expect(typeof handler.process).toBe("function");
     });
 
     it("should implement CategoryDataHandler interface", () => {
-      const handler: CategoryDataHandler = createCategoryHandler("technologies", isStringArray);
+      const handler: CategoryDataHandler = createCategoryHandler(
+        "technologies",
+        isAppSummaryNameDescArray,
+      );
       expect(handler.category).toBeDefined();
       expect(handler.process).toBeDefined();
     });
@@ -37,8 +32,11 @@ describe("createCategoryHandler", () => {
 
   describe("process function behavior", () => {
     it("should return valid data when type guard passes", () => {
-      const handler = createCategoryHandler("technologies", alwaysTrue);
-      const testData = ["item1", "item2"];
+      const handler = createCategoryHandler("technologies", isAppSummaryNameDescArray);
+      const testData: AppSummaryNameDescArray = [
+        { name: "React", description: "UI library" },
+        { name: "TypeScript", description: "Type-safe JavaScript" },
+      ];
 
       const result = handler.process("Test Label", testData);
 
@@ -50,8 +48,8 @@ describe("createCategoryHandler", () => {
     });
 
     it("should return empty array when type guard fails", () => {
-      const handler = createCategoryHandler("technologies", alwaysFalse);
-      const testData = ["item1", "item2"];
+      const handler = createCategoryHandler("technologies", isAppSummaryNameDescArray);
+      const testData = "not an array";
 
       const result = handler.process("Test Label", testData);
 
@@ -63,7 +61,7 @@ describe("createCategoryHandler", () => {
     });
 
     it("should return empty array for null input when type guard fails", () => {
-      const handler = createCategoryHandler("technologies", isStringArray);
+      const handler = createCategoryHandler("technologies", isAppSummaryNameDescArray);
 
       const result = handler.process("Test Label", null);
 
@@ -75,7 +73,7 @@ describe("createCategoryHandler", () => {
     });
 
     it("should return empty array for undefined input when type guard fails", () => {
-      const handler = createCategoryHandler("technologies", isStringArray);
+      const handler = createCategoryHandler("technologies", isAppSummaryNameDescArray);
 
       const result = handler.process("Test Label", undefined);
 
@@ -87,32 +85,36 @@ describe("createCategoryHandler", () => {
     });
 
     it("should preserve the label passed to process", () => {
-      const handler = createCategoryHandler("technologies", alwaysTrue);
+      const handler = createCategoryHandler("technologies", isAppSummaryNameDescArray);
+      const testData: AppSummaryNameDescArray = [];
 
-      const result = handler.process("Custom Label", []);
+      const result = handler.process("Custom Label", testData);
 
       expect(result?.label).toBe("Custom Label");
     });
 
     it("should preserve the category in the result", () => {
-      const handler = createCategoryHandler("businessProcesses", alwaysTrue);
+      const handler = createCategoryHandler("businessProcesses", isBusinessProcessesArray);
+      const testData = [{ name: "Process", description: "A business process" }];
 
-      const result = handler.process("Test", []);
+      const result = handler.process("Test", testData);
 
       expect(result?.category).toBe("businessProcesses");
     });
   });
 
   describe("type guard integration", () => {
-    it("should correctly validate string arrays", () => {
-      const handler = createCategoryHandler("technologies", isStringArray);
+    it("should correctly validate AppSummaryNameDescArray", () => {
+      const handler = createCategoryHandler("technologies", isAppSummaryNameDescArray);
 
-      // Valid string array
-      const validResult = handler.process("Test", ["a", "b", "c"]);
-      expect(validResult?.data).toEqual(["a", "b", "c"]);
+      // Valid AppSummaryNameDescArray
+      const validResult = handler.process("Test", [
+        { name: "Tech1", description: "Description 1" },
+      ]);
+      expect(validResult?.data).toEqual([{ name: "Tech1", description: "Description 1" }]);
 
-      // Invalid - mixed array
-      const invalidResult = handler.process("Test", ["a", 1, "c"]);
+      // Invalid - missing description
+      const invalidResult = handler.process("Test", [{ name: "Tech1" }]);
       expect(invalidResult?.data).toEqual([]);
 
       // Invalid - not an array
@@ -120,59 +122,96 @@ describe("createCategoryHandler", () => {
       expect(notArrayResult?.data).toEqual([]);
     });
 
-    it("should work with complex type guards", () => {
-      interface TestItem {
-        id: number;
-        name: string;
-      }
-      const isTestItemArray = (data: unknown): data is TestItem[] => {
-        return (
-          Array.isArray(data) &&
-          data.every(
-            (item) =>
-              typeof item === "object" &&
-              item !== null &&
-              "id" in item &&
-              typeof item.id === "number" &&
-              "name" in item &&
-              typeof item.name === "string",
-          )
-        );
-      };
+    it("should correctly validate BusinessProcessesArray", () => {
+      const handler = createCategoryHandler("businessProcesses", isBusinessProcessesArray);
 
-      const handler = createCategoryHandler("technologies", isTestItemArray);
-
-      // Valid
+      // Valid BusinessProcessesArray - must include keyBusinessActivities per schema
       const validData = [
-        { id: 1, name: "Item 1" },
-        { id: 2, name: "Item 2" },
+        {
+          name: "Process1",
+          description: "Business process 1",
+          keyBusinessActivities: [{ activity: "Step1", description: "First step" }],
+        },
       ];
-      expect(handler.process("Test", validData)?.data).toEqual(validData);
+      const validResult = handler.process("Test", validData);
+      expect(validResult?.data).toEqual(validData);
 
-      // Invalid - missing name
-      const invalidData = [{ id: 1 }];
-      expect(handler.process("Test", invalidData)?.data).toEqual([]);
+      // Invalid - not an array
+      const invalidResult = handler.process("Test", "not an array");
+      expect(invalidResult?.data).toEqual([]);
     });
   });
 
-  describe("different categories", () => {
-    const testCases: {
-      category: "technologies" | "businessProcesses" | "boundedContexts" | "potentialMicroservices";
-    }[] = [
-      { category: "technologies" },
-      { category: "businessProcesses" },
-      { category: "boundedContexts" },
-      { category: "potentialMicroservices" },
-    ];
+  describe("different categories with matching type guards", () => {
+    it("should create handler for technologies category", () => {
+      const handler = createCategoryHandler("technologies", isAppSummaryNameDescArray);
+      expect(handler.category).toBe("technologies");
 
-    testCases.forEach(({ category }) => {
-      it(`should create handler for ${category} category`, () => {
-        const handler = createCategoryHandler(category, alwaysTrue);
-        expect(handler.category).toBe(category);
+      const result = handler.process("Test", [{ name: "Tech", description: "Desc" }]);
+      expect(result?.category).toBe("technologies");
+    });
 
-        const result = handler.process("Test", []);
-        expect(result?.category).toBe(category);
-      });
+    it("should create handler for businessProcesses category", () => {
+      const handler = createCategoryHandler("businessProcesses", isBusinessProcessesArray);
+      expect(handler.category).toBe("businessProcesses");
+
+      const result = handler.process("Test", [{ name: "Process", description: "Desc" }]);
+      expect(result?.category).toBe("businessProcesses");
+    });
+
+    it("should create handler for boundedContexts category", () => {
+      const handler = createCategoryHandler("boundedContexts", isBoundedContextsArray);
+      expect(handler.category).toBe("boundedContexts");
+
+      const result = handler.process("Test", []);
+      expect(result?.category).toBe("boundedContexts");
+    });
+
+    it("should create handler for potentialMicroservices category", () => {
+      const handler = createCategoryHandler(
+        "potentialMicroservices",
+        isPotentialMicroservicesArray,
+      );
+      expect(handler.category).toBe("potentialMicroservices");
+
+      const result = handler.process("Test", []);
+      expect(result?.category).toBe("potentialMicroservices");
+    });
+  });
+
+  describe("type safety", () => {
+    /**
+     * This test verifies that the generic factory enforces type safety at compile time.
+     * The factory now requires that the type guard's return type matches the expected
+     * data type for the given category. A mismatched type guard would cause a compile error.
+     *
+     * For example, this would NOT compile (commented out to show intent):
+     * ```typescript
+     * // ERROR: isBusinessProcessesArray returns BusinessProcessesArray,
+     * // but "technologies" expects AppSummaryNameDescArray
+     * createCategoryHandler("technologies", isBusinessProcessesArray);
+     * ```
+     *
+     * This runtime test verifies the handlers work correctly when properly typed.
+     */
+    it("should enforce category-data type relationship at compile time", () => {
+      // These are valid combinations that compile successfully
+      const techHandler = createCategoryHandler("technologies", isAppSummaryNameDescArray);
+      const processHandler = createCategoryHandler("businessProcesses", isBusinessProcessesArray);
+
+      // Verify they produce correct output
+      const techData: AppSummaryNameDescArray = [{ name: "React", description: "UI library" }];
+      expect(techHandler.process("Tech", techData)?.data).toEqual(techData);
+
+      // BusinessProcessesArray requires keyBusinessActivities per schema
+      const processData = [
+        {
+          name: "Checkout",
+          description: "Order checkout process",
+          keyBusinessActivities: [{ activity: "Validate Cart", description: "Validates items" }],
+        },
+      ];
+      expect(processHandler.process("Process", processData)?.data).toEqual(processData);
     });
   });
 });

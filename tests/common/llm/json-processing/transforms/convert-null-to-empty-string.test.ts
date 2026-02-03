@@ -257,6 +257,24 @@ describe("convertNullToEmptyStringForRequiredFields", () => {
       expect(result.fields).toBe(""); // fields is a candidate, gets converted
       expect(result.timestamp).toBe(date);
     });
+
+    it("should preserve symbol keys in objects", () => {
+      const sym = Symbol("testSymbol");
+      const input: Record<string | symbol, unknown> = {
+        name: "entry",
+        fields: null,
+        [sym]: "symbolValue",
+      };
+
+      const result = convertNullToEmptyStringForRequiredFields(input) as Record<
+        string | symbol,
+        unknown
+      >;
+
+      expect(result.name).toBe("entry");
+      expect(result.fields).toBe(""); // fields is a candidate, gets converted
+      expect(result[sym]).toBe("symbolValue"); // symbol key preserved
+    });
   });
 
   describe("real-world scenario from error logs", () => {

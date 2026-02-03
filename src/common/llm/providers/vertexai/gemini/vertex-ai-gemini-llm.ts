@@ -308,7 +308,7 @@ export default class VertexAIGeminiLLM extends BaseLLMProvider {
 
     const requestOptions = {
       timeout: config.requestTimeoutMillis,
-    } as RequestOptions;
+    } satisfies RequestOptions;
 
     return { modelParams, requestOptions };
   }

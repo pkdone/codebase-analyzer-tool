@@ -76,7 +76,7 @@ export function convertNullToEmptyStringForRequiredFields(
 
       // Create a new object with null values converted to empty strings
       // for fields that are commonly required string fields
-      const result: Record<string, unknown> = {};
+      const result: Record<string | symbol, unknown> = {};
       let changed = false;
 
       for (const key in val) {
@@ -93,10 +93,10 @@ export function convertNullToEmptyStringForRequiredFields(
         }
       }
 
-      // Preserve symbol keys
+      // Preserve symbol keys - properly typed, no cast needed
       const symbols = Object.getOwnPropertySymbols(val);
       for (const sym of symbols) {
-        result[sym as unknown as string] = val[sym as unknown as string];
+        result[sym] = val[sym];
       }
 
       return changed ? result : val;

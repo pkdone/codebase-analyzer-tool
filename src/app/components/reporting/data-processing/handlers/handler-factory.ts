@@ -10,13 +10,33 @@
  */
 
 import type { CategoryDataHandler, ProcessableCategory } from "./category-handler.interface";
-import type { CategorizedSectionItem } from "../category-data-type-guards";
+import type {
+  CategorizedSectionItem,
+  InferredArchitectureInner,
+  PotentialMicroservicesArray,
+  BoundedContextsArray,
+  BusinessProcessesArray,
+} from "../category-data-type-guards";
+import type { AppSummaryNameDescArray } from "../../../../repositories/app-summaries/app-summaries.model";
 
 /**
- * Creates a category data handler using a type guard for validation.
+ * Maps category types to their expected data types for type-safe handler creation.
+ * This ensures compile-time verification that the type guard matches the category.
+ */
+export interface CategoryDataTypeMap {
+  technologies: AppSummaryNameDescArray;
+  businessProcesses: BusinessProcessesArray;
+  boundedContexts: BoundedContextsArray;
+  potentialMicroservices: PotentialMicroservicesArray;
+  inferredArchitecture: InferredArchitectureInner[];
+}
+
+/**
+ * Creates a type-safe category data handler using a type guard for validation.
+ * The generic parameter C ensures the type guard matches the expected data type for the category.
  *
  * @param category - The category this handler processes (must match CategorizedSectionItem variants)
- * @param typeGuard - Function to validate that data matches the expected type
+ * @param typeGuard - Function to validate that data matches the expected type for this category
  * @returns A CategoryDataHandler that validates and wraps data for the specified category
  *
  * @example
@@ -27,18 +47,17 @@ import type { CategorizedSectionItem } from "../category-data-type-guards";
  * );
  * ```
  */
-export function createCategoryHandler(
-  category: ProcessableCategory,
-  typeGuard: (data: unknown) => boolean,
+export function createCategoryHandler<C extends ProcessableCategory>(
+  category: C,
+  typeGuard: (data: unknown) => data is CategoryDataTypeMap[C],
 ): CategoryDataHandler {
   return {
     category,
     process(label: string, fieldData: unknown): CategorizedSectionItem | null {
-      return {
-        category,
-        label,
-        data: typeGuard(fieldData) ? fieldData : [],
-      } as CategorizedSectionItem;
+      const data: CategoryDataTypeMap[C] = typeGuard(fieldData)
+        ? fieldData
+        : ([] as CategoryDataTypeMap[C]);
+      return { category, label, data } as CategorizedSectionItem;
     },
   };
 }
