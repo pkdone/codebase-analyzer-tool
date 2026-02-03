@@ -21,7 +21,6 @@ import type { CanonicalFileType } from "../schemas/canonical-file-types";
 import type { BasePromptConfigEntry } from "./prompts.types";
 import {
   DEFAULT_PERSONA_INTRODUCTION,
-  CODE_DATA_BLOCK_HEADER,
   FRAGMENTED_DATA_BLOCK_HEADER,
   CODEBASE_QUERY_TEMPLATE,
 } from "./prompts.constants";
@@ -80,35 +79,21 @@ export interface ReducePromptOptions {
 }
 
 /**
- * Presentation configuration for prompt generation.
- * These fields control how content is displayed in the prompt template
- * but are not part of the logical prompt definition.
- */
-interface PresentationConfig {
-  /** The data block header to use in the template (e.g., "CODE", "FILE_SUMMARIES") */
-  readonly dataBlockHeader: string;
-  /** Whether to wrap content in markdown code blocks */
-  readonly wrapInCodeBlock: boolean;
-  /** Optional contextual note prepended before the schema section */
-  readonly contextNote?: string;
-}
-
-/**
- * Creates a JSONSchemaPrompt from a base config entry and presentation settings.
- * This helper function provides clean construction of prompts by explicitly combining
- * the config entry with presentation fields.
+ * Creates a JSONSchemaPrompt from a self-describing config entry.
+ * The config now includes all presentation fields (dataBlockHeader, wrapInCodeBlock),
+ * enabling this function to act as a simple assembler without hardcoding presentation logic.
  *
  * Note: This function uses z.ZodType<unknown> for the schema type parameter because
  * config registries contain heterogeneous entry types with different schemas. The
  * specific schema type is preserved by the caller through the returned prompt result.
  *
- * @param config - The base prompt configuration entry containing content, instructions, and schema
- * @param presentation - The presentation configuration for the prompt template
+ * @param config - The complete prompt configuration entry containing content, instructions, schema, and presentation
+ * @param contextNoteOverride - Optional contextual note to override the config's contextNote (for runtime-computed notes)
  * @returns A configured JSONSchemaPrompt ready to render prompts
  */
 export function createPromptGenerator(
   config: BasePromptConfigEntry,
-  presentation: PresentationConfig,
+  contextNoteOverride?: string,
 ): JSONSchemaPrompt {
   return new JSONSchemaPrompt({
     personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
@@ -116,9 +101,9 @@ export function createPromptGenerator(
     instructions: config.instructions,
     responseSchema: config.responseSchema,
     hasComplexSchema: config.hasComplexSchema,
-    dataBlockHeader: presentation.dataBlockHeader,
-    wrapInCodeBlock: presentation.wrapInCodeBlock,
-    contextNote: presentation.contextNote,
+    dataBlockHeader: config.dataBlockHeader,
+    wrapInCodeBlock: config.wrapInCodeBlock,
+    contextNote: contextNoteOverride ?? config.contextNote,
   });
 }
 
@@ -139,8 +124,8 @@ function buildPartialAnalysisNote(dataBlockHeader: string): string {
  * Builds a prompt for analyzing source code files.
  *
  * This function encapsulates the prompt construction logic for source file analysis,
- * combining the file type configuration with standard presentation fields.
- * All source files use the CODE data block header and wrap content in code blocks.
+ * using the self-describing configuration from the file type prompt registry.
+ * Each config entry includes its own presentation fields (dataBlockHeader, wrapInCodeBlock).
  *
  * The generic parameter K captures the specific file type literal, enabling TypeScript
  * to narrow the return type to the exact schema for that file type when called with
@@ -168,10 +153,7 @@ export function buildSourcePrompt<K extends CanonicalFileType>(
   content: string,
 ): SourcePromptResult<K> {
   const config = fileTypePromptRegistry[canonicalFileType];
-  const promptGenerator = createPromptGenerator(config, {
-    dataBlockHeader: CODE_DATA_BLOCK_HEADER,
-    wrapInCodeBlock: true,
-  });
+  const promptGenerator = createPromptGenerator(config);
   return {
     prompt: promptGenerator.renderPrompt(content),
     schema: config.responseSchema,
@@ -184,7 +166,7 @@ export function buildSourcePrompt<K extends CanonicalFileType>(
  *
  * This function encapsulates the prompt construction logic for insight generation,
  * using the self-describing configuration from the provided config map.
- * App summary prompts do not wrap content in code blocks.
+ * Each config entry includes its own presentation fields (dataBlockHeader, wrapInCodeBlock).
  *
  * @template C - The specific category type (inferred from the category parameter)
  * @param configMap - The app summary configuration map containing prompt definitions
@@ -213,15 +195,11 @@ export function buildInsightPrompt<C extends keyof AppSummaryConfigMap>(
   const contextNote = options?.forPartialAnalysis
     ? buildPartialAnalysisNote(config.dataBlockHeader)
     : undefined;
-  const promptGenerator = createPromptGenerator(config, {
-    dataBlockHeader: config.dataBlockHeader,
-    wrapInCodeBlock: false,
-    contextNote,
-  });
+  const promptGenerator = createPromptGenerator(config, contextNote);
   return {
     prompt: promptGenerator.renderPrompt(content),
     schema: config.responseSchema,
-    metadata: { hasComplexSchema: config.hasComplexSchema ?? false },
+    metadata: { hasComplexSchema: config.hasComplexSchema },
   };
 }
 
@@ -256,16 +234,15 @@ export function buildReducePrompt<S extends z.ZodType<unknown>>(
   schema: S,
   options?: ReducePromptOptions,
 ): ReducePromptResult<S> {
-  const reduceConfig: BasePromptConfigEntry = {
+  const reduceConfig: BasePromptConfigEntry<S> = {
     contentDesc: buildReduceInsightsContentDesc(categoryKey),
     instructions: [`* A consolidated list of '${categoryKey}'`],
     responseSchema: schema,
     hasComplexSchema: options?.hasComplexSchema,
-  };
-  const promptGenerator = createPromptGenerator(reduceConfig, {
     dataBlockHeader: FRAGMENTED_DATA_BLOCK_HEADER,
     wrapInCodeBlock: false,
-  });
+  };
+  const promptGenerator = createPromptGenerator(reduceConfig);
   return {
     prompt: promptGenerator.renderPrompt(content),
     schema,

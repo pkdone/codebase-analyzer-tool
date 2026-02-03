@@ -20,11 +20,15 @@ describe("Prompt Type Definitions", () => {
         contentDesc: "test content description",
         instructions: ["instruction 1", "instruction 2"],
         responseSchema: testSchema,
+        dataBlockHeader: "CODE",
+        wrapInCodeBlock: true,
       };
 
       expect(config.contentDesc).toBe("test content description");
       expect(config.instructions).toHaveLength(2);
       expect(config.responseSchema).toBe(testSchema);
+      expect(config.dataBlockHeader).toBe("CODE");
+      expect(config.wrapInCodeBlock).toBe(true);
     });
 
     it("should work with readonly arrays", () => {
@@ -34,6 +38,8 @@ describe("Prompt Type Definitions", () => {
         contentDesc: "description",
         instructions: ["read", "only", "array"] as const,
         responseSchema: testSchema,
+        dataBlockHeader: "CODE",
+        wrapInCodeBlock: true,
       };
 
       expect(config.instructions).toHaveLength(3);
@@ -48,18 +54,24 @@ describe("Prompt Type Definitions", () => {
         contentDesc: "simple",
         instructions: [],
         responseSchema: simpleSchema,
+        dataBlockHeader: "CODE",
+        wrapInCodeBlock: true,
       };
 
       const objectConfig: BasePromptConfigEntry<typeof objectSchema> = {
         contentDesc: "object",
         instructions: [],
         responseSchema: objectSchema,
+        dataBlockHeader: "CODE",
+        wrapInCodeBlock: true,
       };
 
       const arrayConfig: BasePromptConfigEntry<typeof arraySchema> = {
         contentDesc: "array",
         instructions: [],
         responseSchema: arraySchema,
+        dataBlockHeader: "CODE",
+        wrapInCodeBlock: true,
       };
 
       expect(simpleConfig.responseSchema).toBe(simpleSchema);
@@ -72,6 +84,8 @@ describe("Prompt Type Definitions", () => {
         contentDesc: "default generic",
         instructions: ["test"],
         responseSchema: z.unknown(),
+        dataBlockHeader: "CODE",
+        wrapInCodeBlock: true,
       };
 
       expect(config.responseSchema).toBeDefined();
@@ -87,6 +101,8 @@ describe("Prompt Type Definitions", () => {
         instructions: ["extract info"],
         responseSchema: testSchema,
         hasComplexSchema: true,
+        dataBlockHeader: "CODE",
+        wrapInCodeBlock: true,
       };
 
       expect(config.contentDesc).toBe("source description");
@@ -102,6 +118,8 @@ describe("Prompt Type Definitions", () => {
         contentDesc: "description",
         instructions: [],
         responseSchema: testSchema,
+        dataBlockHeader: "CODE",
+        wrapInCodeBlock: true,
       };
 
       const configWithFalseComplexSchema: SourceConfigEntry<typeof testSchema> = {
@@ -109,6 +127,8 @@ describe("Prompt Type Definitions", () => {
         instructions: [],
         responseSchema: testSchema,
         hasComplexSchema: false,
+        dataBlockHeader: "CODE",
+        wrapInCodeBlock: true,
       };
 
       expect(configWithoutComplexSchema.hasComplexSchema).toBeUndefined();
@@ -123,6 +143,8 @@ describe("Prompt Type Definitions", () => {
         instructions: ["inst"],
         responseSchema: testSchema,
         hasComplexSchema: true,
+        dataBlockHeader: "CODE",
+        wrapInCodeBlock: true,
       };
 
       // SourceConfigEntry should be compatible with BasePromptConfigEntry
@@ -135,7 +157,7 @@ describe("Prompt Type Definitions", () => {
   });
 
   describe("AppSummaryConfigEntry extends BasePromptConfigEntry", () => {
-    it("should include base fields plus dataBlockHeader", () => {
+    it("should include base fields plus dataBlockHeader and wrapInCodeBlock", () => {
       const testSchema = z.object({ technologies: z.array(z.string()) });
 
       const config: AppSummaryConfigEntry<typeof testSchema> = {
@@ -143,26 +165,30 @@ describe("Prompt Type Definitions", () => {
         instructions: ["list technologies"],
         responseSchema: testSchema,
         dataBlockHeader: "FILE_SUMMARIES",
+        wrapInCodeBlock: false,
       };
 
       expect(config.contentDesc).toBe("app summary description");
       expect(config.instructions).toHaveLength(1);
       expect(config.responseSchema).toBe(testSchema);
       expect(config.dataBlockHeader).toBe("FILE_SUMMARIES");
+      expect(config.wrapInCodeBlock).toBe(false);
     });
 
-    it("should require dataBlockHeader", () => {
+    it("should require dataBlockHeader and wrapInCodeBlock", () => {
       const testSchema = z.string();
 
-      // TypeScript would error if dataBlockHeader is omitted
+      // TypeScript would error if dataBlockHeader or wrapInCodeBlock is omitted
       const config: AppSummaryConfigEntry<typeof testSchema> = {
         contentDesc: "description",
         instructions: [],
         responseSchema: testSchema,
         dataBlockHeader: "REQUIRED_HEADER",
+        wrapInCodeBlock: false,
       };
 
       expect(config.dataBlockHeader).toBe("REQUIRED_HEADER");
+      expect(config.wrapInCodeBlock).toBe(false);
     });
 
     it("should be assignable to BasePromptConfigEntry", () => {
@@ -173,6 +199,7 @@ describe("Prompt Type Definitions", () => {
         instructions: ["inst"],
         responseSchema: testSchema,
         dataBlockHeader: "DATA",
+        wrapInCodeBlock: false,
       };
 
       // AppSummaryConfigEntry should be compatible with BasePromptConfigEntry
@@ -193,13 +220,16 @@ describe("Prompt Type Definitions", () => {
         instructions: ["a"],
         responseSchema: schema,
         hasComplexSchema: true,
+        dataBlockHeader: "CODE",
+        wrapInCodeBlock: true,
       };
 
       const appConfig: AppSummaryConfigEntry<typeof schema> = {
         contentDesc: "app",
         instructions: ["b"],
         responseSchema: schema,
-        dataBlockHeader: "HEADER",
+        dataBlockHeader: "FILE_SUMMARIES",
+        wrapInCodeBlock: false,
       };
 
       // Both should be usable as BasePromptConfigEntry

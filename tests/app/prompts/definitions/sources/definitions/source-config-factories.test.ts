@@ -202,13 +202,12 @@ describe("source-config-factories", () => {
   });
 
   describe("createStandardCodeConfig", () => {
-    it("should not set presentation values (handled by consumer)", () => {
+    it("should include presentation values for self-describing configs", () => {
       const config = createStandardCodeConfig("the JVM code", JAVA_SPECIFIC_FRAGMENTS);
 
-      // dataBlockHeader and wrapInCodeBlock are now set by the consumer
-      // (e.g., FileSummarizerService) at instantiation time
-      expect("dataBlockHeader" in config).toBe(false);
-      expect("wrapInCodeBlock" in config).toBe(false);
+      // Self-describing configs include dataBlockHeader and wrapInCodeBlock
+      expect(config.dataBlockHeader).toBe("CODE");
+      expect(config.wrapInCodeBlock).toBe(true);
     });
 
     it("should have required config fields", () => {

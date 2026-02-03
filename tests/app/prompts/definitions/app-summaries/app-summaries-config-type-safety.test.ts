@@ -96,6 +96,7 @@ describe("appSummaryConfigMap Type Safety", () => {
       const testEntry: AppSummaryConfigEntry<typeof testSchema> = {
         contentDesc: "test content description",
         dataBlockHeader: "TEST_BLOCK",
+        wrapInCodeBlock: false,
         responseSchema: testSchema,
         instructions: ["Generate a test list"],
       };
@@ -108,6 +109,7 @@ describe("appSummaryConfigMap Type Safety", () => {
       const genericEntry: AppSummaryConfigEntry = {
         contentDesc: "generic content description",
         dataBlockHeader: "GENERIC_BLOCK",
+        wrapInCodeBlock: false,
         responseSchema: z.string(),
         instructions: [],
       };
@@ -115,17 +117,19 @@ describe("appSummaryConfigMap Type Safety", () => {
       expect(genericEntry.responseSchema).toBeInstanceOf(z.ZodType);
     });
 
-    it("should contain contentDesc and dataBlockHeader properties", () => {
+    it("should contain contentDesc, dataBlockHeader, and wrapInCodeBlock properties", () => {
       // AppSummaryConfigEntry now includes these properties for self-describing config
       const testEntry: AppSummaryConfigEntry = {
         contentDesc: "test content",
         dataBlockHeader: "TEST_BLOCK",
+        wrapInCodeBlock: false,
         responseSchema: z.string(),
         instructions: [],
       };
 
       expect(testEntry.contentDesc).toBe("test content");
       expect(testEntry.dataBlockHeader).toBe("TEST_BLOCK");
+      expect(testEntry.wrapInCodeBlock).toBe(false);
     });
   });
 

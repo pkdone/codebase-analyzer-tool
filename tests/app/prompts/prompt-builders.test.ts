@@ -40,12 +40,16 @@ describe("buildSourcePrompt", () => {
       responseSchema: mockSchema,
       instructions: ["Extract the purpose", "Extract the implementation"],
       hasComplexSchema: false,
+      dataBlockHeader: CODE_DATA_BLOCK_HEADER,
+      wrapInCodeBlock: true,
     },
     javascript: {
       contentDesc: "the JavaScript/TypeScript code",
       responseSchema: mockSchema,
       instructions: ["Extract the purpose", "Extract the implementation"],
       hasComplexSchema: true,
+      dataBlockHeader: CODE_DATA_BLOCK_HEADER,
+      wrapInCodeBlock: true,
     },
   } as unknown as FileTypePromptRegistry;
 
@@ -302,6 +306,8 @@ describe("Prompt output consistency", () => {
         contentDesc: "the JVM code",
         responseSchema: mockSchema,
         instructions: ["Extract purpose"],
+        dataBlockHeader: CODE_DATA_BLOCK_HEADER,
+        wrapInCodeBlock: true,
       },
     } as unknown as FileTypePromptRegistry;
 
@@ -476,6 +482,8 @@ describe("GeneratedPrompt type consistency", () => {
         responseSchema: mockSchema,
         instructions: ["Extract purpose"],
         hasComplexSchema: true,
+        dataBlockHeader: CODE_DATA_BLOCK_HEADER,
+        wrapInCodeBlock: true,
       },
     } as unknown as FileTypePromptRegistry;
 
@@ -522,6 +530,7 @@ describe("buildInsightPrompt with custom config", () => {
       technologies: {
         contentDesc: "custom content description",
         dataBlockHeader: "CUSTOM_HEADER",
+        wrapInCodeBlock: false,
         responseSchema: customSchema,
         instructions: ["Custom instruction for testing"],
       },
@@ -541,6 +550,7 @@ describe("buildInsightPrompt with custom config", () => {
       technologies: {
         contentDesc: "test description",
         dataBlockHeader: "MY_CUSTOM_BLOCK",
+        wrapInCodeBlock: false,
         responseSchema: customSchema,
         instructions: ["Test instruction"],
       },
@@ -563,6 +573,7 @@ describe("buildInsightPrompt with custom config", () => {
       technologies: {
         contentDesc: "description A",
         dataBlockHeader: "HEADER_A",
+        wrapInCodeBlock: false,
         responseSchema: schemaA,
         instructions: ["Instruction A"],
       },
@@ -572,6 +583,7 @@ describe("buildInsightPrompt with custom config", () => {
       technologies: {
         contentDesc: "description B",
         dataBlockHeader: "HEADER_B",
+        wrapInCodeBlock: false,
         responseSchema: schemaB,
         instructions: ["Instruction B"],
       },
@@ -604,6 +616,7 @@ describe("buildInsightPrompt metadata handling", () => {
       technologies: {
         contentDesc: "test",
         dataBlockHeader: "TEST",
+        wrapInCodeBlock: false,
         responseSchema: customSchema,
         instructions: ["Test"],
         hasComplexSchema: true,
@@ -615,21 +628,24 @@ describe("buildInsightPrompt metadata handling", () => {
     expect(result.metadata.hasComplexSchema).toBe(true);
   });
 
-  test("should default hasComplexSchema to false when not in config", () => {
+  test("should pass through hasComplexSchema value from config (undefined when not set)", () => {
     const customSchema = z.object({ items: z.array(z.string()) });
     const configWithoutFlag = {
       technologies: {
         contentDesc: "test",
         dataBlockHeader: "TEST",
+        wrapInCodeBlock: false,
         responseSchema: customSchema,
         instructions: ["Test"],
-        // no hasComplexSchema field
+        // no hasComplexSchema field - metadata will have undefined
       },
     } as unknown as AppSummaryConfigMap;
 
     const result = buildInsightPrompt(configWithoutFlag, "technologies", "content");
 
-    expect(result.metadata.hasComplexSchema).toBe(false);
+    // When hasComplexSchema is not in config, metadata reflects undefined
+    // Note: Real appSummaryConfigMap entries always have hasComplexSchema: false explicitly
+    expect(result.metadata.hasComplexSchema).toBeUndefined();
   });
 
   test("should include metadata for all appSummaryConfigMap categories", () => {
@@ -688,7 +704,7 @@ describe("buildReducePrompt metadata handling", () => {
 describe("createPromptGenerator", () => {
   /**
    * Tests for the createPromptGenerator helper function.
-   * This function creates a type-safe JSONSchemaPrompt from a config entry and presentation settings.
+   * This function creates a type-safe JSONSchemaPrompt from a self-describing config entry.
    */
 
   const mockSchema = z.object({
@@ -700,13 +716,12 @@ describe("createPromptGenerator", () => {
     contentDesc: "the test code",
     instructions: ["Extract the purpose", "Extract the implementation"],
     responseSchema: mockSchema,
+    dataBlockHeader: CODE_DATA_BLOCK_HEADER,
+    wrapInCodeBlock: true,
   };
 
   test("should create a JSONSchemaPrompt that can render prompts", () => {
-    const promptGenerator = createPromptGenerator(mockConfig, {
-      dataBlockHeader: CODE_DATA_BLOCK_HEADER,
-      wrapInCodeBlock: true,
-    });
+    const promptGenerator = createPromptGenerator(mockConfig);
 
     const rendered = promptGenerator.renderPrompt("const x = 1;");
 
@@ -715,10 +730,7 @@ describe("createPromptGenerator", () => {
   });
 
   test("should include DEFAULT_PERSONA_INTRODUCTION in rendered prompts", () => {
-    const promptGenerator = createPromptGenerator(mockConfig, {
-      dataBlockHeader: CODE_DATA_BLOCK_HEADER,
-      wrapInCodeBlock: true,
-    });
+    const promptGenerator = createPromptGenerator(mockConfig);
 
     const rendered = promptGenerator.renderPrompt("const x = 1;");
 
@@ -726,10 +738,7 @@ describe("createPromptGenerator", () => {
   });
 
   test("should include contentDesc from config in rendered prompts", () => {
-    const promptGenerator = createPromptGenerator(mockConfig, {
-      dataBlockHeader: CODE_DATA_BLOCK_HEADER,
-      wrapInCodeBlock: true,
-    });
+    const promptGenerator = createPromptGenerator(mockConfig);
 
     const rendered = promptGenerator.renderPrompt("const x = 1;");
 
@@ -737,10 +746,7 @@ describe("createPromptGenerator", () => {
   });
 
   test("should include instructions from config in rendered prompts", () => {
-    const promptGenerator = createPromptGenerator(mockConfig, {
-      dataBlockHeader: CODE_DATA_BLOCK_HEADER,
-      wrapInCodeBlock: true,
-    });
+    const promptGenerator = createPromptGenerator(mockConfig);
 
     const rendered = promptGenerator.renderPrompt("const x = 1;");
 
@@ -748,11 +754,12 @@ describe("createPromptGenerator", () => {
     expect(rendered).toContain("Extract the implementation");
   });
 
-  test("should include dataBlockHeader from presentation config", () => {
-    const promptGenerator = createPromptGenerator(mockConfig, {
+  test("should include dataBlockHeader from config", () => {
+    const customConfig: BasePromptConfigEntry<typeof mockSchema> = {
+      ...mockConfig,
       dataBlockHeader: "CUSTOM_HEADER",
-      wrapInCodeBlock: true,
-    });
+    };
+    const promptGenerator = createPromptGenerator(customConfig);
 
     const rendered = promptGenerator.renderPrompt("const x = 1;");
 
@@ -760,10 +767,7 @@ describe("createPromptGenerator", () => {
   });
 
   test("should wrap content in code blocks when wrapInCodeBlock is true", () => {
-    const promptGenerator = createPromptGenerator(mockConfig, {
-      dataBlockHeader: CODE_DATA_BLOCK_HEADER,
-      wrapInCodeBlock: true,
-    });
+    const promptGenerator = createPromptGenerator(mockConfig);
 
     const rendered = promptGenerator.renderPrompt("const x = 1;");
 
@@ -774,10 +778,12 @@ describe("createPromptGenerator", () => {
   });
 
   test("should NOT wrap content in code blocks when wrapInCodeBlock is false", () => {
-    const promptGenerator = createPromptGenerator(mockConfig, {
+    const noWrapConfig: BasePromptConfigEntry<typeof mockSchema> = {
+      ...mockConfig,
       dataBlockHeader: FILE_SUMMARIES_DATA_BLOCK_HEADER,
       wrapInCodeBlock: false,
-    });
+    };
+    const promptGenerator = createPromptGenerator(noWrapConfig);
 
     const rendered = promptGenerator.renderPrompt("* TestClass: A test class");
 
@@ -786,23 +792,43 @@ describe("createPromptGenerator", () => {
     expect(codeBlockCount).toBe(2);
   });
 
-  test("should include contextNote when provided", () => {
-    const promptGenerator = createPromptGenerator(mockConfig, {
+  test("should include contextNote when provided as override", () => {
+    const noWrapConfig: BasePromptConfigEntry<typeof mockSchema> = {
+      ...mockConfig,
       dataBlockHeader: FILE_SUMMARIES_DATA_BLOCK_HEADER,
       wrapInCodeBlock: false,
-      contextNote: "This is a partial analysis note.\n\n",
-    });
+    };
+    const promptGenerator = createPromptGenerator(
+      noWrapConfig,
+      "This is a partial analysis note.\n\n",
+    );
 
     const rendered = promptGenerator.renderPrompt("* TestClass: A test class");
 
     expect(rendered).toContain("partial analysis note");
   });
 
-  test("should NOT include contextNote when not provided", () => {
-    const promptGenerator = createPromptGenerator(mockConfig, {
+  test("should include contextNote from config when no override", () => {
+    const configWithNote: BasePromptConfigEntry<typeof mockSchema> = {
+      ...mockConfig,
       dataBlockHeader: FILE_SUMMARIES_DATA_BLOCK_HEADER,
       wrapInCodeBlock: false,
-    });
+      contextNote: "Note from config.\n\n",
+    };
+    const promptGenerator = createPromptGenerator(configWithNote);
+
+    const rendered = promptGenerator.renderPrompt("* TestClass: A test class");
+
+    expect(rendered).toContain("Note from config");
+  });
+
+  test("should NOT include contextNote when not provided", () => {
+    const noWrapConfig: BasePromptConfigEntry<typeof mockSchema> = {
+      ...mockConfig,
+      dataBlockHeader: FILE_SUMMARIES_DATA_BLOCK_HEADER,
+      wrapInCodeBlock: false,
+    };
+    const promptGenerator = createPromptGenerator(noWrapConfig);
 
     const rendered = promptGenerator.renderPrompt("* TestClass: A test class");
 
@@ -810,10 +836,7 @@ describe("createPromptGenerator", () => {
   });
 
   test("should include the content in rendered prompts", () => {
-    const promptGenerator = createPromptGenerator(mockConfig, {
-      dataBlockHeader: CODE_DATA_BLOCK_HEADER,
-      wrapInCodeBlock: true,
-    });
+    const promptGenerator = createPromptGenerator(mockConfig);
 
     const content = "export function myFunction() { return 42; }";
     const rendered = promptGenerator.renderPrompt(content);
@@ -827,10 +850,7 @@ describe("createPromptGenerator", () => {
       hasComplexSchema: true,
     };
 
-    const promptGenerator = createPromptGenerator(configWithComplexSchema, {
-      dataBlockHeader: CODE_DATA_BLOCK_HEADER,
-      wrapInCodeBlock: true,
-    });
+    const promptGenerator = createPromptGenerator(configWithComplexSchema);
 
     const rendered = promptGenerator.renderPrompt("const x = 1;");
 
@@ -849,12 +869,11 @@ describe("createPromptGenerator", () => {
       contentDesc: "the custom data",
       instructions: ["Extract items", "Count elements"],
       responseSchema: customSchema,
-    };
-
-    const promptGenerator = createPromptGenerator(customConfig, {
       dataBlockHeader: FRAGMENTED_DATA_BLOCK_HEADER,
       wrapInCodeBlock: false,
-    });
+    };
+
+    const promptGenerator = createPromptGenerator(customConfig);
 
     const rendered = promptGenerator.renderPrompt("some data content");
 
@@ -881,6 +900,8 @@ describe("createPromptGenerator integration with builders", () => {
       instructions: ["Extract purpose"],
       responseSchema: mockSchema,
       hasComplexSchema: false,
+      dataBlockHeader: CODE_DATA_BLOCK_HEADER,
+      wrapInCodeBlock: true,
     };
 
     const mockRegistry = {
@@ -893,10 +914,7 @@ describe("createPromptGenerator integration with builders", () => {
     const builderResult = buildSourcePrompt(mockRegistry, "java", content);
 
     // Using createPromptGenerator directly
-    const promptGenerator = createPromptGenerator(mockConfig, {
-      dataBlockHeader: CODE_DATA_BLOCK_HEADER,
-      wrapInCodeBlock: true,
-    });
+    const promptGenerator = createPromptGenerator(mockConfig);
     const directResult = promptGenerator.renderPrompt(content);
 
     // Both should produce the same prompt
@@ -911,13 +929,104 @@ describe("createPromptGenerator integration with builders", () => {
 
     // Using createPromptGenerator directly with the same config
     const config = appSummaryConfigMap.technologies;
-    const promptGenerator = createPromptGenerator(config, {
-      dataBlockHeader: config.dataBlockHeader,
-      wrapInCodeBlock: false,
-    });
+    const promptGenerator = createPromptGenerator(config);
     const directResult = promptGenerator.renderPrompt(content);
 
     // Both should produce the same prompt
     expect(builderResult.prompt).toBe(directResult);
+  });
+});
+
+describe("Self-describing config tests", () => {
+  /**
+   * Tests that verify configs are self-describing and builders read presentation
+   * fields from config instead of hardcoding them.
+   */
+
+  const mockSchema = z.object({
+    purpose: z.string(),
+    implementation: z.string(),
+  });
+
+  test("buildSourcePrompt should use dataBlockHeader from config", () => {
+    const customConfig = {
+      java: {
+        contentDesc: "test code",
+        responseSchema: mockSchema,
+        instructions: ["Test"],
+        dataBlockHeader: "CUSTOM_SOURCE_HEADER",
+        wrapInCodeBlock: true,
+      },
+    } as unknown as FileTypePromptRegistry;
+
+    const result = buildSourcePrompt(customConfig, "java", "code");
+    expect(result.prompt).toContain("CUSTOM_SOURCE_HEADER:");
+  });
+
+  test("buildSourcePrompt should use wrapInCodeBlock from config", () => {
+    const noWrapConfig = {
+      java: {
+        contentDesc: "test code",
+        responseSchema: mockSchema,
+        instructions: ["Test"],
+        dataBlockHeader: CODE_DATA_BLOCK_HEADER,
+        wrapInCodeBlock: false,
+      },
+    } as unknown as FileTypePromptRegistry;
+
+    const result = buildSourcePrompt(noWrapConfig, "java", "test content");
+    // Should only have 2 code blocks (for JSON schema), not 4
+    const codeBlockCount = (result.prompt.match(/```/g) ?? []).length;
+    expect(codeBlockCount).toBe(2);
+  });
+
+  test("buildInsightPrompt should use wrapInCodeBlock from config", () => {
+    const wrapConfig = {
+      technologies: {
+        contentDesc: "test summaries",
+        responseSchema: mockSchema,
+        instructions: ["Test"],
+        dataBlockHeader: FILE_SUMMARIES_DATA_BLOCK_HEADER,
+        wrapInCodeBlock: true, // Unusual but allowed by the self-describing config
+      },
+    } as unknown as AppSummaryConfigMap;
+
+    const result = buildInsightPrompt(wrapConfig, "technologies", "test content");
+    // Should have 4 code blocks (2 for JSON schema, 2 for content)
+    const codeBlockCount = (result.prompt.match(/```/g) ?? []).length;
+    expect(codeBlockCount).toBeGreaterThanOrEqual(4);
+  });
+
+  test("buildInsightPrompt should respect wrapInCodeBlock: false from config", () => {
+    const noWrapConfig = {
+      technologies: {
+        contentDesc: "test summaries",
+        responseSchema: mockSchema,
+        instructions: ["Test"],
+        dataBlockHeader: FILE_SUMMARIES_DATA_BLOCK_HEADER,
+        wrapInCodeBlock: false,
+      },
+    } as unknown as AppSummaryConfigMap;
+
+    const result = buildInsightPrompt(noWrapConfig, "technologies", "test content");
+    // Should only have 2 code blocks (for JSON schema)
+    const codeBlockCount = (result.prompt.match(/```/g) ?? []).length;
+    expect(codeBlockCount).toBe(2);
+  });
+
+  test("real fileTypePromptRegistry entries should have presentation fields", () => {
+    // Verify that the actual registry has the new required fields
+    expect(fileTypePromptRegistry.java.dataBlockHeader).toBe(CODE_DATA_BLOCK_HEADER);
+    expect(fileTypePromptRegistry.java.wrapInCodeBlock).toBe(true);
+    expect(fileTypePromptRegistry.python.dataBlockHeader).toBe(CODE_DATA_BLOCK_HEADER);
+    expect(fileTypePromptRegistry.python.wrapInCodeBlock).toBe(true);
+  });
+
+  test("real appSummaryConfigMap entries should have presentation fields", () => {
+    // Verify that the actual config map has the new required fields
+    expect(appSummaryConfigMap.technologies.dataBlockHeader).toBe(FILE_SUMMARIES_DATA_BLOCK_HEADER);
+    expect(appSummaryConfigMap.technologies.wrapInCodeBlock).toBe(false);
+    expect(appSummaryConfigMap.appDescription.wrapInCodeBlock).toBe(false);
+    expect(appSummaryConfigMap.boundedContexts.wrapInCodeBlock).toBe(false);
   });
 });

@@ -52,7 +52,7 @@ describe("App Summary Configuration", () => {
       });
     });
 
-    it("should contain contentDesc and dataBlockHeader in each entry", () => {
+    it("should contain contentDesc, dataBlockHeader, and wrapInCodeBlock in each entry", () => {
       const categories = Object.keys(appSummaryConfigMap) as (keyof typeof appSummaryConfigMap)[];
 
       categories.forEach((category) => {
@@ -60,6 +60,7 @@ describe("App Summary Configuration", () => {
 
         expect(config.contentDesc).toBe(APP_SUMMARY_CONTENT_DESC);
         expect(config.dataBlockHeader).toBe(FILE_SUMMARIES_DATA_BLOCK_HEADER);
+        expect(config.wrapInCodeBlock).toBe(false);
       });
     });
 
@@ -87,6 +88,7 @@ describe("App Summary Configuration", () => {
       const config: AppSummaryConfigEntry<typeof specificSchema> = {
         contentDesc: "test content",
         dataBlockHeader: "TEST_BLOCK",
+        wrapInCodeBlock: false,
         responseSchema: specificSchema,
         instructions: ["typed instruction"],
       };
@@ -102,6 +104,7 @@ describe("App Summary Configuration", () => {
       const genericEntry: AppSummaryConfigEntry = {
         contentDesc: "generic content",
         dataBlockHeader: "GENERIC_BLOCK",
+        wrapInCodeBlock: false,
         responseSchema: z.string(),
         instructions: [],
       };
@@ -117,6 +120,7 @@ describe("App Summary Configuration", () => {
       const config: AppSummaryConfigEntry<typeof schema> = {
         contentDesc: "items content",
         dataBlockHeader: "ITEMS_BLOCK",
+        wrapInCodeBlock: false,
         responseSchema: schema,
         instructions: ["test"],
       };

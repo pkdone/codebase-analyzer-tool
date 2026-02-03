@@ -117,24 +117,30 @@ describe("fileTypePromptRegistry Type Safety", () => {
       });
 
       // This should compile without error, showing the generic works
-      // Note: dataBlockHeader and wrapInCodeBlock are no longer part of SourceConfigEntry
+      // SourceConfigEntry now includes dataBlockHeader and wrapInCodeBlock as required fields
       const testEntry: SourceConfigEntry<typeof testSchema> = {
         contentDesc: "Test content",
         responseSchema: testSchema,
         instructions: ["Test instruction"],
+        dataBlockHeader: "CODE",
+        wrapInCodeBlock: true,
       };
 
       expect(testEntry.responseSchema).toBe(testSchema);
       expect(testEntry.contentDesc).toBe("Test content");
+      expect(testEntry.dataBlockHeader).toBe("CODE");
+      expect(testEntry.wrapInCodeBlock).toBe(true);
     });
 
     it("should default to z.ZodType when no type parameter is provided", () => {
       // This should accept any ZodType without specific parameter
-      // Note: dataBlockHeader and wrapInCodeBlock are no longer part of SourceConfigEntry
+      // SourceConfigEntry now includes dataBlockHeader and wrapInCodeBlock as required fields
       const genericEntry: SourceConfigEntry = {
         contentDesc: "Generic content",
         responseSchema: z.string(),
         instructions: [],
+        dataBlockHeader: "CODE",
+        wrapInCodeBlock: true,
       };
 
       expect(genericEntry.responseSchema).toBeInstanceOf(z.ZodType);

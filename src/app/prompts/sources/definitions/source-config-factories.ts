@@ -13,15 +13,16 @@ import {
 } from "../../../schemas/source-file.schema";
 import { INSTRUCTION_SECTION_TITLES, buildInstructionBlock } from "../utils";
 import type { BasePromptConfigEntry } from "../../prompts.types";
+import { CODE_DATA_BLOCK_HEADER } from "../../prompts.constants";
 
 /**
  * Configuration entry for a source prompt definition.
  * Extends BasePromptConfigEntry for source file analysis.
  *
- * Contains only the category-specific fields; presentation fields (dataBlockHeader,
- * wrapInCodeBlock) are provided by the consumer (buildSourcePrompt) at instantiation time.
- * Each entry directly includes the responseSchema using sourceSummarySchema.pick(),
- * making the schemas explicit and type-safe.
+ * Each entry is self-describing with all fields needed to construct a complete prompt,
+ * including presentation fields (dataBlockHeader, wrapInCodeBlock). This design ensures
+ * consistency with AppSummaryConfigEntry and enables the prompt builders to act as
+ * simple assemblers without hardcoding presentation logic.
  *
  * The hasComplexSchema field is inherited from BasePromptConfigEntry and indicates
  * whether the schema is incompatible with some LLM providers' strict JSON mode.
@@ -94,6 +95,8 @@ export function createDependencyConfig(
       buildInstructionBlock(INSTRUCTION_SECTION_TITLES.REFERENCES_AND_DEPS, dependencyFragment),
     ],
     hasComplexSchema: true,
+    dataBlockHeader: CODE_DATA_BLOCK_HEADER,
+    wrapInCodeBlock: true,
   };
 }
 
@@ -124,6 +127,8 @@ export function createScheduledJobConfig(
         ...jobFragments,
       ),
     ],
+    dataBlockHeader: CODE_DATA_BLOCK_HEADER,
+    wrapInCodeBlock: true,
   };
 }
 
@@ -136,6 +141,8 @@ export function createScheduledJobConfig(
  * @param responseSchema - The Zod schema for validation
  * @param instructions - Array of pre-formatted instruction blocks
  * @param hasComplexSchema - Whether the schema requires complex handling (default: false)
+ * @param dataBlockHeader - The data block header to use (default: CODE_DATA_BLOCK_HEADER)
+ * @param wrapInCodeBlock - Whether to wrap content in code blocks (default: true)
  * @returns A SourceConfigEntry with the provided configuration
  */
 export function createCompositeSourceConfig<S extends z.ZodType<unknown>>(
@@ -143,12 +150,16 @@ export function createCompositeSourceConfig<S extends z.ZodType<unknown>>(
   responseSchema: S,
   instructions: readonly string[],
   hasComplexSchema = false,
+  dataBlockHeader: string = CODE_DATA_BLOCK_HEADER,
+  wrapInCodeBlock = true,
 ): SourceConfigEntry<S> {
   return {
     contentDesc,
     responseSchema,
     instructions,
     hasComplexSchema,
+    dataBlockHeader,
+    wrapInCodeBlock,
   };
 }
 
@@ -217,5 +228,7 @@ export function createStandardCodeConfig(
       ),
       buildInstructionBlock(INSTRUCTION_SECTION_TITLES.CODE_QUALITY_METRICS, ...codeQualityParts),
     ],
+    dataBlockHeader: CODE_DATA_BLOCK_HEADER,
+    wrapInCodeBlock: true,
   };
 }

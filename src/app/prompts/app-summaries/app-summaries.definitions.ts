@@ -13,11 +13,12 @@ import type { BasePromptConfigEntry } from "../prompts.types";
 
 /**
  * Configuration entry for app summary prompts.
- * Extends BasePromptConfigEntry with app-summary-specific fields.
+ * Type alias for BasePromptConfigEntry as all required fields are now in the base interface.
  *
- * Contains all fields necessary to construct a complete prompt, making each entry
- * self-describing. This design is consistent with SourceConfigEntry and eliminates
- * the need for consumers to provide presentation fields at instantiation time.
+ * Each entry is self-describing with all fields necessary to construct a complete prompt,
+ * including presentation fields (dataBlockHeader, wrapInCodeBlock). This design is
+ * consistent with SourceConfigEntry and enables the prompt builders to act as simple
+ * assemblers without hardcoding presentation logic.
  *
  * The hasComplexSchema field is inherited from BasePromptConfigEntry and indicates
  * whether the schema is incompatible with some LLM providers' strict JSON mode.
@@ -25,12 +26,8 @@ import type { BasePromptConfigEntry } from "../prompts.types";
  * @template S - The Zod schema type for validating the LLM response. Defaults to z.ZodType<unknown>
  *               for type-safe handling when the generic is not explicitly specified.
  */
-export interface AppSummaryConfigEntry<
-  S extends z.ZodType<unknown> = z.ZodType<unknown>,
-> extends BasePromptConfigEntry<S> {
-  /** The data block header to use in the template (e.g., "FILE_SUMMARIES") */
-  readonly dataBlockHeader: string;
-}
+export type AppSummaryConfigEntry<S extends z.ZodType<unknown> = z.ZodType<unknown>> =
+  BasePromptConfigEntry<S>;
 
 /**
  * Centralized configuration for all app summary prompt definitions.
@@ -50,8 +47,9 @@ export const appSummaryConfigMap = {
   appDescription: {
     contentDesc: APP_SUMMARY_CONTENT_DESC,
     dataBlockHeader: FILE_SUMMARIES_DATA_BLOCK_HEADER,
+    wrapInCodeBlock: false,
     responseSchema: appDescriptionSchema,
-    hasComplexSchema: false as boolean | undefined,
+    hasComplexSchema: false,
     instructions: [
       `${APP_SUMMARY_PROMPT_FRAGMENTS.DETAILED_DESC} of the application's purpose and implementation`,
     ],
@@ -59,8 +57,9 @@ export const appSummaryConfigMap = {
   technologies: {
     contentDesc: APP_SUMMARY_CONTENT_DESC,
     dataBlockHeader: FILE_SUMMARIES_DATA_BLOCK_HEADER,
+    wrapInCodeBlock: false,
     responseSchema: technologiesSchema,
-    hasComplexSchema: false as boolean | undefined,
+    hasComplexSchema: false,
     instructions: [
       `${APP_SUMMARY_PROMPT_FRAGMENTS.COMPREHENSIVE_LIST} of key external and host platform technologies (including the names of programming languages used) depended on by the application`,
     ],
@@ -68,8 +67,9 @@ export const appSummaryConfigMap = {
   businessProcesses: {
     contentDesc: APP_SUMMARY_CONTENT_DESC,
     dataBlockHeader: FILE_SUMMARIES_DATA_BLOCK_HEADER,
+    wrapInCodeBlock: false,
     responseSchema: businessProcessesSchema,
-    hasComplexSchema: false as boolean | undefined,
+    hasComplexSchema: false,
     instructions: [
       `${APP_SUMMARY_PROMPT_FRAGMENTS.CONCISE_LIST} of the application's main business processes with their key business activity steps that are linearly conducted by each process`,
     ],
@@ -77,8 +77,9 @@ export const appSummaryConfigMap = {
   boundedContexts: {
     contentDesc: APP_SUMMARY_CONTENT_DESC,
     dataBlockHeader: FILE_SUMMARIES_DATA_BLOCK_HEADER,
+    wrapInCodeBlock: false,
     responseSchema: boundedContextsSchema,
-    hasComplexSchema: false as boolean | undefined,
+    hasComplexSchema: false,
     instructions: [
       `${APP_SUMMARY_PROMPT_FRAGMENTS.CONCISE_LIST} of Domain-Driven Design Bounded Contexts that define explicit boundaries around related business capabilities. For each bounded context, include:
 1. Its aggregates that enforce business rules and maintain consistency
@@ -92,8 +93,9 @@ This hierarchical structure ensures consistent naming across all domain elements
   potentialMicroservices: {
     contentDesc: APP_SUMMARY_CONTENT_DESC,
     dataBlockHeader: FILE_SUMMARIES_DATA_BLOCK_HEADER,
+    wrapInCodeBlock: false,
     responseSchema: potentialMicroservicesSchema,
-    hasComplexSchema: false as boolean | undefined,
+    hasComplexSchema: false,
     instructions: [
       `${APP_SUMMARY_PROMPT_FRAGMENTS.CONCISE_LIST} of recommended microservices to modernize the monolithic application architecture, each following the Single Responsibility Principle with detailed domain entities, defined CRUD operations, and REST API endpoints`,
     ],
@@ -101,8 +103,9 @@ This hierarchical structure ensures consistent naming across all domain elements
   inferredArchitecture: {
     contentDesc: APP_SUMMARY_CONTENT_DESC,
     dataBlockHeader: FILE_SUMMARIES_DATA_BLOCK_HEADER,
+    wrapInCodeBlock: false,
     responseSchema: inferredArchitectureSchema,
-    hasComplexSchema: false as boolean | undefined,
+    hasComplexSchema: false,
     instructions: [
       `${APP_SUMMARY_PROMPT_FRAGMENTS.CONCISE_LIST} of BUSINESS DOMAIN components inferred from the codebase.
 
