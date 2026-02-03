@@ -17,6 +17,7 @@ import {
   ExecutableCandidate,
 } from "../../../../src/common/llm/types/llm-function.types";
 import { REPAIR_STEP } from "../../../../src/common/llm/json-processing/sanitizers";
+import { isOk, isErr } from "../../../../src/common/types/result.types";
 
 /**
  * Helper to create a mock BoundLLMFunction.
@@ -291,8 +292,8 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         candidates: [candidate],
       });
 
-      expect(result.success).toBe(false);
-      if (!result.success) {
+      expect(isErr(result)).toBe(true);
+      if (isErr(result)) {
         expect(result.error.resourceName).toBe("failed-resource");
         expect(result.error.context).toEqual(context);
         expect(result.error.context?.resource).toBe("failed-resource");
@@ -325,8 +326,8 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
 
       // When LLM function throws, retry strategy catches it and returns null,
       // which causes the pipeline to return a failure result
-      expect(result.success).toBe(false);
-      if (!result.success) {
+      expect(isErr(result)).toBe(true);
+      if (isErr(result)) {
         expect(result.error.resourceName).toBe("exception-resource");
         expect(result.error.context).toEqual(context);
         expect(result.error.context?.resource).toBe("exception-resource");
@@ -370,8 +371,8 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         candidates: [candidate],
       });
 
-      expect(result.success).toBe(false);
-      if (!result.success) {
+      expect(isErr(result)).toBe(true);
+      if (isErr(result)) {
         expect(result.error.resourceName).toBe("direct-exception-resource");
         expect(result.error.context).toEqual(context);
         expect(result.error.context?.resource).toBe("direct-exception-resource");
@@ -418,10 +419,10 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         candidates: [candidate],
       });
 
-      expect(result.success).toBe(true);
+      expect(isOk(result)).toBe(true);
 
-      if (result.success) {
-        const data = result.data as Record<string, unknown>;
+      if (isOk(result)) {
+        const data = result.value as Record<string, unknown>;
         expect(data.enabled).toBe(true);
         expect(data.maxItems).toBe(10);
         expect(Array.isArray(data.tags)).toBe(true);
@@ -452,11 +453,11 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         candidates: [candidate],
       });
 
-      expect(result.success).toBe(true);
+      expect(isOk(result)).toBe(true);
 
-      if (result.success) {
-        expect(Array.isArray(result.data)).toBe(true);
-        const data = result.data as unknown[];
+      if (isOk(result)) {
+        expect(Array.isArray(result.value)).toBe(true);
+        const data = result.value as unknown[];
         expect(data.length).toBe(2);
       }
     });
@@ -495,10 +496,10 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         candidates: [candidate],
       });
 
-      expect(result.success).toBe(true);
+      expect(isOk(result)).toBe(true);
 
-      if (result.success) {
-        const data = result.data as Record<string, unknown>;
+      if (isOk(result)) {
+        const data = result.value as Record<string, unknown>;
         expect(data).toHaveProperty("user");
         expect(data).toHaveProperty("metadata");
       }
@@ -536,9 +537,9 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
       });
 
       // null is a valid response type in LLMResponsePayload, should succeed
-      expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data).toBeNull();
+      expect(isOk(result)).toBe(true);
+      if (isOk(result)) {
+        expect(result.value).toBeNull();
       }
     });
 
@@ -570,9 +571,9 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
       });
 
       // Empty string is a valid string value, should succeed
-      expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data).toBe("");
+      expect(isOk(result)).toBe(true);
+      if (isOk(result)) {
+        expect(result.value).toBe("");
       }
     });
 
@@ -598,9 +599,9 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         candidates: [candidate],
       });
 
-      expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data).toEqual({});
+      expect(isOk(result)).toBe(true);
+      if (isOk(result)) {
+        expect(result.value).toEqual({});
       }
     });
 
@@ -626,9 +627,9 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         candidates: [candidate],
       });
 
-      expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data).toEqual([]);
+      expect(isOk(result)).toBe(true);
+      if (isOk(result)) {
+        expect(result.value).toEqual([]);
       }
     });
   });

@@ -7,13 +7,14 @@ import type { LLMProvider } from "../../../../src/common/llm/types/llm-provider.
 import { ResolvedLLMModelMetadata } from "../../../../src/common/llm/types/llm-model.types";
 
 import { z } from "zod";
-import LLMRouter from "../../../../src/common/llm/llm-router";
 import type { EnvVars } from "../../../../src/app/env/env.types";
 import { describe, test, expect, jest } from "@jest/globals";
 import type { LLMProviderManifest } from "../../../../src/common/llm/providers/llm-provider.types";
 import * as manifestLoader from "../../../../src/common/llm/utils/manifest-loader";
 
 import type { LLMModuleConfig } from "../../../../src/common/llm/config/llm-module-config.types";
+import { createLLMRouter as createLLMRouterFromFactory } from "../../../../src/common/llm/llm-factory";
+import LLMRouter from "../../../../src/common/llm/llm-router";
 import { isOk } from "../../../../src/common/types/result.types";
 
 // Mock the dependencies
@@ -242,9 +243,9 @@ describe("LLM Router tests", () => {
       errorLogging: { errorLogDirectory: "/tmp", errorLogFilenameTemplate: "error.log" },
       providerRegistry: mockProviderRegistry,
     };
-    // Router now creates its own execution pipeline internally
-    const router = new LLMRouter(mockConfig);
-    return { router, mockProvider, mockManifest };
+    // Use the factory function which handles dependency creation and injection
+    const { router, stats } = createLLMRouterFromFactory(mockConfig);
+    return { router, mockProvider, mockManifest, stats };
   };
 
   describe("Constructor and basic methods", () => {
@@ -671,7 +672,7 @@ describe("LLM Router tests", () => {
       // Mock the execution pipeline to return a failure result for invalid type
       const executionPipeline = (router as any).executionPipeline;
       jest.spyOn(executionPipeline, "executeCompletion").mockResolvedValue({
-        success: false,
+        ok: false,
         error: new Error("Invalid response type"),
       });
 
@@ -1073,7 +1074,7 @@ describe("LLM Router tests", () => {
       // Mock the execution pipeline to return error result when prompt becomes empty after cropping
       const executionPipeline = (router as any).executionPipeline;
       jest.spyOn(executionPipeline, "executeCompletion").mockResolvedValue({
-        success: false,
+        ok: false,
         error: new Error("Prompt became empty after cropping"),
       });
 

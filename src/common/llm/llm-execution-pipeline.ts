@@ -9,8 +9,8 @@ import { determineNextAction } from "./strategies/fallback-decision";
 import { adaptPromptFromResponse } from "./strategies/prompt-adaptation-strategy";
 import LLMExecutionStats from "./tracking/llm-execution-stats";
 import { hasSignificantRepairs } from "./json-processing";
-import type { LLMExecutionResult } from "./types/llm-execution-result.types";
-import { LLMExecutionError } from "./types/llm-execution-result.types";
+import { LLMExecutionError } from "./types/llm-execution-error.types";
+import { type Result, ok, err } from "../types/result.types";
 import { logWarn } from "../utils/logging";
 
 /**
@@ -81,11 +81,11 @@ export class LLMExecutionPipeline {
    * Enables retry on invalid JSON and tracks JSON mutations.
    *
    * @param params Completion execution parameters
-   * @returns Execution result with the generated content
+   * @returns Result with the generated content or an error
    */
   async executeCompletion<T extends LLMResponsePayload>(
     params: CompletionExecutionParams<T>,
-  ): Promise<LLMExecutionResult<T>> {
+  ): Promise<Result<T, LLMExecutionError>> {
     return this.execute({
       ...params,
       retryOnInvalid: true,
@@ -98,9 +98,11 @@ export class LLMExecutionPipeline {
    * Disables retry on invalid (embeddings don't have JSON parsing) and JSON mutation tracking.
    *
    * @param params Embedding execution parameters
-   * @returns Execution result with the embedding vector
+   * @returns Result with the embedding vector or an error
    */
-  async executeEmbedding(params: EmbeddingExecutionParams): Promise<LLMExecutionResult<number[]>> {
+  async executeEmbedding(
+    params: EmbeddingExecutionParams,
+  ): Promise<Result<number[], LLMExecutionError>> {
     return this.execute({
       ...params,
       retryOnInvalid: false,
@@ -120,7 +122,7 @@ export class LLMExecutionPipeline {
    */
   async execute<T extends LLMResponsePayload>(
     params: LLMExecutionParams<T>,
-  ): Promise<LLMExecutionResult<T>> {
+  ): Promise<Result<T, LLMExecutionError>> {
     const {
       resourceName,
       content,
@@ -145,10 +147,7 @@ export class LLMExecutionPipeline {
           this.llmStats.recordJsonMutated();
         }
 
-        return {
-          success: true,
-          data: result.generated,
-        };
+        return ok(result.generated);
       }
 
       logWarn(
@@ -157,14 +156,13 @@ export class LLMExecutionPipeline {
       );
 
       this.llmStats.recordFailure();
-      return {
-        success: false,
-        error: new LLMExecutionError(
+      return err(
+        new LLMExecutionError(
           `Failed to fulfill prompt for resource: '${resourceName}' after exhausting all retry and fallback strategies`,
           resourceName,
           context,
         ),
-      };
+      );
     } catch (error: unknown) {
       logWarn(
         `Unable to process the following resource with an LLM due to a non-recoverable error for the following resource: '${resourceName}'`,
@@ -172,15 +170,14 @@ export class LLMExecutionPipeline {
       );
 
       this.llmStats.recordFailure();
-      return {
-        success: false,
-        error: new LLMExecutionError(
+      return err(
+        new LLMExecutionError(
           `Non-recoverable error while processing resource: '${resourceName}'`,
           resourceName,
           context,
           error,
         ),
-      };
+      );
     }
   }
 

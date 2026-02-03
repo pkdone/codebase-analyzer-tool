@@ -1,5 +1,5 @@
-import LLMRouter from "../../../../src/common/llm/llm-router";
 import type { LLMModuleConfig } from "../../../../src/common/llm/config/llm-module-config.types";
+import { createLLMRouter } from "../../../../src/common/llm/llm-factory";
 import { ShutdownBehavior } from "../../../../src/common/llm/types/llm-shutdown.types";
 
 // Mock the manifest loader to avoid actual provider instantiation
@@ -105,8 +105,8 @@ describe("LLMRouter Shutdown Behavior", () => {
       providerRegistry: mockProviderRegistry,
     };
 
-    // Router now creates its own execution pipeline internally
-    const router = new LLMRouter(config);
+    // Use the factory function which handles dependency creation and injection
+    const { router } = createLLMRouter(config);
 
     // Call shutdown
     await router.shutdown();
@@ -196,8 +196,8 @@ describe("LLMRouter Shutdown Behavior", () => {
       providerRegistry: mockProviderRegistry,
     };
 
-    // Router now creates its own execution pipeline internally
-    const router = new LLMRouter(config);
+    // Use the factory function which handles dependency creation and injection
+    const { router } = createLLMRouter(config);
 
     // Check that forced shutdown is signaled via non-empty array
     const providersRequiringExit = router.getProvidersRequiringProcessExit();
@@ -288,8 +288,8 @@ describe("LLMRouter Shutdown Behavior", () => {
       providerRegistry: mockProviderRegistry,
     };
 
-    // Router now creates its own execution pipeline internally
-    const router = new LLMRouter(config);
+    // Use the factory function which handles dependency creation and injection
+    const { router } = createLLMRouter(config);
 
     expect(router.getProvidersRequiringProcessExit()).toEqual([]);
   });

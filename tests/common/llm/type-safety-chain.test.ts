@@ -19,6 +19,7 @@ import {
   type LLMPipelineConfig,
 } from "../../../src/common/llm/llm-execution-pipeline";
 import LLMExecutionStats from "../../../src/common/llm/tracking/llm-execution-stats";
+import { isOk } from "../../../src/common/types/result.types";
 
 // Test-only constants
 const TEST_COMPLETIONS_MODEL = "TEST_COMPLETIONS_MODEL";
@@ -376,10 +377,10 @@ describe("Type Safety Chain - End to End", () => {
         candidates: [candidate],
       });
 
-      expect(result.success).toBe(true);
+      expect(isOk(result)).toBe(true);
 
-      if (result.success) {
-        const data = result.data as Record<string, unknown>;
+      if (isOk(result)) {
+        const data = result.value as Record<string, unknown>;
         expect(data.status).toBe("success");
         expect(data).toHaveProperty("data");
         expect(data).toHaveProperty("timestamp");
@@ -413,10 +414,10 @@ describe("Type Safety Chain - End to End", () => {
         candidates: [candidate],
       });
 
-      expect(result.success).toBe(true);
+      expect(isOk(result)).toBe(true);
 
-      if (result.success) {
-        const data = result.data as Record<string, unknown>;
+      if (isOk(result)) {
+        const data = result.value as Record<string, unknown>;
         expect(data.type).toBe("text");
         expect(data).toHaveProperty("content");
       }
@@ -649,9 +650,9 @@ describe("Type Safety Chain - End to End", () => {
         candidates: [candidate],
       });
 
-      expect(result.success).toBe(true);
-      if (result.success) {
-        const data = result.data as Record<string, unknown>;
+      expect(isOk(result)).toBe(true);
+      if (isOk(result)) {
+        const data = result.value as Record<string, unknown>;
         expect(data.status).toBe("success");
         expect(data.code).toBe(200);
       }

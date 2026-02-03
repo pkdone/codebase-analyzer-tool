@@ -19,6 +19,7 @@ import {
 import type { LLMContext } from "../../../../src/common/llm/types/llm-request.types";
 import type { LLMRetryConfig } from "../../../../src/common/llm/providers/llm-provider.types";
 import type { ResolvedLLMModelMetadata } from "../../../../src/common/llm/types/llm-model.types";
+import { isOk } from "../../../../src/common/types/result.types";
 
 // Mock logging
 jest.mock("../../../../src/common/utils/logging", () => ({
@@ -163,9 +164,9 @@ describe("LLMExecutionPipeline convenience methods", () => {
         candidates: [mockCandidate],
       });
 
-      expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data).toEqual(expectedData);
+      expect(isOk(result)).toBe(true);
+      if (isOk(result)) {
+        expect(result.value).toEqual(expectedData);
       }
     });
   });
@@ -257,10 +258,10 @@ describe("LLMExecutionPipeline convenience methods", () => {
         candidates: [mockCandidate],
       });
 
-      expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data).toEqual(expectedEmbeddings);
-        expect(Array.isArray(result.data)).toBe(true);
+      expect(isOk(result)).toBe(true);
+      if (isOk(result)) {
+        expect(result.value).toEqual(expectedEmbeddings);
+        expect(Array.isArray(result.value)).toBe(true);
       }
     });
   });

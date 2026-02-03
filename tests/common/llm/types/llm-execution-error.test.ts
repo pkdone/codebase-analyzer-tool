@@ -1,10 +1,11 @@
 import { describe, test, expect } from "@jest/globals";
-import { LLMExecutionError } from "../../../../src/common/llm/types/llm-execution-result.types";
+import { LLMExecutionError } from "../../../../src/common/llm/types/llm-execution-error.types";
 import {
   LLMContext,
   LLMPurpose,
   LLMOutputFormat,
 } from "../../../../src/common/llm/types/llm-request.types";
+import { err, isErr } from "../../../../src/common/types/result.types";
 
 describe("LLMExecutionError", () => {
   describe("constructor", () => {
@@ -164,24 +165,22 @@ describe("LLMExecutionError", () => {
     });
   });
 
-  describe("integration with LLMExecutionResult", () => {
-    test("should work correctly in failure result", () => {
+  describe("integration with Result type", () => {
+    test("should work correctly in ErrResult", () => {
       const context: LLMContext = {
         resource: "test-resource",
         purpose: LLMPurpose.COMPLETIONS,
       };
 
       const error = new LLMExecutionError("Execution failed", "test-resource", context);
+      const result = err(error);
 
-      const result = {
-        success: false as const,
-        error,
-      };
-
-      expect(result.success).toBe(false);
-      expect(result.error).toBeInstanceOf(LLMExecutionError);
-      expect(result.error.context?.resource).toBe("test-resource");
-      expect(result.error.context?.purpose).toBe(LLMPurpose.COMPLETIONS);
+      expect(isErr(result)).toBe(true);
+      if (isErr(result)) {
+        expect(result.error).toBeInstanceOf(LLMExecutionError);
+        expect(result.error.context?.resource).toBe("test-resource");
+        expect(result.error.context?.purpose).toBe(LLMPurpose.COMPLETIONS);
+      }
     });
   });
 });

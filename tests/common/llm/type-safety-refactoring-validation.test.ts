@@ -26,6 +26,7 @@ import {
   type LLMPipelineConfig,
 } from "../../../src/common/llm/llm-execution-pipeline";
 import LLMExecutionStats from "../../../src/common/llm/tracking/llm-execution-stats";
+import { isOk, isErr } from "../../../src/common/types/result.types";
 
 /**
  * Test suite validating the type safety refactoring for the LLM call chain.
@@ -376,14 +377,14 @@ describe("Type Safety Refactoring Validation", () => {
         candidates: [createCandidate(mockAnalysis)],
       });
 
-      expect(result.success).toBe(true);
+      expect(isOk(result)).toBe(true);
 
-      if (result.success) {
+      if (isOk(result)) {
         // Type flows through from the schema
-        expect(result.data.summary).toBe("Test analysis completed");
-        expect(result.data.findings).toHaveLength(2);
-        expect(result.data.score).toBe(85);
-        expect(result.data.metadata.version).toBe("1.0.0");
+        expect(result.value.summary).toBe("Test analysis completed");
+        expect(result.value.findings).toHaveLength(2);
+        expect(result.value.score).toBe(85);
+        expect(result.value.metadata.version).toBe("1.0.0");
       }
     });
 
@@ -416,11 +417,11 @@ describe("Type Safety Refactoring Validation", () => {
         candidates: [createCandidate(mockResult)],
       });
 
-      expect(result.success).toBe(true);
+      expect(isOk(result)).toBe(true);
 
-      if (result.success) {
+      if (isOk(result)) {
         // Type narrowed by discriminated union - use type assertion for test
-        const data = result.data as ResultType;
+        const data = result.value as ResultType;
         if (data.status === "success") {
           expect(data.data).toBe("Operation completed");
           expect(data.timestamp).toBe("2024-01-01T12:00:00Z");
@@ -450,7 +451,7 @@ describe("Type Safety Refactoring Validation", () => {
         candidates: [errorCandidate],
       });
 
-      expect(result.success).toBe(false);
+      expect(isErr(result)).toBe(true);
     });
   });
 
@@ -556,15 +557,15 @@ describe("Type Safety Refactoring Validation", () => {
         candidates: [createCandidate(expectedInsight)],
       });
 
-      expect(result.success).toBe(true);
+      expect(isOk(result)).toBe(true);
 
-      if (result.success) {
+      if (isOk(result)) {
         // Type flows through correctly
-        expect(result.data.category).toBe("security");
-        expect(result.data.confidence).toBe(0.95);
-        expect(result.data.insights).toHaveLength(1);
-        expect(result.data.insights[0].severity).toBe("high");
-        expect(result.data.recommendations).toContain("Use parameterized queries");
+        expect(result.value.category).toBe("security");
+        expect(result.value.confidence).toBe(0.95);
+        expect(result.value.insights).toHaveLength(1);
+        expect(result.value.insights[0].severity).toBe("high");
+        expect(result.value.recommendations).toContain("Use parameterized queries");
       }
     });
 
@@ -591,14 +592,14 @@ describe("Type Safety Refactoring Validation", () => {
         candidates: [createCandidate(mockData)],
       });
 
-      expect(result.success).toBe(true);
+      expect(isOk(result)).toBe(true);
 
-      if (result.success) {
+      if (isOk(result)) {
         // Type flows through correctly
-        expect(result.data.required).toBe("present");
-        expect(result.data.optional).toBeUndefined();
-        expect(result.data.withDefault).toBe(42);
-        expect(result.data.nullable).toBeNull();
+        expect(result.value.required).toBe("present");
+        expect(result.value.optional).toBeUndefined();
+        expect(result.value.withDefault).toBe(42);
+        expect(result.value.nullable).toBeNull();
       }
     });
 
@@ -610,11 +611,11 @@ describe("Type Safety Refactoring Validation", () => {
         candidates: [createCandidate("Generated text content")],
       });
 
-      expect(result.success).toBe(true);
+      expect(isOk(result)).toBe(true);
 
-      if (result.success) {
-        expect(typeof result.data).toBe("string");
-        expect(result.data).toBe("Generated text content");
+      if (isOk(result)) {
+        expect(typeof result.value).toBe("string");
+        expect(result.value).toBe("Generated text content");
       }
     });
   });

@@ -9,13 +9,10 @@ import type {
 } from "./types/llm-function.types";
 import type { LLMResponsePayload } from "./types/llm-response.types";
 import { LLMError, LLMErrorCode } from "./types/llm-errors.types";
-import { type Result, ok, err } from "../types/result.types";
-import type { LLMModuleConfig } from "./config/llm-module-config.types";
-import type { LLMRetryConfig } from "./providers/llm-provider.types";
-import { LLMExecutionPipeline, type LLMPipelineConfig } from "./llm-execution-pipeline";
-import { ProviderManager } from "./provider-manager";
-import { RetryStrategy } from "./strategies/retry-strategy";
-import LLMExecutionStats from "./tracking/llm-execution-stats";
+import { type Result, ok, err, isErr } from "../types/result.types";
+import type { LLMExecutionPipeline } from "./llm-execution-pipeline";
+import type { ProviderManager } from "./provider-manager";
+import type LLMExecutionStats from "./tracking/llm-execution-stats";
 import {
   buildCompletionCandidatesFromChain,
   buildEmbeddingCandidatesFromChain,
@@ -35,6 +32,9 @@ import { llmConfig } from "./config/llm.config";
  *
  * The router directly handles both completion and embedding operations, using the
  * execution pipeline for retry logic, prompt cropping, and fallback behavior.
+ *
+ * Dependencies are injected via constructor for improved testability.
+ * Use the factory function `createLLMRouter` for standard instantiation.
  */
 export default class LLMRouter {
   /** Execution statistics for tracking LLM call metrics */
@@ -47,20 +47,23 @@ export default class LLMRouter {
   private readonly embeddingCandidates: EmbeddingCandidate[];
 
   /**
-   * Constructor.
+   * Constructor with dependency injection.
    *
-   * @param config The LLM module configuration with resolved model chain
+   * @param modelChain The resolved model chain configuration
+   * @param providerManager The provider manager for accessing LLM providers
+   * @param executionPipeline The execution pipeline for handling retries and fallbacks
+   * @param stats The execution statistics tracker
    */
-  constructor(config: LLMModuleConfig) {
-    this.modelChain = config.resolvedModelChain;
-
-    // Create provider manager with the configuration
-    this.providerManager = new ProviderManager({
-      resolvedModelChain: config.resolvedModelChain,
-      providerParams: config.providerParams,
-      errorLogging: config.errorLogging,
-      providerRegistry: config.providerRegistry,
-    });
+  constructor(
+    modelChain: ResolvedModelChain,
+    providerManager: ProviderManager,
+    executionPipeline: LLMExecutionPipeline,
+    stats: LLMExecutionStats,
+  ) {
+    this.modelChain = modelChain;
+    this.providerManager = providerManager;
+    this.executionPipeline = executionPipeline;
+    this.stats = stats;
 
     // Build completion candidates from the chain
     this.completionCandidates = buildCompletionCandidatesFromChain(
@@ -87,15 +90,6 @@ export default class LLMRouter {
         "At least one embedding model must be configured in LLM_EMBEDDING_MODEL_CHAIN",
       );
     }
-
-    // Create shared execution pipeline
-    this.stats = new LLMExecutionStats();
-    const retryStrategy = new RetryStrategy(this.stats);
-    const pipelineConfig: LLMPipelineConfig = {
-      retryConfig: this.getRetryConfig(),
-      getModelsMetadata: () => this.providerManager.getAllModelsMetadata(),
-    };
-    this.executionPipeline = new LLMExecutionPipeline(retryStrategy, this.stats, pipelineConfig);
 
     console.log(`LLMRouter initialized with: ${this.getModelsUsedDescription()}`);
   }
@@ -227,19 +221,19 @@ export default class LLMRouter {
       candidates,
     });
 
-    if (!result.success) {
+    if (isErr(result)) {
       return null;
     }
 
-    if (!Array.isArray(result.data)) {
+    if (!Array.isArray(result.value)) {
       logWarn(
-        `Embedding response has invalid type: expected number[] but got ${typeof result.data}`,
+        `Embedding response has invalid type: expected number[] but got ${typeof result.value}`,
         context,
       );
       return null;
     }
 
-    return result.data;
+    return result.value;
   }
 
   /**
@@ -309,7 +303,7 @@ export default class LLMRouter {
       candidates: candidates as ExecutableCandidate<InferredType>[],
     });
 
-    if (!result.success) {
+    if (isErr(result)) {
       logWarn(`Failed to execute completion: ${result.error.message}`, context);
       return err(
         new LLMError(LLMErrorCode.BAD_RESPONSE_CONTENT, result.error.message, {
@@ -319,23 +313,6 @@ export default class LLMRouter {
       );
     }
 
-    return ok(result.data);
-  }
-
-  /**
-   * Get the retry config from the first completion provider in the chain.
-   * Used by the execution pipeline for retry behavior.
-   */
-  private getRetryConfig(): LLMRetryConfig {
-    const firstEntry = this.modelChain.completions[0];
-    const manifest = this.providerManager.getManifest(firstEntry.providerFamily);
-    if (!manifest) {
-      throw new LLMError(
-        LLMErrorCode.BAD_CONFIGURATION,
-        `Manifest not found for provider: ${firstEntry.providerFamily}`,
-      );
-    }
-
-    return manifest.providerSpecificConfig;
+    return ok(result.value);
   }
 }

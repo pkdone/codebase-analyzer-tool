@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { describe, test, expect, jest, beforeEach, afterEach } from "@jest/globals";
-import LLMRouter from "../../../../src/common/llm/llm-router";
 import { LLMPurpose, LLMOutputFormat } from "../../../../src/common/llm/types/llm-request.types";
 import { LLMResponseStatus } from "../../../../src/common/llm/types/llm-response.types";
 import type { LLMProvider } from "../../../../src/common/llm/types/llm-provider.interface";
@@ -9,6 +8,7 @@ import { ShutdownBehavior } from "../../../../src/common/llm/types/llm-shutdown.
 import type { LLMProviderManifest } from "../../../../src/common/llm/providers/llm-provider.types";
 import type { LLMModuleConfig } from "../../../../src/common/llm/config/llm-module-config.types";
 import * as manifestLoader from "../../../../src/common/llm/utils/manifest-loader";
+import { createLLMRouter as createLLMRouterFromFactory } from "../../../../src/common/llm/llm-factory";
 import { isOk, isErr } from "../../../../src/common/types/result.types";
 
 jest.mock("../../../../src/common/utils/logging", () => ({
@@ -155,8 +155,8 @@ describe("LLMRouter Function Overloads - Type Safety Tests", () => {
       providerRegistry: mockProviderRegistry,
     };
 
-    // Router now creates its own execution pipeline internally
-    const router = new LLMRouter(mockConfig);
+    // Use the factory function which handles dependency creation and injection
+    const { router } = createLLMRouterFromFactory(mockConfig);
     return { router, mockProvider };
   };
 
