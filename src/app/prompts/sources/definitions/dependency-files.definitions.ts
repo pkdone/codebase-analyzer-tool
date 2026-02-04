@@ -2,11 +2,30 @@ import { DEPENDENCY_EXTRACTION_FRAGMENTS } from "../fragments";
 import { createDependencyConfig, type SourceConfigEntry } from "./source-config-factories";
 
 /**
+ * Literal type for dependency file types.
+ * These are the canonical file types handled by the dependency configuration factory.
+ */
+export type DependencyFileType =
+  | "maven"
+  | "gradle"
+  | "ant"
+  | "npm"
+  | "dotnet-proj"
+  | "nuget"
+  | "ruby-bundler"
+  | "python-pip"
+  | "python-setup"
+  | "python-poetry"
+  | "makefile";
+
+/**
  * Source prompt definitions for dependency management files.
  * These use the createDependencyConfig factory to ensure consistent instruction patterns.
  *
- * The `satisfies` pattern validates that the object conforms to the Record structure
- * while preserving the literal key types for each entry.
+ * The `satisfies Record<DependencyFileType, ...>` pattern enforces that:
+ * 1. All file types defined in DependencyFileType must have corresponding entries
+ * 2. No invalid file type keys can be added (compile-time error for typos)
+ * 3. The literal key types for each entry are preserved
  */
 export const dependencyFileDefinitions = {
   maven: createDependencyConfig(
@@ -50,4 +69,4 @@ export const dependencyFileDefinitions = {
     "the C/C++ build configuration (CMake or Makefile)",
     DEPENDENCY_EXTRACTION_FRAGMENTS.MAKEFILE,
   ),
-} satisfies Record<string, SourceConfigEntry>;
+} satisfies Record<DependencyFileType, SourceConfigEntry>;

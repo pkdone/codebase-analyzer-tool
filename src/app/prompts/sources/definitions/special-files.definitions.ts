@@ -19,11 +19,28 @@ import {
 import { sourceSummarySchema } from "../../../schemas/source-file.schema";
 
 /**
+ * Literal type for special file types.
+ * These are the canonical file types handled by the special/composite configuration factories.
+ */
+export type SpecialFileType =
+  | "sql"
+  | "markdown"
+  | "xml"
+  | "jsp"
+  | "shell-script"
+  | "batch-script"
+  | "jcl"
+  | "default";
+
+/**
  * Source prompt definitions for special file types (SQL, Markdown, XML, JSP, scripts, etc.).
  *
  * Uses createCompositeSourceConfig factory for consistency with other definition files.
- * The `satisfies` pattern validates that the object conforms to the Record structure
- * while preserving the literal key types for each entry.
+ *
+ * The `satisfies Record<SpecialFileType, ...>` pattern enforces that:
+ * 1. All file types defined in SpecialFileType must have corresponding entries
+ * 2. No invalid file type keys can be added (compile-time error for typos)
+ * 3. The literal key types for each entry are preserved
  */
 export const specialFileDefinitions = {
   sql: createCompositeSourceConfig(
@@ -152,4 +169,4 @@ export const specialFileDefinitions = {
       ),
     ],
   ),
-} satisfies Record<string, SourceConfigEntry>;
+} satisfies Record<SpecialFileType, SourceConfigEntry>;

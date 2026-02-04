@@ -11,11 +11,26 @@ import {
 import { createStandardCodeConfig, type SourceConfigEntry } from "./source-config-factories";
 
 /**
+ * Literal type for standard code file types.
+ * These are the canonical file types handled by the standard code configuration factory.
+ */
+export type StandardCodeFileType =
+  | "java"
+  | "javascript"
+  | "csharp"
+  | "python"
+  | "ruby"
+  | "c"
+  | "cpp";
+
+/**
  * Source prompt definitions for standard programming languages.
  * These use the createStandardCodeConfig factory to ensure consistent instruction patterns.
  *
- * The `satisfies` pattern validates that the object conforms to the Record structure
- * while preserving the literal key types for each entry.
+ * The `satisfies Record<StandardCodeFileType, ...>` pattern enforces that:
+ * 1. All file types defined in StandardCodeFileType must have corresponding entries
+ * 2. No invalid file type keys can be added (compile-time error for typos)
+ * 3. The literal key types for each entry are preserved
  *
  * Note: hasComplexSchema defaults to false, so it's not explicitly set here.
  */
@@ -34,4 +49,4 @@ export const standardCodeDefinitions = {
     useModuleBase: true,
   }),
   cpp: createStandardCodeConfig("the C++ source code", CPP_SPECIFIC_FRAGMENTS),
-} satisfies Record<string, SourceConfigEntry>;
+} satisfies Record<StandardCodeFileType, SourceConfigEntry>;

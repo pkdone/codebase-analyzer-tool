@@ -6,6 +6,7 @@ import {
   inferredArchitectureSchema,
   potentialMicroservicesSchema,
   technologiesSchema,
+  type AppSummaryCategoryEnum,
 } from "../../schemas/app-summaries.schema";
 import { APP_SUMMARY_PROMPT_FRAGMENTS, APP_SUMMARY_CONTENT_DESC } from "./app-summaries.constants";
 import { FILE_SUMMARIES_DATA_BLOCK_HEADER } from "../prompts.constants";
@@ -39,9 +40,13 @@ export type AppSummaryConfigEntry<S extends z.ZodType<unknown> = z.ZodType<unkno
  * Note: aggregates, entities, and repositories are captured within the boundedContexts
  * category as a hierarchical structure to ensure naming consistency across domain elements.
  *
- * The `satisfies` pattern validates that the object conforms to the Record structure
- * while preserving the literal types of each entry (including specific Zod schema types).
- * This enables TypeScript to infer the exact schema type for each category key.
+ * The `satisfies Record<AppSummaryCategoryEnum, ...>` pattern enforces that:
+ * 1. All categories defined in AppSummaryCategoryEnum must have corresponding entries
+ * 2. No invalid category keys can be added (compile-time error for typos)
+ * 3. The literal types of each entry are preserved (including specific Zod schema types)
+ *
+ * This enables TypeScript to infer the exact schema type for each category key and
+ * provides compile-time validation of completeness.
  */
 export const appSummaryConfigMap = {
   appDescription: {
@@ -134,7 +139,7 @@ Also identify:
 2. Directed dependency relationships between all business components and external systems. Every external dependency listed MUST have at least one "from" relationship from an internal component.`,
     ],
   },
-} as const satisfies Record<string, AppSummaryConfigEntry>;
+} as const satisfies Record<AppSummaryCategoryEnum, AppSummaryConfigEntry>;
 
 /**
  * Type alias for the appSummaryConfigMap that preserves specific schema types for each category.
