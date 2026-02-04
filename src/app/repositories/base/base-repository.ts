@@ -69,11 +69,7 @@ export abstract class BaseRepository<T extends Document> {
     options?: UpdateOptions,
   ): Promise<void> {
     try {
-      if (options !== undefined) {
-        await this.collection.updateOne(filter, update, options);
-      } else {
-        await this.collection.updateOne(filter, update);
-      }
+      await this.collection.updateOne(filter, update, options);
     } catch (error: unknown) {
       logMongoValidationErrorIfPresent(error);
       throw error;

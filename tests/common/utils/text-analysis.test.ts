@@ -10,8 +10,8 @@ describe("text-analysis", () => {
       expect(countLines("single line")).toBe(1);
     });
 
-    test("should count empty string as one line", () => {
-      expect(countLines("")).toBe(1);
+    test("should count empty string as zero lines", () => {
+      expect(countLines("")).toBe(0);
     });
 
     test("should count multiple newlines", () => {

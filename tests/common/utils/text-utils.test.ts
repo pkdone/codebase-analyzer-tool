@@ -10,8 +10,12 @@ import {
 
 describe("text-utils", () => {
   describe("countLines", () => {
-    it("should return 1 for empty string", () => {
-      expect(countLines("")).toBe(1);
+    it("should return 0 for empty string", () => {
+      expect(countLines("")).toBe(0);
+    });
+
+    it("should return 1 for single character", () => {
+      expect(countLines("a")).toBe(1);
     });
 
     it("should return 1 for single line without newline", () => {

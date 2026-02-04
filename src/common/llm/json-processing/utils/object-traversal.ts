@@ -215,7 +215,7 @@ export function deepMapObject(
 
   // Process string keys with optional transformation using for...in loop to avoid Object.entries allocation
   for (const key in visitedValue) {
-    if (Object.prototype.hasOwnProperty.call(visitedValue, key)) {
+    if (Object.hasOwn(visitedValue, key)) {
       const val = visitedValue[key];
 
       // Recursively process the value

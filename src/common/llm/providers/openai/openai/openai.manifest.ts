@@ -26,9 +26,9 @@ function extractOpenAIConfig(providerParams: Record<string, unknown>): OpenAICon
 export const OPENAI_FAMILY = "OpenAI";
 
 // Environment variable keys for model URNs
-export const OPENAI_EMBEDDING_3_SMALL_MODEL_URN_ID = "OPENAI_EMBEDDING_3_SMALL_MODEL_URN";
-export const OPENAI_GPT5_MODEL_URN_ID = "OPENAI_GPT5_MODEL_URN";
-export const OPENAI_GPT4O_MODEL_URN_ID = "OPENAI_GPT4O_MODEL_URN";
+const OPENAI_EMBEDDING_3_SMALL_MODEL_URN_ID = "OPENAI_EMBEDDING_3_SMALL_MODEL_URN";
+const OPENAI_GPT5_MODEL_URN_ID = "OPENAI_GPT5_MODEL_URN";
+const OPENAI_GPT4O_MODEL_URN_ID = "OPENAI_GPT4O_MODEL_URN";
 
 export const openAIProviderManifest: LLMProviderManifest = {
   providerFamily: OPENAI_FAMILY,

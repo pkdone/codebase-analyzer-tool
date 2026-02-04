@@ -10,8 +10,8 @@ export const BEDROCK_LLAMA_FAMILY = "BedrockLlama";
 export { BedrockLlamaProviderConfigSchema } from "./bedrock-llama.types";
 
 // Environment variable keys for model URNs
-export const BEDROCK_LLAMA_33_70B_MODEL_URN_ID = "BEDROCK_LLAMA_33_70B_MODEL_URN";
-export const BEDROCK_LLAMA_32_90B_MODEL_URN_ID = "BEDROCK_LLAMA_32_90B_MODEL_URN";
+const BEDROCK_LLAMA_33_70B_MODEL_URN_ID = "BEDROCK_LLAMA_33_70B_MODEL_URN";
+const BEDROCK_LLAMA_32_90B_MODEL_URN_ID = "BEDROCK_LLAMA_32_90B_MODEL_URN";
 
 export const bedrockLlamaProviderManifest = createBedrockManifest(
   BEDROCK_LLAMA_FAMILY,

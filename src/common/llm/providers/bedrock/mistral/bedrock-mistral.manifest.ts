@@ -7,8 +7,8 @@ import { createBedrockManifest } from "../common/bedrock-manifest-factory";
 export const BEDROCK_MISTRAL_FAMILY = "BedrockMistral";
 
 // Environment variable keys for model URNs
-export const BEDROCK_MISTRAL_LARGE_2407_MODEL_URN_ID = "BEDROCK_MISTRAL_LARGE_2407_MODEL_URN";
-export const BEDROCK_MISTRAL_LARGE_2402_MODEL_URN_ID = "BEDROCK_MISTRAL_LARGE_2402_MODEL_URN";
+const BEDROCK_MISTRAL_LARGE_2407_MODEL_URN_ID = "BEDROCK_MISTRAL_LARGE_2407_MODEL_URN";
+const BEDROCK_MISTRAL_LARGE_2402_MODEL_URN_ID = "BEDROCK_MISTRAL_LARGE_2402_MODEL_URN";
 
 export const bedrockMistralProviderManifest = createBedrockManifest(
   BEDROCK_MISTRAL_FAMILY,

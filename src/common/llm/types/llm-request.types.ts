@@ -139,10 +139,3 @@ export function toExecutionContext(
     modelKey,
   };
 }
-
-/**
- * @deprecated Use LLMRequestContext or LLMExecutionContext instead.
- * This type alias is kept for backwards compatibility during migration.
- * LLMContext with optional modelKey - prefer using the specific context types.
- */
-export type LLMContext = LLMRequestContext & { modelKey?: string };

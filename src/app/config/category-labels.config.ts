@@ -23,7 +23,8 @@ export const CATEGORY_LABELS: Readonly<Record<AppSummaryCategoryEnum, string>> =
 } as const;
 
 /**
- * Get the display label for a category, with fallback to the category name.
+ * Get the display label for a category.
+ * The type system ensures all categories have labels defined.
  */
 export function getCategoryLabel(category: AppSummaryCategoryEnum): string {
   return CATEGORY_LABELS[category];

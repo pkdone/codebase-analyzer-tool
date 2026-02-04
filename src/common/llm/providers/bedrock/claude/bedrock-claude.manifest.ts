@@ -8,8 +8,8 @@ import { createBedrockManifest } from "../common/bedrock-manifest-factory";
 export const BEDROCK_CLAUDE_FAMILY = "BedrockClaude";
 
 // Environment variable keys for model URNs
-export const BEDROCK_CLAUDE_OPUS_45_MODEL_URN_ID = "BEDROCK_CLAUDE_OPUS_45_MODEL_URN";
-export const BEDROCK_CLAUDE_SONNET_45_MODEL_URN_ID = "BEDROCK_CLAUDE_SONNET_45_MODEL_URN";
+const BEDROCK_CLAUDE_OPUS_45_MODEL_URN_ID = "BEDROCK_CLAUDE_OPUS_45_MODEL_URN";
+const BEDROCK_CLAUDE_SONNET_45_MODEL_URN_ID = "BEDROCK_CLAUDE_SONNET_45_MODEL_URN";
 
 export const bedrockClaudeProviderManifest = createBedrockManifest(
   BEDROCK_CLAUDE_FAMILY,

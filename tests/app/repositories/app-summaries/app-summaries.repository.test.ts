@@ -110,7 +110,11 @@ describe("AppSummaryRepositoryImpl", () => {
 
       await repository.updateAppSummary(projectName, updates);
 
-      expect(mockCollection.updateOne).toHaveBeenCalledWith({ projectName }, { $set: updates });
+      expect(mockCollection.updateOne).toHaveBeenCalledWith(
+        { projectName },
+        { $set: updates },
+        undefined,
+      );
     });
 
     it("should handle MongoDB validation errors during update", async () => {
@@ -134,7 +138,11 @@ describe("AppSummaryRepositoryImpl", () => {
 
       await repository.updateAppSummary(projectName, updates);
 
-      expect(mockCollection.updateOne).toHaveBeenCalledWith({ projectName }, { $set: {} });
+      expect(mockCollection.updateOne).toHaveBeenCalledWith(
+        { projectName },
+        { $set: {} },
+        undefined,
+      );
     });
   });
 

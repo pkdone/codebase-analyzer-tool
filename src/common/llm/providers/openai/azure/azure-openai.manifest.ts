@@ -2,6 +2,7 @@ import { z } from "zod";
 import type { LLMProviderManifest } from "../../llm-provider.types";
 import AzureOpenAILLM from "./azure-openai-llm";
 import { LLMPurpose } from "../../../types/llm-request.types";
+import { LLMError, LLMErrorCode } from "../../../types/llm-errors.types";
 import { OPENAI_COMMON_ERROR_PATTERNS } from "../common/openai-error-patterns";
 import { defaultOpenAIProviderConfig } from "../common/openai-defaults.config";
 import { llmConfig } from "../../../config/llm.config";
@@ -16,10 +17,15 @@ const AZURE_OPENAI_ENDPOINT_KEY = "AZURE_OPENAI_ENDPOINT";
  * This decouples the provider implementation from specific env var names.
  */
 function extractAzureOpenAIConfig(providerParams: Record<string, unknown>): AzureOpenAIConfig {
-  return {
-    apiKey: providerParams[AZURE_OPENAI_LLM_API_KEY] as string,
-    endpoint: providerParams[AZURE_OPENAI_ENDPOINT_KEY] as string,
-  };
+  const apiKey = providerParams[AZURE_OPENAI_LLM_API_KEY];
+  const endpoint = providerParams[AZURE_OPENAI_ENDPOINT_KEY];
+  if (typeof apiKey !== "string" || typeof endpoint !== "string") {
+    throw new LLMError(
+      LLMErrorCode.BAD_CONFIGURATION,
+      "Invalid Azure OpenAI config: apiKey and endpoint must be strings",
+    );
+  }
+  return { apiKey, endpoint };
 }
 // Azure-specific: each model needs its own deployment name for routing
 const AZURE_OPENAI_EMBEDDINGS_MODEL_DEPLOYMENT_KEY = "AZURE_OPENAI_EMBEDDINGS_MODEL_DEPLOYMENT";
@@ -30,9 +36,9 @@ const AZURE_OPENAI_GPT4_TURBO_DEPLOYMENT_KEY = "AZURE_OPENAI_GPT4_TURBO_MODEL_DE
 export const AZURE_OPENAI_FAMILY = "AzureOpenAI";
 
 // Environment variable keys for model URNs
-export const AZURE_OPENAI_ADA_EMBEDDINGS_MODEL_URN_ID = "AZURE_OPENAI_ADA_EMBEDDINGS_MODEL_URN";
-export const AZURE_OPENAI_GPT4O_MODEL_URN_ID = "AZURE_OPENAI_GPT4O_MODEL_URN";
-export const AZURE_OPENAI_GPT4_TURBO_MODEL_URN_ID = "AZURE_OPENAI_GPT4_TURBO_MODEL_URN";
+const AZURE_OPENAI_ADA_EMBEDDINGS_MODEL_URN_ID = "AZURE_OPENAI_ADA_EMBEDDINGS_MODEL_URN";
+const AZURE_OPENAI_GPT4O_MODEL_URN_ID = "AZURE_OPENAI_GPT4O_MODEL_URN";
+const AZURE_OPENAI_GPT4_TURBO_MODEL_URN_ID = "AZURE_OPENAI_GPT4_TURBO_MODEL_URN";
 
 /**
  * Mapping of Azure model keys to their deployment environment variable keys.

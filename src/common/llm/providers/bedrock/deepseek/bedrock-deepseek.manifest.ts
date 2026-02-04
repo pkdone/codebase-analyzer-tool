@@ -7,7 +7,7 @@ import { createBedrockManifest } from "../common/bedrock-manifest-factory";
 export const BEDROCK_DEEPSEEK_FAMILY = "BedrockDeepseek";
 
 // Environment variable keys for model URNs
-export const BEDROCK_DEEPSEEK_R1_MODEL_URN_ID = "BEDROCK_DEEPSEEK_R1_MODEL_URN";
+const BEDROCK_DEEPSEEK_R1_MODEL_URN_ID = "BEDROCK_DEEPSEEK_R1_MODEL_URN";
 
 export const bedrockDeepseekProviderManifest = createBedrockManifest(
   BEDROCK_DEEPSEEK_FAMILY,

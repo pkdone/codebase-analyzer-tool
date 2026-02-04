@@ -4,7 +4,7 @@
  * V8 heavily optimizes this pattern, making it faster than regex/iterator approaches.
  */
 export function countLines(text: string): number {
-  if (text.length === 0) return 1;
+  if (text.length === 0) return 0;
 
   let count = 1;
   for (let i = 0; i < text.length; i++) {

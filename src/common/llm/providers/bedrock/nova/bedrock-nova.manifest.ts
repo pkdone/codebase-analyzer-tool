@@ -7,9 +7,9 @@ import { createBedrockManifest } from "../common/bedrock-manifest-factory";
 export const BEDROCK_NOVA_FAMILY = "BedrockNova";
 
 // Environment variable keys for model URNs
-export const BEDROCK_NOVA_PRO_MODEL_URN_ID = "BEDROCK_NOVA_PRO_MODEL_URN";
-export const BEDROCK_NOVA_LITE_MODEL_URN_ID = "BEDROCK_NOVA_LITE_MODEL_URN";
-export const BEDROCK_TITAN_EMBEDDINGS_MODEL_URN_ID = "BEDROCK_TITAN_EMBEDDINGS_MODEL_URN";
+const BEDROCK_NOVA_PRO_MODEL_URN_ID = "BEDROCK_NOVA_PRO_MODEL_URN";
+const BEDROCK_NOVA_LITE_MODEL_URN_ID = "BEDROCK_NOVA_LITE_MODEL_URN";
+const BEDROCK_TITAN_EMBEDDINGS_MODEL_URN_ID = "BEDROCK_TITAN_EMBEDDINGS_MODEL_URN";
 
 export const bedrockNovaProviderManifest = createBedrockManifest(
   BEDROCK_NOVA_FAMILY,
