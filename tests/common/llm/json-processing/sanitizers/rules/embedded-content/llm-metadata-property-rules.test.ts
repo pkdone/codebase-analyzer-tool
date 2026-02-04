@@ -320,16 +320,16 @@ extra_notes= "additional info"
       expect(result.content).not.toContain("llm_internal_analysis");
     });
 
-    it("should preserve properties with 'analysis' in the middle of name", () => {
-      // Properties like "analysis_data" or "internal_analysis_data" could be legitimate
-      // The pattern is conservative to avoid false positives
+    it("should detect properties with 'analysis' anywhere in name", () => {
+      // Properties containing "analysis" are now detected as LLM artifacts
       const input = `{
   "summary": "complete",
   "internal_analysis_data": "detailed breakdown"
 }`;
       const result = executeRules(input, LLM_METADATA_PROPERTY_RULES);
-      // Should NOT be removed since "analysis" is in the middle, not a suffix
-      expect(result.content).toContain("internal_analysis_data");
+      // Should be removed since "analysis" is in the pattern list
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain("internal_analysis_data");
     });
 
     it("should preserve properties that are in knownProperties list", () => {
@@ -346,6 +346,134 @@ extra_notes= "additional info"
       // Valid properties should be preserved
       expect(result.content).toContain('"name": "Test"');
       expect(result.content).toContain('"type": "class"');
+    });
+
+    // Extended artifact pattern tests
+    // Note: The llmArtifactPropertyByPattern rule requires at least one character BEFORE
+    // the keyword in the property name. Properties where the keyword is at the start
+    // (like "trace_data") are detected by isLLMArtifactPropertyName but not by the rule regex.
+    it("should detect properties containing 'trace' in name with prefix", () => {
+      const input = `{
+  "name": "Test",
+  "my_trace_output": "step1 -> step2"
+}`;
+      const result = executeRules(input, LLM_METADATA_PROPERTY_RULES);
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain("my_trace_output");
+    });
+
+    it("should detect properties containing 'chain' in name with prefix", () => {
+      const input = `{
+  "result": "done",
+  "thought_chain_data": "premise -> conclusion"
+}`;
+      const result = executeRules(input, LLM_METADATA_PROPERTY_RULES);
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain("thought_chain_data");
+    });
+
+    it("should detect properties containing 'scratch' in name with prefix", () => {
+      const input = `{
+  "output": "final",
+  "my_scratch_notes": "calculations here"
+}`;
+      const result = executeRules(input, LLM_METADATA_PROPERTY_RULES);
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain("my_scratch_notes");
+    });
+
+    it("should detect properties containing 'intermediate' in name with prefix", () => {
+      // Note: "intermediate" as a substring works when there's a prefix before it
+      const input = `{
+  "final_result": 42,
+  "llm_intermediate_value": "temp data"
+}`;
+      const result = executeRules(input, LLM_METADATA_PROPERTY_RULES);
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain("llm_intermediate_value");
+    });
+
+    it("should detect properties containing 'working_memory' pattern", () => {
+      const input = `{
+  "answer": "yes",
+  "llm_working_memory_data": "context data"
+}`;
+      const result = executeRules(input, LLM_METADATA_PROPERTY_RULES);
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain("llm_working_memory_data");
+    });
+
+    it("should detect properties containing 'step_by_step' pattern", () => {
+      const input = `{
+  "summary": "complete",
+  "my_step_by_step_work": "1. first, 2. second"
+}`;
+      const result = executeRules(input, LLM_METADATA_PROPERTY_RULES);
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain("my_step_by_step_work");
+    });
+  });
+
+  describe("extra_* rule patterns - extended artifacts", () => {
+    // These tests verify that extra_* style properties with new artifact keywords are detected
+    it("should detect extra_trace property blocks", () => {
+      const input = `{
+  "name": "Test"
+},
+extra_trace: log output here
+  "nextProp": "value"
+}`;
+      const result = executeRules(input, LLM_METADATA_PROPERTY_RULES);
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain("extra_trace");
+    });
+
+    it("should detect extra_working property blocks", () => {
+      const input = `{
+  "value": 123
+},
+extra_working: temporary storage
+  "result": "final"
+}`;
+      const result = executeRules(input, LLM_METADATA_PROPERTY_RULES);
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain("extra_working");
+    });
+
+    it("should detect extra_draft property blocks", () => {
+      const input = `{
+  "name": "Test"
+},
+extra_draft: initial version of response
+  "property": "value"
+}`;
+      const result = executeRules(input, LLM_METADATA_PROPERTY_RULES);
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain("extra_draft");
+    });
+
+    it("should detect extra_intermediate property blocks", () => {
+      const input = `{
+  "name": "Test"
+},
+extra_intermediate: not final yet
+  "output": "result"
+}`;
+      const result = executeRules(input, LLM_METADATA_PROPERTY_RULES);
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain("extra_intermediate");
+    });
+
+    it("should detect extra_steps property blocks", () => {
+      const input = `{
+  "name": "Test"
+},
+extra_steps: step by step process
+  "result": "done"
+}`;
+      const result = executeRules(input, LLM_METADATA_PROPERTY_RULES);
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain("extra_steps");
     });
   });
 });

@@ -69,45 +69,38 @@ export const normalizeCharacters: Sanitizer = (input: string): SanitizerResult =
     let result = input;
 
     // First pass: convert curly quotes to ASCII quotes (before character-by-character processing)
-    const leftDoubleCount = (result.match(/\u201C/g) ?? []).length;
-    const rightDoubleCount = (result.match(/\u201D/g) ?? []).length;
-    const leftSingleCount = (result.match(/\u2018/g) ?? []).length;
-    const rightSingleCount = (result.match(/\u2019/g) ?? []).length;
+    // Using regex character ranges to catch all Unicode quote variants:
+    // - Double quotes: U+201C-U+201F (left/right double, double low-9, double high-reversed-9)
+    // - Single quotes: U+2018-U+201B (left/right single, single low-9, single high-reversed-9)
+    //                  U+02BB-U+02BC (modifier letter turned comma and apostrophe)
+    // Note: Backticks (U+0060) and acute accent (U+00B4) are excluded as they have different semantic purposes
 
-    if (
-      leftDoubleCount > 0 ||
-      rightDoubleCount > 0 ||
-      leftSingleCount > 0 ||
-      rightSingleCount > 0
-    ) {
+    const doubleQuotePattern = /[\u201C-\u201F]/g;
+    const singleQuotePattern = /[\u2018-\u201B\u02BB\u02BC]/g;
+
+    const doubleQuoteMatches = result.match(doubleQuotePattern) ?? [];
+    const singleQuoteMatches = result.match(singleQuotePattern) ?? [];
+
+    const doubleQuoteCount = doubleQuoteMatches.length;
+    const singleQuoteCount = singleQuoteMatches.length;
+
+    if (doubleQuoteCount > 0 || singleQuoteCount > 0) {
       hasChanges = true;
-      // Left double quotation mark (U+201C) -> regular double quote (U+0022)
-      result = result.replaceAll("\u201C", '"');
-      // Right double quotation mark (U+201D) -> regular double quote (U+0022)
-      result = result.replaceAll("\u201D", '"');
-      // Left single quotation mark (U+2018) -> regular single quote (U+0027)
-      result = result.replaceAll("\u2018", "'");
-      // Right single quotation mark (U+2019) -> regular single quote (U+0027)
-      result = result.replaceAll("\u2019", "'");
 
-      if (leftDoubleCount > 0) {
+      // Replace all double quote variants with ASCII double quote
+      result = result.replace(doubleQuotePattern, '"');
+
+      // Replace all single quote variants with ASCII single quote
+      result = result.replace(singleQuotePattern, "'");
+
+      if (doubleQuoteCount > 0) {
         repairs.push(
-          `Converted ${leftDoubleCount} left double curly quote${leftDoubleCount !== 1 ? "s" : ""} (") to regular quote`,
+          `Converted ${doubleQuoteCount} curly/smart double quote${doubleQuoteCount !== 1 ? "s" : ""} to regular quote`,
         );
       }
-      if (rightDoubleCount > 0) {
+      if (singleQuoteCount > 0) {
         repairs.push(
-          `Converted ${rightDoubleCount} right double curly quote${rightDoubleCount !== 1 ? "s" : ""} (") to regular quote`,
-        );
-      }
-      if (leftSingleCount > 0) {
-        repairs.push(
-          `Converted ${leftSingleCount} left single curly quote${leftSingleCount !== 1 ? "s" : ""} (') to regular quote`,
-        );
-      }
-      if (rightSingleCount > 0) {
-        repairs.push(
-          `Converted ${rightSingleCount} right single curly quote${rightSingleCount !== 1 ? "s" : ""} (') to regular quote`,
+          `Converted ${singleQuoteCount} curly/smart single quote${singleQuoteCount !== 1 ? "s" : ""} to regular quote`,
         );
       }
     }

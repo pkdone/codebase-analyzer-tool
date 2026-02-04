@@ -7,6 +7,7 @@ import {
   looksLikeFirstPersonStatement,
   looksLikeTruncationMarker,
   looksLikeSentenceStructure,
+  looksLikeConversationalFiller,
 } from "../../../../../src/common/llm/json-processing/utils/stray-text-detection";
 
 describe("stray-text-detection", () => {
@@ -333,6 +334,95 @@ describe("stray-text-detection", () => {
       expect(looksLikeSentenceStructure("this is text")).toBe(true);
       // Pure numbers - should fail
       expect(looksLikeSentenceStructure("123 456 789")).toBe(false);
+    });
+  });
+
+  describe("looksLikeConversationalFiller", () => {
+    it("should return false for empty text", () => {
+      expect(looksLikeConversationalFiller("")).toBe(false);
+      expect(looksLikeConversationalFiller("   ")).toBe(false);
+    });
+
+    it("should return false for text with JSON structural characters", () => {
+      expect(looksLikeConversationalFiller('Note that {"key": "value"}')).toBe(false);
+      expect(looksLikeConversationalFiller("Also, the array []")).toBe(false);
+    });
+
+    it("should return false for text without spaces (identifiers)", () => {
+      expect(looksLikeConversationalFiller("MyEnumValue")).toBe(false);
+      expect(looksLikeConversationalFiller("SomeIdentifier")).toBe(false);
+    });
+
+    it("should return false for short text (<=10 chars)", () => {
+      expect(looksLikeConversationalFiller("Note this")).toBe(false); // 9 chars
+      expect(looksLikeConversationalFiller("Also this")).toBe(false); // 9 chars
+      expect(looksLikeConversationalFiller("OK value")).toBe(false); // 8 chars
+    });
+
+    it("should return false for JSON keywords", () => {
+      expect(looksLikeConversationalFiller("true")).toBe(false);
+      expect(looksLikeConversationalFiller("false")).toBe(false);
+      expect(looksLikeConversationalFiller("null")).toBe(false);
+    });
+
+    it("should detect 'Note that' patterns", () => {
+      expect(looksLikeConversationalFiller("Note that this is important")).toBe(true);
+      expect(looksLikeConversationalFiller("Note, this should be considered")).toBe(true);
+    });
+
+    it("should detect 'Also' patterns", () => {
+      expect(looksLikeConversationalFiller("Also, we should consider this")).toBe(true);
+      expect(looksLikeConversationalFiller("Also note that this applies")).toBe(true);
+    });
+
+    it("should detect 'However' patterns", () => {
+      expect(looksLikeConversationalFiller("However the implementation differs")).toBe(true);
+      expect(looksLikeConversationalFiller("However, this is not valid")).toBe(true);
+    });
+
+    it("should detect 'Additionally' patterns", () => {
+      expect(looksLikeConversationalFiller("Additionally, this should work")).toBe(true);
+      expect(looksLikeConversationalFiller("Additionally the code handles")).toBe(true);
+    });
+
+    it("should detect 'Furthermore' patterns", () => {
+      expect(looksLikeConversationalFiller("Furthermore, we need to check")).toBe(true);
+      expect(looksLikeConversationalFiller("Furthermore the tests pass")).toBe(true);
+    });
+
+    it("should detect 'Moreover' patterns", () => {
+      expect(looksLikeConversationalFiller("Moreover, this is correct")).toBe(true);
+      expect(looksLikeConversationalFiller("Moreover the system supports")).toBe(true);
+    });
+
+    it("should detect 'Therefore' patterns", () => {
+      expect(looksLikeConversationalFiller("Therefore, we conclude that")).toBe(true);
+      expect(looksLikeConversationalFiller("Therefore the result is valid")).toBe(true);
+    });
+
+    it("should detect transitional phrases with enough words", () => {
+      expect(looksLikeConversationalFiller("Consequently, the output changes")).toBe(true);
+      expect(looksLikeConversationalFiller("Finally, the process completes")).toBe(true);
+    });
+
+    it("should not detect valid data that happens to start with capital letter", () => {
+      // Single identifier words should not match
+      expect(looksLikeConversationalFiller("MyClassName")).toBe(false);
+      // Two words without being filler-like
+      expect(looksLikeConversationalFiller("Simple type")).toBe(false); // too short (11 chars but no 3+ words)
+    });
+
+    it("should handle mixed case appropriately", () => {
+      // Lowercase starting words shouldn't match the capitalized pattern
+      expect(looksLikeConversationalFiller("however this is text")).toBe(false);
+      // But 3+ words would be caught by the word count check
+      expect(looksLikeConversationalFiller("However, this is definitely filler text")).toBe(true);
+    });
+
+    it("should detect various conversational openers", () => {
+      expect(looksLikeConversationalFiller("Basically, the function returns")).toBe(true);
+      expect(looksLikeConversationalFiller("Essentially, this means that")).toBe(true);
+      expect(looksLikeConversationalFiller("Obviously, the result is correct")).toBe(true);
     });
   });
 });

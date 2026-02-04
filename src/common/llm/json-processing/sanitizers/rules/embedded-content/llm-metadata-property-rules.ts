@@ -39,8 +39,9 @@ function isLLMArtifactPropertyName(propertyName: string): boolean {
 
   // Pattern 3: Contains common LLM artifact suffixes
   // These patterns indicate internal/debugging properties LLMs sometimes add
+  // Extended list includes: trace, chain, steps, working, draft, intermediate
   if (
-    /_(?:thoughts?|thinking|reasoning|analysis|scratchpad|notes?|comment|metadata|internal|private|context|response|output)$/i.test(
+    /_(?:thoughts?|thinking|reasoning|analysis|scratchpad|notes?|comment|metadata|internal|private|context|response|output|trace|chain|steps?|working|draft|intermediate|scratch)$/i.test(
       lowerName,
     )
   ) {
@@ -48,10 +49,18 @@ function isLLMArtifactPropertyName(propertyName: string): boolean {
   }
 
   // Pattern 4: Contains artifact-indicating words anywhere in the name
+  // Extended list includes: trace, chain, scratch, step, intermediate, working, draft
   if (
-    /(?:thought|thinking|reasoning|scratchpad)/.test(lowerName) &&
+    /(?:thought|thinking|reasoning|scratchpad|chain_of_thought|reasoning_trace|working_memory|intermediate_result|scratch_work|step_by_step)/.test(
+      lowerName,
+    ) &&
     !lowerName.startsWith('"') // Not inside a string value
   ) {
+    return true;
+  }
+
+  // Pattern 5: Contains debugging/internal prefixes followed by underscore
+  if (/^(?:debug|temp|tmp|internal|private|hidden)_/i.test(propertyName)) {
     return true;
   }
 
@@ -259,12 +268,13 @@ export const LLM_METADATA_PROPERTY_RULES: readonly ReplacementRule[] = [
   },
 
   // Rule: Remove properties with LLM artifact patterns (schema-aware)
-  // Pattern: Properties containing "thought", "thinking", "reasoning", "scratchpad" in key names
+  // Pattern: Properties containing artifact-indicating words in key names
+  // Extended list: thought, thinking, reasoning, scratchpad, analysis, trace, chain, scratch, intermediate
   // Uses schema-aware detection - if knownProperties provided, only removes unknown properties
   {
     name: "llmArtifactPropertyByPattern",
     pattern:
-      /([,{])\s*"([a-zA-Z_][a-zA-Z0-9_]*(?:thought|thinking|reasoning|scratchpad|analysis)[a-zA-Z0-9_]*)"\s*:\s*/gi,
+      /([,{])\s*"([a-zA-Z_][a-zA-Z0-9_]*(?:thought|thinking|reasoning|scratchpad|analysis|trace|chain|scratch|intermediate|working_memory|step_by_step)[a-zA-Z0-9_]*)"\s*:\s*/gi,
     replacement: (_match, groups, context) => {
       const propertyName = groups[1] ?? "";
       const knownProperties = context.config?.knownProperties;

@@ -119,6 +119,89 @@ describe("normalizeCharacters", () => {
       expect(result.repairs).toBeDefined();
       expect(result.repairs?.length).toBeGreaterThan(0);
     });
+
+    // Extended Unicode quote tests for the generalized regex patterns
+    it("should convert double low-9 quotation mark (U+201E)", () => {
+      const input = '{\u201Ename\u201D: "value"}'; // Double low-9 and right double quote
+      const result = normalizeCharacters(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toBe('{"name": "value"}');
+      expect(result.content).not.toContain("\u201E");
+    });
+
+    it("should convert double high-reversed-9 quotation mark (U+201F)", () => {
+      const input = '{\u201Fname\u201D: "value"}'; // Double high-reversed-9 and right double quote
+      const result = normalizeCharacters(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toBe('{"name": "value"}');
+      expect(result.content).not.toContain("\u201F");
+    });
+
+    it("should convert modifier letter turned comma (U+02BB)", () => {
+      const input = "It\u02BBs a test value"; // Modifier letter turned comma as apostrophe
+      const result = normalizeCharacters(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toBe("It's a test value");
+      expect(result.content).not.toContain("\u02BB");
+    });
+
+    it("should convert modifier letter apostrophe (U+02BC)", () => {
+      const input = "It\u02BCs a test value"; // Modifier letter apostrophe
+      const result = normalizeCharacters(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toBe("It's a test value");
+      expect(result.content).not.toContain("\u02BC");
+    });
+
+    it("should convert single low-9 quotation mark (U+201A)", () => {
+      const input = "It\u201As a test value"; // Single low-9 quotation mark
+      const result = normalizeCharacters(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toBe("It's a test value");
+      expect(result.content).not.toContain("\u201A");
+    });
+
+    it("should convert single high-reversed-9 quotation mark (U+201B)", () => {
+      const input = "It\u201Bs a test value"; // Single high-reversed-9 quotation mark
+      const result = normalizeCharacters(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toBe("It's a test value");
+      expect(result.content).not.toContain("\u201B");
+    });
+
+    it("should handle mixed extended Unicode quotes", () => {
+      const input = "{\u201Ename\u201F: \u02BBvalue\u02BC}";
+      const result = normalizeCharacters(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toBe(`{"name": 'value'}`);
+      expect(result.content).not.toContain("\u201E");
+      expect(result.content).not.toContain("\u201F");
+      expect(result.content).not.toContain("\u02BB");
+      expect(result.content).not.toContain("\u02BC");
+    });
+
+    it("should not modify backticks (U+0060) - they have different semantics", () => {
+      const input = "const x = `template ${value}`";
+      const result = normalizeCharacters(input);
+
+      // Backticks should be preserved, not converted to quotes
+      expect(result.content).toContain("`");
+    });
+
+    it("should not modify acute accent (U+00B4) - it's a diacritical mark", () => {
+      const input = "caf\u00B4"; // acute accent
+      const result = normalizeCharacters(input);
+
+      // Acute accent should be preserved
+      expect(result.content).toContain("\u00B4");
+    });
   });
 
   describe("removes control characters outside strings", () => {

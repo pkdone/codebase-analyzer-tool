@@ -198,9 +198,7 @@ describe("llm-candidate-builder", () => {
 
       const modelChain: ResolvedModelChain = {
         embeddings: [],
-        completions: [
-          { providerFamily: "TestProvider", modelKey: "model-1", modelUrn: "urn-1" },
-        ],
+        completions: [{ providerFamily: "TestProvider", modelKey: "model-1", modelUrn: "urn-1" }],
       };
 
       expect(() =>
@@ -230,9 +228,9 @@ describe("llm-candidate-builder", () => {
         ],
       };
 
-      expect(() =>
-        buildCompletionExecutables(providerManager, modelChain, testOptions, 2),
-      ).toThrow(LLMError);
+      expect(() => buildCompletionExecutables(providerManager, modelChain, testOptions, 2)).toThrow(
+        LLMError,
+      );
       expect(() =>
         buildCompletionExecutables(providerManager, modelChain, testOptions, 100),
       ).toThrow(LLMError);

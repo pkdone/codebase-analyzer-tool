@@ -123,7 +123,16 @@ export const ARRAY_ELEMENT_RULES: readonly ReplacementRule[] = [
         (strayContentStr.includes("_") && !/^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(strayContentStr)) ||
         // Short lowercase words that are clearly stray (not valid JSON)
         (/^[a-z]{1,5}$/.test(strayContentStr) &&
-          !["true", "false", "null"].includes(strayContentStr));
+          !["true", "false", "null"].includes(strayContentStr)) ||
+        // Parenthetical annotations that LLMs add as commentary
+        // e.g., " (required)", " (optional)", " (deprecated)", " (TODO)"
+        /^\s*\([^)]{1,30}\)$/.test(strayContentStr) ||
+        // Arrow annotations used as inline comments
+        // e.g., " <-- fix this", " --> important", " <- note"
+        /^\s*(?:<--|-->|<-|->)\s*[^,}\]]*$/.test(strayContentStr) ||
+        // Dash-prefixed annotations
+        // e.g., " - required", " - optional"
+        /^\s*-\s+[a-z]{2,15}$/.test(strayContentStr);
 
       if (!looksLikeStrayContent) {
         return null;

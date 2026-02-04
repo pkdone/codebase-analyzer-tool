@@ -38,8 +38,9 @@ interface LLMCompletionOptionsBase {
  *
  * @template S - The Zod schema type for validating and typing the response.
  */
-export interface LLMJsonCompletionOptions<S extends z.ZodType<unknown> = z.ZodType<unknown>>
-  extends LLMCompletionOptionsBase {
+export interface LLMJsonCompletionOptions<
+  S extends z.ZodType<unknown> = z.ZodType<unknown>,
+> extends LLMCompletionOptionsBase {
   /** JSON output mode */
   outputFormat: LLMOutputFormat.JSON;
   /** Required Zod schema for structured output validation */
