@@ -1,5 +1,10 @@
 import { z } from "zod";
-import type { LLMRequestContext, LLMCompletionOptions } from "./types/llm-request.types";
+import type {
+  LLMRequestContext,
+  LLMCompletionOptions,
+  LLMJsonCompletionOptions,
+  LLMTextCompletionOptions,
+} from "./types/llm-request.types";
 import { LLMPurpose } from "./types/llm-request.types";
 import type { ResolvedModelChain } from "./types/llm-model.types";
 import type { ExecutableCandidate } from "./types/llm-function.types";
@@ -221,7 +226,11 @@ export default class LLMRouter {
   /**
    * Send the prompt to the LLM and retrieve the LLM's answer.
    *
-   * When options.jsonSchema is provided, this method will:
+   * This method uses discriminated union types to enforce compile-time validation:
+   * - JSON mode (LLMJsonCompletionOptions): Requires a jsonSchema, returns typed result
+   * - TEXT mode (LLMTextCompletionOptions): No schema allowed, returns string
+   *
+   * When using JSON mode, this method will:
    * - Use native JSON mode capabilities where available
    * - Fall back to text parsing for providers that don't support structured output
    * - Validate the response against the provided Zod schema
@@ -231,22 +240,22 @@ export default class LLMRouter {
    * An optional modelIndex can be provided to start from a specific model.
    *
    * The return type is a Result discriminated union that forces explicit error handling:
-   * - When jsonSchema is provided, returns Result<z.infer<typeof schema>, LLMError>
-   * - When jsonSchema is not provided (TEXT mode), returns Result<string, LLMError>
+   * - JSON mode: Returns Result<z.infer<typeof schema>, LLMError>
+   * - TEXT mode: Returns Result<string, LLMError>
    */
-  // Overload for JSON with a specific schema
+  // Overload for JSON mode - requires schema, returns typed result
   async executeCompletion<S extends z.ZodType<unknown>>(
     resourceName: string,
     prompt: string,
-    options: LLMCompletionOptions<S> & { jsonSchema: S },
+    options: LLMJsonCompletionOptions<S>,
     modelIndexOverride?: number | null,
   ): Promise<Result<z.infer<S>, LLMError>>;
 
-  // Overload for plain TEXT (without jsonSchema)
+  // Overload for TEXT mode - no schema, returns string
   async executeCompletion(
     resourceName: string,
     prompt: string,
-    options: Omit<LLMCompletionOptions, "jsonSchema">,
+    options: LLMTextCompletionOptions,
     modelIndexOverride?: number | null,
   ): Promise<Result<string, LLMError>>;
 

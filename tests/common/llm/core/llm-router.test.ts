@@ -1290,4 +1290,205 @@ describe("LLM Router tests", () => {
       );
     });
   });
+
+  describe("Discriminated union type safety (LLMJsonCompletionOptions / LLMTextCompletionOptions)", () => {
+    test("should enforce JSON mode with schema at compile-time and runtime", async () => {
+      const { router, mockProvider } = createLLMRouter();
+      const testSchema = z.object({
+        name: z.string(),
+        value: z.number(),
+      });
+      const mockResponse = { name: "Test", value: 42 };
+
+      (mockProvider.executeCompletion as any).mockResolvedValue({
+        status: LLMResponseStatus.COMPLETED,
+        generated: mockResponse,
+        request: "test prompt",
+        modelKey: "GPT_COMPLETIONS_GPT4",
+        context: {},
+      });
+
+      // Using LLMJsonCompletionOptions (outputFormat: JSON with jsonSchema)
+      const result = await router.executeCompletion(
+        "test-resource",
+        "test prompt",
+        {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: testSchema,
+        },
+        null,
+      );
+
+      expect(isOk(result)).toBe(true);
+      if (isOk(result)) {
+        // Type is correctly inferred from schema - no cast needed
+        const typedResult: z.infer<typeof testSchema> = result.value;
+        expect(typedResult.name).toBe("Test");
+        expect(typedResult.value).toBe(42);
+      }
+    });
+
+    test("should enforce TEXT mode without schema at compile-time and runtime", async () => {
+      const { router, mockProvider } = createLLMRouter();
+      const mockTextResponse = "This is a text response";
+
+      (mockProvider.executeCompletion as any).mockResolvedValue({
+        status: LLMResponseStatus.COMPLETED,
+        generated: mockTextResponse,
+        request: "test prompt",
+        modelKey: "GPT_COMPLETIONS_GPT4",
+        context: {},
+      });
+
+      // Using LLMTextCompletionOptions (outputFormat: TEXT, no jsonSchema)
+      const result = await router.executeCompletion(
+        "test-resource",
+        "test prompt",
+        {
+          outputFormat: LLMOutputFormat.TEXT,
+        },
+        null,
+      );
+
+      expect(isOk(result)).toBe(true);
+      if (isOk(result)) {
+        // Type is correctly inferred as string - no cast needed
+        const textResult: string = result.value;
+        expect(typeof textResult).toBe("string");
+        expect(textResult).toBe(mockTextResponse);
+      }
+    });
+
+    test("should correctly infer complex nested schema types with JSON mode", async () => {
+      const { router, mockProvider } = createLLMRouter();
+      const nestedSchema = z.object({
+        user: z.object({
+          name: z.string(),
+          preferences: z.object({
+            theme: z.enum(["light", "dark"]),
+            notifications: z.boolean(),
+          }),
+        }),
+        metadata: z.object({
+          createdAt: z.string(),
+          version: z.number(),
+        }),
+      });
+
+      const mockResponse = {
+        user: {
+          name: "Alice",
+          preferences: {
+            theme: "dark" as const,
+            notifications: true,
+          },
+        },
+        metadata: {
+          createdAt: "2026-02-04",
+          version: 1,
+        },
+      };
+
+      (mockProvider.executeCompletion as any).mockResolvedValue({
+        status: LLMResponseStatus.COMPLETED,
+        generated: mockResponse,
+        request: "test prompt",
+        modelKey: "GPT_COMPLETIONS_GPT4",
+        context: {},
+      });
+
+      const result = await router.executeCompletion(
+        "test-resource",
+        "test prompt",
+        {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: nestedSchema,
+        },
+        null,
+      );
+
+      expect(isOk(result)).toBe(true);
+      if (isOk(result)) {
+        // Deeply nested types are correctly inferred
+        const typedResult: z.infer<typeof nestedSchema> = result.value;
+        expect(typedResult.user.name).toBe("Alice");
+        expect(typedResult.user.preferences.theme).toBe("dark");
+        expect(typedResult.metadata.version).toBe(1);
+      }
+    });
+
+    test("should allow hasComplexSchema option with both JSON and TEXT modes", async () => {
+      const { router, mockProvider } = createLLMRouter();
+
+      // JSON mode with hasComplexSchema
+      const testSchema = z.object({ data: z.string() });
+      (mockProvider.executeCompletion as any).mockResolvedValue({
+        status: LLMResponseStatus.COMPLETED,
+        generated: { data: "test" },
+        request: "test prompt",
+        modelKey: "GPT_COMPLETIONS_GPT4",
+        context: {},
+      });
+
+      const jsonResult = await router.executeCompletion(
+        "test-resource",
+        "test prompt",
+        {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: testSchema,
+          hasComplexSchema: true,
+        },
+        null,
+      );
+
+      expect(isOk(jsonResult)).toBe(true);
+
+      // TEXT mode with hasComplexSchema
+      (mockProvider.executeCompletion as any).mockResolvedValue({
+        status: LLMResponseStatus.COMPLETED,
+        generated: "text response",
+        request: "test prompt",
+        modelKey: "GPT_COMPLETIONS_GPT4",
+        context: {},
+      });
+
+      const textResult = await router.executeCompletion(
+        "test-resource",
+        "test prompt",
+        {
+          outputFormat: LLMOutputFormat.TEXT,
+          hasComplexSchema: false,
+        },
+        null,
+      );
+
+      expect(isOk(textResult)).toBe(true);
+    });
+
+    test("should compile-time validate discriminated union types", () => {
+      // This test validates that the discriminated union types are correctly defined
+      // and that TypeScript can infer the correct properties based on outputFormat
+
+      // JSON options must have jsonSchema
+      const jsonOptions: import("../../../../src/common/llm/types/llm-request.types").LLMJsonCompletionOptions<
+        z.ZodObject<{ test: z.ZodString }>
+      > = {
+        outputFormat: LLMOutputFormat.JSON,
+        jsonSchema: z.object({ test: z.string() }),
+      };
+
+      // TEXT options must not have jsonSchema (property doesn't exist on type)
+      const textOptions: import("../../../../src/common/llm/types/llm-request.types").LLMTextCompletionOptions =
+        {
+          outputFormat: LLMOutputFormat.TEXT,
+        };
+
+      // Verify the types are correctly structured
+      expect(jsonOptions.outputFormat).toBe(LLMOutputFormat.JSON);
+      expect(jsonOptions.jsonSchema).toBeDefined();
+      expect(textOptions.outputFormat).toBe(LLMOutputFormat.TEXT);
+      // TEXT options don't have jsonSchema property - verify it's not present
+      expect("jsonSchema" in textOptions).toBe(false);
+    });
+  });
 });

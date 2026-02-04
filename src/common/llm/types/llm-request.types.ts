@@ -22,8 +22,61 @@ export enum LLMOutputFormat {
 }
 
 /**
- * Interface for LLM completion options that can be passed to control output format.
- * Generic over the schema type to preserve type information through the call chain.
+ * Base interface for shared LLM completion options.
+ * Contains fields that are common to both JSON and TEXT output modes.
+ */
+interface LLMCompletionOptionsBase {
+  /** Whether the response is expected to contain code - defaults to true */
+  hasComplexSchema?: boolean;
+  /** Optional sanitizer configuration for JSON processing (domain-specific) */
+  sanitizerConfig?: import("../config/llm-module-config.types").LLMSanitizerConfig;
+}
+
+/**
+ * Options for JSON output mode - requires a Zod schema for validation.
+ * The schema is used for structured output validation and type inference.
+ *
+ * @template S - The Zod schema type for validating and typing the response.
+ */
+export interface LLMJsonCompletionOptions<S extends z.ZodType<unknown> = z.ZodType<unknown>>
+  extends LLMCompletionOptionsBase {
+  /** JSON output mode */
+  outputFormat: LLMOutputFormat.JSON;
+  /** Required Zod schema for structured output validation */
+  jsonSchema: S;
+}
+
+/**
+ * Options for TEXT output mode - no schema allowed.
+ * Used for freeform text responses from the LLM.
+ */
+export interface LLMTextCompletionOptions extends LLMCompletionOptionsBase {
+  /** TEXT output mode */
+  outputFormat: LLMOutputFormat.TEXT;
+}
+
+/**
+ * Discriminated union of completion options based on output format.
+ * - JSON mode requires a jsonSchema for validation and type inference
+ * - TEXT mode produces string responses without schema validation
+ *
+ * This type enforces at compile-time that JSON mode always has a schema
+ * and TEXT mode never has a schema, preventing runtime configuration errors.
+ *
+ * @template S - The Zod schema type (only applicable for JSON mode).
+ */
+export type LLMCompletionOptionsUnion<S extends z.ZodType<unknown> = z.ZodType<unknown>> =
+  | LLMJsonCompletionOptions<S>
+  | LLMTextCompletionOptions;
+
+/**
+ * Generic interface for LLM completion options used in internal implementation.
+ * This interface supports both JSON and TEXT modes and is used by the provider layer
+ * and internal processing code that handles both cases.
+ *
+ * For external API usage (e.g., calling LLMRouter.executeCompletion), prefer the
+ * discriminated union types LLMJsonCompletionOptions or LLMTextCompletionOptions
+ * which enforce compile-time validation of outputFormat/jsonSchema correlation.
  *
  * @template S - The Zod schema type. Defaults to z.ZodType<unknown> to ensure type-safe
  * handling when the generic is not explicitly specified (forcing consumers to handle
