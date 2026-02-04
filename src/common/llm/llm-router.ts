@@ -2,11 +2,7 @@ import { z } from "zod";
 import type { LLMRequestContext, LLMCompletionOptions } from "./types/llm-request.types";
 import { LLMPurpose } from "./types/llm-request.types";
 import type { ResolvedModelChain } from "./types/llm-model.types";
-import type {
-  LLMCandidateFunction,
-  EmbeddingCandidate,
-  ExecutableCandidate,
-} from "./types/llm-function.types";
+import type { ExecutableCandidate } from "./types/llm-function.types";
 import type { LLMResponsePayload } from "./types/llm-response.types";
 import { LLMError, LLMErrorCode } from "./types/llm-errors.types";
 import { type Result, ok, err, isErr } from "../types/result.types";
@@ -14,10 +10,8 @@ import type { LLMExecutionPipeline } from "./llm-execution-pipeline";
 import type { ProviderManager } from "./provider-manager";
 import type LLMExecutionStats from "./tracking/llm-execution-stats";
 import {
-  buildCompletionCandidatesFromChain,
-  buildEmbeddingCandidatesFromChain,
-  buildExecutableCandidates,
-  buildExecutableEmbeddingCandidates,
+  buildCompletionExecutables,
+  buildEmbeddingExecutables,
 } from "./utils/llm-candidate-builder";
 import { logWarn } from "../utils/logging";
 import { llmConfig } from "./config/llm.config";
@@ -43,8 +37,6 @@ export default class LLMRouter {
   private readonly providerManager: ProviderManager;
   private readonly modelChain: ResolvedModelChain;
   private readonly executionPipeline: LLMExecutionPipeline;
-  private readonly completionCandidates: LLMCandidateFunction[];
-  private readonly embeddingCandidates: EmbeddingCandidate[];
 
   /**
    * Constructor with dependency injection.
@@ -65,26 +57,16 @@ export default class LLMRouter {
     this.executionPipeline = executionPipeline;
     this.stats = stats;
 
-    // Build completion candidates from the chain
-    this.completionCandidates = buildCompletionCandidatesFromChain(
-      this.providerManager,
-      this.modelChain,
-    );
-
-    // Build embedding candidates
-    this.embeddingCandidates = buildEmbeddingCandidatesFromChain(
-      this.providerManager,
-      this.modelChain,
-    );
-
-    if (this.completionCandidates.length === 0) {
+    // Validate that at least one completion model is configured
+    if (this.modelChain.completions.length === 0) {
       throw new LLMError(
         LLMErrorCode.BAD_CONFIGURATION,
         "At least one completion model must be configured in LLM_COMPLETION_MODEL_CHAIN",
       );
     }
 
-    if (this.embeddingCandidates.length === 0) {
+    // Validate that at least one embedding model is configured
+    if (this.modelChain.embeddings.length === 0) {
       throw new LLMError(
         LLMErrorCode.BAD_CONFIGURATION,
         "At least one embedding model must be configured in LLM_EMBEDDING_MODEL_CHAIN",
@@ -149,10 +131,10 @@ export default class LLMRouter {
   /**
    * Get the dimensions for the first embedding model in the chain.
    *
-   * @returns The embedding dimensions, or undefined if no candidates are available
+   * @returns The embedding dimensions, or undefined if no models are configured
    */
   getEmbeddingModelDimensions(): number | undefined {
-    if (this.embeddingCandidates.length === 0) return undefined;
+    if (this.modelChain.embeddings.length === 0) return undefined;
     const firstEntry = this.modelChain.embeddings[0];
     const provider = this.providerManager.getProvider(firstEntry.providerFamily);
     return provider.getEmbeddingModelDimensions(firstEntry.modelKey);
@@ -163,7 +145,7 @@ export default class LLMRouter {
    * Useful for chunking calculations.
    */
   getFirstCompletionModelMaxTokens(): number {
-    if (this.completionCandidates.length === 0) return llmConfig.DEFAULT_MAX_TOKENS_FALLBACK;
+    if (this.modelChain.completions.length === 0) return llmConfig.DEFAULT_MAX_TOKENS_FALLBACK;
     const firstEntry = this.modelChain.completions[0];
     const metadata = this.providerManager.getModelMetadata(
       firstEntry.providerFamily,
@@ -198,13 +180,17 @@ export default class LLMRouter {
       purpose: LLMPurpose.EMBEDDINGS,
     };
 
-    // Build unified executable candidates for embeddings
+    // Build executable candidates directly from the model chain
     let candidates;
     try {
-      candidates = buildExecutableEmbeddingCandidates(this.embeddingCandidates, modelIndexOverride);
+      candidates = buildEmbeddingExecutables(
+        this.providerManager,
+        this.modelChain,
+        modelIndexOverride,
+      );
     } catch {
       logWarn(
-        `No embedding candidates available at index ${modelIndexOverride ?? 0}. Chain has ${this.embeddingCandidates.length} models.`,
+        `No embedding models available at index ${modelIndexOverride ?? 0}. Chain has ${this.modelChain.embeddings.length} models.`,
         requestContext,
       );
       return null;
@@ -271,9 +257,10 @@ export default class LLMRouter {
     options: LLMCompletionOptions<S>,
     modelIndexOverride: number | null = null,
   ): Promise<Result<z.infer<S>, LLMError>> {
-    // Build unified executable candidates with options bound
-    const candidates = buildExecutableCandidates(
-      this.completionCandidates,
+    // Build executable candidates directly from the model chain with options bound
+    const candidates = buildCompletionExecutables(
+      this.providerManager,
+      this.modelChain,
       options,
       modelIndexOverride,
     );

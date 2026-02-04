@@ -1,10 +1,8 @@
 import "reflect-metadata";
 import { jest, describe, test, expect } from "@jest/globals";
 import {
-  buildCompletionCandidatesFromChain,
-  buildEmbeddingCandidatesFromChain,
-  buildExecutableCandidates,
-  buildExecutableEmbeddingCandidates,
+  buildCompletionExecutables,
+  buildEmbeddingExecutables,
 } from "../../../../src/common/llm/utils/llm-candidate-builder";
 import {
   LLMPurpose,
@@ -15,7 +13,6 @@ import {
   LLMResponseStatus,
   isCompletedResponse,
 } from "../../../../src/common/llm/types/llm-response.types";
-import type { LLMCandidateFunction } from "../../../../src/common/llm/types/llm-function.types";
 import type { ProviderManager } from "../../../../src/common/llm/provider-manager";
 import type { ResolvedModelChain } from "../../../../src/common/llm/types/llm-model.types";
 import type { LLMProvider } from "../../../../src/common/llm/types/llm-provider.interface";
@@ -79,8 +76,14 @@ function createMockProviderManager(providers: Record<string, LLMProvider>): Prov
 }
 
 describe("llm-candidate-builder", () => {
-  describe("buildCompletionCandidatesFromChain", () => {
-    test("should build candidates for each model in the chain", () => {
+  const testSchema = z.object({ value: z.string() });
+  const testOptions: LLMCompletionOptions<typeof testSchema> = {
+    outputFormat: LLMOutputFormat.JSON,
+    jsonSchema: testSchema,
+  };
+
+  describe("buildCompletionExecutables", () => {
+    test("should build executable candidates for each model in the chain", () => {
       const mockProvider = createMockProvider();
       const providerManager = createMockProviderManager({
         TestProvider: mockProvider,
@@ -94,15 +97,15 @@ describe("llm-candidate-builder", () => {
         ],
       };
 
-      const candidates = buildCompletionCandidatesFromChain(providerManager, modelChain);
+      const candidates = buildCompletionExecutables(providerManager, modelChain, testOptions);
 
       expect(candidates).toHaveLength(2);
       expect(candidates[0].modelKey).toBe("comp-model-1");
       expect(candidates[0].providerFamily).toBe("TestProvider");
-      expect(candidates[0].priority).toBe(0);
+      expect(candidates[0].description).toBe("TestProvider/comp-model-1");
       expect(candidates[1].modelKey).toBe("comp-model-2");
       expect(candidates[1].providerFamily).toBe("TestProvider");
-      expect(candidates[1].priority).toBe(1);
+      expect(candidates[1].description).toBe("TestProvider/comp-model-2");
     });
 
     test("should build candidates from multiple providers", () => {
@@ -122,7 +125,7 @@ describe("llm-candidate-builder", () => {
         ],
       };
 
-      const candidates = buildCompletionCandidatesFromChain(providerManager, modelChain);
+      const candidates = buildCompletionExecutables(providerManager, modelChain, testOptions);
 
       expect(candidates).toHaveLength(3);
       expect(candidates[0].providerFamily).toBe("ProviderA");
@@ -133,7 +136,7 @@ describe("llm-candidate-builder", () => {
       expect(candidates[2].modelKey).toBe("model-a2");
     });
 
-    test("should create bound functions that route to correct provider", async () => {
+    test("should create bound functions that route to correct provider with options", async () => {
       const mockProvider = createMockProvider();
       const providerManager = createMockProviderManager({
         TestProvider: mockProvider,
@@ -144,7 +147,7 @@ describe("llm-candidate-builder", () => {
         completions: [{ providerFamily: "TestProvider", modelKey: "test-model", modelUrn: "urn" }],
       };
 
-      const candidates = buildCompletionCandidatesFromChain(providerManager, modelChain);
+      const candidates = buildCompletionExecutables(providerManager, modelChain, testOptions);
       expect(candidates).toHaveLength(1);
 
       // Call the bound function
@@ -153,20 +156,189 @@ describe("llm-candidate-builder", () => {
         purpose: LLMPurpose.COMPLETIONS,
         modelKey: "test-model",
       };
-      await candidates[0].func("test prompt", context);
+      await candidates[0].execute("test prompt", context);
 
-      // Verify it called the provider's executeCompletion with the correct model key
+      // Verify it called the provider's executeCompletion with the correct model key and options
       expect(mockProvider.executeCompletion).toHaveBeenCalledWith(
         "test-model",
         "test prompt",
         context,
-        undefined,
+        testOptions,
       );
+    });
+
+    test("should correctly apply index override - slicing from specified index", () => {
+      const mockProvider = createMockProvider();
+      const providerManager = createMockProviderManager({
+        TestProvider: mockProvider,
+      });
+
+      const modelChain: ResolvedModelChain = {
+        embeddings: [],
+        completions: [
+          { providerFamily: "TestProvider", modelKey: "model-1", modelUrn: "urn-1" },
+          { providerFamily: "TestProvider", modelKey: "model-2", modelUrn: "urn-2" },
+          { providerFamily: "TestProvider", modelKey: "model-3", modelUrn: "urn-3" },
+        ],
+      };
+
+      const candidates = buildCompletionExecutables(providerManager, modelChain, testOptions, 1);
+
+      // Should slice from index 1, so only models 2 and 3
+      expect(candidates).toHaveLength(2);
+      expect(candidates[0].modelKey).toBe("model-2");
+      expect(candidates[1].modelKey).toBe("model-3");
+    });
+
+    test("should throw LLMError for invalid index (negative)", () => {
+      const mockProvider = createMockProvider();
+      const providerManager = createMockProviderManager({
+        TestProvider: mockProvider,
+      });
+
+      const modelChain: ResolvedModelChain = {
+        embeddings: [],
+        completions: [
+          { providerFamily: "TestProvider", modelKey: "model-1", modelUrn: "urn-1" },
+        ],
+      };
+
+      expect(() =>
+        buildCompletionExecutables(providerManager, modelChain, testOptions, -1),
+      ).toThrow(LLMError);
+
+      try {
+        buildCompletionExecutables(providerManager, modelChain, testOptions, -1);
+      } catch (error) {
+        expect(error).toBeInstanceOf(LLMError);
+        expect((error as LLMError).code).toBe(LLMErrorCode.BAD_CONFIGURATION);
+        expect((error as Error).message).toContain("Invalid completion model index");
+      }
+    });
+
+    test("should throw LLMError for invalid index (out of bounds)", () => {
+      const mockProvider = createMockProvider();
+      const providerManager = createMockProviderManager({
+        TestProvider: mockProvider,
+      });
+
+      const modelChain: ResolvedModelChain = {
+        embeddings: [],
+        completions: [
+          { providerFamily: "TestProvider", modelKey: "model-1", modelUrn: "urn-1" },
+          { providerFamily: "TestProvider", modelKey: "model-2", modelUrn: "urn-2" },
+        ],
+      };
+
+      expect(() =>
+        buildCompletionExecutables(providerManager, modelChain, testOptions, 2),
+      ).toThrow(LLMError);
+      expect(() =>
+        buildCompletionExecutables(providerManager, modelChain, testOptions, 100),
+      ).toThrow(LLMError);
+    });
+
+    test("should throw LLMError when no completion models configured", () => {
+      const mockProvider = createMockProvider();
+      const providerManager = createMockProviderManager({
+        TestProvider: mockProvider,
+      });
+
+      const modelChain: ResolvedModelChain = {
+        embeddings: [{ providerFamily: "TestProvider", modelKey: "embed-1", modelUrn: "urn-1" }],
+        completions: [],
+      };
+
+      expect(() => buildCompletionExecutables(providerManager, modelChain, testOptions)).toThrow(
+        LLMError,
+      );
+
+      try {
+        buildCompletionExecutables(providerManager, modelChain, testOptions);
+      } catch (error) {
+        expect(error).toBeInstanceOf(LLMError);
+        expect((error as LLMError).code).toBe(LLMErrorCode.BAD_CONFIGURATION);
+        expect((error as Error).message).toContain("No completion models configured");
+      }
+    });
+
+    test("should execute bound function and return expected response", async () => {
+      const mockProvider = createMockProvider();
+      (mockProvider.executeCompletion as ReturnType<typeof jest.fn>).mockResolvedValue({
+        status: LLMResponseStatus.COMPLETED,
+        generated: { value: "test-result" },
+        request: "test",
+        modelKey: "test-model",
+        context: { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
+      });
+
+      const providerManager = createMockProviderManager({
+        TestProvider: mockProvider,
+      });
+
+      const modelChain: ResolvedModelChain = {
+        embeddings: [],
+        completions: [{ providerFamily: "TestProvider", modelKey: "test-model", modelUrn: "urn" }],
+      };
+
+      const candidates = buildCompletionExecutables(providerManager, modelChain, testOptions);
+      const context = { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" };
+
+      const result = await candidates[0].execute("test content", context);
+
+      expect(result.status).toBe(LLMResponseStatus.COMPLETED);
+      expect(isCompletedResponse(result)).toBe(true);
+      if (isCompletedResponse(result)) {
+        expect(result.generated).toEqual({ value: "test-result" });
+      }
+    });
+
+    test("should assign debug-friendly names to bound functions", () => {
+      const mockProvider = createMockProvider();
+      const providerManager = createMockProviderManager({
+        TestProvider: mockProvider,
+      });
+
+      const modelChain: ResolvedModelChain = {
+        embeddings: [],
+        completions: [
+          { providerFamily: "TestProvider", modelKey: "model-1", modelUrn: "urn-1" },
+          { providerFamily: "TestProvider", modelKey: "model-2", modelUrn: "urn-2" },
+        ],
+      };
+
+      const candidates = buildCompletionExecutables(providerManager, modelChain, testOptions);
+
+      // Check function names are set for debugging
+      expect(candidates[0].execute.name).toBe("boundCompletion_0");
+      expect(candidates[1].execute.name).toBe("boundCompletion_1");
+    });
+
+    test("should preserve correct debug names when using index override", () => {
+      const mockProvider = createMockProvider();
+      const providerManager = createMockProviderManager({
+        TestProvider: mockProvider,
+      });
+
+      const modelChain: ResolvedModelChain = {
+        embeddings: [],
+        completions: [
+          { providerFamily: "TestProvider", modelKey: "model-1", modelUrn: "urn-1" },
+          { providerFamily: "TestProvider", modelKey: "model-2", modelUrn: "urn-2" },
+          { providerFamily: "TestProvider", modelKey: "model-3", modelUrn: "urn-3" },
+        ],
+      };
+
+      const candidates = buildCompletionExecutables(providerManager, modelChain, testOptions, 1);
+
+      // When starting from index 1, names should reflect original indices
+      expect(candidates[0].execute.name).toBe("boundCompletion_1");
+      expect(candidates[1].execute.name).toBe("boundCompletion_2");
     });
   });
 
-  describe("buildEmbeddingCandidatesFromChain", () => {
-    test("should build embedding candidates for each model in the chain", () => {
+  describe("buildEmbeddingExecutables", () => {
+    test("should build executable embedding candidates for each model in the chain", () => {
       const mockProvider = createMockProvider();
       const providerManager = createMockProviderManager({
         TestProvider: mockProvider,
@@ -180,14 +352,14 @@ describe("llm-candidate-builder", () => {
         completions: [],
       };
 
-      const candidates = buildEmbeddingCandidatesFromChain(providerManager, modelChain);
+      const candidates = buildEmbeddingExecutables(providerManager, modelChain);
 
       expect(candidates).toHaveLength(2);
       expect(candidates[0].modelKey).toBe("embed-1");
       expect(candidates[0].providerFamily).toBe("TestProvider");
-      expect(candidates[0].priority).toBe(0);
+      expect(candidates[0].description).toBe("TestProvider/embed-1");
       expect(candidates[1].modelKey).toBe("embed-2");
-      expect(candidates[1].priority).toBe(1);
+      expect(candidates[1].description).toBe("TestProvider/embed-2");
     });
 
     test("should create bound functions that route to correct provider", async () => {
@@ -201,16 +373,16 @@ describe("llm-candidate-builder", () => {
         completions: [],
       };
 
-      const candidates = buildEmbeddingCandidatesFromChain(providerManager, modelChain);
+      const candidates = buildEmbeddingExecutables(providerManager, modelChain);
       expect(candidates).toHaveLength(1);
 
       // Call the bound function
       const context = {
         resource: "test-resource",
         purpose: LLMPurpose.EMBEDDINGS,
-        modelKey: "test-model",
+        modelKey: "embed-model",
       };
-      await candidates[0].func("test content", context);
+      await candidates[0].execute("test content", context);
 
       // Verify it called the provider's generateEmbeddings with the correct model key
       expect(mockProvider.generateEmbeddings).toHaveBeenCalledWith(
@@ -218,161 +390,6 @@ describe("llm-candidate-builder", () => {
         "test content",
         context,
       );
-    });
-  });
-
-  describe("buildExecutableCandidates", () => {
-    const testSchema = z.object({ value: z.string() });
-    const testOptions: LLMCompletionOptions<typeof testSchema> = {
-      outputFormat: LLMOutputFormat.JSON,
-      jsonSchema: testSchema,
-    };
-
-    // Helper to create mock candidate functions with proper typing
-    function createMockCandidateFunc(generatedValue: string): LLMCandidateFunction["func"] {
-      return (async () => ({
-        status: LLMResponseStatus.COMPLETED,
-        generated: { value: generatedValue },
-        request: "test",
-        modelKey: "test-model",
-        context: { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
-      })) as unknown as LLMCandidateFunction["func"];
-    }
-
-    const mockCandidates: LLMCandidateFunction[] = [
-      {
-        func: createMockCandidateFunc("result1"),
-        providerFamily: "Provider1",
-        modelKey: "model-1",
-        description: "Provider1/model-1",
-        priority: 0,
-      },
-      {
-        func: createMockCandidateFunc("result2"),
-        providerFamily: "Provider2",
-        modelKey: "model-2",
-        description: "Provider2/model-2",
-        priority: 1,
-      },
-      {
-        func: createMockCandidateFunc("result3"),
-        providerFamily: "Provider1",
-        modelKey: "model-3",
-        description: "Provider1/model-3",
-        priority: 2,
-      },
-    ];
-
-    test("should create unified executable candidates with bound functions and metadata", () => {
-      const candidates = buildExecutableCandidates(mockCandidates, testOptions);
-
-      expect(candidates).toHaveLength(3);
-
-      // Check first candidate has all expected properties
-      expect(candidates[0].execute).toBeDefined();
-      expect(typeof candidates[0].execute).toBe("function");
-      expect(candidates[0].providerFamily).toBe("Provider1");
-      expect(candidates[0].modelKey).toBe("model-1");
-      expect(candidates[0].description).toBe("Provider1/model-1");
-
-      // Check second candidate
-      expect(candidates[1].providerFamily).toBe("Provider2");
-      expect(candidates[1].modelKey).toBe("model-2");
-    });
-
-    test("should correctly apply index override - slicing from specified index", () => {
-      const candidates = buildExecutableCandidates(mockCandidates, testOptions, 1);
-
-      // Should slice from index 1, so only models 2 and 3
-      expect(candidates).toHaveLength(2);
-      expect(candidates[0].modelKey).toBe("model-2");
-      expect(candidates[1].modelKey).toBe("model-3");
-    });
-
-    test("should throw LLMError for invalid index (negative)", () => {
-      expect(() => buildExecutableCandidates(mockCandidates, testOptions, -1)).toThrow(LLMError);
-
-      try {
-        buildExecutableCandidates(mockCandidates, testOptions, -1);
-      } catch (error) {
-        expect(error).toBeInstanceOf(LLMError);
-        expect((error as LLMError).code).toBe(LLMErrorCode.BAD_CONFIGURATION);
-        expect((error as Error).message).toContain("Invalid completion candidate index");
-      }
-    });
-
-    test("should throw LLMError for invalid index (out of bounds)", () => {
-      expect(() => buildExecutableCandidates(mockCandidates, testOptions, 3)).toThrow(LLMError);
-      expect(() => buildExecutableCandidates(mockCandidates, testOptions, 100)).toThrow(LLMError);
-    });
-
-    test("should throw LLMError when no candidates available", () => {
-      expect(() => buildExecutableCandidates([], testOptions)).toThrow(LLMError);
-
-      try {
-        buildExecutableCandidates([], testOptions);
-      } catch (error) {
-        expect(error).toBeInstanceOf(LLMError);
-        expect((error as LLMError).code).toBe(LLMErrorCode.BAD_CONFIGURATION);
-        expect((error as Error).message).toContain("No completion candidates available");
-      }
-    });
-
-    test("should bind options to the execute function and return expected response", async () => {
-      const candidates = buildExecutableCandidates(mockCandidates, testOptions);
-      const context = { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" };
-
-      // Call the bound execute function
-      const result = await candidates[0].execute("test content", context);
-
-      // Verify the result matches what the mock function returns
-      expect(result.status).toBe(LLMResponseStatus.COMPLETED);
-      expect(isCompletedResponse(result)).toBe(true);
-      if (isCompletedResponse(result)) {
-        expect(result.generated).toEqual({ value: "result1" });
-      }
-    });
-
-    test("should assign debug-friendly names to bound functions", () => {
-      const candidates = buildExecutableCandidates(mockCandidates, testOptions);
-
-      // Check function names are set for debugging
-      expect(candidates[0].execute.name).toBe("boundCompletion_0");
-      expect(candidates[1].execute.name).toBe("boundCompletion_1");
-    });
-
-    test("should preserve correct debug names when using index override", () => {
-      const candidates = buildExecutableCandidates(mockCandidates, testOptions, 1);
-
-      // When starting from index 1, names should reflect original indices
-      expect(candidates[0].execute.name).toBe("boundCompletion_1");
-      expect(candidates[1].execute.name).toBe("boundCompletion_2");
-    });
-  });
-
-  describe("buildExecutableEmbeddingCandidates", () => {
-    test("should create unified executable embedding candidates", () => {
-      const mockProvider = createMockProvider();
-      const providerManager = createMockProviderManager({
-        TestProvider: mockProvider,
-      });
-
-      const modelChain: ResolvedModelChain = {
-        embeddings: [
-          { providerFamily: "TestProvider", modelKey: "embed-1", modelUrn: "urn-1" },
-          { providerFamily: "TestProvider", modelKey: "embed-2", modelUrn: "urn-2" },
-        ],
-        completions: [],
-      };
-
-      const embeddingCandidates = buildEmbeddingCandidatesFromChain(providerManager, modelChain);
-      const candidates = buildExecutableEmbeddingCandidates(embeddingCandidates);
-
-      expect(candidates).toHaveLength(2);
-      expect(candidates[0].execute).toBeDefined();
-      expect(candidates[0].providerFamily).toBe("TestProvider");
-      expect(candidates[0].modelKey).toBe("embed-1");
-      expect(candidates[0].description).toBe("TestProvider/embed-1");
     });
 
     test("should correctly apply index override for embeddings", () => {
@@ -390,8 +407,7 @@ describe("llm-candidate-builder", () => {
         completions: [],
       };
 
-      const embeddingCandidates = buildEmbeddingCandidatesFromChain(providerManager, modelChain);
-      const candidates = buildExecutableEmbeddingCandidates(embeddingCandidates, 1);
+      const candidates = buildEmbeddingExecutables(providerManager, modelChain, 1);
 
       expect(candidates).toHaveLength(2);
       expect(candidates[0].modelKey).toBe("embed-2");
@@ -409,22 +425,72 @@ describe("llm-candidate-builder", () => {
         completions: [],
       };
 
-      const embeddingCandidates = buildEmbeddingCandidatesFromChain(providerManager, modelChain);
-
-      expect(() => buildExecutableEmbeddingCandidates(embeddingCandidates, -1)).toThrow(LLMError);
-      expect(() => buildExecutableEmbeddingCandidates(embeddingCandidates, 1)).toThrow(LLMError);
+      expect(() => buildEmbeddingExecutables(providerManager, modelChain, -1)).toThrow(LLMError);
+      expect(() => buildEmbeddingExecutables(providerManager, modelChain, 1)).toThrow(LLMError);
     });
 
-    test("should throw LLMError when no embedding candidates available", () => {
-      expect(() => buildExecutableEmbeddingCandidates([])).toThrow(LLMError);
+    test("should throw LLMError when no embedding models configured", () => {
+      const mockProvider = createMockProvider();
+      const providerManager = createMockProviderManager({
+        TestProvider: mockProvider,
+      });
+
+      const modelChain: ResolvedModelChain = {
+        embeddings: [],
+        completions: [{ providerFamily: "TestProvider", modelKey: "comp-1", modelUrn: "urn-1" }],
+      };
+
+      expect(() => buildEmbeddingExecutables(providerManager, modelChain)).toThrow(LLMError);
 
       try {
-        buildExecutableEmbeddingCandidates([]);
+        buildEmbeddingExecutables(providerManager, modelChain);
       } catch (error) {
         expect(error).toBeInstanceOf(LLMError);
         expect((error as LLMError).code).toBe(LLMErrorCode.BAD_CONFIGURATION);
-        expect((error as Error).message).toContain("No embedding candidates available");
+        expect((error as Error).message).toContain("No embedding models configured");
       }
+    });
+
+    test("should assign debug-friendly names to bound embedding functions", () => {
+      const mockProvider = createMockProvider();
+      const providerManager = createMockProviderManager({
+        TestProvider: mockProvider,
+      });
+
+      const modelChain: ResolvedModelChain = {
+        embeddings: [
+          { providerFamily: "TestProvider", modelKey: "embed-1", modelUrn: "urn-1" },
+          { providerFamily: "TestProvider", modelKey: "embed-2", modelUrn: "urn-2" },
+        ],
+        completions: [],
+      };
+
+      const candidates = buildEmbeddingExecutables(providerManager, modelChain);
+
+      expect(candidates[0].execute.name).toBe("boundEmbedding_0");
+      expect(candidates[1].execute.name).toBe("boundEmbedding_1");
+    });
+
+    test("should preserve correct debug names when using index override for embeddings", () => {
+      const mockProvider = createMockProvider();
+      const providerManager = createMockProviderManager({
+        TestProvider: mockProvider,
+      });
+
+      const modelChain: ResolvedModelChain = {
+        embeddings: [
+          { providerFamily: "TestProvider", modelKey: "embed-1", modelUrn: "urn-1" },
+          { providerFamily: "TestProvider", modelKey: "embed-2", modelUrn: "urn-2" },
+          { providerFamily: "TestProvider", modelKey: "embed-3", modelUrn: "urn-3" },
+        ],
+        completions: [],
+      };
+
+      const candidates = buildEmbeddingExecutables(providerManager, modelChain, 1);
+
+      // When starting from index 1, names should reflect original indices
+      expect(candidates[0].execute.name).toBe("boundEmbedding_1");
+      expect(candidates[1].execute.name).toBe("boundEmbedding_2");
     });
   });
 });

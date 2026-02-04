@@ -285,6 +285,10 @@ describe("LLM Router tests", () => {
     test("should call close on provider", async () => {
       const { router, mockProvider } = createLLMRouter();
 
+      // Trigger provider instantiation by accessing a method that uses the provider
+      // (providers are lazily instantiated only when first accessed)
+      router.getEmbeddingModelDimensions();
+
       await router.shutdown();
       expect(mockProvider.close).toHaveBeenCalled();
     });

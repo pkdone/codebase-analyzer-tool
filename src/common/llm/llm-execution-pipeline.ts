@@ -2,7 +2,11 @@ import type { LLMRequestContext, LLMExecutionContext } from "./types/llm-request
 import { toExecutionContext } from "./types/llm-request.types";
 import type { ResolvedLLMModelMetadata } from "./types/llm-model.types";
 import type { ExecutableCandidate } from "./types/llm-function.types";
-import type { LLMResponsePayload, LLMCompletedResponse } from "./types/llm-response.types";
+import type {
+  LLMResponsePayload,
+  LLMCompletedResponse,
+  LLMFunctionResponse,
+} from "./types/llm-response.types";
 import { isCompletedResponse, isErrorResponse } from "./types/llm-response.types";
 import type { LLMRetryConfig } from "./providers/llm-provider.types";
 import { RetryStrategy } from "./strategies/retry-strategy";
@@ -13,6 +17,17 @@ import { hasSignificantRepairs } from "./json-processing";
 import { LLMExecutionError } from "./types/llm-execution-error.types";
 import { type Result, ok, err } from "../types/result.types";
 import { logWarn } from "../utils/logging";
+
+/**
+ * Result of executing a single candidate model.
+ * Separates success, error, and retry-exhausted outcomes for clear control flow.
+ */
+interface SingleCandidateResult<T extends LLMResponsePayload> {
+  /** The LLM response (may be success, error, or retry-exhausted status) */
+  readonly response: LLMFunctionResponse<T> | null;
+  /** The execution context used (includes modelKey) */
+  readonly executionContext: LLMExecutionContext;
+}
 
 /**
  * Configuration for the LLM execution pipeline.
@@ -214,28 +229,28 @@ export class LLMExecutionPipeline {
     // (to enable trying cropped prompt with same model as last iteration)
     while (candidateIndex < candidates.length) {
       const candidate = candidates[candidateIndex];
-      // Construct execution context with mandatory modelKey from candidate
-      const executionContext: LLMExecutionContext = toExecutionContext(
-        requestContext,
-        candidate.modelKey,
-      );
 
-      const llmResponse = await this.retryStrategy.executeWithRetries(
-        candidate.execute,
+      // Execute single candidate with retry logic
+      const { response: llmResponse, executionContext } = await this.executeSingleCandidate(
+        candidate,
         currentContent,
-        executionContext,
-        this.pipelineConfig.retryConfig,
+        requestContext,
         retryOnInvalid,
       );
 
+      // Handle success
       if (llmResponse && isCompletedResponse(llmResponse)) {
         this.llmStats.recordSuccess();
         return llmResponse;
-      } else if (llmResponse && isErrorResponse(llmResponse)) {
+      }
+
+      // Handle explicit error (non-retryable)
+      if (llmResponse && isErrorResponse(llmResponse)) {
         logWarn("LLM Error for resource", { ...executionContext, error: llmResponse.error });
         break;
       }
 
+      // Determine next action for unsuccessful response
       const nextAction = determineNextAction(
         llmResponse,
         candidateIndex,
@@ -243,6 +258,7 @@ export class LLMExecutionPipeline {
         executionContext,
         resourceName,
       );
+
       if (nextAction.shouldTerminate) break;
 
       if (nextAction.shouldCropPrompt && llmResponse) {
@@ -271,5 +287,39 @@ export class LLMExecutionPipeline {
     }
 
     return null;
+  }
+
+  /**
+   * Executes a single candidate model with retry logic.
+   * Separates the retry invocation from the fallback iteration logic.
+   *
+   * @param candidate The executable candidate to try
+   * @param content The prompt content to send
+   * @param requestContext The request context (without modelKey)
+   * @param retryOnInvalid Whether to retry on INVALID status
+   * @returns The response and execution context for further processing
+   */
+  private async executeSingleCandidate<T extends LLMResponsePayload>(
+    candidate: ExecutableCandidate<T>,
+    content: string,
+    requestContext: LLMRequestContext,
+    retryOnInvalid: boolean,
+  ): Promise<SingleCandidateResult<T>> {
+    // Construct execution context with mandatory modelKey from candidate
+    const executionContext: LLMExecutionContext = toExecutionContext(
+      requestContext,
+      candidate.modelKey,
+    );
+
+    // Execute with retry strategy
+    const response = await this.retryStrategy.executeWithRetries(
+      candidate.execute,
+      content,
+      executionContext,
+      this.pipelineConfig.retryConfig,
+      retryOnInvalid,
+    );
+
+    return { response, executionContext };
   }
 }
