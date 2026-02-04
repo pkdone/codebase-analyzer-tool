@@ -6,14 +6,6 @@
  * since it primarily analyzes Java projects.
  *
  * Co-located with Java prompt fragments to keep all "Java knowledge" in one place.
- *
- * Usage:
- * ```typescript
- * import { JAVA_SPECIFIC_RULES } from "./languages/java";
- * const config: LLMSanitizerConfig = {
- *   customReplacementRules: JAVA_SPECIFIC_RULES,
- * };
- * ```
  */
 
 import type { ReplacementRule } from "../../../../../../common/llm/json-processing/sanitizers/rules/replacement-rule.types";

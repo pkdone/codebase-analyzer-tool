@@ -1,8 +1,8 @@
 import path from "node:path";
 import type { CanonicalFileType } from "../../../schemas/canonical-file-types";
 import {
-  DERIVED_EXTENSION_TO_TYPE_MAP,
-  DERIVED_FILENAME_TO_TYPE_MAP,
+  deriveExtensionToTypeMap,
+  FILENAME_TYPE_REGISTRY,
 } from "../../../config/file-handling/file-type-registry";
 
 /**
@@ -13,7 +13,7 @@ import {
  * "ruby", "csharp" that are not in the registry but are used for flexibility.
  */
 const EXTENSION_TO_TYPE_MAP: Readonly<Record<string, CanonicalFileType>> = {
-  ...DERIVED_EXTENSION_TO_TYPE_MAP,
+  ...deriveExtensionToTypeMap(),
   // Additional aliases for type string values (not file extensions)
   javascript: "javascript",
   typescript: "javascript",
@@ -75,9 +75,9 @@ export const getCanonicalFileType = (filepath: string, type: string): CanonicalF
   const extension = type.toLowerCase();
 
   // 1. Check exact filename matches first (fastest lookup)
-  // Uses the centralized DERIVED_FILENAME_TO_TYPE_MAP from file-type-registry.ts
-  if (Object.hasOwn(DERIVED_FILENAME_TO_TYPE_MAP, filename)) {
-    return DERIVED_FILENAME_TO_TYPE_MAP[filename];
+  // Uses the centralized FILENAME_TYPE_REGISTRY from file-type-registry.ts
+  if (Object.hasOwn(FILENAME_TYPE_REGISTRY, filename)) {
+    return FILENAME_TYPE_REGISTRY[filename];
   }
 
   // 2. Check extension-based mappings

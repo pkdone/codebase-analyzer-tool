@@ -41,18 +41,6 @@ const PROPERTY_NAME_MAPPINGS: Readonly<Record<string, string>> = {
   // Corrupted/ambiguous edge cases that dynamic matching cannot reliably resolve
   se: "purpose", // Could be from "purpo-se" corruption or other sources
   es: "codeSmells", // Very short, could match many properties ending in "es"
-
-  // NOTE: The following entries were removed because enhanced suffix matching handles them:
-  // - alues/lues/ues -> codeSmells (suffix match)
-  // - unctions/nctions -> publicFunctions (suffix match)
-  // - nstants/stants/ants -> publicConstants (suffix match)
-  // - egrationPoints/.../ationPoints -> integrationPoints (suffix match)
-  // - ernalReferences -> internalReferences (suffix match)
-  // - alReferences -> externalReferences (suffix match)
-  // - aseIntegration/seIntegration -> databaseIntegration (suffix match)
-  // - QualityMetrics -> codeQualityMetrics (suffix match)
-  // - ameters/meters/eters -> parameters (suffix match)
-  // - ferences -> references (suffix match)
 } as const;
 
 /**

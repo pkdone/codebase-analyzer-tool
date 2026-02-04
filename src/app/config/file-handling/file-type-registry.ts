@@ -284,26 +284,3 @@ export const FILENAME_TYPE_REGISTRY: Readonly<Record<string, CanonicalFileType>>
 export function getCanonicalTypeForFilename(filename: string): CanonicalFileType | undefined {
   return FILENAME_TYPE_REGISTRY[filename.toLowerCase()];
 }
-
-// Derived constants for backwards compatibility
-// These are computed once at module load time
-
-/**
- * List of code file extensions derived from the registry.
- * Use this in place of the old CODE_FILE_EXTENSIONS constant.
- */
-export const DERIVED_CODE_FILE_EXTENSIONS: readonly string[] = deriveCodeFileExtensions();
-
-/**
- * Extension to type map derived from the registry.
- * Use this in place of the old EXTENSION_TO_TYPE_MAP constant.
- */
-export const DERIVED_EXTENSION_TO_TYPE_MAP: Readonly<Record<string, CanonicalFileType>> =
-  deriveExtensionToTypeMap();
-
-/**
- * Filename to type map exported for use in file-type-mapping.ts.
- * This is the same as FILENAME_TYPE_REGISTRY but exported with a consistent naming convention.
- */
-export const DERIVED_FILENAME_TO_TYPE_MAP: Readonly<Record<string, CanonicalFileType>> =
-  FILENAME_TYPE_REGISTRY;

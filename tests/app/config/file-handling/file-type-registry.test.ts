@@ -7,9 +7,6 @@ import {
   isCodeExtension,
   getCanonicalTypeForExtension,
   getCanonicalTypeForFilename,
-  DERIVED_CODE_FILE_EXTENSIONS,
-  DERIVED_EXTENSION_TO_TYPE_MAP,
-  DERIVED_FILENAME_TO_TYPE_MAP,
 } from "../../../../src/app/config/file-handling/file-type-registry";
 
 describe("FILE_TYPE_REGISTRY", () => {
@@ -88,9 +85,16 @@ describe("deriveCodeFileExtensions", () => {
     expect(extensions).not.toContain("markdown");
   });
 
-  it("should match DERIVED_CODE_FILE_EXTENSIONS constant", () => {
+  it("should contain expected number of extensions", () => {
     const extensions = deriveCodeFileExtensions();
-    expect(extensions).toEqual(DERIVED_CODE_FILE_EXTENSIONS);
+    // Should have a reasonable number of code file extensions
+    expect(extensions.length).toBeGreaterThan(40);
+  });
+
+  it("should not have duplicates", () => {
+    const extensions = deriveCodeFileExtensions();
+    const uniqueExtensions = new Set(extensions);
+    expect(uniqueExtensions.size).toBe(extensions.length);
   });
 });
 
@@ -110,9 +114,12 @@ describe("deriveExtensionToTypeMap", () => {
     expect(map.cs).toBe("csharp");
   });
 
-  it("should match DERIVED_EXTENSION_TO_TYPE_MAP constant", () => {
+  it("should have all extensions from deriveCodeFileExtensions", () => {
     const map = deriveExtensionToTypeMap();
-    expect(map).toEqual(DERIVED_EXTENSION_TO_TYPE_MAP);
+    const extensions = deriveCodeFileExtensions();
+    for (const ext of extensions) {
+      expect(map[ext]).toBeDefined();
+    }
   });
 });
 
@@ -177,34 +184,6 @@ describe("getCanonicalTypeForExtension", () => {
   });
 });
 
-describe("DERIVED_CODE_FILE_EXTENSIONS", () => {
-  it("should be a readonly array", () => {
-    expect(Array.isArray(DERIVED_CODE_FILE_EXTENSIONS)).toBe(true);
-  });
-
-  it("should contain expected number of extensions", () => {
-    // Should have a reasonable number of code file extensions
-    expect(DERIVED_CODE_FILE_EXTENSIONS.length).toBeGreaterThan(40);
-  });
-
-  it("should not have duplicates", () => {
-    const uniqueExtensions = new Set(DERIVED_CODE_FILE_EXTENSIONS);
-    expect(uniqueExtensions.size).toBe(DERIVED_CODE_FILE_EXTENSIONS.length);
-  });
-});
-
-describe("DERIVED_EXTENSION_TO_TYPE_MAP", () => {
-  it("should be a readonly object", () => {
-    expect(typeof DERIVED_EXTENSION_TO_TYPE_MAP).toBe("object");
-  });
-
-  it("should have all extensions from CODE_FILE_EXTENSIONS", () => {
-    for (const ext of DERIVED_CODE_FILE_EXTENSIONS) {
-      expect(DERIVED_EXTENSION_TO_TYPE_MAP[ext]).toBeDefined();
-    }
-  });
-});
-
 describe("FILENAME_TYPE_REGISTRY", () => {
   describe("registry structure", () => {
     it("should have entries for common build files", () => {
@@ -258,15 +237,5 @@ describe("getCanonicalTypeForFilename", () => {
     expect(getCanonicalTypeForFilename("POM.XML")).toBe("maven");
     expect(getCanonicalTypeForFilename("Package.json")).toBe("npm");
     expect(getCanonicalTypeForFilename("MAKEFILE")).toBe("makefile");
-  });
-});
-
-describe("DERIVED_FILENAME_TO_TYPE_MAP", () => {
-  it("should be the same as FILENAME_TYPE_REGISTRY", () => {
-    expect(DERIVED_FILENAME_TO_TYPE_MAP).toBe(FILENAME_TYPE_REGISTRY);
-  });
-
-  it("should contain all expected filename mappings", () => {
-    expect(Object.keys(DERIVED_FILENAME_TO_TYPE_MAP).length).toBeGreaterThan(15);
   });
 });
