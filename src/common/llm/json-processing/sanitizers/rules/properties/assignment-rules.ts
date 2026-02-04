@@ -5,9 +5,6 @@
  * - Stray text between colon and value
  * - Missing quotes around property values
  * - Stray characters like minus signs before colons
- *
- * These rules replace the imperative logic in assignment-syntax-fixer.ts
- * with a declarative approach consistent with other rule modules.
  */
 
 import type { ReplacementRule, ContextInfo } from "../replacement-rule.types";

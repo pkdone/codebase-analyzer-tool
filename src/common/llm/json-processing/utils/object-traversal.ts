@@ -111,7 +111,7 @@ export function deepMap(
 
   // Process string keys using for...in loop to avoid Object.entries allocation
   for (const key in value) {
-    if (Object.prototype.hasOwnProperty.call(value, key)) {
+    if (Object.hasOwn(value, key)) {
       const original = value[key];
       const transformed = deepMap(original, visitor, visited);
       result[key] = transformed;

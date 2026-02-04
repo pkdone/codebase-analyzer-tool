@@ -44,7 +44,6 @@ function looksLikeStrayTextBeforeProperty(text: string): boolean {
  */
 export const STRAY_CHARACTER_RULES: readonly ReplacementRule[] = [
   // Rule: Generic removal of stray text before property names
-  // Consolidates: extraCharBeforeProperty, strayTextBeforePropertyName, strayTextLongBeforeProperty
   // Catches single chars, short text, and longer text before properties
   // Pattern: `a  "prop":`, `stray text "prop":`, `running on a different machine "prop":`
   {
@@ -106,7 +105,6 @@ export const STRAY_CHARACTER_RULES: readonly ReplacementRule[] = [
   },
 
   // Rule: Generic removal of stray prefix (1-10 lowercase chars) before quoted strings in arrays
-  // Consolidates: shortPrefixBeforeQuotedString, strayTextBeforeArrayString
   // Pattern: `ar"stringValue"`, `x"value"`, `stray"value",` -> `"value",`
   {
     name: "genericStrayPrefixInArray",
@@ -131,7 +129,6 @@ export const STRAY_CHARACTER_RULES: readonly ReplacementRule[] = [
   },
 
   // Rule: Generic removal of list markers/prefixes before property names
-  // Consolidates: bulletPointBeforeProperty, asteriskBeforeProperty
   // Catches any non-alphanumeric, non-JSON-structural character acting as a list marker
   // Uses negated character class for future-proofing against new Unicode bullet characters
   // Pattern: `• "publicConstants":` or `* "purpose":` or `→ "item":` -> `"item":`

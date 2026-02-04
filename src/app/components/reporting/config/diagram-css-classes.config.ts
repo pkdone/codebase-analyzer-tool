@@ -40,10 +40,3 @@ export const DIAGRAM_CSS_CLASSES = {
  * Can be used for compile-time validation when applying styles.
  */
 export type DiagramCssClassName = (typeof DIAGRAM_CSS_CLASSES)[keyof typeof DIAGRAM_CSS_CLASSES];
-
-/**
- * Array of all diagram CSS class names for iteration purposes.
- * Useful for tests and validation.
- */
-export const ALL_DIAGRAM_CSS_CLASS_NAMES: readonly DiagramCssClassName[] =
-  Object.values(DIAGRAM_CSS_CLASSES);

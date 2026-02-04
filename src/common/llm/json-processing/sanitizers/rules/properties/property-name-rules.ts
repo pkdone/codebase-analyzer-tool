@@ -109,7 +109,7 @@ export const PROPERTY_NAME_RULES: readonly ReplacementRule[] = [
           }
           if (!inString) {
             if (fullContent[i] === "]" || fullContent[i] === "}") break;
-            if (fullContent[i] === "[") return null; // In array, let Pattern 68 handle it
+            if (fullContent[i] === "[") return null; // In array context, skip this rule
           }
         }
       }
@@ -301,7 +301,7 @@ export const PROPERTY_NAME_RULES: readonly ReplacementRule[] = [
                   bracketDepth--;
                   continue;
                 }
-                return null; // Found unmatched `[`, DIRECTLY in array - let Pattern 68 handle
+                return null; // Found unmatched `[`, directly in array - skip this rule
               }
             }
           }

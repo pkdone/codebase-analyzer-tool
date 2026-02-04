@@ -213,6 +213,37 @@ export const COMMON_INTRO_WORDS = Object.freeze(
 );
 
 /**
+ * Configuration for string corruption detection and truncation.
+ * Used by rules that detect and fix corrupted string values in JSON
+ * (e.g., repetitive character sequences, runaway content).
+ */
+export const corruptionHeuristics = Object.freeze({
+  /**
+   * Minimum number of repetitions to trigger truncation.
+   * Set high enough to avoid false positives on legitimate content.
+   */
+  MIN_REPETITIONS_TO_TRUNCATE: 10,
+
+  /**
+   * Maximum repetitions to keep after truncation.
+   * Keeps a small sample for diagnostic purposes.
+   */
+  MAX_REPETITIONS_TO_KEEP: 3,
+});
+
+/**
+ * Configuration for the rule execution pipeline.
+ * Controls multi-pass sanitization behavior.
+ */
+export const pipelineConfig = Object.freeze({
+  /**
+   * Default maximum number of passes for multi-pass rule execution.
+   * Reduced from 10 to 5 for improved performance - most fixes complete in 1-3 passes.
+   */
+  DEFAULT_MAX_PASSES: 5,
+});
+
+/**
  * Combined sanitization configuration.
  * Export this for convenient access to all config values.
  */
@@ -221,4 +252,6 @@ export const sanitizationConfig = Object.freeze({
   processing: processingConfig,
   parsing: parsingHeuristics,
   strayContentDetection: strayContentDetectionConfig,
+  corruption: corruptionHeuristics,
+  pipeline: pipelineConfig,
 });

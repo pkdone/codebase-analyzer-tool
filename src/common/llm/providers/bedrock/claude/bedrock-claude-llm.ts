@@ -77,7 +77,7 @@ export default class BedrockClaudeLLM extends BaseBedrockLLM {
   /**
    * Get the provider-specific response extraction configuration.
    */
-  protected getResponseExtractionConfig() {
+  protected override getResponseExtractionConfig() {
     return {
       schema: ClaudeCompletionResponseSchema,
       pathConfig: {

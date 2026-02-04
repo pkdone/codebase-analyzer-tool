@@ -12,18 +12,9 @@
  */
 
 import type { ReplacementRule } from "../replacement-rule.types";
+import { corruptionHeuristics } from "../../../constants/json-processing.config";
 
-/**
- * Minimum number of repetitions to trigger truncation.
- * Set high enough to avoid false positives on legitimate content.
- */
-const MIN_REPETITIONS_TO_TRUNCATE = 10;
-
-/**
- * Maximum repetitions to keep after truncation.
- * Keeps a small sample for diagnostic purposes.
- */
-const MAX_REPETITIONS_TO_KEEP = 3;
+const { MIN_REPETITIONS_TO_TRUNCATE, MAX_REPETITIONS_TO_KEEP } = corruptionHeuristics;
 
 /**
  * Rules for fixing corrupted string values in JSON.

@@ -5,7 +5,7 @@ import { repositoryTokens } from "../../di/tokens";
 import { logErr } from "../../../common/utils/logging";
 
 /** Default batch size for bulk database inserts */
-const DEFAULT_BATCH_SIZE = 50;
+const DEFAULT_BATCH_SIZE = 250;
 
 /**
  * A buffered writer for source records that batches inserts for improved performance.

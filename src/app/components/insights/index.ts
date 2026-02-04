@@ -19,7 +19,7 @@ export { default as InsightsFromDBGenerator } from "./generators/db-insights-gen
 export { RequirementPromptExecutor } from "./generators/requirement-prompt-executor";
 
 // Strategies
-export type { IInsightGenerationStrategy } from "./strategies/insight-generation-strategy.interface";
+export type { InsightGenerationStrategy } from "./strategies/insight-generation-strategy.interface";
 export {
   executeInsightCompletion,
   type InsightCompletionOptions,

@@ -4,7 +4,6 @@
 
 import {
   repairOverEscapedStringSequences,
-  hasOverEscapedSequences,
   OVER_ESCAPE_REPLACEMENT_PATTERNS,
 } from "../../../../../src/common/llm/json-processing/sanitizers/repair-over-escaped-sequences";
 
@@ -148,32 +147,6 @@ describe("repair-over-escaped-sequences", () => {
         const result = repairOverEscapedStringSequences(input);
         expect(result).toBe("myFunction(arg1, arg2)");
       });
-    });
-  });
-
-  describe("hasOverEscapedSequences", () => {
-    it("should return true for strings with over-escaped single quotes", () => {
-      expect(hasOverEscapedSequences("it\\'s")).toBe(true);
-    });
-
-    it("should return true for strings with over-escaped commas", () => {
-      expect(hasOverEscapedSequences("a\\, b")).toBe(true);
-    });
-
-    it("should return true for strings with over-escaped parentheses", () => {
-      expect(hasOverEscapedSequences("func\\)")).toBe(true);
-    });
-
-    it("should return false for strings without over-escaped sequences", () => {
-      expect(hasOverEscapedSequences("normal string")).toBe(false);
-    });
-
-    it("should return false for empty string", () => {
-      expect(hasOverEscapedSequences("")).toBe(false);
-    });
-
-    it("should return false for properly escaped sequences", () => {
-      expect(hasOverEscapedSequences("line1\\nline2")).toBe(false);
     });
   });
 });

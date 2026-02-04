@@ -81,7 +81,6 @@ export const ARRAY_ELEMENT_RULES: readonly ReplacementRule[] = [
   },
 
   // Rule: Generic stray content after string values in arrays
-  // Consolidates: strayCharAtEndOfString, strayTextAfterArrayElement, strayLibraryNameAfterString
   // Catches any non-JSON content between a closing quote and the next delimiter
   // Pattern: `"value" garbage,` -> `"value",` or `"value>",` -> `"value",`
   {

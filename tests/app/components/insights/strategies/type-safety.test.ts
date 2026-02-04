@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import { IInsightGenerationStrategy } from "../../../../../src/app/components/insights/strategies/insight-generation-strategy.interface";
+import { InsightGenerationStrategy } from "../../../../../src/app/components/insights/strategies/insight-generation-strategy.interface";
 import { SinglePassInsightStrategy } from "../../../../../src/app/components/insights/strategies/single-pass-insight-strategy";
 import { MapReduceInsightStrategy } from "../../../../../src/app/components/insights/strategies/map-reduce-insight-strategy";
 import { executeInsightCompletion } from "../../../../../src/app/components/insights/strategies/insights-completion-executor";
@@ -24,10 +24,10 @@ function createMockLlmConcurrencyService(): jest.Mocked<LlmConcurrencyService> {
 }
 
 describe("Type Safety Tests", () => {
-  describe("IInsightGenerationStrategy interface", () => {
+  describe("InsightGenerationStrategy interface", () => {
     it("should have a generic generateInsights method", () => {
       // This test verifies the interface signature is correctly generic
-      const strategy: IInsightGenerationStrategy = {
+      const strategy: InsightGenerationStrategy = {
         generateInsights: async <C extends AppSummaryCategoryEnum>(
           _category: C,
           _sourceFileSummaries: string[],
@@ -43,7 +43,7 @@ describe("Type Safety Tests", () => {
     });
 
     it("should return strongly-typed result based on category", async () => {
-      const strategy: IInsightGenerationStrategy = {
+      const strategy: InsightGenerationStrategy = {
         generateInsights: async <C extends AppSummaryCategoryEnum>(
           _category: C,
           _sourceFileSummaries: string[],

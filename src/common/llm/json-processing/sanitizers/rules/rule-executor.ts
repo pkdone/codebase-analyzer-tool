@@ -9,16 +9,17 @@
 
 import { createStringBoundaryChecker } from "../../utils/parser-context-utils";
 import { DiagnosticCollector } from "../../utils/diagnostic-collector";
-import { processingConfig, parsingHeuristics } from "../../constants/json-processing.config";
+import {
+  processingConfig,
+  parsingHeuristics,
+  pipelineConfig,
+} from "../../constants/json-processing.config";
 import type {
   ReplacementRule,
   ExecutorOptions,
   RuleExecutionResult,
   ContextInfo,
 } from "./replacement-rule.types";
-
-/** Default maximum number of passes for multi-pass execution */
-const DEFAULT_MAX_PASSES = 10;
 
 /**
  * Executes a single replacement rule against the input content.
@@ -116,7 +117,7 @@ export function executeRules(
 
   const maxDiagnostics = options.maxDiagnostics ?? processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY;
   const multiPass = options.multiPass ?? false;
-  const maxPasses = options.maxPasses ?? DEFAULT_MAX_PASSES;
+  const maxPasses = options.maxPasses ?? pipelineConfig.DEFAULT_MAX_PASSES;
   const config = options.config;
 
   const diagnostics = new DiagnosticCollector(maxDiagnostics);

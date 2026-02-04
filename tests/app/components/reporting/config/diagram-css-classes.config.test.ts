@@ -1,6 +1,5 @@
 import {
   DIAGRAM_CSS_CLASSES,
-  ALL_DIAGRAM_CSS_CLASS_NAMES,
   type DiagramCssClassName,
 } from "../../../../../src/app/components/reporting/config/diagram-css-classes.config";
 import { buildStyleDefinitions } from "../../../../../src/app/components/reporting/diagrams/utils/mermaid-styles";
@@ -39,23 +38,6 @@ describe("diagram-css-classes.config", () => {
     });
   });
 
-  describe("ALL_DIAGRAM_CSS_CLASS_NAMES", () => {
-    it("should contain all class names from DIAGRAM_CSS_CLASSES", () => {
-      const expectedClassNames = Object.values(DIAGRAM_CSS_CLASSES);
-      expect(ALL_DIAGRAM_CSS_CLASS_NAMES).toHaveLength(expectedClassNames.length);
-
-      for (const className of expectedClassNames) {
-        expect(ALL_DIAGRAM_CSS_CLASS_NAMES).toContain(className);
-      }
-    });
-
-    it("should be a readonly array", () => {
-      // TypeScript compile-time check - if this compiles, it's readonly
-      const arr: readonly DiagramCssClassName[] = ALL_DIAGRAM_CSS_CLASS_NAMES;
-      expect(arr).toBeDefined();
-    });
-  });
-
   describe("DiagramCssClassName type", () => {
     it("should accept valid class names", () => {
       // TypeScript compile-time check - if this compiles, the type is correct
@@ -67,18 +49,20 @@ describe("diagram-css-classes.config", () => {
   describe("Integration with mermaid-styles", () => {
     it("should have all DIAGRAM_CSS_CLASSES used in buildStyleDefinitions", () => {
       const styleDefinitions = buildStyleDefinitions();
+      const allClassNames = Object.values(DIAGRAM_CSS_CLASSES);
 
       // All class names should appear in the style definitions
-      for (const className of ALL_DIAGRAM_CSS_CLASS_NAMES) {
+      for (const className of allClassNames) {
         expect(styleDefinitions).toContain(`classDef ${className}`);
       }
     });
 
     it("should have style definitions for each class name", () => {
       const styleDefinitions = buildStyleDefinitions();
+      const allClassNames = Object.values(DIAGRAM_CSS_CLASSES);
 
       // Each class should have fill, stroke, and color properties
-      for (const className of ALL_DIAGRAM_CSS_CLASS_NAMES) {
+      for (const className of allClassNames) {
         const classDefRegex = new RegExp(`classDef ${className} fill:`);
         expect(styleDefinitions).toMatch(classDefRegex);
       }

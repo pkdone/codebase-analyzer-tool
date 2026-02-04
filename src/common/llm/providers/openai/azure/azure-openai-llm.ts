@@ -61,7 +61,7 @@ export default class AzureOpenAILLM extends BaseOpenAILLM {
   /**
    * Abstract method to get the client object for the specific LLM provider.
    */
-  protected getClient() {
+  protected override getClient() {
     return this.client;
   }
 
@@ -69,7 +69,7 @@ export default class AzureOpenAILLM extends BaseOpenAILLM {
    * Get the model identifier for Azure OpenAI provider.
    * For Azure OpenAI, this is the deployment name for the specific model.
    */
-  protected getModelIdentifier(modelKey: string): string {
+  protected override getModelIdentifier(modelKey: string): string {
     const deployment = this.deployments[modelKey];
     if (!deployment) {
       throw new Error(

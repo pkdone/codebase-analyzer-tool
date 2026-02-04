@@ -17,7 +17,7 @@ import { insightsConfig } from "../insights.config";
 import { getCategoryLabel } from "../../../config/category-labels.config";
 import { AppSummaryCategories } from "../../../schemas/app-summaries.schema";
 import { AppSummaryCategoryEnum } from "../insights.types";
-import type { IInsightGenerationStrategy } from "../strategies/insight-generation-strategy.interface";
+import type { InsightGenerationStrategy } from "../strategies/insight-generation-strategy.interface";
 import { batchItemsByTokenLimit } from "../../../../common/llm/utils/text-chunking";
 
 /**
@@ -49,9 +49,9 @@ export default class InsightsFromDBGenerator {
     private readonly sourcesRepository: SourcesRepository,
     @inject(coreTokens.ProjectName) private readonly projectName: string,
     @inject(insightsTokens.SinglePassInsightStrategy)
-    private readonly singlePassStrategy: IInsightGenerationStrategy,
+    private readonly singlePassStrategy: InsightGenerationStrategy,
     @inject(insightsTokens.MapReduceInsightStrategy)
-    private readonly mapReduceStrategy: IInsightGenerationStrategy,
+    private readonly mapReduceStrategy: InsightGenerationStrategy,
     @inject(configTokens.FileProcessingRules)
     private readonly fileProcessingConfig: FileProcessingRulesType,
     @inject(serviceTokens.LlmConcurrencyService)

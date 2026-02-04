@@ -80,7 +80,7 @@ export function convertNullToEmptyStringForRequiredFields(
       let changed = false;
 
       for (const key in val) {
-        if (Object.prototype.hasOwnProperty.call(val, key)) {
+        if (Object.hasOwn(val, key)) {
           const propValue = val[key];
 
           // Convert null to empty string for candidate string fields

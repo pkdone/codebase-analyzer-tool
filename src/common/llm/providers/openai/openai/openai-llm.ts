@@ -34,7 +34,7 @@ export default class OpenAILLM extends BaseOpenAILLM {
   /**
    * Abstract method to get the client object for the specific LLM provider.
    */
-  protected getClient() {
+  protected override getClient() {
     return this.client;
   }
 
@@ -42,7 +42,7 @@ export default class OpenAILLM extends BaseOpenAILLM {
    * Get the model identifier for OpenAI provider.
    * For OpenAI, this is the model URN from the metadata.
    */
-  protected getModelIdentifier(modelKey: string): string {
+  protected override getModelIdentifier(modelKey: string): string {
     return this.llmModelsMetadata[modelKey].urn;
   }
 }

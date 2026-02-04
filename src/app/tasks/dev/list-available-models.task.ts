@@ -71,7 +71,7 @@ export class ListAvailableModelsTask implements Task {
     }
 
     // Sort by provider family name for consistent output
-    return groups.sort((a, b) => a.providerFamily.localeCompare(b.providerFamily));
+    return groups.toSorted((a, b) => a.providerFamily.localeCompare(b.providerFamily));
   }
 
   /**

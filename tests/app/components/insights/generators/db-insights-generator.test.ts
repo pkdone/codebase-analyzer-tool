@@ -3,7 +3,7 @@ import InsightsFromDBGenerator from "../../../../../src/app/components/insights/
 import { AppSummariesRepository } from "../../../../../src/app/repositories/app-summaries/app-summaries.repository.interface";
 import { SourcesRepository } from "../../../../../src/app/repositories/sources/sources.repository.interface";
 import LLMRouter from "../../../../../src/common/llm/llm-router";
-import type { IInsightGenerationStrategy } from "../../../../../src/app/components/insights/strategies/insight-generation-strategy.interface";
+import type { InsightGenerationStrategy } from "../../../../../src/app/components/insights/strategies/insight-generation-strategy.interface";
 import type { FileProcessingRulesType } from "../../../../../src/app/config/file-handling";
 import type { LlmConcurrencyService } from "../../../../../src/app/components/concurrency";
 import { llmConfig } from "../../../../../src/common/llm/config/llm.config";
@@ -19,8 +19,8 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
   let mockAppSummaryRepository: jest.Mocked<AppSummariesRepository>;
   let mockSourcesRepository: jest.Mocked<SourcesRepository>;
   let mockLLMRouter: jest.Mocked<LLMRouter>;
-  let mockSinglePassStrategy: jest.Mocked<IInsightGenerationStrategy>;
-  let mockMapReduceStrategy: jest.Mocked<IInsightGenerationStrategy>;
+  let mockSinglePassStrategy: jest.Mocked<InsightGenerationStrategy>;
+  let mockMapReduceStrategy: jest.Mocked<InsightGenerationStrategy>;
   let mockFileProcessingConfig: FileProcessingRulesType;
   let mockConsoleLog: jest.SpyInstance;
 
@@ -71,11 +71,11 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
 
     mockSinglePassStrategy = {
       generateInsights: jest.fn(),
-    } as unknown as jest.Mocked<IInsightGenerationStrategy>;
+    } as unknown as jest.Mocked<InsightGenerationStrategy>;
 
     mockMapReduceStrategy = {
       generateInsights: jest.fn(),
-    } as unknown as jest.Mocked<IInsightGenerationStrategy>;
+    } as unknown as jest.Mocked<InsightGenerationStrategy>;
 
     mockFileProcessingConfig = {
       FOLDER_IGNORE_LIST: ["node_modules", ".git"],

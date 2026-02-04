@@ -90,13 +90,3 @@ export function repairOverEscapedStringSequences(content: string): string {
 
   return fixed;
 }
-
-/**
- * Checks if content contains any over-escaped sequences that can be repaired.
- *
- * @param content - The content to check
- * @returns True if the content contains patterns that would be fixed
- */
-export function hasOverEscapedSequences(content: string): boolean {
-  return OVER_ESCAPE_REPLACEMENT_PATTERNS.some(([pattern]) => pattern.test(content));
-}

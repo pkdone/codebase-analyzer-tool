@@ -1,7 +1,7 @@
 import { injectable, inject } from "tsyringe";
 import LLMRouter from "../../../../common/llm/llm-router";
 import { llmTokens } from "../../../di/tokens";
-import { IInsightGenerationStrategy } from "./insight-generation-strategy.interface";
+import { InsightGenerationStrategy } from "./insight-generation-strategy.interface";
 import { AppSummaryCategoryEnum, CategoryInsightResult } from "../insights.types";
 import { executeInsightCompletion } from "./insights-completion-executor";
 
@@ -10,7 +10,7 @@ import { executeInsightCompletion } from "./insights-completion-executor";
  * Processes all source file summaries in one LLM call.
  */
 @injectable()
-export class SinglePassInsightStrategy implements IInsightGenerationStrategy {
+export class SinglePassInsightStrategy implements InsightGenerationStrategy {
   constructor(@inject(llmTokens.LLMRouter) private readonly llmRouter: LLMRouter) {}
 
   /**

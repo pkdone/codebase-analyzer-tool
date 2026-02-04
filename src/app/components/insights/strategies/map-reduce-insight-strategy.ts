@@ -7,7 +7,7 @@ import { getCategoryLabel } from "../../../config/category-labels.config";
 import { logWarn } from "../../../../common/utils/logging";
 import { isNotNull } from "../../../../common/utils/type-guards";
 import { llmTokens, serviceTokens } from "../../../di/tokens";
-import { IInsightGenerationStrategy } from "./insight-generation-strategy.interface";
+import { InsightGenerationStrategy } from "./insight-generation-strategy.interface";
 import type { LlmConcurrencyService } from "../../concurrency";
 import {
   AppSummaryCategoryEnum,
@@ -26,7 +26,7 @@ import { buildReducePrompt } from "../../../prompts/prompt-builders";
  * Splits summaries into chunks, processes each chunk (MAP), then consolidates results (REDUCE).
  */
 @injectable()
-export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
+export class MapReduceInsightStrategy implements InsightGenerationStrategy {
   private readonly maxTokens: number;
 
   /**
