@@ -200,6 +200,55 @@ describe("JspMetricsAnalyzer", () => {
 
       expect(result.tagLibraryMap.size).toBe(0);
     });
+
+    it("should deduplicate tag libraries by URI within the same file", () => {
+      // A file may have duplicate taglib directives - each should count as one usage
+      const sourceFiles = [
+        createMockJspFile("page.jsp", {
+          scriptletCount: 0,
+          expressionCount: 0,
+          declarationCount: 0,
+          customTags: [
+            { prefix: "c", uri: "http://java.sun.com/jsp/jstl/core" },
+            { prefix: "c", uri: "http://java.sun.com/jsp/jstl/core" }, // Duplicate
+            { prefix: "c", uri: "http://java.sun.com/jsp/jstl/core" }, // Another duplicate
+          ],
+        }),
+      ];
+
+      const result = analyzer.analyzeJspMetrics(sourceFiles);
+
+      expect(result.tagLibraryMap.size).toBe(1);
+      const coreLib = result.tagLibraryMap.get("c:http://java.sun.com/jsp/jstl/core");
+      // Should count as 1 usage (one file), not 3
+      expect(coreLib?.usageCount).toBe(1);
+    });
+
+    it("should count separate file usages correctly even with duplicates within files", () => {
+      const sourceFiles = [
+        createMockJspFile("page1.jsp", {
+          scriptletCount: 0,
+          expressionCount: 0,
+          declarationCount: 0,
+          customTags: [
+            { prefix: "c", uri: "http://java.sun.com/jsp/jstl/core" },
+            { prefix: "c", uri: "http://java.sun.com/jsp/jstl/core" }, // Duplicate in file 1
+          ],
+        }),
+        createMockJspFile("page2.jsp", {
+          scriptletCount: 0,
+          expressionCount: 0,
+          declarationCount: 0,
+          customTags: [{ prefix: "c", uri: "http://java.sun.com/jsp/jstl/core" }],
+        }),
+      ];
+
+      const result = analyzer.analyzeJspMetrics(sourceFiles);
+
+      const coreLib = result.tagLibraryMap.get("c:http://java.sun.com/jsp/jstl/core");
+      // Should count as 2 usages (two files), not 3
+      expect(coreLib?.usageCount).toBe(2);
+    });
   });
 
   describe("computeTopScriptletFiles", () => {

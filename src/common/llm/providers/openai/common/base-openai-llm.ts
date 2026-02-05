@@ -78,7 +78,7 @@ export default abstract class BaseOpenAILLM extends BaseLLMProvider {
 
     const baseParams: OpenAI.Chat.ChatCompletionCreateParams = {
       model: modelIdentifier,
-      messages: [{ role: llmConfig.LLM_ROLE_USER as "user", content: prompt }],
+      messages: [{ role: llmConfig.LLM_ROLE_USER, content: prompt }],
       ...(hasFixedTemperature
         ? {}
         : { temperature: this.providerSpecificConfig.temperature ?? llmConfig.DEFAULT_ZERO_TEMP }),

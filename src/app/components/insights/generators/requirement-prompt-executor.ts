@@ -13,7 +13,7 @@ import { formatError } from "../../../../common/utils/error-formatters";
 import { llmTokens, configTokens, serviceTokens } from "../../../di/tokens";
 import LLMRouter from "../../../../common/llm/llm-router";
 import { LLMOutputFormat } from "../../../../common/llm/types/llm-request.types";
-import { aggregateFilesToMarkdown } from "../../../../common/utils/file-content-aggregator";
+import { readAndFormatFilesAsMarkdown } from "../../../../common/utils/file-content-aggregator";
 import { formatDateForFilename } from "../../../../common/utils/date-utils";
 import { inputConfig } from "../../../config/input.config";
 import { isOk } from "../../../../common/types/result.types";
@@ -53,7 +53,7 @@ export class RequirementPromptExecutor {
    */
   async executeRequirementsToFiles(srcDirPath: string, llmName: string): Promise<string[]> {
     const prompts = await this.loadPrompts();
-    const codeBlocksContent = await aggregateFilesToMarkdown(srcDirPath, {
+    const codeBlocksContent = await readAndFormatFilesAsMarkdown(srcDirPath, {
       folderIgnoreList: this.fileProcessingConfig.FOLDER_IGNORE_LIST,
       filenameIgnorePrefix: this.fileProcessingConfig.FILENAME_PREFIX_IGNORE,
       binaryFileExtensionIgnoreList: this.fileProcessingConfig.BINARY_FILE_EXTENSION_IGNORE_LIST,

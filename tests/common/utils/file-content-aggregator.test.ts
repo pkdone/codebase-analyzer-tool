@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import { aggregateFilesToMarkdown } from "../../../src/common/utils/file-content-aggregator";
+import { readAndFormatFilesAsMarkdown } from "../../../src/common/utils/file-content-aggregator";
 import { findFilesRecursively } from "../../../src/common/fs/directory-operations";
 import { getFileExtension } from "../../../src/common/fs/path-utils";
 import { readFile } from "../../../src/common/fs/file-operations";
@@ -11,7 +11,7 @@ jest.mock("../../../src/common/fs/directory-operations");
 jest.mock("../../../src/common/fs/path-utils");
 jest.mock("../../../src/common/fs/file-operations");
 
-describe("aggregateFilesToMarkdown", () => {
+describe("readAndFormatFilesAsMarkdown", () => {
   const mockFindFilesRecursively = findFilesRecursively as jest.MockedFunction<
     typeof findFilesRecursively
   >;
@@ -38,7 +38,7 @@ describe("aggregateFilesToMarkdown", () => {
     mockGetFileExtension.mockReturnValueOnce("ts").mockReturnValueOnce("ts");
     mockReadFile.mockResolvedValueOnce("const x = 1;").mockResolvedValueOnce("var y = 2;");
 
-    const result = await aggregateFilesToMarkdown(dirPath, filterConfig);
+    const result = await readAndFormatFilesAsMarkdown(dirPath, filterConfig);
 
     expect(mockFindFilesRecursively).toHaveBeenCalledWith(dirPath, {
       folderIgnoreList: filterConfig.folderIgnoreList,
@@ -56,7 +56,7 @@ describe("aggregateFilesToMarkdown", () => {
     const dirPath = "/test/project/";
     mockFindFilesRecursively.mockResolvedValue([]);
 
-    await aggregateFilesToMarkdown(dirPath, filterConfig);
+    await readAndFormatFilesAsMarkdown(dirPath, filterConfig);
 
     expect(mockFindFilesRecursively).toHaveBeenCalledWith("/test/project", {
       folderIgnoreList: filterConfig.folderIgnoreList,
@@ -73,7 +73,7 @@ describe("aggregateFilesToMarkdown", () => {
     mockGetFileExtension.mockReturnValueOnce("png").mockReturnValueOnce("ts");
     mockReadFile.mockResolvedValueOnce("const x = 1;"); // Only called for .ts file
 
-    const result = await aggregateFilesToMarkdown(dirPath, filterConfig);
+    const result = await readAndFormatFilesAsMarkdown(dirPath, filterConfig);
 
     expect(mockReadFile).toHaveBeenCalledTimes(1);
     expect(result).not.toContain("image.png");
@@ -87,7 +87,7 @@ describe("aggregateFilesToMarkdown", () => {
     mockFindFilesRecursively.mockResolvedValue(mockFiles);
     mockGetFileExtension.mockReturnValueOnce("PNG");
 
-    const result = await aggregateFilesToMarkdown(dirPath, filterConfig);
+    const result = await readAndFormatFilesAsMarkdown(dirPath, filterConfig);
 
     expect(result).not.toContain("image.PNG");
     expect(mockReadFile).not.toHaveBeenCalled();
@@ -101,7 +101,7 @@ describe("aggregateFilesToMarkdown", () => {
     mockGetFileExtension.mockReturnValueOnce("ts");
     mockReadFile.mockResolvedValueOnce("  \n\nconst x = 1;\n\n  ");
 
-    const result = await aggregateFilesToMarkdown(dirPath, filterConfig);
+    const result = await readAndFormatFilesAsMarkdown(dirPath, filterConfig);
 
     expect(result).toContain("const x = 1;");
     expect(result).not.toMatch(/^\s+const x = 1;/);
@@ -116,7 +116,7 @@ describe("aggregateFilesToMarkdown", () => {
     mockGetFileExtension.mockReturnValueOnce("ts");
     mockReadFile.mockResolvedValueOnce("export function helper() {}");
 
-    const result = await aggregateFilesToMarkdown(dirPath, filterConfig);
+    const result = await readAndFormatFilesAsMarkdown(dirPath, filterConfig);
 
     expect(result).toContain("``` src/utils/helper.ts");
     expect(result).not.toContain("/test/project");
@@ -126,7 +126,7 @@ describe("aggregateFilesToMarkdown", () => {
     const dirPath = "/test/empty-project";
     mockFindFilesRecursively.mockResolvedValue([]);
 
-    const result = await aggregateFilesToMarkdown(dirPath, filterConfig);
+    const result = await readAndFormatFilesAsMarkdown(dirPath, filterConfig);
 
     expect(result).toBe("");
     expect(mockReadFile).not.toHaveBeenCalled();
@@ -147,7 +147,7 @@ describe("aggregateFilesToMarkdown", () => {
       .mockResolvedValueOnce("content2")
       .mockResolvedValueOnce("content3");
 
-    await aggregateFilesToMarkdown(dirPath, filterConfig);
+    await readAndFormatFilesAsMarkdown(dirPath, filterConfig);
 
     // All files should be read in parallel
     expect(mockReadFile).toHaveBeenCalledTimes(3);
@@ -164,7 +164,7 @@ describe("aggregateFilesToMarkdown", () => {
       .mockReturnValueOnce("pdf");
     mockReadFile.mockResolvedValueOnce("const x = 1;");
 
-    const result = await aggregateFilesToMarkdown(dirPath, filterConfig);
+    const result = await readAndFormatFilesAsMarkdown(dirPath, filterConfig);
 
     // Should only contain one code block
     const codeBlockCount = (result.match(/```/g) ?? []).length;
@@ -179,7 +179,7 @@ describe("aggregateFilesToMarkdown", () => {
     mockGetFileExtension.mockReturnValueOnce("");
     mockReadFile.mockResolvedValueOnce("all: build");
 
-    const result = await aggregateFilesToMarkdown(dirPath, filterConfig);
+    const result = await readAndFormatFilesAsMarkdown(dirPath, filterConfig);
 
     expect(result).toContain("``` Makefile");
     expect(result).toContain("all: build");
@@ -193,7 +193,7 @@ describe("aggregateFilesToMarkdown", () => {
     mockGetFileExtension.mockReturnValueOnce("ts");
     mockReadFile.mockResolvedValueOnce("line1\n\n\nline2");
 
-    const result = await aggregateFilesToMarkdown(dirPath, filterConfig);
+    const result = await readAndFormatFilesAsMarkdown(dirPath, filterConfig);
 
     expect(result).toContain("line1\n\n\nline2");
   });
@@ -208,7 +208,7 @@ describe("aggregateFilesToMarkdown", () => {
     };
     mockFindFilesRecursively.mockResolvedValue([]);
 
-    await aggregateFilesToMarkdown(dirPath, customFilterConfig);
+    await readAndFormatFilesAsMarkdown(dirPath, customFilterConfig);
 
     expect(mockFindFilesRecursively).toHaveBeenCalledWith(dirPath, {
       folderIgnoreList: customFilterConfig.folderIgnoreList,

@@ -10,7 +10,7 @@
  * - Stray commentary rules: Handle sentence-like text and conversational artifacts
  */
 
-import type { ReplacementRule } from "../replacement-rule.types";
+import type { ReplacementRule } from "../../../../types/sanitizer-config.types";
 import { STRING_CORRUPTION_RULES } from "./string-corruption-rules";
 import { YAML_CONTENT_RULES } from "./yaml-content-rules";
 import { LLM_METADATA_PROPERTY_RULES } from "./llm-metadata-property-rules";
@@ -25,7 +25,6 @@ export { LLM_ARTIFACT_RULES } from "./llm-artifact-rules";
 export { STRAY_COMMENTARY_RULES } from "./stray-commentary-rules";
 
 // Re-export helper functions that may be needed by other modules
-export { looksLikeNonJsonKey } from "./yaml-content-rules";
 export { isValidEmbeddedContentContext } from "./llm-metadata-property-rules";
 
 /**

@@ -11,7 +11,7 @@ import {
 import type {
   ReplacementRule,
   ContextInfo,
-} from "../../../../../../src/common/llm/json-processing/sanitizers/rules/replacement-rule.types";
+} from "../../../../../../src/common/llm/types/sanitizer-config.types";
 
 /** Helper to create a ContextInfo for tests */
 const createTestContext = (overrides: Partial<ContextInfo>): ContextInfo => ({

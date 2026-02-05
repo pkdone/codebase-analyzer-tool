@@ -7,7 +7,7 @@
  * - Minus signs and markdown markers
  */
 
-import type { ReplacementRule } from "../replacement-rule.types";
+import type { ReplacementRule } from "../../../../types/sanitizer-config.types";
 import { isInArrayContextSimple, isDeepArrayContext } from "../../../utils/parser-context-utils";
 import { safeGroup, safeGroups3, safeGroups4 } from "../../../utils/safe-group-extractor";
 

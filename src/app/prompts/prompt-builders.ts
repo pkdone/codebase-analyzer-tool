@@ -92,7 +92,7 @@ export interface ReducePromptOptions {
  * @param contextNoteOverride - Optional contextual note to override the config's contextNote (for runtime-computed notes)
  * @returns A configured JSONSchemaPrompt ready to render prompts
  */
-export function createPromptGenerator(
+function createPromptGenerator(
   config: BasePromptConfigEntry,
   contextNoteOverride?: string,
 ): JSONSchemaPrompt {

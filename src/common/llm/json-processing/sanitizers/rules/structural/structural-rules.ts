@@ -8,7 +8,7 @@
  * - Trailing commas
  */
 
-import type { ReplacementRule, ContextInfo } from "../replacement-rule.types";
+import type { ReplacementRule, ContextInfo } from "../../../../types/sanitizer-config.types";
 import { isAfterJsonDelimiter, isInArrayContextSimple } from "../../../utils/parser-context-utils";
 import { parsingHeuristics } from "../../../constants/json-processing.config";
 

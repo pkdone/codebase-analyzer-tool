@@ -1,8 +1,5 @@
 import { executeRules } from "../../../../../../../src/common/llm/json-processing/sanitizers/rules/rule-executor";
-import {
-  YAML_CONTENT_RULES,
-  looksLikeNonJsonKey,
-} from "../../../../../../../src/common/llm/json-processing/sanitizers/rules/embedded-content/yaml-content-rules";
+import { YAML_CONTENT_RULES } from "../../../../../../../src/common/llm/json-processing/sanitizers/rules/embedded-content/yaml-content-rules";
 
 describe("YAML_CONTENT_RULES", () => {
   describe("genericYamlListBlock", () => {
@@ -103,69 +100,6 @@ ai_analysis: This code appears to handle authentication
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"conclusion": "done"');
       expect(result.content).not.toContain("ai_analysis");
-    });
-  });
-});
-
-describe("looksLikeNonJsonKey", () => {
-  describe("without knownProperties", () => {
-    it("should return true for extra_* keys", () => {
-      expect(looksLikeNonJsonKey("extra_text")).toBe(true);
-      expect(looksLikeNonJsonKey("extra_thoughts")).toBe(true);
-      expect(looksLikeNonJsonKey("extra_info")).toBe(true);
-    });
-
-    it("should return true for llm_* keys", () => {
-      expect(looksLikeNonJsonKey("llm_reasoning")).toBe(true);
-      expect(looksLikeNonJsonKey("llm_notes")).toBe(true);
-    });
-
-    it("should return true for ai_* keys", () => {
-      expect(looksLikeNonJsonKey("ai_analysis")).toBe(true);
-      expect(looksLikeNonJsonKey("ai_summary")).toBe(true);
-    });
-
-    it("should return true for _* prefixed keys", () => {
-      expect(looksLikeNonJsonKey("_internal")).toBe(true);
-      expect(looksLikeNonJsonKey("_metadata")).toBe(true);
-    });
-
-    it("should return true for hyphenated keys (YAML-style)", () => {
-      expect(looksLikeNonJsonKey("my-yaml-key")).toBe(true);
-      expect(looksLikeNonJsonKey("some-other-key")).toBe(true);
-    });
-
-    it("should return true for keys ending with _thoughts, _text, etc.", () => {
-      expect(looksLikeNonJsonKey("model_thoughts")).toBe(true);
-      expect(looksLikeNonJsonKey("output_text")).toBe(true);
-      expect(looksLikeNonJsonKey("additional_notes")).toBe(true);
-      expect(looksLikeNonJsonKey("debug_info")).toBe(true);
-    });
-
-    it("should return false for normal camelCase keys", () => {
-      expect(looksLikeNonJsonKey("name")).toBe(false);
-      expect(looksLikeNonJsonKey("propertyName")).toBe(false);
-      expect(looksLikeNonJsonKey("someValue")).toBe(false);
-    });
-  });
-
-  describe("with knownProperties", () => {
-    it("should return false for known schema properties", () => {
-      const knownProperties = ["extra_field", "my_custom_key"];
-      expect(looksLikeNonJsonKey("extra_field", knownProperties)).toBe(false);
-      expect(looksLikeNonJsonKey("my_custom_key", knownProperties)).toBe(false);
-    });
-
-    it("should return true for unknown non-JSON keys even with knownProperties", () => {
-      const knownProperties = ["name", "value"];
-      expect(looksLikeNonJsonKey("extra_thoughts", knownProperties)).toBe(true);
-      expect(looksLikeNonJsonKey("my-yaml-key", knownProperties)).toBe(true);
-    });
-
-    it("should be case-insensitive for known properties", () => {
-      const knownProperties = ["ExtraField", "MY_KEY"];
-      expect(looksLikeNonJsonKey("extrafield", knownProperties)).toBe(false);
-      expect(looksLikeNonJsonKey("my_key", knownProperties)).toBe(false);
     });
   });
 });

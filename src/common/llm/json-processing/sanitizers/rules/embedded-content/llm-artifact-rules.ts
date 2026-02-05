@@ -6,7 +6,7 @@
  * - Truncated/explanatory text in arrays
  */
 
-import type { ReplacementRule } from "../replacement-rule.types";
+import type { ReplacementRule } from "../../../../types/sanitizer-config.types";
 import {
   looksLikeTruncationMarker,
   looksLikeFirstPersonStatement,

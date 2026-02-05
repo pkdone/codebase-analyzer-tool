@@ -10,7 +10,7 @@
  * property name inference, with graceful fallback to generic defaults.
  */
 
-import type { ReplacementRule } from "../replacement-rule.types";
+import type { ReplacementRule } from "../../../../types/sanitizer-config.types";
 import { isAfterJsonDelimiter, isInPropertyContext } from "../../../utils/parser-context-utils";
 import { inferPropertyName, isKnownProperty } from "../../../utils/property-name-inference";
 import { safeGroup, safeGroups3, safeGroups4 } from "../../../utils/safe-group-extractor";

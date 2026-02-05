@@ -37,7 +37,7 @@ export type BrandColorKey = keyof typeof BRAND_COLORS;
  * Mapping from TypeScript BRAND_COLORS keys to CSS variable names.
  * CSS uses kebab-case with `--mdb-` prefix while TypeScript uses camelCase.
  */
-export const BRAND_COLOR_CSS_VAR_MAP: Record<BrandColorKey, string> = {
+const BRAND_COLOR_CSS_VAR_MAP: Record<BrandColorKey, string> = {
   greenDark: "--mdb-green-dark",
   greenLight: "--mdb-green-light",
   black: "--mdb-black",
@@ -58,7 +58,7 @@ export const BRAND_COLOR_CSS_VAR_MAP: Record<BrandColorKey, string> = {
  * // Returns:
  * // "  --mdb-green-dark: #00684A;\n  --mdb-green-light: #00ED64;\n..."
  */
-export function generateBrandColorCssVariables(): string {
+function generateBrandColorCssVariables(): string {
   const entries = Object.entries(BRAND_COLORS) as [BrandColorKey, string][];
   return entries.map(([key, value]) => `  ${BRAND_COLOR_CSS_VAR_MAP[key]}: ${value};`).join("\n");
 }

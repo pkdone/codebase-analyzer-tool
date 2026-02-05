@@ -13,7 +13,7 @@
  * rather than hardcoded word lists, making them more robust against new LLM behaviors.
  */
 
-import type { ReplacementRule, ContextInfo } from "../replacement-rule.types";
+import type { ReplacementRule, ContextInfo } from "../../../../types/sanitizer-config.types";
 import { parsingHeuristics } from "../../../constants/json-processing.config";
 import { findJsonValueEnd } from "../../../utils/parser-context-utils";
 

@@ -19,7 +19,7 @@ import type {
   ExecutorOptions,
   RuleExecutionResult,
   ContextInfo,
-} from "./replacement-rule.types";
+} from "../../../types/sanitizer-config.types";
 
 /**
  * Executes a single replacement rule against the input content.

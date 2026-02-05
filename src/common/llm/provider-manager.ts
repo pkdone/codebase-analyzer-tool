@@ -117,22 +117,6 @@ export class ProviderManager {
   }
 
   /**
-   * Get the provider families that are required by the model chain.
-   */
-  getRequiredProviderFamilies(): readonly string[] {
-    const families = new Set<string>();
-
-    for (const entry of this.config.resolvedModelChain.completions) {
-      families.add(entry.providerFamily);
-    }
-    for (const entry of this.config.resolvedModelChain.embeddings) {
-      families.add(entry.providerFamily);
-    }
-
-    return Array.from(families);
-  }
-
-  /**
    * Get a specific manifest by provider family.
    */
   getManifest(providerFamily: string): LLMProviderManifest | undefined {
@@ -186,5 +170,21 @@ export class ProviderManager {
 
     await Promise.all(shutdownPromises);
     this.providers.clear();
+  }
+
+  /**
+   * Get the provider families that are required by the model chain.
+   */
+  private getRequiredProviderFamilies(): readonly string[] {
+    const families = new Set<string>();
+
+    for (const entry of this.config.resolvedModelChain.completions) {
+      families.add(entry.providerFamily);
+    }
+    for (const entry of this.config.resolvedModelChain.embeddings) {
+      families.add(entry.providerFamily);
+    }
+
+    return Array.from(families);
   }
 }

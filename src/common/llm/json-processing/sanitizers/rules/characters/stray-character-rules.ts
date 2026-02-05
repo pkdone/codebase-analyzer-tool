@@ -6,7 +6,7 @@
  * - Stray text before and after JSON structures
  */
 
-import type { ReplacementRule } from "../replacement-rule.types";
+import type { ReplacementRule } from "../../../../types/sanitizer-config.types";
 import {
   isAfterJsonDelimiter,
   isInArrayContextSimple,

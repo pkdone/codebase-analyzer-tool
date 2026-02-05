@@ -8,7 +8,7 @@
  */
 
 import { parsingHeuristics } from "../constants/json-processing.config";
-import type { ContextInfo } from "../sanitizers/rules/replacement-rule.types";
+import type { ContextInfo } from "../../types/sanitizer-config.types";
 
 // ============================================================================
 // String Boundary Cache - O(log N) lookups for repeated isInString checks
@@ -33,7 +33,7 @@ export interface StringBoundary {
  * @param content - The JSON content string to analyze
  * @returns Array of string boundaries sorted by start position
  */
-export function computeStringBoundaries(content: string): StringBoundary[] {
+function computeStringBoundaries(content: string): StringBoundary[] {
   const boundaries: StringBoundary[] = [];
   let i = 0;
 
@@ -73,10 +73,7 @@ export function computeStringBoundaries(content: string): StringBoundary[] {
  * @param boundaries - Pre-computed string boundaries (sorted by start)
  * @returns True if the position is inside a string literal
  */
-export function isPositionInString(
-  position: number,
-  boundaries: readonly StringBoundary[],
-): boolean {
+function isPositionInString(position: number, boundaries: readonly StringBoundary[]): boolean {
   if (boundaries.length === 0) return false;
 
   let left = 0;

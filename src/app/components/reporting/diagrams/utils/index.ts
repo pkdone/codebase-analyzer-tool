@@ -21,7 +21,6 @@ export {
 
 export {
   buildStyleDefinitions,
-  DEFAULT_DIAGRAM_THEME,
   type DiagramThemeConfig,
   type DiagramBrandColors,
   type DiagramElementColors,

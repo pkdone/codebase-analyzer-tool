@@ -187,5 +187,26 @@ describe("JavaFrameworkAnalyzer", () => {
       expect(result).toHaveLength(1);
       expect(result[0].name).toBe("Struts");
     });
+
+    it("should not duplicate file paths in configFiles when same file appears multiple times", () => {
+      // Edge case: if the same file appears in input multiple times
+      const sourceFiles = [
+        createMockFrameworkFile("struts-config.xml", {
+          name: "Struts",
+          version: "1.3.10",
+        }),
+        createMockFrameworkFile("struts-config.xml", {
+          name: "Struts",
+          version: "1.3.10",
+        }),
+      ];
+
+      const result = analyzer.analyzeFrameworks(sourceFiles);
+
+      expect(result).toHaveLength(1);
+      // Should have only 1 file path, not 2 duplicates
+      expect(result[0].configFiles).toHaveLength(1);
+      expect(result[0].configFiles).toEqual(["struts-config.xml"]);
+    });
   });
 });

@@ -7,7 +7,7 @@
 import type { LLMProviderManifest } from "../providers/llm-provider.types";
 import type { ModelChainEntry, ResolvedModelChain } from "../types/llm-model.types";
 
-// Re-export sanitizer config types from their canonical location for backwards compatibility
+// Re-export sanitizer config types for convenience
 export type { LLMSanitizerConfig, ReplacementRule } from "../types/sanitizer-config.types";
 
 /**

@@ -63,9 +63,8 @@ export interface DiagramThemeConfig {
 
 /**
  * Default theme configuration using the application's brand colors.
- * Exported for use by callers who want to explicitly pass the default theme.
  */
-export const DEFAULT_DIAGRAM_THEME: Required<DiagramThemeConfig> = {
+const DEFAULT_DIAGRAM_THEME: Required<DiagramThemeConfig> = {
   brandColors: {
     greenDark: BRAND_COLORS.greenDark,
     black: BRAND_COLORS.black,

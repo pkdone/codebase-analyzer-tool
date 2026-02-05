@@ -3,131 +3,14 @@
  */
 
 import {
-  levenshteinDistance,
   matchPropertyName,
   looksLikePropertyName,
   looksLikeDotSeparatedIdentifier,
   inferFromShortFragment,
-  normalizeIdentifier,
-  calculateDynamicLevenshteinThreshold,
   DEFAULT_MATCHER_CONFIG,
 } from "../../../../../src/common/llm/json-processing/utils/property-name-matcher";
 
 describe("property-name-matcher", () => {
-  describe("normalizeIdentifier", () => {
-    it("should convert camelCase to lowercase", () => {
-      expect(normalizeIdentifier("userName")).toBe("username");
-      expect(normalizeIdentifier("firstName")).toBe("firstname");
-      expect(normalizeIdentifier("myPropertyName")).toBe("mypropertyname");
-    });
-
-    it("should convert PascalCase to lowercase", () => {
-      expect(normalizeIdentifier("UserName")).toBe("username");
-      expect(normalizeIdentifier("FirstName")).toBe("firstname");
-    });
-
-    it("should remove underscores and convert to lowercase", () => {
-      expect(normalizeIdentifier("user_name")).toBe("username");
-      expect(normalizeIdentifier("first_name")).toBe("firstname");
-      expect(normalizeIdentifier("MY_CONSTANT")).toBe("myconstant");
-    });
-
-    it("should remove hyphens and convert to lowercase", () => {
-      expect(normalizeIdentifier("user-name")).toBe("username");
-      expect(normalizeIdentifier("first-name")).toBe("firstname");
-    });
-
-    it("should handle mixed formats", () => {
-      expect(normalizeIdentifier("user_Name")).toBe("username");
-      expect(normalizeIdentifier("First-name")).toBe("firstname");
-      expect(normalizeIdentifier("API_Endpoint")).toBe("apiendpoint");
-    });
-
-    it("should handle consecutive capitals (acronyms)", () => {
-      expect(normalizeIdentifier("APIEndpoint")).toBe("apiendpoint");
-      expect(normalizeIdentifier("XMLParser")).toBe("xmlparser");
-    });
-
-    it("should handle empty string", () => {
-      expect(normalizeIdentifier("")).toBe("");
-    });
-
-    it("should handle single character", () => {
-      expect(normalizeIdentifier("a")).toBe("a");
-      expect(normalizeIdentifier("A")).toBe("a");
-    });
-  });
-
-  describe("calculateDynamicLevenshteinThreshold", () => {
-    it("should return base threshold for short strings", () => {
-      expect(calculateDynamicLevenshteinThreshold(4, 2)).toBe(2);
-      expect(calculateDynamicLevenshteinThreshold(5, 2)).toBe(2);
-    });
-
-    it("should return at least 2 for medium strings", () => {
-      expect(calculateDynamicLevenshteinThreshold(6, 1)).toBe(2);
-      expect(calculateDynamicLevenshteinThreshold(8, 1)).toBe(2);
-    });
-
-    it("should scale with length for longer strings", () => {
-      expect(calculateDynamicLevenshteinThreshold(10, 2)).toBe(2);
-      expect(calculateDynamicLevenshteinThreshold(15, 2)).toBe(3);
-      expect(calculateDynamicLevenshteinThreshold(20, 2)).toBe(4);
-    });
-
-    it("should cap at 5 for very long strings", () => {
-      expect(calculateDynamicLevenshteinThreshold(30, 2)).toBe(5);
-      expect(calculateDynamicLevenshteinThreshold(50, 2)).toBe(5);
-    });
-
-    it("should respect base threshold as minimum", () => {
-      expect(calculateDynamicLevenshteinThreshold(10, 3)).toBe(3);
-      expect(calculateDynamicLevenshteinThreshold(5, 3)).toBe(3);
-    });
-  });
-
-  describe("levenshteinDistance", () => {
-    it("should return 0 for identical strings", () => {
-      expect(levenshteinDistance("hello", "hello")).toBe(0);
-    });
-
-    it("should return correct distance for single edit", () => {
-      expect(levenshteinDistance("hello", "hallo")).toBe(1);
-      expect(levenshteinDistance("hello", "helloo")).toBe(1);
-      expect(levenshteinDistance("hello", "ello")).toBe(1);
-    });
-
-    it("should return correct distance for multiple edits", () => {
-      expect(levenshteinDistance("kitten", "sitting")).toBe(3);
-      expect(levenshteinDistance("saturday", "sunday")).toBe(3);
-    });
-
-    it("should handle empty strings", () => {
-      expect(levenshteinDistance("", "hello")).toBe(5);
-      expect(levenshteinDistance("hello", "")).toBe(5);
-      expect(levenshteinDistance("", "")).toBe(0);
-    });
-
-    it("should handle case sensitivity", () => {
-      expect(levenshteinDistance("Hello", "hello")).toBe(1);
-      expect(levenshteinDistance("HELLO", "hello")).toBe(5);
-    });
-
-    it("should early exit when length difference exceeds threshold", () => {
-      // When length difference > 3, the function returns the length difference immediately
-      expect(levenshteinDistance("a", "abcde")).toBe(4);
-      expect(levenshteinDistance("short", "verylongstring")).toBe(9);
-      expect(levenshteinDistance("", "longstring")).toBe(10);
-    });
-
-    it("should compute full distance when length difference is within threshold", () => {
-      // When length difference <= 3, the function computes the full distance
-      expect(levenshteinDistance("cat", "cats")).toBe(1); // diff = 1
-      expect(levenshteinDistance("hello", "hi")).toBe(4); // diff = 3, actual distance = 4
-      expect(levenshteinDistance("abc", "abcdef")).toBe(3); // diff = 3, actual distance = 3
-    });
-  });
-
   describe("matchPropertyName", () => {
     const knownProperties = [
       "name",

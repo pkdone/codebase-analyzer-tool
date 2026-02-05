@@ -27,7 +27,7 @@ const TRAILING_SLASH_PATTERN = /\/$/;
  * @param filterConfig - Configuration for filtering files during aggregation
  * @returns Promise resolving to formatted content containing all files as markdown code blocks
  */
-export async function aggregateFilesToMarkdown(
+export async function readAndFormatFilesAsMarkdown(
   dirPath: string,
   filterConfig: FileFilterConfig,
 ): Promise<string> {

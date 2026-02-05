@@ -9,9 +9,6 @@
 import {
   executeRules,
   executeRulesMultiPass,
-  isAfterJsonDelimiter,
-  isInPropertyContext,
-  isInArrayContextSimple,
   STRAY_CHARACTER_RULES,
   PROPERTY_NAME_RULES,
   ASSIGNMENT_RULES,
@@ -20,8 +17,6 @@ import {
   EMBEDDED_CONTENT_RULES,
   ALL_RULES,
 } from "../../../../../../src/common/llm/json-processing/sanitizers/rules";
-
-import type { ContextInfo } from "../../../../../../src/common/llm/json-processing/sanitizers/rules";
 
 describe("rules barrel export", () => {
   describe("executor exports", () => {
@@ -33,23 +28,6 @@ describe("rules barrel export", () => {
     it("should export executeRulesMultiPass function", () => {
       expect(executeRulesMultiPass).toBeDefined();
       expect(typeof executeRulesMultiPass).toBe("function");
-    });
-  });
-
-  describe("context check function exports", () => {
-    it("should export isAfterJsonDelimiter function", () => {
-      expect(isAfterJsonDelimiter).toBeDefined();
-      expect(typeof isAfterJsonDelimiter).toBe("function");
-    });
-
-    it("should export isInPropertyContext function", () => {
-      expect(isInPropertyContext).toBeDefined();
-      expect(typeof isInPropertyContext).toBe("function");
-    });
-
-    it("should export isInArrayContextSimple function", () => {
-      expect(isInArrayContextSimple).toBeDefined();
-      expect(typeof isInArrayContextSimple).toBe("function");
     });
   });
 
@@ -103,36 +81,6 @@ describe("rules barrel export", () => {
           EMBEDDED_CONTENT_RULES.length,
         ),
       );
-    });
-  });
-
-  describe("context check function integration", () => {
-    const createContext = (beforeMatch: string, offset: number): ContextInfo => ({
-      beforeMatch,
-      offset,
-      fullContent: "",
-      groups: [],
-    });
-
-    it("isAfterJsonDelimiter should work correctly", () => {
-      // After closing brace
-      expect(isAfterJsonDelimiter(createContext("} ", 100))).toBe(true);
-      // At start of file
-      expect(isAfterJsonDelimiter(createContext("", 2))).toBe(true);
-    });
-
-    it("isInPropertyContext should work correctly", () => {
-      // After opening brace
-      expect(isInPropertyContext(createContext("{ ", 100))).toBe(true);
-      // After comma
-      expect(isInPropertyContext(createContext(", ", 100))).toBe(true);
-    });
-
-    it("isInArrayContextSimple should work correctly", () => {
-      // After opening bracket
-      expect(isInArrayContextSimple(createContext("[ ", 100))).toBe(true);
-      // After comma with newline
-      expect(isInArrayContextSimple(createContext(",\n  ", 100))).toBe(true);
     });
   });
 

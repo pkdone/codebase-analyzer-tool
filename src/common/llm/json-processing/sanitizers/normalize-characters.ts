@@ -5,6 +5,16 @@ import { createStringStateTracker } from "../utils/string-state-iterator";
 import { repairOverEscapedStringSequences } from "./repair-over-escaped-sequences";
 
 /**
+ * Regex patterns for curly quote detection - hoisted for performance.
+ * Matching Unicode quote variants:
+ * - Double quotes: U+201C-U+201F (left/right double, double low-9, double high-reversed-9)
+ * - Single quotes: U+2018-U+201B (left/right single, single low-9, single high-reversed-9)
+ *                  U+02BB-U+02BC (modifier letter turned comma and apostrophe)
+ */
+const DOUBLE_QUOTE_PATTERN = /[\u201C-\u201F]/g;
+const SINGLE_QUOTE_PATTERN = /[\u2018-\u201B\u02BB\u02BC]/g;
+
+/**
  * Valid JSON escape sequences as defined in RFC 8259.
  * These are the only escape sequences allowed in JSON strings.
  */
@@ -69,17 +79,9 @@ export const normalizeCharacters: Sanitizer = (input: string): SanitizerResult =
     let result = input;
 
     // First pass: convert curly quotes to ASCII quotes (before character-by-character processing)
-    // Using regex character ranges to catch all Unicode quote variants:
-    // - Double quotes: U+201C-U+201F (left/right double, double low-9, double high-reversed-9)
-    // - Single quotes: U+2018-U+201B (left/right single, single low-9, single high-reversed-9)
-    //                  U+02BB-U+02BC (modifier letter turned comma and apostrophe)
     // Note: Backticks (U+0060) and acute accent (U+00B4) are excluded as they have different semantic purposes
-
-    const doubleQuotePattern = /[\u201C-\u201F]/g;
-    const singleQuotePattern = /[\u2018-\u201B\u02BB\u02BC]/g;
-
-    const doubleQuoteMatches = result.match(doubleQuotePattern) ?? [];
-    const singleQuoteMatches = result.match(singleQuotePattern) ?? [];
+    const doubleQuoteMatches = result.match(DOUBLE_QUOTE_PATTERN) ?? [];
+    const singleQuoteMatches = result.match(SINGLE_QUOTE_PATTERN) ?? [];
 
     const doubleQuoteCount = doubleQuoteMatches.length;
     const singleQuoteCount = singleQuoteMatches.length;
@@ -88,10 +90,10 @@ export const normalizeCharacters: Sanitizer = (input: string): SanitizerResult =
       hasChanges = true;
 
       // Replace all double quote variants with ASCII double quote
-      result = result.replace(doubleQuotePattern, '"');
+      result = result.replace(DOUBLE_QUOTE_PATTERN, '"');
 
       // Replace all single quote variants with ASCII single quote
-      result = result.replace(singleQuotePattern, "'");
+      result = result.replace(SINGLE_QUOTE_PATTERN, "'");
 
       if (doubleQuoteCount > 0) {
         repairs.push(

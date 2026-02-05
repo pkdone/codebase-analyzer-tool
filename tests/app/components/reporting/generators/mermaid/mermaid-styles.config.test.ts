@@ -1,6 +1,5 @@
 import {
   buildStyleDefinitions,
-  DEFAULT_DIAGRAM_THEME,
   type DiagramThemeConfig,
 } from "../../../../../../src/app/components/reporting/diagrams/utils/mermaid-styles";
 import { applyStyleClass } from "../../../../../../src/app/components/reporting/diagrams/utils";
@@ -96,12 +95,12 @@ describe("mermaid-styles.config", () => {
       expect(result).toContain("color:#000000");
     });
 
-    it("should use DEFAULT_DIAGRAM_THEME values when no config provided", () => {
+    it("should use default brand colors when no config provided", () => {
       const result = buildStyleDefinitions();
 
-      // Should use default brand colors
-      expect(result).toContain(`stroke:${DEFAULT_DIAGRAM_THEME.brandColors.greenDark}`);
-      expect(result).toContain(`color:${DEFAULT_DIAGRAM_THEME.brandColors.black}`);
+      // Should use default brand colors from BRAND_COLORS
+      expect(result).toContain(`stroke:${BRAND_COLORS.greenDark}`);
+      expect(result).toContain(`color:${BRAND_COLORS.black}`);
     });
 
     it("should allow partial theme configuration", () => {

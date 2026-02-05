@@ -51,7 +51,7 @@ export const DEFAULT_MATCHER_CONFIG: PropertyMatcherConfig = {
  * calculateDynamicLevenshteinThreshold(12) // 3
  * calculateDynamicLevenshteinThreshold(20) // 4
  */
-export function calculateDynamicLevenshteinThreshold(length: number, baseThreshold = 2): number {
+function calculateDynamicLevenshteinThreshold(length: number, baseThreshold = 2): number {
   // For short strings (< 6 chars), use the base threshold
   if (length < 6) {
     return baseThreshold;
@@ -77,7 +77,7 @@ export function calculateDynamicLevenshteinThreshold(length: number, baseThresho
  * normalizeIdentifier("user-name") // "username"
  * normalizeIdentifier("UserName") // "username"
  */
-export function normalizeIdentifier(identifier: string): string {
+function normalizeIdentifier(identifier: string): string {
   if (!identifier) return "";
 
   // First, insert a separator before capital letters in camelCase/PascalCase
@@ -108,7 +108,7 @@ export interface PropertyMatchResult {
  * @param str2 - Second string
  * @returns The edit distance between the strings
  */
-export function levenshteinDistance(str1: string, str2: string): number {
+function levenshteinDistance(str1: string, str2: string): number {
   const m = str1.length;
   const n = str2.length;
 

@@ -12,15 +12,15 @@
  */
 export function escapeMermaidLabel(text: string): string {
   return text
-    .replace(/"/g, "#quot;")
-    .replace(/</g, "#lt;")
-    .replace(/>/g, "#gt;")
-    .replace(/\[/g, "#91;")
-    .replace(/\]/g, "#93;")
-    .replace(/\(/g, "#40;")
-    .replace(/\)/g, "#41;")
-    .replace(/\{/g, "#123;")
-    .replace(/\}/g, "#125;");
+    .replaceAll('"', "#quot;")
+    .replaceAll("<", "#lt;")
+    .replaceAll(">", "#gt;")
+    .replaceAll("[", "#91;")
+    .replaceAll("]", "#93;")
+    .replaceAll("(", "#40;")
+    .replaceAll(")", "#41;")
+    .replaceAll("{", "#123;")
+    .replaceAll("}", "#125;");
 }
 
 /**

@@ -7,7 +7,7 @@
  * To add a new language extension, update file-type-registry.ts instead.
  */
 
-import { deriveCodeFileExtensions } from "./file-type-registry";
+import { getEnabledCodeExtensions } from "./file-type-registry";
 
 export const fileProcessingRules = {
   FOLDER_IGNORE_LIST: [
@@ -105,7 +105,7 @@ export const fileProcessingRules = {
    * List of file extensions that represent source code files.
    * Derived from the unified file type registry for single source of truth.
    */
-  CODE_FILE_EXTENSIONS: deriveCodeFileExtensions(),
+  CODE_FILE_EXTENSIONS: getEnabledCodeExtensions(),
   /**
    * Canonical file types for build/dependency management files.
    * Used by BomDataProvider for Bill of Materials aggregation.

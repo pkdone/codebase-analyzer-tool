@@ -32,8 +32,8 @@ export const removeComments: Sanitizer = (input: string): SanitizerResult => {
     const repairs: string[] = [];
 
     // Pattern 1: Remove multi-line comments /* ... */
-    // Use non-greedy match to handle multiple comments
-    const multiLineCommentPattern = /\/\*[\s\S]*?\*\//g;
+    // Use non-greedy match with dotAll flag to handle comments spanning lines
+    const multiLineCommentPattern = /\/\*.*?\*\//gs;
     sanitized = sanitized.replace(multiLineCommentPattern, (match, offset: number) => {
       // Don't remove if we're inside a string
       if (isInStringAt(offset, sanitized)) {

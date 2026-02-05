@@ -1,7 +1,7 @@
 import { fixMalformedJsonPatterns } from "../../../../../src/common/llm/json-processing/sanitizers/fix-malformed-json-patterns";
 import { JAVA_SPECIFIC_RULES } from "../../../../../src/app/prompts/sources/fragments/languages/java";
 import type { LLMSanitizerConfig } from "../../../../../src/common/llm/config/llm-module-config.types";
-import type { ReplacementRule } from "../../../../../src/common/llm/json-processing/sanitizers/rules/replacement-rule.types";
+import type { ReplacementRule } from "../../../../../src/common/llm/types/sanitizer-config.types";
 
 describe("fixMalformedJsonPatterns with custom rules", () => {
   describe("custom rule injection via config", () => {

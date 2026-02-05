@@ -11,7 +11,7 @@ import type { FileDiscoveryConfig } from "./file-filter.types";
  * @param entry - The entry returned by fast-glob
  * @returns True if the entry has the expected Entry structure with path and optional stats
  */
-export function isGlobEntryWithStats(entry: unknown): entry is Entry {
+function isGlobEntryWithStats(entry: unknown): entry is Entry {
   if (!entry || typeof entry !== "object") return false;
   const obj = entry as Record<string, unknown>;
   if (typeof obj.path !== "string") return false;

@@ -171,7 +171,7 @@ export const FILE_TYPE_REGISTRY: Readonly<Record<string, FileTypeEntry>> = {
  *
  * @returns A readonly array of extensions that are classified as code files
  */
-export function deriveCodeFileExtensions(): readonly string[] {
+export function getEnabledCodeExtensions(): readonly string[] {
   return Object.entries(FILE_TYPE_REGISTRY)
     .filter(([, entry]) => entry.isCode)
     .map(([ext]) => ext);
@@ -189,38 +189,6 @@ export function deriveExtensionToTypeMap(): Readonly<Record<string, CanonicalFil
     map[ext] = entry.canonicalType;
   }
   return map;
-}
-
-/**
- * Gets the file type entry for a given extension.
- *
- * @param extension - The file extension (without leading dot, case-insensitive)
- * @returns The file type entry or undefined if not found
- */
-export function getFileTypeEntry(extension: string): FileTypeEntry | undefined {
-  return FILE_TYPE_REGISTRY[extension.toLowerCase()];
-}
-
-/**
- * Checks if an extension is classified as a code file.
- *
- * @param extension - The file extension (without leading dot, case-insensitive)
- * @returns true if the extension is a code file, false otherwise
- */
-export function isCodeExtension(extension: string): boolean {
-  const entry = getFileTypeEntry(extension);
-  return entry?.isCode ?? false;
-}
-
-/**
- * Gets the canonical type for an extension.
- *
- * @param extension - The file extension (without leading dot, case-insensitive)
- * @returns The canonical type or "default" if not found
- */
-export function getCanonicalTypeForExtension(extension: string): CanonicalFileType {
-  const entry = getFileTypeEntry(extension);
-  return entry?.canonicalType ?? "default";
 }
 
 /**
@@ -274,13 +242,3 @@ export const FILENAME_TYPE_REGISTRY: Readonly<Record<string, CanonicalFileType>>
   "configure.ac": "makefile",
   "configure.in": "makefile",
 } as const;
-
-/**
- * Gets the canonical type for a filename.
- *
- * @param filename - The filename (case-insensitive)
- * @returns The canonical type or undefined if not found
- */
-export function getCanonicalTypeForFilename(filename: string): CanonicalFileType | undefined {
-  return FILENAME_TYPE_REGISTRY[filename.toLowerCase()];
-}

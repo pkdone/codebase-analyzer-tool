@@ -22,15 +22,10 @@ export type {
   ContextCheckFunction,
   ExecutorOptions,
   RuleExecutionResult,
-} from "./replacement-rule.types";
+} from "../../../types/sanitizer-config.types";
 
 // Executor exports
 export { executeRules, executeRulesMultiPass } from "./rule-executor";
-export {
-  isAfterJsonDelimiter,
-  isInPropertyContext,
-  isInArrayContextSimple,
-} from "../../utils/parser-context-utils";
 
 // Rule category exports - organized by subfolder
 export { STRAY_CHARACTER_RULES } from "./characters";
@@ -46,7 +41,7 @@ export {
 } from "./embedded-content";
 
 // Import all rules for aggregation
-import type { ReplacementRule } from "./replacement-rule.types";
+import type { ReplacementRule } from "../../../types/sanitizer-config.types";
 import { STRAY_CHARACTER_RULES } from "./characters";
 import { STRUCTURAL_RULES } from "./structural";
 import { PROPERTY_NAME_RULES } from "./properties";

@@ -4,6 +4,7 @@ import { promises as fs } from "fs";
 import { coreTokens } from "../../../di/tokens";
 import type { OutputConfigType } from "../../../config/output.config";
 import { generateBrandColorCssBlock } from "../config/brand-theme.config";
+import { ENCODING_UTF8 } from "../../../../common/constants";
 
 /**
  * Interface representing the assets required for HTML report rendering.
@@ -47,8 +48,8 @@ export class HtmlReportAssetService {
     );
 
     const [cssContent, jsonIconContent] = await Promise.all([
-      fs.readFile(cssPath, "utf-8"),
-      fs.readFile(jsonIconPath, "utf-8"),
+      fs.readFile(cssPath, ENCODING_UTF8),
+      fs.readFile(jsonIconPath, ENCODING_UTF8),
     ]);
 
     // Generate brand color CSS variables from brand-theme.config.ts and prepend to CSS

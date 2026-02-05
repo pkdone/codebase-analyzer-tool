@@ -185,17 +185,28 @@ describe("JavaUiTechnologyDataProvider", () => {
     });
 
     it("should sort custom tag libraries by usage count descending", async () => {
+      // Use multiple files to test sorting - "b" is used in 3 files, "a" in 1 file
       mockSourcesRepository.getProjectSourcesSummariesByFileType.mockResolvedValue([
-        createMockJspFile("page.jsp", {
+        createMockJspFile("page1.jsp", {
           scriptletCount: 0,
           expressionCount: 0,
           declarationCount: 0,
           customTags: [
             { prefix: "a", uri: "http://example.com/a" },
             { prefix: "b", uri: "http://example.com/b" },
-            { prefix: "b", uri: "http://example.com/b" },
-            { prefix: "b", uri: "http://example.com/b" },
           ],
+        }),
+        createMockJspFile("page2.jsp", {
+          scriptletCount: 0,
+          expressionCount: 0,
+          declarationCount: 0,
+          customTags: [{ prefix: "b", uri: "http://example.com/b" }],
+        }),
+        createMockJspFile("page3.jsp", {
+          scriptletCount: 0,
+          expressionCount: 0,
+          declarationCount: 0,
+          customTags: [{ prefix: "b", uri: "http://example.com/b" }],
         }),
       ]);
 

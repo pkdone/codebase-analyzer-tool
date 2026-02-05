@@ -46,7 +46,6 @@ export const arrayElementFixer: SanitizerStrategy = {
       return { content: input, changed: false, repairs: [] };
     }
 
-    // Keep fallback prefix replacements for backwards compatibility
     const PACKAGE_NAME_PREFIX_REPLACEMENTS = config?.packageNamePrefixReplacements ?? {};
 
     let sanitized = input;

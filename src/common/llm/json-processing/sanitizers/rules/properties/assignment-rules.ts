@@ -7,7 +7,7 @@
  * - Stray characters like minus signs before colons
  */
 
-import type { ReplacementRule, ContextInfo } from "../replacement-rule.types";
+import type { ReplacementRule, ContextInfo } from "../../../../types/sanitizer-config.types";
 import { isJsonKeyword } from "../../../utils/stray-text-detection";
 
 /** Pattern for JSON numeric values (integers, floats, scientific notation) */

@@ -5,7 +5,7 @@
  * - YAML-like simple value assignments
  */
 
-import type { ReplacementRule } from "../replacement-rule.types";
+import type { ReplacementRule } from "../../../../types/sanitizer-config.types";
 
 /**
  * Checks if a key looks like a YAML/non-JSON key that should be removed.
@@ -18,7 +18,7 @@ import type { ReplacementRule } from "../replacement-rule.types";
  * @param knownProperties - Optional list of known schema properties
  * @returns true if the key looks like non-JSON content that should be removed
  */
-export function looksLikeNonJsonKey(key: string, knownProperties?: readonly string[]): boolean {
+function looksLikeNonJsonKey(key: string, knownProperties?: readonly string[]): boolean {
   // If we have schema metadata and the key is a known property, don't remove it
   if (knownProperties && knownProperties.length > 0) {
     const lowerKey = key.toLowerCase();

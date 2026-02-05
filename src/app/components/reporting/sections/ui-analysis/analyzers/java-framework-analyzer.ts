@@ -28,11 +28,14 @@ export class JavaFrameworkAnalyzer {
       const existing = frameworkMap.get(key);
 
       if (existing) {
+        // Avoid duplicate file paths in configFiles list
+        const configFiles = existing.configFiles.includes(file.filepath)
+          ? existing.configFiles
+          : [...existing.configFiles, file.filepath];
         frameworkMap.set(key, {
           name: existing.name,
           version: existing.version,
-          // Use authoritative file.filepath instead of LLM-provided configFile
-          configFiles: [...existing.configFiles, file.filepath],
+          configFiles,
         });
       } else {
         frameworkMap.set(key, {

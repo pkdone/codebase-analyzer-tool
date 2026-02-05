@@ -22,7 +22,8 @@ export function countLines(text: string): number {
  * Example: "camelCaseString" -> "Camel Case String"
  */
 export function convertToDisplayName(text: string): string {
-  const spacedText = text.replace(/([a-z])([A-Z])/g, "$1 $2");
+  // Use lookbehind/lookahead to insert space between lowercase and uppercase
+  const spacedText = text.replace(/(?<=[a-z])(?=[A-Z])/g, " ");
   return spacedText.replace(/\b\w/g, (char) => char.toUpperCase());
 }
 

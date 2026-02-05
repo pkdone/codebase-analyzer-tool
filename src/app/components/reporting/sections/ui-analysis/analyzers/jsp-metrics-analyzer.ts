@@ -122,6 +122,8 @@ export class JspMetricsAnalyzer {
 
   /**
    * Aggregates custom tag library usage from JSP metrics into the tag library map.
+   * Deduplicates tags by URI within each file to prevent inflated usage counts
+   * when a file has duplicate taglib directives.
    */
   private aggregateTagLibraries(
     customTags: { prefix: string; uri: string }[] | undefined,
@@ -129,7 +131,15 @@ export class JspMetricsAnalyzer {
   ): void {
     if (!customTags || customTags.length === 0) return;
 
+    // Deduplicate by URI within this file to prevent inflated counts
+    const uniqueTags = new Map<string, { prefix: string; uri: string }>();
     for (const tag of customTags) {
+      if (!uniqueTags.has(tag.uri)) {
+        uniqueTags.set(tag.uri, tag);
+      }
+    }
+
+    for (const tag of uniqueTags.values()) {
       const key = `${tag.prefix}:${tag.uri}`;
       const existing = tagLibraryMap.get(key);
 

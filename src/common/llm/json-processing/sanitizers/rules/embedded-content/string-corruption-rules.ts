@@ -11,7 +11,7 @@
  * leaving the string unclosed.
  */
 
-import type { ReplacementRule } from "../replacement-rule.types";
+import type { ReplacementRule } from "../../../../types/sanitizer-config.types";
 import { corruptionHeuristics } from "../../../constants/json-processing.config";
 
 const { MIN_REPETITIONS_TO_TRUNCATE, MAX_REPETITIONS_TO_KEEP } = corruptionHeuristics;

@@ -11,7 +11,7 @@
  * that may exist within JSON string values.
  */
 
-import type { ReplacementRule } from "../replacement-rule.types";
+import type { ReplacementRule } from "../../../../types/sanitizer-config.types";
 import { parsingHeuristics } from "../../../constants/json-processing.config";
 import { looksLikeSentenceStructure } from "../../../utils/stray-text-detection";
 import { safeGroup, safeGroups3, safeGroups4 } from "../../../utils/safe-group-extractor";
