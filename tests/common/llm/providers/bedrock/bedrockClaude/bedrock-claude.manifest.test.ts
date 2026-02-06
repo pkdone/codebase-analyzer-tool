@@ -18,6 +18,7 @@ const mockBedrockClaudeEnv = createBedrockMockEnv(
   [], // No embeddings for Claude
   [BEDROCK_CLAUDE_OPUS_V45, BEDROCK_CLAUDE_SONNET_V45],
   {
+    BEDROCK_CLAUDE_OPUS_46_MODEL_URN: "global.anthropic.claude-opus-4-6-v1",
     BEDROCK_CLAUDE_OPUS_45_MODEL_URN: "global.anthropic.claude-opus-4-5-20251101-v1:0",
     BEDROCK_CLAUDE_SONNET_45_MODEL_URN: "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
   },
@@ -105,9 +106,9 @@ describe("Bedrock Claude Provider Tests", () => {
       const init = createBedrockProviderInit(bedrockClaudeProviderManifest, mockBedrockClaudeEnv);
       const llm = new bedrockClaudeProviderManifest.implementation(init);
       const modelNames = llm.getAvailableModelNames();
-      // Claude has no embeddings (empty array) and 2 completion models
+      // Claude has no embeddings (empty array) and 3 completion models
       expect(modelNames.embeddings.length).toBe(0);
-      expect(modelNames.completions.length).toBe(2);
+      expect(modelNames.completions.length).toBe(3);
     });
   });
 });

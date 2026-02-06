@@ -62,7 +62,9 @@ export default class BedrockClaudeLLM extends BaseBedrockLLM {
 
     // Add anthropic_beta flags for Claude models (1M-token context beta) if configured
     if (
-      ["bedrock-claude-opus-4.5", "bedrock-claude-sonnet-4.5"].includes(modelKey) &&
+      ["bedrock-claude-opus-4.6", "bedrock-claude-opus-4.5", "bedrock-claude-sonnet-4.5"].includes(
+        modelKey,
+      ) &&
       config.anthropicBetaFlags
     ) {
       return {
