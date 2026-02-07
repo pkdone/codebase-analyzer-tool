@@ -2,17 +2,15 @@ import "reflect-metadata";
 import { injectable } from "tsyringe";
 import { Task } from "../task.types";
 import { APP_PROVIDER_REGISTRY } from "../../llm/provider-registry";
-import type { LLMProviderManifest } from "../../../common/llm/providers/llm-provider.types";
 import { buildModelRegistry, getAllModelKeys } from "../../../common/llm/utils/model-registry";
 import { LLMError } from "../../../common/llm/types/llm-errors.types";
 
 /**
- * Represents a provider's models grouped by type.
+ * Represents a single row in the model table output.
  */
-interface ProviderModelGroup {
-  providerFamily: string;
-  completionKeys: string[];
-  embeddingKeys: string[];
+interface ModelTableRow {
+  Provider: string;
+  "Model Key": string;
 }
 
 /**
@@ -27,8 +25,8 @@ export class ListAvailableModelsTask implements Task {
    */
   async execute(): Promise<void> {
     if (!this.validateNoDuplicateModelKeys()) return;
-    const groups = this.buildModelGroups();
-    this.displayModelList(groups);
+    const { completionRows, embeddingRows } = this.buildModelRows();
+    this.displayModelList(completionRows, embeddingRows);
     await Promise.resolve();
   }
 
@@ -59,68 +57,54 @@ export class ListAvailableModelsTask implements Task {
   }
 
   /**
-   * Build model groups from the provider registry.
-   * @returns Array of provider model groups
+   * Build model rows from the provider registry.
+   * @returns Object containing arrays of completion and embedding model rows
    */
-  private buildModelGroups(): ProviderModelGroup[] {
-    const groups: ProviderModelGroup[] = [];
+  private buildModelRows(): { completionRows: ModelTableRow[]; embeddingRows: ModelTableRow[] } {
+    const completionRows: ModelTableRow[] = [];
+    const embeddingRows: ModelTableRow[] = [];
 
-    for (const [, manifest] of APP_PROVIDER_REGISTRY) {
-      const group = this.extractModelGroup(manifest);
-      groups.push(group);
+    // Get manifests sorted by provider family name for consistent output
+    const sortedManifests = [...APP_PROVIDER_REGISTRY.values()].toSorted((a, b) =>
+      a.providerFamily.localeCompare(b.providerFamily)
+    );
+
+    for (const manifest of sortedManifests) {
+      for (const model of manifest.models.completions) {
+        completionRows.push({
+          Provider: manifest.providerFamily,
+          "Model Key": model.modelKey,
+        });
+      }
+
+      for (const model of manifest.models.embeddings) {
+        embeddingRows.push({
+          Provider: manifest.providerFamily,
+          "Model Key": model.modelKey,
+        });
+      }
     }
 
-    // Sort by provider family name for consistent output
-    return groups.toSorted((a, b) => a.providerFamily.localeCompare(b.providerFamily));
+    return { completionRows, embeddingRows };
   }
 
   /**
-   * Extract model keys from a provider manifest.
-   * @param manifest - The provider manifest to extract from
-   * @returns A model group with completion and embedding keys
+   * Display the formatted model list to the console using tables.
+   * @param completionRows - The completion model rows to display
+   * @param embeddingRows - The embedding model rows to display
    */
-  private extractModelGroup(manifest: LLMProviderManifest): ProviderModelGroup {
-    return {
-      providerFamily: manifest.providerFamily,
-      completionKeys: manifest.models.completions.map((m) => m.modelKey),
-      embeddingKeys: manifest.models.embeddings.map((m) => m.modelKey),
-    };
-  }
-
-  /**
-   * Display the formatted model list to the console.
-   * @param groups - The provider model groups to display
-   */
-  private displayModelList(groups: ProviderModelGroup[]): void {
-    // Calculate max provider name length for alignment
-    const maxNameLength = Math.max(...groups.map((g) => g.providerFamily.length));
-
-    // Display completions models
+  private displayModelList(completionRows: ModelTableRow[], embeddingRows: ModelTableRow[]): void {
     console.log("");
     console.log("========================================");
     console.log("LLM Completions Models Available (keys)");
     console.log("========================================");
+    console.table(completionRows);
 
-    for (const group of groups) {
-      if (group.completionKeys.length > 0) {
-        const paddedName = group.providerFamily.padEnd(maxNameLength);
-        console.log(`  ${paddedName}:  ${group.completionKeys.join(", ")}`);
-      }
-    }
-
-    // Display embeddings models
     console.log("");
     console.log("========================================");
     console.log("LLM Embeddings Models Available (keys)");
     console.log("========================================");
-
-    for (const group of groups) {
-      if (group.embeddingKeys.length > 0) {
-        const paddedName = group.providerFamily.padEnd(maxNameLength);
-        console.log(`  ${paddedName}:  ${group.embeddingKeys.join(", ")}`);
-      }
-    }
-
+    console.table(embeddingRows);
     console.log("");
   }
 }

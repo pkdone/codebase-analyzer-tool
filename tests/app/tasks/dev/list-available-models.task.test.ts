@@ -106,45 +106,51 @@ describe("ListAvailableModelsTask", () => {
   });
 
   describe("model grouping", () => {
-    it("should group models by provider family", async () => {
+    it("should display models in table format with provider and model key", async () => {
       await task.execute();
 
       const output = consoleSpy.mock.calls.map((call) => call[0]).join("\n");
 
-      // OpenAI models should be on the same line (with colon after provider name)
-      const openAIMatch = /OpenAI\s*:\s+.*openai-gpt-5.*openai-gpt-4o/.exec(output);
-      expect(openAIMatch).not.toBeNull();
+      // Table output should contain OpenAI provider and its model keys
+      expect(output).toContain("OpenAI");
+      expect(output).toContain("openai-gpt-5");
+      expect(output).toContain("openai-gpt-4o");
     });
 
-    it("should list multiple models from same provider comma-separated", async () => {
+    it("should display each model on a separate row", async () => {
       await task.execute();
 
       const output = consoleSpy.mock.calls.map((call) => call[0]).join("\n");
 
-      // VertexAI Gemini has multiple completion models
-      const vertexaiLine = output
+      // VertexAI Gemini has multiple completion models - each should be on separate rows
+      const vertexaiLines = output
         .split("\n")
-        .find((line) => line.includes("VertexAIGemini") && line.includes("gemini"));
+        .filter((line) => line.includes("VertexAIGemini"));
 
-      expect(vertexaiLine).toBeDefined();
-      expect(vertexaiLine).toContain(","); // Multiple models separated by comma
+      // Should have multiple rows for VertexAIGemini (one per model)
+      expect(vertexaiLines.length).toBeGreaterThan(1);
     });
   });
 
   describe("output formatting", () => {
-    it("should have consistent indentation for provider lines", async () => {
+    it("should use console.table format for model output", async () => {
+      const tableSpy = jest.spyOn(console, "table").mockImplementation();
+
       await task.execute();
 
-      // Get lines that contain provider names (have model keys after them)
-      const providerLinePattern = /^\s{2}\w+.*\w+-/;
-      const providerLines = consoleSpy.mock.calls
-        .map((call) => String(call[0]))
-        .filter((line) => providerLinePattern.test(line)); // Lines starting with 2 spaces, provider name, then model key
+      // console.table should be called twice (once for completions, once for embeddings)
+      expect(tableSpy).toHaveBeenCalledTimes(2);
 
-      // All provider lines should start with exactly 2 spaces
-      for (const line of providerLines) {
-        expect(line.startsWith("  ")).toBe(true);
-      }
+      // Each call should receive an array of model rows
+      const firstCallArg = tableSpy.mock.calls[0][0] as unknown[];
+      const secondCallArg = tableSpy.mock.calls[1][0] as unknown[];
+
+      expect(Array.isArray(firstCallArg)).toBe(true);
+      expect(Array.isArray(secondCallArg)).toBe(true);
+      expect(firstCallArg.length).toBeGreaterThan(0);
+      expect(secondCallArg.length).toBeGreaterThan(0);
+
+      tableSpy.mockRestore();
     });
 
     it("should output section separators", async () => {
