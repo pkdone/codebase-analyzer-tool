@@ -13,10 +13,10 @@ import { formatError } from "../../../../common/utils/error-formatters";
 import { llmTokens, configTokens, serviceTokens } from "../../../di/tokens";
 import LLMRouter from "../../../../common/llm/llm-router";
 import { LLMOutputFormat } from "../../../../common/llm/types/llm-request.types";
+import { isLLMOk } from "../../../../common/llm/types/llm-result.types";
 import { readAndFormatFilesAsMarkdown } from "../../../../common/utils/file-content-aggregator";
 import { formatDateForFilename } from "../../../../common/utils/date-utils";
 import { inputConfig } from "../../../config/input.config";
-import { isOk } from "../../../../common/types/result.types";
 import type { LlmConcurrencyService } from "../../concurrency";
 
 /**
@@ -96,7 +96,7 @@ export class RequirementPromptExecutor {
         outputFormat: LLMOutputFormat.TEXT,
       });
 
-      if (!isOk(result)) {
+      if (!isLLMOk(result)) {
         response = `LLM completion failed: ${result.error.message}`;
       } else {
         // Type-safe: return type correctly infers string for TEXT output format

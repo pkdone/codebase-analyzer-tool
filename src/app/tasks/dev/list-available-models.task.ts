@@ -66,7 +66,7 @@ export class ListAvailableModelsTask implements Task {
 
     // Get manifests sorted by provider family name for consistent output
     const sortedManifests = [...APP_PROVIDER_REGISTRY.values()].toSorted((a, b) =>
-      a.providerFamily.localeCompare(b.providerFamily)
+      a.providerFamily.localeCompare(b.providerFamily),
     );
 
     for (const manifest of sortedManifests) {

@@ -4,8 +4,12 @@ import type { SourcesRepository } from "../../../../src/app/repositories/sources
 import type LLMRouter from "../../../../src/common/llm/llm-router";
 import { LLMOutputFormat } from "../../../../src/common/llm/types/llm-request.types";
 import type { VectorSearchResult } from "../../../../src/app/repositories/sources/sources.model";
-import { ok, err } from "../../../../src/common/types/result.types";
-import { LLMError, LLMErrorCode } from "../../../../src/common/llm/types/llm-errors.types";
+import {
+  llmOk,
+  llmErr,
+  createExecutionMetadata,
+} from "../../../../src/common/llm/types/llm-result.types";
+import { LLMExecutionError } from "../../../../src/common/llm/types/llm-execution-error.types";
 
 describe("queryCodebaseWithQuestion", () => {
   let mockSourcesRepository: jest.Mocked<SourcesRepository>;
@@ -28,6 +32,16 @@ describe("queryCodebaseWithQuestion", () => {
     } as unknown as jest.Mocked<LLMRouter>;
   });
 
+  const mockMeta = createExecutionMetadata("gpt-4", "openai");
+  const createEmbeddingResult = (embeddings: number[]) => ({
+    embeddings,
+    meta: {
+      modelId: "openai/text-embedding-3-small",
+      providerFamily: "openai",
+      modelKey: "text-embedding-3-small",
+    },
+  });
+
   describe("queryCodebaseWithQuestion", () => {
     it("should successfully query codebase and return formatted response with references", async () => {
       // Arrange
@@ -48,9 +62,11 @@ describe("queryCodebaseWithQuestion", () => {
       ];
       const mockLLMResponse = "The authentication works by using JWT tokens.";
 
-      mockLLMRouter.generateEmbeddings.mockResolvedValue(mockVector);
+      mockLLMRouter.generateEmbeddings.mockResolvedValue(createEmbeddingResult(mockVector));
       mockSourcesRepository.vectorSearchProjectSources.mockResolvedValue(mockSourceFiles);
-      (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(ok(mockLLMResponse));
+      (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(
+        llmOk(mockLLMResponse, mockMeta),
+      );
 
       // Act
       const result = await queryCodebaseWithQuestion(
@@ -98,7 +114,7 @@ describe("queryCodebaseWithQuestion", () => {
 
     it("should return error message when empty vector is generated", async () => {
       // Arrange
-      mockLLMRouter.generateEmbeddings.mockResolvedValue([]);
+      mockLLMRouter.generateEmbeddings.mockResolvedValue(createEmbeddingResult([]));
 
       // Act
       const result = await queryCodebaseWithQuestion(
@@ -116,7 +132,7 @@ describe("queryCodebaseWithQuestion", () => {
     it("should return error message when vector search returns no results", async () => {
       // Arrange
       const mockVector = [0.1, 0.2, 0.3];
-      mockLLMRouter.generateEmbeddings.mockResolvedValue(mockVector);
+      mockLLMRouter.generateEmbeddings.mockResolvedValue(createEmbeddingResult(mockVector));
       mockSourcesRepository.vectorSearchProjectSources.mockResolvedValue([]);
 
       // Act
@@ -144,10 +160,10 @@ describe("queryCodebaseWithQuestion", () => {
         },
       ];
 
-      mockLLMRouter.generateEmbeddings.mockResolvedValue(mockVector);
+      mockLLMRouter.generateEmbeddings.mockResolvedValue(createEmbeddingResult(mockVector));
       mockSourcesRepository.vectorSearchProjectSources.mockResolvedValue(mockSourceFiles);
       (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(
-        err(new LLMError(LLMErrorCode.BAD_RESPONSE_CONTENT, "No insight generated")),
+        llmErr(new LLMExecutionError("No insight generated", "query")),
       );
 
       // Act
@@ -176,9 +192,11 @@ describe("queryCodebaseWithQuestion", () => {
       // With TEXT output format, executeCompletion returns a string
       const mockLLMResponse = "Authentication uses JWT";
 
-      mockLLMRouter.generateEmbeddings.mockResolvedValue(mockVector);
+      mockLLMRouter.generateEmbeddings.mockResolvedValue(createEmbeddingResult(mockVector));
       mockSourcesRepository.vectorSearchProjectSources.mockResolvedValue(mockSourceFiles);
-      (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(ok(mockLLMResponse));
+      (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(
+        llmOk(mockLLMResponse, mockMeta),
+      );
 
       // Act
       const result = await queryCodebaseWithQuestion(
@@ -197,7 +215,7 @@ describe("queryCodebaseWithQuestion", () => {
     it("should use correct vector search parameters", async () => {
       // Arrange
       const mockVector = [0.1, 0.2, 0.3];
-      mockLLMRouter.generateEmbeddings.mockResolvedValue(mockVector);
+      mockLLMRouter.generateEmbeddings.mockResolvedValue(createEmbeddingResult(mockVector));
       mockSourcesRepository.vectorSearchProjectSources.mockResolvedValue([
         {
           projectName: testProjectName,
@@ -206,7 +224,7 @@ describe("queryCodebaseWithQuestion", () => {
           content: "content",
         },
       ]);
-      (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(ok("response"));
+      (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(llmOk("response", mockMeta));
 
       // Act
       await queryCodebaseWithQuestion(
@@ -234,9 +252,9 @@ describe("queryCodebaseWithQuestion", () => {
         },
       ];
 
-      mockLLMRouter.generateEmbeddings.mockResolvedValue(mockVector);
+      mockLLMRouter.generateEmbeddings.mockResolvedValue(createEmbeddingResult(mockVector));
       mockSourcesRepository.vectorSearchProjectSources.mockResolvedValue(mockSourceFiles);
-      (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(ok("response"));
+      (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(llmOk("response", mockMeta));
 
       // Act
       await queryCodebaseWithQuestion(

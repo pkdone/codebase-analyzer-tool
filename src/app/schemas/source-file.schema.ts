@@ -91,6 +91,12 @@ export const SOURCE_FIELDS = {
   // Vector fields
   CONTENT_VECTOR: "contentVector",
   SUMMARY_VECTOR: "summaryVector",
+
+  // LLM capture metadata fields
+  LLM_CAPTURE: "llmCapture",
+  LLM_CAPTURE_COMPLETION_MODEL: "llmCapture.completionModel",
+  LLM_CAPTURE_EMBEDDING_MODEL: "llmCapture.embeddingModel",
+  LLM_CAPTURE_CAPTURED_AT: "llmCapture.capturedAt",
 } as const;
 
 // =============================================================================
@@ -562,6 +568,29 @@ export const commonSourceAnalysisSchema = sourceSummarySchema.pick({
 export type CommonSourceAnalysis = z.infer<typeof commonSourceAnalysisSchema>;
 
 /**
+ * Schema for LLM capture metadata tracking which models were used and when.
+ * Records the completion model (for summaries) and embedding model used during capture.
+ */
+export const llmCaptureMetadataSchema = z
+  .object({
+    completionModel: z
+      .string()
+      .optional()
+      .describe("The LLM completion model used for generating summaries (provider/model format)."),
+    embeddingModel: z
+      .string()
+      .optional()
+      .describe("The LLM embedding model used for generating vectors (provider/model format)."),
+    capturedAt: z.date().describe("Timestamp when the source file was captured and processed."),
+  })
+  .passthrough();
+
+/**
+ * TypeScript type inferred from llmCaptureMetadataSchema.
+ */
+export type LlmCaptureMetadata = z.infer<typeof llmCaptureMetadataSchema>;
+
+/**
  * Schema for source file metadata.
  * Uses canonicalFileTypeSchema imported from the single source of truth module.
  */
@@ -591,5 +620,8 @@ export const sourceSchema = z
       .array(z.number())
       .optional()
       .describe("Vector embedding representing the file content for semantic search."),
+    llmCapture: llmCaptureMetadataSchema
+      .optional()
+      .describe("Metadata about the LLM models used to capture this source file."),
   })
   .passthrough();

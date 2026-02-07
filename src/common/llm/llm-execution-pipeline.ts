@@ -15,7 +15,8 @@ import { adaptPromptFromResponse } from "./strategies/prompt-adaptation-strategy
 import LLMExecutionStats from "./tracking/llm-execution-stats";
 import { hasSignificantRepairs } from "./json-processing";
 import { LLMExecutionError } from "./types/llm-execution-error.types";
-import { type Result, ok, err } from "../types/result.types";
+import type { LLMResult } from "./types/llm-result.types";
+import { llmOk, llmErr, createExecutionMetadata } from "./types/llm-result.types";
 import { logWarn } from "../utils/logging";
 
 /**
@@ -27,6 +28,15 @@ interface SingleCandidateResult<T extends LLMResponsePayload> {
   readonly response: LLMFunctionResponse<T> | null;
   /** The execution context used (includes modelKey) */
   readonly executionContext: LLMExecutionContext;
+}
+
+/**
+ * Result of the fallback chain execution, containing both the response and candidate info.
+ * Used to propagate which model actually succeeded for metadata tracking.
+ */
+interface FallbackChainSuccess<T extends LLMResponsePayload> {
+  readonly response: LLMCompletedResponse<T>;
+  readonly candidate: ExecutableCandidate<T>;
 }
 
 /**
@@ -102,11 +112,11 @@ export class LLMExecutionPipeline {
    * Enables retry on invalid JSON and tracks JSON mutations.
    *
    * @param params Completion execution parameters
-   * @returns Result with the generated content or an error
+   * @returns LLMResult with the generated content and execution metadata, or an error
    */
   async executeCompletion<T extends LLMResponsePayload>(
     params: CompletionExecutionParams<T>,
-  ): Promise<Result<T, LLMExecutionError>> {
+  ): Promise<LLMResult<T>> {
     return this.execute({
       ...params,
       retryOnInvalid: true,
@@ -119,11 +129,9 @@ export class LLMExecutionPipeline {
    * Disables retry on invalid (embeddings don't have JSON parsing) and JSON mutation tracking.
    *
    * @param params Embedding execution parameters
-   * @returns Result with the embedding vector or an error
+   * @returns LLMResult with the embedding vector and execution metadata, or an error
    */
-  async executeEmbedding(
-    params: EmbeddingExecutionParams,
-  ): Promise<Result<number[], LLMExecutionError>> {
+  async executeEmbedding(params: EmbeddingExecutionParams): Promise<LLMResult<number[]>> {
     return this.execute({
       ...params,
       retryOnInvalid: false,
@@ -140,10 +148,11 @@ export class LLMExecutionPipeline {
    * - For embeddings: Pass single function in array, set retryOnInvalid=false
    *
    * Generic over the response data type T for type-safe results.
+   * Returns LLMResult with execution metadata identifying which model actually succeeded.
    */
   async execute<T extends LLMResponsePayload>(
     params: LLMExecutionParams<T>,
-  ): Promise<Result<T, LLMExecutionError>> {
+  ): Promise<LLMResult<T>> {
     const {
       resourceName,
       content,
@@ -164,11 +173,15 @@ export class LLMExecutionPipeline {
 
       if (result) {
         // With discriminated union, we know completed responses have `generated` field
-        if (trackJsonMutations && hasSignificantRepairs(result.repairs)) {
+        if (trackJsonMutations && hasSignificantRepairs(result.response.repairs)) {
           this.llmStats.recordJsonMutated();
         }
 
-        return ok(result.generated);
+        // Return success with metadata about which model actually executed
+        return llmOk(
+          result.response.generated,
+          createExecutionMetadata(result.response.modelKey, result.candidate.providerFamily),
+        );
       }
 
       logWarn(
@@ -177,7 +190,7 @@ export class LLMExecutionPipeline {
       );
 
       this.llmStats.recordFailure();
-      return err(
+      return llmErr(
         new LLMExecutionError(
           `Failed to fulfill prompt for resource: '${resourceName}' after exhausting all retry and fallback strategies`,
           resourceName,
@@ -191,7 +204,7 @@ export class LLMExecutionPipeline {
       );
 
       this.llmStats.recordFailure();
-      return err(
+      return llmErr(
         new LLMExecutionError(
           `Non-recoverable error while processing resource: '${resourceName}'`,
           resourceName,
@@ -212,6 +225,9 @@ export class LLMExecutionPipeline {
    * Accepts LLMRequestContext (without modelKey) and constructs LLMExecutionContext
    * for each candidate by adding the candidate's modelKey.
    *
+   * Returns both the response and the candidate that succeeded, enabling callers to
+   * access the providerFamily for metadata tracking.
+   *
    * Generic over the response data type T.
    */
   private async tryFallbackChain<T extends LLMResponsePayload>(
@@ -220,7 +236,7 @@ export class LLMExecutionPipeline {
     requestContext: LLMRequestContext,
     candidates: ExecutableCandidate<T>[],
     retryOnInvalid = true,
-  ): Promise<LLMCompletedResponse<T> | null> {
+  ): Promise<FallbackChainSuccess<T> | null> {
     let currentContent = initialContent;
     let candidateIndex = 0;
 
@@ -238,10 +254,10 @@ export class LLMExecutionPipeline {
         retryOnInvalid,
       );
 
-      // Handle success
+      // Handle success - return both response and candidate for metadata
       if (llmResponse && isCompletedResponse(llmResponse)) {
         this.llmStats.recordSuccess();
-        return llmResponse;
+        return { response: llmResponse, candidate };
       }
 
       // Handle explicit error (non-retryable)

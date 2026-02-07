@@ -270,11 +270,13 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
 
       await generator.generateAndStoreInsights();
 
-      // Verify app summary was created
-      expect(mockAppSummaryRepository.createOrReplaceAppSummary).toHaveBeenCalledWith({
-        projectName: "test-project",
-        llmModels: "TestLLM (GPT-4)",
-      });
+      // Verify app summary was created (use objectContaining to ignore capturedAt timestamp)
+      expect(mockAppSummaryRepository.createOrReplaceAppSummary).toHaveBeenCalledWith(
+        expect.objectContaining({
+          projectName: "test-project",
+          llmModels: "TestLLM (GPT-4)",
+        }),
+      );
 
       // Verify updates were made for categories (8 categories total)
       expect(mockAppSummaryRepository.updateAppSummary).toHaveBeenCalled();

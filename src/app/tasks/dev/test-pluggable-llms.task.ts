@@ -2,10 +2,10 @@ import "reflect-metadata";
 import { injectable, inject } from "tsyringe";
 import { readFile } from "../../../common/fs/file-operations";
 import { LLMOutputFormat } from "../../../common/llm/types/llm-request.types";
+import { isLLMOk } from "../../../common/llm/types/llm-result.types";
 import LLMRouter from "../../../common/llm/llm-router";
 import { Task } from "../task.types";
 import { llmTokens } from "../../di/tokens";
-import { isOk } from "../../../common/types/result.types";
 
 /**
  * File path to the sample prompt file
@@ -64,11 +64,13 @@ export class PluggableLLMsTestTask implements Task {
       const result = await this.llmRouter.generateEmbeddings("test-embeddings", prompt, i);
 
       if (result) {
-        const preview = result
+        const preview = result.embeddings
           .slice(0, 5)
           .map((n) => n.toFixed(6))
           .join(", ");
-        console.log(`✓ Success: (${result.length} dimensions) [${preview}, ...]`);
+        console.log(
+          `✓ Success: (${result.embeddings.length} dimensions) [${preview}, ...] using ${result.meta.modelId}`,
+        );
       } else {
         console.log("✗ Error: Failed to generate embeddings");
       }
@@ -98,11 +100,11 @@ export class PluggableLLMsTestTask implements Task {
         i,
       );
 
-      if (isOk(result)) {
+      if (isLLMOk(result)) {
         // Show first 500 chars of the response
         const preview =
           result.value.length > 500 ? result.value.substring(0, 500) + "..." : result.value;
-        console.log(`✓ Success:\n${preview}`);
+        console.log(`✓ Success (via ${result.meta.modelId}):\n${preview}`);
       } else {
         console.log(`✗ Error: ${result.error.message}`);
       }

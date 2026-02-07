@@ -2,6 +2,7 @@ import { injectable, inject } from "tsyringe";
 import { z } from "zod";
 import LLMRouter from "../../../../common/llm/llm-router";
 import { LLMOutputFormat } from "../../../../common/llm/types/llm-request.types";
+import { isLLMOk } from "../../../../common/llm/types/llm-result.types";
 import { insightsConfig } from "../insights.config";
 import { getCategoryLabel } from "../../../config/category-labels.config";
 import { logWarn } from "../../../../common/utils/logging";
@@ -18,7 +19,6 @@ import {
 import { getLlmArtifactCorrections } from "../../../llm";
 import { executeInsightCompletion } from "./insights-completion-executor";
 import { batchItemsByTokenLimit } from "../../../../common/llm/utils/text-chunking";
-import { isOk } from "../../../../common/types/result.types";
 import { buildReducePrompt } from "../../../prompts/prompt-builders";
 
 /**
@@ -258,7 +258,7 @@ export class MapReduceInsightStrategy implements InsightGenerationStrategy {
         sanitizerConfig: getLlmArtifactCorrections(),
       });
 
-      if (!isOk(result)) {
+      if (!isLLMOk(result)) {
         logWarn(
           `LLM completion failed for ${getCategoryLabel(category)} reduce: ${result.error.message}`,
         );

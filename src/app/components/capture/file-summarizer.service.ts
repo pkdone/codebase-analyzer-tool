@@ -3,13 +3,14 @@ import { z } from "zod";
 import { logErr } from "../../../common/utils/logging";
 import type LLMRouter from "../../../common/llm/llm-router";
 import { LLMOutputFormat } from "../../../common/llm/types/llm-request.types";
+import { isLLMOk } from "../../../common/llm/types/llm-result.types";
 import { sourceSummarySchema } from "../../schemas/source-file.schema";
 import type { CanonicalFileType } from "../../schemas/canonical-file-types";
 import { getLlmArtifactCorrections } from "../../llm";
 import { llmTokens, captureTokens } from "../../di/tokens";
 import { type FileTypePromptRegistry } from "../../prompts/sources/sources.definitions";
 import { buildSourcePrompt } from "../../prompts/prompt-builders";
-import { type Result, ok, err, isOk } from "../../../common/types/result.types";
+import { type Result, ok, err } from "../../../common/types/result.types";
 
 /**
  * Type for source summary (full schema).
@@ -23,6 +24,15 @@ export type SourceSummaryType = z.infer<typeof sourceSummarySchema>;
  * the actual return type from the summarization process.
  */
 export type PartialSourceSummaryType = Partial<SourceSummaryType>;
+
+/**
+ * Result of file summarization, including the summary and the model that generated it.
+ */
+export interface SummaryResult {
+  readonly summary: PartialSourceSummaryType;
+  /** The model key (e.g., "bedrock-claude-opus-4.6"), without provider prefix */
+  readonly modelKey: string;
+}
 
 /**
  * Injectable service for generating file summaries using LLM.
@@ -51,13 +61,13 @@ export class FileSummarizerService {
    * @param filepath The path to the file being summarized
    * @param canonicalFileType The canonical file type (e.g., "java", "javascript", "python")
    * @param content The file content to summarize
-   * @returns A Result containing either the partial summary or an error
+   * @returns A Result containing either the summary result (with model info) or an error
    */
   async summarize(
     filepath: string,
     canonicalFileType: CanonicalFileType,
     content: string,
-  ): Promise<Result<PartialSourceSummaryType>> {
+  ): Promise<Result<SummaryResult>> {
     try {
       if (content.trim().length === 0) return err(new Error("File is empty"));
       const { prompt, schema, metadata } = buildSourcePrompt(
@@ -73,7 +83,7 @@ export class FileSummarizerService {
       } as const;
       const result = await this.llmRouter.executeCompletion(filepath, prompt, completionOptions);
 
-      if (!isOk(result)) {
+      if (!isLLMOk(result)) {
         const errorMsg = `Failed to generate summary for '${filepath}'`;
         logErr(errorMsg, result.error);
         return err(result.error);
@@ -94,7 +104,10 @@ export class FileSummarizerService {
        * 3. The LLM router validates the response against the specific schema at runtime,
        *    ensuring the data structure matches before reaching this cast.
        */
-      return ok(result.value as PartialSourceSummaryType);
+      return ok({
+        summary: result.value as PartialSourceSummaryType,
+        modelKey: result.meta.modelKey,
+      });
     } catch (error: unknown) {
       const errorMsg = `Failed to generate summary for '${filepath}'`;
       logErr(errorMsg, error);

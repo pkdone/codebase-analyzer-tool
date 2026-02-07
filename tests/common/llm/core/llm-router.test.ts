@@ -510,7 +510,7 @@ describe("LLM Router tests", () => {
 
       const result = await router.generateEmbeddings("test-resource", "test content");
 
-      expect(result).toEqual(mockEmbeddings);
+      expect(result?.embeddings).toEqual(mockEmbeddings);
       expect(mockProvider.generateEmbeddings).toHaveBeenCalled();
     });
 
@@ -1278,7 +1278,7 @@ describe("LLM Router tests", () => {
 
       const result = await router.generateEmbeddings("test-resource", "test content");
 
-      expect(result).toEqual(mockEmbeddings);
+      expect(result?.embeddings).toEqual(mockEmbeddings);
       // Embeddings are now called with modelKey as the first argument
       expect(mockProvider.generateEmbeddings).toHaveBeenCalledWith(
         "GPT_EMBEDDINGS_ADA002",

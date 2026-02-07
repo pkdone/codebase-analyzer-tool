@@ -101,21 +101,37 @@ describe("CodebaseIngestionService", () => {
 
     // Mock LLMRouter
     mockLLMRouter = {
-      generateEmbeddings: jest.fn().mockResolvedValue([1.0, 2.0, 3.0]),
+      generateEmbeddings: jest.fn().mockResolvedValue({
+        embeddings: [1.0, 2.0, 3.0],
+        meta: {
+          modelId: "openai/text-embedding-3-small",
+          providerFamily: "openai",
+          modelKey: "text-embedding-3-small",
+        },
+      }),
+      getCompletionChain: jest
+        .fn()
+        .mockReturnValue([{ providerFamily: "openai", modelKey: "gpt-4" }]),
+      getEmbeddingChain: jest
+        .fn()
+        .mockReturnValue([{ providerFamily: "openai", modelKey: "text-embedding-3-small" }]),
     } as unknown as jest.Mocked<LLMRouter>;
 
     // Mock FileSummarizerService
     mockFileSummarizer = {
       summarize: jest.fn().mockResolvedValue(
         ok({
-          namespace: "TestClass",
-          purpose: "Testing component",
-          implementation: "Test implementation",
-          databaseIntegration: {
-            mechanism: "NONE",
-            description: "n/a",
-            codeExample: "n/a",
+          summary: {
+            namespace: "TestClass",
+            purpose: "Testing component",
+            implementation: "Test implementation",
+            databaseIntegration: {
+              mechanism: "NONE",
+              description: "n/a",
+              codeExample: "n/a",
+            },
           },
+          modelKey: "gpt-4",
         }),
       ),
     } as unknown as jest.Mocked<FileSummarizerService>;
@@ -309,7 +325,14 @@ describe("CodebaseIngestionService", () => {
       mockPath.basename.mockReturnValue("file1.ts");
       mockFileOperations.readFile.mockResolvedValue("const x = 1;");
       mockTextUtils.countLines.mockReturnValue(1);
-      mockLLMRouter.generateEmbeddings.mockResolvedValue(mockEmbeddings);
+      mockLLMRouter.generateEmbeddings.mockResolvedValue({
+        embeddings: mockEmbeddings,
+        meta: {
+          modelId: "openai/text-embedding-3-small",
+          providerFamily: "openai",
+          modelKey: "text-embedding-3-small",
+        },
+      });
 
       await service.ingestCodebaseToDatabase("test-project", "/src", false);
 

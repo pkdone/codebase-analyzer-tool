@@ -1,10 +1,10 @@
 import LLMRouter from "../../../common/llm/llm-router";
 import { LLMOutputFormat } from "../../../common/llm/types/llm-request.types";
+import { isLLMOk } from "../../../common/llm/types/llm-result.types";
 import type { SourcesRepository } from "../../repositories/sources/sources.repository.interface";
 import type { VectorSearchResult } from "../../repositories/sources/sources.model";
 import { queryingInputConfig } from "./querying-input.config";
 import { formatFilesAsMarkdownCodeBlocks } from "../../../common/utils/markdown-formatter";
-import { isOk } from "../../../common/types/result.types";
 import { buildQueryPrompt } from "../../prompts/prompt-builders";
 
 /**
@@ -48,13 +48,13 @@ export async function queryCodebaseWithQuestion(
   question: string,
   projectName: string,
 ): Promise<string> {
-  const queryVector = await llmRouter.generateEmbeddings("Human question", question);
-  if (queryVector === null || queryVector.length <= 0)
+  const embeddingResult = await llmRouter.generateEmbeddings("Human question", question);
+  if (embeddingResult === null || embeddingResult.embeddings.length <= 0)
     return "No vector was generated for the question - unable to answer question";
 
   const bestMatchFiles = await sourcesRepository.vectorSearchProjectSources(
     projectName,
-    queryVector,
+    embeddingResult.embeddings,
     queryingInputConfig.VECTOR_SEARCH_NUM_CANDIDATES,
     queryingInputConfig.VECTOR_SEARCH_NUM_LIMIT,
   );
@@ -71,7 +71,7 @@ export async function queryCodebaseWithQuestion(
     outputFormat: LLMOutputFormat.TEXT,
   });
 
-  if (isOk(result)) {
+  if (isLLMOk(result)) {
     const referencesText = bestMatchFiles.map((match) => ` * ${match.filepath}`).join("\n");
     return `${result.value}\n\nReferences:\n${referencesText}`;
   } else {

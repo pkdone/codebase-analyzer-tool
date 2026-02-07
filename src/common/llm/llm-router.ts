@@ -10,7 +10,9 @@ import type { ResolvedModelChain } from "./types/llm-model.types";
 import type { ExecutableCandidate } from "./types/llm-function.types";
 import type { LLMResponsePayload } from "./types/llm-response.types";
 import { LLMError, LLMErrorCode } from "./types/llm-errors.types";
-import { type Result, ok, err, isErr } from "../types/result.types";
+import type { LLMResult, LLMExecutionMetadata } from "./types/llm-result.types";
+import { isLLMErr, llmErr, llmOk } from "./types/llm-result.types";
+import { LLMExecutionError } from "./types/llm-execution-error.types";
 import type { LLMExecutionPipeline } from "./llm-execution-pipeline";
 import type { ProviderManager } from "./provider-manager";
 import type LLMExecutionStats from "./tracking/llm-execution-stats";
@@ -20,6 +22,14 @@ import {
 } from "./utils/llm-candidate-builder";
 import { logWarn } from "../utils/logging";
 import { llmConfig } from "./config/llm.config";
+
+/**
+ * Result type for embedding generation that includes execution metadata.
+ */
+export interface EmbeddingResult {
+  readonly embeddings: number[];
+  readonly meta: LLMExecutionMetadata;
+}
 
 /**
  * LLMRouter orchestrates LLM operations across multiple providers with fallback support.
@@ -172,13 +182,13 @@ export default class LLMRouter {
    * @param resourceName Name of the resource being processed
    * @param content Content to generate embeddings for
    * @param modelIndexOverride Optional index to start from a specific model in the chain
-   * @returns The embedding vector as number[], or null if generation fails
+   * @returns The embedding result with vector and metadata, or null if generation fails
    */
   async generateEmbeddings(
     resourceName: string,
     content: string,
     modelIndexOverride: number | null = null,
-  ): Promise<number[] | null> {
+  ): Promise<EmbeddingResult | null> {
     // Create request context without modelKey - the pipeline will add it
     const requestContext: LLMRequestContext = {
       resource: resourceName,
@@ -208,7 +218,7 @@ export default class LLMRouter {
       candidates,
     });
 
-    if (isErr(result)) {
+    if (isLLMErr(result)) {
       return null;
     }
 
@@ -220,7 +230,7 @@ export default class LLMRouter {
       return null;
     }
 
-    return result.value;
+    return { embeddings: result.value, meta: result.meta };
   }
 
   /**
@@ -239,25 +249,26 @@ export default class LLMRouter {
    * Models are tried in priority order as specified in the chain config.
    * An optional modelIndex can be provided to start from a specific model.
    *
-   * The return type is a Result discriminated union that forces explicit error handling:
-   * - JSON mode: Returns Result<z.infer<typeof schema>, LLMError>
-   * - TEXT mode: Returns Result<string, LLMError>
+   * The return type is an LLMResult discriminated union that forces explicit error handling
+   * and includes metadata about which model actually executed:
+   * - JSON mode: Returns LLMResult<z.infer<typeof schema>>
+   * - TEXT mode: Returns LLMResult<string>
    */
-  // Overload for JSON mode - requires schema, returns typed result
+  // Overload for JSON mode - requires schema, returns typed result with metadata
   async executeCompletion<S extends z.ZodType<unknown>>(
     resourceName: string,
     prompt: string,
     options: LLMJsonCompletionOptions<S>,
     modelIndexOverride?: number | null,
-  ): Promise<Result<z.infer<S>, LLMError>>;
+  ): Promise<LLMResult<z.infer<S>>>;
 
-  // Overload for TEXT mode - no schema, returns string
+  // Overload for TEXT mode - no schema, returns string with metadata
   async executeCompletion(
     resourceName: string,
     prompt: string,
     options: LLMTextCompletionOptions,
     modelIndexOverride?: number | null,
-  ): Promise<Result<string, LLMError>>;
+  ): Promise<LLMResult<string>>;
 
   // Implementation
   async executeCompletion<S extends z.ZodType<unknown>>(
@@ -265,7 +276,7 @@ export default class LLMRouter {
     prompt: string,
     options: LLMCompletionOptions<S>,
     modelIndexOverride: number | null = null,
-  ): Promise<Result<z.infer<S>, LLMError>> {
+  ): Promise<LLMResult<z.infer<S>>> {
     // Build executable candidates directly from the model chain with options bound
     const candidates = buildCompletionExecutables(
       this.providerManager,
@@ -294,16 +305,11 @@ export default class LLMRouter {
       candidates: candidates as ExecutableCandidate<InferredType>[],
     });
 
-    if (isErr(result)) {
+    if (isLLMErr(result)) {
       logWarn(`Failed to execute completion: ${result.error.message}`, requestContext);
-      return err(
-        new LLMError(LLMErrorCode.BAD_RESPONSE_CONTENT, result.error.message, {
-          resourceName,
-          context: requestContext,
-        }),
-      );
+      return llmErr(new LLMExecutionError(result.error.message, resourceName, requestContext));
     }
 
-    return ok(result.value);
+    return llmOk(result.value, result.meta);
   }
 }

@@ -1,6 +1,7 @@
 import { z } from "zod";
 import LLMRouter from "../../../../common/llm/llm-router";
 import { LLMOutputFormat } from "../../../../common/llm/types/llm-request.types";
+import { isLLMOk } from "../../../../common/llm/types/llm-result.types";
 import { buildInsightPrompt } from "../../../prompts/prompt-builders";
 import { appSummaryConfigMap } from "../../../prompts/app-summaries/app-summaries.definitions";
 import { getCategoryLabel } from "../../../config/category-labels.config";
@@ -8,7 +9,6 @@ import { logWarn } from "../../../../common/utils/logging";
 import { joinArrayWithSeparators } from "../../../../common/utils/text-utils";
 import { AppSummaryCategoryEnum, type AppSummaryCategorySchemas } from "../insights.types";
 import { getLlmArtifactCorrections } from "../../../llm";
-import { isOk } from "../../../../common/types/result.types";
 
 /**
  * Options for executing insight completion.
@@ -61,7 +61,7 @@ export async function executeInsightCompletion<C extends AppSummaryCategoryEnum>
       sanitizerConfig: getLlmArtifactCorrections(),
     });
 
-    if (!isOk(result)) {
+    if (!isLLMOk(result)) {
       logWarn(`LLM completion failed for ${categoryLabel}: ${result.error.message}`);
       return null;
     }

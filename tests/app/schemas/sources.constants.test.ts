@@ -75,9 +75,9 @@ describe("sources.constants", () => {
 
     describe("immutability", () => {
       it("should be defined as const", () => {
-        // The object should have all expected fields
+        // The object should have all expected fields (25 original + 4 LLM capture fields)
         const fieldCount = Object.keys(SOURCE_FIELDS).length;
-        expect(fieldCount).toBe(25);
+        expect(fieldCount).toBe(29);
       });
 
       it("should have string values for all fields", () => {

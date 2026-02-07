@@ -80,6 +80,7 @@ export default class InsightsFromDBGenerator {
     await this.appSummariesRepository.createOrReplaceAppSummary({
       projectName: this.projectName,
       llmModels: this.llmModelsDescription,
+      capturedAt: new Date(),
     });
     const categories: AppSummaryCategoryEnum[] = AppSummaryCategories.options;
 

@@ -123,9 +123,7 @@ describe("ListAvailableModelsTask", () => {
       const output = consoleSpy.mock.calls.map((call) => call[0]).join("\n");
 
       // VertexAI Gemini has multiple completion models - each should be on separate rows
-      const vertexaiLines = output
-        .split("\n")
-        .filter((line) => line.includes("VertexAIGemini"));
+      const vertexaiLines = output.split("\n").filter((line) => line.includes("VertexAIGemini"));
 
       // Should have multiple rows for VertexAIGemini (one per model)
       expect(vertexaiLines.length).toBeGreaterThan(1);

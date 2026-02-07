@@ -1,5 +1,6 @@
 import { injectable, inject } from "tsyringe";
 import type LLMRouter from "../../../common/llm/llm-router";
+import type { EmbeddingResult } from "../../../common/llm/llm-router";
 import path from "path";
 import { type FileProcessingRulesType } from "../../config/file-handling";
 import { getCanonicalFileType } from "./utils";
@@ -175,11 +176,16 @@ export default class CodebaseIngestionService {
 
     // Run summary generation and content embeddings in parallel for better throughput
     // These are independent LLM operations that don't depend on each other
-    const [summaryResult, contentVector] = await Promise.all([
+    const [summaryResult, contentVectorResult] = await Promise.all([
       this.generateSummaryAndEmbeddings(filepath, canonicalType, content),
       this.getContentEmbeddings(filepath, content),
     ]);
-    const { summary, summaryError, summaryVector } = summaryResult;
+    const { summary, summaryError, summaryVector, completionModelKey } = summaryResult;
+
+    // Extract embedding model info from content vector result (if available)
+    // Use modelKey (not full modelId) for storage - e.g., "bedrock-claude-opus-4.6" not "BedrockClaude/bedrock-claude-opus-4.6"
+    const embeddingModelKey = contentVectorResult?.meta.modelKey;
+    const contentVector = contentVectorResult?.embeddings;
 
     const sourceFileRecord: SourceRecord = {
       projectName,
@@ -193,6 +199,11 @@ export default class CodebaseIngestionService {
       ...(summaryError && { summaryError }),
       ...(summaryVector && { summaryVector }),
       ...(contentVector && { contentVector }),
+      llmCapture: {
+        completionModel: completionModelKey,
+        embeddingModel: embeddingModelKey,
+        capturedAt: new Date(),
+      },
     };
 
     // Add to buffered writer (automatically flushes when batch size is reached)
@@ -201,7 +212,7 @@ export default class CodebaseIngestionService {
 
   /**
    * Generates summary and embeddings for a file, handling errors gracefully.
-   * Returns the summary, any error that occurred, and the summary vector.
+   * Returns the summary, any error that occurred, the summary vector, and the model used.
    *
    * @param filepath The relative path to the file being summarized
    * @param canonicalFileType The canonical file type (e.g., "java", "javascript")
@@ -215,31 +226,38 @@ export default class CodebaseIngestionService {
     summary: PartialSourceSummaryType | undefined;
     summaryError: string | undefined;
     summaryVector: number[] | undefined;
+    completionModelKey: string | undefined;
   }> {
     let summary: PartialSourceSummaryType | undefined;
     let summaryError: string | undefined;
     let summaryVector: number[] | undefined;
+    let completionModelKey: string | undefined;
     const summaryResult = await this.fileSummarizer.summarize(filepath, canonicalFileType, content);
 
     if (isOk(summaryResult)) {
-      summary = summaryResult.value;
+      summary = summaryResult.value.summary;
+      completionModelKey = summaryResult.value.modelKey;
       const summaryVectorResult = await this.getContentEmbeddings(
         filepath,
         JSON.stringify(summary),
       );
-      summaryVector = summaryVectorResult ?? undefined;
+      summaryVector = summaryVectorResult?.embeddings;
     } else {
       summaryError = `Failed to generate summary: ${summaryResult.error.message}`;
     }
 
-    return { summary, summaryError, summaryVector };
+    return { summary, summaryError, summaryVector, completionModelKey };
   }
 
   /**
    * Get the embeddings vector for a piece of content, limiting the content's size if it is likely
    * to blow the LLM context window size.
+   * Returns the embedding result with vector and model metadata, or null if generation fails.
    */
-  private async getContentEmbeddings(filepath: string, content: string) {
+  private async getContentEmbeddings(
+    filepath: string,
+    content: string,
+  ): Promise<EmbeddingResult | null> {
     return await this.llmRouter.generateEmbeddings(filepath, content);
   }
 }

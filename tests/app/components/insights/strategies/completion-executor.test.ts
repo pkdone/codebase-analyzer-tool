@@ -12,8 +12,12 @@ import {
   appSummaryCategorySchemas,
 } from "../../../../../src/app/components/insights/insights.types";
 import { appSummaryConfigMap } from "../../../../../src/app/prompts/app-summaries/app-summaries.definitions";
-import { ok, err } from "../../../../../src/common/types/result.types";
-import { LLMError, LLMErrorCode } from "../../../../../src/common/llm/types/llm-errors.types";
+import {
+  llmOk,
+  llmErr,
+  createExecutionMetadata,
+} from "../../../../../src/common/llm/types/llm-result.types";
+import { LLMExecutionError } from "../../../../../src/common/llm/types/llm-execution-error.types";
 const appSummaryPromptMetadata = appSummaryConfigMap;
 
 // Mock dependencies
@@ -52,7 +56,9 @@ describe("executeInsightCompletion - Type Inference", () => {
         ],
       };
 
-      (mockLLMRouter.executeCompletion as any).mockResolvedValue(ok(mockResponse));
+      (mockLLMRouter.executeCompletion as any).mockResolvedValue(
+        llmOk(mockResponse, createExecutionMetadata("gpt-4", "openai")),
+      );
 
       const result = await executeInsightCompletion(
         mockLLMRouter,
@@ -78,7 +84,9 @@ describe("executeInsightCompletion - Type Inference", () => {
         ],
       };
 
-      (mockLLMRouter.executeCompletion as any).mockResolvedValue(ok(mockResponse));
+      (mockLLMRouter.executeCompletion as any).mockResolvedValue(
+        llmOk(mockResponse, createExecutionMetadata("gpt-4", "openai")),
+      );
 
       const result = await executeInsightCompletion(
         mockLLMRouter,
@@ -100,7 +108,9 @@ describe("executeInsightCompletion - Type Inference", () => {
         appDescription: "This is a test application description",
       };
 
-      (mockLLMRouter.executeCompletion as any).mockResolvedValue(ok(mockResponse));
+      (mockLLMRouter.executeCompletion as any).mockResolvedValue(
+        llmOk(mockResponse, createExecutionMetadata("gpt-4", "openai")),
+      );
 
       const result = await executeInsightCompletion(
         mockLLMRouter,
@@ -126,7 +136,9 @@ describe("executeInsightCompletion - Type Inference", () => {
         ],
       };
 
-      (mockLLMRouter.executeCompletion as any).mockResolvedValue(ok(mockResponse));
+      (mockLLMRouter.executeCompletion as any).mockResolvedValue(
+        llmOk(mockResponse, createExecutionMetadata("gpt-4", "openai")),
+      );
 
       const result = await executeInsightCompletion(
         mockLLMRouter,
@@ -163,7 +175,9 @@ describe("executeInsightCompletion - Type Inference", () => {
         ],
       };
 
-      (mockLLMRouter.executeCompletion as any).mockResolvedValue(ok(mockResponse));
+      (mockLLMRouter.executeCompletion as any).mockResolvedValue(
+        llmOk(mockResponse, createExecutionMetadata("gpt-4", "openai")),
+      );
 
       const result = await executeInsightCompletion(
         mockLLMRouter,
@@ -187,7 +201,9 @@ describe("executeInsightCompletion - Type Inference", () => {
         technologies: [{ name: "User", description: "User entity" }],
       };
 
-      (mockLLMRouter.executeCompletion as any).mockResolvedValue(ok(mockResponse));
+      (mockLLMRouter.executeCompletion as any).mockResolvedValue(
+        llmOk(mockResponse, createExecutionMetadata("gpt-4", "openai")),
+      );
 
       // Type should be inferred from the category parameter
       const result = await executeInsightCompletion(
@@ -213,7 +229,9 @@ describe("executeInsightCompletion - Type Inference", () => {
 
       for (const category of categories) {
         const mockResponse = { [category]: [] };
-        (mockLLMRouter.executeCompletion as any).mockResolvedValue(ok(mockResponse));
+        (mockLLMRouter.executeCompletion as any).mockResolvedValue(
+          llmOk(mockResponse, createExecutionMetadata("gpt-4", "openai")),
+        );
 
         const result = await executeInsightCompletion(
           mockLLMRouter,
@@ -244,7 +262,9 @@ describe("executeInsightCompletion - Type Inference", () => {
         ],
       };
 
-      (mockLLMRouter.executeCompletion as any).mockResolvedValue(ok(mockResponse));
+      (mockLLMRouter.executeCompletion as any).mockResolvedValue(
+        llmOk(mockResponse, createExecutionMetadata("gpt-4", "openai")),
+      );
 
       const result = await executeInsightCompletion(
         mockLLMRouter,
@@ -263,7 +283,7 @@ describe("executeInsightCompletion - Type Inference", () => {
 
     test("should handle error response without type assertions", async () => {
       mockLLMRouter.executeCompletion.mockResolvedValue(
-        err(new LLMError(LLMErrorCode.BAD_RESPONSE_CONTENT, "Mock error")),
+        llmErr(new LLMExecutionError("Mock error", "test")),
       );
 
       const result = await executeInsightCompletion(
@@ -297,7 +317,9 @@ describe("executeInsightCompletion - Type Inference", () => {
         businessProcesses: [{ name: "Order Processing", description: "Process orders" }],
       };
 
-      (mockLLMRouter.executeCompletion as any).mockResolvedValue(ok(mockResponse));
+      (mockLLMRouter.executeCompletion as any).mockResolvedValue(
+        llmOk(mockResponse, createExecutionMetadata("gpt-4", "openai")),
+      );
 
       await executeInsightCompletion(mockLLMRouter, category, ["* file1.ts: implementation"], {});
       // Verify the correct schema was used
@@ -337,7 +359,9 @@ describe("executeInsightCompletion - Type Inference", () => {
         ],
       };
 
-      (mockLLMRouter.executeCompletion as any).mockResolvedValue(ok(mockResponse));
+      (mockLLMRouter.executeCompletion as any).mockResolvedValue(
+        llmOk(mockResponse, createExecutionMetadata("gpt-4", "openai")),
+      );
 
       const result = await executeInsightCompletion(
         mockLLMRouter,
@@ -359,7 +383,9 @@ describe("executeInsightCompletion - Type Inference", () => {
         technologies: [{ name: "User", description: "User entity" }],
       };
 
-      (mockLLMRouter.executeCompletion as any).mockResolvedValue(ok(mockResponse));
+      (mockLLMRouter.executeCompletion as any).mockResolvedValue(
+        llmOk(mockResponse, createExecutionMetadata("gpt-4", "openai")),
+      );
 
       const options: InsightCompletionOptions = {
         forPartialAnalysis: true,
@@ -418,7 +444,9 @@ describe("executeInsightCompletion - Type Inference", () => {
         technologies: [{ name: "User", description: "User entity" }],
       };
 
-      (mockLLMRouter.executeCompletion as any).mockResolvedValue(ok(mockResponse));
+      (mockLLMRouter.executeCompletion as any).mockResolvedValue(
+        llmOk(mockResponse, createExecutionMetadata("gpt-4", "openai")),
+      );
 
       const result = await executeInsightCompletion(
         mockLLMRouter,
@@ -444,7 +472,9 @@ describe("executeInsightCompletion - Type Inference", () => {
         technologies: [{ name: "TypeScript" }],
       };
 
-      (mockLLMRouter.executeCompletion as any).mockResolvedValue(ok(mockResponse));
+      (mockLLMRouter.executeCompletion as any).mockResolvedValue(
+        llmOk(mockResponse, createExecutionMetadata("gpt-4", "openai")),
+      );
 
       await executeInsightCompletion(mockLLMRouter, category, ["* file1.ts: implementation"], {});
       // Verify the configuration is correct
@@ -463,7 +493,9 @@ describe("executeInsightCompletion - Type Inference", () => {
         ],
       };
 
-      (mockLLMRouter.executeCompletion as any).mockResolvedValue(ok(mockResponse));
+      (mockLLMRouter.executeCompletion as any).mockResolvedValue(
+        llmOk(mockResponse, createExecutionMetadata("gpt-4", "openai")),
+      );
 
       const result = await executeInsightCompletion(
         mockLLMRouter,
@@ -500,7 +532,9 @@ describe("executeInsightCompletion - Type Inference", () => {
         ],
       };
 
-      (mockLLMRouter.executeCompletion as any).mockResolvedValue(ok(mockResponse));
+      (mockLLMRouter.executeCompletion as any).mockResolvedValue(
+        llmOk(mockResponse, createExecutionMetadata("gpt-4", "openai")),
+      );
 
       // No eslint-disable comments needed
       const result = await executeInsightCompletion(
@@ -540,7 +574,9 @@ describe("executeInsightCompletion - Type Inference", () => {
         ],
       };
 
-      (mockLLMRouter.executeCompletion as any).mockResolvedValue(ok(mockResponse));
+      (mockLLMRouter.executeCompletion as any).mockResolvedValue(
+        llmOk(mockResponse, createExecutionMetadata("gpt-4", "openai")),
+      );
 
       const result = await executeInsightCompletion(
         mockLLMRouter,

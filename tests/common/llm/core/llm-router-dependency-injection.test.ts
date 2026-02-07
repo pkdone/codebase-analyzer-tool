@@ -6,9 +6,14 @@ import type { ProviderManager } from "../../../../src/common/llm/provider-manage
 import type LLMExecutionStats from "../../../../src/common/llm/tracking/llm-execution-stats";
 import type { ResolvedModelChain } from "../../../../src/common/llm/types/llm-model.types";
 import { LLMPurpose, LLMOutputFormat } from "../../../../src/common/llm/types/llm-request.types";
-import { isOk, isErr, ok, err } from "../../../../src/common/types/result.types";
+import {
+  isLLMOk,
+  isLLMErr,
+  llmOk,
+  llmErr,
+  createExecutionMetadata,
+} from "../../../../src/common/llm/types/llm-result.types";
 import { LLMExecutionError } from "../../../../src/common/llm/types/llm-execution-error.types";
-import { LLMError, LLMErrorCode } from "../../../../src/common/llm/types/llm-errors.types";
 
 /**
  * Tests demonstrating improved testability through constructor injection.
@@ -131,7 +136,8 @@ describe("LLMRouter Dependency Injection Tests", () => {
         createMockDependencies();
 
       const expectedResult = { message: "test response" };
-      mockExecutionPipeline.executeCompletion.mockResolvedValue(ok(expectedResult));
+      const mockMeta = createExecutionMetadata("test-completion", "test");
+      mockExecutionPipeline.executeCompletion.mockResolvedValue(llmOk(expectedResult, mockMeta));
 
       const router = new LLMRouter(
         mockModelChain,
@@ -147,8 +153,8 @@ describe("LLMRouter Dependency Injection Tests", () => {
       });
 
       expect(mockExecutionPipeline.executeCompletion).toHaveBeenCalled();
-      expect(isOk(result)).toBe(true);
-      if (isOk(result)) {
+      expect(isLLMOk(result)).toBe(true);
+      if (isLLMOk(result)) {
         expect(result.value).toEqual(expectedResult);
       }
     });
@@ -158,7 +164,8 @@ describe("LLMRouter Dependency Injection Tests", () => {
         createMockDependencies();
 
       const expectedEmbeddings = [0.1, 0.2, 0.3];
-      mockExecutionPipeline.executeEmbedding.mockResolvedValue(ok(expectedEmbeddings));
+      const mockMeta = createExecutionMetadata("test-embedding", "test");
+      mockExecutionPipeline.executeEmbedding.mockResolvedValue(llmOk(expectedEmbeddings, mockMeta));
 
       const router = new LLMRouter(
         mockModelChain,
@@ -170,7 +177,8 @@ describe("LLMRouter Dependency Injection Tests", () => {
       const result = await router.generateEmbeddings("test-resource", "test content");
 
       expect(mockExecutionPipeline.executeEmbedding).toHaveBeenCalled();
-      expect(result).toEqual(expectedEmbeddings);
+      expect(result?.embeddings).toEqual(expectedEmbeddings);
+      expect(result?.meta.modelId).toBe("test/test-embedding");
     });
 
     test("should delegate shutdown to injected provider manager", async () => {
@@ -199,7 +207,7 @@ describe("LLMRouter Dependency Injection Tests", () => {
         resource: "test",
         purpose: LLMPurpose.COMPLETIONS,
       });
-      mockExecutionPipeline.executeCompletion.mockResolvedValue(err(pipelineError));
+      mockExecutionPipeline.executeCompletion.mockResolvedValue(llmErr(pipelineError));
 
       const router = new LLMRouter(
         mockModelChain,
@@ -212,10 +220,10 @@ describe("LLMRouter Dependency Injection Tests", () => {
         outputFormat: LLMOutputFormat.TEXT,
       });
 
-      expect(isErr(result)).toBe(true);
-      if (isErr(result)) {
-        expect(result.error).toBeInstanceOf(LLMError);
-        expect(result.error.code).toBe(LLMErrorCode.BAD_RESPONSE_CONTENT);
+      expect(isLLMErr(result)).toBe(true);
+      if (isLLMErr(result)) {
+        expect(result.error).toBeInstanceOf(LLMExecutionError);
+        expect(result.error.message).toBe("Pipeline error");
       }
     });
 
@@ -227,7 +235,7 @@ describe("LLMRouter Dependency Injection Tests", () => {
         resource: "test",
         purpose: LLMPurpose.EMBEDDINGS,
       });
-      mockExecutionPipeline.executeEmbedding.mockResolvedValue(err(pipelineError));
+      mockExecutionPipeline.executeEmbedding.mockResolvedValue(llmErr(pipelineError));
 
       const router = new LLMRouter(
         mockModelChain,

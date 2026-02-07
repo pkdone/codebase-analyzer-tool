@@ -357,6 +357,7 @@ export const appSummarySchema = z
   .object({
     projectName: z.string(),
     llmModels: z.string(),
+    capturedAt: z.date().optional().describe("Timestamp when the insights were captured."),
     appDescription: appDescriptionSchema.shape.appDescription.optional(),
     businessProcesses: businessProcessesSchema.shape.businessProcesses.optional(),
     technologies: technologiesSchema.shape.technologies.optional(),
