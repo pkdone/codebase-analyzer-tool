@@ -6,7 +6,12 @@ import type { LLMCompletionOptions } from "../../../types/llm-request.types";
 import type { LLMImplSpecificResponseSummary, ProviderInit } from "../../llm-provider.types";
 import { LLMError, LLMErrorCode } from "../../../types/llm-errors.types";
 import { formatError } from "../../../../utils/error-formatters";
-import { assertVertexAIClaudeConfig, type VertexAIClaudeConfig } from "./vertex-ai-claude.types";
+import {
+  assertVertexAIClaudeConfig,
+  isVertexAIClaudeProviderConfig,
+  type VertexAIClaudeConfig,
+  type VertexAIClaudeProviderConfig,
+} from "./vertex-ai-claude.types";
 
 /**
  * Zod schema for Claude completion response validation.
@@ -29,6 +34,7 @@ const ClaudeCompletionResponseSchema = z.object({
 export default class VertexAIClaudeLLM extends BaseLLMProvider {
   private readonly client: AnthropicVertex;
   private readonly extractedConfig: VertexAIClaudeConfig;
+  private readonly typedProviderConfig: VertexAIClaudeProviderConfig;
 
   /**
    * Constructor accepting a ProviderInit configuration object.
@@ -38,6 +44,15 @@ export default class VertexAIClaudeLLM extends BaseLLMProvider {
 
     // Validate and extract typed configuration
     this.extractedConfig = assertVertexAIClaudeConfig(init.extractedConfig);
+
+    // Validate provider-specific config for type safety
+    if (!isVertexAIClaudeProviderConfig(this.providerSpecificConfig)) {
+      throw new LLMError(
+        LLMErrorCode.BAD_CONFIGURATION,
+        "Invalid VertexAI Claude provider-specific configuration",
+      );
+    }
+    this.typedProviderConfig = this.providerSpecificConfig;
 
     // Initialize the AnthropicVertex client with timeout from provider config
     // Must be under 10 minutes for non-streaming requests (SDK limitation)
@@ -63,6 +78,7 @@ export default class VertexAIClaudeLLM extends BaseLLMProvider {
 
   /**
    * Invoke the completion provider using the Claude Messages API.
+   * Uses the beta API endpoint when anthropicBetaFlags is configured (for 1M context).
    */
   protected override async invokeCompletionProvider(
     modelKey: string,
@@ -71,19 +87,29 @@ export default class VertexAIClaudeLLM extends BaseLLMProvider {
   ): Promise<LLMImplSpecificResponseSummary> {
     const maxCompletionTokens = this.getRequiredMaxCompletionTokens(modelKey);
     const temperature = this.providerSpecificConfig.temperature ?? llmConfig.DEFAULT_ZERO_TEMP;
+    const betaFlags = this.typedProviderConfig.anthropicBetaFlags;
 
-    // Build the request
-    const response = await this.client.messages.create({
+    // Build request parameters
+    const requestParams = {
       model: this.llmModelsMetadata[modelKey].urn,
       max_tokens: maxCompletionTokens,
       messages: [
         {
-          role: "user",
+          role: "user" as const,
           content: prompt,
         },
       ],
       temperature,
-    });
+    };
+
+    // Use beta API when anthropicBetaFlags is configured (for 1M context), otherwise use standard API
+    const response =
+      betaFlags && betaFlags.length > 0
+        ? await this.client.beta.messages.create({
+            ...requestParams,
+            betas: [...betaFlags],
+          })
+        : await this.client.messages.create(requestParams);
 
     // Parse and validate response
     const parseResult = ClaudeCompletionResponseSchema.safeParse(response);

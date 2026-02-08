@@ -1,4 +1,6 @@
+import { z } from "zod";
 import { LLMError, LLMErrorCode } from "../../../types/llm-errors.types";
+import type { LLMProviderSpecificConfig } from "../../llm-provider.types";
 
 /**
  * Typed configuration for VertexAI Claude provider.
@@ -65,4 +67,41 @@ export function assertVertexAIClaudeConfig(obj: unknown): VertexAIClaudeConfig {
   }
 
   return config as VertexAIClaudeConfig;
+}
+
+/**
+ * Zod schema for VertexAI Claude provider-specific configuration.
+ * Validates that the providerSpecificConfig contains all required fields,
+ * including the anthropicBetaFlags property for extended context windows.
+ */
+export const VertexAIClaudeProviderConfigSchema = z.object({
+  requestTimeoutMillis: z.number().int().positive(),
+  maxRetryAttempts: z.number().int().nonnegative(),
+  minRetryDelayMillis: z.number().int().nonnegative(),
+  maxRetryDelayMillis: z.number().int().nonnegative(),
+  temperature: z.number().optional(),
+  topP: z.number().optional(),
+  topK: z.number().optional(),
+  anthropicBetaFlags: z.array(z.string()).optional(),
+});
+
+/**
+ * Type-safe configuration interface for VertexAI Claude provider.
+ * Extends base config with Claude-specific anthropicBetaFlags property for 1M context.
+ */
+export interface VertexAIClaudeProviderConfig extends LLMProviderSpecificConfig {
+  temperature?: number;
+  topP?: number;
+  topK?: number;
+  anthropicBetaFlags?: readonly string[];
+}
+
+/**
+ * Type guard to check if a config is a valid VertexAIClaudeProviderConfig.
+ * Uses Zod schema validation for robust type checking.
+ */
+export function isVertexAIClaudeProviderConfig(
+  config: LLMProviderSpecificConfig,
+): config is VertexAIClaudeProviderConfig {
+  return VertexAIClaudeProviderConfigSchema.safeParse(config).success;
 }

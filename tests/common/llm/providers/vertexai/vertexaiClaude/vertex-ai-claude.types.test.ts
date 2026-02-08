@@ -210,8 +210,17 @@ describe("VertexAI Claude Config Types", () => {
       expect(vertexAIClaudeProviderManifest.models.embeddings).toEqual([]);
     });
 
-    it("should have two completion models", () => {
-      expect(vertexAIClaudeProviderManifest.models.completions).toHaveLength(2);
+    it("should have three completion models", () => {
+      expect(vertexAIClaudeProviderManifest.models.completions).toHaveLength(3);
+    });
+
+    it("should have opus-4.6 completion model with 1M context", () => {
+      const opusModel = vertexAIClaudeProviderManifest.models.completions.find(
+        (m) => m.modelKey === "vertexai-claude-opus-4.6",
+      );
+      expect(opusModel).toBeDefined();
+      expect(opusModel?.maxCompletionTokens).toBe(128000);
+      expect(opusModel?.maxTotalTokens).toBe(1000000);
     });
 
     it("should have opus-4.5 completion model", () => {
@@ -240,6 +249,12 @@ describe("VertexAI Claude Config Types", () => {
       // 9.5 minutes - must be under 10 minutes (SDK limit for non-streaming)
       expect(vertexAIClaudeProviderManifest.providerSpecificConfig.requestTimeoutMillis).toBe(
         9.5 * 60 * 1000,
+      );
+    });
+
+    it("should have anthropicBetaFlags for 1M context", () => {
+      expect(vertexAIClaudeProviderManifest.providerSpecificConfig.anthropicBetaFlags).toContain(
+        "context-1m-2025-08-07",
       );
     });
   });
