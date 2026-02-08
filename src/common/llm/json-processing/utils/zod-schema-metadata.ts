@@ -438,6 +438,28 @@ export function extractSchemaMetadata(
  * @param existingConfig - Optional existing config to merge with (existing takes precedence)
  * @returns An LLMSanitizerConfig with property lists from the schema
  */
+/**
+ * Builds the effective sanitizer configuration by combining:
+ * 1. Dynamic metadata extracted from the provided Zod schema (if available)
+ * 2. Explicit configuration passed by the caller (takes precedence)
+ *
+ * This enables schema-agnostic sanitization where property lists are derived
+ * from the actual schema being validated, reducing the need for hardcoded lists.
+ *
+ * @param jsonSchema - Optional Zod schema to extract metadata from
+ * @param explicitConfig - Optional explicit configuration to merge with schema metadata
+ * @returns The effective sanitizer configuration, or undefined if neither source provides data
+ */
+export function buildEffectiveSanitizerConfig(
+  jsonSchema: z.ZodType<unknown> | undefined,
+  explicitConfig: LLMSanitizerConfig | undefined,
+): LLMSanitizerConfig | undefined {
+  if (!jsonSchema) return explicitConfig;
+  const schemaMetadata = extractSchemaMetadata(jsonSchema);
+  if (schemaMetadata.allProperties.length === 0 && !explicitConfig) return undefined;
+  return schemaMetadataToSanitizerConfig(schemaMetadata, explicitConfig);
+}
+
 export function schemaMetadataToSanitizerConfig(
   metadata: SchemaMetadata,
   existingConfig?: LLMSanitizerConfig,

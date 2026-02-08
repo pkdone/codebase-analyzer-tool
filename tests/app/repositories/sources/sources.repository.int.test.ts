@@ -49,7 +49,7 @@ describe("SourcesRepository Integration Tests", () => {
           projectName,
           filename: "file1.ts",
           filepath: "src/file1.ts",
-          fileType: "ts",
+          fileExtension: "ts",
           linesCount: 10,
           content: "TypeScript content for testing",
           contentVector: await createTestVector(0.1),
@@ -63,7 +63,7 @@ describe("SourcesRepository Integration Tests", () => {
           projectName,
           filename: "file2.ts",
           filepath: "src/file2.ts",
-          fileType: "ts",
+          fileExtension: "ts",
           linesCount: 20,
           content: "Another TypeScript file for testing",
           contentVector: await createTestVector(0.8),
@@ -77,7 +77,7 @@ describe("SourcesRepository Integration Tests", () => {
           projectName,
           filename: "file3.java",
           filepath: "src/file3.java",
-          fileType: "java",
+          fileExtension: "java",
           linesCount: 30,
           content: "Java content for testing",
           contentVector: await createTestVector(0.4),
@@ -129,7 +129,7 @@ describe("SourcesRepository Integration Tests", () => {
           projectName,
           filename: "test.ts",
           filepath: "src/test.ts",
-          fileType: "ts",
+          fileExtension: "ts",
           linesCount: 10,
           content: "TypeScript content",
           contentVector: await createTestVector(0.1),
@@ -138,7 +138,7 @@ describe("SourcesRepository Integration Tests", () => {
           projectName,
           filename: "test.java",
           filepath: "src/test.java",
-          fileType: "java",
+          fileExtension: "java",
           linesCount: 15,
           content: "Java content",
           contentVector: await createTestVector(0.15),
@@ -169,14 +169,14 @@ describe("SourcesRepository Integration Tests", () => {
   });
 
   describe("Aggregation Methods Integration", () => {
-    it("should return correct counts from getProjectFileTypesCountAndLines", async () => {
+    it("should return correct counts from getProjectFileExtensionStats", async () => {
       // Arrange: Insert test data with various file types
       const testData: SourceRecord[] = [
         {
           projectName,
           filename: "test1.ts",
           filepath: "src/test1.ts",
-          fileType: "ts",
+          fileExtension: "ts",
           linesCount: 100,
           content: "content1",
         },
@@ -184,7 +184,7 @@ describe("SourcesRepository Integration Tests", () => {
           projectName,
           filename: "test2.ts",
           filepath: "src/test2.ts",
-          fileType: "ts",
+          fileExtension: "ts",
           linesCount: 150,
           content: "content2",
         },
@@ -192,7 +192,7 @@ describe("SourcesRepository Integration Tests", () => {
           projectName,
           filename: "test1.java",
           filepath: "src/test1.java",
-          fileType: "java",
+          fileExtension: "java",
           linesCount: 200,
           content: "content3",
         },
@@ -200,7 +200,7 @@ describe("SourcesRepository Integration Tests", () => {
           projectName,
           filename: "test1.py",
           filepath: "src/test1.py",
-          fileType: "py",
+          fileExtension: "py",
           linesCount: 75,
           content: "content4",
         },
@@ -211,22 +211,22 @@ describe("SourcesRepository Integration Tests", () => {
       }
 
       // Act
-      const results = await sourcesRepository.getProjectFileTypesCountAndLines(projectName);
+      const results = await sourcesRepository.getProjectFileExtensionStats(projectName);
 
       // Assert
       expect(results).toHaveLength(3);
 
       // Check TypeScript aggregation (ignore MongoDB internal _id field)
-      const tsResult = results.find((r) => r.fileType === "ts");
-      expect(tsResult).toMatchObject({ fileType: "ts", files: 2, lines: 250 });
+      const tsResult = results.find((r) => r.fileExtension === "ts");
+      expect(tsResult).toMatchObject({ fileExtension: "ts", files: 2, lines: 250 });
 
       // Check Java aggregation (ignore MongoDB internal _id field)
-      const javaResult = results.find((r) => r.fileType === "java");
-      expect(javaResult).toMatchObject({ fileType: "java", files: 1, lines: 200 });
+      const javaResult = results.find((r) => r.fileExtension === "java");
+      expect(javaResult).toMatchObject({ fileExtension: "java", files: 1, lines: 200 });
 
       // Check Python aggregation (ignore MongoDB internal _id field)
-      const pyResult = results.find((r) => r.fileType === "py");
-      expect(pyResult).toMatchObject({ fileType: "py", files: 1, lines: 75 });
+      const pyResult = results.find((r) => r.fileExtension === "py");
+      expect(pyResult).toMatchObject({ fileExtension: "py", files: 1, lines: 75 });
     }, 30000);
 
     it("should return correct file and line stats from getProjectFileAndLineStats", async () => {
@@ -236,7 +236,7 @@ describe("SourcesRepository Integration Tests", () => {
           projectName,
           filename: "test1.ts",
           filepath: "src/test1.ts",
-          fileType: "ts",
+          fileExtension: "ts",
           linesCount: 100,
           content: "content1",
         },
@@ -244,7 +244,7 @@ describe("SourcesRepository Integration Tests", () => {
           projectName,
           filename: "test2.java",
           filepath: "src/test2.java",
-          fileType: "java",
+          fileExtension: "java",
           linesCount: 200,
           content: "content2",
         },
@@ -252,7 +252,7 @@ describe("SourcesRepository Integration Tests", () => {
           projectName,
           filename: "test3.py",
           filepath: "src/test3.py",
-          fileType: "py",
+          fileExtension: "py",
           linesCount: 150,
           content: "content3",
         },
@@ -278,7 +278,7 @@ describe("SourcesRepository Integration Tests", () => {
           projectName,
           filename: "service.ts",
           filepath: "src/service.ts",
-          fileType: "ts",
+          fileExtension: "ts",
           linesCount: 100,
           content: "service content",
           summary: {
@@ -291,7 +291,7 @@ describe("SourcesRepository Integration Tests", () => {
           projectName,
           filename: "controller.ts",
           filepath: "src/controller.ts",
-          fileType: "ts",
+          fileExtension: "ts",
           linesCount: 80,
           content: "controller content",
           summary: {
@@ -304,7 +304,7 @@ describe("SourcesRepository Integration Tests", () => {
           projectName,
           filename: "model.java",
           filepath: "src/model.java",
-          fileType: "java",
+          fileExtension: "java",
           linesCount: 50,
           content: "model content",
           summary: {
@@ -320,9 +320,10 @@ describe("SourcesRepository Integration Tests", () => {
       }
 
       // Act: Query only TypeScript files
-      const results = await sourcesRepository.getProjectSourcesSummariesByFileType(projectName, [
-        "ts",
-      ]);
+      const results = await sourcesRepository.getProjectSourcesSummariesByFileExtension(
+        projectName,
+        ["ts"],
+      );
 
       // Assert
       expect(results).toHaveLength(2);
@@ -348,7 +349,7 @@ describe("SourcesRepository Integration Tests", () => {
           projectName,
           filename: "service.ts",
           filepath: "src/service.ts",
-          fileType: "ts",
+          fileExtension: "ts",
           linesCount: 100,
           content: "service content",
           summary: {
@@ -366,7 +367,7 @@ describe("SourcesRepository Integration Tests", () => {
           projectName,
           filename: "repository.java",
           filepath: "src/repository.java",
-          fileType: "java",
+          fileExtension: "java",
           linesCount: 150,
           content: "repository content",
           summary: {
@@ -384,7 +385,7 @@ describe("SourcesRepository Integration Tests", () => {
           projectName,
           filename: "util.ts",
           filepath: "src/util.ts",
-          fileType: "ts",
+          fileExtension: "ts",
           linesCount: 50,
           content: "utility content",
           summary: {
@@ -422,7 +423,7 @@ describe("SourcesRepository Integration Tests", () => {
         projectName,
         filename: "test.ts",
         filepath: "src/test.ts",
-        fileType: "ts",
+        fileExtension: "ts",
         linesCount: 50,
         content: "test content",
       };
@@ -448,7 +449,7 @@ describe("SourcesRepository Integration Tests", () => {
           projectName,
           filename: "test1.ts",
           filepath: "src/test1.ts",
-          fileType: "ts",
+          fileExtension: "ts",
           linesCount: 10,
           content: "content1",
         },
@@ -456,7 +457,7 @@ describe("SourcesRepository Integration Tests", () => {
           projectName,
           filename: "test2.ts",
           filepath: "src/test2.ts",
-          fileType: "ts",
+          fileExtension: "ts",
           linesCount: 20,
           content: "content2",
         },
@@ -485,7 +486,7 @@ describe("SourcesRepository Integration Tests", () => {
           projectName,
           filename: "test1.ts",
           filepath: "src/components/test1.ts",
-          fileType: "ts",
+          fileExtension: "ts",
           linesCount: 10,
           content: "content1",
         },
@@ -493,7 +494,7 @@ describe("SourcesRepository Integration Tests", () => {
           projectName,
           filename: "test2.java",
           filepath: "src/services/test2.java",
-          fileType: "java",
+          fileExtension: "java",
           linesCount: 20,
           content: "content2",
         },
@@ -501,7 +502,7 @@ describe("SourcesRepository Integration Tests", () => {
           projectName,
           filename: "test3.py",
           filepath: "scripts/test3.py",
-          fileType: "py",
+          fileExtension: "py",
           linesCount: 30,
           content: "content3",
         },

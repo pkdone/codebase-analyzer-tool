@@ -144,7 +144,7 @@ describe("sourceSchema with llmCapture", () => {
     projectName: "test-project",
     filename: "test.ts",
     filepath: "src/test.ts",
-    fileType: "ts",
+    fileExtension: "ts",
     linesCount: 100,
     content: "// test content",
   };

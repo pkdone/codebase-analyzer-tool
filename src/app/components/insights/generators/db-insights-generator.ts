@@ -106,7 +106,7 @@ export default class InsightsFromDBGenerator {
    */
   private async formatSourcesForLLMPrompt(): Promise<string[]> {
     const srcFilesList: string[] = [];
-    const records = await this.sourcesRepository.getProjectSourcesSummariesByFileType(
+    const records = await this.sourcesRepository.getProjectSourcesSummariesByFileExtension(
       this.projectName,
       [...this.fileProcessingConfig.CODE_FILE_EXTENSIONS],
     );

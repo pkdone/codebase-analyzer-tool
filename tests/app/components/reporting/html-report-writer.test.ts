@@ -36,8 +36,8 @@ describe("HtmlReportWriter", () => {
       appDescription: "Test application",
     },
     fileTypesData: [
-      { fileType: "javascript", lines: 1000, files: 50 },
-      { fileType: "typescript", lines: 2000, files: 30 },
+      { fileExtension: "javascript", lines: 1000, files: 50 },
+      { fileExtension: "typescript", lines: 2000, files: 30 },
     ],
     pieChartData: {
       totalFiles: 80,

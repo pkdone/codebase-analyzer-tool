@@ -8,10 +8,10 @@ import type { PieChartData, PieChartSlice } from "./pie-chart.types";
 import { UNKNOWN_VALUE_PLACEHOLDER } from "../../config/placeholders.config";
 
 /**
- * File type data structure expected as input.
+ * File extension data structure expected as input.
  */
-interface FileTypeData {
-  fileType: string;
+interface FileExtensionData {
+  fileExtension: string;
   files: number;
   lines: number;
 }
@@ -70,7 +70,7 @@ function describeArc(
  * @param fileTypesData - Array of file type statistics
  * @returns Complete pie chart data ready for template rendering
  */
-export function buildPieChartData(fileTypesData: FileTypeData[]): PieChartData {
+export function buildPieChartData(fileTypesData: FileExtensionData[]): PieChartData {
   const totalFiles = fileTypesData.reduce((sum, item) => sum + item.files, 0);
 
   // Calculate SVG dimensions based on content
@@ -104,7 +104,7 @@ export function buildPieChartData(fileTypesData: FileTypeData[]): PieChartData {
     );
 
     const slice: PieChartSlice = {
-      label: item.fileType || UNKNOWN_VALUE_PLACEHOLDER,
+      label: item.fileExtension || UNKNOWN_VALUE_PLACEHOLDER,
       value: item.files,
       percentage,
       color: getSliceColor(index),

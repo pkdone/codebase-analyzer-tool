@@ -14,7 +14,7 @@ export const LLMPurpose = {
 export type LLMPurpose = (typeof LLMPurpose)[keyof typeof LLMPurpose];
 
 /**
- * Enum to define the desired output format for LLM responses
+ * Enum to define the desired output format for LLM responses.
  */
 export enum LLMOutputFormat {
   JSON = "json",

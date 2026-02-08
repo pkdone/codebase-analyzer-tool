@@ -599,7 +599,9 @@ export const sourceSchema = z
     projectName: z.string().describe("The name of the project this source file belongs to."),
     filename: z.string().describe("The name of the source file (without path)."),
     filepath: z.string().describe("The full path to the source file within the project."),
-    fileType: z.string().describe("The type of the source file (e.g., 'java', 'js', 'sql', etc.)."),
+    fileExtension: z
+      .string()
+      .describe("The file extension (e.g., 'java', 'js', 'sql', 'ts', etc.)."),
     canonicalType: canonicalFileTypeSchema
       .optional()
       .describe("The canonical file type category (e.g., 'javascript' for .ts/.js files)."),

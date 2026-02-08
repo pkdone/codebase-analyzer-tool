@@ -19,7 +19,7 @@ function createMockSourceRecord(filepath: string): SourceRecord {
     projectName: "test-project",
     filename: `${filepath}.ts`,
     filepath,
-    fileType: "ts",
+    fileExtension: "ts",
     canonicalType: "javascript",
     linesCount: 10,
     content: `// Content of ${filepath}`,

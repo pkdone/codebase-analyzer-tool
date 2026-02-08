@@ -10,7 +10,7 @@ describe("App Registration Module", () => {
   });
 
   describe("registerAppDependencies", () => {
-    // Note: Capture components (CodebaseIngestionService, etc.) are now registered
+    // Note: Capture components (CodebaseCaptureOrchestrator, etc.) are now registered
     // in capture-registration.ts for better module cohesion
 
     it("should register insights components as singletons", () => {

@@ -26,7 +26,7 @@ function formatSourcesForPrompt(vectorSearchResults: VectorSearchResult[]): stri
   return formatFilesAsMarkdownCodeBlocks(
     vectorSearchResults.map((file) => ({
       filepath: file.filepath,
-      type: file.fileType,
+      type: file.fileExtension,
       content: file.content,
     })),
   );

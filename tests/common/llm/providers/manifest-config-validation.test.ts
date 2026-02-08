@@ -52,7 +52,8 @@ describe("Provider Config Validation", () => {
         assertOpenAIConfig({ apiKey: "" });
       } catch (error) {
         expect(error).toBeInstanceOf(LLMError);
-        expect((error as LLMError).message).toContain("empty");
+        // Zod min(1) validation message
+        expect((error as LLMError).message).toContain("apiKey");
       }
     });
 

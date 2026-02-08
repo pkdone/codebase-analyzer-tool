@@ -52,7 +52,7 @@ describe("JavaUiTechnologyDataProvider", () => {
 
   beforeEach(() => {
     mockSourcesRepository = {
-      getProjectSourcesSummariesByFileType: jest.fn(),
+      getProjectSourcesSummariesByFileExtension: jest.fn(),
       getProjectSourcesSummariesByCanonicalType: jest.fn(),
       insertSource: jest.fn(),
       insertSources: jest.fn(),
@@ -63,7 +63,7 @@ describe("JavaUiTechnologyDataProvider", () => {
       vectorSearchProjectSources: jest.fn(),
       getProjectFilesPaths: jest.fn(),
       getProjectFileAndLineStats: jest.fn(),
-      getProjectFileTypesCountAndLines: jest.fn(),
+      getProjectFileExtensionStats: jest.fn(),
       getProjectIntegrationPoints: jest.fn(),
       getTopComplexFunctions: jest.fn(),
       getCodeSmellStatistics: jest.fn(),
@@ -83,7 +83,7 @@ describe("JavaUiTechnologyDataProvider", () => {
 
   describe("getUiTechnologyAnalysis", () => {
     it("should return empty result when no source files found", async () => {
-      mockSourcesRepository.getProjectSourcesSummariesByFileType.mockResolvedValue([]);
+      mockSourcesRepository.getProjectSourcesSummariesByFileExtension.mockResolvedValue([]);
 
       const result = await provider.getUiTechnologyAnalysis("test-project");
 
@@ -95,7 +95,7 @@ describe("JavaUiTechnologyDataProvider", () => {
     });
 
     it("should aggregate frameworks from configuration files", async () => {
-      mockSourcesRepository.getProjectSourcesSummariesByFileType.mockResolvedValue([
+      mockSourcesRepository.getProjectSourcesSummariesByFileExtension.mockResolvedValue([
         createMockFrameworkFile("struts-config.xml", {
           name: "Struts",
           version: "1.3.10",
@@ -116,7 +116,7 @@ describe("JavaUiTechnologyDataProvider", () => {
     });
 
     it("should aggregate same framework from multiple config files", async () => {
-      mockSourcesRepository.getProjectSourcesSummariesByFileType.mockResolvedValue([
+      mockSourcesRepository.getProjectSourcesSummariesByFileExtension.mockResolvedValue([
         createMockFrameworkFile("module1/struts-config.xml", {
           name: "Struts",
           version: "1.3.10",
@@ -136,7 +136,7 @@ describe("JavaUiTechnologyDataProvider", () => {
     });
 
     it("should calculate JSP metrics totals", async () => {
-      mockSourcesRepository.getProjectSourcesSummariesByFileType.mockResolvedValue([
+      mockSourcesRepository.getProjectSourcesSummariesByFileExtension.mockResolvedValue([
         createMockJspFile("page1.jsp", {
           scriptletCount: 5,
           expressionCount: 3,
@@ -159,7 +159,7 @@ describe("JavaUiTechnologyDataProvider", () => {
     });
 
     it("should aggregate custom tag libraries", async () => {
-      mockSourcesRepository.getProjectSourcesSummariesByFileType.mockResolvedValue([
+      mockSourcesRepository.getProjectSourcesSummariesByFileExtension.mockResolvedValue([
         createMockJspFile("page1.jsp", {
           scriptletCount: 0,
           expressionCount: 0,
@@ -186,7 +186,7 @@ describe("JavaUiTechnologyDataProvider", () => {
 
     it("should sort custom tag libraries by usage count descending", async () => {
       // Use multiple files to test sorting - "b" is used in 3 files, "a" in 1 file
-      mockSourcesRepository.getProjectSourcesSummariesByFileType.mockResolvedValue([
+      mockSourcesRepository.getProjectSourcesSummariesByFileExtension.mockResolvedValue([
         createMockJspFile("page1.jsp", {
           scriptletCount: 0,
           expressionCount: 0,
@@ -217,7 +217,7 @@ describe("JavaUiTechnologyDataProvider", () => {
     });
 
     it("should identify top scriptlet files sorted by total blocks", async () => {
-      mockSourcesRepository.getProjectSourcesSummariesByFileType.mockResolvedValue([
+      mockSourcesRepository.getProjectSourcesSummariesByFileExtension.mockResolvedValue([
         createMockJspFile("low.jsp", {
           scriptletCount: 2,
           expressionCount: 1,
@@ -243,7 +243,7 @@ describe("JavaUiTechnologyDataProvider", () => {
     });
 
     it("should count files with high scriptlet count", async () => {
-      mockSourcesRepository.getProjectSourcesSummariesByFileType.mockResolvedValue([
+      mockSourcesRepository.getProjectSourcesSummariesByFileExtension.mockResolvedValue([
         createMockJspFile("clean.jsp", {
           scriptletCount: 0,
           expressionCount: 0,
@@ -268,7 +268,7 @@ describe("JavaUiTechnologyDataProvider", () => {
     });
 
     it("should return raw data without presentation fields (CSS classes)", async () => {
-      mockSourcesRepository.getProjectSourcesSummariesByFileType.mockResolvedValue([
+      mockSourcesRepository.getProjectSourcesSummariesByFileExtension.mockResolvedValue([
         createMockJspFile("debt.jsp", {
           scriptletCount: 100,
           expressionCount: 50,
@@ -292,7 +292,7 @@ describe("JavaUiTechnologyDataProvider", () => {
     });
 
     it("should include tagType classification for custom tag libraries", async () => {
-      mockSourcesRepository.getProjectSourcesSummariesByFileType.mockResolvedValue([
+      mockSourcesRepository.getProjectSourcesSummariesByFileExtension.mockResolvedValue([
         createMockJspFile("page.jsp", {
           scriptletCount: 0,
           expressionCount: 0,
@@ -318,7 +318,7 @@ describe("JavaUiTechnologyDataProvider", () => {
     });
 
     it("should handle mixed framework and JSP files", async () => {
-      mockSourcesRepository.getProjectSourcesSummariesByFileType.mockResolvedValue([
+      mockSourcesRepository.getProjectSourcesSummariesByFileExtension.mockResolvedValue([
         createMockFrameworkFile("struts-config.xml", {
           name: "Struts",
           version: "1.3",

@@ -6,7 +6,7 @@
  */
 
 // Core services
-export { default as CodebaseIngestionService } from "./codebase-ingestion.service";
+export { default as CodebaseCaptureOrchestrator } from "./codebase-capture-orchestrator";
 export {
   FileSummarizerService,
   type SourceSummaryType,

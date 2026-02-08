@@ -28,7 +28,7 @@ export class ModuleCouplingDataProvider {
     moduleDepth: number = moduleCouplingConfig.DEFAULT_MODULE_DEPTH,
   ): Promise<ModuleCoupling> {
     // Fetch all source files from the project
-    const sourceFiles = await this.sourcesRepository.getProjectSourcesSummariesByFileType(
+    const sourceFiles = await this.sourcesRepository.getProjectSourcesSummariesByFileExtension(
       projectName,
       [],
     );

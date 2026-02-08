@@ -41,7 +41,7 @@ export type TaskToken = keyof typeof taskTokens;
 
 // Capture module tokens
 export const captureTokens = {
-  CodebaseIngestionService: Symbol("CodebaseIngestionService"),
+  CodebaseCaptureOrchestrator: Symbol("CodebaseCaptureOrchestrator"),
   FileSummarizerService: Symbol("FileSummarizerService"),
   FileTypePromptRegistry: Symbol("FileTypePromptRegistry"),
   BufferedSourcesWriter: Symbol("BufferedSourcesWriter"),

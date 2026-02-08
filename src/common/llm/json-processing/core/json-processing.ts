@@ -6,10 +6,7 @@ import { logWarn } from "../../../utils/logging";
 import { hasSignificantRepairs } from "../utils/repair-analysis";
 import { parseJsonWithSanitizers, type ParseResult } from "./json-parsing";
 import { repairAndValidateJson } from "./json-validating";
-import {
-  extractSchemaMetadata,
-  schemaMetadataToSanitizerConfig,
-} from "../utils/zod-schema-metadata";
+import { buildEffectiveSanitizerConfig } from "../utils/zod-schema-metadata";
 import type { LLMSanitizerConfig } from "../../config/llm-module-config.types";
 
 /**
@@ -104,15 +101,16 @@ function validateContentInput(
   context: LLMExecutionContext,
   loggingEnabled: boolean,
 ): ContentValidationResult {
-  // ES2023: Check for malformed Unicode (lone surrogates) which can occur in
-  // truncated LLM streaming responses or encoding issues
+  // ES2024: Check for and recover from malformed Unicode (lone surrogates) which can occur in
+  // truncated LLM streaming responses or encoding issues. Use toWellFormed() to replace lone
+  // surrogates with the Unicode replacement character (U+FFFD) rather than failing immediately.
   if (!content.isWellFormed()) {
     logProblem(
-      `LLM response contains malformed Unicode (lone surrogates)`,
+      `Fixing malformed Unicode (lone surrogates) in LLM response`,
       { ...context, contentLength: content.length },
       loggingEnabled,
     );
-    return { success: false, error: createParseError("contains malformed Unicode", context) };
+    content = content.toWellFormed();
   }
 
   const trimmedContent = content.trim();
@@ -249,28 +247,6 @@ function validateAndBuildResult<S extends z.ZodType<unknown>>(
       validationError,
     ),
   };
-}
-
-/**
- * Builds the effective sanitizer configuration by combining:
- * 1. Dynamic metadata extracted from the provided Zod schema (if available)
- * 2. Explicit configuration passed by the caller (takes precedence)
- *
- * This enables schema-agnostic sanitization where property lists are derived
- * from the actual schema being validated, reducing the need for hardcoded lists.
- *
- * @param jsonSchema - Optional Zod schema to extract metadata from
- * @param explicitConfig - Optional explicit configuration to merge with schema metadata
- * @returns The effective sanitizer configuration, or undefined if neither source provides data
- */
-function buildEffectiveSanitizerConfig(
-  jsonSchema: z.ZodType<unknown> | undefined,
-  explicitConfig: LLMSanitizerConfig | undefined,
-): LLMSanitizerConfig | undefined {
-  if (!jsonSchema) return explicitConfig;
-  const schemaMetadata = extractSchemaMetadata(jsonSchema);
-  if (schemaMetadata.allProperties.length === 0 && !explicitConfig) return undefined;
-  return schemaMetadataToSanitizerConfig(schemaMetadata, explicitConfig);
 }
 
 /**

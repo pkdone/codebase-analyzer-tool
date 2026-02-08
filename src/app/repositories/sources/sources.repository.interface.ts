@@ -4,7 +4,7 @@ import {
   ProjectedSourceSummaryFields,
   ProjectedDatabaseIntegrationFields,
   ProjectedIntegrationPointFields,
-  ProjectedFileTypesCountAndLines,
+  ProjectedFileExtensionStats,
   ProjectedFileAndLineStats,
   ProjectedTopComplexFunction,
   ProjectedCodeSmellStatistic,
@@ -38,11 +38,11 @@ export interface SourcesRepository {
   doesProjectSourceExist(projectName: string, filepath: string): Promise<boolean>;
 
   /**
-   * Get source file summaries for a project
+   * Get source file summaries for a project filtered by file extension
    */
-  getProjectSourcesSummariesByFileType(
+  getProjectSourcesSummariesByFileExtension(
     projectName: string,
-    fileTypes: string[],
+    fileExtensions: string[],
   ): Promise<ProjectedSourceSummaryFields[]>;
 
   /**
@@ -89,9 +89,9 @@ export interface SourcesRepository {
   getProjectFileAndLineStats(projectName: string): Promise<ProjectedFileAndLineStats>;
 
   /**
-   * Get files count and lines of code count for each file type for a project
+   * Get files count and lines of code count for each file extension for a project
    */
-  getProjectFileTypesCountAndLines(projectName: string): Promise<ProjectedFileTypesCountAndLines[]>;
+  getProjectFileExtensionStats(projectName: string): Promise<ProjectedFileExtensionStats[]>;
 
   /**
    * Get integration points (APIs, queues, topics, SOAP services) for a project

@@ -42,7 +42,7 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
       insertSources: jest.fn().mockResolvedValue(undefined),
       deleteSourcesByProject: jest.fn().mockResolvedValue(undefined),
       doesProjectSourceExist: jest.fn().mockResolvedValue(false),
-      getProjectSourcesSummariesByFileType: jest.fn().mockResolvedValue([]),
+      getProjectSourcesSummariesByFileExtension: jest.fn().mockResolvedValue([]),
       getProjectSourcesSummariesByCanonicalType: jest.fn().mockResolvedValue([]),
       getProjectDatabaseIntegrations: jest.fn().mockResolvedValue([]),
       getProjectStoredProceduresAndTriggers: jest.fn().mockResolvedValue([]),
@@ -122,7 +122,7 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
 
   describe("generateAndRecordDataForCategory", () => {
     beforeEach(() => {
-      mockSourcesRepository.getProjectSourcesSummariesByFileType.mockResolvedValue([
+      mockSourcesRepository.getProjectSourcesSummariesByFileExtension.mockResolvedValue([
         {
           filepath: "file1.ts",
           summary: { namespace: "File1", purpose: "Test", implementation: "Mock" },
@@ -241,7 +241,7 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
       const charsPerChunk = tokenLimitPerChunk * llmConfig.AVERAGE_CHARS_PER_TOKEN;
       const largeSummary = "x".repeat(Math.floor(charsPerChunk * 0.9));
 
-      mockSourcesRepository.getProjectSourcesSummariesByFileType.mockResolvedValue([
+      mockSourcesRepository.getProjectSourcesSummariesByFileExtension.mockResolvedValue([
         {
           filepath: "file1.ts",
           summary: {
@@ -283,7 +283,7 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
     });
 
     it("should throw error when no source summaries exist", async () => {
-      mockSourcesRepository.getProjectSourcesSummariesByFileType.mockResolvedValue([]);
+      mockSourcesRepository.getProjectSourcesSummariesByFileExtension.mockResolvedValue([]);
 
       await expect(generator.generateAndStoreInsights()).rejects.toThrow(
         "No existing code file summaries found",

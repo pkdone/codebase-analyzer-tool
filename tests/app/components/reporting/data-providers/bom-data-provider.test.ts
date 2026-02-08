@@ -32,7 +32,7 @@ describe("BomDataProvider", () => {
   beforeEach(() => {
     mockSourcesRepository = {
       getProjectSourcesSummariesByCanonicalType: jest.fn(),
-      getProjectSourcesSummariesByFileType: jest.fn(),
+      getProjectSourcesSummariesByFileExtension: jest.fn(),
       insertSource: jest.fn(),
       insertSources: jest.fn(),
       deleteSourcesByProject: jest.fn(),
@@ -42,7 +42,7 @@ describe("BomDataProvider", () => {
       vectorSearchProjectSources: jest.fn(),
       getProjectFilesPaths: jest.fn(),
       getProjectFileAndLineStats: jest.fn(),
-      getProjectFileTypesCountAndLines: jest.fn(),
+      getProjectFileExtensionStats: jest.fn(),
       getProjectIntegrationPoints: jest.fn(),
       getTopComplexFunctions: jest.fn(),
       getCodeSmellStatistics: jest.fn(),

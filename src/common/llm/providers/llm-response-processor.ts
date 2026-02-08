@@ -14,10 +14,7 @@ import {
 import { formatError } from "../../utils/error-formatters";
 import { logWarn } from "../../utils/logging";
 import { parseAndValidateLLMJson, repairAndValidateJson } from "../json-processing";
-import {
-  extractSchemaMetadata,
-  schemaMetadataToSanitizerConfig,
-} from "../json-processing/utils/zod-schema-metadata";
+import { buildEffectiveSanitizerConfig } from "../json-processing/utils/zod-schema-metadata";
 import { LLMError, LLMErrorCode } from "../types/llm-errors.types";
 import type { LLMErrorLogger } from "../tracking/llm-error-logger";
 import type { LLMSanitizerConfig } from "../config/llm-module-config.types";
@@ -264,7 +261,7 @@ export class LLMResponseProcessor {
     sanitizerConfig?: LLMSanitizerConfig,
   ): LLMFunctionResponse<z.infer<S>> {
     // Build effective sanitizer config from schema metadata
-    const effectiveConfig = this.buildEffectiveSanitizerConfig(jsonSchema, sanitizerConfig);
+    const effectiveConfig = buildEffectiveSanitizerConfig(jsonSchema, sanitizerConfig);
 
     // Validate directly using repairAndValidateJson (skips parsing)
     const validationResult = repairAndValidateJson(content, jsonSchema, effectiveConfig);
@@ -293,22 +290,5 @@ export class LLMResponseProcessor {
       status: LLMResponseStatus.INVALID,
       error: formatError(validationError),
     };
-  }
-
-  /**
-   * Builds the effective sanitizer configuration by combining schema metadata
-   * with explicit configuration.
-   *
-   * @param jsonSchema - The Zod schema to extract metadata from
-   * @param explicitConfig - Optional explicit configuration to merge
-   * @returns The effective sanitizer configuration
-   */
-  private buildEffectiveSanitizerConfig(
-    jsonSchema: z.ZodType<unknown>,
-    explicitConfig?: LLMSanitizerConfig,
-  ): LLMSanitizerConfig | undefined {
-    const schemaMetadata = extractSchemaMetadata(jsonSchema);
-    if (schemaMetadata.allProperties.length === 0 && !explicitConfig) return undefined;
-    return schemaMetadataToSanitizerConfig(schemaMetadata, explicitConfig);
   }
 }

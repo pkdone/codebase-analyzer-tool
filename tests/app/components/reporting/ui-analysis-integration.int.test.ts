@@ -46,7 +46,7 @@ describe("UI Technology Analysis Integration Test", () => {
       projectName,
       filename: "home.ts",
       filepath: "webapp/pages/home.ts",
-      fileType: "jsp",
+      fileExtension: "jsp",
       linesCount: 50,
       content: "JSP content with scriptlets",
       summary: {
@@ -68,7 +68,7 @@ describe("UI Technology Analysis Integration Test", () => {
       projectName,
       filename: "login.ts",
       filepath: "webapp/pages/login.ts",
-      fileType: "jsp",
+      fileExtension: "jsp",
       linesCount: 30,
       content: "Login JSP content",
       summary: {
@@ -87,7 +87,7 @@ describe("UI Technology Analysis Integration Test", () => {
       projectName,
       filename: "admin.ts",
       filepath: "webapp/admin/admin.ts",
-      fileType: "jsp",
+      fileExtension: "jsp",
       linesCount: 80,
       content: "Admin panel JSP",
       summary: {
@@ -109,7 +109,7 @@ describe("UI Technology Analysis Integration Test", () => {
       projectName,
       filename: "web.xml",
       filepath: "WEB-INF/web.xml",
-      fileType: "xml",
+      fileExtension: "xml",
       linesCount: 100,
       content: "Web.xml with Struts configuration",
       summary: {
@@ -127,7 +127,7 @@ describe("UI Technology Analysis Integration Test", () => {
       projectName,
       filename: "struts-config.xml",
       filepath: "WEB-INF/struts-config.xml",
-      fileType: "xml",
+      fileExtension: "xml",
       linesCount: 150,
       content: "Struts configuration",
       summary: {
@@ -205,7 +205,7 @@ describe("UI Technology Analysis Integration Test", () => {
       projectName,
       filename: "Main.java",
       filepath: "src/Main.java",
-      fileType: "java",
+      fileExtension: "java",
       linesCount: 20,
       content: "Java content",
       summary: {
@@ -233,7 +233,7 @@ describe("UI Technology Analysis Integration Test", () => {
       projectName,
       filename: "web.xml",
       filepath: "WEB-INF/web.xml",
-      fileType: "xml",
+      fileExtension: "xml",
       linesCount: 50,
       content: "Struts config",
       summary: {
@@ -251,7 +251,7 @@ describe("UI Technology Analysis Integration Test", () => {
       projectName,
       filename: "faces-config.xml",
       filepath: "WEB-INF/faces-config.xml",
-      fileType: "xml",
+      fileExtension: "xml",
       linesCount: 80,
       content: "JSF config",
       summary: {
@@ -283,7 +283,7 @@ describe("UI Technology Analysis Integration Test", () => {
       projectName,
       filename: "test.ts",
       filepath: "test.ts",
-      fileType: "jsp",
+      fileExtension: "jsp",
       linesCount: 20,
       content: "Test JSP",
       summary: {

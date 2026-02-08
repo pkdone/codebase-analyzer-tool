@@ -73,6 +73,22 @@ export class MongoDBConnectionManager {
   }
 
   /**
+   * Implements AsyncDisposable for use with `await using` declarations.
+   * Automatically closes all connections when the manager goes out of scope.
+   *
+   * @example
+   * ```typescript
+   * await using manager = new MongoDBConnectionManager();
+   * await manager.connect("main", connectionString);
+   * // ... use the connection
+   * // Automatically closes all connections when scope exits
+   * ```
+   */
+  async [Symbol.asyncDispose](): Promise<void> {
+    await this.shutdown();
+  }
+
+  /**
    * Closes all MongoDB connections managed by this manager.
    */
   private async closeAll(): Promise<void> {

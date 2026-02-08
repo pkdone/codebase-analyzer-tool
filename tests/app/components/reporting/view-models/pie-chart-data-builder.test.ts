@@ -11,7 +11,7 @@ import { UNKNOWN_VALUE_PLACEHOLDER } from "../../../../../src/app/components/rep
  * Matches the internal interface of buildPieChartData.
  */
 interface FileTypeData {
-  fileType: string;
+  fileExtension: string;
   files: number;
   lines: number;
 }
@@ -26,9 +26,9 @@ describe("pie-chart-data-builder", () => {
 
     it("should calculate correct total files", () => {
       const data: FileTypeData[] = [
-        { fileType: "js", files: 10, lines: 100 },
-        { fileType: "ts", files: 20, lines: 200 },
-        { fileType: "css", files: 5, lines: 50 },
+        { fileExtension: "js", files: 10, lines: 100 },
+        { fileExtension: "ts", files: 20, lines: 200 },
+        { fileExtension: "css", files: 5, lines: 50 },
       ];
       const result = buildPieChartData(data);
       expect(result.totalFiles).toBe(35);
@@ -36,8 +36,8 @@ describe("pie-chart-data-builder", () => {
 
     it("should calculate correct percentages", () => {
       const data: FileTypeData[] = [
-        { fileType: "js", files: 50, lines: 500 },
-        { fileType: "ts", files: 50, lines: 500 },
+        { fileExtension: "js", files: 50, lines: 500 },
+        { fileExtension: "ts", files: 50, lines: 500 },
       ];
       const result = buildPieChartData(data);
       expect(result.slices[0].percentage).toBe(50);
@@ -46,8 +46,8 @@ describe("pie-chart-data-builder", () => {
 
     it("should assign colors to each slice", () => {
       const data: FileTypeData[] = [
-        { fileType: "js", files: 10, lines: 100 },
-        { fileType: "ts", files: 20, lines: 200 },
+        { fileExtension: "js", files: 10, lines: 100 },
+        { fileExtension: "ts", files: 20, lines: 200 },
       ];
       const result = buildPieChartData(data);
       expect(result.slices[0].color).toBe(pieChartConfig.COLORS[0]);
@@ -58,7 +58,7 @@ describe("pie-chart-data-builder", () => {
       const paletteSize = pieChartConfig.COLORS.length;
       const data: FileTypeData[] = Array(paletteSize + 2)
         .fill(null)
-        .map((_, i) => ({ fileType: `type${i}`, files: 10, lines: 100 }));
+        .map((_, i) => ({ fileExtension: `type${i}`, files: 10, lines: 100 }));
       const result = buildPieChartData(data);
       // Colors beyond palette should be HSL format
       expect(result.slices[paletteSize].color).toMatch(/^hsl\(\d+(\.\d+)?, 65%, 50%\)$/);
@@ -68,7 +68,7 @@ describe("pie-chart-data-builder", () => {
     });
 
     it("should generate path data for each slice", () => {
-      const data: FileTypeData[] = [{ fileType: "js", files: 10, lines: 100 }];
+      const data: FileTypeData[] = [{ fileExtension: "js", files: 10, lines: 100 }];
       const result = buildPieChartData(data);
       expect(result.slices[0].pathData).toContain("M");
       expect(result.slices[0].pathData).toContain("A");
@@ -77,8 +77,8 @@ describe("pie-chart-data-builder", () => {
 
     it("should show label for slices above threshold", () => {
       const data: FileTypeData[] = [
-        { fileType: "js", files: 97, lines: 970 }, // 97%
-        { fileType: "ts", files: 3, lines: 30 }, // 3% - at threshold
+        { fileExtension: "js", files: 97, lines: 970 }, // 97%
+        { fileExtension: "ts", files: 3, lines: 30 }, // 3% - at threshold
       ];
       const result = buildPieChartData(data);
       expect(result.slices[0].showLabel).toBe(true);
@@ -87,8 +87,8 @@ describe("pie-chart-data-builder", () => {
 
     it("should hide label for slices below threshold", () => {
       const data: FileTypeData[] = [
-        { fileType: "js", files: 98, lines: 980 }, // 98%
-        { fileType: "ts", files: 2, lines: 20 }, // 2% - below threshold
+        { fileExtension: "js", files: 98, lines: 980 }, // 98%
+        { fileExtension: "ts", files: 2, lines: 20 }, // 2% - below threshold
       ];
       const result = buildPieChartData(data);
       expect(result.slices[0].showLabel).toBe(true);
@@ -96,13 +96,13 @@ describe("pie-chart-data-builder", () => {
     });
 
     it("should use UNKNOWN_VALUE_PLACEHOLDER for empty file type labels", () => {
-      const data: FileTypeData[] = [{ fileType: "", files: 10, lines: 100 }];
+      const data: FileTypeData[] = [{ fileExtension: "", files: 10, lines: 100 }];
       const result = buildPieChartData(data);
       expect(result.slices[0].label).toBe(UNKNOWN_VALUE_PLACEHOLDER);
     });
 
     it("should include config values for template rendering", () => {
-      const data: FileTypeData[] = [{ fileType: "js", files: 10, lines: 100 }];
+      const data: FileTypeData[] = [{ fileExtension: "js", files: 10, lines: 100 }];
       const result = buildPieChartData(data);
       expect(result.config.centerX).toBe(pieChartConfig.CENTER_X);
       expect(result.config.centerY).toBe(pieChartConfig.CENTER_Y);
@@ -113,8 +113,8 @@ describe("pie-chart-data-builder", () => {
     it("should calculate label positions at midpoint of slice", () => {
       // Two equal slices - first slice goes from -π/2 to π/2 (top-right quadrant)
       const data: FileTypeData[] = [
-        { fileType: "js", files: 50, lines: 500 },
-        { fileType: "ts", files: 50, lines: 500 },
+        { fileExtension: "js", files: 50, lines: 500 },
+        { fileExtension: "ts", files: 50, lines: 500 },
       ];
       const result = buildPieChartData(data);
       // First slice mid-angle is 0 (3 o'clock position), so labelX should be right of center
@@ -124,10 +124,10 @@ describe("pie-chart-data-builder", () => {
     });
 
     it("should calculate SVG height based on content", () => {
-      const smallData: FileTypeData[] = [{ fileType: "js", files: 10, lines: 100 }];
+      const smallData: FileTypeData[] = [{ fileExtension: "js", files: 10, lines: 100 }];
       const largeData: FileTypeData[] = Array(30)
         .fill(null)
-        .map((_, i) => ({ fileType: `type${i}`, files: 10, lines: 100 }));
+        .map((_, i) => ({ fileExtension: `type${i}`, files: 10, lines: 100 }));
 
       const smallResult = buildPieChartData(smallData);
       const largeResult = buildPieChartData(largeData);
@@ -137,15 +137,15 @@ describe("pie-chart-data-builder", () => {
     });
 
     it("should set SVG width from config", () => {
-      const data: FileTypeData[] = [{ fileType: "js", files: 10, lines: 100 }];
+      const data: FileTypeData[] = [{ fileExtension: "js", files: 10, lines: 100 }];
       const result = buildPieChartData(data);
       expect(result.svgWidth).toBe(pieChartConfig.SVG_WIDTH);
     });
 
     it("should handle zero total files gracefully", () => {
       const data: FileTypeData[] = [
-        { fileType: "js", files: 0, lines: 0 },
-        { fileType: "ts", files: 0, lines: 0 },
+        { fileExtension: "js", files: 0, lines: 0 },
+        { fileExtension: "ts", files: 0, lines: 0 },
       ];
       const result = buildPieChartData(data);
       expect(result.totalFiles).toBe(0);

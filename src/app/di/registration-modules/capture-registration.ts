@@ -2,7 +2,7 @@
  * DI registrations for the capture module.
  *
  * This module registers all capture-related components:
- * - CodebaseIngestionService (main capture orchestrator)
+ * - CodebaseCaptureOrchestrator (main capture orchestrator)
  * - FileSummarizerService (LLM-based file summarization)
  * - BufferedSourcesWriter (batched database writes)
  * - FileTypePromptRegistry (prompt configuration)
@@ -13,7 +13,7 @@ import { captureTokens, repositoryTokens } from "../tokens";
 import { fileTypePromptRegistry } from "../../prompts/sources/sources.definitions";
 import { FileSummarizerService } from "../../components/capture/file-summarizer.service";
 import { BufferedSourcesWriter } from "../../components/capture/buffered-sources-writer";
-import CodebaseIngestionService from "../../components/capture/codebase-ingestion.service";
+import CodebaseCaptureOrchestrator from "../../components/capture/codebase-capture-orchestrator";
 import type { SourcesRepository } from "../../repositories/sources/sources.repository.interface";
 
 /**
@@ -37,5 +37,8 @@ export function registerCaptureDependencies(): void {
   });
 
   // Register the main capture orchestrator
-  container.registerSingleton(captureTokens.CodebaseIngestionService, CodebaseIngestionService);
+  container.registerSingleton(
+    captureTokens.CodebaseCaptureOrchestrator,
+    CodebaseCaptureOrchestrator,
+  );
 }

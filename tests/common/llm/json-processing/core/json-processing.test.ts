@@ -102,30 +102,32 @@ describe("json-processing", () => {
       });
     });
 
-    describe("malformed Unicode handling (ES2023 isWellFormed)", () => {
-      it("should reject content with lone high surrogate (malformed Unicode)", () => {
+    describe("malformed Unicode handling (ES2024 toWellFormed recovery)", () => {
+      it("should recover content with lone high surrogate using toWellFormed()", () => {
         // Create a string with a lone high surrogate (\uD800 without a following low surrogate)
+        // toWellFormed() replaces lone surrogates with the Unicode replacement character (U+FFFD)
         const malformedContent = '{"key": "value\uD800"}';
         const completionOptions = { outputFormat: LLMOutputFormat.JSON };
         const result = parseAndValidateLLMJson(malformedContent, context, completionOptions);
 
-        expect(result.success).toBe(false);
-        if (!result.success) {
-          expect(result.error.message).toContain("malformed Unicode");
-          expect(result.error.type).toBe(JsonProcessingErrorType.PARSE);
+        expect(result.success).toBe(true);
+        if (result.success) {
+          // The lone surrogate should be replaced with U+FFFD (replacement character)
+          expect(result.data).toEqual({ key: "value\uFFFD" });
         }
       });
 
-      it("should reject content with lone low surrogate (malformed Unicode)", () => {
+      it("should recover content with lone low surrogate using toWellFormed()", () => {
         // Create a string with a lone low surrogate (\uDC00 without a preceding high surrogate)
+        // toWellFormed() replaces lone surrogates with the Unicode replacement character (U+FFFD)
         const malformedContent = '{"key": "value\uDC00more"}';
         const completionOptions = { outputFormat: LLMOutputFormat.JSON };
         const result = parseAndValidateLLMJson(malformedContent, context, completionOptions);
 
-        expect(result.success).toBe(false);
-        if (!result.success) {
-          expect(result.error.message).toContain("malformed Unicode");
-          expect(result.error.type).toBe(JsonProcessingErrorType.PARSE);
+        expect(result.success).toBe(true);
+        if (result.success) {
+          // The lone surrogate should be replaced with U+FFFD (replacement character)
+          expect(result.data).toEqual({ key: "value\uFFFDmore" });
         }
       });
 

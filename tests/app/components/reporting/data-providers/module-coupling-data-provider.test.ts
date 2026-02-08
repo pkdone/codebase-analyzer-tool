@@ -26,7 +26,7 @@ describe("ModuleCouplingDataProvider", () => {
 
     // Create mock repository
     mockSourcesRepository = {
-      getProjectSourcesSummariesByFileType: jest.fn(),
+      getProjectSourcesSummariesByFileExtension: jest.fn(),
     } as unknown as jest.Mocked<SourcesRepository>;
 
     moduleCouplingDataProvider = new ModuleCouplingDataProvider(mockSourcesRepository);
@@ -34,7 +34,7 @@ describe("ModuleCouplingDataProvider", () => {
 
   describe("getModuleCoupling", () => {
     it("should return empty result for project with no source files", async () => {
-      mockSourcesRepository.getProjectSourcesSummariesByFileType.mockResolvedValue([]);
+      mockSourcesRepository.getProjectSourcesSummariesByFileExtension.mockResolvedValue([]);
 
       const result = await moduleCouplingDataProvider.getModuleCoupling("test-project");
 
@@ -49,7 +49,7 @@ describe("ModuleCouplingDataProvider", () => {
         createMockSource("src/components/Button.tsx", []),
         createMockSource("src/utils/helpers.ts"),
       ];
-      mockSourcesRepository.getProjectSourcesSummariesByFileType.mockResolvedValue(
+      mockSourcesRepository.getProjectSourcesSummariesByFileExtension.mockResolvedValue(
         sourcesWithoutRefs,
       );
 
@@ -67,7 +67,9 @@ describe("ModuleCouplingDataProvider", () => {
         ]),
         createMockSource("src/components/Modal.tsx", ["src/utils/helpers"]),
       ];
-      mockSourcesRepository.getProjectSourcesSummariesByFileType.mockResolvedValue(sourcesWithRefs);
+      mockSourcesRepository.getProjectSourcesSummariesByFileExtension.mockResolvedValue(
+        sourcesWithRefs,
+      );
 
       const result = await moduleCouplingDataProvider.getModuleCoupling("test-project", 2);
 
@@ -89,7 +91,7 @@ describe("ModuleCouplingDataProvider", () => {
       const sourcesWithSelfRef = [
         createMockSource("src/components/Button.tsx", ["src/components/Icon"]),
       ];
-      mockSourcesRepository.getProjectSourcesSummariesByFileType.mockResolvedValue(
+      mockSourcesRepository.getProjectSourcesSummariesByFileExtension.mockResolvedValue(
         sourcesWithSelfRef,
       );
 
@@ -104,7 +106,7 @@ describe("ModuleCouplingDataProvider", () => {
         createMockSource("src/a/file1.ts", ["src/b/file", "src/c/file", "src/c/file2"]),
         createMockSource("src/b/file1.ts", ["src/c/file"]),
       ];
-      mockSourcesRepository.getProjectSourcesSummariesByFileType.mockResolvedValue(
+      mockSourcesRepository.getProjectSourcesSummariesByFileExtension.mockResolvedValue(
         sourcesWithMultipleCouplings,
       );
 
@@ -123,7 +125,7 @@ describe("ModuleCouplingDataProvider", () => {
           "com.example.util.Formatter",
         ]),
       ];
-      mockSourcesRepository.getProjectSourcesSummariesByFileType.mockResolvedValue(
+      mockSourcesRepository.getProjectSourcesSummariesByFileExtension.mockResolvedValue(
         sourcesWithNamespaceRefs,
       );
 
@@ -139,7 +141,7 @@ describe("ModuleCouplingDataProvider", () => {
       const sourcesWithBackslashes = [
         createMockSource("src\\components\\Button.tsx", ["src\\utils\\helpers"]),
       ];
-      mockSourcesRepository.getProjectSourcesSummariesByFileType.mockResolvedValue(
+      mockSourcesRepository.getProjectSourcesSummariesByFileExtension.mockResolvedValue(
         sourcesWithBackslashes,
       );
 
@@ -153,7 +155,7 @@ describe("ModuleCouplingDataProvider", () => {
       const sources = [
         createMockSource("src/app/components/Button.tsx", ["src/app/utils/helpers"]),
       ];
-      mockSourcesRepository.getProjectSourcesSummariesByFileType.mockResolvedValue(sources);
+      mockSourcesRepository.getProjectSourcesSummariesByFileExtension.mockResolvedValue(sources);
 
       const result = await moduleCouplingDataProvider.getModuleCoupling("test-project");
 
@@ -166,7 +168,7 @@ describe("ModuleCouplingDataProvider", () => {
         createMockSource("src/a/file.ts", ["src/b/file"]),
         createMockSource("src/c/file.ts", ["src/b/file", "src/b/file2"]),
       ];
-      mockSourcesRepository.getProjectSourcesSummariesByFileType.mockResolvedValue(sources);
+      mockSourcesRepository.getProjectSourcesSummariesByFileExtension.mockResolvedValue(sources);
 
       const result1 = await moduleCouplingDataProvider.getModuleCoupling("test-project", 2);
       const result2 = await moduleCouplingDataProvider.getModuleCoupling("test-project", 2);
@@ -183,7 +185,7 @@ describe("ModuleCouplingDataProvider", () => {
       const sourcesWithRelativeRefs = [
         createMockSource("src/components/Button.tsx", ["../utils/helpers"]),
       ];
-      mockSourcesRepository.getProjectSourcesSummariesByFileType.mockResolvedValue(
+      mockSourcesRepository.getProjectSourcesSummariesByFileExtension.mockResolvedValue(
         sourcesWithRelativeRefs,
       );
 
@@ -199,7 +201,7 @@ describe("ModuleCouplingDataProvider", () => {
       const sourcesWithCurrentDirRefs = [
         createMockSource("src/services/user/UserService.ts", ["./UserHelper"]),
       ];
-      mockSourcesRepository.getProjectSourcesSummariesByFileType.mockResolvedValue(
+      mockSourcesRepository.getProjectSourcesSummariesByFileExtension.mockResolvedValue(
         sourcesWithCurrentDirRefs,
       );
 
@@ -216,7 +218,7 @@ describe("ModuleCouplingDataProvider", () => {
           "../../../shared/components/Button",
         ]),
       ];
-      mockSourcesRepository.getProjectSourcesSummariesByFileType.mockResolvedValue(
+      mockSourcesRepository.getProjectSourcesSummariesByFileExtension.mockResolvedValue(
         sourcesWithDeepRelativeRefs,
       );
 
@@ -235,7 +237,7 @@ describe("ModuleCouplingDataProvider", () => {
           "src/services/api", // absolute
         ]),
       ];
-      mockSourcesRepository.getProjectSourcesSummariesByFileType.mockResolvedValue(
+      mockSourcesRepository.getProjectSourcesSummariesByFileExtension.mockResolvedValue(
         sourcesWithMixedRefs,
       );
 
@@ -252,7 +254,7 @@ describe("ModuleCouplingDataProvider", () => {
           "../../../shared/utils/format", // Goes up to app/, then into shared/
         ]),
       ];
-      mockSourcesRepository.getProjectSourcesSummariesByFileType.mockResolvedValue(
+      mockSourcesRepository.getProjectSourcesSummariesByFileExtension.mockResolvedValue(
         sourcesWithMultipleParents,
       );
 

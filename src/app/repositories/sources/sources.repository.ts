@@ -9,7 +9,7 @@ import {
   ProjectedDatabaseIntegrationFields,
   ProjectedIntegrationPointFields,
   ProjectedFilePath,
-  ProjectedFileTypesCountAndLines,
+  ProjectedFileExtensionStats,
   SourceRecord,
   ProjectedFileAndLineStats,
   ProjectedTopComplexFunction,
@@ -118,13 +118,13 @@ export default class SourcesRepositoryImpl
   }
 
   /**
-   * Get source file summaries for a project
+   * Get source file summaries for a project filtered by file extension
    */
-  async getProjectSourcesSummariesByFileType(
+  async getProjectSourcesSummariesByFileExtension(
     projectName: string,
-    fileTypes: string[],
+    fileExtensions: string[],
   ): Promise<ProjectedSourceSummaryFields[]> {
-    return this.getProjectSourcesSummariesByField(projectName, "fileType", fileTypes);
+    return this.getProjectSourcesSummariesByField(projectName, "fileExtension", fileExtensions);
   }
 
   /**
@@ -240,7 +240,7 @@ export default class SourcesRepositoryImpl
           _id: 0,
           projectName: 1,
           filepath: 1,
-          fileType: 1,
+          fileExtension: 1,
           content: 1,
           summary: 1,
         },
@@ -295,24 +295,22 @@ export default class SourcesRepositoryImpl
   }
 
   /**
-   * Get files count and lines of code count for each file typefor a project
+   * Get files count and lines of code count for each file extension for a project
    */
-  async getProjectFileTypesCountAndLines(
-    projectName: string,
-  ): Promise<ProjectedFileTypesCountAndLines[]> {
+  async getProjectFileExtensionStats(projectName: string): Promise<ProjectedFileExtensionStats[]> {
     const pipeline = [
       { $match: { projectName } },
       {
         $group: {
-          _id: "$fileType",
+          _id: "$fileExtension",
           lines: { $sum: "$linesCount" },
           files: { $sum: 1 },
         },
       },
-      { $set: { fileType: "$_id" } },
+      { $set: { fileExtension: "$_id" } },
       { $sort: { files: -1, lines: -1 } },
     ];
-    return await this.collection.aggregate<ProjectedFileTypesCountAndLines>(pipeline).toArray();
+    return await this.collection.aggregate<ProjectedFileExtensionStats>(pipeline).toArray();
   }
 
   /**
@@ -557,11 +555,11 @@ export default class SourcesRepositoryImpl
 
   /**
    * Private helper to get source file summaries filtered by a specific field.
-   * Consolidates shared logic between getProjectSourcesSummariesByFileType and getProjectSourcesSummariesByCanonicalType.
+   * Consolidates shared logic between getProjectSourcesSummariesByFileExtension and getProjectSourcesSummariesByCanonicalType.
    */
   private async getProjectSourcesSummariesByField(
     projectName: string,
-    filterField: "fileType" | "canonicalType",
+    filterField: "fileExtension" | "canonicalType",
     filterValues: string[],
   ): Promise<ProjectedSourceSummaryFields[]> {
     const query: Document = { projectName };

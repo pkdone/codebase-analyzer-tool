@@ -35,10 +35,24 @@ export interface LLMErrResult {
  * Discriminated union type representing either a successful LLM result with metadata
  * or a failed result with an error.
  *
- * Unlike the generic `Result` type, `LLMResult` carries execution metadata (the actual
- * model that succeeded) which is essential for tracking fallback behavior.
+ * ## Relationship to generic `Result` type
+ *
+ * `LLMResult` follows the same discriminated union pattern as the generic
+ * {@link Result} type, but extends it with LLM-specific features:
+ *
+ * - **Execution metadata**: Captures which model actually succeeded (provider/model key),
+ *   essential for debugging and tracking fallback behavior in multi-model chains.
+ * - **Typed error**: Uses {@link LLMExecutionError} instead of generic `Error`, providing
+ *   structured information about failures across the LLM fallback chain.
+ *
+ * Use `LLMResult` for all LLM pipeline operations. Use the generic `Result` type
+ * for other operations that don't need model execution tracking.
  *
  * @template T - The type of the success value
+ *
+ * @see {@link file://../../types/result.types.ts | Result} - Generic result type for non-LLM operations
+ * @see {@link LLMExecutionMetadata} - Structure of the success metadata
+ * @see {@link LLMExecutionError} - Structure of the error information
  */
 export type LLMResult<T> = LLMOkResult<T> | LLMErrResult;
 

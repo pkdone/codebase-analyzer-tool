@@ -1,4 +1,15 @@
-import { LLMError, LLMErrorCode } from "../../../types/llm-errors.types";
+import { z } from "zod";
+import { createProviderConfigValidator } from "../../common/provider-config-validator";
+
+/**
+ * Zod schema for VertexAI Gemini provider configuration.
+ * Validates that the config contains all required fields.
+ */
+export const VertexAIGeminiConfigSchema = z.object({
+  projectId: z.string().min(1),
+  embeddingsLocation: z.string().min(1),
+  completionsLocation: z.string().min(1),
+});
 
 /**
  * Typed configuration for VertexAI Gemini provider.
@@ -17,24 +28,21 @@ export interface VertexAIGeminiConfig {
 }
 
 /**
+ * Type guard and assertion functions for VertexAI Gemini config validation.
+ */
+const { isValid, assert } = createProviderConfigValidator<VertexAIGeminiConfig>(
+  VertexAIGeminiConfigSchema,
+  "VertexAI Gemini",
+);
+
+/**
  * Type guard to check if an object is a valid VertexAIGeminiConfig.
  * Returns a boolean for use in conditional type narrowing.
  *
  * @param obj - The object to validate
  * @returns True if the object is a valid VertexAIGeminiConfig
  */
-export function isVertexAIGeminiConfig(obj: unknown): obj is VertexAIGeminiConfig {
-  if (!obj || typeof obj !== "object") return false;
-  const config = obj as Record<string, unknown>;
-  return (
-    typeof config.projectId === "string" &&
-    config.projectId.length > 0 &&
-    typeof config.embeddingsLocation === "string" &&
-    config.embeddingsLocation.length > 0 &&
-    typeof config.completionsLocation === "string" &&
-    config.completionsLocation.length > 0
-  );
-}
+export const isVertexAIGeminiConfig = isValid;
 
 /**
  * Validates and asserts that an object is a valid VertexAIGeminiConfig.
@@ -44,32 +52,4 @@ export function isVertexAIGeminiConfig(obj: unknown): obj is VertexAIGeminiConfi
  * @returns The validated VertexAIGeminiConfig
  * @throws LLMError with BAD_CONFIGURATION code if validation fails
  */
-export function assertVertexAIGeminiConfig(obj: unknown): VertexAIGeminiConfig {
-  if (!obj || typeof obj !== "object") {
-    throw new LLMError(
-      LLMErrorCode.BAD_CONFIGURATION,
-      "Invalid VertexAI Gemini configuration - expected an object",
-    );
-  }
-  const config = obj as Record<string, unknown>;
-  const missingFields: string[] = [];
-
-  if (typeof config.projectId !== "string" || config.projectId.length === 0) {
-    missingFields.push("projectId");
-  }
-  if (typeof config.embeddingsLocation !== "string" || config.embeddingsLocation.length === 0) {
-    missingFields.push("embeddingsLocation");
-  }
-  if (typeof config.completionsLocation !== "string" || config.completionsLocation.length === 0) {
-    missingFields.push("completionsLocation");
-  }
-
-  if (missingFields.length > 0) {
-    throw new LLMError(
-      LLMErrorCode.BAD_CONFIGURATION,
-      `Invalid VertexAI Gemini configuration - missing or empty required fields: ${missingFields.join(", ")}`,
-    );
-  }
-
-  return config as VertexAIGeminiConfig;
-}
+export const assertVertexAIGeminiConfig = assert;

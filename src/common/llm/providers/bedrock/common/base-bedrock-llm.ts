@@ -71,6 +71,21 @@ export default abstract class BaseBedrockLLM extends BaseLLMProvider {
   }
 
   /**
+   * Implements AsyncDisposable for use with `await using` declarations.
+   * Automatically closes the client when the provider goes out of scope.
+   *
+   * @example
+   * ```typescript
+   * await using provider = new BedrockClaudeProvider(init);
+   * // ... use the provider
+   * // Automatically closes when scope exits
+   * ```
+   */
+  async [Symbol.asyncDispose](): Promise<void> {
+    await this.close();
+  }
+
+  /**
    * Validate AWS credentials are available and not expired.
    * Forces credential resolution to fail fast at startup if SSO login is required.
    */

@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import { FileTypesSection } from "../../../../../src/app/components/reporting/sections/file-types/file-types-section";
 import { SourcesRepository } from "../../../../../src/app/repositories/sources/sources.repository.interface";
-import type { ProjectedFileTypesCountAndLines } from "../../../../../src/app/repositories/sources/sources.model";
+import type { ProjectedFileExtensionStats } from "../../../../../src/app/repositories/sources/sources.model";
 import type { ReportData } from "../../../../../src/app/components/reporting/report-data.types";
 
 describe("FileTypesSection", () => {
@@ -10,7 +10,7 @@ describe("FileTypesSection", () => {
 
   beforeEach(() => {
     mockSourcesRepository = {
-      getProjectFileTypesCountAndLines: jest.fn(),
+      getProjectFileExtensionStats: jest.fn(),
     } as unknown as jest.Mocked<SourcesRepository>;
 
     section = new FileTypesSection(mockSourcesRepository);
@@ -30,17 +30,17 @@ describe("FileTypesSection", () => {
 
   describe("getData", () => {
     it("should fetch file types data from sources repository", async () => {
-      const mockData: ProjectedFileTypesCountAndLines[] = [
-        { fileType: "java", files: 10, lines: 1000 },
-        { fileType: "xml", files: 5, lines: 500 },
+      const mockData: ProjectedFileExtensionStats[] = [
+        { fileExtension: "java", files: 10, lines: 1000 },
+        { fileExtension: "xml", files: 5, lines: 500 },
       ];
 
-      mockSourcesRepository.getProjectFileTypesCountAndLines.mockResolvedValue(mockData);
+      mockSourcesRepository.getProjectFileExtensionStats.mockResolvedValue(mockData);
 
       const result = await section.getData("test-project");
 
       expect(result).toEqual({ fileTypesData: mockData });
-      expect(mockSourcesRepository.getProjectFileTypesCountAndLines).toHaveBeenCalledWith(
+      expect(mockSourcesRepository.getProjectFileExtensionStats).toHaveBeenCalledWith(
         "test-project",
       );
     });
@@ -48,9 +48,9 @@ describe("FileTypesSection", () => {
 
   describe("prepareHtmlData", () => {
     it("should process file types data for template rendering", async () => {
-      const mockFileTypesData: ProjectedFileTypesCountAndLines[] = [
-        { fileType: "java", files: 10, lines: 1000 },
-        { fileType: "", files: 5, lines: 500 }, // Empty file type should become "unknown"
+      const mockFileTypesData: ProjectedFileExtensionStats[] = [
+        { fileExtension: "java", files: 10, lines: 1000 },
+        { fileExtension: "", files: 5, lines: 500 }, // Empty file type should become "unknown"
       ];
 
       const mockReportData: Partial<ReportData> = {} as ReportData;
@@ -63,15 +63,15 @@ describe("FileTypesSection", () => {
       );
 
       expect(result).toBeDefined();
-      expect(result?.fileTypesData?.[1].fileType).toBe("unknown");
+      expect(result?.fileTypesData?.[1].fileExtension).toBe("unknown");
       expect(result?.fileTypesTableViewModel).toBeDefined();
     });
   });
 
   describe("prepareJsonData", () => {
     it("should prepare JSON data for file types", () => {
-      const mockFileTypesData: ProjectedFileTypesCountAndLines[] = [
-        { fileType: "java", files: 10, lines: 1000 },
+      const mockFileTypesData: ProjectedFileExtensionStats[] = [
+        { fileExtension: "java", files: 10, lines: 1000 },
       ];
 
       const mockReportData: Partial<ReportData> = {} as ReportData;

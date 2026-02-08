@@ -29,8 +29,7 @@ export class FileTypesSection extends BaseReportSection {
   }
 
   async getData(projectName: string): Promise<Partial<ReportData>> {
-    const fileTypesData =
-      await this.sourcesRepository.getProjectFileTypesCountAndLines(projectName);
+    const fileTypesData = await this.sourcesRepository.getProjectFileExtensionStats(projectName);
     return { fileTypesData };
   }
 
@@ -44,7 +43,7 @@ export class FileTypesSection extends BaseReportSection {
 
     // Create display data for table
     const fileTypesDisplayData = processedFileTypesData.map((item) => ({
-      [HTML_TABLE_COLUMN_HEADERS.FILE_TYPE]: item.fileType,
+      [HTML_TABLE_COLUMN_HEADERS.FILE_TYPE]: item.fileExtension,
       [HTML_TABLE_COLUMN_HEADERS.FILES_COUNT]: item.files,
       [HTML_TABLE_COLUMN_HEADERS.LINES_COUNT]: item.lines,
     }));
@@ -72,14 +71,14 @@ export class FileTypesSection extends BaseReportSection {
   }
 
   /**
-   * Process file types data to show placeholder for empty file types.
+   * Process file types data to show placeholder for empty file extensions.
    */
   private processFileTypesData(
     fileTypesData: ReportData["fileTypesData"],
   ): ReportData["fileTypesData"] {
     return fileTypesData.map((item) => ({
       ...item,
-      fileType: item.fileType || UNKNOWN_VALUE_PLACEHOLDER,
+      fileExtension: item.fileExtension || UNKNOWN_VALUE_PLACEHOLDER,
     }));
   }
 }

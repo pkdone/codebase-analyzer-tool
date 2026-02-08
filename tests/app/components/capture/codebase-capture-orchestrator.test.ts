@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import path from "path";
-import CodebaseIngestionService from "../../../../src/app/components/capture/codebase-ingestion.service";
+import CodebaseCaptureOrchestrator from "../../../../src/app/components/capture/codebase-capture-orchestrator";
 import { SourcesRepository } from "../../../../src/app/repositories/sources/sources.repository.interface";
 import LLMRouter from "../../../../src/common/llm/llm-router";
 import { FileSummarizerService } from "../../../../src/app/components/capture/file-summarizer.service";
@@ -31,7 +31,7 @@ jest.mock("../../../../src/app/components/capture/utils", () => ({
 
 /**
  * Test configuration for file processing rules.
- * Injected directly into CodebaseIngestionService instead of mocking module imports.
+ * Injected directly into CodebaseCaptureOrchestrator instead of mocking module imports.
  * Uses type assertion to allow test-specific values without matching exact literal types.
  */
 const mockFileProcessingRules = {
@@ -72,8 +72,8 @@ const mockPath = {
   basename: mockPathBasename,
 } as jest.Mocked<typeof path>;
 
-describe("CodebaseIngestionService", () => {
-  let service: CodebaseIngestionService;
+describe("CodebaseCaptureOrchestrator", () => {
+  let service: CodebaseCaptureOrchestrator;
   let mockSourcesRepository: jest.Mocked<SourcesRepository>;
   let mockLLMRouter: jest.Mocked<LLMRouter>;
   let mockFileSummarizer: jest.Mocked<FileSummarizerService>;
@@ -150,7 +150,7 @@ describe("CodebaseIngestionService", () => {
     } as unknown as jest.Mocked<LlmConcurrencyService>;
 
     // Create service with injected mock config (no module mocking needed)
-    service = new CodebaseIngestionService(
+    service = new CodebaseCaptureOrchestrator(
       mockSourcesRepository,
       mockLLMRouter,
       mockFileSummarizer,
@@ -165,7 +165,7 @@ describe("CodebaseIngestionService", () => {
     mockConsoleWarn.mockRestore();
   });
 
-  describe("ingestCodebaseToDatabase", () => {
+  describe("captureCodebase", () => {
     it("should process all found files successfully", async () => {
       const mockFilesWithSize = [
         { filepath: "/src/file1.ts", size: 100 },
@@ -180,7 +180,7 @@ describe("CodebaseIngestionService", () => {
       mockTextUtils.countLines.mockReturnValue(1);
       mockGetCanonicalFileType.mockReturnValue("javascript");
 
-      await service.ingestCodebaseToDatabase("test-project", "/src", false);
+      await service.captureCodebase("test-project", "/src", false);
 
       expect(mockDirectoryOperations.findFilesWithSize).toHaveBeenCalledWith("/src", {
         folderIgnoreList: [".git", "node_modules"],
@@ -214,7 +214,7 @@ describe("CodebaseIngestionService", () => {
       mockFileOperations.readFile.mockResolvedValue("const x = 1;");
       mockTextUtils.countLines.mockReturnValue(1);
 
-      await service.ingestCodebaseToDatabase("test-project", "/src", true);
+      await service.captureCodebase("test-project", "/src", true);
 
       // Only one file should be added (the other was already ingested)
       expect(mockBufferedWriter.add).toHaveBeenCalledTimes(1);
@@ -224,7 +224,7 @@ describe("CodebaseIngestionService", () => {
     it("should delete existing sources when skipIfAlreadyIngested is false", async () => {
       mockDirectoryOperations.findFilesWithSize.mockResolvedValue([]);
 
-      await service.ingestCodebaseToDatabase("test-project", "/src", false);
+      await service.captureCodebase("test-project", "/src", false);
 
       expect(mockSourcesRepository.deleteSourcesByProject).toHaveBeenCalledWith("test-project");
     });
@@ -233,7 +233,7 @@ describe("CodebaseIngestionService", () => {
       mockDirectoryOperations.findFilesWithSize.mockResolvedValue([]);
       mockSourcesRepository.getProjectFilesPaths.mockResolvedValue([]);
 
-      await service.ingestCodebaseToDatabase("test-project", "/src", true);
+      await service.captureCodebase("test-project", "/src", true);
 
       expect(mockSourcesRepository.deleteSourcesByProject).not.toHaveBeenCalled();
     });
@@ -251,7 +251,7 @@ describe("CodebaseIngestionService", () => {
       mockFileOperations.readFile.mockResolvedValue("const x = 1;");
       mockTextUtils.countLines.mockReturnValue(1);
 
-      await service.ingestCodebaseToDatabase("test-project", "/src", false);
+      await service.captureCodebase("test-project", "/src", false);
 
       // Binary files are skipped, only one file added
       expect(mockBufferedWriter.add).toHaveBeenCalledTimes(1);
@@ -273,7 +273,7 @@ describe("CodebaseIngestionService", () => {
         .mockResolvedValueOnce("const x = 1;");
       mockTextUtils.countLines.mockReturnValue(1);
 
-      await service.ingestCodebaseToDatabase("test-project", "/src", false);
+      await service.captureCodebase("test-project", "/src", false);
 
       // Empty files are skipped, only one file added
       expect(mockBufferedWriter.add).toHaveBeenCalledTimes(1);
@@ -295,7 +295,7 @@ describe("CodebaseIngestionService", () => {
         ),
       );
 
-      await service.ingestCodebaseToDatabase("test-project", "/src", false);
+      await service.captureCodebase("test-project", "/src", false);
 
       // File should still be added with summaryError
       expect(mockBufferedWriter.add).toHaveBeenCalled();
@@ -310,7 +310,7 @@ describe("CodebaseIngestionService", () => {
       mockPath.relative.mockReturnValue("file1.ts");
       mockFileOperations.readFile.mockRejectedValue(new Error("Read failed"));
 
-      await service.ingestCodebaseToDatabase("test-project", "/src", false);
+      await service.captureCodebase("test-project", "/src", false);
 
       expect(mockConsoleWarn).toHaveBeenCalledWith(expect.stringContaining("failed to process"));
     });
@@ -334,7 +334,7 @@ describe("CodebaseIngestionService", () => {
         },
       });
 
-      await service.ingestCodebaseToDatabase("test-project", "/src", false);
+      await service.captureCodebase("test-project", "/src", false);
 
       // Records are added to buffer with embeddings
       expect(mockBufferedWriter.add).toHaveBeenCalledWith(
@@ -348,7 +348,7 @@ describe("CodebaseIngestionService", () => {
     it("should reset buffered writer before processing", async () => {
       mockDirectoryOperations.findFilesWithSize.mockResolvedValue([]);
 
-      await service.ingestCodebaseToDatabase("test-project", "/src", false);
+      await service.captureCodebase("test-project", "/src", false);
 
       expect(mockBufferedWriter.reset).toHaveBeenCalled();
     });

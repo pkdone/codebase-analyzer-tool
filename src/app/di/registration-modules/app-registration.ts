@@ -89,7 +89,7 @@ function registerRepositories(): void {
  * here because the LLMRouter is created via a factory pattern in llm-registration.ts
  * to keep the src/common/llm module framework-agnostic.
  *
- * Note: Capture components (CodebaseIngestionService, etc.) are registered in
+ * Note: Capture components (CodebaseCaptureOrchestrator, etc.) are registered in
  * capture-registration.ts for better module cohesion.
  */
 function registerComponents(): void {

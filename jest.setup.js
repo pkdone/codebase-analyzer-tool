@@ -25,6 +25,7 @@ process.env.VERTEXAI_COMPLETIONS_LOCATION ||= "global";
 process.env.VERTEXAI_GEMINI_EMBEDDING_001_MODEL_URN ||= "gemini-embedding-001";
 process.env.VERTEXAI_GEMINI_3_PRO_MODEL_URN ||= "gemini-3-pro";
 process.env.VERTEXAI_GEMINI_25_PRO_MODEL_URN ||= "gemini-2.5-pro";
+process.env.VERTEXAI_CLAUDE_OPUS_46_MODEL_URN ||= "claude-opus-4-6@20250514";
 // OpenAI
 process.env.OPENAI_LLM_API_KEY ||= "test-api-key";
 process.env.OPENAI_EMBEDDING_3_SMALL_MODEL_URN ||= "text-embedding-3-small";
@@ -42,6 +43,7 @@ process.env.AZURE_OPENAI_GPT4_TURBO_MODEL_URN ||= "gpt-4-turbo";
 // Bedrock (shared Titan embeddings + Claude)
 process.env.BEDROCK_TITAN_EMBEDDINGS_MODEL_URN ||= "amazon.titan-embed-text-v1";
 process.env.BEDROCK_CLAUDE_OPUS_45_MODEL_URN ||= "global.anthropic.claude-opus-4-5-20251101-v1:0";
+process.env.BEDROCK_CLAUDE_OPUS_46_MODEL_URN ||= "us.anthropic.claude-opus-4-6-v1:0";
 process.env.BEDROCK_CLAUDE_SONNET_45_MODEL_URN ||= "us.anthropic.claude-sonnet-4-5-20250929-v1:0";
 process.env.BEDROCK_NOVA_PRO_MODEL_URN ||= "us.amazon.nova-pro-v1:0";
 process.env.BEDROCK_NOVA_LITE_MODEL_URN ||= "us.amazon.nova-lite-v1:0";

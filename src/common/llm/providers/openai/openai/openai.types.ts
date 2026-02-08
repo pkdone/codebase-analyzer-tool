@@ -1,4 +1,13 @@
-import { LLMError, LLMErrorCode } from "../../../types/llm-errors.types";
+import { z } from "zod";
+import { createProviderConfigValidator } from "../../common/provider-config-validator";
+
+/**
+ * Zod schema for OpenAI provider configuration.
+ * Validates that the config contains all required fields.
+ */
+export const OpenAIConfigSchema = z.object({
+  apiKey: z.string().min(1),
+});
 
 /**
  * Typed configuration for OpenAI provider.
@@ -13,17 +22,21 @@ export interface OpenAIConfig {
 }
 
 /**
+ * Type guard and assertion functions for OpenAI config validation.
+ */
+const { isValid, assert } = createProviderConfigValidator<OpenAIConfig>(
+  OpenAIConfigSchema,
+  "OpenAI",
+);
+
+/**
  * Type guard to check if an object is a valid OpenAIConfig.
  * Returns a boolean for use in conditional type narrowing.
  *
  * @param obj - The object to validate
  * @returns True if the object is a valid OpenAIConfig
  */
-export function isOpenAIConfig(obj: unknown): obj is OpenAIConfig {
-  if (!obj || typeof obj !== "object") return false;
-  const config = obj as Record<string, unknown>;
-  return typeof config.apiKey === "string" && config.apiKey.length > 0;
-}
+export const isOpenAIConfig = isValid;
 
 /**
  * Validates and asserts that an object is a valid OpenAIConfig.
@@ -33,19 +46,4 @@ export function isOpenAIConfig(obj: unknown): obj is OpenAIConfig {
  * @returns The validated OpenAIConfig
  * @throws LLMError with BAD_CONFIGURATION code if validation fails
  */
-export function assertOpenAIConfig(obj: unknown): OpenAIConfig {
-  if (!obj || typeof obj !== "object") {
-    throw new LLMError(
-      LLMErrorCode.BAD_CONFIGURATION,
-      "Invalid OpenAI configuration - expected an object",
-    );
-  }
-  const config = obj as Record<string, unknown>;
-  if (typeof config.apiKey !== "string" || config.apiKey.length === 0) {
-    throw new LLMError(
-      LLMErrorCode.BAD_CONFIGURATION,
-      "Invalid OpenAI configuration - missing or empty apiKey",
-    );
-  }
-  return config as OpenAIConfig;
-}
+export const assertOpenAIConfig = assert;

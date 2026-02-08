@@ -37,7 +37,7 @@ export class JavaUiTechnologyDataProvider {
    */
   async getUiTechnologyAnalysis(projectName: string): Promise<UiTechnologyAnalysisData> {
     // Fetch all source files from the project
-    const sourceFiles = await this.sourcesRepository.getProjectSourcesSummariesByFileType(
+    const sourceFiles = await this.sourcesRepository.getProjectSourcesSummariesByFileExtension(
       projectName,
       [],
     );

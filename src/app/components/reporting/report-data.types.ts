@@ -12,7 +12,7 @@
  * - Overview types: sections/overview/overview.types.ts
  */
 
-import type { ProjectedFileTypesCountAndLines } from "../../repositories/sources/sources.model";
+import type { ProjectedFileExtensionStats } from "../../repositories/sources/sources.model";
 import type { CategorizedSectionItem } from "./data-processing";
 
 /**
@@ -28,7 +28,7 @@ import type { CategorizedSectionItem } from "./data-processing";
  */
 export interface ReportData {
   appStats: import("./sections/overview/overview.types").AppStatistics;
-  fileTypesData: ProjectedFileTypesCountAndLines[];
+  fileTypesData: ProjectedFileExtensionStats[];
   categorizedData: CategorizedSectionItem[];
   integrationPoints: import("./sections/integration-points/integration-points.types").IntegrationPointInfo[];
   dbInteractions: import("./sections/database/database.types").DatabaseIntegrationInfo[];

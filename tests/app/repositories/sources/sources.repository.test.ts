@@ -70,7 +70,7 @@ describe("SourcesRepositoryImpl", () => {
         projectName: "test-project",
         filename: "test.ts",
         filepath: "src/test.ts",
-        fileType: "ts",
+        fileExtension: "ts",
         linesCount: 10,
         content: "console.log('test');",
         summary: {
@@ -92,7 +92,7 @@ describe("SourcesRepositoryImpl", () => {
         projectName: "test-project",
         filename: "test.ts",
         filepath: "src/test.ts",
-        fileType: "ts",
+        fileExtension: "ts",
         linesCount: 10,
         content: "console.log('test');",
       };
@@ -112,7 +112,7 @@ describe("SourcesRepositoryImpl", () => {
           projectName: "test-project",
           filename: "test1.ts",
           filepath: "src/test1.ts",
-          fileType: "ts",
+          fileExtension: "ts",
           linesCount: 10,
           content: "console.log('test1');",
         },
@@ -120,7 +120,7 @@ describe("SourcesRepositoryImpl", () => {
           projectName: "test-project",
           filename: "test2.ts",
           filepath: "src/test2.ts",
-          fileType: "ts",
+          fileExtension: "ts",
           linesCount: 20,
           content: "console.log('test2');",
         },
@@ -145,7 +145,7 @@ describe("SourcesRepositoryImpl", () => {
           projectName: "test-project",
           filename: "test1.ts",
           filepath: "src/test1.ts",
-          fileType: "ts",
+          fileExtension: "ts",
           linesCount: 10,
           content: "console.log('test1');",
         },
@@ -163,7 +163,7 @@ describe("SourcesRepositoryImpl", () => {
           projectName: "test-project",
           filename: "test1.ts",
           filepath: "src/test1.ts",
-          fileType: "ts",
+          fileExtension: "ts",
           linesCount: 10,
           content: "console.log('test1');",
         },
@@ -229,7 +229,7 @@ describe("SourcesRepositoryImpl", () => {
         {
           projectName,
           filepath: "src/test.ts",
-          fileType: "ts",
+          fileExtension: "ts",
           content: "test content",
           summary: { namespace: "Test" },
         },
@@ -263,7 +263,7 @@ describe("SourcesRepositoryImpl", () => {
             _id: 0,
             projectName: 1,
             filepath: 1,
-            fileType: 1,
+            fileExtension: 1,
             content: 1,
             summary: 1,
           },
@@ -404,16 +404,16 @@ describe("SourcesRepositoryImpl", () => {
       });
     });
 
-    describe("getProjectFileTypesCountAndLines", () => {
+    describe("getProjectFileExtensionStats", () => {
       it("should return file type statistics", async () => {
         const projectName = "test-project";
         const mockResults = [
-          { fileType: "ts", lines: 1000, files: 10 },
-          { fileType: "js", lines: 500, files: 5 },
+          { fileExtension: "ts", lines: 1000, files: 10 },
+          { fileExtension: "js", lines: 500, files: 5 },
         ];
         mockAggregationCursor.toArray.mockResolvedValue(mockResults);
 
-        const result = await repository.getProjectFileTypesCountAndLines(projectName);
+        const result = await repository.getProjectFileExtensionStats(projectName);
 
         expect(result).toEqual(mockResults);
 
@@ -421,12 +421,12 @@ describe("SourcesRepositoryImpl", () => {
           { $match: { projectName } },
           {
             $group: {
-              _id: "$fileType",
+              _id: "$fileExtension",
               lines: { $sum: "$linesCount" },
               files: { $sum: 1 },
             },
           },
-          { $set: { fileType: "$_id" } },
+          { $set: { fileExtension: "$_id" } },
           { $sort: { files: -1, lines: -1 } },
         ];
         expect(mockCollection.aggregate).toHaveBeenCalledWith(expectedPipeline);
@@ -447,14 +447,14 @@ describe("SourcesRepositoryImpl", () => {
         ];
         mockFindCursor.toArray.mockResolvedValue(mockResults);
 
-        const result = await repository.getProjectSourcesSummariesByFileType(
+        const result = await repository.getProjectSourcesSummariesByFileExtension(
           projectName,
           fileTypes,
         );
 
         expect(result).toEqual(mockResults);
         expect(mockCollection.find).toHaveBeenCalledWith(
-          { projectName, fileType: { $in: fileTypes } },
+          { projectName, fileExtension: { $in: fileTypes } },
           {
             projection: {
               _id: 0,
@@ -484,7 +484,7 @@ describe("SourcesRepositoryImpl", () => {
         ];
         mockFindCursor.toArray.mockResolvedValue(mockResults);
 
-        const result = await repository.getProjectSourcesSummariesByFileType(
+        const result = await repository.getProjectSourcesSummariesByFileExtension(
           projectName,
           fileTypes,
         );

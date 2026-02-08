@@ -3,8 +3,14 @@
  * or a failed result with an error. This pattern enforces explicit error handling
  * and eliminates the ambiguity of null returns.
  *
+ * This is the generic `Result` type for general-purpose use. For LLM operations
+ * that need to track execution metadata (which model succeeded in a fallback chain),
+ * use the specialized {@link LLMResult} type from the LLM module.
+ *
  * @template T - The type of the success value
  * @template E - The type of the error (defaults to Error)
+ *
+ * @see {@link file://../llm/types/llm-result.types.ts | LLMResult} - For LLM-specific results with model metadata
  *
  * @example
  * ```typescript

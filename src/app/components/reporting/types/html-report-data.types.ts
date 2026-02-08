@@ -14,7 +14,7 @@ import type {
   DatabaseIntegrationInfo,
 } from "../sections/database/database.types";
 import type { IntegrationPointInfo } from "../sections/integration-points/integration-points.types";
-import type { ProjectedFileTypesCountAndLines } from "../../../repositories/sources/sources.model";
+import type { ProjectedFileExtensionStats } from "../../../repositories/sources/sources.model";
 import type { TableViewModel } from "../presentation";
 import type { CategorizedSectionItem } from "../data-processing";
 import type { PieChartData } from "../sections/file-types/pie-chart.types";
@@ -32,7 +32,7 @@ export type CategorizedSectionItemWithViewModel = CategorizedSectionItem & {
  */
 export interface PreparedHtmlReportData {
   appStats: AppStatistics;
-  fileTypesData: ProjectedFileTypesCountAndLines[];
+  fileTypesData: ProjectedFileExtensionStats[];
   /** Pre-computed pie chart data for rendering */
   pieChartData: PieChartData;
   categorizedData: CategorizedSectionItemWithViewModel[];

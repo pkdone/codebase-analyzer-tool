@@ -37,7 +37,7 @@ export type VectorSearchResult = z.infer<
   ReturnType<
     typeof sourceSchema.pick<{
       projectName: true;
-      fileType: true;
+      fileExtension: true;
       filepath: true;
       content: true;
       summary: true;
@@ -85,8 +85,8 @@ export interface ProjectedIntegrationPointFields {
 /**
  * Interface representing
  */
-export interface ProjectedFileTypesCountAndLines {
-  readonly fileType: string;
+export interface ProjectedFileExtensionStats {
+  readonly fileExtension: string;
   readonly lines: number;
   readonly files: number;
 }

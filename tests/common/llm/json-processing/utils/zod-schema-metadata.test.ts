@@ -6,6 +6,7 @@ import { z } from "zod";
 import {
   extractSchemaMetadata,
   schemaMetadataToSanitizerConfig,
+  buildEffectiveSanitizerConfig,
 } from "../../../../../src/common/llm/json-processing/utils/zod-schema-metadata";
 
 describe("zod-schema-metadata", () => {
@@ -602,6 +603,102 @@ describe("zod-schema-metadata", () => {
       expect(config.propertyTypoCorrections).toEqual({ namee: "name" });
       expect(config.packageNamePrefixReplacements).toEqual({ "orgapache.": "org.apache." });
       expect(config.packageNameTypoPatterns).toHaveLength(1);
+    });
+  });
+
+  describe("buildEffectiveSanitizerConfig", () => {
+    it("should return undefined when no schema and no explicit config provided", () => {
+      const result = buildEffectiveSanitizerConfig(undefined, undefined);
+      expect(result).toBeUndefined();
+    });
+
+    it("should return explicit config when no schema provided", () => {
+      const explicitConfig = {
+        knownProperties: ["name", "description"] as readonly string[],
+        numericProperties: ["count"] as readonly string[],
+      };
+
+      const result = buildEffectiveSanitizerConfig(undefined, explicitConfig);
+
+      expect(result).toBe(explicitConfig);
+    });
+
+    it("should return undefined when schema has no properties and no explicit config", () => {
+      const emptySchema = z.object({});
+
+      const result = buildEffectiveSanitizerConfig(emptySchema, undefined);
+
+      expect(result).toBeUndefined();
+    });
+
+    it("should return config derived from schema when no explicit config", () => {
+      const schema = z.object({
+        name: z.string(),
+        count: z.number(),
+        items: z.array(z.string()),
+      });
+
+      const result = buildEffectiveSanitizerConfig(schema, undefined);
+
+      expect(result).toBeDefined();
+      expect(result!.knownProperties).toContain("name");
+      expect(result!.knownProperties).toContain("count");
+      expect(result!.knownProperties).toContain("items");
+      expect(result!.numericProperties).toContain("count");
+      expect(result!.arrayPropertyNames).toContain("items");
+    });
+
+    it("should merge schema-derived config with explicit config", () => {
+      const schema = z.object({
+        name: z.string(),
+        count: z.number(),
+      });
+
+      const explicitConfig = {
+        knownProperties: ["description"] as readonly string[],
+        numericProperties: ["total"] as readonly string[],
+        propertyNameMappings: { desc: "description" },
+      };
+
+      const result = buildEffectiveSanitizerConfig(schema, explicitConfig);
+
+      expect(result).toBeDefined();
+      // Should have properties from both schema and explicit config
+      expect(result!.knownProperties).toContain("name");
+      expect(result!.knownProperties).toContain("count");
+      expect(result!.knownProperties).toContain("description");
+      expect(result!.numericProperties).toContain("count");
+      expect(result!.numericProperties).toContain("total");
+      // Should preserve legacy mappings from explicit config
+      expect(result!.propertyNameMappings).toEqual({ desc: "description" });
+    });
+
+    it("should handle nested object schemas", () => {
+      const schema = z.object({
+        metadata: z.object({
+          title: z.string(),
+          pageCount: z.number(),
+        }),
+        chapters: z.array(
+          z.object({
+            chapterName: z.string(),
+            wordCount: z.number(),
+          }),
+        ),
+      });
+
+      const result = buildEffectiveSanitizerConfig(schema, undefined);
+
+      expect(result).toBeDefined();
+      // Should extract nested properties
+      expect(result!.knownProperties).toContain("metadata");
+      expect(result!.knownProperties).toContain("title");
+      expect(result!.knownProperties).toContain("pageCount");
+      expect(result!.knownProperties).toContain("chapters");
+      expect(result!.knownProperties).toContain("chapterName");
+      expect(result!.knownProperties).toContain("wordCount");
+      expect(result!.numericProperties).toContain("pagecount"); // lowercased
+      expect(result!.numericProperties).toContain("wordcount"); // lowercased
     });
   });
 });

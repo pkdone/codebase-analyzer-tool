@@ -25,12 +25,15 @@ import { isOk } from "../../../common/types/result.types";
 import type { LlmConcurrencyService } from "../concurrency";
 
 /**
- * Service that orchestrates the ingestion of source files from a codebase into the database.
- * Handles file discovery, content reading, LLM-based summarization, embedding generation,
+ * Orchestrates the capture of source files from a codebase into the database.
+ * Coordinates file discovery, content reading, LLM-based summarization, embedding generation,
  * and persistence of source records.
+ *
+ * This is the main entry point for the codebase capture process. It delegates specific
+ * responsibilities to specialized services while managing the overall workflow.
  */
 @injectable()
-export default class CodebaseIngestionService {
+export default class CodebaseCaptureOrchestrator {
   /**
    * Constructor with dependency injection.
    * @param sourcesRepository - Repository for storing source file data
@@ -55,9 +58,14 @@ export default class CodebaseIngestionService {
   ) {}
 
   /**
-   * Generate the set of representations of source files including each one's content and metadata.
+   * Captures source files from a codebase directory, generating summaries and embeddings,
+   * then persisting them to the database.
+   *
+   * @param projectName - The name of the project being captured
+   * @param srcDirPath - The root directory path containing source files
+   * @param skipIfAlreadyIngested - Whether to skip files already in the database
    */
-  async ingestCodebaseToDatabase(
+  async captureCodebase(
     projectName: string,
     srcDirPath: string,
     skipIfAlreadyIngested: boolean,
@@ -154,11 +162,11 @@ export default class CodebaseIngestionService {
     skipIfAlreadyIngested: boolean,
     existingFiles: ReadonlySet<string>,
   ) {
-    const fileType = getFileExtension(fullFilepath).toLowerCase();
+    const fileExtension = getFileExtension(fullFilepath).toLowerCase();
 
     if (
       (this.fileProcessingConfig.BINARY_FILE_EXTENSION_IGNORE_LIST as readonly string[]).includes(
-        fileType,
+        fileExtension,
       )
     ) {
       return; // Skip file if it has binary content
@@ -172,13 +180,13 @@ export default class CodebaseIngestionService {
     const filename = path.basename(filepath);
     const linesCount = countLines(content);
     // Compute canonical type once and pass it through the call chain
-    const canonicalType = getCanonicalFileType(filepath, fileType);
+    const canonicalType = getCanonicalFileType(filepath, fileExtension);
 
     // Run summary generation and content embeddings in parallel for better throughput
     // These are independent LLM operations that don't depend on each other
     const [summaryResult, contentVectorResult] = await Promise.all([
       this.generateSummaryAndEmbeddings(filepath, canonicalType, content),
-      this.getContentEmbeddings(filepath, content),
+      this.generateContentEmbeddings(filepath, content),
     ]);
     const { summary, summaryError, summaryVector, completionModelKey } = summaryResult;
 
@@ -191,7 +199,7 @@ export default class CodebaseIngestionService {
       projectName,
       filename,
       filepath,
-      fileType,
+      fileExtension,
       canonicalType,
       linesCount,
       content,
@@ -237,7 +245,7 @@ export default class CodebaseIngestionService {
     if (isOk(summaryResult)) {
       summary = summaryResult.value.summary;
       completionModelKey = summaryResult.value.modelKey;
-      const summaryVectorResult = await this.getContentEmbeddings(
+      const summaryVectorResult = await this.generateContentEmbeddings(
         filepath,
         JSON.stringify(summary),
       );
@@ -250,11 +258,13 @@ export default class CodebaseIngestionService {
   }
 
   /**
-   * Get the embeddings vector for a piece of content, limiting the content's size if it is likely
-   * to blow the LLM context window size.
+   * Generates embeddings for content via the LLM embedding model.
    * Returns the embedding result with vector and model metadata, or null if generation fails.
+   *
+   * @param filepath - The filepath for context in logging and error messages
+   * @param content - The content to generate embeddings for
    */
-  private async getContentEmbeddings(
+  private async generateContentEmbeddings(
     filepath: string,
     content: string,
   ): Promise<EmbeddingResult | null> {
