@@ -30,6 +30,8 @@
     "typescript-eslint": "^8.23.0"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.73.0",
+    "@anthropic-ai/vertex-sdk": "^0.14.3",
     "@aws-sdk/client-bedrock-runtime": "^3.682.0",
     "@google-cloud/aiplatform": "^3.34.0",
     "@google-cloud/vertexai": "^1.9.0",

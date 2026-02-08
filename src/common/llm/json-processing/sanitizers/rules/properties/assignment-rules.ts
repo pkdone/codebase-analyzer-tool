@@ -83,7 +83,7 @@ export const ASSIGNMENT_RULES: readonly ReplacementRule[] = [
     replacement: (_match, groups, context) => {
       const [quotedProperty, _propertyName, whitespaceAfter] = groups;
       const quotedPropStr = quotedProperty ?? "";
-      const wsAfter = whitespaceAfter && whitespaceAfter.trim() === "" ? whitespaceAfter : " ";
+      const wsAfter = whitespaceAfter !== "" && whitespaceAfter?.trim() === "" ? whitespaceAfter : " ";
 
       // Verify we're in a property context and not inside a string
       if (!isInPropertyContext(context) || !isNotInsideString(context)) {

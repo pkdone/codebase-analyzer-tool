@@ -24,6 +24,10 @@ import {
   VERTEXAI_GEMINI_FAMILY,
 } from "../../common/llm/providers/vertexai/gemini/vertex-ai-gemini.manifest";
 import {
+  vertexAIClaudeProviderManifest,
+  VERTEXAI_CLAUDE_FAMILY,
+} from "../../common/llm/providers/vertexai/claude/vertex-ai-claude.manifest";
+import {
   bedrockClaudeProviderManifest,
   BEDROCK_CLAUDE_FAMILY,
 } from "../../common/llm/providers/bedrock/claude/bedrock-claude.manifest";
@@ -58,6 +62,7 @@ export function buildProviderRegistry(): LLMProviderRegistry {
     [OPENAI_FAMILY.toLowerCase(), openAIProviderManifest],
     [AZURE_OPENAI_FAMILY.toLowerCase(), azureOpenAIProviderManifest],
     [VERTEXAI_GEMINI_FAMILY.toLowerCase(), vertexAIGeminiProviderManifest],
+    [VERTEXAI_CLAUDE_FAMILY.toLowerCase(), vertexAIClaudeProviderManifest],
     [BEDROCK_CLAUDE_FAMILY.toLowerCase(), bedrockClaudeProviderManifest],
     [BEDROCK_DEEPSEEK_FAMILY.toLowerCase(), bedrockDeepseekProviderManifest],
     [BEDROCK_LLAMA_FAMILY.toLowerCase(), bedrockLlamaProviderManifest],

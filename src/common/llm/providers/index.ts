@@ -23,6 +23,10 @@ export {
   vertexAIGeminiProviderManifest,
   VERTEXAI_GEMINI_FAMILY,
 } from "./vertexai/gemini/vertex-ai-gemini.manifest";
+export {
+  vertexAIClaudeProviderManifest,
+  VERTEXAI_CLAUDE_FAMILY,
+} from "./vertexai/claude/vertex-ai-claude.manifest";
 
 // Bedrock providers
 export {
