@@ -1,4 +1,4 @@
-import { Double } from "bson";
+import { Double } from "mongodb";
 
 /**
  * Iterates through the numbers in the array and converts each one explicitly to a BSON Double.

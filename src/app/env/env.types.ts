@@ -62,7 +62,7 @@ export type EnvVars = BaseEnvVars & Record<string, EnvVarValue>;
 /**
  * Parsed model chain entry
  */
-export interface ParsedModelChainEntry {
+interface ParsedModelChainEntry {
   providerFamily: string;
   modelKey: string;
 }

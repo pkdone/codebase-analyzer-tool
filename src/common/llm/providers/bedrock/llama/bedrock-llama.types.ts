@@ -4,7 +4,7 @@ import type { LLMProviderSpecificConfig } from "../../llm-provider.types";
 /**
  * Zod schema for Bedrock Llama provider-specific configuration.
  * Validates that the providerSpecificConfig contains all required fields,
- * including the maxGenLenCap property needed for the CAP_MAX_GEN_LEN feature.
+ * including the maxGenLenCap property used to limit generation length for Llama models.
  */
 export const BedrockLlamaProviderConfigSchema = z.object({
   requestTimeoutMillis: z.number().int().positive(),

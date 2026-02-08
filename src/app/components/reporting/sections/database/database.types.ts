@@ -21,11 +21,11 @@ export type ProcedureTrigger = TypeOf<typeof procedureTriggerSchema>;
  * Extends ProcedureTrigger with report-specific fields.
  * All properties are explicitly defined, eliminating the need for an index signature.
  */
-export type ProcsOrTrigsListItem = ProcedureTrigger & {
+export interface ProcsOrTrigsListItem extends ProcedureTrigger {
   path: string;
   type: string;
   functionName: string;
-};
+}
 
 // Interface for the database interaction list
 export interface ProcsAndTriggers {

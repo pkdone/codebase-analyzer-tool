@@ -64,9 +64,9 @@ describe("adaptPromptFromResponse", () => {
       // tokensUsage is missing
     };
 
-    expect(() => adaptPromptFromResponse(prompt, llmResponse, modelsMetadata, providerFamily)).toThrow(
-      "LLM response indicated token limit exceeded but `tokensUsage` is not present",
-    );
+    expect(() =>
+      adaptPromptFromResponse(prompt, llmResponse, modelsMetadata, providerFamily),
+    ).toThrow("LLM response indicated token limit exceeded but `tokensUsage` is not present");
   });
 
   test("should handle empty prompt", () => {

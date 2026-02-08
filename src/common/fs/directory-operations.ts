@@ -23,6 +23,19 @@ function isGlobEntryWithStats(entry: unknown): entry is Entry {
 }
 
 /**
+ * Builds glob ignore patterns from file discovery configuration.
+ * Centralizes pattern construction to avoid duplication.
+ */
+function buildIgnorePatterns(config: FileDiscoveryConfig): string[] {
+  const { folderIgnoreList, filenameIgnorePrefix, filenameIgnoreList = [] } = config;
+  return [
+    ...folderIgnoreList.map((folder) => `**/${folder}/**`),
+    `**/${filenameIgnorePrefix}*`,
+    ...filenameIgnoreList.map((filename) => `**/${filename}`),
+  ];
+}
+
+/**
  * Get the handle of the files in a directory
  */
 export async function listDirectoryEntries(dirpath: string): Promise<Dirent[]> {
@@ -83,18 +96,11 @@ export async function findFilesRecursively(
   srcDirPath: string,
   config: FileDiscoveryConfig,
 ): Promise<string[]> {
-  const { folderIgnoreList, filenameIgnorePrefix, filenameIgnoreList = [] } = config;
-  const ignorePatterns = [
-    ...folderIgnoreList.map((folder) => `**/${folder}/**`),
-    `**/${filenameIgnorePrefix}*`,
-    ...filenameIgnoreList.map((filename) => `**/${filename}`),
-  ];
-
   const globOptions = {
     cwd: srcDirPath,
     absolute: true,
     onlyFiles: true,
-    ignore: ignorePatterns,
+    ignore: buildIgnorePatterns(config),
   };
 
   const files = await glob("**/*", globOptions);
@@ -127,18 +133,11 @@ export async function findFilesWithSize(
   srcDirPath: string,
   config: FileDiscoveryConfig,
 ): Promise<FileWithSize[]> {
-  const { folderIgnoreList, filenameIgnorePrefix, filenameIgnoreList = [] } = config;
-  const ignorePatterns = [
-    ...folderIgnoreList.map((folder) => `**/${folder}/**`),
-    `**/${filenameIgnorePrefix}*`,
-    ...filenameIgnoreList.map((filename) => `**/${filename}`),
-  ];
-
   const globOptions = {
     cwd: srcDirPath,
     absolute: true,
     onlyFiles: true,
-    ignore: ignorePatterns,
+    ignore: buildIgnorePatterns(config),
     stats: true, // Include file stats in the result
   };
 
@@ -154,7 +153,9 @@ export async function findFilesWithSize(
       };
     }
     // Fallback for unexpected entry format (should not happen with stats: true)
-    return { filepath: entry, size: 0 };
+    // Handle both string entries and object entries that failed the type guard
+    const pathStr = typeof entry === "string" ? entry : (entry as { path: string }).path;
+    return { filepath: pathStr, size: 0 };
   });
 
   // Sort by size descending (largest first) for better work distribution

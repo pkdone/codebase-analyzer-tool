@@ -96,9 +96,13 @@ export default class VertexAIClaudeLLM extends BaseLLMProvider {
 
     const parsedResponse = parseResult.data;
 
-    // Extract text content from the response
-    const textContent = parsedResponse.content?.find((block) => block.type === "text");
-    const responseText = textContent?.text ?? "";
+    // Extract and join all text content blocks from the response
+    // Claude can return multiple text blocks that need to be combined
+    const responseText =
+      parsedResponse.content
+        ?.filter((block) => block.type === "text")
+        .map((block) => block.text)
+        .join("") ?? "";
 
     // Check if response was truncated due to max tokens
     const isIncompleteResponse = parsedResponse.stop_reason === "max_tokens";

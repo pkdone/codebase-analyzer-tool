@@ -13,14 +13,6 @@ export interface OpenAIConfig {
 }
 
 /**
- * Validates and asserts that an object is a valid OpenAIConfig.
- * Throws an LLMError if validation fails, centralizing validation in the manifest layer.
- *
- * @param obj - The object to validate
- * @returns The validated OpenAIConfig
- * @throws LLMError with BAD_CONFIGURATION code if validation fails
- */
-/**
  * Type guard to check if an object is a valid OpenAIConfig.
  * Returns a boolean for use in conditional type narrowing.
  *

@@ -47,8 +47,9 @@ function executeRule(
     (match: string, ...args: (string | number | undefined)[]) => {
       // Extract offset and groups from args
       // The last two arguments from replace are: offset, fullString
-      const offset = args.at(-2) as number;
-      const groups = args.slice(0, -2) as (string | undefined)[];
+      const rawOffset = args.at(-2);
+      const offset = typeof rawOffset === "number" ? rawOffset : 0;
+      const groups = args.slice(0, -2).map((g) => (typeof g === "string" ? g : undefined));
 
       // Skip if inside a string literal (unless disabled)
       if (skipInString && isInString(offset)) {

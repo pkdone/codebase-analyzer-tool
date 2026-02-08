@@ -16,7 +16,9 @@ const VERTEXAI_COMPLETIONS_LOCATION_KEY = "VERTEXAI_COMPLETIONS_LOCATION";
  * Uses the common VertexAI environment variables shared with the Gemini provider.
  * Throws an LLMError if validation fails, ensuring fail-fast at provider instantiation.
  */
-function extractVertexAIClaudeConfig(providerParams: Record<string, unknown>): VertexAIClaudeConfig {
+function extractVertexAIClaudeConfig(
+  providerParams: Record<string, unknown>,
+): VertexAIClaudeConfig {
   const rawConfig = {
     projectId: providerParams[VERTEXAI_PROJECTID_KEY],
     location: providerParams[VERTEXAI_COMPLETIONS_LOCATION_KEY],
