@@ -61,6 +61,7 @@ export class BufferedSourcesWriter {
    */
   async add(record: SourceRecord): Promise<void> {
     this.recordBuffer.push(record);
+
     if (this.recordBuffer.length >= this.batchSize) {
       await this.flush();
     }
@@ -83,6 +84,7 @@ export class BufferedSourcesWriter {
     } catch (error: unknown) {
       // If batch insert fails, fall back to individual inserts
       logErr(`Batch insert failed, falling back to individual inserts`, error);
+      
       for (const record of batch) {
         try {
           await this.sourcesRepository.insertSource(record);
