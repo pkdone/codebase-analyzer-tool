@@ -9,7 +9,8 @@ import { LLMError, LLMErrorCode } from "../types/llm-errors.types";
  *
  * @param prompt The original prompt that needs to be adapted
  * @param llmResponse The LLM response containing token usage information
- * @param modelsMetadata Metadata about available LLM models
+ * @param modelsMetadata Metadata about available LLM models (keys are "ProviderFamily:modelKey")
+ * @param providerFamily The provider family for constructing the metadata lookup key
  * @returns The adapted (shortened) prompt
  * @throws {BadResponseMetadataLLMError} If token usage information is missing from the response
  */
@@ -17,6 +18,7 @@ export function adaptPromptFromResponse(
   prompt: string,
   llmResponse: LLMFunctionResponse,
   modelsMetadata: Record<string, ResolvedLLMModelMetadata>,
+  providerFamily: string,
 ): string {
   if (!llmResponse.tokensUsage) {
     throw new LLMError(
@@ -28,7 +30,11 @@ export function adaptPromptFromResponse(
 
   if (prompt.trim() === "") return prompt;
   const { promptTokens = 0, completionTokens = 0, maxTotalTokens = 0 } = llmResponse.tokensUsage;
-  const maxCompletionTokensLimit = modelsMetadata[llmResponse.modelKey].maxCompletionTokens;
+
+  // Construct the full metadata key (provider metadata uses "ProviderFamily:modelKey" format)
+  const metadataKey = `${providerFamily}:${llmResponse.modelKey}`;
+  const maxCompletionTokensLimit =
+    metadataKey in modelsMetadata ? modelsMetadata[metadataKey].maxCompletionTokens : undefined;
   let reductionRatio = 1;
 
   // If all the LLM's available completion tokens have been consumed then will need to reduce prompt size to try influence any subsequent generated completion to be smaller

@@ -18,11 +18,14 @@ jest.mock("../../../../../src/common/llm/config/llm.config", () => ({
 
 describe("adaptPromptFromResponse", () => {
   let modelsMetadata: Record<string, ResolvedLLMModelMetadata>;
+  const providerFamily = "TestProvider";
+  const modelKey = "GPT_COMPLETIONS_GPT4";
 
   beforeEach(() => {
+    // Metadata keys use "ProviderFamily:modelKey" format (as returned by getAllModelsMetadata)
     modelsMetadata = {
-      GPT_COMPLETIONS_GPT4: {
-        modelKey: "GPT_COMPLETIONS_GPT4",
+      [`${providerFamily}:${modelKey}`]: {
+        modelKey: modelKey,
         urnEnvKey: "TEST_GPT4_URN",
         urn: "gpt-4",
         purpose: LLMPurpose.COMPLETIONS,
@@ -37,7 +40,7 @@ describe("adaptPromptFromResponse", () => {
     const llmResponse: LLMFunctionResponse = {
       status: LLMResponseStatus.EXCEEDED,
       request: prompt,
-      modelKey: "GPT_COMPLETIONS_GPT4",
+      modelKey: modelKey,
       context: { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
       tokensUsage: {
         promptTokens: 5000,
@@ -46,7 +49,7 @@ describe("adaptPromptFromResponse", () => {
       },
     };
 
-    const result = adaptPromptFromResponse(prompt, llmResponse, modelsMetadata);
+    const result = adaptPromptFromResponse(prompt, llmResponse, modelsMetadata, providerFamily);
     expect(result.length).toBeLessThan(prompt.length);
     expect(result).toBe(prompt.substring(0, result.length));
   });
@@ -56,12 +59,12 @@ describe("adaptPromptFromResponse", () => {
     const llmResponse: LLMFunctionResponse = {
       status: LLMResponseStatus.EXCEEDED,
       request: prompt,
-      modelKey: "GPT_COMPLETIONS_GPT4",
+      modelKey: modelKey,
       context: { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
       // tokensUsage is missing
     };
 
-    expect(() => adaptPromptFromResponse(prompt, llmResponse, modelsMetadata)).toThrow(
+    expect(() => adaptPromptFromResponse(prompt, llmResponse, modelsMetadata, providerFamily)).toThrow(
       "LLM response indicated token limit exceeded but `tokensUsage` is not present",
     );
   });
@@ -71,7 +74,7 @@ describe("adaptPromptFromResponse", () => {
     const llmResponse: LLMFunctionResponse = {
       status: LLMResponseStatus.EXCEEDED,
       request: prompt,
-      modelKey: "GPT_COMPLETIONS_GPT4",
+      modelKey: modelKey,
       context: { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
       tokensUsage: {
         promptTokens: 100,
@@ -80,7 +83,7 @@ describe("adaptPromptFromResponse", () => {
       },
     };
 
-    const result = adaptPromptFromResponse(prompt, llmResponse, modelsMetadata);
+    const result = adaptPromptFromResponse(prompt, llmResponse, modelsMetadata, providerFamily);
     expect(result).toBe("");
   });
 
@@ -89,7 +92,7 @@ describe("adaptPromptFromResponse", () => {
     const llmResponse: LLMFunctionResponse = {
       status: LLMResponseStatus.EXCEEDED,
       request: prompt,
-      modelKey: "GPT_COMPLETIONS_GPT4",
+      modelKey: modelKey,
       context: { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
       tokensUsage: {
         promptTokens: 100,
@@ -98,7 +101,7 @@ describe("adaptPromptFromResponse", () => {
       },
     };
 
-    const result = adaptPromptFromResponse(prompt, llmResponse, modelsMetadata);
+    const result = adaptPromptFromResponse(prompt, llmResponse, modelsMetadata, providerFamily);
     expect(result).toBe("   ");
   });
 
@@ -107,7 +110,7 @@ describe("adaptPromptFromResponse", () => {
     const llmResponse: LLMFunctionResponse = {
       status: LLMResponseStatus.EXCEEDED,
       request: prompt,
-      modelKey: "GPT_COMPLETIONS_GPT4",
+      modelKey: modelKey,
       context: { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
       tokensUsage: {
         promptTokens: 3000,
@@ -116,7 +119,7 @@ describe("adaptPromptFromResponse", () => {
       },
     };
 
-    const result = adaptPromptFromResponse(prompt, llmResponse, modelsMetadata);
+    const result = adaptPromptFromResponse(prompt, llmResponse, modelsMetadata, providerFamily);
     expect(result.length).toBeLessThan(prompt.length);
     expect(result).toBe(prompt.substring(0, result.length));
   });
@@ -127,7 +130,7 @@ describe("adaptPromptFromResponse", () => {
     const llmResponse: LLMFunctionResponse = {
       status: LLMResponseStatus.EXCEEDED,
       request: prompt,
-      modelKey: "GPT_COMPLETIONS_GPT4",
+      modelKey: modelKey,
       context: { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
       tokensUsage: {
         promptTokens: 5000,
@@ -136,7 +139,7 @@ describe("adaptPromptFromResponse", () => {
       },
     };
 
-    const result = adaptPromptFromResponse(prompt, llmResponse, modelsMetadata);
+    const result = adaptPromptFromResponse(prompt, llmResponse, modelsMetadata, providerFamily);
     expect(result.length).toBeLessThan(prompt.length);
     expect(result).toBe(prompt.substring(0, result.length));
   });
@@ -146,7 +149,7 @@ describe("adaptPromptFromResponse", () => {
     const llmResponse: LLMFunctionResponse = {
       status: LLMResponseStatus.EXCEEDED,
       request: prompt,
-      modelKey: "GPT_COMPLETIONS_GPT4",
+      modelKey: modelKey,
       context: { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
       tokensUsage: {
         promptTokens: 100,
@@ -155,7 +158,7 @@ describe("adaptPromptFromResponse", () => {
       },
     };
 
-    const result = adaptPromptFromResponse(prompt, llmResponse, modelsMetadata);
+    const result = adaptPromptFromResponse(prompt, llmResponse, modelsMetadata, providerFamily);
     // The algorithm applies the maximum reduction ratio (0.85) when total tokens check is triggered
     // Expected reduction: 8192 / (100 + 50 + 1) = ~54.2, but capped at 0.85 maximum
     const expectedLength = Math.floor(prompt.length * 0.85);

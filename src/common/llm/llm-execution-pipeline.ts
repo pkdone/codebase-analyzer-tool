@@ -282,6 +282,7 @@ export class LLMExecutionPipeline {
           currentContent,
           llmResponse,
           this.pipelineConfig.getModelsMetadata(),
+          candidate.providerFamily,
         );
         this.llmStats.recordCrop();
 
