@@ -52,6 +52,7 @@ export class ListAvailableModelsTask implements Task {
         process.exitCode = 1;
         return false;
       }
+
       throw error;
     }
   }

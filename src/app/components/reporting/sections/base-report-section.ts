@@ -50,6 +50,7 @@ export abstract class BaseReportSection implements ReportSection {
     if (data === undefined) {
       return [];
     }
+
     return [{ filename, data }];
   }
 

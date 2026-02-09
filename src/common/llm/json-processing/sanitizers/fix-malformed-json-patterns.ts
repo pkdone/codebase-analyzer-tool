@@ -36,6 +36,7 @@ function buildRuleSet(config?: LLMSanitizerConfig): readonly ReplacementRule[] {
   if (!config?.customReplacementRules || config.customReplacementRules.length === 0) {
     return ALL_RULES;
   }
+
   return [...ALL_RULES, ...config.customReplacementRules];
 }
 
@@ -79,6 +80,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (
     // This prevents unnecessary modifications to valid JSON while still allowing fixes for typos
     try {
       JSON.parse(input);
+
       if (!hasObviousErrors(input)) {
         // Valid JSON with no obvious errors, return as-is
         return { content: input, changed: false };

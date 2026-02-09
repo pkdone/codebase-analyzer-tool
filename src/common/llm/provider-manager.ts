@@ -44,6 +44,7 @@ export class ProviderManager {
     // Pre-load manifests for all provider families in the chain
     // Keys are normalized to lowercase for case-insensitive lookups
     const families = this.getRequiredProviderFamilies();
+
     for (const family of families) {
       const manifest = loadManifestForProviderFamily(family, config.providerRegistry);
       this.manifests.set(family.toLowerCase(), manifest);
@@ -112,6 +113,7 @@ export class ProviderManager {
 
     for (const [family, provider] of this.providers) {
       const metadata = provider.getModelsMetadata();
+
       for (const [key, value] of Object.entries(metadata)) {
         result[`${family}:${key}`] = value;
       }
@@ -149,16 +151,19 @@ export class ProviderManager {
   getProvidersRequiringProcessExit(): string[] {
     // Ensure all providers are instantiated before checking shutdown behavior
     const families = this.getRequiredProviderFamilies();
+
     for (const family of families) {
       this.getProvider(family);
     }
 
     const providersRequiringExit: string[] = [];
+
     for (const [family, provider] of this.providers) {
       if (provider.getShutdownBehavior() === ShutdownBehavior.REQUIRES_PROCESS_EXIT) {
         providersRequiringExit.push(family);
       }
     }
+
     return providersRequiringExit;
   }
 
@@ -186,6 +191,7 @@ export class ProviderManager {
     for (const entry of this.config.resolvedModelChain.completions) {
       families.add(entry.providerFamily);
     }
+
     for (const entry of this.config.resolvedModelChain.embeddings) {
       families.add(entry.providerFamily);
     }

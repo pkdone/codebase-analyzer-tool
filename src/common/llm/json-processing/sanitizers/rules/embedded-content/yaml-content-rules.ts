@@ -22,6 +22,7 @@ function looksLikeNonJsonKey(key: string, knownProperties?: readonly string[]): 
   // If we have schema metadata and the key is a known property, don't remove it
   if (knownProperties && knownProperties.length > 0) {
     const lowerKey = key.toLowerCase();
+
     if (knownProperties.some((p) => p.toLowerCase() === lowerKey)) {
       return false;
     }
@@ -58,6 +59,7 @@ export const YAML_CONTENT_RULES: readonly ReplacementRule[] = [
 
       // Only remove if the key looks like a non-JSON key (schema-aware)
       const knownProperties = context.config?.knownProperties;
+
       if (!looksLikeNonJsonKey(keyStr, knownProperties)) {
         return null;
       }
@@ -87,6 +89,7 @@ export const YAML_CONTENT_RULES: readonly ReplacementRule[] = [
 
       // Only remove if the key looks like a non-JSON key (schema-aware)
       const knownProperties = context.config?.knownProperties;
+
       if (!looksLikeNonJsonKey(keyStr, knownProperties)) {
         return null;
       }

@@ -76,6 +76,7 @@ export const STRAY_CHARACTER_RULES: readonly ReplacementRule[] = [
       if (!isDeepArrayContext(context)) {
         return null;
       }
+
       const prefix = safeGroup(groups, 0);
       const quotedString = safeGroup(groups, 2);
       const cleanPrefix = prefix.replace(/\s*$/, "");
@@ -113,6 +114,7 @@ export const STRAY_CHARACTER_RULES: readonly ReplacementRule[] = [
       if (!isInArrayContextSimple(context)) {
         return null;
       }
+
       const strayPrefix = safeGroup(groups, 2);
       // Skip if the prefix is a JSON keyword
       if (isJsonKeyword(strayPrefix)) {
@@ -155,9 +157,11 @@ export const STRAY_CHARACTER_RULES: readonly ReplacementRule[] = [
     pattern: /([}\]])\s*,\s*([a-z]{1,5})(\s*[}\]]|\s*\n\s*[{"])/g,
     replacement: (_match, groups) => {
       const strayText = safeGroup(groups, 1);
+
       if (isJsonKeyword(strayText)) {
         return null;
       }
+
       const delimiter = safeGroup(groups, 0);
       const nextToken = safeGroup(groups, 2);
       return `${delimiter},${nextToken}`;
@@ -176,12 +180,15 @@ export const STRAY_CHARACTER_RULES: readonly ReplacementRule[] = [
     pattern: /([}\],]|\n|^)(\s*)([a-z])\s+("([a-zA-Z0-9_.]+)")/g,
     replacement: (_match, groups, context) => {
       const strayChar = safeGroup(groups, 2);
+
       if (!/^[a-z]$/.test(strayChar)) {
         return null;
       }
+
       if (!isInArrayContextSimple(context)) {
         return null;
       }
+
       const delimiter = safeGroup(groups, 0);
       const whitespace = safeGroup(groups, 1);
       const quotedString = safeGroup(groups, 3);
@@ -204,9 +211,11 @@ export const STRAY_CHARACTER_RULES: readonly ReplacementRule[] = [
       const { fullContent, offset } = context;
       const matchLen = _match.length;
       const afterMatch = fullContent.substring(offset + matchLen);
+
       if (afterMatch.trim().length !== 0) {
         return null;
       }
+
       return safeGroup(groups, 0);
     },
     diagnosticMessage: (_match, groups) => {
@@ -227,6 +236,7 @@ export const STRAY_CHARACTER_RULES: readonly ReplacementRule[] = [
       if (before.includes(",")) {
         return `${before}\n${after}`;
       }
+
       return `${before}${after}`;
     },
     diagnosticMessage: "Removed placeholder text",

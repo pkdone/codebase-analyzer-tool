@@ -175,6 +175,7 @@ export class MapReduceInsightStrategy implements InsightGenerationStrategy {
       // Initialize arrays for each nested property that is an array
       for (const nestedKey of Object.keys(nestedShape)) {
         const nestedValueSchema = nestedShape[nestedKey];
+
         if (nestedValueSchema instanceof z.ZodArray) {
           mergedObject[nestedKey] = [];
         }
@@ -187,6 +188,7 @@ export class MapReduceInsightStrategy implements InsightGenerationStrategy {
 
         for (const nestedKey of Object.keys(mergedObject)) {
           const nestedArray = nestedData[nestedKey];
+
           if (Array.isArray(nestedArray)) {
             mergedObject[nestedKey].push(...(nestedArray as unknown[]));
           }

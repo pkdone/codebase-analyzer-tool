@@ -100,6 +100,7 @@ export const normalizeCharacters: Sanitizer = (input: string): SanitizerResult =
           `Converted ${doubleQuoteCount} curly/smart double quote${doubleQuoteCount !== 1 ? "s" : ""} to regular quote`,
         );
       }
+
       if (singleQuoteCount > 0) {
         repairs.push(
           `Converted ${singleQuoteCount} curly/smart single quote${singleQuoteCount !== 1 ? "s" : ""} to regular quote`,
@@ -142,6 +143,7 @@ export const normalizeCharacters: Sanitizer = (input: string): SanitizerResult =
               // Handle \uXXXX unicode escape
               let hexDigits = "";
               let j = i + 2;
+
               while (j < result.length && hexDigits.length < 4 && isHexDigit(result[j])) {
                 hexDigits += result[j];
                 j++;
@@ -210,6 +212,7 @@ export const normalizeCharacters: Sanitizer = (input: string): SanitizerResult =
         // Check if this quote is escaped by counting preceding backslashes
         let backslashCount = 0;
         let j = i - 1;
+
         while (j >= 0 && result[j] === "\\") {
           backslashCount++;
           j--;
@@ -270,6 +273,7 @@ export const normalizeCharacters: Sanitizer = (input: string): SanitizerResult =
           code === 0x200c || // Zero-width non-joiner
           code === 0x200d || // Zero-width joiner
           code === 0xfeff; // BOM
+
         if (shouldRemove) {
           // Control character - remove it
           hasChanges = true;
@@ -288,6 +292,7 @@ export const normalizeCharacters: Sanitizer = (input: string): SanitizerResult =
     const beforeOverEscape = result;
     result = repairOverEscapedStringSequences(result);
     const overEscapesFixed = result !== beforeOverEscape;
+
     if (overEscapesFixed) {
       hasChanges = true;
     }
@@ -343,16 +348,19 @@ export const normalizeCharacters: Sanitizer = (input: string): SanitizerResult =
           `Removed ${controlCharsRemoved} control character${controlCharsRemoved !== 1 ? "s" : ""} outside strings`,
         );
       }
+
       if (controlCharsEscaped > 0) {
         repairs.push(
           `Escaped ${controlCharsEscaped} control character${controlCharsEscaped !== 1 ? "s" : ""} in string values`,
         );
       }
+
       if (invalidEscapesFixed > 0) {
         repairs.push(
           `Fixed ${invalidEscapesFixed} invalid escape sequence${invalidEscapesFixed !== 1 ? "s" : ""}`,
         );
       }
+
       if (overEscapesFixed) {
         repairs.push(REPAIR_STEP.FIXED_OVER_ESCAPED_SEQUENCES);
       }

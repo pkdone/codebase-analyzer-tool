@@ -20,6 +20,7 @@ export function buildModelsMetadataFromChain(
 
     // Find the model metadata in the manifest
     const modelMetadata = manifest.models.completions.find((m) => m.modelKey === entry.modelKey);
+
     if (modelMetadata) {
       result[entry.modelKey] = {
         ...modelMetadata,
@@ -34,6 +35,7 @@ export function buildModelsMetadataFromChain(
 
     // Find the model metadata in the manifest
     const modelMetadata = manifest.models.embeddings.find((m) => m.modelKey === entry.modelKey);
+
     if (modelMetadata) {
       result[entry.modelKey] = {
         ...modelMetadata,

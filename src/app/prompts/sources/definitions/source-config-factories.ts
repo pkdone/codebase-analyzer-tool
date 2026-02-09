@@ -191,6 +191,7 @@ export function createStandardCodeConfig(
     COMMON_FRAGMENTS.PURPOSE,
     COMMON_FRAGMENTS.IMPLEMENTATION,
   ];
+
   if (fragments.KIND_OVERRIDE) {
     basicInfoParts.push(fragments.KIND_OVERRIDE);
   }
@@ -200,6 +201,7 @@ export function createStandardCodeConfig(
 
   // Build code quality block with optional extra metrics
   const codeQualityParts: (string | readonly string[])[] = [COMPOSITES.CODE_QUALITY];
+
   if (extraComplexityMetrics) {
     codeQualityParts.push(extraComplexityMetrics);
   }

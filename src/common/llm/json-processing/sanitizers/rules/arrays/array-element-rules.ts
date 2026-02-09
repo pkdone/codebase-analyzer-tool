@@ -73,6 +73,7 @@ export const ARRAY_ELEMENT_RULES: readonly ReplacementRule[] = [
       if (!isDeepArrayContext(context)) {
         return null;
       }
+
       const prefix = safeGroup(groups, 0);
       const quotedElement = safeGroup(groups, 1);
       return `${prefix}${quotedElement}`;
@@ -94,6 +95,7 @@ export const ARRAY_ELEMENT_RULES: readonly ReplacementRule[] = [
         /,\s*$/.test(beforeMatch) ||
         /\[\s*$/.test(beforeMatch) ||
         /,\s*\n\s*$/.test(beforeMatch);
+
       if (!isValueContext) {
         return null;
       }
@@ -158,6 +160,7 @@ export const ARRAY_ELEMENT_RULES: readonly ReplacementRule[] = [
       const looksLikeLibraryName =
         /^[A-Z][A-Z0-9_.-]+$/.test(strayText) &&
         (strayText.includes(".") || strayText.includes("-") || strayText.length > 10);
+
       if (!looksLikeLibraryName) {
         return null;
       }
@@ -257,6 +260,7 @@ export const ARRAY_ELEMENT_RULES: readonly ReplacementRule[] = [
       if (!isDeepArrayContext(context)) {
         return null;
       }
+
       const delimiter = safeGroup(groups, 0);
       const whitespace = safeGroup(groups, 1);
       const stringValue = safeGroup(groups, 3);
@@ -325,6 +329,7 @@ export const ARRAY_ELEMENT_RULES: readonly ReplacementRule[] = [
       if (!isDeepArrayContext(context)) {
         return null;
       }
+
       const prefix = safeGroup(groups, 0);
       const quotedElement = safeGroup(groups, 1);
       return `${prefix}${quotedElement}`;
@@ -351,21 +356,26 @@ export const ARRAY_ELEMENT_RULES: readonly ReplacementRule[] = [
       let foundArray = false;
       let inString = false;
       let escape = false;
+
       for (let i = offset - 1; i >= 0; i--) {
         if (escape) {
           escape = false;
           continue;
         }
+
         if (fullContent[i] === "\\") {
           escape = true;
           continue;
         }
+
         if (fullContent[i] === '"') {
           inString = !inString;
           continue;
         }
+
         if (!inString) {
           if (fullContent[i] === "]") break;
+
           if (fullContent[i] === "[") {
             foundArray = true;
             break;
@@ -415,21 +425,26 @@ export const ARRAY_ELEMENT_RULES: readonly ReplacementRule[] = [
       let foundArray = false;
       let inString = false;
       let escape = false;
+
       for (let i = offset - 1; i >= 0; i--) {
         if (escape) {
           escape = false;
           continue;
         }
+
         if (fullContent[i] === "\\") {
           escape = true;
           continue;
         }
+
         if (fullContent[i] === '"') {
           inString = !inString;
           continue;
         }
+
         if (!inString) {
           if (fullContent[i] === "]") break;
+
           if (fullContent[i] === "[") {
             foundArray = true;
             break;

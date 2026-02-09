@@ -22,6 +22,7 @@ export class IntegrationPointsDataProvider {
     const records = await this.sourcesRepository.getProjectIntegrationPoints(projectName);
     return records.flatMap((record) => {
       const { summary } = record;
+
       if (summary?.integrationPoints) {
         return summary.integrationPoints.map((point) => ({
           namespace: summary.namespace ?? record.filepath,
@@ -29,6 +30,7 @@ export class IntegrationPointsDataProvider {
           ...point,
         }));
       }
+
       return [];
     });
   }

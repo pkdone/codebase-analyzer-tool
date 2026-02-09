@@ -25,9 +25,8 @@ export class DiagnosticCollector {
    * @returns true if the message was added, false if the limit was reached
    */
   add(message: string): boolean {
-    if (this.diagnostics.length >= this.maxDiagnostics) {
-      return false;
-    }
+    if (this.diagnostics.length >= this.maxDiagnostics) return false;
+
     this.diagnostics.push(message);
     return true;
   }

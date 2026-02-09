@@ -45,6 +45,7 @@ export const sanitizeJsonStructure: Sanitizer = (input: string): SanitizerResult
 
     // Trim whitespace
     const trimmed = sanitized.trim();
+
     if (trimmed !== sanitized) {
       sanitized = trimmed;
       hasChanges = true;
@@ -54,9 +55,11 @@ export const sanitizeJsonStructure: Sanitizer = (input: string): SanitizerResult
     // Remove code fences
     if (sanitized.includes(CODE_FENCE_MARKERS.GENERIC)) {
       const beforeFences = sanitized;
+
       for (const regex of CODE_FENCE_REGEXES) {
         sanitized = sanitized.replaceAll(regex, "");
       }
+
       if (sanitized !== beforeFences) {
         hasChanges = true;
         repairs.push(REPAIR_STEP.REMOVED_CODE_FENCES);
@@ -66,6 +69,7 @@ export const sanitizeJsonStructure: Sanitizer = (input: string): SanitizerResult
     // Remove invalid prefixes (introductory text, stray prefixes, etc.)
     const beforePrefixes = sanitized;
     sanitized = removeInvalidPrefixesInternal(sanitized, repairs);
+
     if (sanitized !== beforePrefixes) {
       hasChanges = true;
     }
@@ -75,6 +79,7 @@ export const sanitizeJsonStructure: Sanitizer = (input: string): SanitizerResult
     // to prevent incorrect delimiter corrections that corrupt the structure
     const beforeUnclosedArrays = sanitized;
     sanitized = fixUnclosedArraysBeforePropertiesInternal(sanitized, repairs);
+
     if (sanitized !== beforeUnclosedArrays) {
       hasChanges = true;
     }
@@ -82,6 +87,7 @@ export const sanitizeJsonStructure: Sanitizer = (input: string): SanitizerResult
     // Extract largest JSON span
     const beforeExtract = sanitized;
     sanitized = extractLargestJsonSpanInternal(sanitized);
+
     if (sanitized !== beforeExtract) {
       hasChanges = true;
       repairs.push(REPAIR_STEP.EXTRACTED_LARGEST_JSON_SPAN);
@@ -90,6 +96,7 @@ export const sanitizeJsonStructure: Sanitizer = (input: string): SanitizerResult
     // Collapse duplicate JSON objects
     const beforeCollapse = sanitized;
     sanitized = collapseDuplicateJsonObjectInternal(sanitized);
+
     if (sanitized !== beforeCollapse) {
       hasChanges = true;
       repairs.push(REPAIR_STEP.COLLAPSED_DUPLICATE_JSON);
@@ -98,6 +105,7 @@ export const sanitizeJsonStructure: Sanitizer = (input: string): SanitizerResult
     // Remove truncation markers
     const beforeTruncation = sanitized;
     sanitized = removeTruncationMarkersInternal(sanitized, repairs);
+
     if (sanitized !== beforeTruncation) {
       hasChanges = true;
     }
@@ -135,6 +143,7 @@ function removeInvalidPrefixesInternal(jsonString: string, repairs: string[]): s
     if (repairs.length < 10) {
       repairs.push(REPAIR_STEP.REMOVED_CONTROL_THOUGHT_MARKER);
     }
+
     return "";
   });
 
@@ -143,6 +152,7 @@ function removeInvalidPrefixesInternal(jsonString: string, repairs: string[]): s
     if (repairs.length < 10) {
       repairs.push(REPAIR_STEP.REMOVED_THOUGHT_MARKERS);
     }
+
     return "";
   });
 
@@ -164,6 +174,7 @@ function removeInvalidPrefixesInternal(jsonString: string, repairs: string[]): s
 
     if (isAfterValidDelimiter && wordStr.length > 3) {
       const lowerWord = wordStr.toLowerCase();
+
       if (!COMMON_INTRO_WORDS.has(lowerWord)) {
         return match;
       }
@@ -172,6 +183,7 @@ function removeInvalidPrefixesInternal(jsonString: string, repairs: string[]): s
     if (repairs.length < 10) {
       repairs.push(`Removed introductory text "${wordStr}" before opening brace`);
     }
+
     return `${prefix}{`;
   });
 
@@ -199,6 +211,7 @@ function removeInvalidPrefixesInternal(jsonString: string, repairs: string[]): s
         if (repairs.length < 10) {
           repairs.push(`Removed stray text "${strayTextStr}" before property "${propertyNameStr}"`);
         }
+
         return `${delimiterStr}${whitespaceStr}"${propertyNameStr}":`;
       }
 
@@ -239,6 +252,7 @@ function removeInvalidPrefixesInternal(jsonString: string, repairs: string[]): s
             `Fixed missing opening brace and quote before property "${propertyNameStr}"`,
           );
         }
+
         return `${prefixStr}{"${propertyNameStr}":`;
       }
 
@@ -274,6 +288,7 @@ function removeInvalidPrefixesInternal(jsonString: string, repairs: string[]): s
             `Fixed missing opening brace and quote before property "${propertyNameStr}"`,
           );
         }
+
         return `${prefixStr}{"${propertyNameStr}":`;
       }
 
@@ -339,18 +354,22 @@ function fixUnclosedArraysBeforePropertiesInternal(jsonString: string, repairs: 
 
       for (let i = beforeMatch.length - 1; i >= 0; i--) {
         const char = beforeMatch[i];
+
         if (escape) {
           escape = false;
           continue;
         }
+
         if (char === "\\") {
           escape = true;
           continue;
         }
+
         if (char === '"') {
           inString = !inString;
           continue;
         }
+
         if (!inString) {
           if (char === "]") {
             bracketDepth++;
@@ -367,6 +386,7 @@ function fixUnclosedArraysBeforePropertiesInternal(jsonString: string, repairs: 
             braceDepth++;
           } else if (char === "{") {
             braceDepth--;
+
             if (braceDepth < 0 && !foundMatchingOpenBrace) {
               // Found the opening brace that matches our closing brace
               foundMatchingOpenBrace = true;
@@ -374,9 +394,11 @@ function fixUnclosedArraysBeforePropertiesInternal(jsonString: string, repairs: 
               // (meaning we're in an array element context)
               // Look backwards, skipping whitespace
               let j = i - 1;
+
               while (j >= 0 && /\s/.test(beforeMatch[j])) {
                 j--;
               }
+
               if (j >= 0 && beforeMatch[j] === "[") {
                 // The object we're closing is directly inside an array
                 // Check if there's already a `]` at the right position
@@ -418,6 +440,7 @@ function extractLargestJsonSpanInternal(input: string): string {
   // Find all potential JSON starts (both { and [)
   const candidates: { position: number; char: string }[] = [];
   let searchPos = 0;
+
   while (searchPos < input.length) {
     const bracePos = input.indexOf("{", searchPos);
     const bracketPos = input.indexOf("[", searchPos);
@@ -442,6 +465,7 @@ function extractLargestJsonSpanInternal(input: string): string {
   const trimmedInput = input.trim();
   const trimmedStart = input.indexOf(trimmedInput);
   let firstCandidate: { position: number; char: string } | null = null;
+
   for (const candidate of sortedCandidates) {
     if (candidate.position === trimmedStart || (candidate.position < 10 && trimmedStart === 0)) {
       firstCandidate = candidate;
@@ -459,9 +483,11 @@ function extractLargestJsonSpanInternal(input: string): string {
     // Validate that this looks like a valid JSON start
     if (start + 1 >= input.length) continue;
     const nextChar = input[start + 1];
+
     if (startChar === "{" && !["\n", "\r", " ", "\t", '"', "}", "a", "A"].includes(nextChar)) {
       continue;
     }
+
     if (
       startChar === "[" &&
       !["\n", "\r", " ", "\t", "]", '"', "{", "[", "0", "-"].includes(nextChar)
@@ -477,22 +503,27 @@ function extractLargestJsonSpanInternal(input: string): string {
 
     for (let i = start; i < input.length; i++) {
       const ch = input[i];
+
       if (escapeNext) {
         escapeNext = false;
         continue;
       }
+
       if (ch === "\\") {
         escapeNext = true;
         continue;
       }
+
       if (ch === '"') {
         inString = !inString;
         continue;
       }
+
       if (!inString) {
         if (ch === startChar) depth++;
         else if (ch === endChar) {
           depth--;
+
           if (depth === 0) {
             endIndex = i;
             break;
@@ -570,9 +601,11 @@ function extractLargestJsonSpanInternal(input: string): string {
  */
 function collapseDuplicateJsonObjectInternal(input: string): string {
   const dupPattern = /^(\{[\s\S]+\})\s*\1\s*$/;
+
   if (dupPattern.test(input)) {
     return input.replace(dupPattern, "$1");
   }
+
   return input;
 }
 
@@ -606,6 +639,7 @@ function removeTruncationMarkersInternal(jsonString: string, repairs: string[]):
       if (hasTrailingComma) {
         return ",\n\n";
       }
+
       return "\n\n";
     },
   );
@@ -665,6 +699,7 @@ function removeTruncationMarkersInternal(jsonString: string, repairs: string[]):
       if (beforeStr.includes(",")) {
         return `${beforeStr}\n${ws3}${delimiterStr}`;
       }
+
       return `\n${ws3}${delimiterStr}`;
     },
   );
@@ -690,6 +725,7 @@ function removeTruncationMarkersInternal(jsonString: string, repairs: string[]):
       if (beforeStr.includes(",")) {
         return `${beforeStr}\n${afterStr}`;
       }
+
       return `${beforeStr}${afterStr}`;
     },
   );
@@ -730,10 +766,12 @@ function removeTruncationMarkersInternal(jsonString: string, repairs: string[]):
       const delimiter1Str = typeof delimiter1 === "string" ? delimiter1 : "";
       const delimiter2Str = typeof delimiter2 === "string" ? delimiter2 : "";
       const delimiterStr = delimiter1Str !== "" ? delimiter1Str : delimiter2Str;
+
       if (delimiterStr !== "") {
         if (repairs.length < 10) {
           repairs.push(REPAIR_STEP.REMOVED_EXTRA_JSON_AFTER_MAIN);
         }
+
         return delimiterStr;
       }
 

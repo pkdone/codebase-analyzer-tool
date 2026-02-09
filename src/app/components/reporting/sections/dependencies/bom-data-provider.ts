@@ -65,6 +65,7 @@ export class BomDataProvider {
         const key = this.createDependencyKey(dep.name, dep.groupId);
 
         let aggregated = dependencyMap.get(key);
+
         if (!aggregated) {
           aggregated = {
             name: dep.name,
@@ -79,9 +80,11 @@ export class BomDataProvider {
         if (dep.version) {
           aggregated.versions.add(dep.version);
         }
+
         if (dep.scope) {
           aggregated.scopes.add(dep.scope);
         }
+
         if (!aggregated.locations.includes(file.filepath)) {
           aggregated.locations.push(file.filepath);
         }
@@ -103,6 +106,7 @@ export class BomDataProvider {
       if (a.hasConflict !== b.hasConflict) {
         return a.hasConflict ? -1 : 1;
       }
+
       return a.name.localeCompare(b.name);
     });
 

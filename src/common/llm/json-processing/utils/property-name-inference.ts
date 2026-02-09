@@ -52,18 +52,13 @@ export function inferPropertyName(fragment: string, knownProperties?: readonly s
   // Strategy 1: If we have known properties, try dynamic matching
   if (knownProperties && knownProperties.length > 0) {
     const matchResult = matchPropertyName(fragment, knownProperties);
-    if (matchResult.matched && matchResult.confidence > 0.5) {
-      return matchResult.matched;
-    }
+    if (matchResult.matched && matchResult.confidence > 0.5) return matchResult.matched;
   }
 
   // Strategy 2: Try inference from common short fragments
   const inferred = inferFromShortFragment(fragment, knownProperties);
-  if (inferred) {
-    return inferred;
-  }
-
-  // Strategy 3: Fallback to "name" as the most common property name
+  if (inferred) return inferred;
+    // Strategy 3: Fallback to "name" as the most common property name
   return "name";
 }
 
@@ -96,5 +91,6 @@ export function isKnownProperty(
       propertyName.toLowerCase() as (typeof COMMON_PROPERTY_NAMES)[number],
     );
   }
+
   return knownProperties.some((p) => p.toLowerCase() === propertyName.toLowerCase());
 }

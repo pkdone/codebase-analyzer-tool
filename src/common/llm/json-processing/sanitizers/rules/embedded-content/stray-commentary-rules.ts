@@ -30,6 +30,7 @@ export const STRAY_COMMENTARY_RULES: readonly ReplacementRule[] = [
       const strayText = safeGroup(groups, 1);
       // Check if it looks like stray text
       const jsonKeywords = ["true", "false", "null"];
+
       if (jsonKeywords.includes(strayText.toLowerCase())) {
         return null;
       }
@@ -39,6 +40,7 @@ export const STRAY_COMMENTARY_RULES: readonly ReplacementRule[] = [
         strayText.includes("-") ||
         strayText.includes("_") ||
         /^[a-z]+$/.test(strayText);
+
       if (!isStray) {
         return null;
       }
@@ -80,6 +82,7 @@ export const STRAY_COMMENTARY_RULES: readonly ReplacementRule[] = [
     replacement: (_match, groups, context) => {
       const { beforeMatch } = context;
       const isAfterDelimiter = /[}\],]\s*\n\s*$/.test(beforeMatch);
+
       if (!isAfterDelimiter && context.offset > parsingHeuristics.PROPERTY_CONTEXT_OFFSET_LIMIT) {
         return null;
       }

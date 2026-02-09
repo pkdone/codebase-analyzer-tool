@@ -90,23 +90,28 @@ export const PROPERTY_NAME_RULES: readonly ReplacementRule[] = [
       const afterMatch = fullContent.substring(
         offset + (typeof _match === "string" ? _match.length : 0),
       );
+
       if (/^\s*"[^"]+"\s*,/.test(afterMatch)) {
         // Check if we're in an array by looking backwards
         let inString = false;
         let escape = false;
+
         for (let i = offset - 1; i >= 0; i--) {
           if (escape) {
             escape = false;
             continue;
           }
+
           if (fullContent[i] === "\\") {
             escape = true;
             continue;
           }
+
           if (fullContent[i] === '"') {
             inString = !inString;
             continue;
           }
+
           if (!inString) {
             if (fullContent[i] === "]" || fullContent[i] === "}") break;
             if (fullContent[i] === "[") return null; // In array context, skip this rule
@@ -260,6 +265,7 @@ export const PROPERTY_NAME_RULES: readonly ReplacementRule[] = [
         // Check what comes after this match - if comma, it's likely an array element
         const matchLen = typeof _match === "string" ? _match.length : 0;
         const afterMatch = fullContent.substring(offset + matchLen);
+
         if (/^\s*,/.test(afterMatch)) {
           // Check if we're DIRECTLY in an array (not inside an object within array)
           // by finding the first unmatched `[` or `{` looking backwards
@@ -267,33 +273,40 @@ export const PROPERTY_NAME_RULES: readonly ReplacementRule[] = [
           let escape = false;
           let braceDepth = 0;
           let bracketDepth = 0;
+
           for (let i = offset - 1; i >= 0; i--) {
             if (escape) {
               escape = false;
               continue;
             }
+
             if (fullContent[i] === "\\") {
               escape = true;
               continue;
             }
+
             if (fullContent[i] === '"') {
               inString = !inString;
               continue;
             }
+
             if (!inString) {
               if (fullContent[i] === "}") {
                 braceDepth++;
                 continue;
               }
+
               if (fullContent[i] === "]") {
                 bracketDepth++;
                 continue;
               }
+
               if (fullContent[i] === "{") {
                 if (braceDepth > 0) {
                   braceDepth--;
                   continue;
                 }
+
                 break; // Found unmatched `{`, we're in an object
               }
               if (fullContent[i] === "[") {
@@ -301,6 +314,7 @@ export const PROPERTY_NAME_RULES: readonly ReplacementRule[] = [
                   bracketDepth--;
                   continue;
                 }
+
                 return null; // Found unmatched `[`, directly in array - skip this rule
               }
             }
@@ -344,6 +358,7 @@ export const PROPERTY_NAME_RULES: readonly ReplacementRule[] = [
 
       // Check if the property name part is a known property (schema-aware or fallback)
       const knownProperties = context.config?.knownProperties;
+
       if (!isKnownProperty(propertyNamePart, knownProperties)) {
         // Not a known property, skip this replacement
         return null;
@@ -395,6 +410,7 @@ export const PROPERTY_NAME_RULES: readonly ReplacementRule[] = [
 
       // Check if the property name is known (schema-aware or fallback)
       const knownProperties = context.config?.knownProperties;
+
       if (!isKnownProperty(propertyName, knownProperties)) {
         return null;
       }

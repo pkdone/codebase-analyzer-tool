@@ -9,6 +9,7 @@ import { isInArrayContext } from "../utils/parser-context-utils";
  */
 function addMissingCommasInternal(input: string): SanitizerResult {
   const trimmed = input.trim();
+
   if (!trimmed) {
     return { content: input, changed: false };
   }
@@ -32,23 +33,27 @@ function addMissingCommasInternal(input: string): SanitizerResult {
       if (terminatorStr === '"') {
         let quoteCount = 0;
         let escaped = false;
+
         for (let i = 0; i <= offsetNum; i++) {
           if (escaped) {
             escaped = false;
             continue;
           }
+
           if (sanitized[i] === "\\") {
             escaped = true;
           } else if (sanitized[i] === '"') {
             quoteCount++;
           }
         }
+
         if (quoteCount % 2 === 1) {
           return match;
         }
       }
 
       const beforeNewline = sanitized.substring(Math.max(0, offsetNum - 10), offsetNum);
+
       if (beforeNewline.trim().endsWith(",")) {
         return match;
       }
@@ -73,11 +78,13 @@ function addMissingCommasInternal(input: string): SanitizerResult {
 
       let inString = false;
       let escaped = false;
+
       for (let i = 0; i < offsetNum; i++) {
         if (escaped) {
           escaped = false;
           continue;
         }
+
         if (sanitized[i] === "\\") {
           escaped = true;
         } else if (sanitized[i] === '"') {
@@ -99,18 +106,22 @@ function addMissingCommasInternal(input: string): SanitizerResult {
 
       for (let i = beforeMatch.length - 1; i >= 0; i--) {
         const char = beforeMatch[i];
+
         if (escapeCheck) {
           escapeCheck = false;
           continue;
         }
+
         if (char === "\\") {
           escapeCheck = true;
           continue;
         }
+
         if (char === '"') {
           inStringCheck = !inStringCheck;
           continue;
         }
+
         if (!inStringCheck && char === "[") {
           foundArray = true;
           break;
@@ -120,6 +131,7 @@ function addMissingCommasInternal(input: string): SanitizerResult {
       if (foundArray) {
         const beforeFirstQuote = sanitized.substring(Math.max(0, offsetNum - 10), offsetNum);
         const trimmedBefore = beforeFirstQuote.trim();
+
         if (!trimmedBefore.endsWith(",")) {
           commaCount++;
           const newline = whitespaceStr ? "\n" : "";
@@ -142,11 +154,13 @@ function addMissingCommasInternal(input: string): SanitizerResult {
 
       let inString = false;
       let escaped = false;
+
       for (let i = 0; i < offsetNum; i++) {
         if (escaped) {
           escaped = false;
           continue;
         }
+
         if (sanitized[i] === "\\") {
           escaped = true;
         } else if (sanitized[i] === '"') {
@@ -170,18 +184,22 @@ function addMissingCommasInternal(input: string): SanitizerResult {
 
       for (let i = beforeMatch.length - 1; i >= 0; i--) {
         const char = beforeMatch[i];
+
         if (escapeCheck) {
           escapeCheck = false;
           continue;
         }
+
         if (char === "\\") {
           escapeCheck = true;
           continue;
         }
+
         if (char === '"') {
           inStringCheck = !inStringCheck;
           continue;
         }
+
         if (!inStringCheck) {
           if (char === "]") {
             bracketDepth++;
@@ -190,6 +208,7 @@ function addMissingCommasInternal(input: string): SanitizerResult {
               foundArray = true;
               break;
             }
+
             bracketDepth--;
           } else if (char === "}") {
             braceDepth++;
@@ -204,6 +223,7 @@ function addMissingCommasInternal(input: string): SanitizerResult {
       }
 
       const beforeNewline = sanitized.substring(Math.max(0, offsetNum - 10), offsetNum);
+
       if (beforeNewline.trim().endsWith(",")) {
         return match;
       }
@@ -232,6 +252,7 @@ function addMissingCommasInternal(input: string): SanitizerResult {
  */
 function removeTrailingCommasInternal(input: string): SanitizerResult {
   const trimmed = input.trim();
+
   if (!trimmed) {
     return { content: input, changed: false };
   }
@@ -251,12 +272,15 @@ function removeTrailingCommasInternal(input: string): SanitizerResult {
       // Check if we're inside a string literal by counting quotes before this position
       let inString = false;
       let escaped = false;
+
       for (let i = 0; i < offset; i++) {
         const char = sanitized[i];
+
         if (escaped) {
           escaped = false;
           continue;
         }
+
         if (char === "\\") {
           escaped = true;
         } else if (char === '"') {
@@ -297,6 +321,7 @@ function removeTrailingCommasInternal(input: string): SanitizerResult {
  */
 function fixMismatchedDelimitersInternal(input: string): SanitizerResult {
   const trimmed = input.trim();
+
   if (!trimmed) {
     return { content: input, changed: false };
   }
@@ -362,6 +387,7 @@ function fixMismatchedDelimitersInternal(input: string): SanitizerResult {
     if (char === DELIMITERS.CLOSE_BRACE || char === DELIMITERS.CLOSE_BRACKET) {
       if (delimiterStack.length > 0) {
         const top = delimiterStack.pop();
+
         if (top) {
           const { opener } = top;
           const expectedCloser =
@@ -375,6 +401,7 @@ function fixMismatchedDelimitersInternal(input: string): SanitizerResult {
               delimiterStack.at(-1)?.opener === DELIMITERS.OPEN_BRACKET
             ) {
               const nextChar = peekNextNonWhitespace(i);
+
               if (nextChar === DELIMITERS.DOUBLE_QUOTE) {
                 delimiterCorrections.push({
                   index: result.length,
@@ -397,6 +424,7 @@ function fixMismatchedDelimitersInternal(input: string): SanitizerResult {
                 correctChar: expectedCloser,
               });
             }
+
             result.push(char);
           } else {
             result.push(char);
@@ -405,6 +433,7 @@ function fixMismatchedDelimitersInternal(input: string): SanitizerResult {
       } else {
         result.push(char);
       }
+
       i++;
       continue;
     }
@@ -418,8 +447,10 @@ function fixMismatchedDelimitersInternal(input: string): SanitizerResult {
   }
 
   let workingContent = result.join("");
+
   for (let idx = delimiterCorrections.length - 1; idx >= 0; idx--) {
     const { index, correctChar, insertAfter } = delimiterCorrections[idx];
+
     if (insertAfter) {
       workingContent =
         workingContent.substring(0, index) +
@@ -445,6 +476,7 @@ function fixMismatchedDelimitersInternal(input: string): SanitizerResult {
  */
 function completeTruncatedStructuresInternal(input: string): SanitizerResult {
   const trimmed = input.trim();
+
   if (!trimmed) {
     return { content: input, changed: false };
   }
@@ -483,13 +515,16 @@ function completeTruncatedStructuresInternal(input: string): SanitizerResult {
   }
 
   let finalContent = trimmed;
+
   if (inString) {
     finalContent += '"';
   }
 
   const addedDelimiters: string[] = [];
+
   while (completionStack.length) {
     const opener = completionStack.pop();
+
     if (opener === "{") {
       finalContent += "}";
       addedDelimiters.push("}");
@@ -684,12 +719,15 @@ export const fixJsonSyntax: Sanitizer = (input: string): SanitizerResult => {
 
     // Step 1: Add missing commas
     const commaResult = addMissingCommasInternal(sanitized);
+
     if (commaResult.changed) {
       sanitized = commaResult.content;
       hasChanges = true;
+
       if (commaResult.description) {
         repairs.push(commaResult.description);
       }
+
       if (commaResult.repairs) {
         repairs.push(...commaResult.repairs);
       }
@@ -697,12 +735,15 @@ export const fixJsonSyntax: Sanitizer = (input: string): SanitizerResult => {
 
     // Step 2: Remove trailing commas
     const trailingCommaResult = removeTrailingCommasInternal(sanitized);
+
     if (trailingCommaResult.changed) {
       sanitized = trailingCommaResult.content;
       hasChanges = true;
+
       if (trailingCommaResult.description) {
         repairs.push(trailingCommaResult.description);
       }
+
       if (trailingCommaResult.repairs) {
         repairs.push(...trailingCommaResult.repairs);
       }
@@ -710,12 +751,15 @@ export const fixJsonSyntax: Sanitizer = (input: string): SanitizerResult => {
 
     // Step 3: Fix mismatched delimiters
     const delimiterResult = fixMismatchedDelimitersInternal(sanitized);
+
     if (delimiterResult.changed) {
       sanitized = delimiterResult.content;
       hasChanges = true;
+
       if (delimiterResult.description) {
         repairs.push(delimiterResult.description);
       }
+
       if (delimiterResult.repairs) {
         repairs.push(...delimiterResult.repairs);
       }
@@ -723,12 +767,15 @@ export const fixJsonSyntax: Sanitizer = (input: string): SanitizerResult => {
 
     // Step 4: Complete truncated structures
     const truncationResult = completeTruncatedStructuresInternal(sanitized);
+
     if (truncationResult.changed) {
       sanitized = truncationResult.content;
       hasChanges = true;
+
       if (truncationResult.description) {
         repairs.push(truncationResult.description);
       }
+
       if (truncationResult.repairs) {
         repairs.push(...truncationResult.repairs);
       }
@@ -736,12 +783,15 @@ export const fixJsonSyntax: Sanitizer = (input: string): SanitizerResult => {
 
     // Step 5: Fix missing array object braces
     const arrayBracesResult = fixMissingArrayObjectBracesInternal(sanitized);
+
     if (arrayBracesResult.changed) {
       sanitized = arrayBracesResult.content;
       hasChanges = true;
+
       if (arrayBracesResult.description) {
         repairs.push(arrayBracesResult.description);
       }
+
       if (arrayBracesResult.repairs) {
         repairs.push(...arrayBracesResult.repairs);
       }

@@ -24,6 +24,7 @@ export function getNestedValue(obj: unknown, path: string): unknown {
     if (!isIndexable(current)) {
       return undefined;
     }
+
     current = current[key];
   }
 
@@ -43,5 +44,6 @@ export function getNestedValueWithFallbacks(obj: unknown, paths: string[]): unkn
     const v = getNestedValue(obj, p);
     if (v !== undefined && v !== null) return v;
   }
+
   return undefined;
 }

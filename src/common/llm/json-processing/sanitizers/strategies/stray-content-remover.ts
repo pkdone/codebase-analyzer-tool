@@ -124,6 +124,7 @@ export const strayContentRemover: SanitizerStrategy = {
       if (pattern.test(sanitized)) {
         const beforeFix = sanitized;
         sanitized = sanitized.replace(pattern, replacement);
+
         if (sanitized !== beforeFix) {
           hasChanges = true;
           diagnostics.add(description);
@@ -138,6 +139,7 @@ export const strayContentRemover: SanitizerStrategy = {
       if (isInString(offset)) {
         return match;
       }
+
       hasChanges = true;
       diagnostics.add("Removed AI-generated content warning");
       return "";
@@ -151,6 +153,7 @@ export const strayContentRemover: SanitizerStrategy = {
         if (isInString(offset)) {
           return match;
         }
+
         const delimiterStr = typeof delimiter === "string" ? delimiter : "";
         const newlineStr = typeof newline === "string" ? newline : "";
         hasChanges = true;
@@ -260,6 +263,7 @@ export const strayContentRemover: SanitizerStrategy = {
 
           let finalWhitespace = whitespaceAfterStr || whitespaceBeforeStr;
           const isInArrayContext = /\[\s*$/.test(beforeMatch) || /\[\s*\n\s*$/.test(beforeMatch);
+
           if (isInArrayContext && finalWhitespace === "") {
             finalWhitespace = "    ";
           }
@@ -267,6 +271,7 @@ export const strayContentRemover: SanitizerStrategy = {
           if (delimiterStr === "") {
             return `${finalWhitespace}"${propertyNameStr}"${terminatorStr}`;
           }
+
           return `${delimiterStr}${finalWhitespace}"${propertyNameStr}"${terminatorStr}`;
         }
 

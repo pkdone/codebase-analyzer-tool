@@ -32,6 +32,7 @@ export default class AzureOpenAILLM extends BaseOpenAILLM {
         "Invalid Azure OpenAI configuration - missing required fields (apiKey, endpoint)",
       );
     }
+
     const { apiKey, endpoint } = extractedConfig;
 
     // Get deployment env key mapping from manifest configuration
@@ -47,8 +48,10 @@ export default class AzureOpenAILLM extends BaseOpenAILLM {
 
     // Build deployment mapping from environment variables using manifest config
     this.deployments = {};
+
     for (const [modelKey, envKey] of Object.entries(deploymentEnvKeys)) {
       const deployment = providerParams[envKey];
+
       if (deployment) {
         this.deployments[modelKey] = deployment as string;
       }
@@ -71,12 +74,14 @@ export default class AzureOpenAILLM extends BaseOpenAILLM {
    */
   protected override getModelIdentifier(modelKey: string): string {
     const deployment = this.deployments[modelKey];
+
     if (!deployment) {
       throw new Error(
         `No deployment configured for model '${modelKey}'. ` +
           `Ensure the corresponding deployment environment variable is set.`,
       );
     }
+
     return deployment;
   }
 }

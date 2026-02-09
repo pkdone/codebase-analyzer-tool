@@ -28,6 +28,7 @@ import { createStringBoundaryChecker, isInArrayContext } from "../utils/parser-c
  */
 export const postProcessJsonStructure: Sanitizer = (input: string): SanitizerResult => {
   const trimmed = input.trim();
+
   if (!trimmed) {
     return { content: input, changed: false };
   }
@@ -48,6 +49,7 @@ export const postProcessJsonStructure: Sanitizer = (input: string): SanitizerRes
   const danglingPropertyPattern = /"([a-zA-Z_$][a-zA-Z0-9_$]*)\s+"(?=[,}\n])/g;
   finalContent = finalContent.replace(danglingPropertyPattern, (match, propertyName, offset) => {
     const offsetNum = typeof offset === "number" ? offset : 0;
+
     if (isInString(offsetNum)) {
       return match;
     }
@@ -76,6 +78,7 @@ export const postProcessJsonStructure: Sanitizer = (input: string): SanitizerRes
     // This means it's a valid property, not dangling
     if (delimiter) {
       const beforeDelimiter = afterMatch.substring(0, afterMatch.indexOf(delimiter));
+
       if (beforeDelimiter.includes(":")) {
         return match;
       }
@@ -89,6 +92,7 @@ export const postProcessJsonStructure: Sanitizer = (input: string): SanitizerRes
     if (delimiter === "\n") {
       return `"${propertyName}": null,`;
     }
+
     if (delimiter === ",") {
       return `"${propertyName}": null,`;
     }
@@ -104,12 +108,14 @@ export const postProcessJsonStructure: Sanitizer = (input: string): SanitizerRes
   const beforeMissingQuotes = finalContent;
   const missingOpeningQuotePattern1 = /((?:,|\[))\s*\n?(\s*)([a-zA-Z_$][a-zA-Z0-9_$.]+)"\s*,/g;
   let previousContent = "";
+
   while (previousContent !== finalContent) {
     previousContent = finalContent;
     finalContent = finalContent.replace(
       missingOpeningQuotePattern1,
       (match, delimiter, whitespace, unquotedValue, offset) => {
         const offsetNum = typeof offset === "number" ? offset : 0;
+
         if (!isInArrayContext(offsetNum, finalContent)) {
           return match;
         }
@@ -119,6 +125,7 @@ export const postProcessJsonStructure: Sanitizer = (input: string): SanitizerRes
         const unquotedValueStr = typeof unquotedValue === "string" ? unquotedValue : "";
 
         const jsonKeywords = ["true", "false", "null", "undefined"];
+
         if (jsonKeywords.includes(unquotedValueStr.toLowerCase())) {
           return match;
         }
@@ -131,6 +138,7 @@ export const postProcessJsonStructure: Sanitizer = (input: string): SanitizerRes
       },
     );
   }
+
   if (finalContent !== beforeMissingQuotes) {
     repairs.push(REPAIR_STEP.FIXED_MISSING_OPENING_QUOTES_IN_ARRAY_STRINGS);
   }
@@ -147,6 +155,7 @@ export const postProcessJsonStructure: Sanitizer = (input: string): SanitizerRes
     strayCharsAfterValuePattern,
     (match, quotedValue, strayChars, offset) => {
       const offsetNum = typeof offset === "number" ? offset : 0;
+
       if (isInString(offsetNum)) {
         return match;
       }
@@ -170,6 +179,7 @@ export const postProcessJsonStructure: Sanitizer = (input: string): SanitizerRes
       return match;
     },
   );
+
   if (finalContent !== beforeStrayChars) {
     hasChanges = true;
     repairs.push(REPAIR_STEP.FIXED_STRAY_CHARS_AFTER_PROPERTY_VALUES);
@@ -187,6 +197,7 @@ export const postProcessJsonStructure: Sanitizer = (input: string): SanitizerRes
     corruptedPattern1,
     (match, propertyName, corruptedValue, nextPropertyValue, offset) => {
       const offsetNum = typeof offset === "number" ? offset : 0;
+
       if (isInString(offsetNum)) {
         return match;
       }
@@ -214,6 +225,7 @@ export const postProcessJsonStructure: Sanitizer = (input: string): SanitizerRes
     corruptedPattern2,
     (match, propertyName, corruptedValue, _nextPropertyValue, typeValue, offset) => {
       const offsetNum = typeof offset === "number" ? offset : 0;
+
       if (isInString(offsetNum)) {
         return match;
       }
@@ -237,6 +249,7 @@ export const postProcessJsonStructure: Sanitizer = (input: string): SanitizerRes
       return match;
     },
   );
+
   if (finalContent !== beforeCorruptedPairs) {
     hasChanges = true;
     repairs.push(REPAIR_STEP.FIXED_CORRUPTED_PROPERTY_VALUE_PAIRS);
@@ -249,12 +262,14 @@ export const postProcessJsonStructure: Sanitizer = (input: string): SanitizerRes
   const truncatedValuePattern1 =
     /("type"\s*:\s*"[^"]*")\s*\n(\s*)([a-z][a-zA-Z0-9_]*)"\s*,\s*\n(\s*)"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:/g;
   previousContent = "";
+
   while (previousContent !== finalContent) {
     previousContent = finalContent;
     finalContent = finalContent.replace(
       truncatedValuePattern1,
       (match, typeProperty, whitespace1, truncatedValue, whitespace2, nextProperty, offset) => {
         const offsetNum = typeof offset === "number" ? offset : 0;
+
         if (!isInArrayContext(offsetNum, finalContent)) {
           return match;
         }
@@ -277,6 +292,7 @@ export const postProcessJsonStructure: Sanitizer = (input: string): SanitizerRes
       },
     );
   }
+
   if (finalContent !== beforeTruncatedValues) {
     hasChanges = true;
     repairs.push(REPAIR_STEP.FIXED_TRUNCATED_PROPERTY_VALUES_IN_ARRAYS);

@@ -37,6 +37,7 @@ export function fixCommonPropertyNameTypos(
             return correctKey;
           }
         }
+
         return key;
       },
     },

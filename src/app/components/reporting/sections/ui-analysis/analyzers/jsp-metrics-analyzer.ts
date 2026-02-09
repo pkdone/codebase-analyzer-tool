@@ -116,6 +116,7 @@ export class JspMetricsAnalyzer {
         if (a.usageCount !== b.usageCount) {
           return b.usageCount - a.usageCount;
         }
+
         return a.prefix.localeCompare(b.prefix);
       });
   }
@@ -133,6 +134,7 @@ export class JspMetricsAnalyzer {
 
     // Deduplicate by URI within this file to prevent inflated counts
     const uniqueTags = new Map<string, { prefix: string; uri: string }>();
+
     for (const tag of customTags) {
       if (!uniqueTags.has(tag.uri)) {
         uniqueTags.set(tag.uri, tag);
