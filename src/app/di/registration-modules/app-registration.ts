@@ -13,7 +13,7 @@ import { AppSummariesRepository } from "../../repositories/app-summaries/app-sum
 import { registerReportingComponents } from "./reporting-registration";
 
 // Insights component imports
-import InsightsFromDBGenerator from "../../components/insights/generators/db-insights-generator";
+import InsightsGenerator from "../../components/insights/generators/insights-generator";
 import { RequirementPromptExecutor } from "../../components/insights/generators/requirement-prompt-executor";
 import { SinglePassInsightStrategy } from "../../components/insights/strategies/single-pass-insight-strategy";
 import { MapReduceInsightStrategy } from "../../components/insights/strategies/map-reduce-insight-strategy";
@@ -22,7 +22,7 @@ import { MapReduceInsightStrategy } from "../../components/insights/strategies/m
 import { CodebaseCaptureTask } from "../../tasks/main/codebase-capture.task";
 import { CodebaseQueryTask } from "../../tasks/main/code-query.task";
 import { InsightsGenerationTask } from "../../tasks/main/insights-generation.task";
-import { FileBasedInsightsGenerationTask } from "../../tasks/main/direct-insights-generation.task";
+import { FileBasedInsightsGenerationTask } from "../../tasks/main/file-based-insights-generation.task";
 import { MongoConnectionTestTask } from "../../tasks/dev/mdb-connection-test.task";
 import { PluggableLLMsTestTask } from "../../tasks/dev/test-pluggable-llms.task";
 import { ListAvailableModelsTask } from "../../tasks/dev/list-available-models.task";
@@ -101,7 +101,7 @@ function registerComponents(): void {
 
   // Register insights components
   container.registerSingleton(insightsTokens.RequirementPromptExecutor, RequirementPromptExecutor);
-  container.registerSingleton(insightsTokens.InsightsFromDBGenerator, InsightsFromDBGenerator);
+  container.registerSingleton(insightsTokens.InsightsGenerator, InsightsGenerator);
   container.registerSingleton(insightsTokens.SinglePassInsightStrategy, SinglePassInsightStrategy);
   container.registerSingleton(insightsTokens.MapReduceInsightStrategy, MapReduceInsightStrategy);
 

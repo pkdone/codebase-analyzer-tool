@@ -45,7 +45,7 @@ export class DatabaseSection extends BaseReportSection {
     const { dbInteractions, procsAndTriggers } = sectionData;
 
     if (!dbInteractions || !procsAndTriggers) {
-      return await Promise.resolve(null);
+      return null;
     }
 
     // Create view model for database interactions
@@ -55,7 +55,6 @@ export class DatabaseSection extends BaseReportSection {
     const combinedProcsTrigsList = [...procsAndTriggers.procs.list, ...procsAndTriggers.trigs.list];
     const procsAndTriggersTableViewModel = new TableViewModel(combinedProcsTrigsList);
 
-    // Implementation of async interface - computation is synchronous but interface requires Promise
     return await Promise.resolve({
       dbInteractions,
       procsAndTriggers,

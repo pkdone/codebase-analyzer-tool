@@ -9,13 +9,12 @@
 export type {
   PartialAppSummaryRecord,
   AppSummaryCategoryType,
-  AppSummaryCategoryEnum,
   CategoryInsightResult,
 } from "./insights.types";
 export { appSummaryCategorySchemas, type AppSummaryCategorySchemas } from "./insights.types";
 
 // Generators - these are injectable services
-export { default as InsightsFromDBGenerator } from "./generators/db-insights-generator";
+export { default as InsightsGenerator } from "./generators/insights-generator";
 export { RequirementPromptExecutor } from "./generators/requirement-prompt-executor";
 
 // Strategies

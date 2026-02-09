@@ -11,7 +11,7 @@ import { llmTokens, serviceTokens } from "../../../di/tokens";
 import { InsightGenerationStrategy } from "./insight-generation-strategy.interface";
 import type { LlmConcurrencyService } from "../../concurrency";
 import {
-  AppSummaryCategoryEnum,
+  AppSummaryCategoryType,
   CategoryInsightResult,
   MapReduceIntermediateData,
   appSummaryCategorySchemas,
@@ -51,7 +51,7 @@ export class MapReduceInsightStrategy implements InsightGenerationStrategy {
    *
    * Returns the strongly-typed result inferred from the category's schema.
    */
-  async generateInsights<C extends AppSummaryCategoryEnum>(
+  async generateInsights<C extends AppSummaryCategoryType>(
     category: C,
     sourceFileSummaries: readonly string[],
   ): Promise<CategoryInsightResult<C> | null> {
@@ -118,7 +118,7 @@ export class MapReduceInsightStrategy implements InsightGenerationStrategy {
    * Uses forPartialAnalysis flag which includes a note about partial analysis.
    * Returns the strongly-typed result inferred from the category's schema.
    */
-  private async generatePartialInsightsForCategory<C extends AppSummaryCategoryEnum>(
+  private async generatePartialInsightsForCategory<C extends AppSummaryCategoryType>(
     category: C,
     summaryChunk: string[],
   ): Promise<CategoryInsightResult<C> | null> {
@@ -143,7 +143,7 @@ export class MapReduceInsightStrategy implements InsightGenerationStrategy {
    *
    * @returns MapReduceIntermediateData<C> - intermediate data for the REDUCE phase
    */
-  private combinePartialResultsData<C extends AppSummaryCategoryEnum>(
+  private combinePartialResultsData<C extends AppSummaryCategoryType>(
     category: C,
     partialResults: CategoryInsightResult<C>[],
   ): MapReduceIntermediateData<C> {
@@ -236,7 +236,7 @@ export class MapReduceInsightStrategy implements InsightGenerationStrategy {
    * Uses the strongly-typed `appSummaryCategorySchemas` mapping to enable proper type inference
    * from the category parameter, returning the category-specific result type.
    */
-  private async reducePartialInsights<C extends AppSummaryCategoryEnum>(
+  private async reducePartialInsights<C extends AppSummaryCategoryType>(
     category: C,
     partialResults: CategoryInsightResult<C>[],
   ): Promise<CategoryInsightResult<C> | null> {
@@ -271,7 +271,7 @@ export class MapReduceInsightStrategy implements InsightGenerationStrategy {
        * The compiler sees the union of all possible schemasrather than the specific schema for C.
        *
        * This is TYPE-SAFE because:
-       * 1. The generic parameter C is constrained to valid AppSummaryCategoryEnum keys.
+       * 1. The generic parameter C is constrained to valid AppSummaryCategoryType keys.
        * 2. The runtime lookup returns the exact schema corresponding to C.
        * 3. The LLM router validates the response against this schema before returning.
        * 4. CategoryInsightResult<C> accurately represents z.infer<AppSummaryCategorySchemas[C]>.

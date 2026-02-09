@@ -16,86 +16,7 @@
 import type { ReplacementRule, ContextInfo } from "../../../../types/sanitizer-config.types";
 import { parsingHeuristics } from "../../../constants/json-processing.config";
 import { findJsonValueEnd } from "../../../utils/parser-context-utils";
-
-/**
- * Checks if a property name looks like LLM-generated metadata/artifact.
- * Uses pattern matching rather than hardcoded word lists.
- *
- * @param propertyName - The property name to check
- * @returns True if the property name looks like LLM-generated metadata
- */
-function isLLMArtifactPropertyName(propertyName: string): boolean {
-  const lowerName = propertyName.toLowerCase();
-
-  // Pattern 1: Prefixed with extra_, llm_, ai_, model_, gpt_, claude_, gemini_
-  if (/^(extra|llm|ai|model|gpt|claude|gemini)_/i.test(propertyName)) {
-    return true;
-  }
-
-  // Pattern 2: Starts with underscore (internal/hidden property convention)
-  if (/^_[a-z_]+$/i.test(propertyName)) {
-    return true;
-  }
-
-  // Pattern 3: Contains common LLM artifact suffixes
-  // These patterns indicate internal/debugging properties LLMs sometimes add
-  // Extended list includes: trace, chain, steps, working, draft, intermediate
-  if (
-    /_(?:thoughts?|thinking|reasoning|analysis|scratchpad|notes?|comment|metadata|internal|private|context|response|output|trace|chain|steps?|working|draft|intermediate|scratch)$/i.test(
-      lowerName,
-    )
-  ) {
-    return true;
-  }
-
-  // Pattern 4: Contains artifact-indicating words anywhere in the name
-  // Extended list includes: trace, chain, scratch, step, intermediate, working, draft
-  if (
-    /(?:thought|thinking|reasoning|scratchpad|chain_of_thought|reasoning_trace|working_memory|intermediate_result|scratch_work|step_by_step)/.test(
-      lowerName,
-    ) &&
-    !lowerName.startsWith('"') // Not inside a string value
-  ) {
-    return true;
-  }
-
-  // Pattern 5: Contains debugging/internal prefixes followed by underscore
-  if (/^(?:debug|temp|tmp|internal|private|hidden)_/i.test(propertyName)) {
-    return true;
-  }
-
-  return false;
-}
-
-/**
- * Checks if a property should be removed based on known properties list.
- * When knownProperties is provided and a property is not in that list,
- * and it looks like potential LLM-generated metadata, it should be removed.
- *
- * @param propertyName - The property name to check
- * @param knownProperties - Optional list of known valid property names
- * @returns True if the property should be removed
- */
-function shouldRemoveUnknownArtifactProperty(
-  propertyName: string,
-  knownProperties: readonly string[] | undefined,
-): boolean {
-  // If no knownProperties provided, only use pattern-based detection
-  if (!knownProperties || knownProperties.length === 0) {
-    return isLLMArtifactPropertyName(propertyName);
-  }
-
-  // Check if property is in the known list (case-insensitive)
-  const lowerName = propertyName.toLowerCase();
-  const isKnown = knownProperties.some((p) => p.toLowerCase() === lowerName);
-
-  if (isKnown) {
-    return false;
-  }
-
-  // For unknown properties, check if they match artifact patterns
-  return isLLMArtifactPropertyName(propertyName);
-}
+import { shouldRemoveAsLLMArtifact } from "../../../utils/llm-artifact-detection";
 
 /**
  * Checks if a context is valid for embedded content removal.
@@ -280,7 +201,7 @@ export const LLM_METADATA_PROPERTY_RULES: readonly ReplacementRule[] = [
       const knownProperties = context.config?.knownProperties;
 
       // Check if this should be removed using schema-aware detection
-      if (!shouldRemoveUnknownArtifactProperty(propertyName, knownProperties)) {
+      if (!shouldRemoveAsLLMArtifact(propertyName, knownProperties)) {
         return null;
       }
 

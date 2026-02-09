@@ -2,7 +2,7 @@ import { executeInsightCompletion } from "../../../../../src/app/components/insi
 import LLMRouter from "../../../../../src/common/llm/llm-router";
 import { LLMOutputFormat } from "../../../../../src/common/llm/types/llm-request.types";
 import {
-  AppSummaryCategoryEnum,
+  AppSummaryCategoryType,
   appSummaryCategorySchemas,
   type AppSummaryCategorySchemas,
 } from "../../../../../src/app/components/insights/insights.types";
@@ -29,7 +29,7 @@ describe("completion-executor type inference improvements", () => {
 
   describe("type inference without explicit casts", () => {
     it("should infer correct type for appDescription category", async () => {
-      const category: AppSummaryCategoryEnum = "appDescription";
+      const category: AppSummaryCategoryType = "appDescription";
       const mockResponse = {
         appDescription: "A comprehensive application for managing user data",
       };
@@ -53,7 +53,7 @@ describe("completion-executor type inference improvements", () => {
     });
 
     it("should infer correct type for technologies category", async () => {
-      const category: AppSummaryCategoryEnum = "technologies";
+      const category: AppSummaryCategoryType = "technologies";
       const mockResponse = {
         technologies: [
           { name: "TypeScript", description: "Typed JavaScript" },
@@ -81,7 +81,7 @@ describe("completion-executor type inference improvements", () => {
     });
 
     it("should infer correct type for entities category", async () => {
-      const category: AppSummaryCategoryEnum = "technologies";
+      const category: AppSummaryCategoryType = "technologies";
       const mockResponse = {
         technologies: [
           { name: "User", description: "User entity with profile data" },
@@ -108,7 +108,7 @@ describe("completion-executor type inference improvements", () => {
     });
 
     it("should infer correct type for boundedContexts category", async () => {
-      const category: AppSummaryCategoryEnum = "boundedContexts";
+      const category: AppSummaryCategoryType = "boundedContexts";
       const mockResponse = {
         boundedContexts: [
           {
@@ -137,7 +137,7 @@ describe("completion-executor type inference improvements", () => {
     });
 
     it("should infer correct type for businessProcesses category", async () => {
-      const category: AppSummaryCategoryEnum = "businessProcesses";
+      const category: AppSummaryCategoryType = "businessProcesses";
       const mockResponse = {
         businessProcesses: [
           { name: "User Registration", description: "New user signup flow" },
@@ -163,7 +163,7 @@ describe("completion-executor type inference improvements", () => {
     });
 
     it("should infer correct type for boundedContexts category", async () => {
-      const category: AppSummaryCategoryEnum = "boundedContexts";
+      const category: AppSummaryCategoryType = "boundedContexts";
       const mockResponse = {
         boundedContexts: [
           {
@@ -198,7 +198,7 @@ describe("completion-executor type inference improvements", () => {
     });
 
     it("should infer correct type for businessProcesses category", async () => {
-      const category: AppSummaryCategoryEnum = "businessProcesses";
+      const category: AppSummaryCategoryType = "businessProcesses";
       const mockResponse = {
         businessProcesses: [
           {
@@ -232,7 +232,7 @@ describe("completion-executor type inference improvements", () => {
     });
 
     it("should infer correct type for potentialMicroservices category", async () => {
-      const category: AppSummaryCategoryEnum = "potentialMicroservices";
+      const category: AppSummaryCategoryType = "potentialMicroservices";
       const mockResponse = {
         potentialMicroservices: [
           { name: "AuthService", description: "Authentication microservice" },
@@ -260,7 +260,7 @@ describe("completion-executor type inference improvements", () => {
 
   describe("type safety through call chain", () => {
     it("should preserve type information from LLM router to caller", async () => {
-      const category: AppSummaryCategoryEnum = "technologies";
+      const category: AppSummaryCategoryType = "technologies";
       const mockResponse = {
         technologies: [{ name: "Node.ts", description: "JavaScript runtime" }],
       };
@@ -297,7 +297,7 @@ describe("completion-executor type inference improvements", () => {
     });
 
     it("should not require explicit casts when assigning to typed variables", async () => {
-      const category: AppSummaryCategoryEnum = "appDescription";
+      const category: AppSummaryCategoryType = "appDescription";
       const mockResponse = { appDescription: "Test application" };
 
       mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(ok(mockResponse));
@@ -317,7 +317,7 @@ describe("completion-executor type inference improvements", () => {
     });
 
     it("should support destructuring without explicit casts", async () => {
-      const category: AppSummaryCategoryEnum = "technologies";
+      const category: AppSummaryCategoryType = "technologies";
       const mockResponse = {
         technologies: [
           { name: "User", description: "User entity" },
@@ -345,7 +345,7 @@ describe("completion-executor type inference improvements", () => {
 
   describe("null handling with type safety", () => {
     it("should return null with correct type when LLM returns err", async () => {
-      const category: AppSummaryCategoryEnum = "appDescription";
+      const category: AppSummaryCategoryType = "appDescription";
 
       mockLLMRouter.executeCompletion = jest
         .fn()
@@ -371,7 +371,7 @@ describe("completion-executor type inference improvements", () => {
     });
 
     it("should return null with correct type when LLM throws error", async () => {
-      const category: AppSummaryCategoryEnum = "technologies";
+      const category: AppSummaryCategoryType = "technologies";
 
       mockLLMRouter.executeCompletion = jest.fn().mockRejectedValue(new Error("LLM error"));
 
@@ -388,7 +388,7 @@ describe("completion-executor type inference improvements", () => {
 
   describe("options handling with type inference", () => {
     it("should preserve types when using custom taskCategory", async () => {
-      const category: AppSummaryCategoryEnum = "technologies";
+      const category: AppSummaryCategoryType = "technologies";
       const customTaskCategory = "custom-tech-analysis";
       const mockResponse = {
         technologies: [{ name: "TypeScript", description: "Typed JS" }],
@@ -418,7 +418,7 @@ describe("completion-executor type inference improvements", () => {
     });
 
     it("should preserve types when using forPartialAnalysis flag", async () => {
-      const category: AppSummaryCategoryEnum = "technologies";
+      const category: AppSummaryCategoryType = "technologies";
       const mockResponse = {
         technologies: [{ name: "Entity1", description: "Description" }],
       };
@@ -445,7 +445,7 @@ describe("completion-executor type inference improvements", () => {
       // This test validates that the generic type C is correctly inferred
       // from the category argument and used for return type inference
 
-      async function testCategoryInference<C extends AppSummaryCategoryEnum>(
+      async function testCategoryInference<C extends AppSummaryCategoryType>(
         cat: C,
         mockResp: z.infer<AppSummaryCategorySchemas[C]>,
       ): Promise<void> {
@@ -505,7 +505,7 @@ describe("completion-executor type inference improvements", () => {
 
   describe("regression tests for type cast removal", () => {
     it("should not require cast for simple property access", async () => {
-      const category: AppSummaryCategoryEnum = "appDescription";
+      const category: AppSummaryCategoryType = "appDescription";
       const mockResponse = { appDescription: "Description text" };
 
       mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(ok(mockResponse));
@@ -525,7 +525,7 @@ describe("completion-executor type inference improvements", () => {
     });
 
     it("should not require cast for array access", async () => {
-      const category: AppSummaryCategoryEnum = "technologies";
+      const category: AppSummaryCategoryType = "technologies";
       const mockResponse = {
         technologies: [{ name: "Tech1", description: "Desc1" }],
       };
@@ -548,7 +548,7 @@ describe("completion-executor type inference improvements", () => {
     });
 
     it("should not require cast for nested property access", async () => {
-      const category: AppSummaryCategoryEnum = "boundedContexts";
+      const category: AppSummaryCategoryType = "boundedContexts";
       const mockResponse = {
         boundedContexts: [
           {
@@ -577,7 +577,7 @@ describe("completion-executor type inference improvements", () => {
     });
 
     it("should work with spread operator without casts", async () => {
-      const category: AppSummaryCategoryEnum = "technologies";
+      const category: AppSummaryCategoryType = "technologies";
       const mockResponse = {
         technologies: [
           { name: "Entity1", description: "Desc1" },
@@ -605,7 +605,7 @@ describe("completion-executor type inference improvements", () => {
     });
 
     it("should work with Object methods without casts", async () => {
-      const category: AppSummaryCategoryEnum = "appDescription";
+      const category: AppSummaryCategoryType = "appDescription";
       const mockResponse = { appDescription: "Test description" };
 
       mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(ok(mockResponse));

@@ -2,7 +2,7 @@ import "reflect-metadata";
 import { MapReduceInsightStrategy } from "../../../../../src/app/components/insights/strategies/map-reduce-insight-strategy";
 import {
   PartialAppSummaryRecord,
-  AppSummaryCategoryEnum,
+  AppSummaryCategoryType,
   appSummaryCategorySchemas,
   type AppSummaryCategorySchemas,
 } from "../../../../../src/app/components/insights/insights.types";
@@ -50,7 +50,7 @@ describe("MapReduceInsightStrategy", () => {
     });
 
     it("should call executeCompletion for map and reduce phases", async () => {
-      const category: AppSummaryCategoryEnum = "technologies";
+      const category: AppSummaryCategoryType = "technologies";
       // Use category-specific type instead of PartialAppSummaryRecord for stronger typing
       const mockMapResponse = {
         technologies: [{ name: "Entity1", description: "Description 1" }],
@@ -73,7 +73,7 @@ describe("MapReduceInsightStrategy", () => {
     });
 
     it("should return null when all map phases return err", async () => {
-      const category: AppSummaryCategoryEnum = "technologies";
+      const category: AppSummaryCategoryType = "technologies";
 
       mockLLMRouter.executeCompletion = jest
         .fn()
@@ -88,7 +88,7 @@ describe("MapReduceInsightStrategy", () => {
     });
 
     it("should return null when reduce phase returns err", async () => {
-      const category: AppSummaryCategoryEnum = "technologies";
+      const category: AppSummaryCategoryType = "technologies";
       // Use category-specific type for stronger typing
       const mockMapResponse = {
         technologies: [{ name: "Entity1", description: "Description 1" }],
@@ -109,7 +109,7 @@ describe("MapReduceInsightStrategy", () => {
     });
 
     it("should return null when an error is thrown", async () => {
-      const category: AppSummaryCategoryEnum = "technologies";
+      const category: AppSummaryCategoryType = "technologies";
 
       mockLLMRouter.executeCompletion = jest.fn().mockRejectedValue(new Error("LLM error"));
 
@@ -123,7 +123,7 @@ describe("MapReduceInsightStrategy", () => {
 
   describe("type inference through the call chain", () => {
     it("should infer return type from category schema without explicit casts", async () => {
-      const category: AppSummaryCategoryEnum = "appDescription";
+      const category: AppSummaryCategoryType = "appDescription";
       const _config = appSummaryPromptMetadata[category];
       const mockResponse = { appDescription: "Test description" };
 
@@ -145,7 +145,7 @@ describe("MapReduceInsightStrategy", () => {
     });
 
     it("should handle entities category with proper type inference", async () => {
-      const category: AppSummaryCategoryEnum = "technologies";
+      const category: AppSummaryCategoryType = "technologies";
       const _config = appSummaryPromptMetadata[category];
       const mockResponse = {
         technologies: [{ name: "Entity1", description: "Desc" }],
@@ -167,7 +167,7 @@ describe("MapReduceInsightStrategy", () => {
     });
 
     it("should handle technologies category with proper type inference", async () => {
-      const category: AppSummaryCategoryEnum = "technologies";
+      const category: AppSummaryCategoryType = "technologies";
       const _config = appSummaryPromptMetadata[category];
       const mockResponse = {
         technologies: [{ name: "TypeScript", version: "5.7.3" }],
@@ -190,7 +190,7 @@ describe("MapReduceInsightStrategy", () => {
 
   describe("executeCompletion call validation", () => {
     it("should call executeCompletion with correct options for map phase", async () => {
-      const category: AppSummaryCategoryEnum = "technologies";
+      const category: AppSummaryCategoryType = "technologies";
       const config = appSummaryPromptMetadata[category];
       const mockResponse = {
         technologies: [{ name: "Entity1", description: "Description 1" }],
@@ -217,7 +217,7 @@ describe("MapReduceInsightStrategy", () => {
     });
 
     it("should call executeCompletion with correct options for reduce phase", async () => {
-      const category: AppSummaryCategoryEnum = "technologies";
+      const category: AppSummaryCategoryType = "technologies";
       const mockResponse = {
         technologies: [{ name: "Entity1", description: "Description 1" }],
       };
@@ -273,7 +273,7 @@ describe("MapReduceInsightStrategy", () => {
     });
 
     it("should maintain type safety across all category types", async () => {
-      const categories: AppSummaryCategoryEnum[] = [
+      const categories: AppSummaryCategoryType[] = [
         "appDescription",
         "technologies",
         "businessProcesses",
@@ -531,7 +531,7 @@ describe("MapReduceInsightStrategy", () => {
 
     it("should demonstrate type inference works for all supported categories", () => {
       // Compile-time validation that all categories have proper type support
-      type ValidCategories = AppSummaryCategoryEnum;
+      type ValidCategories = AppSummaryCategoryType;
 
       const allCategories: ValidCategories[] = [
         "appDescription",
@@ -1620,7 +1620,7 @@ describe("MapReduceInsightStrategy", () => {
      * when encountering an unhandled schema shape rather than silently returning
      * an empty array structure.
      *
-     * Note: All current AppSummaryCategoryEnum schemas are handled (Array, Object, String),
+     * Note: All current AppSummaryCategoryType schemas are handled (Array, Object, String),
      * so this error path would only be triggered if a new category type is added without
      * updating combinePartialResultsData. The error ensures developers are alerted immediately
      * rather than passing incorrectly typed data downstream.
@@ -1630,7 +1630,7 @@ describe("MapReduceInsightStrategy", () => {
       // This test verifies that all existing categories are properly handled
       // by running through them without errors. If the unhandled schema error
       // was still being triggered, one of these would fail.
-      const categories: AppSummaryCategoryEnum[] = [
+      const categories: AppSummaryCategoryType[] = [
         "appDescription",
         "technologies",
         "businessProcesses",

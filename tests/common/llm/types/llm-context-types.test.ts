@@ -5,7 +5,6 @@ import {
   LLMExecutionContext,
   LLMPurpose,
   LLMOutputFormat,
-  isExecutionContext,
   toExecutionContext,
 } from "../../../../src/common/llm/types/llm-request.types";
 
@@ -63,43 +62,6 @@ describe("LLM Context Types", () => {
     });
   });
 
-  describe("isExecutionContext type guard", () => {
-    test("should return true for execution context with modelKey", () => {
-      const context: LLMExecutionContext = {
-        resource: "test-resource",
-        purpose: LLMPurpose.COMPLETIONS,
-        modelKey: "test-model",
-      };
-
-      expect(isExecutionContext(context)).toBe(true);
-    });
-
-    test("should return false for request context without modelKey", () => {
-      const context: LLMRequestContext = {
-        resource: "test-resource",
-        purpose: LLMPurpose.COMPLETIONS,
-      };
-
-      expect(isExecutionContext(context)).toBe(false);
-    });
-
-    test("should narrow type correctly", () => {
-      const context: LLMRequestContext | LLMExecutionContext = {
-        resource: "test-resource",
-        purpose: LLMPurpose.COMPLETIONS,
-        modelKey: "test-model",
-      };
-
-      if (isExecutionContext(context)) {
-        // TypeScript should recognize modelKey as string here
-        expect(context.modelKey).toBe("test-model");
-      } else {
-        // This branch should not be reached
-        expect(false).toBe(true);
-      }
-    });
-  });
-
   describe("toExecutionContext helper", () => {
     test("should convert request context to execution context", () => {
       const requestContext: LLMRequestContext = {
@@ -142,7 +104,7 @@ describe("LLM Context Types", () => {
       expect(executionContext.modelKey).toBe("test-model");
     });
 
-    test("should result in type guard returning true", () => {
+    test("should produce valid execution context with modelKey", () => {
       const requestContext: LLMRequestContext = {
         resource: "test-resource",
         purpose: LLMPurpose.COMPLETIONS,
@@ -150,7 +112,8 @@ describe("LLM Context Types", () => {
 
       const executionContext = toExecutionContext(requestContext, "test-model");
 
-      expect(isExecutionContext(executionContext)).toBe(true);
+      expect("modelKey" in executionContext).toBe(true);
+      expect(executionContext.modelKey).toBe("test-model");
     });
   });
 
@@ -165,7 +128,7 @@ describe("LLM Context Types", () => {
       // This assignment should compile without errors
       const context: LLMRequestContext | LLMExecutionContext = executionContext;
 
-      expect(isExecutionContext(context)).toBe(true);
+      expect("modelKey" in context).toBe(true);
     });
 
     test("LLMRequestContext should be assignable to LLMRequestContext | LLMExecutionContext", () => {
@@ -177,7 +140,7 @@ describe("LLM Context Types", () => {
       // This assignment should compile without errors
       const context: LLMRequestContext | LLMExecutionContext = requestContext;
 
-      expect(isExecutionContext(context)).toBe(false);
+      expect("modelKey" in context).toBe(false);
     });
   });
 });

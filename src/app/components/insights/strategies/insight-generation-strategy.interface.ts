@@ -1,4 +1,4 @@
-import { AppSummaryCategoryEnum, CategoryInsightResult } from "../insights.types";
+import { AppSummaryCategoryType, CategoryInsightResult } from "../insights.types";
 
 /**
  * Strategy interface for generating insights from source file summaries.
@@ -19,7 +19,7 @@ export interface InsightGenerationStrategy {
    * @param sourceFileSummaries - Array of formatted source file summaries
    * @returns The generated insights with category-specific typing, or null if generation fails
    */
-  generateInsights<C extends AppSummaryCategoryEnum>(
+  generateInsights<C extends AppSummaryCategoryType>(
     category: C,
     sourceFileSummaries: readonly string[],
   ): Promise<CategoryInsightResult<C> | null>;

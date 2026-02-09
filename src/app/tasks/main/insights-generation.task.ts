@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import { injectable, inject } from "tsyringe";
-import type InsightsFromDBGenerator from "../../components/insights/generators/db-insights-generator";
+import type InsightsGenerator from "../../components/insights/generators/insights-generator";
 import type LLMExecutionStats from "../../../common/llm/tracking/llm-execution-stats";
 import { llmTokens, coreTokens, insightsTokens } from "../../di/tokens";
 import { BaseAnalysisTask } from "../base-analysis-task";
@@ -17,8 +17,8 @@ export class InsightsGenerationTask extends BaseAnalysisTask {
   constructor(
     @inject(llmTokens.LLMExecutionStats) llmStats: LLMExecutionStats,
     @inject(coreTokens.ProjectName) projectName: string,
-    @inject(insightsTokens.InsightsFromDBGenerator)
-    private readonly insightsGenerator: InsightsFromDBGenerator,
+    @inject(insightsTokens.InsightsGenerator)
+    private readonly insightsGenerator: InsightsGenerator,
   ) {
     super(llmStats, projectName);
   }

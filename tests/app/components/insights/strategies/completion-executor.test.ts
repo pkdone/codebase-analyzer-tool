@@ -8,7 +8,7 @@ import {
   type InsightCompletionOptions,
 } from "../../../../../src/app/components/insights/strategies/insights-completion-executor";
 import {
-  AppSummaryCategoryEnum,
+  AppSummaryCategoryType,
   appSummaryCategorySchemas,
 } from "../../../../../src/app/components/insights/insights.types";
 import { appSummaryConfigMap } from "../../../../../src/app/prompts/app-summaries/app-summaries.definitions";
@@ -196,7 +196,7 @@ describe("executeInsightCompletion - Type Inference", () => {
 
   describe("generic type parameter inference", () => {
     test("should infer type from category enum parameter", async () => {
-      const category: AppSummaryCategoryEnum = "technologies";
+      const category: AppSummaryCategoryType = "technologies";
       const mockResponse = {
         technologies: [{ name: "User", description: "User entity" }],
       };
@@ -216,7 +216,7 @@ describe("executeInsightCompletion - Type Inference", () => {
     });
 
     test("should handle all supported category types", async () => {
-      const categories: AppSummaryCategoryEnum[] = [
+      const categories: AppSummaryCategoryType[] = [
         "appDescription",
         "technologies",
         "businessProcesses",
@@ -312,7 +312,7 @@ describe("executeInsightCompletion - Type Inference", () => {
 
   describe("schema validation and type alignment", () => {
     test("should call executeCompletion with correct schema for each category", async () => {
-      const category: AppSummaryCategoryEnum = "businessProcesses";
+      const category: AppSummaryCategoryType = "businessProcesses";
       const mockResponse = {
         businessProcesses: [{ name: "Order Processing", description: "Process orders" }],
       };
@@ -422,7 +422,7 @@ describe("executeInsightCompletion - Type Inference", () => {
 
     test("should validate that all categories have corresponding schemas", () => {
       // Compile-time validation that schema mapping is complete
-      const allCategories: AppSummaryCategoryEnum[] = [
+      const allCategories: AppSummaryCategoryType[] = [
         "appDescription",
         "technologies",
         "businessProcesses",
@@ -466,7 +466,7 @@ describe("executeInsightCompletion - Type Inference", () => {
 
   describe("prompt configuration validation", () => {
     test("should use correct configuration for each category", async () => {
-      const category: AppSummaryCategoryEnum = "technologies";
+      const category: AppSummaryCategoryType = "technologies";
       const config = appSummaryPromptMetadata[category];
       const mockResponse = {
         technologies: [{ name: "TypeScript" }],

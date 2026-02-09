@@ -16,7 +16,7 @@ import type { LlmConcurrencyService } from "../../concurrency";
 import { insightsConfig } from "../insights.config";
 import { getCategoryLabel } from "../../../config/category-labels.config";
 import { AppSummaryCategories } from "../../../schemas/app-summaries.schema";
-import { AppSummaryCategoryEnum } from "../insights.types";
+import { AppSummaryCategoryType } from "../insights.types";
 import type { InsightGenerationStrategy } from "../strategies/insight-generation-strategy.interface";
 import { batchItemsByTokenLimit } from "../../../../common/llm/utils/text-chunking";
 
@@ -26,12 +26,12 @@ import { batchItemsByTokenLimit } from "../../../../common/llm/utils/text-chunki
  * Uses strategy pattern to select between single-pass and map-reduce approaches.
  */
 @injectable()
-export default class InsightsFromDBGenerator {
+export default class InsightsGenerator {
   private readonly llmModelsDescription: string;
   private readonly maxTokens: number;
 
   /**
-   * Creates a new InsightsFromDBGenerator with strategy-based processing.
+   * Creates a new InsightsGenerator with strategy-based processing.
    * @param appSummariesRepository - Repository for storing app summary data
    * @param llmRouter - Router for LLM operations
    * @param sourcesRepository - Repository for retrieving source file data
@@ -82,7 +82,7 @@ export default class InsightsFromDBGenerator {
       llmModels: this.llmModelsDescription,
       capturedAt: new Date(),
     });
-    const categories: AppSummaryCategoryEnum[] = AppSummaryCategories.options;
+    const categories: AppSummaryCategoryType[] = AppSummaryCategories.options;
 
     // Process all categories with LLM using shared concurrency limiter
     // The limiter is shared with map-reduce chunk processing to prevent nested parallelism
@@ -134,7 +134,7 @@ export default class InsightsFromDBGenerator {
    * compatible with PartialAppSummaryRecord for storage in the repository.
    */
   private async generateAndRecordDataForCategory(
-    category: AppSummaryCategoryEnum,
+    category: AppSummaryCategoryType,
     sourceFileSummaries: readonly string[],
   ): Promise<void> {
     const categoryLabel = getCategoryLabel(category);

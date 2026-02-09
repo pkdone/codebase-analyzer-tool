@@ -2,12 +2,7 @@
  * LLM response-related types: status, token usage, and generated content.
  */
 
-import { z } from "zod";
-import type {
-  LLMExecutionContext,
-  LLMCompletionOptions,
-  LLMOutputFormat,
-} from "./llm-request.types";
+import type { LLMExecutionContext } from "./llm-request.types";
 
 /**
  * Enum to define the LLM response status
@@ -73,28 +68,6 @@ export function createTokenUsageRecord(
  * (JsonValue, JsonObject, JsonArray, JsonPrimitive) for stronger typing.
  */
 export type LLMResponsePayload = string | object | null;
-
-/**
- * Helper type to infer the response data type from LLMCompletionOptions.
- * This type is format-aware and provides stronger type safety:
- * - When outputFormat is JSON with a schema, infers the type from that schema
- * - When outputFormat is JSON without a schema, returns Record<string, unknown>
- * - When outputFormat is TEXT, returns string
- * - Otherwise, defaults to LLMResponsePayload
- *
- * This enables end-to-end type safety through the LLM call chain by allowing
- * the return type to be inferred from the options passed at the call site.
- */
-export type InferResponseType<TOptions extends LLMCompletionOptions> = TOptions extends {
-  outputFormat: LLMOutputFormat.JSON;
-  jsonSchema: infer S;
-}
-  ? S extends z.ZodType
-    ? z.infer<S>
-    : Record<string, unknown>
-  : TOptions extends { outputFormat: LLMOutputFormat.TEXT }
-    ? string
-    : LLMResponsePayload;
 
 /**
  * Base fields common to all LLM response variants.

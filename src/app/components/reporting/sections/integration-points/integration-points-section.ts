@@ -39,12 +39,11 @@ export class IntegrationPointsSection extends BaseReportSection {
     const { integrationPoints } = sectionData;
 
     if (!integrationPoints) {
-      return await Promise.resolve(null);
+      return null;
     }
 
     const integrationPointsTableViewModel = new TableViewModel(integrationPoints);
 
-    // Implementation of async interface - computation is synchronous but interface requires Promise
     return await Promise.resolve({
       integrationPoints,
       integrationPointsTableViewModel,

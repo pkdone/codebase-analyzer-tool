@@ -37,7 +37,7 @@ export class ArchitectureAnalysisSection extends BaseReportSection {
     const { moduleCoupling } = sectionData;
 
     if (!moduleCoupling) {
-      return await Promise.resolve(null);
+      return null;
     }
 
     // Calculate Module Coupling statistics

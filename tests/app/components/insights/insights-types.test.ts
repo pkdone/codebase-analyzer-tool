@@ -3,7 +3,7 @@ import { z } from "zod";
 import {
   MapReduceIntermediateData,
   CategoryInsightResult,
-  AppSummaryCategoryEnum,
+  AppSummaryCategoryType,
   appSummaryCategorySchemas,
 } from "../../../../src/app/components/insights/insights.types";
 
@@ -192,7 +192,7 @@ describe("Insights Types", () => {
   describe("Type compatibility with schema definitions", () => {
     it("should ensure CategoryInsightResult matches z.infer for all categories", () => {
       // Test that CategoryInsightResult correctly maps to z.infer for each schema
-      const categories: AppSummaryCategoryEnum[] = [
+      const categories: AppSummaryCategoryType[] = [
         "appDescription",
         "technologies",
         "businessProcesses",
@@ -224,8 +224,8 @@ describe("Insights Types", () => {
       ];
 
       for (const category of expectedCategories) {
-        expect(appSummaryCategorySchemas[category as AppSummaryCategoryEnum]).toBeDefined();
-        expect(appSummaryCategorySchemas[category as AppSummaryCategoryEnum]).toBeInstanceOf(
+        expect(appSummaryCategorySchemas[category as AppSummaryCategoryType]).toBeDefined();
+        expect(appSummaryCategorySchemas[category as AppSummaryCategoryType]).toBeInstanceOf(
           z.ZodType,
         );
       }

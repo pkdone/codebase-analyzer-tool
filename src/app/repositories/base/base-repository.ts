@@ -7,8 +7,6 @@ import {
   UpdateFilter,
   UpdateOptions,
 } from "mongodb";
-import { inject } from "tsyringe";
-import { coreTokens } from "../../di/tokens";
 import { logMongoValidationErrorIfPresent } from "../../../common/mongodb/mdb-error-utils";
 
 /**
@@ -18,6 +16,10 @@ import { logMongoValidationErrorIfPresent } from "../../../common/mongodb/mdb-er
  * - Common constructor pattern (MongoClient and dbName injection)
  * - Collection initialization
  * - Safe write operations with error handling
+ *
+ * Note: @inject decorators are NOT placed on this abstract class.
+ * Concrete subclasses must use their own @inject decorators to specify
+ * how mongoClient and dbName are injected.
  *
  * @template T - The document type for this repository's collection
  */
@@ -31,11 +33,7 @@ export abstract class BaseRepository<T extends Document> {
    * @param dbName - The database name
    * @param collectionName - The collection name
    */
-  constructor(
-    @inject(coreTokens.MongoClient) mongoClient: MongoClient,
-    @inject(coreTokens.DatabaseName) dbName: string,
-    collectionName: string,
-  ) {
+  constructor(mongoClient: MongoClient, dbName: string, collectionName: string) {
     const db = mongoClient.db(dbName);
     this.collection = db.collection<T>(collectionName);
   }

@@ -364,7 +364,7 @@ describe("Completion Executor Type Safety - Post Fix", () => {
         llmOk(mockData, createExecutionMetadata("gpt-4", "openai")) as any,
       );
 
-      // The function is generic over C extends AppSummaryCategoryEnum
+      // The function is generic over C extends AppSummaryCategoryType
       // The return type should be CategoryInsightResult<C> | null
       const result = await executeInsightCompletion(
         mockLLMRouter,

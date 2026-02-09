@@ -39,7 +39,7 @@ export class DependenciesSection extends BaseReportSection {
     const { billOfMaterials } = sectionData;
 
     if (!billOfMaterials) {
-      return await Promise.resolve(null);
+      return null;
     }
 
     // Calculate BOM statistics with pre-computed CSS class

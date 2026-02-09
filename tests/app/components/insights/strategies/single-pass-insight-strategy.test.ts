@@ -10,7 +10,7 @@ import {
   createExecutionMetadata,
 } from "../../../../../src/common/llm/types/llm-result.types";
 import { LLMExecutionError } from "../../../../../src/common/llm/types/llm-execution-error.types";
-import type { AppSummaryCategoryEnum } from "../../../../../src/app/components/insights/insights.types";
+import type { AppSummaryCategoryType } from "../../../../../src/app/components/insights/insights.types";
 
 // Mock dependencies
 jest.mock("../../../../../src/common/utils/logging", () => ({
@@ -68,7 +68,7 @@ describe("SinglePassInsightStrategy", () => {
       (mockLLMRouter.executeCompletion as any)
         .mockResolvedValue(llmOk(mockResponse, createExecutionMetadata("gpt-4", "openai")));
 
-      const category: AppSummaryCategoryEnum = "technologies";
+      const category: AppSummaryCategoryType = "technologies";
       const summaries = ["* file1.ts: TypeScript implementation"];
 
       const result = await strategy.generateInsights(category, summaries);

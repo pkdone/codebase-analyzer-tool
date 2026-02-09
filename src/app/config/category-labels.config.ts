@@ -1,4 +1,4 @@
-import type { AppSummaryCategoryEnum } from "../schemas/app-summaries.schema";
+import type { AppSummaryCategoryType } from "../schemas/app-summaries.schema";
 
 /**
  * Display labels for app summary categories.
@@ -13,7 +13,7 @@ import type { AppSummaryCategoryEnum } from "../schemas/app-summaries.schema";
  * 2. Add the label here
  * 3. Add the prompt configuration in app-summaries.definitions.ts
  */
-export const CATEGORY_LABELS: Readonly<Record<AppSummaryCategoryEnum, string>> = {
+export const CATEGORY_LABELS: Readonly<Record<AppSummaryCategoryType, string>> = {
   appDescription: "Application Description",
   technologies: "Technologies",
   businessProcesses: "Business Processes",
@@ -26,6 +26,6 @@ export const CATEGORY_LABELS: Readonly<Record<AppSummaryCategoryEnum, string>> =
  * Get the display label for a category.
  * The type system ensures all categories have labels defined.
  */
-export function getCategoryLabel(category: AppSummaryCategoryEnum): string {
+export function getCategoryLabel(category: AppSummaryCategoryType): string {
   return CATEGORY_LABELS[category];
 }

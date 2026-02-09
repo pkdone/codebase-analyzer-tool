@@ -11,7 +11,6 @@ import {
   LLMResponseStatus,
   isCompletedResponse,
   isErrorResponse,
-  InferResponseType,
   LLMResponsePayload,
 } from "../../../src/common/llm/types/llm-response.types";
 import {
@@ -456,42 +455,6 @@ describe("Type Safety Refactoring Validation", () => {
       });
 
       expect(isErr(result)).toBe(true);
-    });
-  });
-
-  describe("InferResponseType Helper Validation", () => {
-    test("should correctly infer type for JSON with schema", () => {
-      const _testSchema = z.object({
-        field1: z.string(),
-        field2: z.number(),
-      });
-
-      // Type-level test: verify InferResponseType infers correctly
-      type Options = LLMCompletionOptions<typeof _testSchema> & {
-        outputFormat: LLMOutputFormat.JSON;
-        jsonSchema: typeof _testSchema;
-      };
-
-      type InferredType = InferResponseType<Options>;
-
-      // This assignment should compile without errors
-      const value: InferredType = { field1: "test", field2: 42 };
-
-      expect(value.field1).toBe("test");
-      expect(value.field2).toBe(42);
-    });
-
-    test("should correctly infer string type for TEXT format", () => {
-      interface TextOptions {
-        outputFormat: LLMOutputFormat.TEXT;
-      }
-
-      type InferredType = InferResponseType<TextOptions>;
-
-      // This assignment should compile without errors
-      const value: InferredType = "text response";
-
-      expect(typeof value).toBe("string");
     });
   });
 

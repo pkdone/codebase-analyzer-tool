@@ -1,5 +1,3 @@
-import "reflect-metadata";
-import { injectable, inject } from "tsyringe";
 import { coreTokens, llmTokens } from "../di/tokens";
 import type { MongoDBConnectionManager } from "../../common/mongodb/mdb-connection-manager";
 import type LLMRouter from "../../common/llm/llm-router";
@@ -25,14 +23,15 @@ export interface ShutdownResult {
  * due to certain providers (e.g., VertexAI) that don't properly release
  * their connections.
  *
+ * Note: This class is NOT injectable via DI. Instead, use the
+ * createShutdownOrchestrator factory function which handles optional
+ * dependencies gracefully.
+ *
  * @see https://github.com/googleapis/nodejs-pubsub/issues/1190 for VertexAI issue
  */
-@injectable()
 export class ShutdownOrchestrator {
   constructor(
-    @inject(coreTokens.MongoDBConnectionManager)
     private readonly mongoConnectionManager: MongoDBConnectionManager | null,
-    @inject(llmTokens.LLMRouter)
     private readonly llmRouter: LLMRouter | null,
   ) {}
 

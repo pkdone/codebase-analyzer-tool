@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import InsightsFromDBGenerator from "../../../../../src/app/components/insights/generators/db-insights-generator";
+import InsightsGenerator from "../../../../../src/app/components/insights/generators/insights-generator";
 import { AppSummariesRepository } from "../../../../../src/app/repositories/app-summaries/app-summaries.repository.interface";
 import { SourcesRepository } from "../../../../../src/app/repositories/sources/sources.repository.interface";
 import LLMRouter from "../../../../../src/common/llm/llm-router";
@@ -14,8 +14,8 @@ jest.mock("../../../../../src/common/utils/logging", () => ({
   logWarn: jest.fn(),
 }));
 
-describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
-  let generator: InsightsFromDBGenerator;
+describe("InsightsGenerator - Map-Reduce Strategy", () => {
+  let generator: InsightsGenerator;
   let mockAppSummaryRepository: jest.Mocked<AppSummariesRepository>;
   let mockSourcesRepository: jest.Mocked<SourcesRepository>;
   let mockLLMRouter: jest.Mocked<LLMRouter>;
@@ -92,7 +92,7 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
       run: jest.fn().mockImplementation(async <T>(fn: () => Promise<T>) => fn()),
     } as unknown as jest.Mocked<LlmConcurrencyService>;
 
-    generator = new InsightsFromDBGenerator(
+    generator = new InsightsGenerator(
       mockAppSummaryRepository,
       mockLLMRouter,
       mockSourcesRepository,

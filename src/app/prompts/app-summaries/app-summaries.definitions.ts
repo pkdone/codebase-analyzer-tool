@@ -6,7 +6,7 @@ import {
   inferredArchitectureSchema,
   potentialMicroservicesSchema,
   technologiesSchema,
-  type AppSummaryCategoryEnum,
+  type AppSummaryCategoryType,
 } from "../../schemas/app-summaries.schema";
 import { APP_SUMMARY_PROMPT_FRAGMENTS, APP_SUMMARY_CONTENT_DESC } from "./app-summaries.constants";
 import { FILE_SUMMARIES_DATA_BLOCK_HEADER } from "../prompts.constants";
@@ -40,8 +40,8 @@ export type AppSummaryConfigEntry<S extends z.ZodType<unknown> = z.ZodType<unkno
  * Note: aggregates, entities, and repositories are captured within the boundedContexts
  * category as a hierarchical structure to ensure naming consistency across domain elements.
  *
- * The `satisfies Record<AppSummaryCategoryEnum, ...>` pattern enforces that:
- * 1. All categories defined in AppSummaryCategoryEnum must have corresponding entries
+ * The `satisfies Record<AppSummaryCategoryType, ...>` pattern enforces that:
+ * 1. All categories defined in AppSummaryCategoryType must have corresponding entries
  * 2. No invalid category keys can be added (compile-time error for typos)
  * 3. The literal types of each entry are preserved (including specific Zod schema types)
  *
@@ -139,7 +139,7 @@ Also identify:
 2. Directed dependency relationships between all business components and external systems. Every external dependency listed MUST have at least one "from" relationship from an internal component.`,
     ],
   },
-} as const satisfies Record<AppSummaryCategoryEnum, AppSummaryConfigEntry>;
+} as const satisfies Record<AppSummaryCategoryType, AppSummaryConfigEntry>;
 
 /**
  * Type alias for the appSummaryConfigMap that preserves specific schema types for each category.

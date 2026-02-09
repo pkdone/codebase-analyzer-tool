@@ -51,7 +51,6 @@ export class FileTypesSection extends BaseReportSection {
     // Build pie chart data
     const pieChartData = buildPieChartData(processedFileTypesData);
 
-    // Implementation of async interface - computation is synchronous but interface requires Promise
     return await Promise.resolve({
       fileTypesData: processedFileTypesData,
       pieChartData,

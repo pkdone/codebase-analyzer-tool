@@ -4,13 +4,13 @@ import {
 } from "../../../../../src/app/prompts/app-summaries/app-summaries.definitions";
 import {
   AppSummaryCategories,
-  type AppSummaryCategoryEnum,
+  type AppSummaryCategoryType,
 } from "../../../../../src/app/schemas/app-summaries.schema";
 
 /**
  * Tests for appSummaryConfigMap completeness validation.
  *
- * These tests verify that the strengthened type constraint using AppSummaryCategoryEnum
+ * These tests verify that the strengthened type constraint using AppSummaryCategoryType
  * as the Record key type correctly enforces completeness at both compile-time and runtime.
  */
 describe("appSummaryConfigMap Completeness Validation", () => {
@@ -18,8 +18,8 @@ describe("appSummaryConfigMap Completeness Validation", () => {
   const validCategories = AppSummaryCategories.options;
 
   describe("Enum-Keyed Record Completeness", () => {
-    it("should have an entry for every AppSummaryCategoryEnum value", () => {
-      // This test verifies that the satisfies Record<AppSummaryCategoryEnum, ...> constraint
+    it("should have an entry for every AppSummaryCategoryType value", () => {
+      // This test verifies that the satisfies Record<AppSummaryCategoryType, ...> constraint
       // ensures all categories are present. If a category is missing, TypeScript would
       // report a compile-time error on the appSummaryConfigMap definition.
 
@@ -31,12 +31,12 @@ describe("appSummaryConfigMap Completeness Validation", () => {
       }
     });
 
-    it("should have exactly the same number of entries as AppSummaryCategoryEnum values", () => {
+    it("should have exactly the same number of entries as AppSummaryCategoryType values", () => {
       const configMapKeys = Object.keys(appSummaryConfigMap);
       expect(configMapKeys.length).toBe(validCategories.length);
     });
 
-    it("should have all config map keys be valid AppSummaryCategoryEnum values", () => {
+    it("should have all config map keys be valid AppSummaryCategoryType values", () => {
       const configMapKeys = Object.keys(appSummaryConfigMap);
 
       for (const key of configMapKeys) {
@@ -67,7 +67,7 @@ describe("appSummaryConfigMap Completeness Validation", () => {
     it("should allow type-safe iteration over all categories", () => {
       // Iterate using the enum values as keys
       for (const category of validCategories) {
-        const typedCategory: AppSummaryCategoryEnum = category;
+        const typedCategory: AppSummaryCategoryType = category;
         const entry: AppSummaryConfigMap[typeof typedCategory] = appSummaryConfigMap[typedCategory];
 
         // Type-safe access to entry properties
@@ -77,11 +77,11 @@ describe("appSummaryConfigMap Completeness Validation", () => {
       }
     });
 
-    it("should support indexed access with AppSummaryCategoryEnum type", () => {
-      // This verifies that the Record<AppSummaryCategoryEnum, ...> type allows
+    it("should support indexed access with AppSummaryCategoryType type", () => {
+      // This verifies that the Record<AppSummaryCategoryType, ...> type allows
       // indexed access with a variable of the enum type
 
-      const testAccess = (category: AppSummaryCategoryEnum) => {
+      const testAccess = (category: AppSummaryCategoryType) => {
         const entry = appSummaryConfigMap[category];
         return entry.responseSchema;
       };
@@ -94,7 +94,7 @@ describe("appSummaryConfigMap Completeness Validation", () => {
   });
 
   describe("No Extra Keys Validation", () => {
-    it("should not contain any keys outside of AppSummaryCategoryEnum", () => {
+    it("should not contain any keys outside of AppSummaryCategoryType", () => {
       // The satisfies constraint prevents adding invalid keys at compile time.
       // This test provides runtime verification.
 
@@ -103,7 +103,7 @@ describe("appSummaryConfigMap Completeness Validation", () => {
 
       // Check that every key in the config map is a valid category
       for (const key of configMapKeys) {
-        expect(validCategorySet.has(key as AppSummaryCategoryEnum)).toBe(true);
+        expect(validCategorySet.has(key as AppSummaryCategoryType)).toBe(true);
       }
     });
   });

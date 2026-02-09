@@ -6,12 +6,12 @@
  */
 
 import { CATEGORY_LABELS, getCategoryLabel } from "../../../src/app/config/category-labels.config";
-import type { AppSummaryCategoryEnum } from "../../../src/app/components/insights/insights.types";
+import type { AppSummaryCategoryType } from "../../../src/app/components/insights/insights.types";
 
 describe("category-labels.config", () => {
   describe("CATEGORY_LABELS", () => {
     it("should have labels for all standard categories", () => {
-      const expectedCategories: AppSummaryCategoryEnum[] = [
+      const expectedCategories: AppSummaryCategoryType[] = [
         "appDescription",
         "technologies",
         "businessProcesses",
@@ -46,7 +46,7 @@ describe("category-labels.config", () => {
 
   describe("getCategoryLabel", () => {
     it("should return the correct label for each category", () => {
-      const testCases: { category: AppSummaryCategoryEnum; expected: string }[] = [
+      const testCases: { category: AppSummaryCategoryType; expected: string }[] = [
         { category: "appDescription", expected: "Application Description" },
         { category: "technologies", expected: "Technologies" },
         { category: "businessProcesses", expected: "Business Processes" },
@@ -61,7 +61,7 @@ describe("category-labels.config", () => {
     });
 
     it("should return a string for all valid categories", () => {
-      const categories = Object.keys(CATEGORY_LABELS) as AppSummaryCategoryEnum[];
+      const categories = Object.keys(CATEGORY_LABELS) as AppSummaryCategoryType[];
 
       for (const category of categories) {
         const label = getCategoryLabel(category);
@@ -71,7 +71,7 @@ describe("category-labels.config", () => {
     });
 
     it("should not return undefined for valid categories", () => {
-      const categories = Object.keys(CATEGORY_LABELS) as AppSummaryCategoryEnum[];
+      const categories = Object.keys(CATEGORY_LABELS) as AppSummaryCategoryType[];
 
       for (const category of categories) {
         const label = getCategoryLabel(category);

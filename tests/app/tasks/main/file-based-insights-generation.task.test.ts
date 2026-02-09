@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import { FileBasedInsightsGenerationTask } from "../../../../src/app/tasks/main/direct-insights-generation.task";
+import { FileBasedInsightsGenerationTask } from "../../../../src/app/tasks/main/file-based-insights-generation.task";
 import { taskTokens } from "../../../../src/app/di/tokens";
 
 describe("FileBasedInsightsGenerationTask", () => {

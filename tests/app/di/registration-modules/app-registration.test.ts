@@ -17,7 +17,7 @@ describe("App Registration Module", () => {
       registerAppDependencies();
 
       expect(container.isRegistered(insightsTokens.RequirementPromptExecutor)).toBe(true);
-      expect(container.isRegistered(insightsTokens.InsightsFromDBGenerator)).toBe(true);
+      expect(container.isRegistered(insightsTokens.InsightsGenerator)).toBe(true);
     });
 
     it("should register task components as singletons", () => {

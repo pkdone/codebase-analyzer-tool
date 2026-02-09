@@ -22,12 +22,6 @@ export const AppSummaryCategories = z.enum([
 export type AppSummaryCategoryType = z.infer<typeof AppSummaryCategories>;
 
 /**
- * Type alias for the enum of app summary categories.
- * Identical to AppSummaryCategoryType, provided for semantic clarity.
- */
-export type AppSummaryCategoryEnum = AppSummaryCategoryType;
-
-/**
  * Schema for name-description pairs used for insights
  */
 export const nameDescSchema = createNameDescSchema(

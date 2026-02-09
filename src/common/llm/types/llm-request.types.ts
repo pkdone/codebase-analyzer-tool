@@ -57,20 +57,6 @@ export interface LLMTextCompletionOptions extends LLMCompletionOptionsBase {
 }
 
 /**
- * Discriminated union of completion options based on output format.
- * - JSON mode requires a jsonSchema for validation and type inference
- * - TEXT mode produces string responses without schema validation
- *
- * This type enforces at compile-time that JSON mode always has a schema
- * and TEXT mode never has a schema, preventing runtime configuration errors.
- *
- * @template S - The Zod schema type (only applicable for JSON mode).
- */
-export type LLMCompletionOptionsUnion<S extends z.ZodType<unknown> = z.ZodType<unknown>> =
-  | LLMJsonCompletionOptions<S>
-  | LLMTextCompletionOptions;
-
-/**
  * Generic interface for LLM completion options used in internal implementation.
  * This interface supports both JSON and TEXT modes and is used by the provider layer
  * and internal processing code that handles both cases.
@@ -116,15 +102,6 @@ export interface LLMRequestContext {
 export interface LLMExecutionContext extends LLMRequestContext {
   /** The model key being used (e.g., "openai-gpt-4o", "bedrock-claude-opus-4.5") - required for execution */
   modelKey: string;
-}
-
-/**
- * Type guard to check if a context is an execution context (has modelKey).
- */
-export function isExecutionContext(
-  context: LLMRequestContext | LLMExecutionContext,
-): context is LLMExecutionContext {
-  return "modelKey" in context && typeof context.modelKey === "string";
 }
 
 /**

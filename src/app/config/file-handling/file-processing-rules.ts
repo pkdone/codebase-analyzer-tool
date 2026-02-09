@@ -3,8 +3,8 @@
  * This is an application-wide configuration used by multiple components
  * (capture, insights) for consistent file handling rules.
  *
- * Note: CODE_FILE_EXTENSIONS is now derived from the unified file type registry.
- * To add a new language extension, update file-type-registry.ts instead.
+ * CODE_FILE_EXTENSIONS is derived from the unified file type registry.
+ * To add a new language extension, update file-type-registry.ts.
  */
 
 import { getEnabledCodeExtensions } from "./file-type-registry";

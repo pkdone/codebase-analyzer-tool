@@ -15,22 +15,7 @@ import {
 } from "../../utils/stray-text-detection";
 import { DiagnosticCollector } from "../../utils/diagnostic-collector";
 import { processingConfig } from "../../constants/json-processing.config";
-
-/**
- * Checks if a property name looks like an LLM artifact or internal property.
- *
- * @param propertyName - The property name to check
- * @returns True if the property looks like an LLM artifact
- */
-function isLLMArtifactOrInternalProperty(propertyName: string): boolean {
-  // Match patterns: extra_*, llm_*, ai_*, _*, codeSmells, or anything ending with _thoughts/_text/_notes
-  return (
-    /^(extra|llm|ai)_[a-z_]+$/i.test(propertyName) ||
-    /^_[a-z_]+$/i.test(propertyName) ||
-    /^codeSmells$/i.test(propertyName) ||
-    /_(thoughts?|text|notes?|info|reasoning|analysis)$/i.test(propertyName)
-  );
-}
+import { isLLMArtifactOrInternalProperty } from "../../utils/llm-artifact-detection";
 
 /**
  * Strategy that removes text appearing outside JSON string values.

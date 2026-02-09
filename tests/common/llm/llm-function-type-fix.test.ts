@@ -9,7 +9,6 @@ import {
 import {
   LLMFunctionResponse,
   LLMResponseStatus,
-  InferResponseType,
   isCompletedResponse,
   isErrorResponse,
 } from "../../../src/common/llm/types/llm-response.types";
@@ -297,54 +296,6 @@ describe("LLMFunction Type Fix - Generic Type Preservation", () => {
         expect(data.value).toBeNull();
         expect(data.count).toBe(42);
       }
-    });
-  });
-
-  describe("InferResponseType Helper Validation", () => {
-    test("InferResponseType should return correct type for JSON with schema", () => {
-      const _testSchema = z.object({
-        id: z.number(),
-        name: z.string(),
-      });
-
-      interface JsonWithSchemaOptions {
-        outputFormat: LLMOutputFormat.JSON;
-        jsonSchema: typeof _testSchema;
-      }
-
-      type InferredType = InferResponseType<JsonWithSchemaOptions>;
-
-      // This should compile without errors and infer the correct type
-      const value: InferredType = { id: 1, name: "test" };
-      expect(value.id).toBe(1);
-      expect(value.name).toBe("test");
-    });
-
-    test("InferResponseType should return string for TEXT format", () => {
-      interface TextOptions {
-        outputFormat: LLMOutputFormat.TEXT;
-      }
-
-      type InferredType = InferResponseType<TextOptions>;
-
-      // This should compile without errors and infer string
-      const value: InferredType = "text response";
-      expect(typeof value).toBe("string");
-    });
-
-    test("InferResponseType should return Record for JSON without schema", () => {
-      interface JsonNoSchemaOptions {
-        outputFormat: LLMOutputFormat.JSON;
-      }
-
-      type InferredType = InferResponseType<JsonNoSchemaOptions>;
-
-      // Without jsonSchema, InferResponseType falls back to LLMResponsePayload (string | object | null)
-      // At runtime, JSON responses without schema are objects, so we cast for property access
-      const value: InferredType = { any: "value", count: 42 };
-      const asRecord = value as Record<string, unknown>;
-      expect(asRecord.any).toBe("value");
-      expect(asRecord.count).toBe(42);
     });
   });
 

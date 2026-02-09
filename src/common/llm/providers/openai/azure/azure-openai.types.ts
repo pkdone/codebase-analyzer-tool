@@ -16,7 +16,7 @@ export const AzureOpenAIConfigSchema = z.object({
  * allowing different projects to use different env var naming conventions.
  */
 export interface AzureOpenAIConfig {
-  /** Index signature for compatibility with ExtractedProviderConfig */
+  /** Index signature required for ExtractedProviderConfig compatibility */
   [key: string]: unknown;
   /** The Azure OpenAI API key */
   apiKey: string;

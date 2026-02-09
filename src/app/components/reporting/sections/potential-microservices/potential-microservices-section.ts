@@ -33,7 +33,6 @@ export class PotentialMicroservicesSection implements ReportSection {
 
   async getData(_projectName: string): Promise<Partial<ReportData>> {
     // This section uses categorized data that comes from baseData
-    // Return empty object as the data is already in baseData
     return await Promise.resolve({});
   }
 
@@ -47,7 +46,6 @@ export class PotentialMicroservicesSection implements ReportSection {
     const architectureDiagramSvg =
       this.architectureDiagramGenerator.generateArchitectureDiagram(microservicesData);
 
-    // Implementation of async interface - computation is synchronous but interface requires Promise
     return await Promise.resolve({
       microservicesData,
       architectureDiagramSvg,

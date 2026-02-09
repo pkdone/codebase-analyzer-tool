@@ -5,7 +5,7 @@ import { MapReduceInsightStrategy } from "../../../../../src/app/components/insi
 import { executeInsightCompletion } from "../../../../../src/app/components/insights/strategies/insights-completion-executor";
 import {
   PartialAppSummaryRecord,
-  AppSummaryCategoryEnum,
+  AppSummaryCategoryType,
   CategoryInsightResult,
   appSummaryCategorySchemas,
   type AppSummaryCategorySchemas,
@@ -28,7 +28,7 @@ describe("Type Safety Tests", () => {
     it("should have a generic generateInsights method", () => {
       // This test verifies the interface signature is correctly generic
       const strategy: InsightGenerationStrategy = {
-        generateInsights: async <C extends AppSummaryCategoryEnum>(
+        generateInsights: async <C extends AppSummaryCategoryType>(
           _category: C,
           _sourceFileSummaries: string[],
         ): Promise<CategoryInsightResult<C> | null> => {
@@ -44,7 +44,7 @@ describe("Type Safety Tests", () => {
 
     it("should return strongly-typed result based on category", async () => {
       const strategy: InsightGenerationStrategy = {
-        generateInsights: async <C extends AppSummaryCategoryEnum>(
+        generateInsights: async <C extends AppSummaryCategoryType>(
           _category: C,
           _sourceFileSummaries: string[],
         ): Promise<CategoryInsightResult<C> | null> => {
@@ -214,7 +214,7 @@ describe("Type Safety Tests", () => {
 
   describe("Type compatibility with category schemas", () => {
     it("should verify all category response types are compatible with PartialAppSummaryRecord", () => {
-      const categories: AppSummaryCategoryEnum[] = [
+      const categories: AppSummaryCategoryType[] = [
         "appDescription",
         "technologies",
         "businessProcesses",
@@ -269,7 +269,7 @@ describe("Type Safety Tests", () => {
       } as unknown as jest.Mocked<LLMRouter>;
 
       const strategy = new SinglePassInsightStrategy(mockLLMRouter);
-      const category: AppSummaryCategoryEnum = "appDescription";
+      const category: AppSummaryCategoryType = "appDescription";
 
       // This should compile without any type assertions or casts
       const result = await strategy.generateInsights(category, ["* file1.ts: purpose"]);

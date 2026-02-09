@@ -50,7 +50,7 @@ export class UiAnalysisSection extends BaseReportSection {
     const { uiTechnologyAnalysis: rawData } = sectionData;
 
     if (!rawData) {
-      return await Promise.resolve(null);
+      return null;
     }
 
     // Transform raw data to HTML-ready data with presentation fields

@@ -38,7 +38,7 @@ export class BackgroundProcessesSection extends BaseReportSection {
     const { scheduledJobsSummary } = sectionData;
 
     if (!scheduledJobsSummary) {
-      return await Promise.resolve(null);
+      return null;
     }
 
     // Calculate Scheduled Jobs statistics

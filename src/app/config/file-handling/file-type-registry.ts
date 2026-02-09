@@ -1,13 +1,10 @@
 /**
  * Unified file type registry - single source of truth for file type handling.
  *
- * This module consolidates the previously fragmented file type definitions:
- * - CODE_FILE_EXTENSIONS from file-processing-rules.ts
- * - EXTENSION_TO_TYPE_MAP from file-type-mapping.ts
- * - FILENAME_TO_TYPE_MAP from file-type-mapping.ts
+ * This module provides a central registry for file type definitions. All code extension
+ * lists and type mappings are derived from this registry programmatically.
  *
- * Adding a new language or filename mapping now requires updating only this registry.
- * The CODE_FILE_EXTENSIONS list and type mappings are derived programmatically.
+ * To add a new language or filename mapping, update only this registry.
  */
 
 import type { CanonicalFileType } from "../../schemas/canonical-file-types";

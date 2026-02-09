@@ -7,7 +7,7 @@ import { appSummaryConfigMap } from "../../../prompts/app-summaries/app-summarie
 import { getCategoryLabel } from "../../../config/category-labels.config";
 import { logWarn } from "../../../../common/utils/logging";
 import { joinArrayWithSeparators } from "../../../../common/utils/text-utils";
-import { AppSummaryCategoryEnum, type AppSummaryCategorySchemas } from "../insights.types";
+import { AppSummaryCategoryType, type AppSummaryCategorySchemas } from "../insights.types";
 import { getLlmArtifactCorrections } from "../../../llm";
 
 /**
@@ -35,7 +35,7 @@ export interface InsightCompletionOptions {
  * @param options Configuration for the completion (optional)
  * @returns The generated insights with category-specific typing, or null if generation failed
  */
-export async function executeInsightCompletion<C extends AppSummaryCategoryEnum>(
+export async function executeInsightCompletion<C extends AppSummaryCategoryType>(
   llmRouter: LLMRouter,
   category: C,
   sourceFileSummaries: readonly string[],

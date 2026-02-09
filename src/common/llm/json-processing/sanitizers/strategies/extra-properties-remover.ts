@@ -7,29 +7,12 @@
 import type { LLMSanitizerConfig } from "../../../config/llm-module-config.types";
 import type { SanitizerStrategy, StrategyResult } from "../pipeline/sanitizer-pipeline.types";
 import { findJsonValueEnd, createStringBoundaryChecker } from "../../utils/parser-context-utils";
-
-/**
- * Checks if a property name looks like an LLM artifact property.
- * Generic detection for extra_*, llm_*, ai_*, and _* prefixed properties.
- *
- * @param propertyName - The property name to check
- * @returns True if the property name looks like an LLM artifact
- */
-function isLLMArtifactProperty(propertyName: string): boolean {
-  const lowerName = propertyName.toLowerCase();
-  // Match patterns: extra_*, llm_*, ai_*, _* (underscore prefix)
-  // Also match common suffixes: *_thoughts, *_text, *_notes, *_info, *_reasoning, *_analysis
-  return (
-    /^(extra|llm|ai)_[a-z_]+$/i.test(propertyName) ||
-    /^_[a-z_]+$/i.test(propertyName) ||
-    /_(thoughts?|text|notes?|info|reasoning|analysis|comment|metadata)$/i.test(lowerName)
-  );
-}
+import { isLLMArtifactPropertyName } from "../../utils/llm-artifact-detection";
 
 /**
  * Checks if a property should be removed based on known properties list.
- * When knownProperties is provided and a property is not in that list,
- * and it looks like potential LLM-generated metadata, it should be removed.
+ * This is a stricter check than shouldRemoveAsLLMArtifact - it only removes
+ * unknown properties if they also match specific suspicious patterns.
  *
  * @param propertyName - The property name to check
  * @param knownProperties - Optional list of known valid property names
@@ -120,7 +103,7 @@ function processArtifactMatches(
       const propName = match[2] || "";
       // Validate it's an LLM artifact property or an unknown property that looks like metadata
       if (
-        !isLLMArtifactProperty(propName) &&
+        !isLLMArtifactPropertyName(propName) &&
         !shouldRemoveUnknownProperty(propName, knownProperties)
       ) {
         continue;

@@ -15,7 +15,7 @@ export const OpenAIConfigSchema = z.object({
  * allowing different projects to use different env var naming conventions.
  */
 export interface OpenAIConfig {
-  /** Index signature for compatibility with ExtractedProviderConfig */
+  /** Index signature required for ExtractedProviderConfig compatibility */
   [key: string]: unknown;
   /** The OpenAI API key */
   apiKey: string;

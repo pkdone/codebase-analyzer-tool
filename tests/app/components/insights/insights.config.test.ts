@@ -1,6 +1,6 @@
 import { insightsConfig } from "../../../../src/app/components/insights/insights.config";
 import { appSummaryConfigMap } from "../../../../src/app/prompts/app-summaries/app-summaries.definitions";
-import { AppSummaryCategoryEnum } from "../../../../src/app/components/insights/insights.types";
+import { AppSummaryCategoryType } from "../../../../src/app/components/insights/insights.types";
 
 describe("insightsTuningConfig", () => {
   it("should have CHUNK_TOKEN_LIMIT_RATIO defined", () => {
@@ -32,7 +32,7 @@ describe("summaryCategoriesConfig", () => {
     // Note: aggregates, entities, and repositories are now nested within boundedContexts
     // Note: contentDesc, dataBlockHeader, wrapInCodeBlock are no longer in config entries
     // They are set at instantiation time by the consumer (InsightCompletionExecutor)
-    const categories: AppSummaryCategoryEnum[] = [
+    const categories: AppSummaryCategoryType[] = [
       "appDescription",
       "technologies",
       "businessProcesses",

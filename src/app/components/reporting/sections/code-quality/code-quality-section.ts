@@ -40,7 +40,7 @@ export class CodeQualitySection extends BaseReportSection {
     const { codeQualitySummary: rawData } = sectionData;
 
     if (!rawData) {
-      return await Promise.resolve(null);
+      return null;
     }
 
     // Transform raw data to presentation data by adding recommendations

@@ -51,7 +51,7 @@ export type CaptureToken = keyof typeof captureTokens;
 
 // Insights module tokens
 export const insightsTokens = {
-  InsightsFromDBGenerator: Symbol("InsightsFromDBGenerator"),
+  InsightsGenerator: Symbol("InsightsGenerator"),
   RequirementPromptExecutor: Symbol("RequirementPromptExecutor"),
   SinglePassInsightStrategy: Symbol("SinglePassInsightStrategy"),
   MapReduceInsightStrategy: Symbol("MapReduceInsightStrategy"),

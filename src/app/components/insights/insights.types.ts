@@ -1,22 +1,19 @@
 import { z } from "zod";
 import {
-  appSummarySchema,
   appSummaryCategorySchemas,
   type AppSummaryCategorySchemas,
   type AppSummaryCategoryType,
-  type AppSummaryCategoryEnum,
 } from "../../schemas/app-summaries.schema";
+import { PartialAppSummaryRecord } from "../../repositories/app-summaries/app-summaries.model";
 
 // Re-export schema utilities for convenient access within the insights module
 export { appSummaryCategorySchemas, type AppSummaryCategorySchemas };
 
 // Re-export category types for use by insight strategies and generators
-export type { AppSummaryCategoryType, AppSummaryCategoryEnum };
+export type { AppSummaryCategoryType };
 
-/**
- * Type for validating the LLM response for a specific category
- */
-export type PartialAppSummaryRecord = Partial<z.infer<typeof appSummarySchema>>;
+// Re-export PartialAppSummaryRecord from the model for convenience
+export type { PartialAppSummaryRecord };
 
 /**
  * Type alias for category-specific insight result.
@@ -26,7 +23,7 @@ export type PartialAppSummaryRecord = Partial<z.infer<typeof appSummarySchema>>;
  * type EntitiesResult = CategoryInsightResult<"entities">;
  * // Results in: { entities: Array<...> }
  */
-export type CategoryInsightResult<C extends AppSummaryCategoryEnum> = z.infer<
+export type CategoryInsightResult<C extends AppSummaryCategoryType> = z.infer<
   AppSummaryCategorySchemas[C]
 >;
 
@@ -51,7 +48,7 @@ export type CategoryInsightResult<C extends AppSummaryCategoryEnum> = z.infer<
  * type DescIntermediate = MapReduceIntermediateData<"appDescription">;
  * // Results in: { appDescription: string[] } - array of partial descriptions to consolidate
  */
-export type MapReduceIntermediateData<C extends AppSummaryCategoryEnum> = {
+export type MapReduceIntermediateData<C extends AppSummaryCategoryType> = {
   [K in keyof CategoryInsightResult<C>]: CategoryInsightResult<C>[K] extends string
     ? string[] // String fields become arrays for consolidation
     : CategoryInsightResult<C>[K];
