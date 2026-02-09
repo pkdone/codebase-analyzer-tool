@@ -38,8 +38,10 @@ function createMinimalReportData(categorizedData: CategorizedSectionItem[] = [])
     integrationPoints: [],
     dbInteractions: [],
     procsAndTriggers: {
-      procs: { total: 0, low: 0, medium: 0, high: 0, list: [] },
-      trigs: { total: 0, low: 0, medium: 0, high: 0, list: [] },
+      procedures: { total: 0, low: 0, medium: 0, high: 0 },
+      functions: { total: 0, low: 0, medium: 0, high: 0 },
+      triggers: { total: 0, low: 0, medium: 0, high: 0 },
+      list: [],
     },
     billOfMaterials: [],
     codeQualitySummary: null,

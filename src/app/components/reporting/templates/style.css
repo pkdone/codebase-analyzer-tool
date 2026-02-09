@@ -304,6 +304,75 @@ table.data-table {
   color: white;
 }
 
+/* --- Filterable table cells --- */
+.filterable-cell {
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.15s ease;
+}
+
+.filterable-cell:hover {
+  background-color: rgba(0, 104, 74, 0.08);
+  text-decoration: underline;
+}
+
+.filterable-cell.filter-active {
+  background-color: rgba(0, 104, 74, 0.15);
+  font-weight: 700;
+  box-shadow: inset 0 -2px 0 var(--mdb-green-dark);
+}
+
+/* --- Filter status bar --- */
+.filter-status {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 1rem;
+  margin-bottom: var(--spacing-md);
+  background-color: #f0f7f4;
+  border: 1px solid var(--card-border);
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+.filter-status a {
+  color: var(--mdb-green-dark);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.filter-status a:hover {
+  text-decoration: underline;
+}
+
+/* --- Complexity-colored badges and cards --- */
+.badge-complexity-low {
+  background-color: #28a745;
+  color: white;
+}
+
+.badge-complexity-medium {
+  background-color: #ffc107;
+  color: #212529;
+}
+
+.badge-complexity-high {
+  background-color: #dc3545;
+  color: white;
+}
+
+.complexity-low {
+  color: #28a745;
+}
+
+.complexity-medium {
+  color: #d4a017;
+}
+
+.complexity-high {
+  color: #dc3545;
+}
+
 /* --- JSON Icon Links --- */
 a svg {
   vertical-align: super;

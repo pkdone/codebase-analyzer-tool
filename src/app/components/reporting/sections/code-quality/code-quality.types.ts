@@ -44,6 +44,22 @@ export interface OverallStatistics {
 }
 
 /**
+ * Summary counts for stored procedures and triggers.
+ */
+export interface StoredObjectCounts {
+  totalProcedures: number;
+  totalTriggers: number;
+}
+
+/**
+ * Aggregated database statistics across the project.
+ * Computed from stored procedure and trigger arrays via MongoDB aggregation.
+ */
+export interface DatabaseStatistics {
+  storedObjectCounts: StoredObjectCounts;
+}
+
+/**
  * Raw code quality summary data without presentation fields.
  * Returned by the data provider, containing only domain data.
  */
@@ -51,6 +67,7 @@ export interface CodeQualitySummaryData {
   topComplexFunctions: ComplexFunction[];
   commonCodeSmells: CodeSmellStatisticsData[];
   overallStatistics: OverallStatistics;
+  databaseStatistics?: DatabaseStatistics;
 }
 
 /**
@@ -61,4 +78,5 @@ export interface CodeQualitySummary {
   topComplexFunctions: ComplexFunction[];
   commonCodeSmells: CodeSmellStatistics[];
   overallStatistics: OverallStatistics;
+  databaseStatistics?: DatabaseStatistics;
 }

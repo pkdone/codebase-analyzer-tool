@@ -32,7 +32,8 @@ export const HTML_TABLE_COLUMN_HEADERS = {
  * Display labels for database objects (stored procedures, triggers, etc.).
  */
 export const DATABASE_OBJECT_TYPE_LABELS = {
-  STORED_PROCEDURE: "STORED PROCEDURE",
+  PROCEDURE: "PROCEDURE",
+  FUNCTION: "FUNCTION",
   TRIGGER: "TRIGGER",
 } as const;
 

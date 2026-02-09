@@ -33,6 +33,7 @@ export {
   COMPLEXITY_VALUES_SET,
   DEFAULT_COMPLEXITY,
   type ComplexityValue,
+  STORED_OBJECT_TYPE_VALUES,
 } from "./schema-value.constants";
 
 // Import values for use within this file
@@ -47,6 +48,7 @@ import {
   INTEGRATION_MECHANISM_VALUES,
   SOURCE_ENTITY_KIND_VALUES,
   COMPLEXITY_VALUES,
+  STORED_OBJECT_TYPE_VALUES,
 } from "./schema-value.constants";
 
 // =============================================================================
@@ -255,7 +257,13 @@ export const scheduledJobSchema = z
  */
 export const procedureTriggerSchema = z
   .object({
-    name: z.string().describe("The name of the procedure or trigger."),
+    name: z.string().describe("The name of the procedure, function, or trigger."),
+    objectType: z
+      .enum(STORED_OBJECT_TYPE_VALUES)
+      .optional()
+      .describe(
+        "Whether this is a PROCEDURE or FUNCTION. Use FUNCTION if it returns a value, PROCEDURE otherwise.",
+      ),
     purpose: z.string().describe("Detailed purpose in at least 3 sentences."),
     complexity: createCaseInsensitiveEnumSchema(COMPLEXITY_VALUES).describe(
       "Complexity score - only the listed values are valid; invalid becomes 'INVALID'.",

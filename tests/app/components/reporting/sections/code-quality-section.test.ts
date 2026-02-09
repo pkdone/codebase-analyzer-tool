@@ -2,7 +2,10 @@ import "reflect-metadata";
 import { CodeQualitySection } from "../../../../../src/app/components/reporting/sections/code-quality/code-quality-section";
 import { CodeQualityDataProvider } from "../../../../../src/app/components/reporting/sections/code-quality/code-quality-data-provider";
 import type { ReportData } from "../../../../../src/app/components/reporting/report-data.types";
-import type { CodeQualitySummaryData } from "../../../../../src/app/components/reporting/sections/code-quality/code-quality.types";
+import type {
+  CodeQualitySummaryData,
+  DatabaseStatistics,
+} from "../../../../../src/app/components/reporting/sections/code-quality/code-quality.types";
 
 /**
  * Creates mock raw code quality summary data (without presentation fields).
@@ -21,6 +24,18 @@ function createMockCodeQualitySummaryData(
       averageFunctionLength: 0,
       longFunctionCount: 0,
     },
+    ...overrides,
+  };
+}
+
+/**
+ * Creates mock database statistics data for testing.
+ */
+function createMockDatabaseStatistics(
+  overrides: Partial<DatabaseStatistics> = {},
+): DatabaseStatistics {
+  return {
+    storedObjectCounts: { totalProcedures: 236, totalTriggers: 15 },
     ...overrides,
   };
 }
@@ -160,6 +175,50 @@ describe("CodeQualitySection", () => {
       );
       expect(smells[3].recommendation).toBe("Use parameter objects or builder pattern");
       expect(smells[4].recommendation).toBe("Simplify conditionals or extract into guard clauses");
+    });
+  });
+
+  describe("databaseStatistics passthrough", () => {
+    const mockBaseData = {} as ReportData;
+
+    it("should pass through databaseStatistics when present", async () => {
+      const dbStats = createMockDatabaseStatistics();
+      const rawData = createMockCodeQualitySummaryData({
+        databaseStatistics: dbStats,
+      });
+
+      const result = await section.prepareHtmlData(
+        mockBaseData,
+        { codeQualitySummary: rawData },
+        "/tmp",
+      );
+
+      expect(result?.codeQualitySummary?.databaseStatistics).toEqual(dbStats);
+    });
+
+    it("should not include databaseStatistics when not present in raw data", async () => {
+      const rawData = createMockCodeQualitySummaryData();
+
+      const result = await section.prepareHtmlData(
+        mockBaseData,
+        { codeQualitySummary: rawData },
+        "/tmp",
+      );
+
+      expect(result?.codeQualitySummary?.databaseStatistics).toBeUndefined();
+    });
+
+    it("should include databaseStatistics in JSON output when present", () => {
+      const dbStats = createMockDatabaseStatistics();
+      const rawData = createMockCodeQualitySummaryData({
+        databaseStatistics: dbStats,
+      });
+
+      const result = section.prepareJsonData({} as ReportData, { codeQualitySummary: rawData });
+
+      expect(result).toHaveLength(1);
+      const jsonData = result[0].data as CodeQualitySummaryData;
+      expect(jsonData.databaseStatistics).toEqual(dbStats);
     });
   });
 

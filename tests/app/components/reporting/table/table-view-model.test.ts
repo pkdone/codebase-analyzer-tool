@@ -506,7 +506,7 @@ describe("TableViewModel", () => {
     it("should handle complex union types in generic parameter", () => {
       interface ProcedureItem extends DisplayableTableRow {
         name: string;
-        type: "STORED PROCEDURE";
+        type: "PROCEDURE" | "FUNCTION";
         complexity: "LOW" | "MEDIUM" | "HIGH";
       }
 
@@ -519,7 +519,7 @@ describe("TableViewModel", () => {
       type DatabaseObject = ProcedureItem | TriggerItem;
 
       const items: DatabaseObject[] = [
-        { name: "GetUser", type: "STORED PROCEDURE", complexity: "LOW" },
+        { name: "GetUser", type: "PROCEDURE", complexity: "LOW" },
         { name: "AfterInsert", type: "TRIGGER", complexity: "MEDIUM" },
       ];
 

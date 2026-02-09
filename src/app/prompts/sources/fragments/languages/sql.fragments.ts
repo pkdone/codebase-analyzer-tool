@@ -5,9 +5,9 @@ export const SQL_SPECIFIC_FRAGMENTS = {
   TABLE_LIST:
     "A list of the tables (if any) it defines - for each table, include the names of the table's fields, if known",
   STORED_PROCEDURE_LIST:
-    "A list of the stored procedure (if any) it defines - for each stored procedure, include the stored procedure's name, its purpose, the number of lines of code in the stored procedure, and a complexity score or how complex the stored procedure's code is (the score must be have one of the following values: 'LOW', 'MEDIUM', 'HIGH') along with a short reason for the chosen complexity score",
+    "A list of the stored procedures and functions (if any) it defines - for each one, include: the name, the objectType (must be exactly 'PROCEDURE' if it does not return a value, or 'FUNCTION' if it returns a value), its purpose, the number of lines of code, and a complexity score (must be one of: 'LOW', 'MEDIUM', 'HIGH') along with a short reason for the chosen complexity score",
   TRIGGER_LIST:
-    "A list of the triggers (if any) it defines - for each trigger, include the trigger's name, its purpose, the number of lines of code in the trigger, and a complexity score or how complex the trigger's code is (the score must be have one of the following values: 'LOW', 'MEDIUM', 'HIGH') along with a short reason for the chosen complexity score",
+    "A list of the triggers (if any) it defines - for each trigger, include: the name, its purpose, the number of lines of code in the trigger, and a complexity score (must be one of: 'LOW', 'MEDIUM', 'HIGH') along with a short reason for the chosen complexity score",
   DB_INTEGRATION_ANALYSIS: `Database Integration Analysis (REQUIRED) - Extract ALL possible database details:
 IMPORTANT: databaseIntegration must be a SINGLE OBJECT (not an array). If multiple integration mechanisms exist in the file (e.g., both STORED-PROCEDURE and DDL), combine them into one object:
   - mechanism: Use the primary mechanism (or combine related mechanisms in the description)

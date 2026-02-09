@@ -52,7 +52,7 @@ export class DatabaseSection extends BaseReportSection {
     const dbInteractionsTableViewModel = new TableViewModel(dbInteractions);
 
     // Create view model for stored procedures and triggers
-    const combinedProcsTrigsList = [...procsAndTriggers.procs.list, ...procsAndTriggers.trigs.list];
+    const combinedProcsTrigsList = procsAndTriggers.list;
     const procsAndTriggersTableViewModel = new TableViewModel(combinedProcsTrigsList);
 
     return await Promise.resolve({

@@ -1,51 +1,76 @@
-<%- include('../common/section-header', { title: 'Database Stored Procedures & Triggers', jsonFile: jsonFilesConfig.jsonDataFiles.procsAndTriggers, jsonIconSvg: jsonIconSvg }) %>
+<%- include('../common/section-header', { title: 'Database Procedures, Functions & Triggers', jsonFile: jsonFilesConfig.jsonDataFiles.procsAndTriggers, jsonIconSvg: jsonIconSvg }) %>
 
-<div class="stats-grid">
-  <div class="card">
-    <span class="card-title">Stored Procedures</span>
-    <span class="card-value"><%= procsAndTriggers.procs.total %></span>
-  </div>
-  <div class="card">
-    <span class="card-title">Triggers</span>
-    <span class="card-value"><%= procsAndTriggers.trigs.total %></span>
-  </div>
-  <div class="card">
-    <span class="card-title">Low Complexity</span>
-    <span class="card-value"><%= procsAndTriggers.procs.low + procsAndTriggers.trigs.low %></span>
-  </div>
-  <div class="card">
-    <span class="card-title">Medium Complexity</span>
-    <span class="card-value"><%= procsAndTriggers.procs.medium + procsAndTriggers.trigs.medium %></span>
-  </div>
-  <div class="card">
-    <span class="card-title">High Complexity</span>
-    <span class="card-value"><%= procsAndTriggers.procs.high + procsAndTriggers.trigs.high %></span>
-  </div>
-</div>
+<table class="data-table" id="procs-summary-table">
+  <thead>
+    <tr>
+      <th class="col-wide">Object Type</th>
+      <th class="col-small numeric">Total</th>
+      <th class="col-small numeric complexity-low">Low</th>
+      <th class="col-small numeric complexity-medium">Medium</th>
+      <th class="col-small numeric complexity-high">High</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% if (procsAndTriggers.procedures.total > 0) { %>
+    <tr>
+      <td><strong>Procedures</strong></td>
+      <td class="numeric filterable-cell" data-filter-type="PROCEDURE"><%= procsAndTriggers.procedures.total %></td>
+      <td class="numeric complexity-low filterable-cell" data-filter-type="PROCEDURE" data-filter-complexity="LOW"><%= procsAndTriggers.procedures.low %></td>
+      <td class="numeric complexity-medium filterable-cell" data-filter-type="PROCEDURE" data-filter-complexity="MEDIUM"><%= procsAndTriggers.procedures.medium %></td>
+      <td class="numeric complexity-high filterable-cell" data-filter-type="PROCEDURE" data-filter-complexity="HIGH"><%= procsAndTriggers.procedures.high %></td>
+    </tr>
+    <% } %>
+    <% if (procsAndTriggers.functions.total > 0) { %>
+    <tr>
+      <td><strong>Functions</strong></td>
+      <td class="numeric filterable-cell" data-filter-type="FUNCTION"><%= procsAndTriggers.functions.total %></td>
+      <td class="numeric complexity-low filterable-cell" data-filter-type="FUNCTION" data-filter-complexity="LOW"><%= procsAndTriggers.functions.low %></td>
+      <td class="numeric complexity-medium filterable-cell" data-filter-type="FUNCTION" data-filter-complexity="MEDIUM"><%= procsAndTriggers.functions.medium %></td>
+      <td class="numeric complexity-high filterable-cell" data-filter-type="FUNCTION" data-filter-complexity="HIGH"><%= procsAndTriggers.functions.high %></td>
+    </tr>
+    <% } %>
+    <% if (procsAndTriggers.triggers.total > 0) { %>
+    <tr>
+      <td><strong>Triggers</strong></td>
+      <td class="numeric filterable-cell" data-filter-type="TRIGGER"><%= procsAndTriggers.triggers.total %></td>
+      <td class="numeric complexity-low filterable-cell" data-filter-type="TRIGGER" data-filter-complexity="LOW"><%= procsAndTriggers.triggers.low %></td>
+      <td class="numeric complexity-medium filterable-cell" data-filter-type="TRIGGER" data-filter-complexity="MEDIUM"><%= procsAndTriggers.triggers.medium %></td>
+      <td class="numeric complexity-high filterable-cell" data-filter-type="TRIGGER" data-filter-complexity="HIGH"><%= procsAndTriggers.triggers.high %></td>
+    </tr>
+    <% } %>
+  </tbody>
+</table>
 
-<% const combinedProcsTrigsList = [ ...procsAndTriggers.procs.list, ...procsAndTriggers.trigs.list ]; %>
+<% const combinedProcsTrigsList = procsAndTriggers.list; %>
 
 <% if (combinedProcsTrigsList && combinedProcsTrigsList.length > 0) { %>
-  <div class="card-grid">
+  <div class="filter-status" id="procs-filter-status" style="display: none;">
+    <span id="procs-filter-text"></span>
+    <a href="#" id="procs-filter-reset">Show All</a>
+  </div>
+  <div class="card-grid" id="procs-card-grid">
     <% combinedProcsTrigsList.forEach(item => { %>
-      <div class="info-card">
+      <div class="info-card" data-type="<%= item.type %>" data-complexity="<%= item.complexity %>">
         <h3>
           <%= item.functionName %>
-          <% if (item.type === 'STORED PROCEDURE') { %>
-            <span class="badge badge-proc">Procedure</span>
-          <% } else { %>
-            <span class="badge badge-trig">Trigger</span>
-          <% } %>
+          <%
+            const badgeLabel = item.type;
+            const badgeClass = item.complexity === 'LOW' ? 'badge-complexity-low'
+              : item.complexity === 'MEDIUM' ? 'badge-complexity-medium'
+              : item.complexity === 'HIGH' ? 'badge-complexity-high'
+              : item.type === 'TRIGGER' ? 'badge-trig' : 'badge-proc';
+          %>
+          <span class="badge <%= badgeClass %>"><%= badgeLabel %></span>
         </h3>
         <p><strong>Path:</strong> <code><%= item.path %></code></p>
-        <p><strong>Complexity:</strong> <%= item.complexity %> (<%= item.complexityReason %>)</p>
+        <p><strong>Complexity:</strong> <%= item.complexityReason %></p>
         <p><strong>Lines:</strong> <%= item.linesOfCode %></p>
         <p><strong>Purpose:</strong> <%= item.purpose %></p>
       </div>
     <% }); %>
   </div>
 <% } else { %>
-  <p>No stored procedures or triggers found.</p>
+  <p>No procedures, functions, or triggers found.</p>
 <% } %>
 
 <%- include('../common/section-header', { title: 'Database Interactions', jsonFile: jsonFilesConfig.jsonDataFiles.dbInteractions, jsonIconSvg: jsonIconSvg }) %>
@@ -76,3 +101,83 @@
 <% } else { %>
   <p>No database interactions found.</p>
 <% } %>
+
+<script>
+(function() {
+  var table = document.getElementById('procs-summary-table');
+  var grid = document.getElementById('procs-card-grid');
+  if (!table || !grid) return;
+
+  var statusBar = document.getElementById('procs-filter-status');
+  var statusText = document.getElementById('procs-filter-text');
+  var resetLink = document.getElementById('procs-filter-reset');
+  var cards = grid.querySelectorAll('.info-card');
+  var cells = table.querySelectorAll('.filterable-cell');
+  var activeCell = null;
+
+  function applyFilter(filterType, filterComplexity) {
+    var shown = 0;
+    var total = cards.length;
+
+    cards.forEach(function(card) {
+      var cardType = card.getAttribute('data-type');
+      var cardComplexity = card.getAttribute('data-complexity');
+      var match = true;
+
+      if (filterType && cardType !== filterType) match = false;
+      if (filterComplexity && cardComplexity !== filterComplexity) match = false;
+
+      card.style.display = match ? '' : 'none';
+      if (match) shown++;
+    });
+
+    // Build label
+    var label = 'Showing ' + shown + ' of ' + total + ': ';
+    var typeName = filterType ? filterType.charAt(0) + filterType.slice(1).toLowerCase() + 's' : 'All';
+    if (filterComplexity) {
+      label += filterComplexity.charAt(0) + filterComplexity.slice(1).toLowerCase() + ' Complexity ' + typeName;
+    } else {
+      label += 'All ' + typeName;
+    }
+
+    statusText.textContent = label;
+    statusBar.style.display = '';
+  }
+
+  function clearFilter() {
+    cards.forEach(function(card) {
+      card.style.display = '';
+    });
+    statusBar.style.display = 'none';
+    if (activeCell) {
+      activeCell.classList.remove('filter-active');
+      activeCell = null;
+    }
+  }
+
+  cells.forEach(function(cell) {
+    cell.addEventListener('click', function() {
+      var filterType = cell.getAttribute('data-filter-type') || '';
+      var filterComplexity = cell.getAttribute('data-filter-complexity') || '';
+
+      // Toggle off if clicking the same cell
+      if (activeCell === cell) {
+        clearFilter();
+        return;
+      }
+
+      // Remove previous active state
+      if (activeCell) activeCell.classList.remove('filter-active');
+
+      activeCell = cell;
+      cell.classList.add('filter-active');
+      applyFilter(filterType, filterComplexity);
+    });
+  });
+
+  resetLink.addEventListener('click', function(e) {
+    e.preventDefault();
+    clearFilter();
+  });
+})();
+</script>

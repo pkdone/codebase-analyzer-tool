@@ -222,3 +222,17 @@ export const DEFAULT_COMPLEXITY: ComplexityValue = COMPLEXITY_VALUES[0];
  * Typed as Set<string> to allow checking any string input.
  */
 export const COMPLEXITY_VALUES_SET = new Set<string>(COMPLEXITY_VALUES);
+
+/** Valid object type values for stored procedures/functions in PL/SQL packages */
+export const STORED_OBJECT_TYPE_VALUES = ["PROCEDURE", "FUNCTION"] as const;
+
+/**
+ * Type alias for valid stored object type values.
+ */
+export type StoredObjectTypeValue = (typeof STORED_OBJECT_TYPE_VALUES)[number];
+
+/**
+ * Default object type when the LLM does not provide one.
+ * Falls back to PROCEDURE for backward compatibility with existing data.
+ */
+export const DEFAULT_STORED_OBJECT_TYPE: StoredObjectTypeValue = STORED_OBJECT_TYPE_VALUES[0];

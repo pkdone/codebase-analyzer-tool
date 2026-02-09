@@ -9,6 +9,7 @@ import {
   ProjectedTopComplexFunction,
   ProjectedCodeSmellStatistic,
   ProjectedCodeQualityStatistics,
+  ProjectedDatabaseStatistics,
   SourceRecord,
 } from "./sources.model";
 
@@ -115,4 +116,10 @@ export interface SourcesRepository {
    * Get overall code quality statistics using aggregation pipeline
    */
   getCodeQualityStatistics(projectName: string): Promise<ProjectedCodeQualityStatistics>;
+
+  /**
+   * Get aggregated database statistics for a project using aggregation pipeline.
+   * Returns distributions of mechanisms, operation types, query patterns, and top accessed tables.
+   */
+  getDatabaseStatistics(projectName: string): Promise<ProjectedDatabaseStatistics>;
 }

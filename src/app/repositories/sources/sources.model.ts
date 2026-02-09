@@ -130,6 +130,17 @@ export interface ProjectedCodeQualityStatistics {
   readonly averageFunctionLength: number;
   readonly longFunctionCount: number;
 }
+
+/**
+ * Interface representing aggregated database object counts across a project.
+ * Computed via MongoDB aggregation pipeline from stored procedure and trigger arrays.
+ */
+export interface ProjectedDatabaseStatistics {
+  readonly storedObjectCounts: {
+    readonly totalProcedures: number;
+    readonly totalTriggers: number;
+  };
+}
 /**
  * Generate JSON schema for source file records
  */
