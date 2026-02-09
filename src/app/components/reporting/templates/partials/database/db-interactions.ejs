@@ -1,0 +1,268 @@
+<%- include('../common/section-header', { title: 'Database Interactions', jsonFile: jsonFilesConfig.jsonDataFiles.dbInteractions, jsonIconSvg: jsonIconSvg }) %>
+
+<p class="note-paragraph">
+  This section maps how each source file interacts with the database &mdash; which tables it reads from or writes to,
+  what mechanisms it uses, and what operations it performs. Use this to understand data dependencies, identify
+  tightly coupled database access patterns, and plan refactoring or migration strategies.
+</p>
+<div class="note-box">
+  <p><strong>Note:</strong> Each row represents a <em>source file</em>, not an individual procedure or function.
+  A single file may contain many procedures/functions &mdash; see the <strong>DB Procedures</strong> tab for
+  the full object-level breakdown. Click any count in the summary table below to filter the detail rows.</p>
+</div>
+
+<% if (dbInteractions && dbInteractions.length > 0) { %>
+
+<%
+  // Compute summary statistics: mechanism x operation cross-tabulation
+  const totalInteractions = dbInteractions.length;
+  const allTables = new Set();
+  const mechanismSet = new Set();
+  const operationSet = new Set();
+
+  // Build a cross-tab: { mechanism: { operation: count, _total: count } }
+  const crossTab = {};
+
+  dbInteractions.forEach(item => {
+    const mech = item.mechanism || 'UNKNOWN';
+    mechanismSet.add(mech);
+    if (!crossTab[mech]) crossTab[mech] = { _total: 0 };
+    crossTab[mech]._total++;
+
+    if (item.tablesAccessed && item.tablesAccessed.length > 0) {
+      item.tablesAccessed.forEach(t => allTables.add(t));
+    }
+
+    const validOps = (item.operationType || []).filter(op => op !== 'INVALID');
+    if (validOps.length > 0) {
+      validOps.forEach(op => {
+        operationSet.add(op);
+        crossTab[mech][op] = (crossTab[mech][op] || 0) + 1;
+      });
+    }
+  });
+
+  const uniqueTablesCount = allTables.size;
+  const mechanismKeys = Array.from(mechanismSet).sort();
+  const operationKeys = Array.from(operationSet).sort();
+%>
+
+<div class="stats-grid">
+  <div class="card">
+    <span class="card-title">Source Files</span>
+    <span class="card-value"><%= totalInteractions %></span>
+  </div>
+  <div class="card">
+    <span class="card-title">Unique Tables</span>
+    <span class="card-value"><%= uniqueTablesCount %></span>
+  </div>
+</div>
+
+<table class="data-table" id="db-interactions-summary-table">
+  <thead>
+    <tr>
+      <th class="col-wide">Mechanism</th>
+      <th class="col-small numeric">Total</th>
+      <% operationKeys.forEach(op => { %>
+        <th class="col-small numeric"><%= op %></th>
+      <% }); %>
+    </tr>
+  </thead>
+  <tbody>
+    <% mechanismKeys.forEach(mech => { %>
+    <tr>
+      <td><strong><%= mech %></strong></td>
+      <td class="numeric filterable-cell" data-filter-mechanism="<%= mech %>"><%= crossTab[mech]._total %></td>
+      <% operationKeys.forEach(op => { %>
+        <td class="numeric<%= crossTab[mech][op] ? ' filterable-cell' : '' %>" data-filter-mechanism="<%= mech %>" data-filter-operation="<%= op %>"><%= crossTab[mech][op] || 0 %></td>
+      <% }); %>
+    </tr>
+    <% }); %>
+  </tbody>
+</table>
+
+<div class="filter-status" id="db-interactions-filter-status" style="display: none;">
+  <span id="db-interactions-filter-text"></span>
+  <a href="#" id="db-interactions-filter-reset">Show All</a>
+</div>
+
+<table class="data-table" id="db-interactions-table" style="table-layout: fixed; width: 100%;">
+  <colgroup>
+    <col style="width: 15%;">
+    <col style="width: 20%;">
+    <col style="width: 8%;">
+    <col style="width: 57%;">
+  </colgroup>
+  <thead>
+    <tr>
+      <th class="sortable-header resizable-col" data-sort-col="0" data-sort-type="text">Path</th>
+      <th class="sortable-header resizable-col" data-sort-col="1" data-sort-type="text">Tables Accessed</th>
+      <th class="sortable-header resizable-col" data-sort-col="2" data-sort-type="text">Operations</th>
+      <th class="resizable-col">Code Example</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% dbInteractions.forEach(item => { %>
+      <%
+        const rowValidOps = (item.operationType || []).filter(op => op !== 'INVALID');
+      %>
+      <tr data-mechanism="<%= item.mechanism %>" data-operations="<%= rowValidOps.join(',') %>">
+        <td><code><%= item.path %></code></td>
+        <td>
+          <% if (item.tablesAccessed && item.tablesAccessed.length > 0) { %>
+            <% item.tablesAccessed.forEach(table => { %>
+              <code><%= table %></code>
+            <% }); %>
+          <% } else { %>
+            <span class="no-data-cell">&mdash;</span>
+          <% } %>
+        </td>
+        <td>
+          <% if (rowValidOps.length > 0) { %>
+            <%= rowValidOps.join(', ') %>
+          <% } else { %>
+            <span class="no-data-cell">&mdash;</span>
+          <% } %>
+        </td>
+        <td>
+          <pre><code class="language-sql"><%= item.codeExample %></code></pre>
+        </td>
+      </tr>
+    <% }); %>
+  </tbody>
+</table>
+
+<script>
+(function() {
+  var summaryTable = document.getElementById('db-interactions-summary-table');
+  var table = document.getElementById('db-interactions-table');
+  if (!table) return;
+
+  var thead = table.querySelector('thead');
+  var tbody = table.querySelector('tbody');
+  var headers = thead.querySelectorAll('.sortable-header');
+  var statusBar = document.getElementById('db-interactions-filter-status');
+  var statusText = document.getElementById('db-interactions-filter-text');
+  var resetLink = document.getElementById('db-interactions-filter-reset');
+  var currentSortCol = -1;
+  var currentSortAsc = true;
+  var activeCell = null;
+
+  // --- Sorting ---
+  function sortTable(colIndex) {
+    var rows = Array.from(tbody.querySelectorAll('tr'));
+    var asc = (currentSortCol === colIndex) ? !currentSortAsc : true;
+    currentSortCol = colIndex;
+    currentSortAsc = asc;
+
+    rows.sort(function(a, b) {
+      var aText = (a.cells[colIndex].textContent || '').trim().toLowerCase();
+      var bText = (b.cells[colIndex].textContent || '').trim().toLowerCase();
+      if (aText < bText) return asc ? -1 : 1;
+      if (aText > bText) return asc ? 1 : -1;
+      return 0;
+    });
+
+    rows.forEach(function(row) { tbody.appendChild(row); });
+    updateSortIndicators();
+  }
+
+  function updateSortIndicators() {
+    headers.forEach(function(h) {
+      var indicator = h.querySelector('.sort-indicator');
+      if (!indicator) {
+        indicator = document.createElement('span');
+        indicator.className = 'sort-indicator';
+        h.appendChild(indicator);
+      }
+      var col = parseInt(h.getAttribute('data-sort-col'), 10);
+      if (col === currentSortCol) {
+        indicator.textContent = currentSortAsc ? ' \u25B2' : ' \u25BC';
+      } else {
+        indicator.textContent = '';
+      }
+    });
+  }
+
+  headers.forEach(function(header) {
+    header.addEventListener('click', function() {
+      var col = parseInt(header.getAttribute('data-sort-col'), 10);
+      sortTable(col);
+    });
+  });
+
+  // --- Filtering via summary table ---
+  function applyFilter(filterMechanism, filterOperation) {
+    var rows = tbody.querySelectorAll('tr');
+    var shown = 0;
+    var total = rows.length;
+
+    rows.forEach(function(row) {
+      var rowMech = row.getAttribute('data-mechanism');
+      var rowOps = row.getAttribute('data-operations') || '';
+      var match = true;
+
+      if (filterMechanism && rowMech !== filterMechanism) match = false;
+      if (filterOperation && rowOps.split(',').indexOf(filterOperation) === -1) match = false;
+
+      row.style.display = match ? '' : 'none';
+      if (match) shown++;
+    });
+
+    // Build label
+    var label = 'Showing ' + shown + ' of ' + total + ': ';
+    if (filterMechanism && filterOperation) {
+      label += filterMechanism + ' \u00D7 ' + filterOperation;
+    } else if (filterMechanism) {
+      label += 'All ' + filterMechanism;
+    } else if (filterOperation) {
+      label += 'All ' + filterOperation;
+    }
+
+    statusText.textContent = label;
+    statusBar.style.display = '';
+  }
+
+  function clearFilter() {
+    var rows = tbody.querySelectorAll('tr');
+    rows.forEach(function(row) { row.style.display = ''; });
+    statusBar.style.display = 'none';
+    if (activeCell) {
+      activeCell.classList.remove('filter-active');
+      activeCell = null;
+    }
+  }
+
+  if (summaryTable) {
+    var cells = summaryTable.querySelectorAll('.filterable-cell');
+    cells.forEach(function(cell) {
+      cell.addEventListener('click', function() {
+        var filterMechanism = cell.getAttribute('data-filter-mechanism') || '';
+        var filterOperation = cell.getAttribute('data-filter-operation') || '';
+
+        // Toggle off if clicking the same cell
+        if (activeCell === cell) {
+          clearFilter();
+          return;
+        }
+
+        if (activeCell) activeCell.classList.remove('filter-active');
+        activeCell = cell;
+        cell.classList.add('filter-active');
+        applyFilter(filterMechanism, filterOperation);
+      });
+    });
+  }
+
+  if (resetLink) {
+    resetLink.addEventListener('click', function(e) {
+      e.preventDefault();
+      clearFilter();
+    });
+  }
+})();
+</script>
+
+<% } else { %>
+  <p>No database interactions found.</p>
+<% } %>

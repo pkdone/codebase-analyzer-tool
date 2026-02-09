@@ -128,8 +128,11 @@ export default class ReportArtifactGenerator {
 
     const preparedJsonData = this.prepareJsonDataFromSections(reportData, sectionDataMap);
 
-    // Copy Mermaid.js to assets directory for offline support
-    await this.assetService.ensureMermaidAsset(outputDir);
+    // Copy external JS libraries to assets directory for offline support
+    await Promise.all([
+      this.assetService.ensureMermaidAsset(outputDir),
+      this.assetService.ensurePrismAsset(outputDir),
+    ]);
 
     // Generate reports using prepared data
     await this.jsonWriter.writeAllJSONFiles(preparedJsonData);

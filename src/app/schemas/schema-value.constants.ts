@@ -60,6 +60,7 @@ export const DATABASE_MECHANISM_VALUES = [
   "DDL",
   "DML",
   "STORED-PROCEDURE",
+  "PLSQL-PACKAGE",
   "TRIGGER",
   "FUNCTION",
   // Fallback

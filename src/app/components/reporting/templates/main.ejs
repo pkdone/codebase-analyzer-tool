@@ -7,6 +7,9 @@
     <!-- Mermaid.js for client-side diagram rendering (local file for offline support) -->
     <!-- Note: avoid ESM imports here, as many browsers block module loading from file:// -->
     <script src="<%= htmlReportConstants.paths.ASSETS_DIR %>mermaid.min.js"></script>
+    <!-- Prism.js for SQL syntax highlighting (local files for offline support) -->
+    <script src="<%= htmlReportConstants.paths.ASSETS_DIR %>prism.min.js" data-manual></script>
+    <script src="<%= htmlReportConstants.paths.ASSETS_DIR %>prism-sql.min.js"></script>
   </head>
   <body>
     <h1>Codebase Analysis Tools (CAT) Report <a href="<%= jsonFilesConfig.jsonDataFiles.completeReport %>" target="_blank" style="text-decoration: none;"><%- jsonIconSvg %></a></h1>
@@ -19,7 +22,8 @@
       <button class="tab-button" data-target="tab-domain">Domain Model</button>
       <button class="tab-button" data-target="tab-quality">Code Quality</button>
       <button class="tab-button" data-target="tab-ui">UI Analysis</button>
-      <button class="tab-button" data-target="tab-db">Database Integrations</button>
+      <button class="tab-button" data-target="tab-db">DB Procedures</button>
+      <button class="tab-button" data-target="tab-db-interactions">DB Interactions</button>
       <button class="tab-button" data-target="tab-integration">Integration & APIs</button>
     </nav>
     <div id="tab-overview" class="tab-content active">
@@ -108,11 +112,17 @@
 
     <div id="tab-db" class="tab-content">
       <%- include('partials/database/db-integrations', { 
-        dbInteractions: dbInteractions, 
         procsAndTriggers: procsAndTriggers, 
-        dbInteractionsTableViewModel: dbInteractionsTableViewModel, 
         procsAndTriggersTableViewModel: procsAndTriggersTableViewModel, 
         convertToDisplayName: convertToDisplayName, 
+        jsonFilesConfig: jsonFilesConfig 
+      }) %>
+    </div>
+
+    <div id="tab-db-interactions" class="tab-content">
+      <%- include('partials/database/db-interactions', { 
+        dbInteractions: dbInteractions, 
+        dbInteractionsTableViewModel: dbInteractionsTableViewModel, 
         jsonFilesConfig: jsonFilesConfig 
       }) %>
     </div>
@@ -149,14 +159,24 @@
         }
       }
 
+      function highlightPrismCode(root) {
+        if (!window.Prism) return;
+        var blocks = root.querySelectorAll('code[class*="language-"]:not([data-prism-highlighted])');
+        blocks.forEach(function(block) {
+          window.Prism.highlightElement(block);
+          block.setAttribute("data-prism-highlighted", "true");
+        });
+      }
+
       document.addEventListener("DOMContentLoaded", () => {
         const tabs = document.querySelectorAll(".tab-button");
         const contents = document.querySelectorAll(".tab-content");
 
-        // Render diagrams in the initially active tab
+        // Render diagrams and syntax highlighting in the initially active tab
         const activeTab = document.querySelector(".tab-content.active");
         if (activeTab) {
           renderMermaidDiagrams(activeTab);
+          highlightPrismCode(activeTab);
         }
         
         tabs.forEach(tab => {
@@ -173,6 +193,8 @@
 
               // Render any unprocessed Mermaid diagrams in the newly visible tab
               await renderMermaidDiagrams(targetContent);
+              // Apply syntax highlighting to any unhighlighted code blocks
+              highlightPrismCode(targetContent);
             }
           });
         });

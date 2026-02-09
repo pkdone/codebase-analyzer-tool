@@ -11,6 +11,10 @@ interface OutputConfig {
   readonly externalAssets: {
     readonly MERMAID_CDN_UMD_URL: string;
     readonly MERMAID_UMD_FILENAME: string;
+    readonly PRISM_CDN_CORE_URL: string;
+    readonly PRISM_CDN_SQL_URL: string;
+    readonly PRISM_CORE_FILENAME: string;
+    readonly PRISM_SQL_FILENAME: string;
   };
   readonly assets: {
     readonly CSS_FILENAME: string;
@@ -56,6 +60,10 @@ export const outputConfig = {
   externalAssets: {
     MERMAID_CDN_UMD_URL: "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js",
     MERMAID_UMD_FILENAME: "mermaid.min.js",
+    PRISM_CDN_CORE_URL: "https://cdn.jsdelivr.net/npm/prismjs@1/prism.min.js",
+    PRISM_CDN_SQL_URL: "https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-sql.min.js",
+    PRISM_CORE_FILENAME: "prism.min.js",
+    PRISM_SQL_FILENAME: "prism-sql.min.js",
   },
 
   /**

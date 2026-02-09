@@ -102,7 +102,8 @@ pre > code {
   padding: 12px;
   border-radius: 6px;
   white-space: pre-wrap;
-  word-break: break-all;
+  overflow-wrap: break-word;
+  word-break: normal;
 }
 
 /* --- Tab Navigation --- */
@@ -343,6 +344,29 @@ table.data-table {
 
 .filter-status a:hover {
   text-decoration: underline;
+}
+
+/* --- Sortable table headers --- */
+.sortable-header {
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+}
+
+.sortable-header:hover {
+  background-color: rgba(0, 104, 74, 0.08);
+}
+
+.sort-indicator {
+  font-size: 0.7rem;
+  color: var(--mdb-green-dark);
+}
+
+/* --- Resizable table columns --- */
+.resizable-col {
+  overflow: hidden;
+  resize: horizontal;
+  min-width: 60px;
 }
 
 /* --- Complexity-colored badges and cards --- */
@@ -681,7 +705,8 @@ td pre {
   border-radius: 4px;
   font-size: 0.875rem;
   white-space: pre-wrap;
-  word-break: break-all;
+  overflow-wrap: break-word;
+  word-break: normal;
   font-family: var(--font-family-mono);
 }
 
@@ -692,13 +717,74 @@ td code {
   font-size: 0.875rem;
   font-family: var(--font-family-mono);
   color: var(--mdb-green-dark);
+  margin: 1px 2px;
 }
 
-/* SQL Code Highlighting */
+#db-interactions-table td:nth-child(1) code,
+#db-interactions-table td:nth-child(2) code {
+  background-color: transparent;
+  padding: 0;
+  margin: 0;
+}
+
+/* SQL Code Highlighting — Prism.js token theme */
 .language-sql {
   font-family: var(--font-family-mono);
   background-color: var(--tab-bg);
   color: var(--text-color);
+}
+
+.token.comment,
+.token.prolog,
+.token.doctype,
+.token.cdata {
+  color: #6a737d;
+  font-style: italic;
+}
+
+.token.punctuation {
+  color: #24292e;
+}
+
+.token.keyword {
+  color: #d73a49;
+  font-weight: 600;
+}
+
+.token.operator {
+  color: #d73a49;
+}
+
+.token.string,
+.token.char {
+  color: #032f62;
+}
+
+.token.number,
+.token.boolean {
+  color: #005cc5;
+}
+
+.token.function {
+  color: #6f42c1;
+}
+
+.token.variable {
+  color: #e36209;
+}
+
+.token.builtin,
+.token.class-name {
+  color: #22863a;
+}
+
+.token.important,
+.token.bold {
+  font-weight: bold;
+}
+
+.token.italic {
+  font-style: italic;
 }
 
 /* Section Headers */
