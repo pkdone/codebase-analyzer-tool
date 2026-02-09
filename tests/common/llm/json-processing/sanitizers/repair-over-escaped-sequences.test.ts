@@ -2,27 +2,9 @@
  * Tests for the repair-over-escaped-sequences module.
  */
 
-import {
-  repairOverEscapedStringSequences,
-  OVER_ESCAPE_REPLACEMENT_PATTERNS,
-} from "../../../../../src/common/llm/json-processing/sanitizers/repair-over-escaped-sequences";
+import { repairOverEscapedStringSequences } from "../../../../../src/common/llm/json-processing/sanitizers/repair-over-escaped-sequences";
 
 describe("repair-over-escaped-sequences", () => {
-  describe("OVER_ESCAPE_REPLACEMENT_PATTERNS", () => {
-    it("should have patterns defined", () => {
-      expect(OVER_ESCAPE_REPLACEMENT_PATTERNS.length).toBeGreaterThan(0);
-    });
-
-    it("should have each pattern with regex, replacement, and description", () => {
-      for (const pattern of OVER_ESCAPE_REPLACEMENT_PATTERNS) {
-        expect(pattern).toHaveLength(3);
-        expect(pattern[0]).toBeInstanceOf(RegExp);
-        expect(typeof pattern[1]).toBe("string");
-        expect(typeof pattern[2]).toBe("string");
-      }
-    });
-  });
-
   describe("repairOverEscapedStringSequences", () => {
     describe("single quote over-escaping", () => {
       it("should fix triple-backslash escaped single quotes", () => {

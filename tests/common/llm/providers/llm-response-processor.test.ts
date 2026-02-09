@@ -5,7 +5,6 @@ import {
   LLMResponseProcessorDeps,
 } from "../../../../src/common/llm/providers/llm-response-processor";
 import { LLMPurpose, LLMOutputFormat } from "../../../../src/common/llm/types/llm-request.types";
-import type { ResolvedLLMModelMetadata } from "../../../../src/common/llm/types/llm-model.types";
 import {
   LLMResponseStatus,
   isCompletedResponse,
@@ -17,18 +16,6 @@ import { createMockErrorLoggingConfig } from "../../helpers/llm/mock-error-logge
 
 // Test constants
 const TEST_MODEL_KEY = "test-model";
-
-// Test models metadata
-const testModelsMetadata: Record<string, ResolvedLLMModelMetadata> = {
-  [TEST_MODEL_KEY]: {
-    modelKey: TEST_MODEL_KEY,
-    urnEnvKey: "TEST_MODEL_URN",
-    urn: "test-provider/test-model-v1",
-    purpose: LLMPurpose.COMPLETIONS,
-    maxCompletionTokens: 4096,
-    maxTotalTokens: 32768,
-  },
-};
 
 /**
  * Creates a mock LLMErrorLogger for testing.
@@ -61,7 +48,6 @@ function createTestDeps(overrides?: Partial<LLMResponseProcessorDeps>): TestDeps
   const { logger, recordJsonProcessingErrorSpy } = createMockErrorLogger();
   const deps: LLMResponseProcessorDeps = {
     errorLogger: logger,
-    llmModelsMetadata: testModelsMetadata,
     ...overrides,
   };
   return { deps, recordJsonProcessingErrorSpy };
@@ -592,81 +578,6 @@ describe("LLMResponseProcessor", () => {
     });
   });
 
-  describe("debugUnhandledError", () => {
-    let consoleSpy: jest.SpyInstance;
-
-    beforeEach(() => {
-      consoleSpy = jest.spyOn(console, "log").mockImplementation();
-    });
-
-    afterEach(() => {
-      consoleSpy.mockRestore();
-    });
-
-    it("should log Error instance with name, constructor, and details", () => {
-      const error = new Error("Test error message");
-
-      processor.debugUnhandledError(error, TEST_MODEL_KEY);
-
-      expect(consoleSpy).toHaveBeenCalledTimes(1);
-      const logMessage = consoleSpy.mock.calls[0][0] as string;
-      expect(logMessage).toContain("[DEBUG]");
-      expect(logMessage).toContain("Error Name: Error");
-      expect(logMessage).toContain("Constructor: Error");
-      expect(logMessage).toContain("Test error message");
-      expect(logMessage).toContain(testModelsMetadata[TEST_MODEL_KEY].urn);
-    });
-
-    it("should log custom Error subclass with correct constructor name", () => {
-      class CustomError extends Error {
-        constructor(message: string) {
-          super(message);
-          this.name = "CustomError";
-        }
-      }
-      const error = new CustomError("Custom error message");
-
-      processor.debugUnhandledError(error, TEST_MODEL_KEY);
-
-      expect(consoleSpy).toHaveBeenCalledTimes(1);
-      const logMessage = consoleSpy.mock.calls[0][0] as string;
-      expect(logMessage).toContain("Error Name: CustomError");
-      expect(logMessage).toContain("Constructor: CustomError");
-    });
-
-    it("should log non-Error values with type information", () => {
-      processor.debugUnhandledError("string error", TEST_MODEL_KEY);
-
-      expect(consoleSpy).toHaveBeenCalledTimes(1);
-      const logMessage = consoleSpy.mock.calls[0][0] as string;
-      expect(logMessage).toContain("[DEBUG]");
-      expect(logMessage).toContain("Non-Error type: string");
-      expect(logMessage).toContain(testModelsMetadata[TEST_MODEL_KEY].urn);
-    });
-
-    it("should log object errors with type information", () => {
-      const errorObject = { code: "ERROR_CODE", message: "Something went wrong" };
-
-      processor.debugUnhandledError(errorObject, TEST_MODEL_KEY);
-
-      expect(consoleSpy).toHaveBeenCalledTimes(1);
-      const logMessage = consoleSpy.mock.calls[0][0] as string;
-      expect(logMessage).toContain("Non-Error type: object");
-    });
-
-    it("should log null and undefined errors", () => {
-      processor.debugUnhandledError(null, TEST_MODEL_KEY);
-      expect(consoleSpy).toHaveBeenCalledTimes(1);
-      expect(consoleSpy.mock.calls[0][0]).toContain("Non-Error type: object");
-
-      consoleSpy.mockClear();
-
-      processor.debugUnhandledError(undefined, TEST_MODEL_KEY);
-      expect(consoleSpy).toHaveBeenCalledTimes(1);
-      expect(consoleSpy.mock.calls[0][0]).toContain("Non-Error type: undefined");
-    });
-  });
-
   describe("type inference", () => {
     it("should preserve schema type through JSON validation", async () => {
       const responseBase = createResponseBase();
@@ -719,23 +630,9 @@ describe("LLMResponseProcessor", () => {
 
     it("should preserve modelKey in response", async () => {
       const customModelKey = "custom-model";
-      const customMetadata: Record<string, ResolvedLLMModelMetadata> = {
-        [customModelKey]: {
-          modelKey: customModelKey,
-          urnEnvKey: "CUSTOM_MODEL_URN",
-          urn: "custom-provider/custom-model",
-          purpose: LLMPurpose.COMPLETIONS,
-          maxCompletionTokens: 2048,
-          maxTotalTokens: 16384,
-        },
-      };
-
-      const customTestDeps = createTestDeps({ llmModelsMetadata: customMetadata });
-      const customProcessor = new LLMResponseProcessor(customTestDeps.deps);
-
       const responseBase = createResponseBase({ modelKey: customModelKey });
 
-      const result = await customProcessor.formatAndValidateResponse(
+      const result = await processor.formatAndValidateResponse(
         responseBase,
         LLMPurpose.COMPLETIONS,
         "Valid text response",

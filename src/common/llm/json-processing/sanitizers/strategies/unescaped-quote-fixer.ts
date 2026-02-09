@@ -56,9 +56,8 @@ export const unescapedQuoteFixer: SanitizerStrategy = {
     const escapedQuoteFollowedByUnescapedPattern = /(\\")"(\s*\+|\s*\]|\s*,|(?=\s*[a-zA-Z_$]))/g;
     sanitized = sanitized.replace(
       escapedQuoteFollowedByUnescapedPattern,
-      (match, _escapedQuote, after, offset: number, string: unknown) => {
-        const stringStr = typeof string === "string" ? string : sanitized;
-        const contextBefore = stringStr.substring(
+      (match, _escapedQuote, after, offset: number, fullString: string) => {
+        const contextBefore = fullString.substring(
           Math.max(0, offset - parsingHeuristics.CONTEXT_LOOKBACK_LENGTH),
           offset,
         );

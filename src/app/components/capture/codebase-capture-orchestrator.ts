@@ -6,7 +6,7 @@ import { type FileProcessingRulesType } from "../../config/file-handling";
 import { getCanonicalFileType } from "./utils";
 import type { CanonicalFileType } from "../../schemas/canonical-file-types";
 import { readFile } from "../../../common/fs/file-operations";
-import { findFilesWithSize } from "../../../common/fs/directory-operations";
+import { findFilesSortedBySize } from "../../../common/fs/directory-operations";
 import { getFileExtension } from "../../../common/fs/path-utils";
 import { countLines } from "../../../common/utils/text-utils";
 import { logErr } from "../../../common/utils/logging";
@@ -70,9 +70,9 @@ export default class CodebaseCaptureOrchestrator {
     srcDirPath: string,
     skipIfAlreadyIngested: boolean,
   ): Promise<void> {
-    // Use findFilesWithSize for efficient file discovery with sizes in a single pass
+    // Use findFilesSortedBySize for efficient file discovery with sizes in a single pass
     // Files are pre-sorted by size (largest first) for better work distribution
-    const filesWithSize = await findFilesWithSize(srcDirPath, {
+    const filesWithSize = await findFilesSortedBySize(srcDirPath, {
       folderIgnoreList: this.fileProcessingConfig.FOLDER_IGNORE_LIST,
       filenameIgnorePrefix: this.fileProcessingConfig.FILENAME_PREFIX_IGNORE,
       filenameIgnoreList: this.fileProcessingConfig.FILENAME_IGNORE_LIST,
@@ -214,8 +214,8 @@ export default class CodebaseCaptureOrchestrator {
       },
     };
 
-    // Add to buffered writer (automatically flushes when batch size is reached)
-    await this.bufferedWriter.add(sourceFileRecord);
+    // Queue to buffered writer (automatically flushes when batch size is reached)
+    await this.bufferedWriter.queueRecord(sourceFileRecord);
   }
 
   /**

@@ -5,7 +5,7 @@
  * The registry is injected into the LLM module configuration, allowing the common
  * LLM layer to remain decoupled from specific provider implementations.
  *
- * To add or remove providers, modify the buildProviderRegistry() function below.
+ * To add or remove providers, modify the map entries below.
  */
 
 import type { LLMProviderRegistry } from "../../common/llm/config/llm-module-config.types";
@@ -49,30 +49,17 @@ import {
 } from "../../common/llm/providers/bedrock/nova/bedrock-nova.manifest";
 
 /**
- * Builds the provider registry for this application.
- *
- * This function constructs a map of all LLM providers that the application
- * intends to use. Provider family identifiers are stored in lowercase for
- * case-insensitive lookup.
- *
- * @returns The provider registry map
+ * Registry of all LLM providers used by this application.
+ * Provider family identifiers are stored in lowercase for case-insensitive lookup.
  */
-export function buildProviderRegistry(): LLMProviderRegistry {
-  return new Map([
-    [OPENAI_FAMILY.toLowerCase(), openAIProviderManifest],
-    [AZURE_OPENAI_FAMILY.toLowerCase(), azureOpenAIProviderManifest],
-    [VERTEXAI_GEMINI_FAMILY.toLowerCase(), vertexAIGeminiProviderManifest],
-    [VERTEXAI_CLAUDE_FAMILY.toLowerCase(), vertexAIClaudeProviderManifest],
-    [BEDROCK_CLAUDE_FAMILY.toLowerCase(), bedrockClaudeProviderManifest],
-    [BEDROCK_DEEPSEEK_FAMILY.toLowerCase(), bedrockDeepseekProviderManifest],
-    [BEDROCK_LLAMA_FAMILY.toLowerCase(), bedrockLlamaProviderManifest],
-    [BEDROCK_MISTRAL_FAMILY.toLowerCase(), bedrockMistralProviderManifest],
-    [BEDROCK_NOVA_FAMILY.toLowerCase(), bedrockNovaProviderManifest],
-  ]);
-}
-
-/**
- * Singleton instance of the provider registry.
- * Use this when you need direct access to the registry outside of the LLM module config.
- */
-export const APP_PROVIDER_REGISTRY: LLMProviderRegistry = buildProviderRegistry();
+export const APP_PROVIDER_REGISTRY: LLMProviderRegistry = new Map([
+  [OPENAI_FAMILY.toLowerCase(), openAIProviderManifest],
+  [AZURE_OPENAI_FAMILY.toLowerCase(), azureOpenAIProviderManifest],
+  [VERTEXAI_GEMINI_FAMILY.toLowerCase(), vertexAIGeminiProviderManifest],
+  [VERTEXAI_CLAUDE_FAMILY.toLowerCase(), vertexAIClaudeProviderManifest],
+  [BEDROCK_CLAUDE_FAMILY.toLowerCase(), bedrockClaudeProviderManifest],
+  [BEDROCK_DEEPSEEK_FAMILY.toLowerCase(), bedrockDeepseekProviderManifest],
+  [BEDROCK_LLAMA_FAMILY.toLowerCase(), bedrockLlamaProviderManifest],
+  [BEDROCK_MISTRAL_FAMILY.toLowerCase(), bedrockMistralProviderManifest],
+  [BEDROCK_NOVA_FAMILY.toLowerCase(), bedrockNovaProviderManifest],
+]);

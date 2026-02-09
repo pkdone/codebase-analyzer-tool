@@ -9,7 +9,7 @@
 
 import type { ReplacementRule } from "../../../../types/sanitizer-config.types";
 import { isInArrayContextSimple, isDeepArrayContext } from "../../../utils/parser-context-utils";
-import { safeGroup, safeGroups3, safeGroups4 } from "../../../utils/safe-group-extractor";
+import { safeGroup, getSafeGroups } from "../../../utils/safe-group-extractor";
 
 /**
  * Rules for fixing array element issues in JSON content.
@@ -24,7 +24,7 @@ export const ARRAY_ELEMENT_RULES: readonly ReplacementRule[] = [
       if (!isDeepArrayContext(context)) {
         return null;
       }
-      const [delimiter, whitespace, stringValue] = safeGroups3(groups);
+      const [delimiter, whitespace, stringValue] = getSafeGroups(groups, 3);
       return `${delimiter}${whitespace}"${stringValue}",`;
     },
     diagnosticMessage: (_match, groups) => {
@@ -41,7 +41,7 @@ export const ARRAY_ELEMENT_RULES: readonly ReplacementRule[] = [
       if (!isDeepArrayContext(context)) {
         return null;
       }
-      const [delimiter, whitespace, stringValue] = safeGroups3(groups);
+      const [delimiter, whitespace, stringValue] = getSafeGroups(groups, 3);
       return `${delimiter}${whitespace}"${stringValue}",`;
     },
     diagnosticMessage: (_match, groups) => {
@@ -58,7 +58,7 @@ export const ARRAY_ELEMENT_RULES: readonly ReplacementRule[] = [
       if (!isDeepArrayContext(context)) {
         return null;
       }
-      const [delimiter, whitespace, quotedElement] = safeGroups3(groups);
+      const [delimiter, whitespace, quotedElement] = getSafeGroups(groups, 3);
       return `${delimiter}${whitespace}${quotedElement}`;
     },
     diagnosticMessage: "Removed minus sign before array element",
@@ -98,7 +98,7 @@ export const ARRAY_ELEMENT_RULES: readonly ReplacementRule[] = [
         return null;
       }
 
-      const [stringValue, strayContent, terminator] = safeGroups3(groups);
+      const [stringValue, strayContent, terminator] = getSafeGroups(groups, 3);
       const strayContentStr = strayContent.trim();
 
       // Skip if the stray content is empty or just whitespace
@@ -153,7 +153,7 @@ export const ARRAY_ELEMENT_RULES: readonly ReplacementRule[] = [
     name: "strayLibraryNameAfterString",
     pattern: /"([^"]+)"\s*,\s*([A-Z][A-Z0-9_.-]{5,50})"\s*([,}\]]|\n|$)/g,
     replacement: (_match, groups, context) => {
-      const [stringValue, strayText, terminator] = safeGroups3(groups);
+      const [stringValue, strayText, terminator] = getSafeGroups(groups, 3);
       // Check if it looks like a library/JAR name
       const looksLikeLibraryName =
         /^[A-Z][A-Z0-9_.-]+$/.test(strayText) &&
@@ -168,7 +168,7 @@ export const ARRAY_ELEMENT_RULES: readonly ReplacementRule[] = [
       return `"${stringValue}"${comma}${terminator}`;
     },
     diagnosticMessage: (_match, groups) => {
-      const [stringValue, strayText] = safeGroups3(groups);
+      const [stringValue, strayText] = getSafeGroups(groups, 3);
       return `Removed stray library/JAR name '${strayText}' after string: "${stringValue.substring(0, 30)}..."`;
     },
   },
@@ -182,7 +182,7 @@ export const ARRAY_ELEMENT_RULES: readonly ReplacementRule[] = [
       if (!isDeepArrayContext(context)) {
         return null;
       }
-      const [prevValue, whitespace, stringValue, terminator] = safeGroups4(groups);
+      const [prevValue, whitespace, stringValue, terminator] = getSafeGroups(groups, 4);
       const whitespaceStr = whitespace || "    ";
       return `"${prevValue}",\n${whitespaceStr}"${stringValue}"${terminator}`;
     },
@@ -201,12 +201,12 @@ export const ARRAY_ELEMENT_RULES: readonly ReplacementRule[] = [
       if (!isInArrayContextSimple(context)) {
         return null;
       }
-      const [delimiter, prefix, middle, suffix] = safeGroups4(groups);
+      const [delimiter, prefix, middle, suffix] = getSafeGroups(groups, 4);
       const fullPath = `${prefix}.${middle}.${suffix}`;
       return `${delimiter},\n    "${fullPath}",\n`;
     },
     diagnosticMessage: (_match, groups) => {
-      const [, prefix, middle, suffix] = safeGroups4(groups);
+      const [, prefix, middle, suffix] = getSafeGroups(groups, 4);
       return `Fixed missing comma and quote before array item: ${prefix}.${middle}.${suffix}`;
     },
   },
@@ -220,13 +220,13 @@ export const ARRAY_ELEMENT_RULES: readonly ReplacementRule[] = [
       if (!isInArrayContextSimple(context)) {
         return null;
       }
-      const [delimiter, whitespace, strayPrefix, stringValue] = safeGroups4(groups);
+      const [delimiter, whitespace, strayPrefix, stringValue] = getSafeGroups(groups, 4);
       // For package names, we want to keep the full path
       const fullValue = strayPrefix + stringValue;
       return `${delimiter}${whitespace}"${fullValue}",`;
     },
     diagnosticMessage: (_match, groups) => {
-      const [, , strayPrefix, stringValue] = safeGroups4(groups);
+      const [, , strayPrefix, stringValue] = getSafeGroups(groups, 4);
       return `Fixed missing quote: ${strayPrefix}${stringValue}" -> "${strayPrefix}${stringValue}"`;
     },
   },
@@ -286,7 +286,7 @@ export const ARRAY_ELEMENT_RULES: readonly ReplacementRule[] = [
       if (!isInArrayContextSimple(context)) {
         return null;
       }
-      const [delimiter, whitespace, stringValue] = safeGroups3(groups);
+      const [delimiter, whitespace, stringValue] = getSafeGroups(groups, 3);
       return `${delimiter}${whitespace}"${stringValue}",`;
     },
     diagnosticMessage: (_match, groups) => {

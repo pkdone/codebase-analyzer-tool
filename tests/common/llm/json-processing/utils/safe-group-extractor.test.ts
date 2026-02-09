@@ -1,8 +1,6 @@
 import {
   safeGroup,
-  safeGroups3,
-  safeGroups4,
-  safeGroups5,
+  getSafeGroups,
 } from "../../../../../src/common/llm/json-processing/utils/safe-group-extractor";
 
 describe("safe-group-extractor", () => {
@@ -25,10 +23,11 @@ describe("safe-group-extractor", () => {
       expect(safeGroup(groups, 100)).toBe("");
     });
 
-    it("should return empty string for negative index", () => {
+    it("should return last element for negative index using .at() semantics", () => {
       const groups: (string | undefined)[] = ["first", "second"];
-      // Negative indices return undefined from array access, which becomes empty string
-      expect(safeGroup(groups, -1)).toBe("");
+      // .at(-1) returns the last element (counts from end of array)
+      expect(safeGroup(groups, -1)).toBe("second");
+      expect(safeGroup(groups, -2)).toBe("first");
     });
 
     it("should handle empty array", () => {
@@ -45,71 +44,67 @@ describe("safe-group-extractor", () => {
     });
   });
 
-  describe("safeGroups3", () => {
-    it("should return tuple of 3 strings", () => {
+  describe("getSafeGroups", () => {
+    it("should extract 3 groups", () => {
       const groups: (string | undefined)[] = ["a", "b", "c", "d"];
-      const result = safeGroups3(groups);
+      const result = getSafeGroups(groups, 3);
       expect(result).toEqual(["a", "b", "c"]);
+    });
+
+    it("should extract 4 groups", () => {
+      const groups: (string | undefined)[] = ["a", "b", "c", "d", "e"];
+      const result = getSafeGroups(groups, 4);
+      expect(result).toEqual(["a", "b", "c", "d"]);
+    });
+
+    it("should extract 5 groups", () => {
+      const groups: (string | undefined)[] = ["a", "b", "c", "d", "e", "f"];
+      const result = getSafeGroups(groups, 5);
+      expect(result).toEqual(["a", "b", "c", "d", "e"]);
     });
 
     it("should convert undefined to empty strings", () => {
       const groups: (string | undefined)[] = ["a", undefined, "c"];
-      const result = safeGroups3(groups);
+      const result = getSafeGroups(groups, 3);
       expect(result).toEqual(["a", "", "c"]);
     });
 
     it("should pad with empty strings when groups are missing", () => {
       const groups: (string | undefined)[] = [];
-      const result = safeGroups3(groups);
+      const result = getSafeGroups(groups, 3);
       expect(result).toEqual(["", "", ""]);
+    });
+
+    it("should pad with empty strings for 4 groups when input is short", () => {
+      const groups: (string | undefined)[] = ["a", "b"];
+      const result = getSafeGroups(groups, 4);
+      expect(result).toEqual(["a", "b", "", ""]);
+    });
+
+    it("should pad with empty strings for 5 groups when input is short", () => {
+      const groups: (string | undefined)[] = ["a"];
+      const result = getSafeGroups(groups, 5);
+      expect(result).toEqual(["a", "", "", "", ""]);
     });
 
     it("should work with destructuring assignment", () => {
       const groups: (string | undefined)[] = ["delimiter", "whitespace", "value"];
-      const [delimiter, whitespace, value] = safeGroups3(groups);
+      const [delimiter, whitespace, value] = getSafeGroups(groups, 3);
       expect(delimiter).toBe("delimiter");
       expect(whitespace).toBe("whitespace");
       expect(value).toBe("value");
     });
-  });
 
-  describe("safeGroups4", () => {
-    it("should return tuple of 4 strings", () => {
-      const groups: (string | undefined)[] = ["a", "b", "c", "d", "e"];
-      const result = safeGroups4(groups);
-      expect(result).toEqual(["a", "b", "c", "d"]);
+    it("should handle count of 1", () => {
+      const groups: (string | undefined)[] = ["only"];
+      const result = getSafeGroups(groups, 1);
+      expect(result).toEqual(["only"]);
     });
 
-    it("should convert undefined to empty strings", () => {
-      const groups: (string | undefined)[] = [undefined, "b", undefined, "d"];
-      const result = safeGroups4(groups);
-      expect(result).toEqual(["", "b", "", "d"]);
-    });
-
-    it("should pad with empty strings when groups are missing", () => {
+    it("should handle count of 0", () => {
       const groups: (string | undefined)[] = ["a", "b"];
-      const result = safeGroups4(groups);
-      expect(result).toEqual(["a", "b", "", ""]);
-    });
-  });
-
-  describe("safeGroups5", () => {
-    it("should return tuple of 5 strings", () => {
-      const groups: (string | undefined)[] = ["a", "b", "c", "d", "e", "f"];
-      const result = safeGroups5(groups);
-      expect(result).toEqual(["a", "b", "c", "d", "e"]);
-    });
-
-    it("should convert undefined to empty strings", () => {
-      const groups: (string | undefined)[] = [undefined, undefined, "c", undefined, "e"];
-      const result = safeGroups5(groups);
-      expect(result).toEqual(["", "", "c", "", "e"]);
-    });
-
-    it("should pad with empty strings when groups are missing", () => {
-      const groups: (string | undefined)[] = ["a"];
-      const result = safeGroups5(groups);
-      expect(result).toEqual(["a", "", "", "", ""]);
+      const result = getSafeGroups(groups, 0);
+      expect(result).toEqual([]);
     });
   });
 
@@ -119,15 +114,14 @@ describe("safe-group-extractor", () => {
 
       // All functions should accept readonly arrays
       expect(safeGroup(groups, 0)).toBe("a");
-      expect(safeGroups3(groups)).toEqual(["a", "b", "c"]);
-      expect(safeGroups4(groups)).toEqual(["a", "b", "c", ""]);
+      expect(getSafeGroups(groups, 3)).toEqual(["a", "b", "c"]);
+      expect(getSafeGroups(groups, 4)).toEqual(["a", "b", "c", ""]);
     });
 
-    it("should return readonly arrays from safeGroups functions", () => {
+    it("should return arrays from getSafeGroups", () => {
       const groups: (string | undefined)[] = ["a", "b", "c"];
-      const result = safeGroups3(groups);
+      const result = getSafeGroups(groups, 3);
 
-      // Result should be readonly
       expect(Array.isArray(result)).toBe(true);
     });
   });
@@ -143,7 +137,7 @@ describe("safe-group-extractor", () => {
       if (match) {
         // Groups are in match.slice(1)
         const groups = match.slice(1) as (string | undefined)[];
-        const [delimiter, whitespace, text] = safeGroups3(groups);
+        const [delimiter, whitespace, text] = getSafeGroups(groups, 3);
 
         expect(delimiter).toBe("}");
         expect(whitespace).toBe("\n  ");
@@ -152,14 +146,14 @@ describe("safe-group-extractor", () => {
     });
 
     it("should handle non-matching optional groups", () => {
-      // Regex with optional group (using 3 capture groups to match safeGroups3)
+      // Regex with optional group (using 3 capture groups to match getSafeGroups)
       const regex = /([a-z]+)?(\d+)(\s*)/g;
       const input = "123";
       const match = regex.exec(input);
 
       if (match) {
         const groups = match.slice(1) as (string | undefined)[];
-        const [letters, numbers, whitespace] = safeGroups3(groups);
+        const [letters, numbers, whitespace] = getSafeGroups(groups, 3);
 
         // First group didn't match, should be empty string
         expect(letters).toBe("");

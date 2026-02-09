@@ -117,14 +117,15 @@ export const normalizeCharacters: Sanitizer = (input: string): SanitizerResult =
     let invalidEscapesFixed = 0;
 
     // Second pass: handle control chars and escape sequences (character-by-character)
-    let processedResult = "";
+    // Uses array buffer to avoid O(n²) string concatenation
+    const processedChars: string[] = [];
     while (i < result.length) {
       const char = result[i];
-      const code = char.charCodeAt(0);
+      const code = char.codePointAt(0) ?? 0;
 
       if (escapeNext) {
         // Previous character was a backslash, this character is escaped
-        processedResult += char;
+        processedChars.push(char);
         escapeNext = false;
         i++;
         continue;
@@ -148,13 +149,13 @@ export const normalizeCharacters: Sanitizer = (input: string): SanitizerResult =
 
               if (hexDigits.length === 4) {
                 // Valid unicode escape - keep as is
-                processedResult += "\\u" + hexDigits;
+                processedChars.push("\\u", hexDigits);
                 i = j;
                 continue;
               } else {
                 // Invalid: \u without 4 hex digits - escape the backslash
                 repairs.push(`Fixed invalid unicode escape \\u${hexDigits}`);
-                processedResult += "\\\\u" + hexDigits;
+                processedChars.push("\\\\u", hexDigits);
                 i = j;
                 hasChanges = true;
                 invalidEscapesFixed++;
@@ -163,20 +164,20 @@ export const normalizeCharacters: Sanitizer = (input: string): SanitizerResult =
             } else if (nextChar === " ") {
               // Invalid: \ (backslash-space) - remove backslash, keep space
               repairs.push("Fixed invalid escape sequence \\  (backslash-space)");
-              processedResult += " ";
+              processedChars.push(" ");
               i += 2;
               hasChanges = true;
               invalidEscapesFixed++;
               continue;
             } else if (VALID_ESCAPE_SEQUENCES.has(nextChar)) {
               // Valid escape sequence - keep as is
-              processedResult += "\\" + nextChar;
+              processedChars.push("\\", nextChar);
               i += 2;
               continue;
             } else {
               // Invalid escape sequence - escape the backslash (make it literal)
               repairs.push(`Fixed invalid escape sequence \\${nextChar}`);
-              processedResult += "\\\\" + nextChar;
+              processedChars.push("\\\\", nextChar);
               i += 2;
               hasChanges = true;
               invalidEscapesFixed++;
@@ -186,19 +187,19 @@ export const normalizeCharacters: Sanitizer = (input: string): SanitizerResult =
             // Outside string: check if this is a valid escape (shouldn't happen in valid JSON, but handle gracefully)
             // Valid JSON escape sequences outside strings are not really a thing, but we'll preserve them
             if ('"\\/bfnrtu'.includes(nextChar)) {
-              processedResult += char;
+              processedChars.push(char);
               escapeNext = true;
               i++;
               continue;
             }
             // If not a valid escape, treat as literal backslash
-            processedResult += char;
+            processedChars.push(char);
             i++;
             continue;
           }
         } else {
           // Backslash at end of string - treat as literal
-          processedResult += char;
+          processedChars.push(char);
           i++;
           continue;
         }
@@ -217,7 +218,7 @@ export const normalizeCharacters: Sanitizer = (input: string): SanitizerResult =
         if (backslashCount % 2 === 0) {
           inString = !inString;
         }
-        processedResult += char;
+        processedChars.push(char);
         i++;
         continue;
       }
@@ -230,33 +231,33 @@ export const normalizeCharacters: Sanitizer = (input: string): SanitizerResult =
           // Control character - all control chars must be escaped in JSON strings
           if (code === 0x09) {
             // Tab - escape as \t
-            processedResult += "\\t";
+            processedChars.push("\\t");
             hasChanges = true;
             controlCharsEscaped++;
           } else if (code === 0x0a) {
             // Newline (LF) - escape as \n (raw newline is NOT valid in JSON strings)
-            processedResult += "\\n";
+            processedChars.push("\\n");
             hasChanges = true;
             controlCharsEscaped++;
           } else if (code === 0x0d) {
             // Carriage return - escape as \r
-            processedResult += "\\r";
+            processedChars.push("\\r");
             hasChanges = true;
             controlCharsEscaped++;
           } else {
             // Other control characters need to be escaped as unicode
             const hex = code.toString(16).padStart(4, "0");
-            processedResult += `\\u${hex}`;
+            processedChars.push(`\\u${hex}`);
             hasChanges = true;
             controlCharsEscaped++;
           }
         } else if (code === 0x7f) {
           // DEL character (0x7F) - also needs escaping in JSON strings
-          processedResult += "\\u007f";
+          processedChars.push("\\u007f");
           hasChanges = true;
           controlCharsEscaped++;
         } else {
-          processedResult += char;
+          processedChars.push(char);
         }
       } else {
         // Outside string: remove control and zero-width characters
@@ -274,14 +275,14 @@ export const normalizeCharacters: Sanitizer = (input: string): SanitizerResult =
           hasChanges = true;
           controlCharsRemoved++;
         } else {
-          processedResult += char;
+          processedChars.push(char);
         }
       }
 
       i++;
     }
 
-    result = processedResult;
+    result = processedChars.join("");
 
     // Third pass: apply over-escape fixes (this affects string content)
     const beforeOverEscape = result;
@@ -297,7 +298,7 @@ export const normalizeCharacters: Sanitizer = (input: string): SanitizerResult =
     // Uses the StringStateTracker for cleaner state management
     const finalResult = result;
     let fixedNullEscapes = 0;
-    let outputFinal = "";
+    const outputFinalChars: string[] = [];
 
     const tracker = createStringStateTracker(finalResult);
 
@@ -311,19 +312,19 @@ export const normalizeCharacters: Sanitizer = (input: string): SanitizerResult =
         if (nextChar !== undefined) {
           if (inString && nextChar === "0") {
             // Convert \0 to \u0000 (valid JSON)
-            outputFinal += "\\u0000";
+            outputFinalChars.push("\\u0000");
             tracker.advanceTo(index + 2); // Skip both \ and 0
             fixedNullEscapes++;
             hasChanges = true;
             continue;
           }
         }
-        outputFinal += char;
+        outputFinalChars.push(char);
         tracker.advance();
         continue;
       }
 
-      outputFinal += char;
+      outputFinalChars.push(char);
       tracker.advance();
     }
 
@@ -333,7 +334,7 @@ export const normalizeCharacters: Sanitizer = (input: string): SanitizerResult =
       );
     }
 
-    result = outputFinal;
+    result = outputFinalChars.join("");
 
     // Build repairs summary
     if (hasChanges) {

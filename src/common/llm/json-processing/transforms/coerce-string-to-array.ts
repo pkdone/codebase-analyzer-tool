@@ -165,7 +165,6 @@ export function coerceStringToArray(
       }
 
       // Handle arrays - return as-is (already processed by deepMap)
-      // Array.isArray() narrows to any[] in TypeScript; cast to unknown[] for strict type safety
       if (Array.isArray(val)) {
         return val as unknown[];
       }

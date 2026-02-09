@@ -6,197 +6,27 @@
  * IMPORTANT: This module should NOT contain business logic (thresholds, calculations).
  * Business logic belongs in the data providers. This module only maps domain
  * enum values to presentation-specific strings (labels and CSS classes).
- */
-
-import { CouplingLevel } from "../config/module-coupling.config";
-import { DebtLevel, uiAnalysisConfig } from "../config/ui-analysis.config";
-import { LEVEL_LABELS, BADGE_CLASSES, WARNING_CLASSES } from "../config/presentation.config";
-
-/**
- * Result type for coupling level presentation.
- */
-export interface CouplingLevelPresentation {
-  /** Human-readable coupling level label */
-  readonly level: string;
-  /** CSS class for styling the badge */
-  readonly cssClass: string;
-}
-
-/**
- * Result type for debt level presentation.
- */
-export interface DebtLevelPresentation {
-  /** Human-readable debt level label */
-  readonly level: string;
-  /** CSS class for styling the badge */
-  readonly cssClass: string;
-}
-
-/**
- * Maps a CouplingLevel enum to its presentation (label and CSS class).
- * This is purely presentational - it translates domain concepts to UI concerns.
  *
- * @param couplingLevel - The coupling level from business logic
- * @returns Object containing the level label and CSS class
+ * CSS/badge mapping functions are in css-mappers.ts.
+ * Text generation functions are in insight-text-generators.ts.
  */
-export function getCouplingLevelPresentation(
-  couplingLevel: CouplingLevel,
-): CouplingLevelPresentation {
-  switch (couplingLevel) {
-    case CouplingLevel.VERY_HIGH:
-      return { level: LEVEL_LABELS.VERY_HIGH, cssClass: BADGE_CLASSES.DANGER };
-    case CouplingLevel.HIGH:
-      return { level: LEVEL_LABELS.HIGH, cssClass: BADGE_CLASSES.HIGH };
-    case CouplingLevel.MEDIUM:
-      return { level: LEVEL_LABELS.MEDIUM, cssClass: BADGE_CLASSES.WARNING };
-    case CouplingLevel.LOW:
-      return { level: LEVEL_LABELS.LOW, cssClass: BADGE_CLASSES.SUCCESS };
-  }
-}
 
-/**
- * Maps a DebtLevel enum to its presentation (label and CSS class).
- * This is purely presentational - it translates domain concepts to UI concerns.
- *
- * @param debtLevel - The debt level from business logic
- * @returns Object containing the debt level label and CSS class
- */
-export function getDebtLevelPresentation(debtLevel: DebtLevel): DebtLevelPresentation {
-  switch (debtLevel) {
-    case DebtLevel.VERY_HIGH:
-      return { level: LEVEL_LABELS.VERY_HIGH, cssClass: BADGE_CLASSES.DANGER };
-    case DebtLevel.HIGH:
-      return { level: LEVEL_LABELS.HIGH, cssClass: BADGE_CLASSES.WARNING };
-    case DebtLevel.MODERATE:
-      return { level: LEVEL_LABELS.MODERATE, cssClass: BADGE_CLASSES.INFO };
-    case DebtLevel.LOW:
-      return { level: LEVEL_LABELS.LOW, cssClass: BADGE_CLASSES.SUCCESS };
-  }
-}
+import { uiAnalysisConfig } from "../config/ui-analysis.config";
 
-/**
- * Computes the CSS class for total scriptlets display.
- * Returns a warning class when scriptlet count exceeds threshold.
- *
- * @param totalScriptlets - Total count of scriptlets in the project
- * @returns CSS class name for styling, or empty string if no warning needed
- */
-export function getTotalScriptletsCssClass(totalScriptlets: number): string {
-  return totalScriptlets > uiAnalysisConfig.HIGH_SCRIPTLET_WARNING_THRESHOLD
-    ? WARNING_CLASSES.HIGH_SCRIPTLET
-    : "";
-}
+// Re-export CSS/badge mapping functions
+export {
+  getCouplingLevelPresentation,
+  getDebtLevelPresentation,
+  getTotalScriptletsCssClass,
+  getFilesWithHighScriptletCountCssClass,
+  shouldShowHighDebtAlert,
+  getBomConflictsCssClass,
+  type CouplingLevelPresentation,
+  type DebtLevelPresentation,
+} from "./css-mappers";
 
-/**
- * Computes the CSS class for files with high scriptlet count display.
- * Returns a warning class when there are files with high scriptlet usage.
- *
- * @param filesWithHighScriptletCount - Count of files exceeding the high scriptlet threshold
- * @returns CSS class name for styling, or empty string if no warning needed
- */
-export function getFilesWithHighScriptletCountCssClass(
-  filesWithHighScriptletCount: number,
-): string {
-  return filesWithHighScriptletCount > 0 ? WARNING_CLASSES.WARNING_TEXT : "";
-}
-
-/**
- * Determines whether to show the high technical debt alert.
- *
- * @param filesWithHighScriptletCount - Count of files exceeding the high scriptlet threshold
- * @returns true if the alert should be displayed
- */
-export function shouldShowHighDebtAlert(filesWithHighScriptletCount: number): boolean {
-  return filesWithHighScriptletCount > 0;
-}
-
-/**
- * Computes the CSS class for BOM conflicts count display.
- * Returns a warning class when there are version conflicts.
- *
- * @param conflicts - Number of dependencies with version conflicts
- * @returns CSS class name for styling
- */
-export function getBomConflictsCssClass(conflicts: number): string {
-  return conflicts > 0 ? WARNING_CLASSES.CONFLICT : WARNING_CLASSES.NO_CONFLICTS;
-}
-
-/**
- * Code smell recommendations mapping.
- * Maps smell type patterns to their recommended refactoring actions.
- */
-const CODE_SMELL_RECOMMENDATIONS: readonly {
-  readonly pattern: string;
-  readonly recommendation: string;
-}[] = [
-  { pattern: "Long Method", recommendation: "Refactor into smaller, single-purpose methods" },
-  {
-    pattern: "God Class",
-    recommendation: "Split into multiple classes following Single Responsibility Principle",
-  },
-  {
-    pattern: "Duplicate Code",
-    recommendation: "Extract common code into reusable functions or utilities",
-  },
-  { pattern: "Long Parameter List", recommendation: "Use parameter objects or builder pattern" },
-  {
-    pattern: "Complex Conditional",
-    recommendation: "Simplify conditionals or extract into guard clauses",
-  },
-] as const;
-
-/** Default recommendation when no specific pattern matches */
-const DEFAULT_CODE_SMELL_RECOMMENDATION = "Review and refactor as part of modernization effort";
-
-/**
- * Returns a recommendation for addressing a specific code smell type.
- * Maps smell type patterns to actionable refactoring suggestions.
- *
- * @param smellType - The type of code smell (e.g., "LONG METHOD", "God Class")
- * @returns Recommendation text for addressing the smell
- */
-export function getCodeSmellRecommendation(smellType: string): string {
-  const matchedRecommendation = CODE_SMELL_RECOMMENDATIONS.find((entry) =>
-    smellType.toLowerCase().includes(entry.pattern.toLowerCase()),
-  );
-
-  return matchedRecommendation?.recommendation ?? DEFAULT_CODE_SMELL_RECOMMENDATION;
-}
-
-/** Thresholds for scriptlet usage insight levels */
-const SCRIPTLET_USAGE_THRESHOLDS = {
-  LOW: 5,
-  MODERATE: 10,
-} as const;
-
-/**
- * Generates an insight message about scriptlet usage level.
- * Maps usage metrics to human-readable guidance for modernization.
- *
- * @param totalScriptlets - Total number of scriptlets in the project
- * @param averageScriptletsPerFile - Average number of scriptlets per JSP file
- * @returns Insight text describing the scriptlet usage level and recommendations
- */
-export function getScriptletUsageInsight(
-  totalScriptlets: number,
-  averageScriptletsPerFile: number,
-): string {
-  if (totalScriptlets === 0) {
-    return "No scriptlets detected - excellent! The codebase follows modern JSP best practices.";
-  }
-
-  const formattedAverage = averageScriptletsPerFile.toFixed(1);
-
-  if (averageScriptletsPerFile < SCRIPTLET_USAGE_THRESHOLDS.LOW) {
-    return `Low scriptlet usage (${formattedAverage} per file). Consider further refactoring to eliminate remaining scriptlets.`;
-  }
-
-  if (averageScriptletsPerFile < SCRIPTLET_USAGE_THRESHOLDS.MODERATE) {
-    return `Moderate scriptlet usage (${formattedAverage} per file). Refactoring to tag libraries or modern UI framework recommended.`;
-  }
-
-  return `High scriptlet usage (${formattedAverage} per file). Significant refactoring needed for modernization.`;
-}
+// Re-export text generation functions
+export { getCodeSmellRecommendation, getScriptletUsageInsight } from "./insight-text-generators";
 
 // Re-export config for tests
 export { uiAnalysisConfig };

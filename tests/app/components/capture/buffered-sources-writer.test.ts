@@ -38,15 +38,14 @@ describe("BufferedSourcesWriter", () => {
       insertSources: jest.fn().mockResolvedValue(undefined),
       deleteSourcesByProject: jest.fn().mockResolvedValue(undefined),
       getProjectFilesPaths: jest.fn().mockResolvedValue([]),
-      doesProjectSourceExist: jest.fn().mockResolvedValue(false),
     } as unknown as jest.Mocked<SourcesRepository>;
 
-    // Create writer with default batch size (50)
+    // Create writer with default batch size (200)
     writer = new BufferedSourcesWriter(mockSourcesRepository);
   });
 
   describe("constructor", () => {
-    it("should create writer with default batch size of 50", () => {
+    it("should create writer with default batch size of 200", () => {
       const customWriter = new BufferedSourcesWriter(mockSourcesRepository);
       expect(customWriter.bufferedCount).toBe(0);
     });
@@ -57,11 +56,11 @@ describe("BufferedSourcesWriter", () => {
     });
   });
 
-  describe("add", () => {
+  describe("queueRecord", () => {
     it("should buffer records without flushing when below batch size", async () => {
       const record = createMockSourceRecord("file1");
 
-      await writer.add(record);
+      await writer.queueRecord(record);
 
       expect(writer.bufferedCount).toBe(1);
       expect(mockSourcesRepository.insertSources).not.toHaveBeenCalled();
@@ -72,14 +71,14 @@ describe("BufferedSourcesWriter", () => {
       const smallBatchWriter = new BufferedSourcesWriter(mockSourcesRepository, 3);
 
       // Add records up to batch size
-      await smallBatchWriter.add(createMockSourceRecord("file1"));
-      await smallBatchWriter.add(createMockSourceRecord("file2"));
+      await smallBatchWriter.queueRecord(createMockSourceRecord("file1"));
+      await smallBatchWriter.queueRecord(createMockSourceRecord("file2"));
 
       expect(smallBatchWriter.bufferedCount).toBe(2);
       expect(mockSourcesRepository.insertSources).not.toHaveBeenCalled();
 
       // Adding third record should trigger auto-flush
-      await smallBatchWriter.add(createMockSourceRecord("file3"));
+      await smallBatchWriter.queueRecord(createMockSourceRecord("file3"));
 
       expect(smallBatchWriter.bufferedCount).toBe(0);
       expect(mockSourcesRepository.insertSources).toHaveBeenCalledTimes(1);
@@ -95,9 +94,9 @@ describe("BufferedSourcesWriter", () => {
     it("should accumulate multiple records before reaching batch size", async () => {
       const smallBatchWriter = new BufferedSourcesWriter(mockSourcesRepository, 5);
 
-      await smallBatchWriter.add(createMockSourceRecord("file1"));
-      await smallBatchWriter.add(createMockSourceRecord("file2"));
-      await smallBatchWriter.add(createMockSourceRecord("file3"));
+      await smallBatchWriter.queueRecord(createMockSourceRecord("file1"));
+      await smallBatchWriter.queueRecord(createMockSourceRecord("file2"));
+      await smallBatchWriter.queueRecord(createMockSourceRecord("file3"));
 
       expect(smallBatchWriter.bufferedCount).toBe(3);
       expect(mockSourcesRepository.insertSources).not.toHaveBeenCalled();
@@ -112,8 +111,8 @@ describe("BufferedSourcesWriter", () => {
     });
 
     it("should insert all buffered records", async () => {
-      await writer.add(createMockSourceRecord("file1"));
-      await writer.add(createMockSourceRecord("file2"));
+      await writer.queueRecord(createMockSourceRecord("file1"));
+      await writer.queueRecord(createMockSourceRecord("file2"));
 
       await writer.flush();
 
@@ -127,7 +126,7 @@ describe("BufferedSourcesWriter", () => {
     });
 
     it("should clear buffer after successful flush", async () => {
-      await writer.add(createMockSourceRecord("file1"));
+      await writer.queueRecord(createMockSourceRecord("file1"));
 
       await writer.flush();
 
@@ -137,8 +136,8 @@ describe("BufferedSourcesWriter", () => {
     it("should fall back to individual inserts when batch insert fails", async () => {
       mockSourcesRepository.insertSources.mockRejectedValueOnce(new Error("Batch insert failed"));
 
-      await writer.add(createMockSourceRecord("file1"));
-      await writer.add(createMockSourceRecord("file2"));
+      await writer.queueRecord(createMockSourceRecord("file1"));
+      await writer.queueRecord(createMockSourceRecord("file2"));
 
       await writer.flush();
 
@@ -157,9 +156,9 @@ describe("BufferedSourcesWriter", () => {
         .mockRejectedValueOnce(new Error("Individual insert failed"))
         .mockResolvedValueOnce(undefined);
 
-      await writer.add(createMockSourceRecord("file1"));
-      await writer.add(createMockSourceRecord("file2"));
-      await writer.add(createMockSourceRecord("file3"));
+      await writer.queueRecord(createMockSourceRecord("file1"));
+      await writer.queueRecord(createMockSourceRecord("file2"));
+      await writer.queueRecord(createMockSourceRecord("file3"));
 
       await writer.flush();
 
@@ -170,7 +169,7 @@ describe("BufferedSourcesWriter", () => {
     });
 
     it("should be idempotent when called multiple times", async () => {
-      await writer.add(createMockSourceRecord("file1"));
+      await writer.queueRecord(createMockSourceRecord("file1"));
 
       await writer.flush();
       await writer.flush();
@@ -183,8 +182,8 @@ describe("BufferedSourcesWriter", () => {
 
   describe("reset", () => {
     it("should clear the buffer without flushing", async () => {
-      await writer.add(createMockSourceRecord("file1"));
-      await writer.add(createMockSourceRecord("file2"));
+      await writer.queueRecord(createMockSourceRecord("file1"));
+      await writer.queueRecord(createMockSourceRecord("file2"));
 
       writer.reset();
 
@@ -193,9 +192,9 @@ describe("BufferedSourcesWriter", () => {
     });
 
     it("should allow new records to be added after reset", async () => {
-      await writer.add(createMockSourceRecord("file1"));
+      await writer.queueRecord(createMockSourceRecord("file1"));
       writer.reset();
-      await writer.add(createMockSourceRecord("file2"));
+      await writer.queueRecord(createMockSourceRecord("file2"));
 
       expect(writer.bufferedCount).toBe(1);
       await writer.flush();
@@ -212,22 +211,22 @@ describe("BufferedSourcesWriter", () => {
     });
 
     it("should return correct count after adding records", async () => {
-      await writer.add(createMockSourceRecord("file1"));
+      await writer.queueRecord(createMockSourceRecord("file1"));
       expect(writer.bufferedCount).toBe(1);
 
-      await writer.add(createMockSourceRecord("file2"));
+      await writer.queueRecord(createMockSourceRecord("file2"));
       expect(writer.bufferedCount).toBe(2);
     });
 
     it("should return 0 after flush", async () => {
-      await writer.add(createMockSourceRecord("file1"));
+      await writer.queueRecord(createMockSourceRecord("file1"));
       await writer.flush();
 
       expect(writer.bufferedCount).toBe(0);
     });
 
     it("should return 0 after reset", async () => {
-      await writer.add(createMockSourceRecord("file1"));
+      await writer.queueRecord(createMockSourceRecord("file1"));
       writer.reset();
 
       expect(writer.bufferedCount).toBe(0);
@@ -239,11 +238,11 @@ describe("BufferedSourcesWriter", () => {
       const smallBatchWriter = new BufferedSourcesWriter(mockSourcesRepository, 2);
 
       // First cycle
-      await smallBatchWriter.add(createMockSourceRecord("file1"));
-      await smallBatchWriter.add(createMockSourceRecord("file2")); // Auto-flush
+      await smallBatchWriter.queueRecord(createMockSourceRecord("file1"));
+      await smallBatchWriter.queueRecord(createMockSourceRecord("file2")); // Auto-flush
 
       // Second cycle
-      await smallBatchWriter.add(createMockSourceRecord("file3"));
+      await smallBatchWriter.queueRecord(createMockSourceRecord("file3"));
       await smallBatchWriter.flush(); // Manual flush
 
       expect(mockSourcesRepository.insertSources).toHaveBeenCalledTimes(2);
@@ -257,10 +256,10 @@ describe("BufferedSourcesWriter", () => {
     });
 
     it("should handle reset between add operations", async () => {
-      await writer.add(createMockSourceRecord("file1"));
+      await writer.queueRecord(createMockSourceRecord("file1"));
       writer.reset();
-      await writer.add(createMockSourceRecord("file2"));
-      await writer.add(createMockSourceRecord("file3"));
+      await writer.queueRecord(createMockSourceRecord("file2"));
+      await writer.queueRecord(createMockSourceRecord("file3"));
       await writer.flush();
 
       // Only the records added after reset should be inserted

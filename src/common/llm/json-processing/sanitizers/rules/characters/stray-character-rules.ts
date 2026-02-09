@@ -14,7 +14,7 @@ import {
 } from "../../../utils/parser-context-utils";
 import { isJsonKeyword, looksLikeStrayText } from "../../../utils/stray-text-detection";
 import { parsingHeuristics } from "../../../constants/json-processing.config";
-import { safeGroup, safeGroups4, safeGroups5 } from "../../../utils/safe-group-extractor";
+import { safeGroup, getSafeGroups } from "../../../utils/safe-group-extractor";
 
 /**
  * Checks if text looks like stray non-JSON content before a property.
@@ -50,7 +50,7 @@ export const STRAY_CHARACTER_RULES: readonly ReplacementRule[] = [
     name: "genericStrayTextBeforeProperty",
     pattern: /([}\],]|\n|^)(\s*)([a-z][a-z\s]{0,40}?)\s*("([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:)/g,
     replacement: (_match, groups) => {
-      const [delimiter, whitespace, strayText, propertyWithQuote] = safeGroups4(groups);
+      const [delimiter, whitespace, strayText, propertyWithQuote] = getSafeGroups(groups, 4);
       const strayTextStr = strayText.trim();
 
       // Use structural detection to determine if this is stray text
@@ -118,7 +118,7 @@ export const STRAY_CHARACTER_RULES: readonly ReplacementRule[] = [
       if (isJsonKeyword(strayPrefix)) {
         return null;
       }
-      const [delimiter, whitespace, , stringValue, terminator] = safeGroups5(groups);
+      const [delimiter, whitespace, , stringValue, terminator] = getSafeGroups(groups, 5);
       return `${delimiter}${whitespace}"${stringValue}"${terminator}`;
     },
     diagnosticMessage: (_match, groups) => {
@@ -223,7 +223,7 @@ export const STRAY_CHARACTER_RULES: readonly ReplacementRule[] = [
     name: "removePlaceholderText",
     pattern: /([}\],]|\n|^)(\s*)_[A-Z_]+_(\s*)([}\],]|\n|$)/g,
     replacement: (_match, groups) => {
-      const [before, , , after] = safeGroups4(groups);
+      const [before, , , after] = getSafeGroups(groups, 4);
       if (before.includes(",")) {
         return `${before}\n${after}`;
       }
