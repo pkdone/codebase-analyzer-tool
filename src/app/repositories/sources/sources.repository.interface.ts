@@ -33,11 +33,6 @@ export interface SourcesRepository {
   deleteSourcesByProject(projectName: string): Promise<void>;
 
   /**
-   * Check if a source file already exists for a project
-   */
-  doesProjectSourceExist(projectName: string, filepath: string): Promise<boolean>;
-
-  /**
    * Get source file summaries for a project filtered by file extension
    */
   getProjectSourcesSummariesByFileExtension(

@@ -32,10 +32,21 @@ export class FlowchartDiagramGenerator extends BaseDiagramGenerator<FlowchartDia
   };
 
   /**
+   * Generate flowcharts for multiple business processes.
+   * Returns array of HTML strings with embedded Mermaid definitions.
+   */
+  generateMultipleFlowchartDiagrams(
+    processes: BusinessProcess[],
+    options: FlowchartDiagramOptions = {},
+  ): string[] {
+    return processes.map((process) => this.generateFlowchartDiagram(process, options));
+  }
+
+  /**
    * Generate flowchart for a single business process.
    * Returns HTML with embedded Mermaid definition for client-side rendering.
    */
-  generateFlowchartDiagram(
+  private generateFlowchartDiagram(
     process: BusinessProcess,
     options: FlowchartDiagramOptions = {},
   ): string {
@@ -46,17 +57,6 @@ export class FlowchartDiagramGenerator extends BaseDiagramGenerator<FlowchartDia
       "No business activities defined",
       (data) => this.buildFlowchartDefinition(data.keyBusinessActivities),
     );
-  }
-
-  /**
-   * Generate flowcharts for multiple business processes.
-   * Returns array of HTML strings with embedded Mermaid definitions.
-   */
-  generateMultipleFlowchartDiagrams(
-    processes: BusinessProcess[],
-    options: FlowchartDiagramOptions = {},
-  ): string[] {
-    return processes.map((process) => this.generateFlowchartDiagram(process, options));
   }
 
   /**

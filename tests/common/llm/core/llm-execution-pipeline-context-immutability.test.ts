@@ -92,7 +92,7 @@ describe("LLMExecutionPipeline - Context Immutability", () => {
       // Deep copy to verify original is not mutated
       const originalContextCopy = { ...originalContext };
 
-      await pipeline.execute({
+      await pipeline.executeCompletion({
         resourceName: "test-resource",
         content: "test prompt",
         context: originalContext,
@@ -150,7 +150,7 @@ describe("LLMExecutionPipeline - Context Immutability", () => {
 
       const originalContextCopy = { ...originalContext };
 
-      await pipeline.execute({
+      await pipeline.executeCompletion({
         resourceName: "test-resource",
         content: "test prompt",
         context: originalContext,
@@ -206,7 +206,7 @@ describe("LLMExecutionPipeline - Context Immutability", () => {
         modelKey: "initial-model",
       };
 
-      await pipeline.execute({
+      await pipeline.executeCompletion({
         resourceName: "special-resource",
         content: "test prompt",
         context: originalContext,
@@ -247,7 +247,7 @@ describe("LLMExecutionPipeline - Context Immutability", () => {
         modelKey: "test-model",
       };
 
-      await pipeline.execute({
+      await pipeline.executeCompletion({
         resourceName: "test-resource",
         content: "test prompt",
         context: originalContext,
@@ -311,7 +311,7 @@ describe("LLMExecutionPipeline - Context Immutability", () => {
         modelKey: "original-key",
       };
 
-      await pipeline.execute({
+      await pipeline.executeCompletion({
         resourceName: "test-resource",
         content: "test prompt",
         context: originalContext,
@@ -371,7 +371,7 @@ describe("LLMExecutionPipeline - Context Immutability", () => {
         modelKey: "should-be-overwritten",
       };
 
-      await pipelineWithRetry.execute({
+      await pipelineWithRetry.executeCompletion({
         resourceName: "test-resource",
         content: "test prompt",
         context: originalContext,

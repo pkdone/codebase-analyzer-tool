@@ -1,6 +1,5 @@
 /**
  * Pie chart data building utilities for file type visualizations.
- * Separates geometry and rendering logic from the EJS template.
  */
 
 import { pieChartConfig } from "./pie-chart.config";
@@ -65,7 +64,6 @@ function describeArc(
 
 /**
  * Build pie chart data from file type statistics.
- * This function performs all geometry calculations that were previously in the EJS template.
  *
  * @param fileTypesData - Array of file type statistics
  * @returns Complete pie chart data ready for template rendering

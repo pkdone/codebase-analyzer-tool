@@ -7,7 +7,6 @@ import {
   looksLikePropertyName,
   looksLikeDotSeparatedIdentifier,
   inferFromShortFragment,
-  DEFAULT_MATCHER_CONFIG,
 } from "../../../../../src/common/llm/json-processing/utils/property-name-matcher";
 
 describe("property-name-matcher", () => {
@@ -202,13 +201,11 @@ describe("property-name-matcher", () => {
         expect(result.matchType).toBe("none");
       });
 
-      it("should use default config values", () => {
-        expect(DEFAULT_MATCHER_CONFIG.minPrefixLength).toBe(2);
-        expect(DEFAULT_MATCHER_CONFIG.maxLevenshteinDistance).toBe(2);
-        expect(DEFAULT_MATCHER_CONFIG.caseInsensitive).toBe(true);
-        expect(DEFAULT_MATCHER_CONFIG.normalizeIdentifiers).toBe(true);
-        expect(DEFAULT_MATCHER_CONFIG.minContainsLength).toBe(4);
-        expect(DEFAULT_MATCHER_CONFIG.useDynamicLevenshteinThreshold).toBe(true);
+      it("should apply default config behavior (case-insensitive, normalized identifiers)", () => {
+        // Default config: case-insensitive matching enabled
+        const result = matchPropertyName("NAME", knownProperties);
+        expect(result.matchType).toBe("exact");
+        expect(result.matched).toBe("name");
       });
 
       it("should allow disabling dynamic Levenshtein threshold", () => {

@@ -94,7 +94,6 @@ describe("CodebaseCaptureOrchestrator", () => {
       getProjectFilesPaths: jest.fn().mockResolvedValue([]),
       getProjectFileAndLineStats: jest.fn().mockResolvedValue({ fileCount: 0, linesOfCode: 0 }),
       deleteSourcesByProject: jest.fn().mockResolvedValue(undefined),
-      doesProjectSourceExist: jest.fn().mockResolvedValue(false),
       insertSource: jest.fn().mockResolvedValue(undefined),
       insertSources: jest.fn().mockResolvedValue(undefined),
     } as unknown as jest.Mocked<SourcesRepository>;
@@ -138,7 +137,7 @@ describe("CodebaseCaptureOrchestrator", () => {
 
     // Mock BufferedSourcesWriter
     mockBufferedWriter = {
-      add: jest.fn().mockResolvedValue(undefined),
+      queueRecord: jest.fn().mockResolvedValue(undefined),
       flush: jest.fn().mockResolvedValue(undefined),
       reset: jest.fn(),
       bufferedCount: 0,
@@ -172,7 +171,7 @@ describe("CodebaseCaptureOrchestrator", () => {
         { filepath: "/src/file2.ts", size: 50 },
       ];
 
-      mockDirectoryOperations.findFilesWithSize.mockResolvedValue(mockFilesWithSize);
+      mockDirectoryOperations.findFilesSortedBySize.mockResolvedValue(mockFilesWithSize);
       mockPathUtils.getFileExtension.mockReturnValue("ts");
       mockPath.relative.mockReturnValueOnce("file1.ts").mockReturnValueOnce("file2.ts");
       mockPath.basename.mockReturnValueOnce("file1.ts").mockReturnValueOnce("file2.ts");
@@ -182,13 +181,13 @@ describe("CodebaseCaptureOrchestrator", () => {
 
       await service.captureCodebase("test-project", "/src", false);
 
-      expect(mockDirectoryOperations.findFilesWithSize).toHaveBeenCalledWith("/src", {
+      expect(mockDirectoryOperations.findFilesSortedBySize).toHaveBeenCalledWith("/src", {
         folderIgnoreList: [".git", "node_modules"],
         filenameIgnorePrefix: "test-",
         filenameIgnoreList: ["package-lock.json"],
       });
       // Files are added to the buffered writer
-      expect(mockBufferedWriter.add).toHaveBeenCalledTimes(2);
+      expect(mockBufferedWriter.queueRecord).toHaveBeenCalledTimes(2);
       // Buffer is flushed at the end
       expect(mockBufferedWriter.flush).toHaveBeenCalled();
       // Verify summarize is called with canonicalFileType (not raw file extension)
@@ -206,7 +205,7 @@ describe("CodebaseCaptureOrchestrator", () => {
       ];
       const existingFiles = ["file1.ts"];
 
-      mockDirectoryOperations.findFilesWithSize.mockResolvedValue(mockFilesWithSize);
+      mockDirectoryOperations.findFilesSortedBySize.mockResolvedValue(mockFilesWithSize);
       mockSourcesRepository.getProjectFilesPaths.mockResolvedValue(existingFiles);
       mockPathUtils.getFileExtension.mockReturnValue("ts");
       mockPath.relative.mockReturnValueOnce("file1.ts").mockReturnValueOnce("file2.ts");
@@ -217,12 +216,12 @@ describe("CodebaseCaptureOrchestrator", () => {
       await service.captureCodebase("test-project", "/src", true);
 
       // Only one file should be added (the other was already ingested)
-      expect(mockBufferedWriter.add).toHaveBeenCalledTimes(1);
+      expect(mockBufferedWriter.queueRecord).toHaveBeenCalledTimes(1);
       expect(mockBufferedWriter.flush).toHaveBeenCalled();
     });
 
     it("should delete existing sources when skipIfAlreadyIngested is false", async () => {
-      mockDirectoryOperations.findFilesWithSize.mockResolvedValue([]);
+      mockDirectoryOperations.findFilesSortedBySize.mockResolvedValue([]);
 
       await service.captureCodebase("test-project", "/src", false);
 
@@ -230,7 +229,7 @@ describe("CodebaseCaptureOrchestrator", () => {
     });
 
     it("should not delete existing sources when skipIfAlreadyIngested is true", async () => {
-      mockDirectoryOperations.findFilesWithSize.mockResolvedValue([]);
+      mockDirectoryOperations.findFilesSortedBySize.mockResolvedValue([]);
       mockSourcesRepository.getProjectFilesPaths.mockResolvedValue([]);
 
       await service.captureCodebase("test-project", "/src", true);
@@ -244,7 +243,7 @@ describe("CodebaseCaptureOrchestrator", () => {
         { filepath: "/src/file.ts", size: 100 },
       ];
 
-      mockDirectoryOperations.findFilesWithSize.mockResolvedValue(mockFilesWithSize);
+      mockDirectoryOperations.findFilesSortedBySize.mockResolvedValue(mockFilesWithSize);
       mockPathUtils.getFileExtension.mockReturnValueOnce("jpg").mockReturnValueOnce("ts");
       mockPath.relative.mockReturnValue("file.ts");
       mockPath.basename.mockReturnValue("file.ts");
@@ -254,7 +253,7 @@ describe("CodebaseCaptureOrchestrator", () => {
       await service.captureCodebase("test-project", "/src", false);
 
       // Binary files are skipped, only one file added
-      expect(mockBufferedWriter.add).toHaveBeenCalledTimes(1);
+      expect(mockBufferedWriter.queueRecord).toHaveBeenCalledTimes(1);
       expect(mockBufferedWriter.flush).toHaveBeenCalled();
     });
 
@@ -264,7 +263,7 @@ describe("CodebaseCaptureOrchestrator", () => {
         { filepath: "/src/file.ts", size: 100 },
       ];
 
-      mockDirectoryOperations.findFilesWithSize.mockResolvedValue(mockFilesWithSize);
+      mockDirectoryOperations.findFilesSortedBySize.mockResolvedValue(mockFilesWithSize);
       mockPathUtils.getFileExtension.mockReturnValue("ts");
       mockPath.relative.mockReturnValue("file.ts");
       mockPath.basename.mockReturnValue("file.ts");
@@ -276,14 +275,14 @@ describe("CodebaseCaptureOrchestrator", () => {
       await service.captureCodebase("test-project", "/src", false);
 
       // Empty files are skipped, only one file added
-      expect(mockBufferedWriter.add).toHaveBeenCalledTimes(1);
+      expect(mockBufferedWriter.queueRecord).toHaveBeenCalledTimes(1);
       expect(mockBufferedWriter.flush).toHaveBeenCalled();
     });
 
     it("should handle summarization errors gracefully", async () => {
       const mockFilesWithSize = [{ filepath: "/src/file1.ts", size: 100 }];
 
-      mockDirectoryOperations.findFilesWithSize.mockResolvedValue(mockFilesWithSize);
+      mockDirectoryOperations.findFilesSortedBySize.mockResolvedValue(mockFilesWithSize);
       mockPathUtils.getFileExtension.mockReturnValue("ts");
       mockPath.relative.mockReturnValue("file1.ts");
       mockPath.basename.mockReturnValue("file1.ts");
@@ -298,14 +297,14 @@ describe("CodebaseCaptureOrchestrator", () => {
       await service.captureCodebase("test-project", "/src", false);
 
       // File should still be added with summaryError
-      expect(mockBufferedWriter.add).toHaveBeenCalled();
+      expect(mockBufferedWriter.queueRecord).toHaveBeenCalled();
       expect(mockBufferedWriter.flush).toHaveBeenCalled();
     });
 
     it("should log warnings when there are failures", async () => {
       const mockFilesWithSize = [{ filepath: "/src/file1.ts", size: 100 }];
 
-      mockDirectoryOperations.findFilesWithSize.mockResolvedValue(mockFilesWithSize);
+      mockDirectoryOperations.findFilesSortedBySize.mockResolvedValue(mockFilesWithSize);
       mockPathUtils.getFileExtension.mockReturnValue("ts");
       mockPath.relative.mockReturnValue("file1.ts");
       mockFileOperations.readFile.mockRejectedValue(new Error("Read failed"));
@@ -319,7 +318,7 @@ describe("CodebaseCaptureOrchestrator", () => {
       const mockFilesWithSize = [{ filepath: "/src/file1.ts", size: 100 }];
       const mockEmbeddings = [0.1, 0.2, 0.3];
 
-      mockDirectoryOperations.findFilesWithSize.mockResolvedValue(mockFilesWithSize);
+      mockDirectoryOperations.findFilesSortedBySize.mockResolvedValue(mockFilesWithSize);
       mockPathUtils.getFileExtension.mockReturnValue("ts");
       mockPath.relative.mockReturnValue("file1.ts");
       mockPath.basename.mockReturnValue("file1.ts");
@@ -337,7 +336,7 @@ describe("CodebaseCaptureOrchestrator", () => {
       await service.captureCodebase("test-project", "/src", false);
 
       // Records are added to buffer with embeddings
-      expect(mockBufferedWriter.add).toHaveBeenCalledWith(
+      expect(mockBufferedWriter.queueRecord).toHaveBeenCalledWith(
         expect.objectContaining({
           contentVector: mockEmbeddings,
         }),
@@ -346,7 +345,7 @@ describe("CodebaseCaptureOrchestrator", () => {
     });
 
     it("should reset buffered writer before processing", async () => {
-      mockDirectoryOperations.findFilesWithSize.mockResolvedValue([]);
+      mockDirectoryOperations.findFilesSortedBySize.mockResolvedValue([]);
 
       await service.captureCodebase("test-project", "/src", false);
 

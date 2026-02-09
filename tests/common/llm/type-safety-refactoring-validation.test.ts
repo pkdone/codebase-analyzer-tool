@@ -373,7 +373,7 @@ describe("Type Safety Refactoring Validation", () => {
         },
       };
 
-      const result = await executionPipeline.execute({
+      const result = await executionPipeline.executeCompletion({
         resourceName: "test-resource",
         content: "Analyze this",
         context: mockContext,
@@ -413,7 +413,7 @@ describe("Type Safety Refactoring Validation", () => {
         timestamp: "2024-01-01T12:00:00Z",
       };
 
-      const result = await executionPipeline.execute({
+      const result = await executionPipeline.executeCompletion({
         resourceName: "test-resource",
         content: "Execute operation",
         context: mockContext,
@@ -447,7 +447,7 @@ describe("Type Safety Refactoring Validation", () => {
         description: "TestProvider/test-model",
       };
 
-      const result = await executionPipeline.execute({
+      const result = await executionPipeline.executeCompletion({
         resourceName: "test-resource",
         content: "test",
         context: mockContext,
@@ -517,7 +517,7 @@ describe("Type Safety Refactoring Validation", () => {
         recommendations: ["Use parameterized queries", "Validate input"],
       };
 
-      const result = await executionPipeline.execute({
+      const result = await executionPipeline.executeCompletion({
         resourceName: "security-analysis",
         content: "Analyze security",
         context: mockContext,
@@ -552,7 +552,7 @@ describe("Type Safety Refactoring Validation", () => {
         nullable: null,
       };
 
-      const result = await executionPipeline.execute({
+      const result = await executionPipeline.executeCompletion({
         resourceName: "test",
         content: "test",
         context: mockContext,
@@ -571,7 +571,7 @@ describe("Type Safety Refactoring Validation", () => {
     });
 
     test("should handle TEXT format through pipeline", async () => {
-      const result = await executionPipeline.execute({
+      const result = await executionPipeline.executeCompletion({
         resourceName: "text-generation",
         content: "Generate some text",
         context: { ...mockContext, outputFormat: LLMOutputFormat.TEXT },

@@ -32,7 +32,7 @@ import { LLMResponseProcessor } from "./llm-response-processor";
  * Base class for LLM provider implementations - provides shared functionality and
  * abstract methods to be implemented by concrete provider classes.
  */
-export default abstract class BaseLLMProvider implements LLMProvider {
+export default abstract class BaseLLMProvider implements LLMProvider, AsyncDisposable {
   // Fields
   protected readonly llmModelsMetadata: Record<string, ResolvedLLMModelMetadata>;
   protected readonly providerSpecificConfig: LLMProviderSpecificConfig;
@@ -69,7 +69,6 @@ export default abstract class BaseLLMProvider implements LLMProvider {
     // Initialize response processor with required dependencies
     this.responseProcessor = new LLMResponseProcessor({
       errorLogger: new LLMErrorLogger(errorLogging),
-      llmModelsMetadata: this.llmModelsMetadata,
     });
   }
 
@@ -177,6 +176,21 @@ export default abstract class BaseLLMProvider implements LLMProvider {
   }
 
   /**
+   * Implements AsyncDisposable for use with `await using` declarations.
+   * Automatically closes the client when the provider goes out of scope.
+   *
+   * @example
+   * ```typescript
+   * await using provider = createProvider(init);
+   * // ... use the provider
+   * // Automatically closes when scope exits
+   * ```
+   */
+  async [Symbol.asyncDispose](): Promise<void> {
+    await this.close();
+  }
+
+  /**
    * Get the shutdown behavior for this provider.
    * Default behavior is graceful shutdown - subclasses can override for providers
    * that require special shutdown handling (e.g., Vertex AI with gRPC).
@@ -265,11 +279,20 @@ export default abstract class BaseLLMProvider implements LLMProvider {
           ),
         };
       } else {
-        if (doDebugErrorLogging) this.responseProcessor.debugUnhandledError(error, modelKey);
+        const errorDetails = doDebugErrorLogging
+          ? {
+              error,
+              debugInfo: {
+                urn: this.llmModelsMetadata[modelKey].urn,
+                errorType: error instanceof Error ? error.name : typeof error,
+                details: formatError(error),
+              },
+            }
+          : error;
         return {
           ...responseBase,
           status: LLMResponseStatus.ERRORED,
-          error,
+          error: errorDetails,
         };
       }
     }

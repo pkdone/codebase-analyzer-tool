@@ -40,7 +40,7 @@ export default class BedrockClaudeLLM extends BaseBedrockLLM {
     }
 
     const config: BedrockClaudeProviderConfig = this.providerSpecificConfig;
-    const maxCompletionTokens = this.getRequiredMaxCompletionTokens(modelKey);
+    const maxCompletionTokens = this.ensureMaxCompletionTokens(modelKey);
 
     const baseParams = {
       anthropic_version: config.apiVersion,

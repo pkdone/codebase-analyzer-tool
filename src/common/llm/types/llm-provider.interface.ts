@@ -14,9 +14,6 @@ import type { ShutdownBehavior } from "./llm-shutdown.types";
  * flexible fallback chains across multiple providers.
  */
 export interface LLMProvider {
-  /** Optional feature flags indicating model-specific capabilities or constraints */
-  readonly llmFeatures?: readonly string[];
-
   /**
    * Generate embeddings for content using the specified model.
    * Returns a fixed number[] type.
