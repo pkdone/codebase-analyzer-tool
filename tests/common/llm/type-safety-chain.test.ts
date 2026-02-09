@@ -371,7 +371,7 @@ describe("Type Safety Chain - End to End", () => {
         description: `TestProvider/${TEST_COMPLETIONS_MODEL}`,
       };
 
-      const result = await executionPipeline.execute({
+      const result = await executionPipeline.executeCompletion({
         resourceName: "test-resource",
         content: "test prompt",
         context: testContext,
@@ -408,7 +408,7 @@ describe("Type Safety Chain - End to End", () => {
         description: `TestProvider/${TEST_COMPLETIONS_MODEL}`,
       };
 
-      const result = await executionPipeline.execute({
+      const result = await executionPipeline.executeCompletion({
         resourceName: "test-resource",
         content: "test prompt",
         context: testContext,
@@ -644,7 +644,7 @@ describe("Type Safety Chain - End to End", () => {
         description: `TestProvider/${TEST_COMPLETIONS_MODEL}`,
       };
 
-      const result = await executionPipeline.execute({
+      const result = await executionPipeline.executeCompletion({
         resourceName: "test",
         content: "test",
         context: testContext,

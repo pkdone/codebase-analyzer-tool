@@ -42,26 +42,30 @@ export class ProviderManager {
     this.config = config;
 
     // Pre-load manifests for all provider families in the chain
+    // Keys are normalized to lowercase for case-insensitive lookups
     const families = this.getRequiredProviderFamilies();
     for (const family of families) {
       const manifest = loadManifestForProviderFamily(family, config.providerRegistry);
-      this.manifests.set(family, manifest);
+      this.manifests.set(family.toLowerCase(), manifest);
     }
   }
 
   /**
    * Get or create a provider instance for the specified family.
    * Uses lazy instantiation - providers are created on first access.
+   * Provider family names are normalized to lowercase for case-insensitive caching.
    */
   getProvider(providerFamily: string): LLMProvider {
+    const normalizedFamily = providerFamily.toLowerCase();
+
     // Return cached provider if available
-    const existing = this.providers.get(providerFamily);
+    const existing = this.providers.get(normalizedFamily);
     if (existing) {
       return existing;
     }
 
     // Get manifest for this provider family
-    const manifest = this.manifests.get(providerFamily);
+    const manifest = this.manifests.get(normalizedFamily);
     if (!manifest) {
       throw new LLMError(
         LLMErrorCode.BAD_CONFIGURATION,
@@ -84,7 +88,7 @@ export class ProviderManager {
     };
 
     const provider = new manifest.implementation(init);
-    this.providers.set(providerFamily, provider);
+    this.providers.set(normalizedFamily, provider);
 
     console.log(`ProviderManager: Instantiated provider for '${providerFamily}'`);
     return provider;
@@ -118,9 +122,10 @@ export class ProviderManager {
 
   /**
    * Get a specific manifest by provider family.
+   * Provider family names are normalized to lowercase for case-insensitive lookup.
    */
   getManifest(providerFamily: string): LLMProviderManifest | undefined {
-    return this.manifests.get(providerFamily);
+    return this.manifests.get(providerFamily.toLowerCase());
   }
 
   /**

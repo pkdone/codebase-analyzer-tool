@@ -11,12 +11,9 @@
  * )
  * ```
  */
-import {
-  CODE_QUALITY_FRAGMENTS,
-  DB_INTEGRATION_FRAGMENTS,
-  INTEGRATION_POINTS_FRAGMENTS,
-  SCHEDULED_JOBS_FRAGMENTS,
-} from "./common.fragments";
+import { INTEGRATION_POINTS_FRAGMENTS, SCHEDULED_JOBS_FRAGMENTS } from "./common.fragments";
+import { CODE_QUALITY_FRAGMENTS } from "./code-quality.fragments";
+import { DB_INTEGRATION_FRAGMENTS } from "./database.fragments";
 
 /**
  * Composable instruction sets for common patterns across file types.

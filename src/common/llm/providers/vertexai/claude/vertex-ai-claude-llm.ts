@@ -85,7 +85,7 @@ export default class VertexAIClaudeLLM extends BaseLLMProvider {
     prompt: string,
     _options?: LLMCompletionOptions,
   ): Promise<LLMImplSpecificResponseSummary> {
-    const maxCompletionTokens = this.getRequiredMaxCompletionTokens(modelKey);
+    const maxCompletionTokens = this.ensureMaxCompletionTokens(modelKey);
     const temperature = this.providerSpecificConfig.temperature ?? llmConfig.DEFAULT_ZERO_TEMP;
     const betaFlags = this.typedProviderConfig.anthropicBetaFlags;
 
@@ -144,20 +144,6 @@ export default class VertexAIClaudeLLM extends BaseLLMProvider {
   }
 
   /**
-   * Get the required max completion tokens for the specified model.
-   */
-  protected getRequiredMaxCompletionTokens(modelKey: string): number {
-    const modelMetadata = this.llmModelsMetadata[modelKey];
-    if (!modelMetadata.maxCompletionTokens) {
-      throw new LLMError(
-        LLMErrorCode.BAD_CONFIGURATION,
-        `Model ${modelKey} does not have maxCompletionTokens configured`,
-      );
-    }
-    return modelMetadata.maxCompletionTokens;
-  }
-
-  /**
    * Check if the LLM is overloaded based on the error.
    * Detects rate limit (429) and server errors (5xx).
    */
@@ -205,5 +191,19 @@ export default class VertexAIClaudeLLM extends BaseLLMProvider {
       errorLower.includes("context length exceeded") ||
       errorLower.includes("request too large")
     );
+  }
+
+  /**
+   * Ensure maxCompletionTokens is configured for the specified model.
+   */
+  private ensureMaxCompletionTokens(modelKey: string): number {
+    const modelMetadata = this.llmModelsMetadata[modelKey];
+    if (!modelMetadata.maxCompletionTokens) {
+      throw new LLMError(
+        LLMErrorCode.BAD_CONFIGURATION,
+        `Model ${modelKey} does not have maxCompletionTokens configured`,
+      );
+    }
+    return modelMetadata.maxCompletionTokens;
   }
 }

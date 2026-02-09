@@ -129,7 +129,7 @@ export interface FileWithSize {
  * @param config - Configuration for file discovery filtering
  * @returns Promise resolving to array of file paths with sizes, sorted by size descending
  */
-export async function findFilesWithSize(
+export async function findFilesSortedBySize(
   srcDirPath: string,
   config: FileDiscoveryConfig,
 ): Promise<FileWithSize[]> {

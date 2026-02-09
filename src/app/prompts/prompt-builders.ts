@@ -7,10 +7,10 @@
  * for its specific domain (source files vs app summaries).
  */
 
-import { fillPrompt } from "type-safe-prompt";
 import type { z } from "zod";
 import {
   JSONSchemaPrompt,
+  fillTemplate,
   type GeneratedPrompt,
   type TextGeneratedPrompt,
 } from "../../common/prompts";
@@ -118,7 +118,7 @@ function createPromptGenerator(
  */
 function buildPartialAnalysisNote(dataBlockHeader: string): string {
   const formattedHeader = dataBlockHeader.toLowerCase().replace(/_/g, " ");
-  return fillPrompt(PARTIAL_ANALYSIS_NOTE_TEMPLATE, { header: formattedHeader });
+  return fillTemplate(PARTIAL_ANALYSIS_NOTE_TEMPLATE, { header: formattedHeader });
 }
 
 /**
@@ -271,7 +271,7 @@ export function buildReducePrompt<S extends z.ZodType<unknown>>(
  * ```
  */
 export function buildQueryPrompt(question: string, codeContent: string): TextGeneratedPrompt {
-  const prompt = fillPrompt(CODEBASE_QUERY_TEMPLATE, {
+  const prompt = fillTemplate(CODEBASE_QUERY_TEMPLATE, {
     personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
     question,
     content: codeContent,

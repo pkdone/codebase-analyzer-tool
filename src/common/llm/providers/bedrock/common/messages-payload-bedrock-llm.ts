@@ -19,7 +19,7 @@ export default abstract class MessagesPayloadBedrockLLM extends BaseBedrockLLM {
    * This is shared by providers that use the OpenAI-style messages array.
    */
   protected override buildCompletionRequestBody(modelKey: string, prompt: string) {
-    const maxCompletionTokens = this.getRequiredMaxCompletionTokens(modelKey);
+    const maxCompletionTokens = this.ensureMaxCompletionTokens(modelKey);
     return buildStandardMessagesArray(prompt, maxCompletionTokens);
   }
 }

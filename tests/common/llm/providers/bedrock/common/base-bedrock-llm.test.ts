@@ -311,7 +311,7 @@ describe("BaseBedrockLLM - JSON stringification centralization", () => {
   });
 });
 
-describe("BaseBedrockLLM - getRequiredMaxCompletionTokens", () => {
+describe("BaseBedrockLLM - ensureMaxCompletionTokens", () => {
   const mockModelsMetadata: Record<string, ResolvedLLMModelMetadata> = {
     EMBEDDINGS: {
       modelKey: "EMBEDDINGS",
@@ -413,7 +413,7 @@ describe("BaseBedrockLLM - getRequiredMaxCompletionTokens", () => {
     const llm = new TestBedrockLLM(createTestProviderInitForMaxTokens());
 
     // eslint-disable-next-line @typescript-eslint/dot-notation
-    const result = llm["getRequiredMaxCompletionTokens"]("COMPLETION");
+    const result = llm["ensureMaxCompletionTokens"]("COMPLETION");
 
     expect(result).toBe(4096);
   });
@@ -428,12 +428,12 @@ describe("BaseBedrockLLM - getRequiredMaxCompletionTokens", () => {
 
     expect(() => {
       // eslint-disable-next-line @typescript-eslint/dot-notation
-      llm["getRequiredMaxCompletionTokens"]("COMPLETION_NO_MAX_TOKENS");
+      llm["ensureMaxCompletionTokens"]("COMPLETION_NO_MAX_TOKENS");
     }).toThrow(LLMError);
 
     try {
       // eslint-disable-next-line @typescript-eslint/dot-notation
-      llm["getRequiredMaxCompletionTokens"]("COMPLETION_NO_MAX_TOKENS");
+      llm["ensureMaxCompletionTokens"]("COMPLETION_NO_MAX_TOKENS");
     } catch (error) {
       expect(error).toBeInstanceOf(LLMError);
       expect((error as LLMError).code).toBe(LLMErrorCode.BAD_CONFIGURATION);
@@ -452,7 +452,7 @@ describe("BaseBedrockLLM - getRequiredMaxCompletionTokens", () => {
 
     try {
       // eslint-disable-next-line @typescript-eslint/dot-notation
-      llm["getRequiredMaxCompletionTokens"]("COMPLETION_NO_MAX_TOKENS");
+      llm["ensureMaxCompletionTokens"]("COMPLETION_NO_MAX_TOKENS");
       fail("Expected error to be thrown");
     } catch (error) {
       expect((error as LLMError).message).toContain("COMPLETION_NO_MAX_TOKENS");

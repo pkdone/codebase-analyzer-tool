@@ -150,7 +150,7 @@ export class LLMExecutionPipeline {
    * Generic over the response data type T for type-safe results.
    * Returns LLMResult with execution metadata identifying which model actually succeeded.
    */
-  async execute<T extends LLMResponsePayload>(
+  private async execute<T extends LLMResponsePayload>(
     params: LLMExecutionParams<T>,
   ): Promise<LLMResult<T>> {
     const {

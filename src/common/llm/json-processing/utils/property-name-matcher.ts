@@ -27,7 +27,7 @@ export interface PropertyMatcherConfig {
 /**
  * Default configuration for property name matching.
  */
-export const DEFAULT_MATCHER_CONFIG: PropertyMatcherConfig = {
+const DEFAULT_MATCHER_CONFIG: PropertyMatcherConfig = {
   minPrefixLength: 2,
   maxLevenshteinDistance: 2,
   minFuzzyLength: 4,
@@ -365,7 +365,7 @@ export function looksLikeDotSeparatedIdentifier(str: string): boolean {
  * Common short property name fragments that are frequently truncated.
  * These are generic patterns that don't depend on a specific schema.
  */
-export const COMMON_SHORT_FRAGMENTS: Readonly<Record<string, readonly string[]>> = {
+const COMMON_SHORT_FRAGMENTS: Readonly<Record<string, readonly string[]>> = {
   // Single/double letter fragments often map to common property names
   n: ["name"],
   na: ["name"],

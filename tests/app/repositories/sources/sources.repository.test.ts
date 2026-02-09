@@ -192,32 +192,6 @@ describe("SourcesRepositoryImpl", () => {
     });
   });
 
-  describe("doesProjectSourceExist", () => {
-    it("should return true when source exists", async () => {
-      const projectName = "test-project";
-      const filepath = "src/test.ts";
-      mockCollection.findOne.mockResolvedValue({ _id: "some-id" });
-
-      const result = await repository.doesProjectSourceExist(projectName, filepath);
-
-      expect(result).toBe(true);
-      expect(mockCollection.findOne).toHaveBeenCalledWith(
-        { projectName, filepath },
-        { projection: { _id: 1 } },
-      );
-    });
-
-    it("should return false when source does not exist", async () => {
-      const projectName = "test-project";
-      const filepath = "src/test.ts";
-      mockCollection.findOne.mockResolvedValue(null);
-
-      const result = await repository.doesProjectSourceExist(projectName, filepath);
-
-      expect(result).toBe(false);
-    });
-  });
-
   describe("vectorSearchProjectSources", () => {
     it("should construct correct aggregation pipeline", async () => {
       const projectName = "test-project";

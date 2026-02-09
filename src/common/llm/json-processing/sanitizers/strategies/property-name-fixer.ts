@@ -437,18 +437,16 @@ export const propertyNameFixer: SanitizerStrategy = {
     const quotedPropertyPattern = /"([^"]+)"\s*:/g;
     sanitized = sanitized.replace(
       quotedPropertyPattern,
-      (match, propertyName: unknown, offset: number) => {
-        const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
-
-        if (isInStringAt(offset, sanitized)) {
+      (match, propertyName: string, _offset: number) => {
+        if (isInStringAt(_offset, sanitized)) {
           return match;
         }
 
         // Check explicit typo corrections first
-        if (PROPERTY_TYPO_CORRECTIONS[propertyNameStr]) {
-          const fixedName = PROPERTY_TYPO_CORRECTIONS[propertyNameStr];
+        if (PROPERTY_TYPO_CORRECTIONS[propertyName]) {
+          const fixedName = PROPERTY_TYPO_CORRECTIONS[propertyName];
           hasChanges = true;
-          diagnostics.add(`Fixed property name typo: "${propertyNameStr}" -> "${fixedName}"`);
+          diagnostics.add(`Fixed property name typo: "${propertyName}" -> "${fixedName}"`);
           return `"${fixedName}":`;
         }
 

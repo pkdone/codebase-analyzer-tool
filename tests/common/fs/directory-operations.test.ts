@@ -1,7 +1,7 @@
 import {
   findFilesRecursively,
   clearDirectory,
-  findFilesWithSize,
+  findFilesSortedBySize,
 } from "../../../src/common/fs/directory-operations";
 import glob from "fast-glob";
 import { promises as fs } from "fs";
@@ -95,7 +95,7 @@ describe("directory-operations", () => {
     });
   });
 
-  describe("findFilesWithSize", () => {
+  describe("findFilesSortedBySize", () => {
     const mockGlob = glob as jest.MockedFunction<typeof glob>;
 
     beforeEach(() => {
@@ -110,7 +110,7 @@ describe("directory-operations", () => {
       ];
       mockGlob.mockResolvedValue(mockEntries as any);
 
-      await findFilesWithSize("/test", {
+      await findFilesSortedBySize("/test", {
         folderIgnoreList: ["node_modules"],
         filenameIgnorePrefix: ".",
       });
@@ -136,7 +136,7 @@ describe("directory-operations", () => {
       ];
       mockGlob.mockResolvedValue(mockEntries as any);
 
-      const result = await findFilesWithSize("/test", {
+      const result = await findFilesSortedBySize("/test", {
         folderIgnoreList: [],
         filenameIgnorePrefix: ".",
       });
@@ -156,7 +156,7 @@ describe("directory-operations", () => {
       ];
       mockGlob.mockResolvedValue(mockEntries as any);
 
-      const result = await findFilesWithSize("/test", {
+      const result = await findFilesSortedBySize("/test", {
         folderIgnoreList: [],
         filenameIgnorePrefix: ".",
       });
@@ -171,7 +171,7 @@ describe("directory-operations", () => {
     test("should handle empty results", async () => {
       mockGlob.mockResolvedValue([]);
 
-      const result = await findFilesWithSize("/test", {
+      const result = await findFilesSortedBySize("/test", {
         folderIgnoreList: [],
         filenameIgnorePrefix: ".",
       });
@@ -187,7 +187,7 @@ describe("directory-operations", () => {
       ];
       mockGlob.mockResolvedValue(mockEntries as any);
 
-      const result = await findFilesWithSize("/test", {
+      const result = await findFilesSortedBySize("/test", {
         folderIgnoreList: [],
         filenameIgnorePrefix: ".",
       });
