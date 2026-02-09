@@ -81,6 +81,7 @@ export class CurrentArchitectureDiagramGenerator extends BaseDiagramGenerator<Cu
         if (!data) {
           throw new Error("Architecture data is null");
         }
+
         return this.buildCurrentArchitectureDiagramDefinition(data);
       },
     );
@@ -119,6 +120,7 @@ export class CurrentArchitectureDiagramGenerator extends BaseDiagramGenerator<Cu
     architectureData.dependencies.forEach((dep) => {
       const fromId = nodeIdMap.get(dep.from);
       const toId = nodeIdMap.get(dep.to);
+
       if (fromId && toId) {
         lines.push(buildArrow(fromId, toId));
       }

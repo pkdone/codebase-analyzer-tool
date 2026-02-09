@@ -73,6 +73,7 @@ export class CategorizedSectionDataBuilder {
 
       // Use handler registry to process each category
       const item = this.processCategory(category, label, fieldData);
+
       if (item !== null) {
         results.push(item);
         console.log(`Generated ${label} table`);
@@ -92,10 +93,12 @@ export class CategorizedSectionDataBuilder {
     fieldData: unknown,
   ): CategorizedSectionItem | null {
     const handler = categoryHandlers.get(category);
+
     if (!handler) {
       console.warn(`No handler registered for category: ${category}`);
       return null;
     }
+
     return handler.process(label, fieldData);
   }
 }

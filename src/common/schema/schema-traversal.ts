@@ -65,10 +65,12 @@ export function traverseAndModifySchema(schema: unknown, rules: SchemaTraversalR
       // Apply transformKey rule if provided
       if (rules.transformKey) {
         const transformed = rules.transformKey(key, value, schemaObj);
+
         if (transformed === null) {
           // Skip this key (transformKey explicitly wants to skip it)
           continue;
         }
+        
         // Use transformed key and value (key might be same as original to keep it)
         sanitized[transformed.key] = traverseAndModifySchema(transformed.value, rules);
         continue;

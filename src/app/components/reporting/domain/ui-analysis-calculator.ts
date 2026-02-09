@@ -45,14 +45,17 @@ export function classifyTagLibrary(uri: string): TagLibraryType {
   if (uri.includes(TAG_LIBRARY_PATTERNS.JSTL)) {
     return "JSTL";
   }
+
   if (uri.includes(TAG_LIBRARY_PATTERNS.SPRING)) {
     return "Spring";
   }
+
   if (
     uri.includes(TAG_LIBRARY_PATTERNS.CUSTOM_WEB_INF) ||
     uri.includes(TAG_LIBRARY_PATTERNS.CUSTOM_KEYWORD)
   ) {
     return "Custom";
   }
+
   return "Other";
 }

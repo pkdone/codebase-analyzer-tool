@@ -133,6 +133,7 @@ function levenshteinDistance(str1: string, str2: string): number {
 
   for (let i = 1; i <= m; i++) {
     currRow[0] = i;
+
     for (let j = 1; j <= n; j++) {
       const cost = str1[i - 1] === str2[j - 1] ? 0 : 1;
       currRow[j] = Math.min(
@@ -180,6 +181,7 @@ export function matchPropertyName(
   // Strategy 1: Exact match
   for (const prop of knownProperties) {
     const normalizedProp = opts.caseInsensitive ? prop.toLowerCase() : prop;
+
     if (normalizedFragment === normalizedProp) {
       return { matched: prop, matchType: "exact", confidence: 1.0 };
     }
@@ -191,6 +193,7 @@ export function matchPropertyName(
 
     for (const prop of knownProperties) {
       const normalizedProp = opts.caseInsensitive ? prop.toLowerCase() : prop;
+
       if (normalizedProp.startsWith(normalizedFragment)) {
         prefixMatches.push({ prop, length: prop.length });
       }
@@ -210,6 +213,7 @@ export function matchPropertyName(
 
     for (const prop of knownProperties) {
       const normalizedProp = opts.caseInsensitive ? prop.toLowerCase() : prop;
+
       if (normalizedProp.endsWith(normalizedFragment)) {
         suffixMatches.push({ prop, length: prop.length });
       }
@@ -234,6 +238,7 @@ export function matchPropertyName(
 
     for (const prop of knownProperties) {
       const normalizedProp = normalizeIdentifier(prop);
+
       if (normalizedSearchFragment === normalizedProp) {
         // Return with high confidence since the normalized forms match exactly
         return { matched: prop, matchType: "fuzzy", confidence: 0.9 };
@@ -242,8 +247,10 @@ export function matchPropertyName(
 
     // Also try prefix match on normalized identifiers
     const normalizedPrefixMatches: { prop: string; length: number }[] = [];
+
     for (const prop of knownProperties) {
       const normalizedProp = normalizeIdentifier(prop);
+
       if (normalizedProp.startsWith(normalizedSearchFragment)) {
         normalizedPrefixMatches.push({ prop, length: prop.length });
       }
@@ -308,6 +315,7 @@ export function matchPropertyName(
       }
 
       const distance = levenshteinDistance(normalizedFragment, normalizedProp);
+
       if (distance <= effectiveThreshold) {
         if (!bestMatch || distance < bestMatch.distance) {
           bestMatch = { prop, distance };
@@ -402,6 +410,7 @@ export function inferFromShortFragment(
   // If we have known properties, find the first candidate that matches
   if (knownProperties && knownProperties.length > 0) {
     const knownLower = new Set(knownProperties.map((p) => p.toLowerCase()));
+
     for (const candidate of candidates) {
       if (knownLower.has(candidate.toLowerCase())) {
         // Return the original casing from knownProperties

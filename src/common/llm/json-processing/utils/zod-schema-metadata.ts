@@ -99,9 +99,11 @@ function isZodLike(schema: unknown): schema is ZodLike {
   if (typeof schema !== "object" || schema === null) {
     return false;
   }
+
   if (!Object.hasOwn(schema, "_def")) {
     return false;
   }
+
   const candidate = schema as { _def?: unknown };
   return typeof candidate._def === "object" && candidate._def !== null;
 }
@@ -116,9 +118,11 @@ function getTypeName(schema: unknown): string | undefined {
   }
 
   const typeName = schema._def.typeName;
+
   if (typeof typeName === "string") {
     return typeName;
   }
+
   return undefined;
 }
 
@@ -278,6 +282,7 @@ function extractPropertiesFromSchema(
   // Handle union schemas - extract from all options
   if (isZodUnion(unwrapped) && isZodLike(unwrapped)) {
     const unionOptions = unwrapped._def.options;
+
     if (Array.isArray(unionOptions)) {
       return mergePropertiesFromSchemas(unionOptions, currentDepth, options);
     }
@@ -286,6 +291,7 @@ function extractPropertiesFromSchema(
   // Handle discriminated union schemas - extract from all options
   if (isZodDiscriminatedUnion(unwrapped) && isZodLike(unwrapped)) {
     const unionOptions = unwrapped._def.options;
+
     if (Array.isArray(unionOptions)) {
       return mergePropertiesFromSchemas(unionOptions, currentDepth, options);
     }

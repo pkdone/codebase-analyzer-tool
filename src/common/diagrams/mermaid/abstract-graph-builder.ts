@@ -119,6 +119,7 @@ export abstract class AbstractGraphBuilder {
     if (this.nodeMap.has(id)) {
       throw new GraphValidationError(`Node with id "${id}" already exists`);
     }
+
     this.nodeMap.set(id, { id, label, shape });
     return this;
   }
@@ -139,6 +140,7 @@ export abstract class AbstractGraphBuilder {
       this.validateNodeExists(from, "from");
       this.validateNodeExists(to, "to");
     }
+
     this.edges.push({ from, to, label, type });
     return this;
   }

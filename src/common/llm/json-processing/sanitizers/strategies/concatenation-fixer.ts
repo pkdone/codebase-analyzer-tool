@@ -64,9 +64,11 @@ export const concatenationFixer: SanitizerStrategy = {
       CONCATENATION_REGEXES.CONSECUTIVE_LITERALS,
       (match: string, prefix: string) => {
         const literalMatches = match.match(/"[^"\n]*"/g);
+
         if (!literalMatches || literalMatches.length < 2) {
           return match;
         }
+
         const merged = literalMatches.map((lit) => lit.slice(1, -1)).join("");
         repairs.push(`Merged ${literalMatches.length} consecutive string literals`);
         changeCount++;

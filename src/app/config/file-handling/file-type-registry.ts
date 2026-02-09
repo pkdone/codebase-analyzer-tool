@@ -182,9 +182,11 @@ export function getEnabledCodeExtensions(): readonly string[] {
  */
 export function deriveExtensionToTypeMap(): Readonly<Record<string, CanonicalFileType>> {
   const map: Record<string, CanonicalFileType> = {};
+
   for (const [ext, entry] of Object.entries(FILE_TYPE_REGISTRY)) {
     map[ext] = entry.canonicalType;
   }
+
   return map;
 }
 

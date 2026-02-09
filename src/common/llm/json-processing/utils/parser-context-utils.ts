@@ -50,11 +50,13 @@ function computeStringBoundaries(content: string): StringBoundary[] {
           i += 2; // Skip escaped character
           continue;
         }
+
         if (content[i] === '"') {
           i++; // Move past closing quote
           boundaries.push({ start, end: i });
           break;
         }
+
         i++;
       }
     } else {
@@ -138,18 +140,22 @@ export function createStringBoundaryChecker(content: string): (position: number)
 export function isInStringAt(position: number, content: string): boolean {
   let inString = false;
   let escaped = false;
+
   for (let i = 0; i < position; i++) {
     const char = content[i];
+
     if (escaped) {
       escaped = false;
       continue;
     }
+
     if (char === "\\") {
       escaped = true;
     } else if (char === '"') {
       inString = !inString;
     }
   }
+
   return inString;
 }
 
@@ -177,21 +183,26 @@ export function isInArrayContext(matchIndex: number, content: string): boolean {
   // Scan backwards to find context
   for (let i = beforeMatch.length - 1; i >= 0; i--) {
     const char = beforeMatch[i];
+
     if (escapeNext) {
       escapeNext = false;
       continue;
     }
+
     if (char === "\\") {
       escapeNext = true;
       continue;
     }
+
     if (char === '"') {
       inString = !inString;
       continue;
     }
+
     if (!inString) {
       if (char === "{") {
         openBraces++;
+
         if (openBraces === 0 && openBrackets > 0 && foundOpeningBracket) {
           break;
         }
@@ -234,18 +245,22 @@ export function isDirectlyInArrayContext(offset: number, content: string): boole
 
   for (let i = beforeMatch.length - 1; i >= 0; i--) {
     const char = beforeMatch[i];
+
     if (escape) {
       escape = false;
       continue;
     }
+
     if (char === "\\") {
       escape = true;
       continue;
     }
+
     if (char === '"') {
       inString = !inString;
       continue;
     }
+
     if (!inString) {
       if (char === "]") {
         bracketDepth++;
@@ -254,6 +269,7 @@ export function isDirectlyInArrayContext(offset: number, content: string): boole
         if (bracketDepth === 0 && braceDepth === 0) {
           return true;
         }
+
         bracketDepth--;
       } else if (char === "}") {
         braceDepth++;
@@ -262,6 +278,7 @@ export function isDirectlyInArrayContext(offset: number, content: string): boole
       }
     }
   }
+
   return false;
 }
 
@@ -336,6 +353,7 @@ export function isDeepArrayContext(context: ContextInfo): boolean {
   if (isInArrayContextSimple(context)) {
     return true;
   }
+
   return isDirectlyInArrayContext(context.offset, context.fullContent);
 }
 
@@ -387,6 +405,7 @@ export function findJsonValueEnd(content: string, startPos: number): JsonValueEn
   if (firstChar === "{") {
     let braceCount = 1;
     pos++;
+
     while (braceCount > 0 && pos < content.length) {
       if (escaped) {
         escaped = false;
@@ -401,8 +420,10 @@ export function findJsonValueEnd(content: string, startPos: number): JsonValueEn
           braceCount--;
         }
       }
+
       pos++;
     }
+
     return { endPosition: pos, success: braceCount === 0 };
   }
 
@@ -410,6 +431,7 @@ export function findJsonValueEnd(content: string, startPos: number): JsonValueEn
   if (firstChar === "[") {
     let bracketCount = 1;
     pos++;
+
     while (bracketCount > 0 && pos < content.length) {
       if (escaped) {
         escaped = false;
@@ -424,14 +446,17 @@ export function findJsonValueEnd(content: string, startPos: number): JsonValueEn
           bracketCount--;
         }
       }
+
       pos++;
     }
+
     return { endPosition: pos, success: bracketCount === 0 };
   }
 
   // Handle string values
   if (firstChar === '"') {
     pos++;
+
     while (pos < content.length) {
       if (escaped) {
         escaped = false;
@@ -441,8 +466,10 @@ export function findJsonValueEnd(content: string, startPos: number): JsonValueEn
         pos++;
         return { endPosition: pos, success: true };
       }
+
       pos++;
     }
+
     return { endPosition: pos, success: false };
   }
 
@@ -450,5 +477,6 @@ export function findJsonValueEnd(content: string, startPos: number): JsonValueEn
   while (pos < content.length && !/[,}\]\s]/.test(content[pos])) {
     pos++;
   }
+
   return { endPosition: pos, success: true };
 }

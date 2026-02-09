@@ -106,14 +106,17 @@ function processArray(arr: unknown[]): { result: unknown[]; changed: boolean } {
   let anyChildChanged = false;
   const processedItems = arr.map((item) => {
     const processed = processValue(item);
+
     if (processed.changed) {
       anyChildChanged = true;
     }
+
     return processed.result;
   });
 
   // Check if this is an array of objects that we can analyze
   const objectItems = processedItems.filter(isObjectForComparison);
+
   if (objectItems.length !== processedItems.length || objectItems.length < MIN_ITEMS_FOR_REMOVAL) {
     // Not all items are objects, or not enough items - return processed items without removal
     return { result: processedItems, changed: anyChildChanged };
@@ -140,9 +143,11 @@ function processObject(obj: Record<string, unknown>): {
 
   for (const [key, value] of Object.entries(obj)) {
     const processed = processValue(value);
+
     if (processed.changed) {
       anyChanged = true;
     }
+
     result[key] = processed.result;
   }
 

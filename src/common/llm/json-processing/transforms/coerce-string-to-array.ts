@@ -54,6 +54,7 @@ function parseStringAsList(stringValue: string): string[] {
   if (trimmed.startsWith("[")) {
     try {
       const parsed: unknown = JSON.parse(trimmed);
+
       if (Array.isArray(parsed)) {
         return parsed.map(String);
       }
@@ -62,6 +63,7 @@ function parseStringAsList(stringValue: string): string[] {
       try {
         const normalizedQuotes = trimmed.replace(/'/g, '"');
         const parsed: unknown = JSON.parse(normalizedQuotes);
+
         if (Array.isArray(parsed)) {
           return parsed.map(String);
         }
@@ -75,6 +77,7 @@ function parseStringAsList(stringValue: string): string[] {
   // Pattern: "- item1\n- item2" or "* item1\n* item2" or "• item1\n• item2"
   // Extended to include additional Unicode bullet characters for robustness
   const bulletedListPattern = /^[\s]*[-*•◦▪▸►▹‣⁃○●◆◇■□→➤➢]\s+/m;
+
   if (bulletedListPattern.test(trimmed)) {
     const items = trimmed
       .split(/\n/)
@@ -91,6 +94,7 @@ function parseStringAsList(stringValue: string): string[] {
   // Strategy 2: Numbered list (lines starting with 1., 2., etc. or 1), 2), etc.)
   // Pattern: "1. item1\n2. item2" or "1) item1\n2) item2"
   const numberedListPattern = /^[\s]*\d+[.)]\s+/m;
+
   if (numberedListPattern.test(trimmed)) {
     const items = trimmed
       .split(/\n/)
@@ -120,6 +124,7 @@ function parseStringAsList(stringValue: string): string[] {
     // Only return if we got multiple items and they look like list items
     // (not too long, not containing sentence-like patterns)
     const avgItemLength = items.reduce((sum, item) => sum + item.length, 0) / items.length;
+
     if (items.length >= 2 && avgItemLength < 50) {
       return items;
     }
@@ -190,6 +195,7 @@ export function coerceStringToArray(
 
         // Handle symbol keys (preserve them as-is, they'll be processed by deepMap)
         const symbols = Object.getOwnPropertySymbols(val);
+
         for (const sym of symbols) {
           result[sym] = val[sym];
         }

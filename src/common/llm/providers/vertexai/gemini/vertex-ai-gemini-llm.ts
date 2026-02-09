@@ -63,6 +63,7 @@ export default class VertexAIGeminiLLM extends BaseLLMProvider {
         "Invalid VertexAI Gemini configuration - missing required fields (projectId, embeddingsLocation, completionsLocation)",
       );
     }
+
     const { projectId, embeddingsLocation, completionsLocation } = init.extractedConfig;
 
     // For 'global' location, the API endpoint is the base domain (no region prefix)
@@ -74,7 +75,6 @@ export default class VertexAIGeminiLLM extends BaseLLMProvider {
       location: completionsLocation,
       ...(completionsApiEndpoint && { apiEndpoint: completionsApiEndpoint }),
     });
-
     // Use the specified regional location for embeddings
     this.embeddingsApiClient = new aiplatform.PredictionServiceClient({
       apiEndpoint: `${embeddingsLocation}-${VERTEXAI_API_ENDPOINT}`,
@@ -346,6 +346,7 @@ export default class VertexAIGeminiLLM extends BaseLLMProvider {
 
     if (embeddingsStruct) {
       const valuesField = embeddingsStruct.structValue?.fields?.values;
+
       if (valuesField?.listValue?.values) {
         return valuesField.listValue.values;
       }
@@ -355,6 +356,7 @@ export default class VertexAIGeminiLLM extends BaseLLMProvider {
     if (value.listValue?.values) {
       return value.listValue.values;
     }
+
     return [];
   }
 }

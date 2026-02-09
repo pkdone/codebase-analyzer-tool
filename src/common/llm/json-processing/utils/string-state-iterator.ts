@@ -140,6 +140,7 @@ class StringStateTrackerImpl implements StringStateTracker {
     if (this._position >= this._content.length) {
       return undefined;
     }
+
     return this._createStateInfo(this._position);
   }
 
@@ -154,6 +155,7 @@ class StringStateTrackerImpl implements StringStateTracker {
       while (this._position < index) {
         this._advanceInternal();
       }
+
       return this._createStateInfo(index);
     }
 
@@ -185,6 +187,7 @@ class StringStateTrackerImpl implements StringStateTracker {
     if (this._position >= this._content.length) {
       return undefined;
     }
+
     this._advanceInternal();
     return this.getCurrentState();
   }
@@ -196,6 +199,7 @@ class StringStateTrackerImpl implements StringStateTracker {
       this._inString = false;
       this._escapeNext = false;
     }
+
     while (this._position < index && this._position < this._content.length) {
       this._advanceInternal();
     }
@@ -216,10 +220,12 @@ class StringStateTrackerImpl implements StringStateTracker {
       // Check if quote is escaped by counting preceding backslashes
       let backslashCount = 0;
       let j = this._position - 1;
+
       while (j >= 0 && this._content[j] === "\\") {
         backslashCount++;
         j--;
       }
+
       if (backslashCount % 2 === 0) {
         this._inString = !this._inString;
       }

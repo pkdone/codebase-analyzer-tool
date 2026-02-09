@@ -14,11 +14,13 @@ import type { FileDiscoveryConfig } from "./file-filter.types";
 function isGlobEntryWithStats(entry: unknown): entry is Entry {
   if (!entry || typeof entry !== "object") return false;
   const obj = entry as Record<string, unknown>;
+
   if (typeof obj.path !== "string") return false;
   // stats is optional but if present should be an object
   if (obj.stats !== undefined && (typeof obj.stats !== "object" || obj.stats === null)) {
     return false;
   }
+
   return true;
 }
 

@@ -95,6 +95,7 @@ export function convertNullToEmptyStringForRequiredFields(
 
       // Preserve symbol keys - properly typed, no cast needed
       const symbols = Object.getOwnPropertySymbols(val);
+
       for (const sym of symbols) {
         result[sym] = val[sym];
       }

@@ -142,6 +142,7 @@ export function calculateTokenUsageFromError(
 
   // Resolve promptTokens: estimate if undefined
   let promptTokens = parsedPromptTokens;
+
   if (promptTokens === undefined) {
     const estimatedPromptTokensConsumed = Math.floor(
       prompt.length / llmConfig.AVERAGE_CHARS_PER_TOKEN,

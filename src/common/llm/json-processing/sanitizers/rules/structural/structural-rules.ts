@@ -47,6 +47,7 @@ export const STRUCTURAL_RULES: readonly ReplacementRule[] = [
       if (isInArrayContextSimple(context)) {
         return null;
       }
+
       const before = groups[0] ?? "";
       const after = groups[2] ?? "";
       return `${before}\n${after}`;
@@ -123,9 +124,11 @@ export const STRUCTURAL_RULES: readonly ReplacementRule[] = [
         /[}\],]\s*$/.test(beforeMatch) ||
         /^\s*$/.test(beforeMatch) ||
         /,\s*\n\s*$/.test(beforeMatch);
+
       if (!isValidContext) {
         return null;
       }
+
       const [delimiter, whitespace, , nextToken] = groups;
       const delimiterStr = delimiter ?? "";
       const whitespaceStr = whitespace ?? "";
@@ -151,9 +154,11 @@ export const STRUCTURAL_RULES: readonly ReplacementRule[] = [
         /]\s*$/.test(beforeMatch) ||
         /}\s*$/.test(beforeMatch) ||
         /:\s*[^"]+$/.test(beforeMatch);
+
       if (!isValidContext) {
         return null;
       }
+
       const [delimiter, whitespace, , closingBrace] = groups;
       const delimiterStr = delimiter ?? "";
       const whitespaceStr = whitespace ?? "";
@@ -221,6 +226,7 @@ export const STRUCTURAL_RULES: readonly ReplacementRule[] = [
       // Check if this is at the end of the JSON
       const { fullContent, offset } = context;
       const afterMatch = fullContent.substring(offset + _match.length);
+
       if (afterMatch.trim().length !== 0) {
         return null;
       }
@@ -261,9 +267,11 @@ export const STRUCTURAL_RULES: readonly ReplacementRule[] = [
         /,\s*\n\s*$/.test(beforeMatch) ||
         /"\s*,\s*\n\s*$/.test(beforeMatch) ||
         /{\s*$/.test(beforeMatch);
+
       if (!isInArrayOrObject) {
         return null;
       }
+
       const [value, nextProperty] = groups;
       const valueStr = value ?? "";
       const nextPropertyStr = nextProperty ?? "";
@@ -333,9 +341,11 @@ export const STRUCTURAL_RULES: readonly ReplacementRule[] = [
         /\[\s*[^\]]*$/.test(beforeMatch) ||
         /:\s*\[\s*[^\]]*$/.test(beforeMatch) ||
         /,\s*$/.test(beforeMatch);
+
       if (!isValidContext && context.offset > parsingHeuristics.START_OF_FILE_OFFSET_LIMIT) {
         return null;
       }
+
       const [bracket, property] = groups;
       const bracketStr = bracket ?? "";
       const propertyStr = property ?? "";
@@ -390,23 +400,28 @@ export const STRUCTURAL_RULES: readonly ReplacementRule[] = [
 
       for (let i = beforeMatch.length - 1; i >= 0; i--) {
         const char = beforeMatch[i];
+
         if (escape) {
           escape = false;
           continue;
         }
+
         if (char === "\\") {
           escape = true;
           continue;
         }
+
         if (char === '"') {
           inString = !inString;
           continue;
         }
+
         if (!inString) {
           if (char === "]") {
             bracketDepth++;
           } else if (char === "[") {
             bracketDepth--;
+
             if (bracketDepth < 0) {
               // Found an unclosed array
               foundUnclosedArray = true;
@@ -502,6 +517,7 @@ export const STRUCTURAL_RULES: readonly ReplacementRule[] = [
         /}\s*$/.test(beforeMatch) ||
         /{\s*$/.test(beforeMatch) ||
         /,\s*$/.test(beforeMatch);
+
       if (!isValidContext) {
         return null;
       }

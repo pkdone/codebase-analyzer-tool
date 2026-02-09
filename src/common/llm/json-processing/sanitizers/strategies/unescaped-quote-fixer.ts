@@ -49,6 +49,7 @@ export const unescapedQuoteFixer: SanitizerStrategy = {
         repairs.push(`Escaped quote in HTML attribute: = "${value}"`);
         return `${equalsAndSpace}\\"${value}\\"${spacesAfter}${restAfter}`;
       }
+
       return match;
     });
 
@@ -75,6 +76,7 @@ export const unescapedQuoteFixer: SanitizerStrategy = {
           repairs.push(`Fixed escaped quote followed by unescaped quote: \\"" -> \\"\\")`);
           return `\\"\\"${afterStr}`;
         }
+
         return match;
       },
     );

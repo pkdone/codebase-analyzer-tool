@@ -54,10 +54,12 @@ const LENGTH_PATTERN_CACHE = new Map<string, RegExp>();
 function getCachedLengthPattern(minLength: number, maxLength: number): RegExp {
   const cacheKey = `${minLength}-${maxLength}`;
   let pattern = LENGTH_PATTERN_CACHE.get(cacheKey);
+
   if (!pattern) {
     pattern = new RegExp(`^[a-z][a-z0-9_-]{${minLength - 1},${maxLength - 1}}$`, "i");
     LENGTH_PATTERN_CACHE.set(cacheKey, pattern);
   }
+
   return pattern;
 }
 
@@ -102,6 +104,7 @@ export function looksLikeStrayText(text: string, options: StrayTextDetectionOpti
 
   // Short lowercase words within configured bounds (using cached pattern)
   const lengthPattern = getCachedLengthPattern(opts.minLength, opts.maxLength);
+
   if (lengthPattern.test(trimmed)) {
     return true;
   }
@@ -287,16 +290,10 @@ export function looksLikeFirstPersonStatement(text: string): boolean {
  */
 export function looksLikeTruncationMarker(text: string): boolean {
   const trimmed = text.trim();
-
-  if (trimmed.length === 0) {
-    return false;
-  }
-
+  if (trimmed.length === 0) return false;
   // Use the structural pattern for truncation indicators
-  if (STRUCTURAL_PATTERNS.TRUNCATION_INDICATOR.test(trimmed)) {
-    return true;
-  }
-
+  if (STRUCTURAL_PATTERNS.TRUNCATION_INDICATOR.test(trimmed)) return true;
+  
   // Additional structural detection for common truncation patterns
 
   // Ellipsis at end (2+ dots)
@@ -336,16 +333,9 @@ export function looksLikeTruncationMarker(text: string): boolean {
  */
 export function looksLikeSentenceStructure(text: string): boolean {
   const trimmed = text.trim();
-
-  if (trimmed.length < 5) {
-    return false;
-  }
-
+  if (trimmed.length < 5) return false;
   // Must not contain JSON structural characters
-  if (/["{}[\]]/.test(trimmed)) {
-    return false;
-  }
-
+  if (/["{}[\]]/.test(trimmed)) return false;
   // Count words (space-separated tokens)
   const words = trimmed.split(/\s+/).filter((w) => w.length > 0);
 
@@ -353,15 +343,13 @@ export function looksLikeSentenceStructure(text: string): boolean {
   if (words.length >= 3) {
     // Check if it's alphabetic content (not just numbers/symbols)
     const alphabeticContent = trimmed.replace(/[^a-zA-Z]/g, "");
+
     if (alphabeticContent.length > trimmed.length * 0.5) {
       return true;
     }
   }
 
   // Two words with sentence punctuation
-  if (words.length >= 2 && /[.!?]$/.test(trimmed)) {
-    return true;
-  }
-
+  if (words.length >= 2 && /[.!?]$/.test(trimmed)) return true;
   return false;
 }

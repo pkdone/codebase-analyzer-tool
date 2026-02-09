@@ -93,11 +93,13 @@ export function createLLMRouter(config: LLMModuleConfig): LLMRouterComponents {
 function getRetryConfigFromProvider(providerManager: ProviderManager, config: LLMModuleConfig) {
   const firstEntry = config.resolvedModelChain.completions[0];
   const manifest = providerManager.getManifest(firstEntry.providerFamily);
+
   if (!manifest) {
     throw new LLMError(
       LLMErrorCode.BAD_CONFIGURATION,
       `Manifest not found for provider: ${firstEntry.providerFamily}`,
     );
   }
+
   return manifest.providerSpecificConfig;
 }

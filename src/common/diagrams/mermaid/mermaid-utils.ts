@@ -52,6 +52,7 @@ export function buildArrow(fromId: string, toId: string, label?: string): string
   if (label) {
     return `    ${fromId} -->|"${escapeMermaidLabel(label)}"| ${toId}`;
   }
+
   return `    ${fromId} --> ${toId}`;
 }
 

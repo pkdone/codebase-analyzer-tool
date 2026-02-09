@@ -40,9 +40,11 @@ export function normalizeEnumArray(value: unknown, allowed: readonly string[]): 
         return allowed.includes(upper) ? upper : DEFAULT_INVALID_VALUE;
       });
   }
+
   if (typeof value === "string") {
     const upper = value.toUpperCase();
     return [allowed.includes(upper) ? upper : DEFAULT_INVALID_VALUE];
   }
+
   return value;
 }

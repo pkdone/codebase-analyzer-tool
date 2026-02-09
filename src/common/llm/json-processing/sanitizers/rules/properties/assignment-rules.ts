@@ -27,6 +27,7 @@ function isNotInsideString(context: ContextInfo): boolean {
       escape = false;
       continue;
     }
+
     if (char === "\\") {
       escape = true;
     } else if (char === '"') {
@@ -145,6 +146,7 @@ export const ASSIGNMENT_RULES: readonly ReplacementRule[] = [
       if (!hasPropertyNamePattern && !beforeMatch.trim().endsWith('"')) {
         const trimmedContext = beforeMatch.trim();
         const isInObjectOrArray = /[{]\s*$/.test(trimmedContext) || trimmedContext.includes("[");
+
         if (!isInObjectOrArray) {
           return null;
         }

@@ -115,21 +115,18 @@ export function deepMap(
       const original = value[key];
       const transformed = deepMap(original, visitor, visited);
       result[key] = transformed;
-      if (transformed !== original) {
-        hasChanges = true;
-      }
+      if (transformed !== original) hasChanges = true;
     }
   }
 
   // Handle symbol keys (preserve them as-is)
   const symbols = Object.getOwnPropertySymbols(value);
+
   for (const sym of symbols) {
     const original = value[sym];
     const transformed = deepMap(original, visitor, visited);
     result[sym] = transformed;
-    if (transformed !== original) {
-      hasChanges = true;
-    }
+    if (transformed !== original) hasChanges = true;
   }
 
   visited.delete(value);
@@ -190,12 +187,15 @@ export function deepMapObject(
     if (typeof value === "object" && value !== null) {
       visited.add(value);
     }
+
     const mapped = visitedValue.map((item: unknown) =>
       deepMapObject(item, visitor, options, visited),
     );
+
     if (typeof value === "object" && value !== null) {
       visited.delete(value);
     }
+
     return mapped;
   }
 
@@ -209,6 +209,7 @@ export function deepMapObject(
   if (typeof value === "object" && value !== null) {
     visited.add(value);
   }
+
   const result: PlainObject = {};
   let hasChanges = visitedValue !== value; // Already changed if visitor transformed it
   let propertiesSkipped = false;
@@ -229,18 +230,22 @@ export function deepMapObject(
 
       // Transform key if needed
       let finalKey: string | null | undefined = key;
+
       if (options.transformKey) {
         finalKey = options.transformKey(key, transformedVal, visitedValue);
+
         if (finalKey === null || finalKey === undefined) {
           propertiesSkipped = true;
           continue; // Skip this property
         }
+
         if (finalKey !== key) {
           hasChanges = true;
         }
       }
 
       result[finalKey] = transformedVal;
+
       if (transformedVal !== val) {
         hasChanges = true;
       }
@@ -249,6 +254,7 @@ export function deepMapObject(
 
   // Handle symbol keys (preserve them as-is, no transformation)
   const symbols = Object.getOwnPropertySymbols(visitedValue);
+
   for (const sym of symbols) {
     const original = visitedValue[sym];
     const transformedVal = deepMapObject(original, visitor, options, visited);
@@ -260,6 +266,7 @@ export function deepMapObject(
     }
 
     result[sym] = transformedVal;
+
     if (transformedVal !== original) {
       hasChanges = true;
     }
@@ -273,5 +280,6 @@ export function deepMapObject(
   if (!hasChanges && !propertiesSkipped && isPlainObject(value)) {
     return value;
   }
+
   return result;
 }

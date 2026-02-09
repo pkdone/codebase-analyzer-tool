@@ -30,6 +30,7 @@ export function buildModelRegistry(providerRegistry: LLMProviderRegistry): Map<s
     // Process embeddings models
     for (const model of manifest.models.embeddings) {
       const existingProvider = registry.get(model.modelKey);
+
       if (existingProvider !== undefined) {
         // Duplicate found - track it
         const existingDuplicates = duplicates.get(model.modelKey) ?? [existingProvider];
@@ -43,6 +44,7 @@ export function buildModelRegistry(providerRegistry: LLMProviderRegistry): Map<s
     // Process completions models
     for (const model of manifest.models.completions) {
       const existingProvider = registry.get(model.modelKey);
+
       if (existingProvider !== undefined) {
         // Duplicate found - track it
         const existingDuplicates = duplicates.get(model.modelKey) ?? [existingProvider];
@@ -59,7 +61,6 @@ export function buildModelRegistry(providerRegistry: LLMProviderRegistry): Map<s
     const conflictDescriptions = Array.from(duplicates.entries())
       .map(([modelKey, providers]) => `"${modelKey}" defined in [${providers.join(", ")}]`)
       .join("; ");
-
     throw new LLMError(
       LLMErrorCode.BAD_CONFIGURATION,
       `Duplicate model keys detected across providers. Model keys must be globally unique. ` +

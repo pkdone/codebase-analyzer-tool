@@ -42,9 +42,11 @@ export const removeComments: Sanitizer = (input: string): SanitizerResult => {
 
       const matchStr = typeof match === "string" ? match : "";
       const preview = matchStr.length > 30 ? `${matchStr.substring(0, 27)}...` : matchStr;
+
       if (repairs.length < 10) {
         repairs.push(`Removed multi-line comment: /* ${preview} */`);
       }
+
       return "";
     });
 
@@ -60,6 +62,7 @@ export const removeComments: Sanitizer = (input: string): SanitizerResult => {
 
       const matchStr = typeof match === "string" ? match : "";
       const preview = matchStr.length > 30 ? `${matchStr.substring(0, 27)}...` : matchStr;
+
       if (repairs.length < 10) {
         repairs.push(`Removed single-line comment: // ${preview}`);
       }

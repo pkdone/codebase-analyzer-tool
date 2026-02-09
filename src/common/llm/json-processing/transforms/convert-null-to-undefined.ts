@@ -31,6 +31,7 @@ export function convertNullToUndefined(
       if (val === null) {
         return undefined;
       }
+
       return val;
     },
     {

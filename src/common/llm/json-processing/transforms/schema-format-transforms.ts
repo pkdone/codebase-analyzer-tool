@@ -84,6 +84,7 @@ function isJsonSchemaPrimitiveFieldDefinition(obj: Record<string, unknown>): boo
   // If it only has "type" and "description" (and possibly nothing else), it's likely a schema field
   // This handles the common case: { "type": "string", "description": "actual value" }
   const keys = Object.keys(obj);
+
   if (keys.length <= 3 && keys.includes("type") && keys.includes("description")) {
     return true;
   }
@@ -114,6 +115,7 @@ function isJsonSchemaObjectWithDataInProperties(obj: Record<string, unknown>): b
   }
 
   const props = obj.properties;
+
   if (typeof props !== "object" || props === null || Array.isArray(props)) {
     return false;
   }
@@ -140,9 +142,11 @@ function isJsonSchemaObjectWithDataInProperties(obj: Record<string, unknown>): b
     if (val === null || typeof val !== "object") {
       return true; // Primitive value = extractable data
     }
+
     if (Array.isArray(val)) {
       return true; // Array value = extractable data
     }
+    
     // Object value - check if it looks like a schema field or data
     const valObj = val as Record<string, unknown>;
 
@@ -219,9 +223,11 @@ function extractSchemaFieldValues(value: unknown): JsonValue {
 
     // Not a schema field definition - recursively process all properties
     const result: Record<string, JsonValue> = {};
+
     for (const [key, propValue] of Object.entries(obj)) {
       result[key] = extractSchemaFieldValues(propValue);
     }
+
     return result;
   }
 
@@ -300,6 +306,7 @@ function extractNumericValue(value: string): number {
 
   // Strategy 1: Strict parsing - handles clean numeric strings
   const strictValue = Number(trimmed);
+
   if (!Number.isNaN(strictValue) && Number.isFinite(strictValue)) {
     return strictValue;
   }
@@ -307,8 +314,10 @@ function extractNumericValue(value: string): number {
   // Strategy 2: Leading numeric sequence (with optional prefix characters like ~ or ≈)
   // Handles: "~150 items", "≈50 units", "-5 degrees"
   const leadingNumericMatch = /^[~≈]?\s*(-?\d+(?:\.\d+)?)/.exec(trimmed);
+
   if (leadingNumericMatch) {
     const extracted = Number(leadingNumericMatch[1]);
+
     if (!Number.isNaN(extracted) && Number.isFinite(extracted)) {
       return extracted;
     }
@@ -317,8 +326,10 @@ function extractNumericValue(value: string): number {
   // Strategy 3: Embedded numeric sequence (for phrases like "approximately 150")
   // Only extract if there's a clear number with word boundaries
   const embeddedNumericMatch = /\b(-?\d+(?:\.\d+)?)\b/.exec(trimmed);
+
   if (embeddedNumericMatch) {
     const extracted = Number(embeddedNumericMatch[1]);
+
     if (!Number.isNaN(extracted) && Number.isFinite(extracted)) {
       return extracted;
     }
@@ -367,6 +378,7 @@ export function coerceNumericProperties(parsed: unknown, config?: LLMSanitizerCo
       ) {
         // Try to extract a number from the string (handles both clean and mixed values)
         const numValue = extractNumericValue(value);
+
         if (!Number.isNaN(numValue) && Number.isFinite(numValue)) {
           result[key] = numValue;
           continue;

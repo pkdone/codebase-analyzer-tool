@@ -54,12 +54,14 @@ function resolveModelUrn(
   modelKey: string,
 ): string {
   const urn = envVars[urnEnvKey];
+
   if (typeof urn !== "string" || urn.length === 0) {
     throw new LLMError(
       LLMErrorCode.BAD_CONFIGURATION,
       `Environment variable '${urnEnvKey}' for model '${modelKey}' is not set or empty.`,
     );
   }
+
   return urn;
 }
 

@@ -53,6 +53,7 @@ export function executePipeline(
       // Collect repairs up to the limit
       if (result.repairs.length > 0) {
         const limitedRepairs = result.repairs.slice(0, opts.maxRepairsPerStrategy);
+
         for (const repair of limitedRepairs) {
           allRepairs.push(`[${strategy.name}] ${repair}`);
         }
