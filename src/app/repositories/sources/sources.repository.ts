@@ -570,13 +570,13 @@ export default class SourcesRepositoryImpl
       },
     ];
 
-    type FacetResult = {
+    interface FacetResult {
       storedProcedureCounts: { total: number }[];
       triggerCounts: { total: number }[];
-    };
+    }
 
     const results = await this.collection.aggregate<FacetResult>(pipeline).toArray();
-    const facet = results[0];
+    const facet = results.at(0);
 
     if (!facet) {
       return {

@@ -152,7 +152,7 @@ export class DatabaseReportDataProvider {
     item: ProcOrTrigItem,
     category: "proc" | "trigger",
   ): ProcsOrTrigsListItem {
-    const complexity = this.normalizeComplexity(item.complexity, String(item.name));
+    const complexity = this.normalizeComplexity(item.complexity, item.name);
 
     let type: string;
     if (category === "trigger") {
@@ -167,10 +167,10 @@ export class DatabaseReportDataProvider {
     return {
       path: item.filepath,
       type,
-      name: String(item.name),
-      functionName: String(item.name),
+      name: item.name,
+      functionName: item.name,
       complexity: complexity,
-      complexityReason: String(item.complexityReason || NOT_AVAILABLE_PLACEHOLDER),
+      complexityReason: item.complexityReason || NOT_AVAILABLE_PLACEHOLDER,
       linesOfCode: item.linesOfCode,
       purpose: item.purpose,
     };
