@@ -63,7 +63,7 @@ describe("InsightsGenerator - Map-Reduce Strategy", () => {
     } as unknown as jest.Mocked<SourcesRepository>;
 
     mockLLMRouter = {
-      getModelsUsedDescription: jest.fn().mockReturnValue("TestLLM (GPT-4)"),
+      getModelsUsedSummary: jest.fn().mockReturnValue("TestLLM (GPT-4)"),
       executeCompletion: jest.fn(),
       getFirstCompletionModelMaxTokens: jest.fn().mockReturnValue(mockMaxTokens),
     } as unknown as jest.Mocked<LLMRouter>;

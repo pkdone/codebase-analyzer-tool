@@ -28,11 +28,10 @@ You can also view an examples of full report generated for various sample applic
 
 1. Ensure you have the codebase for a sample application ready to access on your local filesystem. You can optionally [download a zip of some example projects](https://drive.google.com/file/d/1rDSOiLOH0xq3Hc5k8i3DvZpCDVvDccr1/view?usp=sharing) for testing (for subset of people who have link access). Note the current version of these tools work better with Java-based codebases, but over time, many more programming languages will be supported equally.
 
-1. Ensure you can leverage LLMs from OpenAI/Azure GPT, GCP Vertex AI or AWS Bedrock API, with at least one of the following three models types available to use, along with appropriate LLM provider API keys / credentials:
+1. Ensure you can leverage LLMs from OpenAI/Azure GPT, GCP Vertex AI or AWS Bedrock API, with at least one of embeddings model and at least one completions model available to use, along with appropriate LLM provider API keys / credentials:
 
-    -  __Embeddings model__ for generating vector embeddings 
-    -  __Text completions 'primaary' model, typically with a small token limit__ for generating text and JSON content to process text inputs 
-    -  __Text completions 'secondary' model, typically with a large token limit__ for generating text and JSON content to process text inputs (acting as a backup in case the primary model errors for a particular piece of cotent)
+    -  __Embeddings models__ for generating vector embeddings 
+    -  __Text completions models__ for generating text and JSON content to process text inputs 
 
     For suggestions on what LLM to run, see section [Demonstrated LLM Capabilities](#demonstrated-llm-capabilities)
 
@@ -43,13 +42,14 @@ You can also view an examples of full report generated for various sample applic
     ```
 
     Edit the `.env` file to:
-    - Set your `LLM` provider (e.g., "OpenAI", "VertexAIGemini", etc.)
+    - Set your `LLM_COMPLETION_MODEL_CHAIN` to be the chain (comman-separated list) of one or model keys (e.g., "vertexai-gemini-3-pro,bedrock-claude-opus-4.6")
+    - Set your `LLM_EMBEDDING_MODEL_CHAIN` to be the chain (comman-separated list) of one or model keys (e.g., "vertexai-gemini-embedding-001")
     - Set your MongoDB URL and codebase directory path
-    - Set the specific environment variables required for your chosen LLM provider
+    - Set the specific environment variables required for your chosen LLM providers
     
-    The system uses a **manifest-driven approach** - you only need to configure environment variables for your selected LLM provider. The application will automatically validate only the variables required for your chosen provider and provide clear error messages if any are missing. See the section [LLM Authentication And URN Notes](#llm-authentication-and-urn-notes) for help on determing the URNs for you to specify in the `.env` file.
+    The system uses a **manifest-driven approach** - you only need to configure environment variables for your selected LLM provider. The application will automatically validate only the variables required for your chosen provider and provide clear error messages if any are missing. See the section [LLM Authentication And URN Notes](#llm-authentication-and-urn-notes) for help on determining the URNs for you to specify in the `.env` file.
 
-1. Ensure you have a running MongoDB [Atlas](https://www.mongodb.com/atlas) version 7.0 or greater dedicated cluster of any size/tier. You can even use an 'M0' free-tier version, although for some uses cases, the free-tier storage limit of 512MB may be insufficient. Ensure the approprate network and database access rights are configured in Atlas.
+1. Ensure you have a running MongoDB [Atlas](https://www.mongodb.com/atlas) version 7.0 or greater dedicated cluster of any size/tier. You can even use an 'M0' free-tier version, although for some uses cases, the free-tier storage limit of 512MB may be insufficient. Ensure the appropriate network and database access rights are configured in Atlas.
 
 
 ## Easy Debugging
@@ -60,16 +60,16 @@ There are various tools you need to run in a specific order (shown the next sect
 1. In the _Explorer_ select the "src/app/*.ts" or "src/app/tools/*.ts" file you want to run
 1. From the _Activity Bar_ (left panel), select the _Run and Debug_ view
 1. Execute the pre-configured task _Run and Debug TypeScript_
-    - this will run the TypeScript compiler first, and then, if successful, it will run the program in debug mode, showing its output in the _Debug Console_ of the _Status Bar_ (bottom panel). 
+    - this will run the TypeScript compiler first (and copy some EJB templates to `dist/`), and then, if successful, it will run the program in debug mode, showing its output in the _Debug Console_ of the _Status Bar_ (bottom panel). 
 
-Alternatively, you also run the compiled JavaScript files (first compiled from TypeScript using the `npm build` command) from the terminal using the `node` command. Main tools are located in `./dist/src/app/` and optional tools are in `./dist/src/app/tools/`. The command to run each tool is shown the next section.
+Alternatively, you also run the compiled JavaScript files (first compiled from TypeScript using the `npm build` command) from the terminal using the `node` command. The main tools are located in `./dist/src/app/` and optional tools are in `./dist/src/app/tools/`. The command to run each tool is shown the next section.
 
 
 ## How To Run Main Tasks
 
 (for a summary of the purpose of these tools, see the section [Analysis And Summary Capture Process](#analysis-and-summary-capture-process))
 
-1. **BUILD THE PROJECT SOURCE CODE**: First build the project (this compiles TypeScript and moves some HTML template files to project's executable path) by executing the the following command.
+1. **BUILD THE PROJECT SOURCE CODE**: First build the project (this compiles TypeScript and moves some EJS template files to project's executable path) by executing the the following command.
 
     ```console
     npm run build
@@ -82,12 +82,12 @@ Alternatively, you also run the compiled JavaScript files (first compiled from T
     node ./dist/src/app/capture-codebase.js
     ```
 
-    Note 1. If you receive LLM provider authentication/authorisaton errors when you execute the task, see the section [LLM Authentication And URN Notes](#llm-authentication-and-urn-notes) for help on configuring LLM provider credentials correctly.
+    Note 1. If you receive LLM provider authentication/authorisation errors when you execute the task, see the section [LLM Authentication And URN Notes](#llm-authentication-and-urn-notes) for help on configuring LLM provider credentials correctly.
 
-    Note 2. The task may take a few muinutes to tens of minutes to execute, depending on the complexity of the source project and the LLM used. This tool employs asynchronous IO and concurrency, but inevitably, the LLM will take time to respond to requests and may often apply throttling, which will be the main causes of slowdown. If you see messages with the character `?` in the tool's output, this indicates that the LLM is returning an "overloaded" response, and hence, the tool will transparently pause each affected LLM request job and then retry after a short wait.
+    Note 2. The task may take a few minutes to tens of minutes to execute, depending on the complexity of the source project and the LLM used. This tool employs asynchronous IO and concurrency, but inevitably, the LLM will take time to respond to requests and may often apply throttling, which will be the main causes of slowdown. If you see messages with the character `?` in the tool's output, this indicates that the LLM is returning an "overloaded" response, and hence, the tool will transparently pause each affected LLM request job and then retry after a short wait.
 
 
-1. **GENERATE INSIGHTS**: Run the following command to generate insights (e.g. identifid technology stack, business processes, DDD aggregates, potential microserices, etc.) lveraging the previously database captured sources files metadata.
+1. **GENERATE INSIGHTS**: Run the following command to generate insights (e.g. identified technology stack, business processes, DDD aggregates, potential microservices, etc.) leveraging the previously database captured sources files metadata.
 
     ```console
     node ./dist/src/app/generate-insights-from-db.js
@@ -101,10 +101,16 @@ Alternatively, you also run the compiled JavaScript files (first compiled from T
 
 ## OPTIONAL: How To Run Optional Additional Tasks
 
-1. **QUERY CODEBASE**: To adhoc query the codebase (i.e., to "talk to your code", which uses MongoDB's Vector Search capability to search the database-captured metadata), place your questions in the file `input/questions.prompts` and then run the following command to execute the queries. 
+1. **QUERY CODEBASE**: To ad hoc query the codebase (i.e., to "talk to your code", which uses MongoDB's Vector Search capability to search the database-captured metadata), place your questions in the file `input/questions.prompts` and then run the following command to execute the queries. 
 
     ```console
     node ./dist/src/app/tools/query-codebase.js
+    ```
+
+1. **LIST AVAILABLE MODELS**: To show the list of configured LLM models in this project that are candidate models that can be used in LLM completions and embeddings chains declared in `.env`.
+
+    ```console
+    node ./dist/src/app/tools/list-available-models.js
     ```
 
 1. **OTHER TOOLS**: Other optional tools are provided in the "src/app/tools" subfolder which you can explore and run. These are currently undocumented and may disappear in the future. They are primarily intended for use by this project's developers or for specialized use cases.
@@ -121,7 +127,7 @@ Execute the following command from the project's root folder:
 
 ## LLM Authentication And URN Notes
 
-During project setup, you will need to ensure you have enabled the required LLM for the requried cloud region using the cloud provider's LLM configuration tool.
+During project setup, you will need to ensure you have enabled the required LLM for the required cloud region using the cloud provider's LLM configuration tool.
 
 ### OpenAI / Azure GPT
 
@@ -129,6 +135,8 @@ Specify your API key for your own OpenAI or Azure GPT service in `.env`.
 
 
 ### GCP Vertex AI
+
+For 3rd-party (e.g. not Gemini) LLMs, such as Claude LLMs, the model needs to be Enabled first - in the GCP Console, go to "Model Garden" and enable access for the "Partner" models you require.
 
 Execute the following from shell, assuming you have already installed and configured the Google Cloud CLI (_gcloud_).
 
@@ -139,7 +147,7 @@ gcloud auth application-default login
 
 ### AWS Bedrock
 
-In the AWS Console, select the "Bedrock Configuration | Model Access" option and enable access for the models you requrie.
+In the AWS Console, select the "Bedrock Configuration | Model Access" option and enable access for the models you require.
 
 Execute the following from shell, assuming you have already installed and configured the AWS CLI, _aws_ (for a subset of people you can use MDB's SSO to access AWS account to obtain the SSO start URL):
 
@@ -154,7 +162,7 @@ aws sso login
 aws sts get-caller-identity        # to test the CLI works
 ```
 
-For some Bedrock hosted models, AWS forces you to use the ARN of an AWS "inference profile" for the particlar region for the model id. To view the region ARNs for models in Bedrock, run:
+For some Bedrock hosted models, AWS forces you to use the ARN of an AWS "inference profile" for the particular region for the model id. To view the region ARNs for models in Bedrock, run:
 
 ```console
 aws bedrock list-inference-profiles
@@ -184,7 +192,7 @@ Using captured metadata about the source files stored in the `sources` collectio
 
 ## Demonstrated LLM Capabilities
 
-The following table shows the results of using this project with various LLMs against the codebase of the legacy [Sun/Oracle Java Petstore J2EE application](https://www.oracle.com/java/technologies/petstore-v1312.html) (tested on 17-July-2024):
+The following table shows the results of using this project with various LLMs against the codebase of the legacy [Sun/Oracle Java Petstore J2EE application](https://www.oracle.com/java/technologies/petstore-v1312.html) (tested on 17-July-2025, not the types of supported models have moved on since these tests were undertaken):
 
 | LLM Hosting/API Provider | LLMs | Insight Quality <sup>1</sup> | Speed <sup>2</sup> | Average Error Rate <sup>3</sup> |
 | :---- | :---- | :---: | :---: | :---: |
@@ -198,19 +206,19 @@ The following table shows the results of using this project with various LLMs ag
 
 1. **Insight Quality**: 1 - 5, 1 = Low, 5 = High
 
-1. **Speed**: Time taken to extract insights from all source files incluing for waits/restries
+1. **Speed**: Time taken to extract insights from all source files including for waits/retries
 
 1. **Error Rate**: Proportion of requests that the LLM could not process even after retries or where the prompt had to be truncated to fit the LLM's context window
 
 
 ## LLM Routing Abstraction
 
-The `LLMRouter` class (see `src/common/llm/llm-router.ts`) enables the LLMs you use to be pluggable, Ut performs various tasks to optimize the use of the configured LLMs and their APIs, It abstracts away many of the undesirable non-functional behaviours which occur when using LLMs. These non-functional features include:
+The `LLMRouter` class (see `src/common/llm/llm-router.ts`) enables the LLMs you use to be pluggable, It performs various tasks to optimize the use of the configured LLMs and their APIs, It abstracts away many of the undesirable non-functional behaviours which occur when using LLMs. These non-functional features include:
 
-* **Pluggable LLM**.  Routes to flavour of LLM (which may have a speciifc token size limit).
+* **Pluggable LLM**.  Routes to flavour of LLM (which may have a specific token size limit).
 * **Automatic LLM Timeouts**.  Proactively times out LLM invocations if the LLM is taking too long to respond.
-* **Automatic LLM Retries**.  Detects throttling and timeout events from the LLM provider and automatically retries, several times, with pauses between each attempt.
+* **Automatic LLM Retries**.  Detects throttling and timeout events from the LLM provider and then automatically retries, several times, with pauses between each attempt.
 * **Enforce JSON Response From LLM**.  Enforces a JSON format response, validated against a prescribed JSON schema, and automatically retries if a response is invalid JSON.
-* **Automatically Fails Over To A Backup LLM**.  If the primary LLM's API response is consistently struggling to correctly process a particular prompt (e.g. repeated timeouts, repeated token limits exceeded, repeated JSON formatting issues), it automatically sends the request to a fallback LLM from the same family (if one has been specified).
-* **Reactively Crop Excessively Large Prompt**.  If the LLM response error indicates the prompt is too large, it shortens the prompt to the size instructed by the LLM's API response, if specified. It otherwise, estimates the appropriate shorter size and applies that. Note, it only crops a prompt of it has been unable to fulfill the full prompt with the fallback LLM first, in case that has a larger accomodating limit.
+* **Automatically Fails Over To A Backup LLM**.  If the first LLM in the chain's API response is consistently struggling to correctly process a particular prompt (e.g. repeated timeouts, repeated token limits exceeded, repeated JSON formatting issues), it automatically sends the request to next LLM in the chain (if one has been specified), and so on.
+* **Reactively Crop Excessively Large Prompt**.  If the LLM response error indicates the prompt is too large, it shortens the prompt to the size instructed by the LLM's API response, if specified. It otherwise, estimates the appropriate shorter size and applies that. Note, it only crops a prompt if it has been unable to fulfil the full prompt with any of the other LLMs in the declared LLM chain first (if any), in case that has a larger accommodating limit. Therefore, effectively the cropping will only occur on the last tried LLM in the chain.
 * **Provide LLM Invocation Statistics**.  Gathers LLM invocation statistics (successes, failures, retries, truncations, etc.), logging each event and then providing a final summary table of LLM statistics at the end of the tool's run.

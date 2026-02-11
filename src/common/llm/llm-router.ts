@@ -88,7 +88,15 @@ export default class LLMRouter {
       );
     }
 
-    console.log(`LLMRouter initialized with: ${this.getModelsUsedDescription()}`);
+    const completionModels = this.modelChain.completions
+      .map((e) => `${e.providerFamily}/${e.modelKey}`)
+      .join(", ");
+    const embeddingModels = this.modelChain.embeddings
+      .map((e) => `${e.providerFamily}/${e.modelKey}`)
+      .join(", ");
+    console.log(
+      `LLMRouter initialized with: Completions: [${completionModels}] | Embeddings: [${embeddingModels}]`,
+    );
   }
 
   /**
@@ -114,17 +122,32 @@ export default class LLMRouter {
   }
 
   /**
-   * Get a human-readable description of all models in the configured chains.
+   * Get a concise summary of all model keys used across completion and embedding chains.
+   * Returns a comma-separated list of unique model keys (e.g., "gpt-4, text-embedding-3-small").
    */
-  getModelsUsedDescription(): string {
-    const completionModels = this.modelChain.completions
-      .map((e) => `${e.providerFamily}/${e.modelKey}`)
-      .join(", ");
-    const embeddingModels = this.modelChain.embeddings
-      .map((e) => `${e.providerFamily}/${e.modelKey}`)
-      .join(", ");
+  getModelsUsedSummary(): string {
+    return this.getAllModelKeys().join(", ");
+  }
 
-    return `Completions: [${completionModels}] | Embeddings: [${embeddingModels}]`;
+  /**
+   * Get the model keys for all completion models in the chain.
+   */
+  getCompletionModelKeys(): readonly string[] {
+    return this.modelChain.completions.map((e) => e.modelKey);
+  }
+
+  /**
+   * Get the model keys for all embedding models in the chain.
+   */
+  getEmbeddingModelKeys(): readonly string[] {
+    return this.modelChain.embeddings.map((e) => e.modelKey);
+  }
+
+  /**
+   * Get all unique model keys across both completion and embedding chains.
+   */
+  getAllModelKeys(): readonly string[] {
+    return [...new Set([...this.getCompletionModelKeys(), ...this.getEmbeddingModelKeys()])];
   }
 
   /**

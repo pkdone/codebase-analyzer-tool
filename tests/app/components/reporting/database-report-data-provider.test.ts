@@ -477,7 +477,9 @@ describe("DatabaseReportDataProvider", () => {
       const result = await provider.getStoredProceduresAndTriggers("test-project");
 
       // All three complexity levels should be handled
-      expect(result.procedures.low + result.procedures.medium + result.procedures.high).toBe(result.procedures.total);
+      expect(result.procedures.low + result.procedures.medium + result.procedures.high).toBe(
+        result.procedures.total,
+      );
     });
   });
 

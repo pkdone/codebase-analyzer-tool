@@ -293,7 +293,7 @@ export function looksLikeTruncationMarker(text: string): boolean {
   if (trimmed.length === 0) return false;
   // Use the structural pattern for truncation indicators
   if (STRUCTURAL_PATTERNS.TRUNCATION_INDICATOR.test(trimmed)) return true;
-  
+
   // Additional structural detection for common truncation patterns
 
   // Ellipsis at end (2+ dots)

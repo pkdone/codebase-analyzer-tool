@@ -58,7 +58,7 @@ export function inferPropertyName(fragment: string, knownProperties?: readonly s
   // Strategy 2: Try inference from common short fragments
   const inferred = inferFromShortFragment(fragment, knownProperties);
   if (inferred) return inferred;
-    // Strategy 3: Fallback to "name" as the most common property name
+  // Strategy 3: Fallback to "name" as the most common property name
   return "name";
 }
 

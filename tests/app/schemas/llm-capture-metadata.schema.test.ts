@@ -197,7 +197,7 @@ describe("sourceSchema with llmCapture", () => {
 describe("appSummarySchema with capturedAt", () => {
   const validAppSummaryBase = {
     projectName: "test-project",
-    llmModels: "Completions: [openai/gpt-4] | Embeddings: [openai/text-embedding-3-small]",
+    llmModels: "gpt-4, text-embedding-3-small",
   };
 
   it("should accept app summary without capturedAt (optional)", () => {

@@ -49,10 +49,7 @@ export function safeGroup(groups: readonly (string | undefined)[], index: number
  * const [a, b, c, d] = getSafeGroups(groups, 4);
  * ```
  */
-export function getSafeGroups(
-  groups: readonly (string | undefined)[],
-  count: number,
-): string[] {
+export function getSafeGroups(groups: readonly (string | undefined)[], count: number): string[] {
   const result: string[] = [];
   for (let i = 0; i < count; i++) {
     result.push(groups.at(i) ?? "");

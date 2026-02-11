@@ -146,7 +146,7 @@ function isJsonSchemaObjectWithDataInProperties(obj: Record<string, unknown>): b
     if (Array.isArray(val)) {
       return true; // Array value = extractable data
     }
-    
+
     // Object value - check if it looks like a schema field or data
     const valObj = val as Record<string, unknown>;
 
