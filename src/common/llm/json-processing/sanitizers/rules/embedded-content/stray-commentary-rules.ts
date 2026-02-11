@@ -14,7 +14,7 @@
 import type { ReplacementRule } from "../../../../types/sanitizer-config.types";
 import { parsingHeuristics } from "../../../constants/json-processing.config";
 import { looksLikeSentenceStructure } from "../../../utils/stray-text-detection";
-import { safeGroup, safeGroups3, safeGroups4 } from "../../../utils/safe-group-extractor";
+import { safeGroup, getSafeGroups } from "../../../utils/safe-group-extractor";
 import { isValidEmbeddedContentContext } from "./llm-metadata-property-rules";
 
 /**
@@ -30,6 +30,7 @@ export const STRAY_COMMENTARY_RULES: readonly ReplacementRule[] = [
       const strayText = safeGroup(groups, 1);
       // Check if it looks like stray text
       const jsonKeywords = ["true", "false", "null"];
+
       if (jsonKeywords.includes(strayText.toLowerCase())) {
         return null;
       }
@@ -39,10 +40,11 @@ export const STRAY_COMMENTARY_RULES: readonly ReplacementRule[] = [
         strayText.includes("-") ||
         strayText.includes("_") ||
         /^[a-z]+$/.test(strayText);
+
       if (!isStray) {
         return null;
       }
-      const [delimiter, , continuation] = safeGroups3(groups);
+      const [delimiter, , continuation] = getSafeGroups(groups, 3);
       return `${delimiter}\n${continuation}`;
     },
     diagnosticMessage: (_match, groups) => {
@@ -62,7 +64,7 @@ export const STRAY_COMMENTARY_RULES: readonly ReplacementRule[] = [
       if (!sentenceText.includes(" ") || sentenceText.length <= 10) {
         return null;
       }
-      const [delimiter, , continuation] = safeGroups3(groups);
+      const [delimiter, , continuation] = getSafeGroups(groups, 3);
       return `${delimiter}\n${continuation}`;
     },
     diagnosticMessage: (_match, groups) => {
@@ -80,6 +82,7 @@ export const STRAY_COMMENTARY_RULES: readonly ReplacementRule[] = [
     replacement: (_match, groups, context) => {
       const { beforeMatch } = context;
       const isAfterDelimiter = /[}\],]\s*\n\s*$/.test(beforeMatch);
+
       if (!isAfterDelimiter && context.offset > parsingHeuristics.PROPERTY_CONTEXT_OFFSET_LIMIT) {
         return null;
       }
@@ -91,7 +94,7 @@ export const STRAY_COMMENTARY_RULES: readonly ReplacementRule[] = [
         return null;
       }
 
-      const [delimiter, , nextChar] = safeGroups3(groups);
+      const [delimiter, , nextChar] = getSafeGroups(groups, 3);
       return `${delimiter}\n${nextChar}`;
     },
     diagnosticMessage: (_match, groups) => {
@@ -110,7 +113,7 @@ export const STRAY_COMMENTARY_RULES: readonly ReplacementRule[] = [
       if (!isValidEmbeddedContentContext(context)) {
         return null;
       }
-      const [delimiter, whitespace, , propertyWithQuote] = safeGroups4(groups);
+      const [delimiter, whitespace, , propertyWithQuote] = getSafeGroups(groups, 4);
       return `${delimiter}${whitespace}${propertyWithQuote}`;
     },
     diagnosticMessage: (_match, groups) => {

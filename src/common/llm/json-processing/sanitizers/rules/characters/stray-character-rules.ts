@@ -14,7 +14,7 @@ import {
 } from "../../../utils/parser-context-utils";
 import { isJsonKeyword, looksLikeStrayText } from "../../../utils/stray-text-detection";
 import { parsingHeuristics } from "../../../constants/json-processing.config";
-import { safeGroup, safeGroups4, safeGroups5 } from "../../../utils/safe-group-extractor";
+import { safeGroup, getSafeGroups } from "../../../utils/safe-group-extractor";
 
 /**
  * Checks if text looks like stray non-JSON content before a property.
@@ -50,7 +50,7 @@ export const STRAY_CHARACTER_RULES: readonly ReplacementRule[] = [
     name: "genericStrayTextBeforeProperty",
     pattern: /([}\],]|\n|^)(\s*)([a-z][a-z\s]{0,40}?)\s*("([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:)/g,
     replacement: (_match, groups) => {
-      const [delimiter, whitespace, strayText, propertyWithQuote] = safeGroups4(groups);
+      const [delimiter, whitespace, strayText, propertyWithQuote] = getSafeGroups(groups, 4);
       const strayTextStr = strayText.trim();
 
       // Use structural detection to determine if this is stray text
@@ -76,6 +76,7 @@ export const STRAY_CHARACTER_RULES: readonly ReplacementRule[] = [
       if (!isDeepArrayContext(context)) {
         return null;
       }
+
       const prefix = safeGroup(groups, 0);
       const quotedString = safeGroup(groups, 2);
       const cleanPrefix = prefix.replace(/\s*$/, "");
@@ -113,12 +114,13 @@ export const STRAY_CHARACTER_RULES: readonly ReplacementRule[] = [
       if (!isInArrayContextSimple(context)) {
         return null;
       }
+
       const strayPrefix = safeGroup(groups, 2);
       // Skip if the prefix is a JSON keyword
       if (isJsonKeyword(strayPrefix)) {
         return null;
       }
-      const [delimiter, whitespace, , stringValue, terminator] = safeGroups5(groups);
+      const [delimiter, whitespace, , stringValue, terminator] = getSafeGroups(groups, 5);
       return `${delimiter}${whitespace}"${stringValue}"${terminator}`;
     },
     diagnosticMessage: (_match, groups) => {
@@ -155,9 +157,11 @@ export const STRAY_CHARACTER_RULES: readonly ReplacementRule[] = [
     pattern: /([}\]])\s*,\s*([a-z]{1,5})(\s*[}\]]|\s*\n\s*[{"])/g,
     replacement: (_match, groups) => {
       const strayText = safeGroup(groups, 1);
+
       if (isJsonKeyword(strayText)) {
         return null;
       }
+
       const delimiter = safeGroup(groups, 0);
       const nextToken = safeGroup(groups, 2);
       return `${delimiter},${nextToken}`;
@@ -176,12 +180,15 @@ export const STRAY_CHARACTER_RULES: readonly ReplacementRule[] = [
     pattern: /([}\],]|\n|^)(\s*)([a-z])\s+("([a-zA-Z0-9_.]+)")/g,
     replacement: (_match, groups, context) => {
       const strayChar = safeGroup(groups, 2);
+
       if (!/^[a-z]$/.test(strayChar)) {
         return null;
       }
+
       if (!isInArrayContextSimple(context)) {
         return null;
       }
+
       const delimiter = safeGroup(groups, 0);
       const whitespace = safeGroup(groups, 1);
       const quotedString = safeGroup(groups, 3);
@@ -204,9 +211,11 @@ export const STRAY_CHARACTER_RULES: readonly ReplacementRule[] = [
       const { fullContent, offset } = context;
       const matchLen = _match.length;
       const afterMatch = fullContent.substring(offset + matchLen);
+
       if (afterMatch.trim().length !== 0) {
         return null;
       }
+
       return safeGroup(groups, 0);
     },
     diagnosticMessage: (_match, groups) => {
@@ -223,10 +232,11 @@ export const STRAY_CHARACTER_RULES: readonly ReplacementRule[] = [
     name: "removePlaceholderText",
     pattern: /([}\],]|\n|^)(\s*)_[A-Z_]+_(\s*)([}\],]|\n|$)/g,
     replacement: (_match, groups) => {
-      const [before, , , after] = safeGroups4(groups);
+      const [before, , , after] = getSafeGroups(groups, 4);
       if (before.includes(",")) {
         return `${before}\n${after}`;
       }
+
       return `${before}${after}`;
     },
     diagnosticMessage: "Removed placeholder text",

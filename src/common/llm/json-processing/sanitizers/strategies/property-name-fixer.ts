@@ -34,6 +34,7 @@ function fixPropertyName(
 ): string {
   // Skip fixing if it's already a known property
   const lowerFragment = fragment.toLowerCase();
+
   if (knownProperties.some((p) => p.toLowerCase() === lowerFragment)) {
     return fragment;
   }
@@ -41,6 +42,7 @@ function fixPropertyName(
   // Strategy 1: Try dynamic matching against known properties
   if (knownProperties.length > 0) {
     const matchResult = matchPropertyName(fragment, knownProperties);
+
     if (matchResult.matched && matchResult.confidence > 0.5) {
       return matchResult.matched;
     }
@@ -49,6 +51,7 @@ function fixPropertyName(
   // Strategy 2: For very short fragments, try inference
   if (fragment.length <= 2) {
     const inferred = inferFromShortFragment(fragment, knownProperties);
+
     if (inferred) {
       return inferred;
     }
@@ -57,6 +60,7 @@ function fixPropertyName(
   // Strategy 3: Fall back to explicit mappings if provided
   if (fallbackMappings) {
     const mapped = fallbackMappings[fragment] ?? fallbackMappings[lowerFragment];
+
     if (mapped) {
       return mapped;
     }
@@ -94,15 +98,19 @@ export const propertyNameFixer: SanitizerStrategy = {
         if (isInStringAt(offset, sanitized)) {
           return _match;
         }
+
         const allParts: string[] = [firstPart as string, secondPart as string];
+
         if (additionalParts) {
           const additionalMatches = (additionalParts as string).match(/"([^"]+)"/g);
+
           if (additionalMatches) {
             for (const additionalMatch of additionalMatches) {
               allParts.push(additionalMatch.slice(1, -1));
             }
           }
         }
+
         const mergedName = allParts.join("");
         hasChanges = true;
         diagnostics.add(
@@ -114,6 +122,7 @@ export const propertyNameFixer: SanitizerStrategy = {
 
     // Pass 2: Fix property names with missing opening quotes
     let previousPass2 = "";
+
     while (previousPass2 !== sanitized) {
       previousPass2 = sanitized;
       const missingOpeningQuotePattern = /(\s*)([a-zA-Z_$][a-zA-Z0-9_$.-]*)"\s*:/g;
@@ -132,6 +141,7 @@ export const propertyNameFixer: SanitizerStrategy = {
           }
 
           let isAfterPropertyBoundary = false;
+
           if (offset > 0) {
             const beforeMatch = sanitized.substring(
               Math.max(0, offset - parsingHeuristics.PROPERTY_CONTEXT_OFFSET_LIMIT),
@@ -147,6 +157,7 @@ export const propertyNameFixer: SanitizerStrategy = {
 
           // Use dynamic matching to fix the property name
           let fixedName: string;
+
           if (propertyNameStr.endsWith("_")) {
             const withoutUnderscore = propertyNameStr.slice(0, -1);
             fixedName = fixPropertyName(withoutUnderscore, knownProperties, PROPERTY_NAME_MAPPINGS);
@@ -192,6 +203,7 @@ export const propertyNameFixer: SanitizerStrategy = {
           // Fallback to dynamic property name matching
           if (!fixedName) {
             fixedName = fixPropertyName(shortNameStr, knownProperties, PROPERTY_NAME_MAPPINGS);
+
             if (fixedName === shortNameStr) {
               // No match found, skip this replacement
               return match;
@@ -272,6 +284,7 @@ export const propertyNameFixer: SanitizerStrategy = {
 
     // Pass 3: Fix property names with missing colon (both patterns)
     let previousPass3 = "";
+
     while (previousPass3 !== sanitized) {
       previousPass3 = sanitized;
       // Pattern 3a: "name" "value" -> "name": "value" (missing colon between quoted strings)
@@ -299,17 +312,20 @@ export const propertyNameFixer: SanitizerStrategy = {
               );
               let quoteCount = 0;
               let escape = false;
+
               for (const char of largerContext) {
                 if (escape) {
                   escape = false;
                   continue;
                 }
+
                 if (char === "\\") {
                   escape = true;
                 } else if (char === '"') {
                   quoteCount++;
                 }
               }
+
               if (quoteCount % 2 === 1) {
                 return match;
               }
@@ -348,17 +364,20 @@ export const propertyNameFixer: SanitizerStrategy = {
               );
               let quoteCount = 0;
               let escape = false;
+
               for (const char of largerContext) {
                 if (escape) {
                   escape = false;
                   continue;
                 }
+
                 if (char === "\\") {
                   escape = true;
                 } else if (char === '"') {
                   quoteCount++;
                 }
               }
+
               if (quoteCount % 2 === 1) {
                 return match;
               }
@@ -385,6 +404,7 @@ export const propertyNameFixer: SanitizerStrategy = {
         diagnostics.add(`Fixed truncated property name: ${propertyNameStr} -> ${fixedName}`);
         return `${whitespace}"${fixedName}"`;
       }
+
       return match;
     });
 
@@ -437,18 +457,16 @@ export const propertyNameFixer: SanitizerStrategy = {
     const quotedPropertyPattern = /"([^"]+)"\s*:/g;
     sanitized = sanitized.replace(
       quotedPropertyPattern,
-      (match, propertyName: unknown, offset: number) => {
-        const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
-
-        if (isInStringAt(offset, sanitized)) {
+      (match, propertyName: string, _offset: number) => {
+        if (isInStringAt(_offset, sanitized)) {
           return match;
         }
 
         // Check explicit typo corrections first
-        if (PROPERTY_TYPO_CORRECTIONS[propertyNameStr]) {
-          const fixedName = PROPERTY_TYPO_CORRECTIONS[propertyNameStr];
+        if (PROPERTY_TYPO_CORRECTIONS[propertyName]) {
+          const fixedName = PROPERTY_TYPO_CORRECTIONS[propertyName];
           hasChanges = true;
-          diagnostics.add(`Fixed property name typo: "${propertyNameStr}" -> "${fixedName}"`);
+          diagnostics.add(`Fixed property name typo: "${propertyName}" -> "${fixedName}"`);
           return `"${fixedName}":`;
         }
 
@@ -510,6 +528,7 @@ export const propertyNameFixer: SanitizerStrategy = {
         // Skip JSON keywords
         const lowerPropertyName = propertyNameStr.toLowerCase();
         const jsonKeywords = ["true", "false", "null", "undefined"];
+
         if (jsonKeywords.includes(lowerPropertyName)) {
           return match;
         }
@@ -537,6 +556,7 @@ export const propertyNameFixer: SanitizerStrategy = {
         const lowerPropertyName = propertyNameStr.toLowerCase();
 
         const propertyStartOffset = offset + delimiterStr.length + whitespaceStr.length;
+
         if (
           propertyStartOffset > 0 &&
           sanitized[propertyStartOffset - 1] === DELIMITERS.DOUBLE_QUOTE
@@ -549,6 +569,7 @@ export const propertyNameFixer: SanitizerStrategy = {
         }
 
         let isValidContext = false;
+
         if (
           /[{,}\],]/.test(delimiterStr) ||
           delimiterStr === "\n" ||
@@ -560,6 +581,7 @@ export const propertyNameFixer: SanitizerStrategy = {
 
         if (!isValidContext && offset > 0) {
           const charBefore = sanitized[offset - 1];
+
           if (
             charBefore === "," ||
             charBefore === "}" ||
@@ -573,6 +595,7 @@ export const propertyNameFixer: SanitizerStrategy = {
 
         if (isValidContext) {
           const jsonKeywords = ["true", "false", "null", "undefined"];
+
           if (jsonKeywords.includes(lowerPropertyName)) {
             return match;
           }

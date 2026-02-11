@@ -119,10 +119,12 @@ export function renderNode(node: MermaidNode, indent: string): string {
  */
 export function renderEdge(edge: MermaidEdge, indent: string): string {
   const edgeSyntax = getEdgeSyntax(edge.type);
+
   if (edge.label) {
     const escapedLabel = escapeMermaidLabel(edge.label);
     return `${indent}${edge.from} ${edgeSyntax}|"${escapedLabel}"| ${edge.to}`;
   }
+
   return `${indent}${edge.from} ${edgeSyntax} ${edge.to}`;
 }
 

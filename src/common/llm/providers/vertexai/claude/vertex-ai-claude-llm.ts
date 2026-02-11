@@ -52,8 +52,8 @@ export default class VertexAIClaudeLLM extends BaseLLMProvider {
         "Invalid VertexAI Claude provider-specific configuration",
       );
     }
-    this.typedProviderConfig = this.providerSpecificConfig;
 
+    this.typedProviderConfig = this.providerSpecificConfig;
     // Initialize the AnthropicVertex client with timeout from provider config
     // Must be under 10 minutes for non-streaming requests (SDK limitation)
     this.client = new AnthropicVertex({
@@ -85,10 +85,9 @@ export default class VertexAIClaudeLLM extends BaseLLMProvider {
     prompt: string,
     _options?: LLMCompletionOptions,
   ): Promise<LLMImplSpecificResponseSummary> {
-    const maxCompletionTokens = this.getRequiredMaxCompletionTokens(modelKey);
+    const maxCompletionTokens = this.ensureMaxCompletionTokens(modelKey);
     const temperature = this.providerSpecificConfig.temperature ?? llmConfig.DEFAULT_ZERO_TEMP;
     const betaFlags = this.typedProviderConfig.anthropicBetaFlags;
-
     // Build request parameters
     const requestParams = {
       model: this.llmModelsMetadata[modelKey].urn,
@@ -101,7 +100,6 @@ export default class VertexAIClaudeLLM extends BaseLLMProvider {
       ],
       temperature,
     };
-
     // Use beta API when anthropicBetaFlags is configured (for 1M context), otherwise use standard API
     const response =
       betaFlags && betaFlags.length > 0
@@ -113,6 +111,7 @@ export default class VertexAIClaudeLLM extends BaseLLMProvider {
 
     // Parse and validate response
     const parseResult = ClaudeCompletionResponseSchema.safeParse(response);
+
     if (!parseResult.success) {
       throw new LLMError(
         LLMErrorCode.BAD_RESPONSE_CONTENT,
@@ -129,10 +128,8 @@ export default class VertexAIClaudeLLM extends BaseLLMProvider {
         ?.filter((block) => block.type === "text")
         .map((block) => block.text)
         .join("") ?? "";
-
     // Check if response was truncated due to max tokens
     const isIncompleteResponse = parsedResponse.stop_reason === "max_tokens";
-
     return {
       isIncompleteResponse,
       responseContent: responseText,
@@ -141,20 +138,6 @@ export default class VertexAIClaudeLLM extends BaseLLMProvider {
         completionTokens: parsedResponse.usage?.output_tokens,
       },
     };
-  }
-
-  /**
-   * Get the required max completion tokens for the specified model.
-   */
-  protected getRequiredMaxCompletionTokens(modelKey: string): number {
-    const modelMetadata = this.llmModelsMetadata[modelKey];
-    if (!modelMetadata.maxCompletionTokens) {
-      throw new LLMError(
-        LLMErrorCode.BAD_CONFIGURATION,
-        `Model ${modelKey} does not have maxCompletionTokens configured`,
-      );
-    }
-    return modelMetadata.maxCompletionTokens;
   }
 
   /**
@@ -205,5 +188,19 @@ export default class VertexAIClaudeLLM extends BaseLLMProvider {
       errorLower.includes("context length exceeded") ||
       errorLower.includes("request too large")
     );
+  }
+
+  /**
+   * Ensure maxCompletionTokens is configured for the specified model.
+   */
+  private ensureMaxCompletionTokens(modelKey: string): number {
+    const modelMetadata = this.llmModelsMetadata[modelKey];
+    if (!modelMetadata.maxCompletionTokens) {
+      throw new LLMError(
+        LLMErrorCode.BAD_CONFIGURATION,
+        `Model ${modelKey} does not have maxCompletionTokens configured`,
+      );
+    }
+    return modelMetadata.maxCompletionTokens;
   }
 }

@@ -120,11 +120,13 @@ export class DomainModelDiagramGenerator extends BaseDiagramGenerator<DomainDiag
 
         // Find which aggregate this entity belongs to and connect to it
         const connectedAggId = this.findEntityAggregate(entity, context.aggregates, aggregateIds);
+
         if (connectedAggId) {
           builder.addEdge(connectedAggId, entityId, undefined, "dotted");
         } else if (aggregateIds.size > 0) {
           // Connect to first aggregate as fallback
           const firstAggId = aggregateIds.values().next().value;
+
           if (firstAggId) {
             builder.addEdge(firstAggId, entityId, undefined, "dotted");
           }
@@ -148,6 +150,7 @@ export class DomainModelDiagramGenerator extends BaseDiagramGenerator<DomainDiag
         return aggregateIds.get(aggregate.name);
       }
     }
+
     return undefined;
   }
 }

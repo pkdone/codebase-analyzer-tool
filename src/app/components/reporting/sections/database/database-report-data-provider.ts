@@ -39,6 +39,7 @@ export class DatabaseReportDataProvider {
     const records = await this.sourcesRepository.getProjectDatabaseIntegrations(projectName);
     return records.flatMap((record) => {
       const { summary } = record;
+
       if (summary?.databaseIntegration) {
         const db = summary.databaseIntegration;
         return [
@@ -58,6 +59,7 @@ export class DatabaseReportDataProvider {
           },
         ];
       }
+
       return []; // This item will be filtered out by flatMap
     });
   }
@@ -81,6 +83,7 @@ export class DatabaseReportDataProvider {
           })),
         );
       }
+
       if (record.summary?.triggers) {
         allTrigs.push(
           ...record.summary.triggers.map((trig) => ({ ...trig, filepath: record.filepath })),

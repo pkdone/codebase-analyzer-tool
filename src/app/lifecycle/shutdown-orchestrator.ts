@@ -48,6 +48,7 @@ export class ShutdownOrchestrator {
 
     // Shutdown LLM providers and check if any require forced exit
     let providersRequiringExit: string[] = [];
+
     if (this.llmRouter) {
       providersRequiringExit = this.llmRouter.getProvidersRequiringProcessExit();
       await this.llmRouter.shutdown();

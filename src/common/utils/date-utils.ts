@@ -47,6 +47,7 @@ export function formatDateForDisplay(
     // Return ISO format for locale neutrality when no locale specified
     return date.toISOString();
   }
+
   return new Intl.DateTimeFormat(locale, options).format(date);
 }
 

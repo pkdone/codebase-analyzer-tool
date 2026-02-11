@@ -96,6 +96,7 @@ function processArtifactMatches(
 
     for (const match of sanitized.matchAll(pattern)) {
       const numericOffset = match.index;
+
       if (isInString(numericOffset)) {
         continue;
       }
@@ -121,10 +122,12 @@ function processArtifactMatches(
         if (config.useFallbackOnParseFailure) {
           // Try fallback to next comma or newline
           const nextComma = sanitized.indexOf(",", valueStartPos);
+
           if (nextComma !== -1) {
             valueEndPos = nextComma + 1;
           } else {
             const nextNewline = sanitized.indexOf("\n", valueStartPos);
+
             if (nextNewline !== -1) {
               valueEndPos = nextNewline;
             } else {
@@ -141,6 +144,7 @@ function processArtifactMatches(
       while (valueEndPos < sanitized.length && /\s/.test(sanitized[valueEndPos])) {
         valueEndPos++;
       }
+
       if (valueEndPos < sanitized.length && sanitized[valueEndPos] === ",") {
         valueEndPos++;
       }
@@ -159,17 +163,21 @@ function processArtifactMatches(
       let after = sanitized.substring(m.end);
 
       let replacement = "";
+
       if (m.delimiter === ",") {
         replacement = "";
         const beforeTrimmed = before.trimEnd();
         const afterTrimmed = after.trimStart();
+
         if (
           (beforeTrimmed.endsWith("]") || beforeTrimmed.endsWith("}")) &&
           afterTrimmed.startsWith('"')
         ) {
           replacement = ",";
         }
+
         after = after.trimStart();
+
         if (after.startsWith(",")) {
           after = after.substring(1).trimStart();
         }
@@ -198,6 +206,7 @@ export const extraPropertiesRemover: SanitizerStrategy = {
 
   apply(input: string, config?: LLMSanitizerConfig): StrategyResult {
     const knownProperties = config?.knownProperties;
+
     if (!input) {
       return { content: input, changed: false, repairs: [] };
     }

@@ -34,6 +34,7 @@ export function normalizeTokenUsage(
   // Estimate prompt tokens if unknown, ensuring the value exceeds the limit
   // to trigger cropping behavior in the execution pipeline
   let promptTokens = tokenUsage.promptTokens;
+
   if (promptTokens === undefined) {
     const estimatedPromptTokensConsumed = Math.floor(
       request.length / llmConfig.AVERAGE_CHARS_PER_TOKEN,

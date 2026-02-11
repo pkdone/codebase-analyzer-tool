@@ -36,7 +36,6 @@ describe("BomDataProvider", () => {
       insertSource: jest.fn(),
       insertSources: jest.fn(),
       deleteSourcesByProject: jest.fn(),
-      doesProjectSourceExist: jest.fn(),
       getProjectDatabaseIntegrations: jest.fn(),
       getProjectStoredProceduresAndTriggers: jest.fn(),
       vectorSearchProjectSources: jest.fn(),

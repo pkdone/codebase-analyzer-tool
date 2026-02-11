@@ -46,6 +46,7 @@ export const fixLlmTokenArtifacts: Sanitizer = (jsonString: string): SanitizerRe
 
       // Check if there's an opening brace immediately after the artifact
       const afterArtifact = sanitized.substring(offset + match.length, offset + match.length + 1);
+
       if (afterArtifact === "{") {
         // The artifact is before an opening brace, just remove the artifact
         hasChanges = true;

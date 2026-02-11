@@ -57,6 +57,7 @@ export const LLM_METADATA_PROPERTY_RULES: readonly ReplacementRule[] = [
         const cleanedNext = nextStr.trimStart();
         return `${delimiterStr}${whitespaceStr}${cleanedNext}`;
       }
+
       return `${delimiterStr}${whitespaceStr}`;
     },
     diagnosticMessage: (_match, groups) => {

@@ -47,9 +47,11 @@ const mongoSchemaOptions = {
     if (hasDescription(def)) {
       if (def.description === "bson:objectId") return { bsonType: "objectId" } as JsonSchema7Type;
     }
+
     if (hasTypeName(def) && def.typeName === z.ZodFirstPartyTypeKind.ZodDate) {
       return { bsonType: "date" } as JsonSchema7Type;
     }
+
     return ignoreOverride;
   },
 };

@@ -68,6 +68,7 @@ export interface EmbeddingResponseSummary {
  */
 export function extractEmbeddingResponse(llmResponse: unknown): EmbeddingResponseSummary {
   const validation = BedrockEmbeddingsResponseSchema.safeParse(llmResponse);
+
   if (!validation.success) {
     throw new LLMError(
       LLMErrorCode.BAD_RESPONSE_CONTENT,
@@ -75,6 +76,7 @@ export function extractEmbeddingResponse(llmResponse: unknown): EmbeddingRespons
       llmResponse,
     );
   }
+
   const response = validation.data;
   const responseContent = response.embedding ?? [];
   // If no content assume prompt maxed out total tokens available

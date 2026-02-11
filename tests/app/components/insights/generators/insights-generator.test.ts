@@ -41,7 +41,6 @@ describe("InsightsGenerator - Map-Reduce Strategy", () => {
       insertSource: jest.fn().mockResolvedValue(undefined),
       insertSources: jest.fn().mockResolvedValue(undefined),
       deleteSourcesByProject: jest.fn().mockResolvedValue(undefined),
-      doesProjectSourceExist: jest.fn().mockResolvedValue(false),
       getProjectSourcesSummariesByFileExtension: jest.fn().mockResolvedValue([]),
       getProjectSourcesSummariesByCanonicalType: jest.fn().mockResolvedValue([]),
       getProjectDatabaseIntegrations: jest.fn().mockResolvedValue([]),

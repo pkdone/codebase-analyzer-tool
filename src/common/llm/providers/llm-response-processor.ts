@@ -5,7 +5,6 @@ import {
   LLMCompletionOptions,
   LLMOutputFormat,
 } from "../types/llm-request.types";
-import type { ResolvedLLMModelMetadata } from "../types/llm-model.types";
 import {
   LLMResponseStatus,
   LLMResponsePayload,
@@ -37,7 +36,6 @@ export interface ResponseBase {
  */
 export interface LLMResponseProcessorDeps {
   readonly errorLogger: LLMErrorLogger;
-  readonly llmModelsMetadata: Record<string, ResolvedLLMModelMetadata>;
 }
 
 /**
@@ -47,7 +45,6 @@ export interface LLMResponseProcessorDeps {
  * - JSON response parsing and validation
  * - TEXT response validation
  * - Error logging for failed JSON processing
- * - Debug logging for unhandled errors
  *
  * Extracted from BaseLLMProvider to improve single responsibility principle (SRP)
  * and enable isolated testing of response processing logic.
@@ -57,7 +54,6 @@ export interface LLMResponseProcessorDeps {
  */
 export class LLMResponseProcessor {
   private readonly errorLogger: LLMErrorLogger;
-  private readonly llmModelsMetadata: Record<string, ResolvedLLMModelMetadata>;
 
   /**
    * Creates a new LLM response processor.
@@ -66,7 +62,6 @@ export class LLMResponseProcessor {
    */
   constructor(deps: LLMResponseProcessorDeps) {
     this.errorLogger = deps.errorLogger;
-    this.llmModelsMetadata = deps.llmModelsMetadata;
   }
 
   /**
@@ -215,26 +210,6 @@ export class LLMResponseProcessor {
       // JSON output format with a schema.
       generated: responseContent as z.infer<S>,
     };
-  }
-
-  /**
-   * Used for debugging purposes - prints the error type and message to the console.
-   *
-   * @param error - The error that occurred
-   * @param modelKey - The model key that experienced the error
-   */
-  debugUnhandledError(error: unknown, modelKey: string): void {
-    const urn = this.llmModelsMetadata[modelKey].urn;
-    const details = formatError(error);
-
-    if (error instanceof Error) {
-      console.log(
-        `[DEBUG] Error Name: ${error.name}, Constructor: ${error.constructor.name}, ` +
-          `Details: ${details}, URN: ${urn}`,
-      );
-    } else {
-      console.log(`[DEBUG] Non-Error type: ${typeof error}, Details: ${details}, URN: ${urn}`);
-    }
   }
 
   // ============================================================================

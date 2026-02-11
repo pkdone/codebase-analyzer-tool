@@ -43,6 +43,7 @@ export class ModuleCouplingDataProvider {
       }
 
       const fromModule = this.extractModuleName(file.filepath, moduleDepth);
+
       if (!fromModule) {
         continue;
       }
@@ -52,6 +53,7 @@ export class ModuleCouplingDataProvider {
       // Process each internal reference
       for (const reference of file.summary.internalReferences) {
         const toModule = this.extractModuleNameFromReference(reference, file.filepath, moduleDepth);
+
         if (!toModule || toModule === fromModule) {
           // Skip self-references
           continue;
@@ -95,9 +97,11 @@ export class ModuleCouplingDataProvider {
       if (a.referenceCount !== b.referenceCount) {
         return b.referenceCount - a.referenceCount;
       }
+
       if (a.fromModule !== b.fromModule) {
         return a.fromModule.localeCompare(b.fromModule);
       }
+
       return a.toModule.localeCompare(b.toModule);
     });
 
@@ -167,15 +171,18 @@ export class ModuleCouplingDataProvider {
         const resolvedPath = path.join(sourceDir, reference);
         return this.extractModuleName(resolvedPath, depth);
       }
+
       return this.extractModuleName(reference, depth);
     }
 
     // If reference looks like a Java/C# namespace (contains dots), split by dots
     if (reference.includes(".")) {
       const segments = reference.split(".");
+
       if (segments.length < depth) {
         return null;
       }
+
       return segments.slice(0, depth).join(".");
     }
 

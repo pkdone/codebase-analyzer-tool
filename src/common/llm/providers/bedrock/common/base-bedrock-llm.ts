@@ -81,7 +81,7 @@ export default abstract class BaseBedrockLLM extends BaseLLMProvider {
    * // Automatically closes when scope exits
    * ```
    */
-  async [Symbol.asyncDispose](): Promise<void> {
+  override async [Symbol.asyncDispose](): Promise<void> {
     await this.close();
   }
 
@@ -92,6 +92,7 @@ export default abstract class BaseBedrockLLM extends BaseLLMProvider {
   override async validateCredentials(): Promise<void> {
     try {
       const credentials = this.client.config.credentials;
+
       if (typeof credentials === "function") {
         await credentials();
       }
@@ -103,6 +104,7 @@ export default abstract class BaseBedrockLLM extends BaseLLMProvider {
           error,
         );
       }
+
       throw error;
     }
   }
@@ -182,21 +184,23 @@ export default abstract class BaseBedrockLLM extends BaseLLMProvider {
   }
 
   /**
-   * Get the required maxCompletionTokens for a model, throwing if not configured.
+   * Ensure maxCompletionTokens is configured for a model, throwing if not.
    * Centralizes the validation pattern used across all Bedrock providers.
    *
    * @param modelKey - The model key to look up
    * @returns The maxCompletionTokens value (guaranteed to be defined)
    * @throws LLMError with BAD_CONFIGURATION code if maxCompletionTokens is undefined
    */
-  protected getRequiredMaxCompletionTokens(modelKey: string): number {
+  protected ensureMaxCompletionTokens(modelKey: string): number {
     const maxCompletionTokens = this.llmModelsMetadata[modelKey].maxCompletionTokens;
+
     if (maxCompletionTokens === undefined) {
       throw new LLMError(
         LLMErrorCode.BAD_CONFIGURATION,
         `maxCompletionTokens is undefined for model key: ${modelKey}`,
       );
     }
+
     return maxCompletionTokens;
   }
 

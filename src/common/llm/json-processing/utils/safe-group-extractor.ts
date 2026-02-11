@@ -10,9 +10,9 @@
  * const valueStr = value ?? "";
  * ```
  *
- * Rules can now use type-safe tuple extractors:
+ * Rules can now use the generic tuple extractor:
  * ```typescript
- * const [delimiter, whitespace, value] = safeGroups3(groups);
+ * const [delimiter, whitespace, value] = getSafeGroups(groups, 3);
  * // All values are guaranteed to be strings (empty string if undefined)
  * ```
  */
@@ -32,44 +32,30 @@
  * ```
  */
 export function safeGroup(groups: readonly (string | undefined)[], index: number): string {
-  return groups[index] ?? "";
+  return groups.at(index) ?? "";
 }
 
 /**
- * Type-safe tuple extractor for exactly 3 capture groups.
- * Provides better type inference than a generic function.
+ * Generic tuple extractor for a specified number of capture groups.
+ * Extracts `count` groups from the match, defaulting each to empty string if undefined.
  *
  * @param groups - The capture groups array from a regex match
- * @returns Tuple of 3 guaranteed strings
- */
-export function safeGroups3(
-  groups: readonly (string | undefined)[],
-): readonly [string, string, string] {
-  return [groups[0] ?? "", groups[1] ?? "", groups[2] ?? ""];
-}
-
-/**
- * Type-safe tuple extractor for exactly 4 capture groups.
- * Provides better type inference than a generic function.
+ * @param count - The number of groups to extract
+ * @returns An array of `count` guaranteed strings
  *
- * @param groups - The capture groups array from a regex match
- * @returns Tuple of 4 guaranteed strings
+ * @example
+ * ```typescript
+ * const [delimiter, whitespace, value] = getSafeGroups(groups, 3);
+ * const [a, b, c, d] = getSafeGroups(groups, 4);
+ * ```
  */
-export function safeGroups4(
+export function getSafeGroups(
   groups: readonly (string | undefined)[],
-): readonly [string, string, string, string] {
-  return [groups[0] ?? "", groups[1] ?? "", groups[2] ?? "", groups[3] ?? ""];
-}
-
-/**
- * Type-safe tuple extractor for exactly 5 capture groups.
- * Provides better type inference than a generic function.
- *
- * @param groups - The capture groups array from a regex match
- * @returns Tuple of 5 guaranteed strings
- */
-export function safeGroups5(
-  groups: readonly (string | undefined)[],
-): readonly [string, string, string, string, string] {
-  return [groups[0] ?? "", groups[1] ?? "", groups[2] ?? "", groups[3] ?? "", groups[4] ?? ""];
+  count: number,
+): string[] {
+  const result: string[] = [];
+  for (let i = 0; i < count; i++) {
+    result.push(groups.at(i) ?? "");
+  }
+  return result;
 }

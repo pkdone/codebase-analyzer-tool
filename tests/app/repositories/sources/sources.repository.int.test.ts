@@ -114,7 +114,7 @@ describe("SourcesRepository Integration Tests", () => {
         // All results should be from the test project and TypeScript files
         results.forEach((result) => {
           expect(result.projectName).toBe(projectName);
-          expect(result.fileType).toBe("ts");
+          expect(result.fileExtension).toBe("ts");
           expect(result.content).toBeDefined();
           expect(result.summary).toBeDefined();
         });
@@ -417,7 +417,7 @@ describe("SourcesRepository Integration Tests", () => {
   });
 
   describe("Basic CRUD Operations Integration", () => {
-    it("should insert and check existence correctly", async () => {
+    it("should insert and retrieve file paths correctly", async () => {
       // Arrange
       const testRecord: SourceRecord = {
         projectName,
@@ -431,15 +431,10 @@ describe("SourcesRepository Integration Tests", () => {
       // Act: Insert
       await sourcesRepository.insertSource(testRecord);
 
-      // Assert: Check existence
-      const exists = await sourcesRepository.doesProjectSourceExist(projectName, "src/test.ts");
-      expect(exists).toBe(true);
-
-      const notExists = await sourcesRepository.doesProjectSourceExist(
-        projectName,
-        "src/nonexistent.ts",
-      );
-      expect(notExists).toBe(false);
+      // Assert: Check existence via file paths
+      const paths = await sourcesRepository.getProjectFilesPaths(projectName);
+      expect(paths).toContain("src/test.ts");
+      expect(paths).not.toContain("src/nonexistent.ts");
     }, 30000);
 
     it("should delete sources by project correctly", async () => {

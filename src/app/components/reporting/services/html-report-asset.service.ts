@@ -99,6 +99,7 @@ export class HtmlReportAssetService {
 
       console.log("Downloading Mermaid.js for offline report support...");
       const response = await fetch(this.outputConfig.externalAssets.MERMAID_CDN_UMD_URL);
+
       if (!response.ok) {
         throw new Error(`Failed to download Mermaid.js: ${response.status} ${response.statusText}`);
       }

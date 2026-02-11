@@ -79,22 +79,19 @@ export function convertNullToEmptyStringForRequiredFields(
       const result: Record<string | symbol, unknown> = {};
       let changed = false;
 
-      for (const key in val) {
-        if (Object.hasOwn(val, key)) {
-          const propValue = val[key];
-
-          // Convert null to empty string for candidate string fields
-          if (propValue === null && STRING_FIELD_CANDIDATES.has(key)) {
-            result[key] = "";
-            changed = true;
-          } else {
-            result[key] = propValue;
-          }
+      for (const [key, propValue] of Object.entries(val)) {
+        // Convert null to empty string for candidate string fields
+        if (propValue === null && STRING_FIELD_CANDIDATES.has(key)) {
+          result[key] = "";
+          changed = true;
+        } else {
+          result[key] = propValue;
         }
       }
 
       // Preserve symbol keys - properly typed, no cast needed
       const symbols = Object.getOwnPropertySymbols(val);
+
       for (const sym of symbols) {
         result[sym] = val[sym];
       }

@@ -171,7 +171,6 @@ export const FILE_TYPE_REGISTRY: Readonly<Record<string, FileTypeEntry>> = {
 
 /**
  * Derives the list of code file extensions from the registry.
- * This replaces the manually maintained CODE_FILE_EXTENSIONS array.
  *
  * @returns A readonly array of extensions that are classified as code files
  */
@@ -183,15 +182,16 @@ export function getEnabledCodeExtensions(): readonly string[] {
 
 /**
  * Derives the extension to type map from the registry.
- * This replaces the manually maintained EXTENSION_TO_TYPE_MAP.
  *
  * @returns A readonly record mapping extensions to canonical types
  */
 export function deriveExtensionToTypeMap(): Readonly<Record<string, CanonicalFileType>> {
   const map: Record<string, CanonicalFileType> = {};
+
   for (const [ext, entry] of Object.entries(FILE_TYPE_REGISTRY)) {
     map[ext] = entry.canonicalType;
   }
+
   return map;
 }
 

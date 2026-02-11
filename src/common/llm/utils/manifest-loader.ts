@@ -15,11 +15,13 @@ export function loadManifestForProviderFamily(
   registry: LLMProviderRegistry,
 ): LLMProviderManifest {
   const manifest = registry.get(providerFamily.toLowerCase());
+
   if (!manifest) {
     throw new LLMError(
       LLMErrorCode.BAD_CONFIGURATION,
       `No provider manifest found for provider family: ${providerFamily}. Available families: ${Array.from(registry.keys()).join(", ")}`,
     );
   }
+
   return manifest;
 }

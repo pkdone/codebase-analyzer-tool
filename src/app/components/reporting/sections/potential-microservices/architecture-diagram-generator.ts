@@ -70,6 +70,7 @@ export class ArchitectureDiagramGenerator extends BaseDiagramGenerator<Architect
 
     // Group services into rows for grid layout
     const rows: string[][] = [];
+
     for (let i = 0; i < microservices.length; i += architectureConfig.SERVICES_PER_ROW) {
       rows.push(
         microservices.slice(i, i + architectureConfig.SERVICES_PER_ROW).map((s, idx) => {

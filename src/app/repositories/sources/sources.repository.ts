@@ -104,21 +104,6 @@ export default class SourcesRepositoryImpl
   }
 
   /**
-   * Check if a source file already exists for a project
-   */
-  async doesProjectSourceExist(projectName: string, filepath: string): Promise<boolean> {
-    const query = {
-      projectName,
-      filepath,
-    };
-    const options = {
-      projection: { _id: 1 },
-    };
-    const result = await this.collection.findOne(query, options);
-    return result !== null;
-  }
-
-  /**
    * Get source file summaries for a project filtered by file extension
    */
   async getProjectSourcesSummariesByFileExtension(

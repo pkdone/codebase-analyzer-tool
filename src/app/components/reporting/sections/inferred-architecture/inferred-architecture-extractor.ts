@@ -90,6 +90,7 @@ export function extractInferredArchitectureData(
   // The data array contains a single item with the architecture structure
   // Use type guard to validate the structure before accessing properties
   const rawData = inferredArchitectureCategory.data[0];
+
   if (!isInferredArchitectureCategoryData(rawData)) {
     return null;
   }

@@ -73,6 +73,7 @@ function loadEnvIncludingLLMVars(): EnvVars {
 
     // First, parse just the base schema to get the model chains
     const baseResult = baseEnvVarsSchema.safeParse(rawEnv);
+
     if (!baseResult.success) {
       throw baseResult.error;
     }
@@ -92,6 +93,7 @@ function loadEnvIncludingLLMVars(): EnvVars {
     // Build combined schema from all required provider manifests
     // Use z.object with passthrough for flexible schema merging
     let combinedShape: z.ZodRawShape = { ...baseEnvVarsSchema.shape };
+
     for (const family of allFamilies) {
       const manifest = loadManifestForProviderFamily(family, APP_PROVIDER_REGISTRY);
       combinedShape = { ...combinedShape, ...manifest.envSchema.shape };

@@ -64,7 +64,6 @@ export function createProviderConfigValidator<T>(
     isValid(obj: unknown): obj is T {
       return schema.safeParse(obj).success;
     },
-
     assert(obj: unknown): T {
       if (!obj || typeof obj !== "object") {
         throw new LLMError(
@@ -74,6 +73,7 @@ export function createProviderConfigValidator<T>(
       }
 
       const result = schema.safeParse(obj);
+
       if (result.success) {
         // Merge parsed result (with defaults) with extra properties from original object
         // This preserves backward compatibility while applying schema defaults
@@ -87,7 +87,6 @@ export function createProviderConfigValidator<T>(
           return path ? `${path}: ${issue.message}` : issue.message;
         })
         .join(", ");
-
       throw new LLMError(
         LLMErrorCode.BAD_CONFIGURATION,
         `Invalid ${configName} configuration - ${fieldErrors}`,

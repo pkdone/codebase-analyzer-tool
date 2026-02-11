@@ -19,12 +19,14 @@ const AZURE_OPENAI_ENDPOINT_KEY = "AZURE_OPENAI_ENDPOINT";
 function extractAzureOpenAIConfig(providerParams: Record<string, unknown>): AzureOpenAIConfig {
   const apiKey = providerParams[AZURE_OPENAI_LLM_API_KEY];
   const endpoint = providerParams[AZURE_OPENAI_ENDPOINT_KEY];
+
   if (typeof apiKey !== "string" || typeof endpoint !== "string") {
     throw new LLMError(
       LLMErrorCode.BAD_CONFIGURATION,
       "Invalid Azure OpenAI config: apiKey and endpoint must be strings",
     );
   }
+
   return { apiKey, endpoint };
 }
 // Azure-specific: each model needs its own deployment name for routing

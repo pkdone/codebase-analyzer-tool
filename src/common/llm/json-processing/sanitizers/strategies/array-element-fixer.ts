@@ -32,6 +32,7 @@ function applyPrefixReplacements(
       };
     }
   }
+
   return { fixed: value, wasFixed: false };
 }
 
@@ -79,6 +80,7 @@ export const arrayElementFixer: SanitizerStrategy = {
             unquotedValueStr,
             PACKAGE_NAME_PREFIX_REPLACEMENTS,
           );
+
           if (result.wasFixed) {
             fixedValue = result.fixed;
             hasChanges = true;
@@ -96,6 +98,7 @@ export const arrayElementFixer: SanitizerStrategy = {
             hasChanges = true;
             diagnostics.add(`Fixed missing opening quote in array element: ${unquotedValueStr}"`);
           }
+
           return `${prefixStr}${whitespaceStr}"${fixedValue}"${terminatorStr}`;
         }
 
@@ -134,6 +137,7 @@ export const arrayElementFixer: SanitizerStrategy = {
             unquotedValueStr,
             PACKAGE_NAME_PREFIX_REPLACEMENTS,
           );
+
           if (result.wasFixed) {
             fixedValue = result.fixed;
           }
@@ -184,6 +188,7 @@ export const arrayElementFixer: SanitizerStrategy = {
 
     // Pattern 4: Fix unquoted constants in arrays (e.g., CRM_URL_TOKEN_KEY)
     let previousUnquotedArray = "";
+
     while (previousUnquotedArray !== sanitized) {
       previousUnquotedArray = sanitized;
 

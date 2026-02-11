@@ -52,12 +52,14 @@ export function extractTriggerType(trigger: string): string {
   // For unknown types, extract the first word
   // Handle colon separator (e.g., "custom: value")
   const colonIndex = normalized.indexOf(":");
+
   if (colonIndex !== -1) {
     return normalized.substring(0, colonIndex).trim();
   }
 
   // Handle space separator (e.g., "startup initialization")
   const spaceIndex = normalized.indexOf(" ");
+
   if (spaceIndex !== -1) {
     const firstWord = normalized.substring(0, spaceIndex).trim();
     // Remove trailing punctuation like comma

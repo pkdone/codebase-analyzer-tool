@@ -36,7 +36,7 @@ export default class BedrockNovaLLM extends BaseBedrockLLM {
    */
   protected override buildCompletionRequestBody(modelKey: string, prompt: string): JsonObject {
     // Bedrock providers don't support JSON mode options
-    const maxCompletionTokens = this.getRequiredMaxCompletionTokens(modelKey);
+    const maxCompletionTokens = this.ensureMaxCompletionTokens(modelKey);
 
     return {
       inferenceConfig: {

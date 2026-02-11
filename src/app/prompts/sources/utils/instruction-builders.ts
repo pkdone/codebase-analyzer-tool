@@ -42,6 +42,7 @@ export function dbMech(mechanism: DatabaseMechanism): string {
       `Invalid database mechanism: '${mechanism}'. Must be one of: ${DATABASE_MECHANISM_VALUES.join(", ")}`,
     );
   }
+
   return `mechanism: '${mechanism}'`;
 }
 
@@ -74,6 +75,7 @@ export function buildInstructionBlock(
   if (flattenedParts.length === 0) {
     return formattedTitle;
   }
+
   return `${formattedTitle}\n${flattenedParts.join("\n")}`;
 }
 
@@ -96,8 +98,10 @@ export function createDbMechanismInstructions(
   const BASE_DB_MECHANISM_PREFIX = `    - mechanism: If any of the following are true (apart from 'NONE'), you MUST assume database interaction:`;
   const BASE_DB_MECHANISM_SUFFIX = `      - Otherwise, if the code does not use a database => mechanism: 'NONE'`;
   const parts = [BASE_DB_MECHANISM_PREFIX, ...examples, BASE_DB_MECHANISM_SUFFIX];
+
   if (additionalNote) {
     parts.push(additionalNote);
   }
+
   return parts.join("\n");
 }

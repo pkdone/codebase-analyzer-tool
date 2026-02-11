@@ -5,7 +5,7 @@ import { repositoryTokens } from "../../di/tokens";
 import { logErr } from "../../../common/utils/logging";
 
 /** Default batch size for bulk database inserts */
-const DEFAULT_BATCH_SIZE = 50;
+const DEFAULT_BATCH_SIZE = 200;
 
 /**
  * A buffered writer for source records that batches inserts for improved performance.
@@ -19,7 +19,7 @@ const DEFAULT_BATCH_SIZE = 50;
  * ```typescript
  * const writer = new BufferedSourcesWriter(repository);
  * for (const record of records) {
- *   await writer.add(record); // Automatically flushes when batch size is reached
+ *   await writer.queueRecord(record); // Automatically flushes when batch size is reached
  * }
  * await writer.flush(); // Flush any remaining records
  * ```
@@ -27,7 +27,7 @@ const DEFAULT_BATCH_SIZE = 50;
  * ## Thread Safety
  * This class is NOT thread-safe. Each instance maintains its own buffer state
  * and should be used within a single async operation context. For concurrent
- * file processing, use a single instance and ensure `add` calls are serialized
+ * file processing, use a single instance and ensure `queueRecord` calls are serialized
  * at the buffer level (not the file processing level).
  */
 @injectable()
@@ -38,7 +38,7 @@ export class BufferedSourcesWriter {
   /**
    * Constructor.
    * @param sourcesRepository - Repository for storing source file data
-   * @param batchSize - Number of records to accumulate before auto-flushing (default: 50)
+   * @param batchSize - Number of records to accumulate before auto-flushing (default: 200)
    */
   constructor(
     @inject(repositoryTokens.SourcesRepository)
@@ -55,11 +55,11 @@ export class BufferedSourcesWriter {
   }
 
   /**
-   * Add a record to the buffer. Automatically flushes when batch size is reached.
+   * Queue a record into the buffer. Automatically flushes when batch size is reached.
    *
-   * @param record - The source record to add
+   * @param record - The source record to queue
    */
-  async add(record: SourceRecord): Promise<void> {
+  async queueRecord(record: SourceRecord): Promise<void> {
     this.recordBuffer.push(record);
 
     if (this.recordBuffer.length >= this.batchSize) {

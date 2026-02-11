@@ -27,6 +27,7 @@ export default class OpenAILLM extends BaseOpenAILLM {
         "Invalid OpenAI configuration - missing or empty apiKey",
       );
     }
+
     const { apiKey } = init.extractedConfig;
     this.client = new OpenAI({ apiKey });
   }

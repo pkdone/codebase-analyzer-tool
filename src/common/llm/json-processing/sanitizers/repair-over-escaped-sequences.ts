@@ -19,7 +19,7 @@ type ReplacementPattern = readonly [RegExp, string, string];
  * to ensure proper normalization without over-correcting. Each regex targets a specific
  * malformation pattern commonly seen in LLM output.
  */
-export const OVER_ESCAPE_REPLACEMENT_PATTERNS: readonly ReplacementPattern[] = [
+const OVER_ESCAPE_REPLACEMENT_PATTERNS: readonly ReplacementPattern[] = [
   // SINGLE QUOTE OVER-ESCAPING
   [
     /\\\\\\'/g,

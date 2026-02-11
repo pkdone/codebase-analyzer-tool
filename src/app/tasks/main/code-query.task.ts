@@ -58,6 +58,7 @@ export class CodebaseQueryTask extends BaseAnalysisTask {
     const results = await Promise.allSettled(queryPromises);
     results.forEach((result, index) => {
       const question = questions[index];
+
       if (result.status === "fulfilled") {
         console.log(
           `\n---------------\nQUESTION: ${question}\n\n${result.value}\n---------------\n`,
