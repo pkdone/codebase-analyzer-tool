@@ -3,6 +3,7 @@ import type { SourcesRepository } from "../../../../repositories/sources/sources
 import { repositoryTokens } from "../../../../di/tokens";
 import type {
   ProcsAndTriggers,
+  ComplexityCounts,
   DatabaseIntegrationInfo,
   ProcsOrTrigsListItem,
 } from "./database.types";
@@ -64,7 +65,8 @@ export class DatabaseReportDataProvider {
   }
 
   /**
-   * Returns an aggregated summary of stored procedures and triggers from pre-generated summaries.
+   * Returns an aggregated summary of stored procedures, functions, and triggers
+   * from pre-generated summaries, with per-category complexity breakdowns.
    */
   async getStoredProceduresAndTriggers(projectName: string): Promise<ProcsAndTriggers> {
     const records = await this.sourcesRepository.getProjectStoredProceduresAndTriggers(projectName);
@@ -89,76 +91,82 @@ export class DatabaseReportDataProvider {
       }
     }
 
-    const procs = this.summarizeItemsByComplexity(
-      allProcs,
-      DATABASE_OBJECT_TYPE_LABELS.STORED_PROCEDURE,
-    );
-    const trigs = this.summarizeItemsByComplexity(allTrigs, DATABASE_OBJECT_TYPE_LABELS.TRIGGER);
-    return { procs, trigs };
+    const procedures = this.newComplexityCounts();
+    const functions = this.newComplexityCounts();
+    const triggers = this.newComplexityCounts();
+    const list: ProcsOrTrigsListItem[] = [];
+
+    // Classify procs into PROCEDURE vs FUNCTION and tally complexity
+    for (const item of allProcs) {
+      const reportItem = this.mapItemToReportFormat(item, "proc");
+      list.push(reportItem);
+      const bucket =
+        reportItem.type === DATABASE_OBJECT_TYPE_LABELS.FUNCTION ? functions : procedures;
+      this.incrementComplexity(bucket, reportItem.complexity);
+    }
+
+    // Tally triggers
+    for (const item of allTrigs) {
+      const reportItem = this.mapItemToReportFormat(item, "trigger");
+      list.push(reportItem);
+      this.incrementComplexity(triggers, reportItem.complexity);
+    }
+
+    return { procedures, functions, triggers, list };
   }
 
   /**
-   * Summarize items by their complexity level.
-   * Groups items and counts them based on their complexity property.
-   * Combines aggregation and mapping in a single pass for better performance.
+   * Create a zeroed-out complexity counts object.
    */
-  private summarizeItemsByComplexity(
-    items: ProcOrTrigItem[],
-    type:
-      | typeof DATABASE_OBJECT_TYPE_LABELS.STORED_PROCEDURE
-      | typeof DATABASE_OBJECT_TYPE_LABELS.TRIGGER,
-  ): ProcsAndTriggers["procs"] {
-    return items.reduce(
-      (acc, item) => {
-        const complexity = this.normalizeComplexity(item.complexity, item.name);
-        acc.total++;
-        switch (complexity) {
-          case "LOW":
-            acc.low++;
-            break;
-          case "MEDIUM":
-            acc.medium++;
-            break;
-          case "HIGH":
-            acc.high++;
-            break;
-          case "INVALID":
-            // Skip invalid complexity values - they indicate LLM returned unrecognized data
-            break;
-          default: {
-            // This ensures exhaustiveness. The `normalizeComplexity` function
-            // should prevent this from being hit, but it's good practice.
-            const exhaustiveCheck: never = complexity;
-            return exhaustiveCheck;
-          }
-        }
-        acc.list.push(this.mapItemToReportFormat(item, type));
-        return acc;
-      },
-      {
-        total: 0,
-        low: 0,
-        medium: 0,
-        high: 0,
-        list: [] as ProcsOrTrigsListItem[],
-      },
-    );
+  private newComplexityCounts(): ComplexityCounts {
+    return { total: 0, low: 0, medium: 0, high: 0 };
   }
 
   /**
-   * Transform a single item into the format required for reports
+   * Increment the appropriate complexity bucket for an item.
+   */
+  private incrementComplexity(counts: ComplexityCounts, complexity: string): void {
+    counts.total++;
+    switch (complexity) {
+      case "LOW":
+        counts.low++;
+        break;
+      case "MEDIUM":
+        counts.medium++;
+        break;
+      case "HIGH":
+        counts.high++;
+        break;
+      case "INVALID":
+        // INVALID is counted in total but not in any complexity bucket
+        break;
+    }
+  }
+
+  /**
+   * Transform a single item into the format required for reports.
+   * Derives the display type from the item's objectType field when available,
+   * falling back to the category (proc -> PROCEDURE, trigger -> TRIGGER).
    */
   private mapItemToReportFormat(
     item: ProcOrTrigItem,
-    type:
-      | typeof DATABASE_OBJECT_TYPE_LABELS.STORED_PROCEDURE
-      | typeof DATABASE_OBJECT_TYPE_LABELS.TRIGGER,
+    category: "proc" | "trigger",
   ): ProcsOrTrigsListItem {
     const complexity = this.normalizeComplexity(item.complexity, item.name);
 
+    let type: string;
+    if (category === "trigger") {
+      type = DATABASE_OBJECT_TYPE_LABELS.TRIGGER;
+    } else if (item.objectType === "FUNCTION") {
+      type = DATABASE_OBJECT_TYPE_LABELS.FUNCTION;
+    } else {
+      // Default to PROCEDURE for procs without objectType (backward compat)
+      type = DATABASE_OBJECT_TYPE_LABELS.PROCEDURE;
+    }
+
     return {
       path: item.filepath,
-      type: type,
+      type,
       name: item.name,
       functionName: item.name,
       complexity: complexity,

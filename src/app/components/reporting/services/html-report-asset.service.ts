@@ -117,4 +117,85 @@ export class HtmlReportAssetService {
       // Don't throw - allow report generation to continue even if Mermaid download fails
     }
   }
+
+  /**
+   * Ensures Prism.js (core + SQL language) is available in the output assets directory
+   * for offline SQL syntax highlighting in the report. Copies from local node_modules
+   * first, falls back to CDN download if needed. Skips if the files already exist.
+   *
+   * @param outputDir - The output directory where the report will be generated
+   */
+  async ensurePrismAsset(outputDir: string): Promise<void> {
+    const assetsDir = path.join(outputDir, this.outputConfig.assets.ASSETS_SUBDIR);
+
+    await fs.mkdir(assetsDir, { recursive: true });
+
+    await Promise.all([
+      this.ensureSingleAsset(
+        path.join(assetsDir, this.outputConfig.externalAssets.PRISM_CORE_FILENAME),
+        "prismjs/prism.js",
+        this.outputConfig.externalAssets.PRISM_CDN_CORE_URL,
+        "Prism.js core",
+      ),
+      this.ensureSingleAsset(
+        path.join(assetsDir, this.outputConfig.externalAssets.PRISM_SQL_FILENAME),
+        "prismjs/components/prism-sql.min.js",
+        this.outputConfig.externalAssets.PRISM_CDN_SQL_URL,
+        "Prism.js SQL component",
+      ),
+    ]);
+  }
+
+  /**
+   * Helper that ensures a single external asset file exists in the output directory.
+   * Attempts to copy from node_modules first, then falls back to CDN download.
+   *
+   * @param targetPath - Full path where the asset should be placed
+   * @param nodeModulesRequire - Module specifier for require.resolve (e.g. "prismjs/prism.js")
+   * @param cdnUrl - CDN URL to download from if node_modules copy fails
+   * @param label - Human-readable label for log messages
+   */
+  private async ensureSingleAsset(
+    targetPath: string,
+    nodeModulesRequire: string,
+    cdnUrl: string,
+    label: string,
+  ): Promise<void> {
+    try {
+      // Check if file already exists
+      try {
+        await fs.access(targetPath);
+        console.log(`${label} already exists in assets directory, skipping`);
+        return;
+      } catch {
+        // File doesn't exist, proceed
+      }
+
+      // Prefer local node_modules
+      try {
+        const localPath = require.resolve(nodeModulesRequire);
+        const buffer = await fs.readFile(localPath);
+        await fs.writeFile(targetPath, buffer);
+        console.log(`${label} copied from node_modules to ${targetPath}`);
+        return;
+      } catch {
+        // Fall back to CDN
+      }
+
+      console.log(`Downloading ${label} for offline report support...`);
+      const response = await fetch(cdnUrl);
+      if (!response.ok) {
+        throw new Error(`Failed to download ${label}: ${response.status} ${response.statusText}`);
+      }
+
+      const arrayBuffer = await response.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+
+      await fs.writeFile(targetPath, buffer);
+      console.log(`${label} downloaded and copied to ${targetPath}`);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.warn(`Warning: Failed to ensure ${label}: ${errorMessage}`);
+    }
+  }
 }

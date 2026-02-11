@@ -21,11 +21,10 @@ describe("DatabaseReportDataProvider", () => {
 
       const result = await provider.getStoredProceduresAndTriggers("test-project");
 
-      expect(result.procs.total).toBe(0);
-      expect(result.procs.low).toBe(0);
-      expect(result.procs.medium).toBe(0);
-      expect(result.procs.high).toBe(0);
-      expect(result.procs.list).toEqual([]);
+      expect(result.procedures.total).toBe(0);
+      expect(result.functions.total).toBe(0);
+      expect(result.triggers.total).toBe(0);
+      expect(result.list).toEqual([]);
     });
 
     test("should aggregate multiple items with different complexities in single pass", async () => {
@@ -66,30 +65,31 @@ describe("DatabaseReportDataProvider", () => {
 
       const result = await provider.getStoredProceduresAndTriggers("test-project");
 
-      // Verify procedures aggregation
-      expect(result.procs.total).toBe(2);
-      expect(result.procs.low).toBe(1);
-      expect(result.procs.medium).toBe(0);
-      expect(result.procs.high).toBe(1);
-      expect(result.procs.list).toHaveLength(2);
-      expect(result.procs.list[0]).toMatchObject({
-        name: "proc1",
-        complexity: "LOW",
-        type: "STORED PROCEDURE",
-      });
-      expect(result.procs.list[1]).toMatchObject({
-        name: "proc2",
-        complexity: "HIGH",
-        type: "STORED PROCEDURE",
-      });
+      // Verify procedures aggregation (no objectType defaults to PROCEDURE)
+      expect(result.procedures.total).toBe(2);
+      expect(result.procedures.low).toBe(1);
+      expect(result.procedures.medium).toBe(0);
+      expect(result.procedures.high).toBe(1);
 
       // Verify triggers aggregation
-      expect(result.trigs.total).toBe(1);
-      expect(result.trigs.low).toBe(0);
-      expect(result.trigs.medium).toBe(1);
-      expect(result.trigs.high).toBe(0);
-      expect(result.trigs.list).toHaveLength(1);
-      expect(result.trigs.list[0]).toMatchObject({
+      expect(result.triggers.total).toBe(1);
+      expect(result.triggers.low).toBe(0);
+      expect(result.triggers.medium).toBe(1);
+      expect(result.triggers.high).toBe(0);
+
+      // Verify combined list
+      expect(result.list).toHaveLength(3);
+      expect(result.list[0]).toMatchObject({
+        name: "proc1",
+        complexity: "LOW",
+        type: "PROCEDURE",
+      });
+      expect(result.list[1]).toMatchObject({
+        name: "proc2",
+        complexity: "HIGH",
+        type: "PROCEDURE",
+      });
+      expect(result.list[2]).toMatchObject({
         name: "trig1",
         complexity: "MEDIUM",
         type: "TRIGGER",
@@ -118,12 +118,12 @@ describe("DatabaseReportDataProvider", () => {
 
       const result = await provider.getStoredProceduresAndTriggers("test-project");
 
-      // INVALID complexity is now a valid value but gets skipped (not counted in any category)
-      expect(result.procs.total).toBe(1);
-      expect(result.procs.low).toBe(0);
-      expect(result.procs.medium).toBe(0);
-      expect(result.procs.high).toBe(0);
-      expect(result.procs.list[0].complexity).toBe("INVALID");
+      // INVALID complexity is counted in total but not in any complexity bucket
+      expect(result.procedures.total).toBe(1);
+      expect(result.procedures.low).toBe(0);
+      expect(result.procedures.medium).toBe(0);
+      expect(result.procedures.high).toBe(0);
+      expect(result.list[0].complexity).toBe("INVALID");
     });
 
     test("should use type guard for complexity keys safely", async () => {
@@ -163,10 +163,69 @@ describe("DatabaseReportDataProvider", () => {
       const result = await provider.getStoredProceduresAndTriggers("test-project");
 
       // All complexity keys should be properly counted using type guard
-      expect(result.procs.total).toBe(3);
-      expect(result.procs.low).toBe(1);
-      expect(result.procs.medium).toBe(1);
-      expect(result.procs.high).toBe(1);
+      expect(result.procedures.total).toBe(3);
+      expect(result.procedures.low).toBe(1);
+      expect(result.procedures.medium).toBe(1);
+      expect(result.procedures.high).toBe(1);
+    });
+
+    test("should distinguish PROCEDURE and FUNCTION types via objectType", async () => {
+      mockSourcesRepository.getProjectStoredProceduresAndTriggers.mockResolvedValue([
+        {
+          filepath: "/path/to/package.pkb",
+          summary: {
+            purpose: "PL/SQL package with procedures and functions",
+            implementation: "Mixed package",
+            storedProcedures: [
+              {
+                name: "insert_record",
+                objectType: "PROCEDURE",
+                complexity: "LOW",
+                linesOfCode: 10,
+                purpose: "Inserts a record",
+                complexityReason: "Simple insert",
+              },
+              {
+                name: "get_customer_name",
+                objectType: "FUNCTION",
+                complexity: "MEDIUM",
+                linesOfCode: 25,
+                purpose: "Returns customer name",
+                complexityReason: "Join with lookup",
+              },
+              {
+                name: "legacy_proc",
+                complexity: "LOW",
+                linesOfCode: 5,
+                purpose: "Legacy procedure without objectType",
+                complexityReason: "Simple",
+              },
+            ],
+          },
+        },
+      ]);
+
+      const result = await provider.getStoredProceduresAndTriggers("test-project");
+
+      // 2 procedures (1 explicit + 1 defaulted), 1 function
+      expect(result.procedures.total).toBe(2);
+      expect(result.procedures.low).toBe(2);
+      expect(result.functions.total).toBe(1);
+      expect(result.functions.medium).toBe(1);
+
+      expect(result.list[0]).toMatchObject({
+        name: "insert_record",
+        type: "PROCEDURE",
+      });
+      expect(result.list[1]).toMatchObject({
+        name: "get_customer_name",
+        type: "FUNCTION",
+      });
+      // Without objectType, should default to PROCEDURE
+      expect(result.list[2]).toMatchObject({
+        name: "legacy_proc",
+        type: "PROCEDURE",
+      });
     });
 
     test("should handle multiple files with mixed procs and triggers", async () => {
@@ -223,12 +282,12 @@ describe("DatabaseReportDataProvider", () => {
 
       const result = await provider.getStoredProceduresAndTriggers("test-project");
 
-      expect(result.procs.total).toBe(3);
-      expect(result.procs.low).toBe(1);
-      expect(result.procs.medium).toBe(1);
-      expect(result.procs.high).toBe(1);
-      expect(result.trigs.total).toBe(1);
-      expect(result.trigs.low).toBe(1);
+      expect(result.procedures.total).toBe(3);
+      expect(result.procedures.low).toBe(1);
+      expect(result.procedures.medium).toBe(1);
+      expect(result.procedures.high).toBe(1);
+      expect(result.triggers.total).toBe(1);
+      expect(result.triggers.low).toBe(1);
     });
   });
 
@@ -255,9 +314,9 @@ describe("DatabaseReportDataProvider", () => {
 
       const result = await provider.getStoredProceduresAndTriggers("test-project");
 
-      expect(result.procs.low).toBe(1);
-      expect(result.procs.medium).toBe(0);
-      expect(result.procs.high).toBe(0);
+      expect(result.procedures.low).toBe(1);
+      expect(result.procedures.medium).toBe(0);
+      expect(result.procedures.high).toBe(0);
     });
 
     test("should correctly map MEDIUM complexity using switch statement", async () => {
@@ -282,9 +341,9 @@ describe("DatabaseReportDataProvider", () => {
 
       const result = await provider.getStoredProceduresAndTriggers("test-project");
 
-      expect(result.procs.low).toBe(0);
-      expect(result.procs.medium).toBe(1);
-      expect(result.procs.high).toBe(0);
+      expect(result.procedures.low).toBe(0);
+      expect(result.procedures.medium).toBe(1);
+      expect(result.procedures.high).toBe(0);
     });
 
     test("should correctly map HIGH complexity using switch statement", async () => {
@@ -309,9 +368,9 @@ describe("DatabaseReportDataProvider", () => {
 
       const result = await provider.getStoredProceduresAndTriggers("test-project");
 
-      expect(result.procs.low).toBe(0);
-      expect(result.procs.medium).toBe(0);
-      expect(result.procs.high).toBe(1);
+      expect(result.procedures.low).toBe(0);
+      expect(result.procedures.medium).toBe(0);
+      expect(result.procedures.high).toBe(1);
     });
 
     test("should handle switch statement with all complexity types in one aggregation", async () => {
@@ -372,10 +431,10 @@ describe("DatabaseReportDataProvider", () => {
       const result = await provider.getStoredProceduresAndTriggers("test-project");
 
       // Verify switch statement correctly counts all branches
-      expect(result.procs.total).toBe(6);
-      expect(result.procs.low).toBe(2);
-      expect(result.procs.medium).toBe(3);
-      expect(result.procs.high).toBe(1);
+      expect(result.procedures.total).toBe(6);
+      expect(result.procedures.low).toBe(2);
+      expect(result.procedures.medium).toBe(3);
+      expect(result.procedures.high).toBe(1);
     });
 
     test("should ensure switch statement is type-safe and exhaustive", async () => {
@@ -418,7 +477,7 @@ describe("DatabaseReportDataProvider", () => {
       const result = await provider.getStoredProceduresAndTriggers("test-project");
 
       // All three complexity levels should be handled
-      expect(result.procs.low + result.procs.medium + result.procs.high).toBe(result.procs.total);
+      expect(result.procedures.low + result.procedures.medium + result.procedures.high).toBe(result.procedures.total);
     });
   });
 

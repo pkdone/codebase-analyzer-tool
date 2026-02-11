@@ -93,8 +93,10 @@ describe("HtmlReportWriter", () => {
       },
     ],
     procsAndTriggers: {
-      procs: { total: 5, low: 2, medium: 2, high: 1, list: [] },
-      trigs: { total: 2, low: 1, medium: 1, high: 0, list: [] },
+      procedures: { total: 3, low: 1, medium: 1, high: 1 },
+      functions: { total: 2, low: 1, medium: 1, high: 0 },
+      triggers: { total: 2, low: 1, medium: 1, high: 0 },
+      list: [],
     },
     integrationPoints: [
       {

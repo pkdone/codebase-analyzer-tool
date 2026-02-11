@@ -30,6 +30,10 @@ describe("HtmlReportAssetService", () => {
     externalAssets: {
       MERMAID_CDN_UMD_URL: "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js",
       MERMAID_UMD_FILENAME: "mermaid.min.js",
+      PRISM_CDN_CORE_URL: "https://cdn.jsdelivr.net/npm/prismjs@1/prism.min.js",
+      PRISM_CDN_SQL_URL: "https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-sql.min.js",
+      PRISM_CORE_FILENAME: "prism.min.js",
+      PRISM_SQL_FILENAME: "prism-sql.min.js",
     },
     assets: {
       CSS_FILENAME: "style.css",
@@ -290,6 +294,98 @@ describe("HtmlReportAssetService", () => {
       expect(consoleWarnSpy).toHaveBeenCalledWith(
         expect.stringContaining("Warning: Failed to download Mermaid.js"),
       );
+    });
+  });
+
+  describe("ensurePrismAsset", () => {
+    const outputDir = "/test/output";
+    let consoleSpy: jest.SpyInstance;
+    let consoleWarnSpy: jest.SpyInstance;
+
+    beforeAll(() => {
+      consoleSpy = jest.spyOn(console, "log").mockImplementation();
+      consoleWarnSpy = jest.spyOn(console, "warn").mockImplementation();
+    });
+
+    beforeEach(() => {
+      consoleSpy.mockClear();
+      consoleWarnSpy.mockClear();
+    });
+
+    afterAll(() => {
+      consoleSpy.mockRestore();
+      consoleWarnSpy.mockRestore();
+    });
+
+    it("should skip if both Prism files already exist", async () => {
+      mockMkdir.mockResolvedValue(undefined);
+      mockAccess.mockResolvedValue(undefined); // Files exist
+
+      await service.ensurePrismAsset(outputDir);
+
+      expect(mockMkdir).toHaveBeenCalledWith(expect.stringContaining("assets"), {
+        recursive: true,
+      });
+      expect(mockWriteFile).not.toHaveBeenCalled();
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining("Prism.js core already exists"),
+      );
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining("Prism.js SQL component already exists"),
+      );
+    });
+
+    it("should copy both files from node_modules when they do not exist", async () => {
+      const mockPrismCore = Buffer.from("// prism core");
+      const mockPrismSql = Buffer.from("// prism sql");
+
+      mockMkdir.mockResolvedValue(undefined);
+      mockAccess.mockRejectedValue(new Error("ENOENT"));
+      mockReadFile.mockImplementation(async (filePath: unknown) => {
+        const pathStr = String(filePath);
+        if (pathStr.includes("prism.js") && !pathStr.includes("prism-sql")) {
+          return mockPrismCore;
+        }
+        if (pathStr.includes("prism-sql")) {
+          return mockPrismSql;
+        }
+        throw new Error(`Unexpected file: ${pathStr}`);
+      });
+      mockWriteFile.mockResolvedValue(undefined);
+
+      await service.ensurePrismAsset(outputDir);
+
+      expect(mockWriteFile).toHaveBeenCalledWith(
+        expect.stringContaining("prism.min.js"),
+        mockPrismCore,
+      );
+      expect(mockWriteFile).toHaveBeenCalledWith(
+        expect.stringContaining("prism-sql.min.js"),
+        mockPrismSql,
+      );
+    });
+
+    it("should warn but not throw when Prism asset copy fails", async () => {
+      mockMkdir.mockResolvedValue(undefined);
+      mockAccess.mockRejectedValue(new Error("ENOENT"));
+      mockReadFile.mockRejectedValue(new Error("Cannot find module"));
+
+      const originalFetch = global.fetch;
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: false,
+        status: 500,
+        statusText: "Internal Server Error",
+      });
+
+      try {
+        await service.ensurePrismAsset(outputDir);
+
+        expect(consoleWarnSpy).toHaveBeenCalledWith(
+          expect.stringContaining("Warning: Failed to ensure Prism.js core"),
+        );
+      } finally {
+        global.fetch = originalFetch;
+      }
     });
   });
 });

@@ -104,8 +104,10 @@ export default class ReportArtifactGenerator {
       integrationPoints: [],
       dbInteractions: [],
       procsAndTriggers: {
-        procs: { total: 0, low: 0, medium: 0, high: 0, list: [] },
-        trigs: { total: 0, low: 0, medium: 0, high: 0, list: [] },
+        procedures: { total: 0, low: 0, medium: 0, high: 0 },
+        functions: { total: 0, low: 0, medium: 0, high: 0 },
+        triggers: { total: 0, low: 0, medium: 0, high: 0 },
+        list: [],
       },
       billOfMaterials: [],
       codeQualitySummary: null,
@@ -126,8 +128,11 @@ export default class ReportArtifactGenerator {
 
     const preparedJsonData = this.prepareJsonDataFromSections(reportData, sectionDataMap);
 
-    // Copy Mermaid.js to assets directory for offline support
-    await this.assetService.ensureMermaidAsset(outputDir);
+    // Copy external JS libraries to assets directory for offline support
+    await Promise.all([
+      this.assetService.ensureMermaidAsset(outputDir),
+      this.assetService.ensurePrismAsset(outputDir),
+    ]);
 
     // Generate reports using prepared data
     await this.jsonWriter.writeAllJSONFiles(preparedJsonData);

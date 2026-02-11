@@ -12,10 +12,10 @@ describe("DatabaseReportDataProvider.getStoredProceduresAndTriggers", () => {
     } as any;
     const provider = new DatabaseReportDataProvider(mockRepo);
     const result = await provider.getStoredProceduresAndTriggers("proj");
-    expect(result.procs.total).toBe(2);
-    expect(result.procs.low).toBe(1);
-    expect(result.procs.high).toBe(1);
-    expect(result.trigs.total).toBe(1);
-    expect(result.trigs.medium).toBe(1);
+    expect(result.procedures.total).toBe(2);
+    expect(result.procedures.low).toBe(1);
+    expect(result.procedures.high).toBe(1);
+    expect(result.triggers.total).toBe(1);
+    expect(result.triggers.medium).toBe(1);
   });
 });

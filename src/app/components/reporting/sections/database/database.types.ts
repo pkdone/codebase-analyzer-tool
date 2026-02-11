@@ -27,22 +27,26 @@ export interface ProcsOrTrigsListItem extends ProcedureTrigger {
   functionName: string;
 }
 
-// Interface for the database interaction list
+/**
+ * Complexity counts per level for a single object type category.
+ */
+export interface ComplexityCounts {
+  total: number;
+  low: number;
+  medium: number;
+  high: number;
+}
+
+/**
+ * Aggregated stored procedures, functions, and triggers for the database report.
+ * Each category tracks its own complexity breakdown.
+ */
 export interface ProcsAndTriggers {
-  procs: {
-    total: number;
-    low: number;
-    medium: number;
-    high: number;
-    list: ProcsOrTrigsListItem[];
-  };
-  trigs: {
-    total: number;
-    low: number;
-    medium: number;
-    high: number;
-    list: ProcsOrTrigsListItem[];
-  };
+  procedures: ComplexityCounts;
+  functions: ComplexityCounts;
+  triggers: ComplexityCounts;
+  /** Combined flat list of all items for the card grid below the summary. */
+  list: ProcsOrTrigsListItem[];
 }
 
 /**

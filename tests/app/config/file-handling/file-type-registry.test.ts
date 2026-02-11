@@ -40,6 +40,23 @@ describe("FILE_TYPE_REGISTRY", () => {
     });
   });
 
+  describe("PL/SQL language support", () => {
+    it("should have all PL/SQL extensions mapped to sql canonical type", () => {
+      expect(FILE_TYPE_REGISTRY.pkb.canonicalType).toBe("sql");
+      expect(FILE_TYPE_REGISTRY.pks.canonicalType).toBe("sql");
+      expect(FILE_TYPE_REGISTRY.pck.canonicalType).toBe("sql");
+      expect(FILE_TYPE_REGISTRY.fnc.canonicalType).toBe("sql");
+      expect(FILE_TYPE_REGISTRY.prc.canonicalType).toBe("sql");
+      expect(FILE_TYPE_REGISTRY.trg.canonicalType).toBe("sql");
+    });
+
+    it("should mark PL/SQL extensions as code files", () => {
+      expect(FILE_TYPE_REGISTRY.pkb.isCode).toBe(true);
+      expect(FILE_TYPE_REGISTRY.pks.isCode).toBe(true);
+      expect(FILE_TYPE_REGISTRY.pck.isCode).toBe(true);
+    });
+  });
+
   describe("C/C++ language support", () => {
     it("should have all C extensions mapped to c canonical type", () => {
       expect(FILE_TYPE_REGISTRY.c.canonicalType).toBe("c");

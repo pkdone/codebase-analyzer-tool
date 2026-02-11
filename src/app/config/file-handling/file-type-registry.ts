@@ -76,6 +76,13 @@ export const FILE_TYPE_REGISTRY: Readonly<Record<string, FileTypeEntry>> = {
   sql: { canonicalType: "sql", isCode: true },
   ddl: { canonicalType: "sql", isCode: true },
   dml: { canonicalType: "sql", isCode: true },
+  // PL/SQL (Oracle)
+  pkb: { canonicalType: "sql", isCode: true },
+  pks: { canonicalType: "sql", isCode: true },
+  pck: { canonicalType: "sql", isCode: true },
+  fnc: { canonicalType: "sql", isCode: true },
+  prc: { canonicalType: "sql", isCode: true },
+  trg: { canonicalType: "sql", isCode: true },
 
   // Go
   go: { canonicalType: "default", isCode: true },

@@ -19,17 +19,25 @@ export class CodeQualityDataProvider {
    * Returns raw data without presentation fields.
    */
   async getCodeQualitySummary(projectName: string): Promise<CodeQualitySummaryData> {
-    // Execute all three aggregations in parallel
-    const [topComplexFunctions, commonCodeSmells, overallStatistics] = await Promise.all([
-      this.sourcesRepository.getTopComplexFunctions(projectName, 10),
-      this.sourcesRepository.getCodeSmellStatistics(projectName),
-      this.sourcesRepository.getCodeQualityStatistics(projectName),
-    ]);
+    // Execute all four aggregations in parallel
+    const [topComplexFunctions, commonCodeSmells, overallStatistics, databaseStatistics] =
+      await Promise.all([
+        this.sourcesRepository.getTopComplexFunctions(projectName, 10),
+        this.sourcesRepository.getCodeSmellStatistics(projectName),
+        this.sourcesRepository.getCodeQualityStatistics(projectName),
+        this.sourcesRepository.getDatabaseStatistics(projectName),
+      ]);
+
+    // Only include databaseStatistics if there is meaningful data
+    const hasDbData =
+      databaseStatistics.storedObjectCounts.totalProcedures > 0 ||
+      databaseStatistics.storedObjectCounts.totalTriggers > 0;
 
     return {
       topComplexFunctions,
       commonCodeSmells,
       overallStatistics,
+      ...(hasDbData && { databaseStatistics }),
     };
   }
 }

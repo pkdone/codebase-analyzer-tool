@@ -114,6 +114,37 @@
     <% }); %>
   </tbody>
 </table>
+<% if (codeQualitySummary.databaseStatistics) { %>
+<h3>Database Statistics</h3>
+<p>Aggregated database interaction patterns across the codebase.</p>
+
+<% if (codeQualitySummary.databaseStatistics.storedObjectCounts.totalProcedures > 0 || codeQualitySummary.databaseStatistics.storedObjectCounts.totalTriggers > 0) { %>
+<h4>Procedures, Functions &amp; Triggers</h4>
+<table class="data-table">
+  <thead>
+    <tr>
+      <th class="col-wide">Object Type</th>
+      <th class="col-small numeric">Count</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% if (codeQualitySummary.databaseStatistics.storedObjectCounts.totalProcedures > 0) { %>
+    <tr>
+      <td><strong>Procedures &amp; Functions</strong></td>
+      <td class="numeric"><%= codeQualitySummary.databaseStatistics.storedObjectCounts.totalProcedures %></td>
+    </tr>
+    <% } %>
+    <% if (codeQualitySummary.databaseStatistics.storedObjectCounts.totalTriggers > 0) { %>
+    <tr>
+      <td><strong>Triggers</strong></td>
+      <td class="numeric"><%= codeQualitySummary.databaseStatistics.storedObjectCounts.totalTriggers %></td>
+    </tr>
+    <% } %>
+  </tbody>
+</table>
+<% } %>
+
+<% } %>
 <% } else { %>
 <p class="note-paragraph">
   Code quality metrics are not available. Run the insights generation step to analyze code quality.

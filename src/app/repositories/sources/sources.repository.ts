@@ -15,6 +15,7 @@ import {
   ProjectedTopComplexFunction,
   ProjectedCodeSmellStatistic,
   ProjectedCodeQualityStatistics,
+  ProjectedDatabaseStatistics,
 } from "./sources.model";
 import type { DatabaseConfigType } from "../../config/database.config";
 import type { CodeQualityConfigType } from "../../config/code-quality.config";
@@ -536,6 +537,59 @@ export default class SourcesRepositoryImpl
         longFunctionCount: 0,
       }
     );
+  }
+
+  /**
+   * Get aggregated database statistics for a project using aggregation pipeline.
+   * Counts total stored procedures and triggers across all source files.
+   */
+  async getDatabaseStatistics(projectName: string): Promise<ProjectedDatabaseStatistics> {
+    const pipeline = [
+      { $match: { projectName } },
+      {
+        $facet: {
+          storedProcedureCounts: [
+            {
+              $match: {
+                [SOURCE_FIELDS.SUMMARY_STORED_PROCEDURES]: { $exists: true, $ne: [] },
+              },
+            },
+            { $unwind: "$summary.storedProcedures" },
+            { $count: "total" },
+          ],
+          triggerCounts: [
+            {
+              $match: {
+                [SOURCE_FIELDS.SUMMARY_TRIGGERS]: { $exists: true, $ne: [] },
+              },
+            },
+            { $unwind: "$summary.triggers" },
+            { $count: "total" },
+          ],
+        },
+      },
+    ];
+
+    interface FacetResult {
+      storedProcedureCounts: { total: number }[];
+      triggerCounts: { total: number }[];
+    }
+
+    const results = await this.collection.aggregate<FacetResult>(pipeline).toArray();
+    const facet = results.at(0);
+
+    if (!facet) {
+      return {
+        storedObjectCounts: { totalProcedures: 0, totalTriggers: 0 },
+      };
+    }
+
+    return {
+      storedObjectCounts: {
+        totalProcedures: facet.storedProcedureCounts[0]?.total ?? 0,
+        totalTriggers: facet.triggerCounts[0]?.total ?? 0,
+      },
+    };
   }
 
   /**

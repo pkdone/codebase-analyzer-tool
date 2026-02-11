@@ -69,16 +69,20 @@ describe("reporting.config", () => {
       expect(DATABASE_OBJECT_TYPE_LABELS).toBeDefined();
     });
 
-    it("should have STORED_PROCEDURE", () => {
-      expect(DATABASE_OBJECT_TYPE_LABELS.STORED_PROCEDURE).toBe("STORED PROCEDURE");
+    it("should have PROCEDURE", () => {
+      expect(DATABASE_OBJECT_TYPE_LABELS.PROCEDURE).toBe("PROCEDURE");
+    });
+
+    it("should have FUNCTION", () => {
+      expect(DATABASE_OBJECT_TYPE_LABELS.FUNCTION).toBe("FUNCTION");
     });
 
     it("should have TRIGGER", () => {
       expect(DATABASE_OBJECT_TYPE_LABELS.TRIGGER).toBe("TRIGGER");
     });
 
-    it("should have exactly 2 database object type labels", () => {
-      expect(Object.keys(DATABASE_OBJECT_TYPE_LABELS)).toHaveLength(2);
+    it("should have exactly 3 database object type labels", () => {
+      expect(Object.keys(DATABASE_OBJECT_TYPE_LABELS)).toHaveLength(3);
     });
   });
 

@@ -732,6 +732,73 @@ describe("SourcesRepositoryImpl", () => {
     });
   });
 
+  describe("getDatabaseStatistics", () => {
+    it("should return aggregated database statistics with correct type structure", async () => {
+      const projectName = "test-project";
+      const mockFacetResults = [
+        {
+          storedProcedureCounts: [{ total: 236 }],
+          triggerCounts: [{ total: 15 }],
+        },
+      ];
+      mockAggregationCursor.toArray.mockResolvedValue(mockFacetResults);
+
+      const result = await repository.getDatabaseStatistics(projectName);
+
+      expect(result.storedObjectCounts.totalProcedures).toBe(236);
+      expect(result.storedObjectCounts.totalTriggers).toBe(15);
+      expect(mockCollection.aggregate).toHaveBeenCalled();
+    });
+
+    it("should return zero counts when no data exists", async () => {
+      const projectName = "test-project";
+      mockAggregationCursor.toArray.mockResolvedValue([]);
+
+      const result = await repository.getDatabaseStatistics(projectName);
+
+      expect(result).toEqual({
+        storedObjectCounts: { totalProcedures: 0, totalTriggers: 0 },
+      });
+    });
+
+    it("should handle empty facet sub-results with zero defaults", async () => {
+      const projectName = "test-project";
+      mockAggregationCursor.toArray.mockResolvedValue([
+        {
+          storedProcedureCounts: [],
+          triggerCounts: [],
+        },
+      ]);
+
+      const result = await repository.getDatabaseStatistics(projectName);
+
+      expect(result.storedObjectCounts.totalProcedures).toBe(0);
+      expect(result.storedObjectCounts.totalTriggers).toBe(0);
+    });
+
+    it("should use $facet pipeline for parallel sub-aggregations", async () => {
+      const projectName = "test-project";
+      mockAggregationCursor.toArray.mockResolvedValue([
+        {
+          storedProcedureCounts: [],
+          triggerCounts: [],
+        },
+      ]);
+
+      await repository.getDatabaseStatistics(projectName);
+
+      const aggregateCalls = mockCollection.aggregate.mock.calls;
+      expect(aggregateCalls.length).toBeGreaterThan(0);
+      const pipeline = aggregateCalls[0][0] as Record<string, unknown>[];
+      const facetStage = pipeline.find((stage) => "$facet" in stage);
+      expect(facetStage).toBeDefined();
+
+      const facet = (facetStage as Record<string, Record<string, unknown>>).$facet;
+      expect(facet).toHaveProperty("storedProcedureCounts");
+      expect(facet).toHaveProperty("triggerCounts");
+    });
+  });
+
   describe("getProjectIntegrationPoints", () => {
     it("should return integration points for a project", async () => {
       const projectName = "test-project";
