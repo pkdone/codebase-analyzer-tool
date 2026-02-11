@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`renderPrompt Snapshot Tests app summary prompts should match snapshots app summary prompt with forPartialAnalysis should match snapshot 1`] = `
 "Act as a senior developer analyzing the code in an existing application. Based on the a set of source file summaries shown below in the section marked 'FILE_SUMMARIES', return a JSON response that contains:
