@@ -4,7 +4,7 @@ import { outputConfig } from "../../config/output.config";
 import { RequirementPromptExecutor } from "../../components/insights/generators/requirement-prompt-executor";
 import type LLMExecutionStats from "../../../common/llm/tracking/llm-execution-stats";
 import type { EnvVars } from "../../env/env.types";
-import type { LLMModuleConfig } from "../../../common/llm/config/llm-module-config.types";
+import type LLMRouter from "../../../common/llm/llm-router";
 import { llmTokens, insightsTokens, coreTokens } from "../../di/tokens";
 import { BaseAnalysisTask } from "../base-analysis-task";
 
@@ -22,7 +22,7 @@ export class FileBasedInsightsGenerationTask extends BaseAnalysisTask {
     @inject(llmTokens.LLMExecutionStats) llmStats: LLMExecutionStats,
     @inject(coreTokens.ProjectName) projectName: string,
     @inject(coreTokens.EnvVars) private readonly env: EnvVars,
-    @inject(llmTokens.LLMModuleConfig) private readonly llmConfig: LLMModuleConfig,
+    @inject(llmTokens.LLMRouter) private readonly llmRouter: LLMRouter,
     @inject(insightsTokens.RequirementPromptExecutor)
     private readonly requirementPromptExecutor: RequirementPromptExecutor,
   ) {
@@ -38,8 +38,7 @@ export class FileBasedInsightsGenerationTask extends BaseAnalysisTask {
   }
 
   protected async runTask(): Promise<void> {
-    // Get a description of the configured models for logging
-    const modelsDescription = this.getLLMModelsDescription();
+    const modelsDescription = this.llmRouter.getCompletionModelKeys().join(", ");
     await this.requirementPromptExecutor.executeRequirementsToFiles(
       this.env.CODEBASE_DIR_PATH,
       modelsDescription,
@@ -48,15 +47,5 @@ export class FileBasedInsightsGenerationTask extends BaseAnalysisTask {
 
   protected override getPostTaskMessage(): string | null {
     return `View generated results in the 'file://${outputConfig.OUTPUT_DIR}' folder`;
-  }
-
-  /**
-   * Get a human-readable description of the LLM models being used.
-   */
-  private getLLMModelsDescription(): string {
-    const completions = this.llmConfig.resolvedModelChain.completions
-      .map((c) => `${c.providerFamily}:${c.modelKey}`)
-      .join(", ");
-    return `Completions: [${completions}]`;
   }
 }

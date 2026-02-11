@@ -2,7 +2,10 @@ import { z } from "zod";
 import { ProviderManager } from "../../../src/common/llm/provider-manager";
 import type { ProviderManagerConfig } from "../../../src/common/llm/provider-manager";
 import type { LLMProvider } from "../../../src/common/llm/types/llm-provider.interface";
-import type { LLMProviderManifest, ProviderInit } from "../../../src/common/llm/providers/llm-provider.types";
+import type {
+  LLMProviderManifest,
+  ProviderInit,
+} from "../../../src/common/llm/providers/llm-provider.types";
 import type { LLMProviderRegistry } from "../../../src/common/llm/config/llm-module-config.types";
 import { ShutdownBehavior } from "../../../src/common/llm/types/llm-shutdown.types";
 
@@ -57,9 +60,7 @@ function createConfig(
   providerFamily: string,
   manifest: LLMProviderManifest,
 ): ProviderManagerConfig {
-  const registry: LLMProviderRegistry = new Map([
-    [providerFamily.toLowerCase(), manifest],
-  ]);
+  const registry: LLMProviderRegistry = new Map([[providerFamily.toLowerCase(), manifest]]);
 
   return {
     resolvedModelChain: {

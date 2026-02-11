@@ -271,10 +271,32 @@ describe("LLM Router tests", () => {
       expect((router as any).activeLlmProvider).toBeUndefined();
     });
 
-    test("should return correct models description", () => {
+    test("should return concise models summary with unique model keys", () => {
       const { router } = createLLMRouter();
-      const description = router.getModelsUsedDescription();
-      expect(description).toContain("GPT");
+      const summary = router.getModelsUsedSummary();
+      expect(summary).toBe("GPT_COMPLETIONS_GPT4, GPT_COMPLETIONS_GPT35, GPT_EMBEDDINGS_ADA002");
+    });
+
+    test("should return completion model keys", () => {
+      const { router } = createLLMRouter();
+      const keys = router.getCompletionModelKeys();
+      expect(keys).toEqual(["GPT_COMPLETIONS_GPT4", "GPT_COMPLETIONS_GPT35"]);
+    });
+
+    test("should return embedding model keys", () => {
+      const { router } = createLLMRouter();
+      const keys = router.getEmbeddingModelKeys();
+      expect(keys).toEqual(["GPT_EMBEDDINGS_ADA002"]);
+    });
+
+    test("should return all unique model keys", () => {
+      const { router } = createLLMRouter();
+      const keys = router.getAllModelKeys();
+      expect(keys).toEqual([
+        "GPT_COMPLETIONS_GPT4",
+        "GPT_COMPLETIONS_GPT35",
+        "GPT_EMBEDDINGS_ADA002",
+      ]);
     });
 
     test("should return embedded model dimensions", () => {

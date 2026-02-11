@@ -33,7 +33,7 @@ describe("SinglePassInsightStrategy", () => {
 
     mockLLMRouter = {
       executeCompletion: jest.fn(),
-      getModelsUsedDescription: jest.fn(),
+      getModelsUsedSummary: jest.fn(),
       generateEmbeddings: jest.fn(),
       getProviderFamily: jest.fn(),
       getEmbeddingModelDimensions: jest.fn(),
@@ -60,13 +60,12 @@ describe("SinglePassInsightStrategy", () => {
   describe("generateInsights", () => {
     test("should call executeInsightCompletion with correct parameters", async () => {
       const mockResponse = {
-        technologies: [
-          { name: "TypeScript", description: "TypeScript language" },
-        ],
+        technologies: [{ name: "TypeScript", description: "TypeScript language" }],
       };
 
-      (mockLLMRouter.executeCompletion as any)
-        .mockResolvedValue(llmOk(mockResponse, createExecutionMetadata("gpt-4", "openai")));
+      (mockLLMRouter.executeCompletion as any).mockResolvedValue(
+        llmOk(mockResponse, createExecutionMetadata("gpt-4", "openai")),
+      );
 
       const category: AppSummaryCategoryType = "technologies";
       const summaries = ["* file1.ts: TypeScript implementation"];
@@ -78,8 +77,9 @@ describe("SinglePassInsightStrategy", () => {
     });
 
     test("should return null when LLM execution fails", async () => {
-      (mockLLMRouter.executeCompletion as any)
-        .mockResolvedValue(llmErr(new LLMExecutionError("Mock error", "test")));
+      (mockLLMRouter.executeCompletion as any).mockResolvedValue(
+        llmErr(new LLMExecutionError("Mock error", "test")),
+      );
 
       const result = await strategy.generateInsights("technologies", ["summary1"]);
 
@@ -89,8 +89,9 @@ describe("SinglePassInsightStrategy", () => {
     test("should handle empty summaries array", async () => {
       const mockResponse = { technologies: [] };
 
-      (mockLLMRouter.executeCompletion as any)
-        .mockResolvedValue(llmOk(mockResponse, createExecutionMetadata("gpt-4", "openai")));
+      (mockLLMRouter.executeCompletion as any).mockResolvedValue(
+        llmOk(mockResponse, createExecutionMetadata("gpt-4", "openai")),
+      );
 
       const result = await strategy.generateInsights("technologies", []);
 
@@ -105,8 +106,9 @@ describe("SinglePassInsightStrategy", () => {
         ],
       };
 
-      (mockLLMRouter.executeCompletion as any)
-        .mockResolvedValue(llmOk(mockResponse, createExecutionMetadata("gpt-4", "openai")));
+      (mockLLMRouter.executeCompletion as any).mockResolvedValue(
+        llmOk(mockResponse, createExecutionMetadata("gpt-4", "openai")),
+      );
 
       const summaries = [
         "* file1.tsx: React component",
@@ -124,13 +126,12 @@ describe("SinglePassInsightStrategy", () => {
   describe("type inference", () => {
     test("should return correctly typed result for technologies category", async () => {
       const mockResponse = {
-        technologies: [
-          { name: "TypeScript", version: "5.0.0" },
-        ],
+        technologies: [{ name: "TypeScript", version: "5.0.0" }],
       };
 
-      (mockLLMRouter.executeCompletion as any)
-        .mockResolvedValue(llmOk(mockResponse, createExecutionMetadata("gpt-4", "openai")));
+      (mockLLMRouter.executeCompletion as any).mockResolvedValue(
+        llmOk(mockResponse, createExecutionMetadata("gpt-4", "openai")),
+      );
 
       const result = await strategy.generateInsights("technologies", ["summary"]);
 
@@ -145,8 +146,9 @@ describe("SinglePassInsightStrategy", () => {
         appDescription: "A comprehensive application",
       };
 
-      (mockLLMRouter.executeCompletion as any)
-        .mockResolvedValue(llmOk(mockResponse, createExecutionMetadata("gpt-4", "openai")));
+      (mockLLMRouter.executeCompletion as any).mockResolvedValue(
+        llmOk(mockResponse, createExecutionMetadata("gpt-4", "openai")),
+      );
 
       const result = await strategy.generateInsights("appDescription", ["summary"]);
 
@@ -166,8 +168,9 @@ describe("SinglePassInsightStrategy", () => {
         ],
       };
 
-      (mockLLMRouter.executeCompletion as any)
-        .mockResolvedValue(llmOk(mockResponse, createExecutionMetadata("gpt-4", "openai")));
+      (mockLLMRouter.executeCompletion as any).mockResolvedValue(
+        llmOk(mockResponse, createExecutionMetadata("gpt-4", "openai")),
+      );
 
       const result = await strategy.generateInsights("boundedContexts", ["summary"]);
 
@@ -188,8 +191,9 @@ describe("SinglePassInsightStrategy", () => {
         ],
       };
 
-      (mockLLMRouter.executeCompletion as any)
-        .mockResolvedValue(llmOk(mockResponse, createExecutionMetadata("gpt-4", "openai")));
+      (mockLLMRouter.executeCompletion as any).mockResolvedValue(
+        llmOk(mockResponse, createExecutionMetadata("gpt-4", "openai")),
+      );
 
       const result = await strategy.generateInsights("businessProcesses", ["summary"]);
 
@@ -210,8 +214,9 @@ describe("SinglePassInsightStrategy", () => {
         ],
       };
 
-      (mockLLMRouter.executeCompletion as any)
-        .mockResolvedValue(llmOk(mockResponse, createExecutionMetadata("gpt-4", "openai")));
+      (mockLLMRouter.executeCompletion as any).mockResolvedValue(
+        llmOk(mockResponse, createExecutionMetadata("gpt-4", "openai")),
+      );
 
       const result = await strategy.generateInsights("potentialMicroservices", ["summary"]);
 
@@ -224,8 +229,9 @@ describe("SinglePassInsightStrategy", () => {
 
   describe("error handling", () => {
     test("should handle LLM execution errors gracefully", async () => {
-      (mockLLMRouter.executeCompletion as any)
-        .mockResolvedValue(llmErr(new LLMExecutionError("Rate limit exceeded", "openai")));
+      (mockLLMRouter.executeCompletion as any).mockResolvedValue(
+        llmErr(new LLMExecutionError("Rate limit exceeded", "openai")),
+      );
 
       const result = await strategy.generateInsights("technologies", ["summary"]);
 
@@ -233,8 +239,7 @@ describe("SinglePassInsightStrategy", () => {
     });
 
     test("should handle rejected promises gracefully", async () => {
-      (mockLLMRouter.executeCompletion as any)
-        .mockRejectedValue(new Error("Network error"));
+      (mockLLMRouter.executeCompletion as any).mockRejectedValue(new Error("Network error"));
 
       const result = await strategy.generateInsights("technologies", ["summary"]);
 
@@ -250,8 +255,9 @@ describe("SinglePassInsightStrategy", () => {
     test("should accept category and summaries parameters", async () => {
       const mockResponse = { technologies: [] };
 
-      (mockLLMRouter.executeCompletion as any)
-        .mockResolvedValue(llmOk(mockResponse, createExecutionMetadata("gpt-4", "openai")));
+      (mockLLMRouter.executeCompletion as any).mockResolvedValue(
+        llmOk(mockResponse, createExecutionMetadata("gpt-4", "openai")),
+      );
 
       // Should not throw
       await expect(
@@ -262,8 +268,9 @@ describe("SinglePassInsightStrategy", () => {
     test("should return CategoryInsightResult or null", async () => {
       const mockResponse = { technologies: [{ name: "Test" }] };
 
-      (mockLLMRouter.executeCompletion as any)
-        .mockResolvedValue(llmOk(mockResponse, createExecutionMetadata("gpt-4", "openai")));
+      (mockLLMRouter.executeCompletion as any).mockResolvedValue(
+        llmOk(mockResponse, createExecutionMetadata("gpt-4", "openai")),
+      );
 
       const result = await strategy.generateInsights("technologies", ["summary"]);
 
@@ -276,8 +283,9 @@ describe("SinglePassInsightStrategy", () => {
     test("should accept readonly string array for summaries", async () => {
       const mockResponse = { technologies: [] };
 
-      (mockLLMRouter.executeCompletion as any)
-        .mockResolvedValue(llmOk(mockResponse, createExecutionMetadata("gpt-4", "openai")));
+      (mockLLMRouter.executeCompletion as any).mockResolvedValue(
+        llmOk(mockResponse, createExecutionMetadata("gpt-4", "openai")),
+      );
 
       const readonlySummaries: readonly string[] = Object.freeze([
         "* file1.ts: summary1",

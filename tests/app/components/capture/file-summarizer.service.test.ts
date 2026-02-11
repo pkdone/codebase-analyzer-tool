@@ -48,7 +48,7 @@ describe("FileSummarizerService", () => {
       shutdown: jest.fn(),
       getProvidersRequiringProcessExit: jest.fn(),
       getProviderFamily: jest.fn(),
-      getModelsUsedDescription: jest.fn(),
+      getModelsUsedSummary: jest.fn(),
       getEmbeddingModelDimensions: jest.fn(),
       getLLMManifest: jest.fn(),
     } as unknown as jest.Mocked<LLMRouter>;

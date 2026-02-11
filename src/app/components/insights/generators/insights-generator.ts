@@ -57,7 +57,7 @@ export default class InsightsGenerator {
     @inject(serviceTokens.LlmConcurrencyService)
     private readonly llmConcurrencyService: LlmConcurrencyService,
   ) {
-    this.llmModelsDescription = this.llmRouter.getModelsUsedDescription();
+    this.llmModelsDescription = this.llmRouter.getModelsUsedSummary();
     // Get the token limit from the first completion model in the chain
     this.maxTokens = this.llmRouter.getFirstCompletionModelMaxTokens();
   }

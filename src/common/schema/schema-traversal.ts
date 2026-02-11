@@ -70,7 +70,7 @@ export function traverseAndModifySchema(schema: unknown, rules: SchemaTraversalR
           // Skip this key (transformKey explicitly wants to skip it)
           continue;
         }
-        
+
         // Use transformed key and value (key might be same as original to keep it)
         sanitized[transformed.key] = traverseAndModifySchema(transformed.value, rules);
         continue;
