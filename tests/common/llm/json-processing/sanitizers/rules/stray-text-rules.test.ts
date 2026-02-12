@@ -1,14 +1,14 @@
 import { executeRules } from "../../../../../../src/common/llm/json-processing/sanitizers/rules/rule-executor";
-import { STRAY_CHARACTER_RULES } from "../../../../../../src/common/llm/json-processing/sanitizers/rules/characters";
+import { STRAY_TEXT_RULES } from "../../../../../../src/common/llm/json-processing/sanitizers/rules/characters";
 
-describe("STRAY_CHARACTER_RULES", () => {
+describe("STRAY_TEXT_RULES", () => {
   describe("extraCharBeforeProperty", () => {
     it('should remove single character before property: a  "integrationPoints":', () => {
       const input = `{
   "name": "Test",
 a  "integrationPoints": []
 }`;
-      const result = executeRules(input, STRAY_CHARACTER_RULES);
+      const result = executeRules(input, STRAY_TEXT_RULES);
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"integrationPoints": []');
       expect(result.content).not.toContain('a  "integrationPoints"');
@@ -19,7 +19,7 @@ a  "integrationPoints": []
   "name": "Test"
 },
 s  "publicMethods": []`;
-      const result = executeRules(input, STRAY_CHARACTER_RULES);
+      const result = executeRules(input, STRAY_TEXT_RULES);
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"publicMethods": []');
       expect(result.content).not.toContain('s  "publicMethods"');
@@ -27,15 +27,15 @@ s  "publicMethods": []`;
   });
 
   describe("genericListMarkerBeforeProperty", () => {
-    it('should remove bullet point before property name: •  "publicConstants":', () => {
+    it('should remove bullet point before property name: \u2022  "publicConstants":', () => {
       const input = `{
   "name": "TestClass",
-•  "publicConstants": []
+\u2022  "publicConstants": []
 }`;
-      const result = executeRules(input, STRAY_CHARACTER_RULES);
+      const result = executeRules(input, STRAY_TEXT_RULES);
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"publicConstants": []');
-      expect(result.content).not.toContain("•");
+      expect(result.content).not.toContain("\u2022");
     });
 
     it('should remove asterisk before property name: * "purpose":', () => {
@@ -43,7 +43,7 @@ s  "publicMethods": []`;
   "name": "Test",
 * "purpose": "Test purpose"
 }`;
-      const result = executeRules(input, STRAY_CHARACTER_RULES);
+      const result = executeRules(input, STRAY_TEXT_RULES);
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"purpose": "Test purpose"');
       expect(result.content).not.toContain('* "purpose"');
@@ -54,7 +54,7 @@ s  "publicMethods": []`;
   "name": "Test",
 *   "purpose": "Test purpose"
 }`;
-      const result = executeRules(input, STRAY_CHARACTER_RULES);
+      const result = executeRules(input, STRAY_TEXT_RULES);
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"purpose": "Test purpose"');
     });
@@ -64,7 +64,7 @@ s  "publicMethods": []`;
   "name": "Test",
 - "items": []
 }`;
-      const result = executeRules(input, STRAY_CHARACTER_RULES);
+      const result = executeRules(input, STRAY_TEXT_RULES);
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"items": []');
       expect(result.content).not.toContain('- "items"');
@@ -75,7 +75,7 @@ s  "publicMethods": []`;
   "name": "Test",
 + "value": 42
 }`;
-      const result = executeRules(input, STRAY_CHARACTER_RULES);
+      const result = executeRules(input, STRAY_TEXT_RULES);
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"value": 42');
       expect(result.content).not.toContain('+ "value"');
@@ -86,7 +86,7 @@ s  "publicMethods": []`;
   "name": "Test",
 > "section": "main"
 }`;
-      const result = executeRules(input, STRAY_CHARACTER_RULES);
+      const result = executeRules(input, STRAY_TEXT_RULES);
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"section": "main"');
       expect(result.content).not.toContain('> "section"');
@@ -95,11 +95,11 @@ s  "publicMethods": []`;
     it("should remove various Unicode bullet markers", () => {
       const input = `{
   "name": "Test",
-► "item1": "value1",
-▸ "item2": "value2",
-◦ "item3": "value3"
+\u25ba "item1": "value1",
+\u25b8 "item2": "value2",
+\u25e6 "item3": "value3"
 }`;
-      const result = executeRules(input, STRAY_CHARACTER_RULES);
+      const result = executeRules(input, STRAY_TEXT_RULES);
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"item1": "value1"');
       expect(result.content).toContain('"item2": "value2"');
@@ -114,7 +114,7 @@ s  "publicMethods": []`;
     ar"com.example.ClassName"
   ]
 }`;
-      const result = executeRules(input, STRAY_CHARACTER_RULES);
+      const result = executeRules(input, STRAY_TEXT_RULES);
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"com.example.ClassName"');
       expect(result.content).not.toContain('ar"com.example');
@@ -126,7 +126,7 @@ s  "publicMethods": []`;
     x"value"
   ]
 }`;
-      const result = executeRules(input, STRAY_CHARACTER_RULES);
+      const result = executeRules(input, STRAY_TEXT_RULES);
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"value"');
     });
@@ -141,7 +141,7 @@ s  "publicMethods": []`;
     }
   ]
 }`;
-      const result = executeRules(input, STRAY_CHARACTER_RULES);
+      const result = executeRules(input, STRAY_TEXT_RULES);
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"name": "testMethod"');
       expect(result.content).not.toContain('y"name"');
@@ -154,7 +154,7 @@ s  "publicMethods": []`;
   "key": "value"
 },ce
 }`;
-      const result = executeRules(input, STRAY_CHARACTER_RULES);
+      const result = executeRules(input, STRAY_TEXT_RULES);
       expect(result.changed).toBe(true);
       expect(result.content).not.toContain("ce");
     });
@@ -169,7 +169,7 @@ s  "publicMethods": []`;
 _MODULE"
   "otherProp": []
 }`;
-      const result = executeRules(input, STRAY_CHARACTER_RULES);
+      const result = executeRules(input, STRAY_TEXT_RULES);
       expect(result.changed).toBe(true);
       expect(result.content).not.toContain('_MODULE"');
     });
@@ -184,7 +184,7 @@ _MODULE"
     }
   ]
 }`;
-      const result = executeRules(input, STRAY_CHARACTER_RULES);
+      const result = executeRules(input, STRAY_TEXT_RULES);
       expect(result.changed).toBe(true);
       expect(result.content).toContain("{");
       expect(result.content).not.toContain("c{");
@@ -196,7 +196,7 @@ _MODULE"
       const input = `{
   "name": "Test"
 }"""`;
-      const result = executeRules(input, STRAY_CHARACTER_RULES);
+      const result = executeRules(input, STRAY_TEXT_RULES);
       expect(result.changed).toBe(true);
       expect(result.content).not.toContain('"""');
     });
@@ -209,7 +209,7 @@ _MODULE"
 },
 _INSERT_DATABASE_INTEGRATION_
 }`;
-      const result = executeRules(input, STRAY_CHARACTER_RULES);
+      const result = executeRules(input, STRAY_TEXT_RULES);
       expect(result.changed).toBe(true);
       expect(result.content).not.toContain("_INSERT_DATABASE_INTEGRATION_");
     });
@@ -220,7 +220,7 @@ _INSERT_DATABASE_INTEGRATION_
 },
 _TODO_
 }`;
-      const result = executeRules(input, STRAY_CHARACTER_RULES);
+      const result = executeRules(input, STRAY_TEXT_RULES);
       expect(result.changed).toBe(true);
       expect(result.content).not.toContain("_TODO_");
     });
@@ -231,7 +231,7 @@ _TODO_
 },
 _PLACEHOLDER_
 }`;
-      const result = executeRules(input, STRAY_CHARACTER_RULES);
+      const result = executeRules(input, STRAY_TEXT_RULES);
       expect(result.changed).toBe(true);
       expect(result.content).not.toContain("_PLACEHOLDER_");
     });
@@ -245,7 +245,7 @@ _PLACEHOLDER_
     e "item2"
   ]
 }`;
-      const result = executeRules(input, STRAY_CHARACTER_RULES);
+      const result = executeRules(input, STRAY_TEXT_RULES);
       // The rule expects the pattern: delimiter + whitespace + single char + space(s) + quoted string
       // Verifying the array element is still present
       expect(result.content).toContain('"item2"');
@@ -258,14 +258,14 @@ _PLACEHOLDER_
   "key1": "value1",
 trib"propertyName": "value2"
 }`;
-      const result = executeRules(input, STRAY_CHARACTER_RULES);
+      const result = executeRules(input, STRAY_TEXT_RULES);
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"propertyName": "value2"');
     });
   });
 
   describe("integration with JSON parsing", () => {
-    it("should produce valid JSON after applying all stray character rules", () => {
+    it("should produce valid JSON after applying all stray text rules", () => {
       const input = `{
   "name": "TestClass",
 * "purpose": "Test purpose",
@@ -277,7 +277,7 @@ a  "publicConstants": [],
   ]
 }`;
 
-      const result = executeRules(input, STRAY_CHARACTER_RULES);
+      const result = executeRules(input, STRAY_TEXT_RULES);
       expect(result.changed).toBe(true);
       expect(() => JSON.parse(result.content)).not.toThrow();
 

@@ -1,8 +1,12 @@
 import { injectable } from "tsyringe";
-import { escapeMermaidLabel, generateNodeId, applyStyleClass } from "../utils";
+import {
+  escapeMermaidLabel,
+  generateNodeId,
+  applyStyleClass,
+} from "../../../../../common/diagrams/mermaid";
 import { BaseDiagramGenerator, type BaseDiagramOptions } from "./base-diagram-generator";
 import { flowchartConfig } from "../diagrams.config";
-import { DIAGRAM_CSS_CLASSES } from "../../config/diagram-css-classes.config";
+import { DIAGRAM_CSS_CLASSES } from "../../presentation/diagram-css-classes.config";
 
 export interface BusinessProcessActivity {
   activity: string;
@@ -65,16 +69,13 @@ export class FlowchartDiagramGenerator extends BaseDiagramGenerator<FlowchartDia
   private buildFlowchartDefinition(activities: BusinessProcessActivity[]): string {
     const lines = this.initializeDiagram("graph LR");
 
-    // Create nodes and connections
     const nodeIds: string[] = [];
 
     activities.forEach((activity, index) => {
       const nodeId = generateNodeId(activity.activity, index);
       nodeIds.push(nodeId);
-
       // Add node definition with rectangular shape
       lines.push(`    ${nodeId}["${escapeMermaidLabel(activity.activity)}"]`);
-
       // Apply style
       lines.push(applyStyleClass(nodeId, DIAGRAM_CSS_CLASSES.PROCESS));
     });

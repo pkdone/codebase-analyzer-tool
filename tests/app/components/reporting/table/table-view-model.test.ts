@@ -1,7 +1,7 @@
 import {
   TableViewModel,
   ProcessedListItem,
-  type DisplayableTableRow,
+  type RawTableRowData,
 } from "../../../../../src/app/components/reporting/presentation";
 
 describe("TableViewModel", () => {
@@ -253,7 +253,7 @@ describe("TableViewModel", () => {
     });
 
     it("should handle nested objects in arrays with null/undefined values", () => {
-      const data: DisplayableTableRow[] = [
+      const data: RawTableRowData[] = [
         {
           items: [
             { name: "Item 1", value: null, active: true },
@@ -289,7 +289,7 @@ describe("TableViewModel", () => {
 
     it("should handle Date objects in arrays by stringifying them instead of using String()", () => {
       const testDate = new Date("2024-01-15T10:30:00Z");
-      const data: DisplayableTableRow[] = [
+      const data: RawTableRowData[] = [
         {
           timestamps: [testDate, "2024-01-16", null],
         },
@@ -310,7 +310,7 @@ describe("TableViewModel", () => {
         constructor(public value: string) {}
       }
       const customInstance = new CustomClass("test");
-      const data: DisplayableTableRow[] = [
+      const data: RawTableRowData[] = [
         {
           items: [customInstance, { plain: "object" }],
         },
@@ -443,7 +443,7 @@ describe("TableViewModel", () => {
 
   describe("generic type parameter", () => {
     it("should work with strongly-typed data structures", () => {
-      interface FileTypeData extends DisplayableTableRow {
+      interface FileTypeData extends RawTableRowData {
         fileType: string;
         lines: number;
         files: number;
@@ -462,7 +462,7 @@ describe("TableViewModel", () => {
     });
 
     it("should work with nested typed structures", () => {
-      interface DatabaseIntegration extends DisplayableTableRow {
+      interface DatabaseIntegration extends RawTableRowData {
         path: string;
         mechanism: string;
         description: string;
@@ -504,13 +504,13 @@ describe("TableViewModel", () => {
     });
 
     it("should handle complex union types in generic parameter", () => {
-      interface ProcedureItem extends DisplayableTableRow {
+      interface ProcedureItem extends RawTableRowData {
         name: string;
         type: "PROCEDURE" | "FUNCTION";
         complexity: "LOW" | "MEDIUM" | "HIGH";
       }
 
-      interface TriggerItem extends DisplayableTableRow {
+      interface TriggerItem extends RawTableRowData {
         name: string;
         type: "TRIGGER";
         complexity: "LOW" | "MEDIUM" | "HIGH";

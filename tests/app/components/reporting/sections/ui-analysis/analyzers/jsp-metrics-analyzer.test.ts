@@ -251,9 +251,9 @@ describe("JspMetricsAnalyzer", () => {
     });
   });
 
-  describe("computeTopScriptletFiles", () => {
+  describe("getTopScriptletFiles", () => {
     it("should return empty array when no metrics provided", () => {
-      const result = analyzer.computeTopScriptletFiles([]);
+      const result = analyzer.getTopScriptletFiles([]);
 
       expect(result).toEqual([]);
     });
@@ -283,7 +283,7 @@ describe("JspMetricsAnalyzer", () => {
         },
       ];
 
-      const result = analyzer.computeTopScriptletFiles(metrics);
+      const result = analyzer.getTopScriptletFiles(metrics);
 
       expect(result[0].filePath).toBe("high.jsp");
       expect(result[1].filePath).toBe("medium.jsp");
@@ -300,7 +300,7 @@ describe("JspMetricsAnalyzer", () => {
         totalScriptletBlocks: i,
       }));
 
-      const result = analyzer.computeTopScriptletFiles(metrics);
+      const result = analyzer.getTopScriptletFiles(metrics);
 
       // Should be limited (default TOP_FILES_LIMIT is typically 10-20)
       expect(result.length).toBeLessThanOrEqual(20);
@@ -325,7 +325,7 @@ describe("JspMetricsAnalyzer", () => {
       ];
 
       const originalFirst = metrics[0].filePath;
-      analyzer.computeTopScriptletFiles(metrics);
+      analyzer.getTopScriptletFiles(metrics);
 
       expect(metrics[0].filePath).toBe(originalFirst);
     });

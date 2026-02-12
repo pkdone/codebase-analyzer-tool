@@ -1,13 +1,13 @@
 import { injectable, inject } from "tsyringe";
 import { BaseReportSection } from "../base-report-section";
-import { reportingTokens } from "../../../../di/tokens";
+import { reportingTokens, coreTokens } from "../../../../di/tokens";
 import { IntegrationPointsDataProvider } from "./integration-points-data-provider";
 import { TableViewModel } from "../../presentation";
 import type { PreparedHtmlReportData } from "../../types/html-report-data.types";
 import type { PreparedJsonData } from "../../json-report-writer";
 import type { ReportData } from "../../report-data.types";
 import { SECTION_NAMES } from "../../config/reporting.config";
-import { outputConfig } from "../../../../config/output.config";
+import type { OutputConfigType } from "../../../../config/output.config";
 
 /**
  * Report section for integration points (APIs, queues, topics, SOAP services).
@@ -17,6 +17,8 @@ export class IntegrationPointsSection extends BaseReportSection {
   constructor(
     @inject(reportingTokens.IntegrationPointsDataProvider)
     private readonly integrationPointsDataProvider: IntegrationPointsDataProvider,
+    @inject(coreTokens.OutputConfig)
+    private readonly outputConfig: OutputConfigType,
   ) {
     super();
   }
@@ -53,7 +55,7 @@ export class IntegrationPointsSection extends BaseReportSection {
   prepareJsonData(_baseData: ReportData, sectionData: Partial<ReportData>): PreparedJsonData[] {
     return this.prepareSingleJsonData(
       sectionData.integrationPoints,
-      outputConfig.jsonFiles.INTEGRATION_POINTS,
+      this.outputConfig.jsonFiles.INTEGRATION_POINTS,
     );
   }
 }

@@ -2,7 +2,7 @@
  * Types for the UI analysis (server-side UI technologies) report section.
  */
 
-import type { TagLibraryType } from "../../config/ui-analysis.config";
+import type { TagLibraryType } from "./ui-analysis.config";
 
 /**
  * UI Framework detected in the project.

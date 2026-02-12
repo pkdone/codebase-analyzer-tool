@@ -1,5 +1,5 @@
-import { calculateCouplingLevel } from "../../../../../src/app/components/reporting/domain/coupling-calculator";
-import { CouplingLevel } from "../../../../../src/app/components/reporting/config/module-coupling.config";
+import { calculateCouplingLevel } from "../../../../../../src/app/components/reporting/sections/architecture-analysis/coupling-calculator";
+import { CouplingLevel } from "../../../../../../src/app/components/reporting/sections/architecture-analysis/module-coupling.config";
 
 describe("coupling-calculator", () => {
   describe("calculateCouplingLevel", () => {

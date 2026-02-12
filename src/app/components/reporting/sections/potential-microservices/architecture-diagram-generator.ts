@@ -1,12 +1,12 @@
 import { injectable } from "tsyringe";
-import { generateNodeId } from "../../diagrams/utils";
+import { generateNodeId } from "../../../../../common/diagrams/mermaid";
 import {
   BaseDiagramGenerator,
   type BaseDiagramOptions,
 } from "../../diagrams/generators/base-diagram-generator";
 import { architectureConfig } from "../../diagrams/diagrams.config";
 import { createFlowchartBuilder } from "../../diagrams/builders";
-import { DIAGRAM_CSS_CLASSES } from "../../config/diagram-css-classes.config";
+import { DIAGRAM_CSS_CLASSES } from "../../presentation/diagram-css-classes.config";
 
 export interface Microservice {
   name: string;

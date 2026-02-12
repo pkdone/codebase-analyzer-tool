@@ -4,7 +4,7 @@
 
 import {
   countLines,
-  convertToDisplayName,
+  camelCaseToTitleCase,
   joinArrayWithSeparators,
 } from "../../../src/common/utils/text-utils";
 
@@ -58,26 +58,26 @@ describe("text-utils", () => {
     });
   });
 
-  describe("convertToDisplayName", () => {
+  describe("camelCaseToTitleCase", () => {
     it("should convert camelCase to space-separated words", () => {
-      expect(convertToDisplayName("camelCaseString")).toBe("Camel Case String");
+      expect(camelCaseToTitleCase("camelCaseString")).toBe("Camel Case String");
     });
 
     it("should handle single word", () => {
-      expect(convertToDisplayName("hello")).toBe("Hello");
+      expect(camelCaseToTitleCase("hello")).toBe("Hello");
     });
 
     it("should handle already spaced words", () => {
-      expect(convertToDisplayName("hello world")).toBe("Hello World");
+      expect(camelCaseToTitleCase("hello world")).toBe("Hello World");
     });
 
     it("should handle acronyms", () => {
       // The function only inserts spaces between lowercase-uppercase transitions
-      expect(convertToDisplayName("getHTTPResponse")).toBe("Get HTTPResponse");
+      expect(camelCaseToTitleCase("getHTTPResponse")).toBe("Get HTTPResponse");
     });
 
     it("should handle empty string", () => {
-      expect(convertToDisplayName("")).toBe("");
+      expect(camelCaseToTitleCase("")).toBe("");
     });
   });
 

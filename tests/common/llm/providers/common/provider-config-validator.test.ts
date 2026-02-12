@@ -142,6 +142,16 @@ describe("createProviderConfigValidator", () => {
     });
   });
 
+  describe("extra property handling", () => {
+    it("should not pass through extra properties not in the schema", () => {
+      const config = { apiKey: "test-key", extraProp: "should-be-stripped" };
+      const result = assert(config);
+      expect(result.apiKey).toBe("test-key");
+      expect(result.maxRetries).toBe(3);
+      expect(Object.hasOwn(result as Record<string, unknown>, "extraProp")).toBe(false);
+    });
+  });
+
   describe("type narrowing", () => {
     it("should narrow type after isValid check", () => {
       const maybeConfig: unknown = { apiKey: "test-key" };

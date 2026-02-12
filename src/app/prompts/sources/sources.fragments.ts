@@ -8,5 +8,5 @@
 // Re-export type for consumers
 export type { LanguageSpecificFragments } from "./sources.types";
 
-// Re-export COMPOSITES from its dedicated module
-export { COMPOSITES } from "./fragments";
+// Re-export PRECONFIGURED_INSTRUCTION_SETS from its dedicated module
+export { PRECONFIGURED_INSTRUCTION_SETS } from "./fragments";

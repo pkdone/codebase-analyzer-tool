@@ -2,6 +2,7 @@ import "reflect-metadata";
 import { IntegrationPointsSection } from "../../../../../src/app/components/reporting/sections/integration-points/integration-points-section";
 import { IntegrationPointsDataProvider } from "../../../../../src/app/components/reporting/sections/integration-points/integration-points-data-provider";
 import type { ReportData } from "../../../../../src/app/components/reporting/report-data.types";
+import { outputConfig } from "../../../../../src/app/config/output.config";
 
 describe("IntegrationPointsSection", () => {
   let section: IntegrationPointsSection;
@@ -12,7 +13,7 @@ describe("IntegrationPointsSection", () => {
       getIntegrationPoints: jest.fn(),
     } as unknown as jest.Mocked<IntegrationPointsDataProvider>;
 
-    section = new IntegrationPointsSection(mockIntegrationPointsDataProvider);
+    section = new IntegrationPointsSection(mockIntegrationPointsDataProvider, outputConfig);
   });
 
   describe("getName", () => {

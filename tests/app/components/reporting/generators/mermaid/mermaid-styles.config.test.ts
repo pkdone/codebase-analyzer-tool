@@ -2,7 +2,7 @@ import {
   buildStyleDefinitions,
   type DiagramThemeConfig,
 } from "../../../../../../src/app/components/reporting/diagrams/utils/mermaid-styles";
-import { applyStyleClass } from "../../../../../../src/app/components/reporting/diagrams/utils";
+import { applyStyleClass } from "../../../../../../src/common/diagrams/mermaid";
 import { BRAND_COLORS } from "../../../../../../src/app/components/reporting/config/brand-theme.config";
 
 describe("mermaid-styles.config", () => {

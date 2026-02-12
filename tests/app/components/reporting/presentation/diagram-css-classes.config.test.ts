@@ -1,7 +1,7 @@
 import {
   DIAGRAM_CSS_CLASSES,
   type DiagramCssClassName,
-} from "../../../../../src/app/components/reporting/config/diagram-css-classes.config";
+} from "../../../../../src/app/components/reporting/presentation/diagram-css-classes.config";
 import { buildStyleDefinitions } from "../../../../../src/app/components/reporting/diagrams/utils/mermaid-styles";
 
 describe("diagram-css-classes.config", () => {

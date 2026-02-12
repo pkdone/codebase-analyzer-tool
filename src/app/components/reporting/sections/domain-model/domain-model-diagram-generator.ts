@@ -1,5 +1,5 @@
 import { injectable } from "tsyringe";
-import { generateNodeId } from "../../diagrams/utils";
+import { generateNodeId } from "../../../../../common/diagrams/mermaid";
 import type { DomainBoundedContext, DomainAggregate, DomainEntity } from "./domain-model.types";
 import {
   BaseDiagramGenerator,
@@ -7,7 +7,7 @@ import {
 } from "../../diagrams/generators/base-diagram-generator";
 import { domainModelConfig } from "../../diagrams/diagrams.config";
 import { createFlowchartBuilder } from "../../diagrams/builders";
-import { DIAGRAM_CSS_CLASSES } from "../../config/diagram-css-classes.config";
+import { DIAGRAM_CSS_CLASSES } from "../../presentation/diagram-css-classes.config";
 
 export type DomainDiagramOptions = BaseDiagramOptions;
 

@@ -23,10 +23,8 @@ import { isInStringAt } from "../utils/parser-context-utils";
  * - `<|endoftext|>` -> removed (OpenAI end-of-text token)
  * - `[EOS]` -> removed (end-of-sequence token)
  *
- * Strategy:
- * Simply removes all LLM token artifacts. The resulting typos (e.g., `OfCode"` instead of `linesOfCode"`)
- * will be handled by the `propertyAndValueSyntaxSanitizer` sanitizer, which is more robust and maintainable.
- * This approach is safer than trying to reconstruct property names heuristically.
+ * Simply removes all LLM token artifacts. This approach is safer than trying to reconstruct
+ * property names heuristically.
  */
 export const fixLlmTokenArtifacts: Sanitizer = (jsonString: string): SanitizerResult => {
   try {

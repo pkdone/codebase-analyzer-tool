@@ -9,7 +9,7 @@
 import {
   executeRules,
   executeRulesMultiPass,
-  STRAY_CHARACTER_RULES,
+  STRAY_TEXT_RULES,
   PROPERTY_NAME_RULES,
   ASSIGNMENT_RULES,
   ARRAY_ELEMENT_RULES,
@@ -32,10 +32,10 @@ describe("rules barrel export", () => {
   });
 
   describe("rule set exports", () => {
-    it("should export STRAY_CHARACTER_RULES array", () => {
-      expect(STRAY_CHARACTER_RULES).toBeDefined();
-      expect(Array.isArray(STRAY_CHARACTER_RULES)).toBe(true);
-      expect(STRAY_CHARACTER_RULES.length).toBeGreaterThan(0);
+    it("should export STRAY_TEXT_RULES array", () => {
+      expect(STRAY_TEXT_RULES).toBeDefined();
+      expect(Array.isArray(STRAY_TEXT_RULES)).toBe(true);
+      expect(STRAY_TEXT_RULES.length).toBeGreaterThan(0);
     });
 
     it("should export PROPERTY_NAME_RULES array", () => {
@@ -74,7 +74,7 @@ describe("rules barrel export", () => {
       // ALL_RULES should contain all the individual rule sets
       expect(ALL_RULES.length).toBeGreaterThan(
         Math.max(
-          STRAY_CHARACTER_RULES.length,
+          STRAY_TEXT_RULES.length,
           PROPERTY_NAME_RULES.length,
           ARRAY_ELEMENT_RULES.length,
           STRUCTURAL_RULES.length,
@@ -88,7 +88,7 @@ describe("rules barrel export", () => {
     it("should execute rules from the barrel export", () => {
       // Simple test to verify executeRules works with exported rule sets
       const input = '{"key": "value"} stray text';
-      const result = executeRules(input, STRAY_CHARACTER_RULES);
+      const result = executeRules(input, STRAY_TEXT_RULES);
       expect(result).toBeDefined();
       expect(typeof result.content).toBe("string");
       expect(typeof result.changed).toBe("boolean");

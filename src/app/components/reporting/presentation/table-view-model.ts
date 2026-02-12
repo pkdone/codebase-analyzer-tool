@@ -1,4 +1,4 @@
-import { convertToDisplayName } from "../../../../common/utils/text-utils";
+import { camelCaseToTitleCase } from "../../../../common/utils/text-utils";
 import { formatRow, type ProcessedTableCell, type ProcessedListItem } from "./table-data-formatter";
 
 // Re-export formatter types for convenience (used by tests and other consumers)
@@ -12,7 +12,7 @@ export type { ProcessedTableCell, ProcessedListItem };
  * that use .passthrough() (which adds [key: string]: unknown). The formatter gracefully
  * handles any value by serializing complex types to JSON strings.
  */
-export type DisplayableTableRow = Record<string, unknown>;
+export type RawTableRowData = Record<string, unknown>;
 
 /**
  * View model for table data that serves as a pure data structure.
@@ -26,7 +26,7 @@ export type DisplayableTableRow = Record<string, unknown>;
  * Formatting logic (how values are converted to display strings, determining cell
  * types like link/code/text) is handled by the TableDataFormatter module.
  */
-export class TableViewModel<T extends DisplayableTableRow = DisplayableTableRow> {
+export class TableViewModel<T extends RawTableRowData = RawTableRowData> {
   private readonly data: readonly T[];
   private readonly headers: readonly string[];
 
@@ -40,7 +40,7 @@ export class TableViewModel<T extends DisplayableTableRow = DisplayableTableRow>
    * Converts camelCase headers to Display Case.
    */
   getDisplayHeaders(): string[] {
-    return this.headers.map((header) => convertToDisplayName(header));
+    return this.headers.map((header) => camelCaseToTitleCase(header));
   }
 
   /**

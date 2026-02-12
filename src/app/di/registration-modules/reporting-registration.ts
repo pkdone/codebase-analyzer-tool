@@ -33,7 +33,7 @@ import { BackgroundProcessesSection } from "../../components/reporting/sections/
 import { ScheduledJobDataProvider } from "../../components/reporting/sections/background-processes/job-data-provider";
 import { ArchitectureAnalysisSection } from "../../components/reporting/sections/architecture-analysis/architecture-analysis-section";
 import { ModuleCouplingDataProvider } from "../../components/reporting/sections/architecture-analysis/module-coupling-data-provider";
-import { UiAnalysisSection } from "../../components/reporting/sections/ui-analysis/ui-analysis-section";
+import { JavaServerSideUiSection } from "../../components/reporting/sections/ui-analysis/java-server-side-ui-section";
 import { JavaUiTechnologyDataProvider } from "../../components/reporting/sections/ui-analysis/java-ui-technology-data-provider";
 import {
   JavaFrameworkAnalyzer,
@@ -113,6 +113,6 @@ export function registerReportingComponents(): void {
   container.registerSingleton(reportingTokens.ReportSection, DependenciesSection);
   container.registerSingleton(reportingTokens.ReportSection, BackgroundProcessesSection);
   container.registerSingleton(reportingTokens.ReportSection, ArchitectureAnalysisSection);
-  container.registerSingleton(reportingTokens.ReportSection, UiAnalysisSection);
+  container.registerSingleton(reportingTokens.ReportSection, JavaServerSideUiSection);
   container.registerSingleton(reportingTokens.ReportSection, CodeQualitySection);
 }

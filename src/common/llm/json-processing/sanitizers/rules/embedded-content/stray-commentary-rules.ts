@@ -15,7 +15,7 @@ import type { ReplacementRule } from "../../../../types/sanitizer-config.types";
 import { parsingHeuristics } from "../../../constants/json-processing.config";
 import { looksLikeSentenceStructure } from "../../../utils/stray-text-detection";
 import { safeGroup, getSafeGroups } from "../../../utils/safe-group-extractor";
-import { isValidEmbeddedContentContext } from "./llm-metadata-property-rules";
+import { isValidPropertyStartPosition } from "./llm-metadata-property-rules";
 
 /**
  * Rules for removing stray commentary and LLM conversational artifacts from JSON.
@@ -110,7 +110,7 @@ export const STRAY_COMMENTARY_RULES: readonly ReplacementRule[] = [
     pattern:
       /([}\],]|\n|^)(\s*)([a-zA-Z_][a-zA-Z0-9_]*\s*=\s*[^\s"]{1,20})\s+("([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:)/g,
     replacement: (_match, groups, context) => {
-      if (!isValidEmbeddedContentContext(context)) {
+      if (!isValidPropertyStartPosition(context)) {
         return null;
       }
       const [delimiter, whitespace, , propertyWithQuote] = getSafeGroups(groups, 4);

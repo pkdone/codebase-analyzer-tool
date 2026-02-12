@@ -11,7 +11,7 @@
  * Text generation functions are in insight-text-generators.ts.
  */
 
-import { uiAnalysisConfig } from "../config/ui-analysis.config";
+import { uiAnalysisConfig } from "../sections/ui-analysis/ui-analysis.config";
 
 // Re-export CSS/badge mapping functions
 export {

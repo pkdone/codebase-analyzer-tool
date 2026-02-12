@@ -1,13 +1,13 @@
 import { injectable, inject } from "tsyringe";
 import { BaseReportSection } from "../base-report-section";
-import { reportingTokens } from "../../../../di/tokens";
+import { reportingTokens, coreTokens } from "../../../../di/tokens";
 import { DatabaseReportDataProvider } from "./database-report-data-provider";
 import { TableViewModel } from "../../presentation";
 import type { PreparedHtmlReportData } from "../../types/html-report-data.types";
 import type { PreparedJsonData } from "../../json-report-writer";
 import type { ReportData } from "../../report-data.types";
 import { SECTION_NAMES } from "../../config/reporting.config";
-import { outputConfig } from "../../../../config/output.config";
+import type { OutputConfigType } from "../../../../config/output.config";
 
 /**
  * Report section for database-related data (interactions, procedures, triggers).
@@ -17,6 +17,8 @@ export class DatabaseSection extends BaseReportSection {
   constructor(
     @inject(reportingTokens.DatabaseReportDataProvider)
     private readonly databaseDataProvider: DatabaseReportDataProvider,
+    @inject(coreTokens.OutputConfig)
+    private readonly outputConfig: OutputConfigType,
   ) {
     super();
   }
@@ -72,11 +74,11 @@ export class DatabaseSection extends BaseReportSection {
 
     return [
       {
-        filename: outputConfig.jsonFiles.DB_INTERACTIONS,
+        filename: this.outputConfig.jsonFiles.DB_INTERACTIONS,
         data: dbInteractions,
       },
       {
-        filename: outputConfig.jsonFiles.PROCS_AND_TRIGGERS,
+        filename: this.outputConfig.jsonFiles.PROCS_AND_TRIGGERS,
         data: procsAndTriggers,
       },
     ];

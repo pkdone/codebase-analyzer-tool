@@ -7,9 +7,60 @@
  * - Minus signs and markdown markers
  */
 
-import type { ReplacementRule } from "../../../../types/sanitizer-config.types";
+import type {
+  ContextInfo,
+  DiagnosticMessageFunction,
+  ReplacementRule,
+} from "../../../../types/sanitizer-config.types";
 import { isInArrayContextSimple, isDeepArrayContext } from "../../../utils/parser-context-utils";
 import { safeGroup, getSafeGroups } from "../../../utils/safe-group-extractor";
+
+/**
+ * Configuration for creating an array element fixer rule via the factory.
+ */
+interface ArrayElementFixerConfig {
+  /** Unique rule name for diagnostics. */
+  readonly name: string;
+  /** Regex pattern to match. Must have the 'g' flag. */
+  readonly pattern: RegExp;
+  /** Context check function to determine if the match is in an array. */
+  readonly contextCheck: (context: ContextInfo) => boolean;
+  /** Diagnostic message or function for logging replacements. */
+  readonly diagnosticMessage: string | DiagnosticMessageFunction;
+}
+
+/**
+ * Factory that creates a ReplacementRule for fixing array elements that have
+ * missing or corrupted opening quotes. The generated rule shares a common
+ * replacement strategy:
+ *
+ * 1. Verify the match is inside an array using the provided context check.
+ * 2. Extract three capture groups: delimiter, whitespace, and the unquoted value.
+ * 3. Reconstruct the element with proper quoting: `${delimiter}${whitespace}"${value}",`
+ *
+ * This eliminates duplication across rules that differ only in their regex
+ * pattern, context check, and diagnostic message.
+ *
+ * @param config - The unique parts of the rule (pattern, context check, diagnostics)
+ * @returns A fully formed ReplacementRule with the shared replacement logic
+ */
+function createArrayElementFixerRule(config: ArrayElementFixerConfig): ReplacementRule {
+  const { name, pattern, contextCheck, diagnosticMessage } = config;
+
+  return {
+    name,
+    pattern,
+    replacement: (_match, groups, context) => {
+      if (!contextCheck(context)) {
+        return null;
+      }
+
+      const [delimiter, whitespace, stringValue] = getSafeGroups(groups, 3);
+      return `${delimiter}${whitespace}"${stringValue}",`;
+    },
+    diagnosticMessage,
+  };
+}
 
 /**
  * Rules for fixing array element issues in JSON content.
@@ -17,37 +68,25 @@ import { safeGroup, getSafeGroups } from "../../../utils/safe-group-extractor";
 export const ARRAY_ELEMENT_RULES: readonly ReplacementRule[] = [
   // Rule: Fix missing opening quotes in array elements
   // Pattern: `unquoted.package.ClassB",` -> `"unquoted.package.ClassB",`
-  {
+  createArrayElementFixerRule({
     name: "missingOpeningQuoteInArrayElement",
     pattern: /([}\],]|\n|^)(\s*)([a-zA-Z][a-zA-Z0-9_.]+)"\s*,/g,
-    replacement: (_match, groups, context) => {
-      if (!isDeepArrayContext(context)) {
-        return null;
-      }
-      const [delimiter, whitespace, stringValue] = getSafeGroups(groups, 3);
-      return `${delimiter}${whitespace}"${stringValue}",`;
-    },
+    contextCheck: isDeepArrayContext,
     diagnosticMessage: (_match, groups) => {
       return `Fixed missing opening quote in array: ${safeGroup(groups, 2)}" -> "${safeGroup(groups, 2)}"`;
     },
-  },
+  }),
 
   // Rule: Fix missing opening quotes with capital letter
   // Pattern: `UnquotedStringValue",` -> `"UnquotedStringValue",`
-  {
+  createArrayElementFixerRule({
     name: "missingOpeningQuoteCapitalLetter",
     pattern: /([}\],]|\n|^)(\s*)([A-Z][a-zA-Z0-9_./]+)"\s*,/g,
-    replacement: (_match, groups, context) => {
-      if (!isDeepArrayContext(context)) {
-        return null;
-      }
-      const [delimiter, whitespace, stringValue] = getSafeGroups(groups, 3);
-      return `${delimiter}${whitespace}"${stringValue}",`;
-    },
+    contextCheck: isDeepArrayContext,
     diagnosticMessage: (_match, groups) => {
       return `Fixed missing opening quote before array element: ${safeGroup(groups, 2)}" -> "${safeGroup(groups, 2)}"`;
     },
-  },
+  }),
 
   // Rule: Remove minus signs before array elements
   // Pattern: `-"stringValue",` -> `"stringValue",`
@@ -283,21 +322,15 @@ export const ARRAY_ELEMENT_RULES: readonly ReplacementRule[] = [
 
   // Rule: Remove stray 'stop' before string values
   // Pattern: `stop"stringValue",` -> `"stringValue",`
-  {
+  createArrayElementFixerRule({
     name: "stopBeforeString",
     pattern: /([}\],]|\n|^)(\s*)stop"([^"]+)"\s*,/g,
-    replacement: (_match, groups, context) => {
-      if (!isInArrayContextSimple(context)) {
-        return null;
-      }
-      const [delimiter, whitespace, stringValue] = getSafeGroups(groups, 3);
-      return `${delimiter}${whitespace}"${stringValue}",`;
-    },
+    contextCheck: isInArrayContextSimple,
     diagnosticMessage: (_match, groups) => {
       const stringValue = safeGroup(groups, 2);
       return `Removed 'stop' before array element: "${stringValue.substring(0, 30)}..."`;
     },
-  },
+  }),
 
   // Rule: Remove trailing comma in last array element
   // Pattern: `"value",\n  ]` -> `"value"\n  ]`

@@ -57,12 +57,12 @@ describe("Provider Config Validation", () => {
       }
     });
 
-    test("should preserve additional properties in the config", () => {
+    test("should not preserve additional properties not in schema", () => {
       const config = { apiKey: "sk-test", extraProperty: "value" };
       const result = assertOpenAIConfig(config);
 
       expect(result.apiKey).toBe("sk-test");
-      expect(result.extraProperty).toBe("value");
+      expect(Object.hasOwn(result as Record<string, unknown>, "extraProperty")).toBe(false);
     });
   });
 
@@ -165,12 +165,14 @@ describe("Provider Config Validation", () => {
       expect(() => assertVertexAIGeminiConfig(config2)).toThrow(LLMError);
     });
 
-    test("should preserve additional properties in the config", () => {
+    test("should not preserve additional properties not in schema", () => {
       const config = { ...validConfig, extraProperty: "value" };
       const result = assertVertexAIGeminiConfig(config);
 
       expect(result.projectId).toBe("my-gcp-project");
-      expect(result.extraProperty).toBe("value");
+      expect(result.embeddingsLocation).toBe("us-central1");
+      expect(result.completionsLocation).toBe("global");
+      expect(Object.hasOwn(result as Record<string, unknown>, "extraProperty")).toBe(false);
     });
   });
 });

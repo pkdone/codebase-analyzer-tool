@@ -4,7 +4,7 @@
  * the configuration constants which remain in module-coupling.config.ts.
  */
 
-import { CouplingLevel, COUPLING_THRESHOLDS } from "../config/module-coupling.config";
+import { CouplingLevel, COUPLING_THRESHOLDS } from "./module-coupling.config";
 
 /**
  * Calculates the coupling level for a module relationship.

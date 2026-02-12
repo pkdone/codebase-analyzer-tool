@@ -43,7 +43,7 @@ function getSliceColor(index: number): string {
  * @param endAngle - End angle in radians
  * @returns SVG path 'd' attribute string
  */
-function describeArc(
+function calculateSvgArcPath(
   cx: number,
   cy: number,
   r: number,
@@ -93,7 +93,7 @@ export function buildPieChartData(fileTypesData: FileExtensionData[]): PieChartD
     const labelY = pieChartConfig.CENTER_Y + Math.sin(midAngle) * labelRadius;
 
     // Generate path data for the slice
-    const pathData = describeArc(
+    const pathData = calculateSvgArcPath(
       pieChartConfig.CENTER_X,
       pieChartConfig.CENTER_Y,
       pieChartConfig.RADIUS,

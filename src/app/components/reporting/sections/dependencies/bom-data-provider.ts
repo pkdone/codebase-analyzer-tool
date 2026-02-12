@@ -92,7 +92,7 @@ export class BomDataProvider {
     }
 
     // Convert to array and detect conflicts
-    const dependencies = Array.from(dependencyMap.values()).map((dep) => ({
+    const dependencies = Array.from(dependencyMap.values(), (dep) => ({
       name: dep.name,
       groupId: dep.groupId,
       versions: Array.from(dep.versions).toSorted(),

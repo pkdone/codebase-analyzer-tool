@@ -1,14 +1,14 @@
 import { injectable, inject } from "tsyringe";
 import { BaseReportSection } from "../base-report-section";
-import { reportingTokens } from "../../../../di/tokens";
+import { reportingTokens, coreTokens } from "../../../../di/tokens";
 import { JavaUiTechnologyDataProvider } from "./java-ui-technology-data-provider";
 import type { PreparedHtmlReportData } from "../../types/html-report-data.types";
 import type { PreparedJsonData } from "../../json-report-writer";
 import type { ReportData } from "../../report-data.types";
 import { SECTION_NAMES } from "../../config/reporting.config";
 import type { UiTechnologyAnalysis } from "./ui-analysis.types";
-import { TAG_LIBRARY_BADGE_CLASSES } from "../../config/ui-analysis.config";
-import { calculateDebtLevel } from "../../domain/ui-analysis-calculator";
+import { TAG_LIBRARY_BADGE_CLASSES } from "./ui-analysis.config";
+import { calculateDebtLevel } from "./ui-analysis-calculator";
 import {
   getDebtLevelPresentation,
   getTotalScriptletsCssClass,
@@ -16,18 +16,20 @@ import {
   shouldShowHighDebtAlert,
   getScriptletUsageInsight,
 } from "../../presentation";
-import { outputConfig } from "../../../../config/output.config";
+import type { OutputConfigType } from "../../../../config/output.config";
 import { UNKNOWN_VALUE_PLACEHOLDER } from "../../config/placeholders.config";
 
 /**
- * Report section for server-side UI technology analysis.
+ * Report section for Java server-side UI technology analysis.
  * Identifies JSP scriptlets, tag libraries, and UI frameworks for technical debt assessment.
  */
 @injectable()
-export class UiAnalysisSection extends BaseReportSection {
+export class JavaServerSideUiSection extends BaseReportSection {
   constructor(
     @inject(reportingTokens.JavaUiTechnologyDataProvider)
     private readonly javaUiTechnologyDataProvider: JavaUiTechnologyDataProvider,
+    @inject(coreTokens.OutputConfig)
+    private readonly outputConfig: OutputConfigType,
   ) {
     super();
   }
@@ -98,7 +100,7 @@ export class UiAnalysisSection extends BaseReportSection {
   prepareJsonData(_baseData: ReportData, sectionData: Partial<ReportData>): PreparedJsonData[] {
     return this.prepareSingleJsonData(
       sectionData.uiTechnologyAnalysis,
-      outputConfig.jsonFiles.UI_TECHNOLOGY_ANALYSIS,
+      this.outputConfig.jsonFiles.UI_TECHNOLOGY_ANALYSIS,
     );
   }
 }

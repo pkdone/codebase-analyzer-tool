@@ -4,13 +4,13 @@ import {
   generateNodeId,
   buildArrow,
   applyStyleClass,
-} from "../../diagrams/utils";
+} from "../../../../../common/diagrams/mermaid";
 import {
   BaseDiagramGenerator,
   type BaseDiagramOptions,
 } from "../../diagrams/generators/base-diagram-generator";
 import { currentArchitectureConfig } from "../../diagrams/diagrams.config";
-import { DIAGRAM_CSS_CLASSES } from "../../config/diagram-css-classes.config";
+import { DIAGRAM_CSS_CLASSES } from "../../presentation/diagram-css-classes.config";
 
 /**
  * Represents an internal business component inferred from the codebase.

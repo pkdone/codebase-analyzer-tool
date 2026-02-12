@@ -11,8 +11,8 @@ import {
   type CouplingLevelPresentation,
   type DebtLevelPresentation,
 } from "../../../../../src/app/components/reporting/presentation";
-import { CouplingLevel } from "../../../../../src/app/components/reporting/config/module-coupling.config";
-import { DebtLevel } from "../../../../../src/app/components/reporting/config/ui-analysis.config";
+import { CouplingLevel } from "../../../../../src/app/components/reporting/sections/architecture-analysis/module-coupling.config";
+import { DebtLevel } from "../../../../../src/app/components/reporting/sections/ui-analysis/ui-analysis.config";
 
 // Extract constant from config for test readability
 const HIGH_SCRIPTLET_WARNING_THRESHOLD = uiAnalysisConfig.HIGH_SCRIPTLET_WARNING_THRESHOLD;

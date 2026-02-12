@@ -11,8 +11,8 @@ import { CategorizedSectionDataBuilder, isCategorizedDataNameDescArray } from ".
 import type { AppSummariesRepository } from "../../repositories/app-summaries/app-summaries.repository.interface";
 import type { RequestableAppSummaryField } from "../../repositories/app-summaries/app-summaries.model";
 import type { ReportData } from "./report-data.types";
-import { TableViewModel, type DisplayableTableRow } from "./presentation";
-import { convertToDisplayName } from "../../../common/utils/text-utils";
+import { TableViewModel, type RawTableRowData } from "./presentation";
+import { camelCaseToTitleCase } from "../../../common/utils/text-utils";
 import type { ReportSection } from "./sections/report-section.interface";
 import path from "path";
 import type { OutputConfigType } from "../../config/output.config";
@@ -171,7 +171,7 @@ export default class ReportArtifactGenerator {
         return {
           ...category,
           data: category.data,
-          tableViewModel: new TableViewModel(category.data as DisplayableTableRow[]),
+          tableViewModel: new TableViewModel(category.data as RawTableRowData[]),
         };
       }
       // For inferred architecture, don't create a table view model
@@ -223,7 +223,7 @@ export default class ReportArtifactGenerator {
       categorizedData: categorizedDataWithViewModels,
       jsonFilesConfig,
       htmlReportConstants: templateConstants,
-      convertToDisplayName,
+      camelCaseToTitleCase,
     } as PreparedHtmlReportDataWithoutAssets;
   }
 

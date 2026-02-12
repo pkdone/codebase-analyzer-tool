@@ -1,6 +1,6 @@
 import { injectable, inject } from "tsyringe";
 import { BaseReportSection } from "../base-report-section";
-import { repositoryTokens } from "../../../../di/tokens";
+import { repositoryTokens, coreTokens } from "../../../../di/tokens";
 import type { SourcesRepository } from "../../../../repositories/sources/sources.repository.interface";
 import { TableViewModel } from "../../presentation";
 import type { PreparedHtmlReportData } from "../../types/html-report-data.types";
@@ -9,7 +9,7 @@ import type { ReportData } from "../../report-data.types";
 import { SECTION_NAMES, HTML_TABLE_COLUMN_HEADERS } from "../../config/reporting.config";
 import { UNKNOWN_VALUE_PLACEHOLDER } from "../../config/placeholders.config";
 import { buildPieChartData } from "./pie-chart-data-builder";
-import { outputConfig } from "../../../../config/output.config";
+import type { OutputConfigType } from "../../../../config/output.config";
 
 /**
  * Report section for file types data.
@@ -20,6 +20,8 @@ export class FileTypesSection extends BaseReportSection {
   constructor(
     @inject(repositoryTokens.SourcesRepository)
     private readonly sourcesRepository: SourcesRepository,
+    @inject(coreTokens.OutputConfig)
+    private readonly outputConfig: OutputConfigType,
   ) {
     super();
   }
@@ -63,7 +65,7 @@ export class FileTypesSection extends BaseReportSection {
 
     return [
       {
-        filename: outputConfig.jsonFiles.FILE_TYPES,
+        filename: this.outputConfig.jsonFiles.FILE_TYPES,
         data: fileTypesData,
       },
     ];

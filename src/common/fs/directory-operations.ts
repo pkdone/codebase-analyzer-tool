@@ -2,6 +2,7 @@ import { promises as fs, Dirent } from "fs";
 import path from "path";
 import glob, { Entry } from "fast-glob";
 import { logErr } from "../utils/logging";
+import { isJsonObject } from "../utils/type-guards";
 import type { FileDiscoveryConfig } from "./file-filter.types";
 
 /**
@@ -12,12 +13,11 @@ import type { FileDiscoveryConfig } from "./file-filter.types";
  * @returns True if the entry has the expected Entry structure with path and optional stats
  */
 function isGlobEntryWithStats(entry: unknown): entry is Entry {
-  if (!entry || typeof entry !== "object") return false;
-  const obj = entry as Record<string, unknown>;
+  if (!isJsonObject(entry)) return false;
 
-  if (typeof obj.path !== "string") return false;
+  if (typeof entry.path !== "string") return false;
   // stats is optional but if present should be an object
-  if (obj.stats !== undefined && (typeof obj.stats !== "object" || obj.stats === null)) {
+  if (entry.stats !== undefined && (typeof entry.stats !== "object" || entry.stats === null)) {
     return false;
   }
 
@@ -161,7 +161,7 @@ export async function findFilesSortedBySize(
   });
 
   // Sort by size descending (largest first) for better work distribution
-  return filesWithSize.toSorted((a, b) => b.size - a.size);
+  return filesWithSize.sort((a, b) => b.size - a.size);
 }
 
 /**

@@ -2,7 +2,7 @@
  * Interface representing integration point information (APIs, queues, topics, SOAP, etc.).
  * Contains details about external service integrations found in the codebase.
  *
- * The index signature enables compatibility with DisplayableTableRow for table rendering.
+ * The index signature enables compatibility with RawTableRowData for table rendering.
  */
 export interface IntegrationPointInfo extends Record<string, string | undefined> {
   readonly namespace: string;

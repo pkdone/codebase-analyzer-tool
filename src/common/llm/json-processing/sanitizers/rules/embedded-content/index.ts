@@ -25,7 +25,7 @@ export { LLM_ARTIFACT_RULES } from "./llm-artifact-rules";
 export { STRAY_COMMENTARY_RULES } from "./stray-commentary-rules";
 
 // Re-export helper functions that may be needed by other modules
-export { isValidEmbeddedContentContext } from "./llm-metadata-property-rules";
+export { isValidPropertyStartPosition } from "./llm-metadata-property-rules";
 
 /**
  * All embedded content rules aggregated in the recommended execution order.

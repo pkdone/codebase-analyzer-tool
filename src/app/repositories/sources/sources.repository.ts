@@ -1,5 +1,4 @@
-import { MongoClient, Sort, Document } from "mongodb";
-import { numbersToBsonDoubles } from "../../../common/mongodb/bson-utils";
+import { MongoClient, Sort, Document, OptionalUnlessRequiredId } from "mongodb";
 import { SourcesRepository } from "./sources.repository.interface";
 import {
   SourceRecordWithId,
@@ -20,6 +19,7 @@ import {
 import type { DatabaseConfigType } from "../../config/database.config";
 import type { CodeQualityConfigType } from "../../config/code-quality.config";
 import { SOURCE_FIELDS } from "../../schemas/source-file.schema";
+import { numbersToBsonDoubles } from "../../../common/mongodb/bson-utils";
 import { logErr } from "../../../common/utils/logging";
 import { BaseRepository } from "../base/base-repository";
 import { coreTokens, configTokens } from "../../di/tokens";
@@ -91,7 +91,7 @@ export default class SourcesRepositoryImpl
   async insertSources(sourceFileDataList: readonly SourceRecord[]): Promise<void> {
     if (sourceFileDataList.length === 0) return;
     await this.collection.insertMany(
-      sourceFileDataList as unknown as SourceRecordWithId[],
+      sourceFileDataList as OptionalUnlessRequiredId<SourceRecordWithId>[],
       { ordered: false }, // Continue inserting even if some documents fail
     );
   }
@@ -204,8 +204,7 @@ export default class SourcesRepositoryImpl
     numCandidates: number,
     limit: number,
   ): Promise<VectorSearchResult[]> {
-    // Convert number[] to Double[] to work around MongoDB driver issue
-    // See: https://jira.mongodb.org/browse/NODE-5714
+    // Convert number[] to Double[] to work around MongoDB driver bug NODE-5714
     const queryVectorDoubles = numbersToBsonDoubles(queryVector);
 
     const pipeline = [

@@ -9,9 +9,11 @@ import { DatabaseConnectionError } from "./mdb-errors";
  */
 export class MongoDBConnectionManager {
   private readonly clients = new Map<string, MongoClient>();
+  private readonly pendingConnections = new Map<string, Promise<MongoClient>>();
 
   /**
    * Connects to a MongoDB instance using the given id and URL.
+   * Guards against concurrent calls with the same id by tracking in-flight connection promises.
    *
    * @param id The id identifying the connection.
    * @param url The MongoDB connection string.
@@ -26,25 +28,21 @@ export class MongoDBConnectionManager {
       return existingClient;
     }
 
+    const pending = this.pendingConnections.get(id);
+
+    if (pending) {
+      return pending;
+    }
+
     console.log(`Connecting MongoDB client to: ${redactUrl(url)}`);
 
+    const connectPromise = this.createConnection(id, url, options);
+    this.pendingConnections.set(id, connectPromise);
+
     try {
-      const newClient = new MongoClient(url, options);
-      await newClient.connect();
-
-      // Wrap close() method to intercept client closure
-      const originalClose = newClient.close.bind(newClient);
-      newClient.close = async (...args: Parameters<MongoClient["close"]>) => {
-        this.clients.delete(id); // Remove reference to client from the list
-        return originalClose(...args); // Call original close()
-      };
-
-      this.clients.set(id, newClient);
-      return newClient;
-    } catch (error: unknown) {
-      logErr("Failed to connect to MongoDB", error);
-      const cause = error instanceof Error ? error : undefined;
-      throw new DatabaseConnectionError(`Failed to connect to MongoDB with id '${id}'.`, cause);
+      return await connectPromise;
+    } finally {
+      this.pendingConnections.delete(id);
     }
   }
 
@@ -86,6 +84,34 @@ export class MongoDBConnectionManager {
    */
   async [Symbol.asyncDispose](): Promise<void> {
     await this.shutdown();
+  }
+
+  /**
+   * Creates a new MongoDB connection, wrapping the close method to track lifecycle.
+   */
+  private async createConnection(
+    id: string,
+    url: string,
+    options?: MongoClientOptions,
+  ): Promise<MongoClient> {
+    try {
+      const newClient = new MongoClient(url, options);
+      await newClient.connect();
+
+      // Wrap close() method to intercept client closure
+      const originalClose = newClient.close.bind(newClient);
+      newClient.close = async (...args: Parameters<MongoClient["close"]>) => {
+        this.clients.delete(id); // Remove reference to client from the list
+        return originalClose(...args); // Call original close()
+      };
+
+      this.clients.set(id, newClient);
+      return newClient;
+    } catch (error: unknown) {
+      logErr("Failed to connect to MongoDB", error);
+      const cause = error instanceof Error ? error : undefined;
+      throw new DatabaseConnectionError(`Failed to connect to MongoDB with id '${id}'.`, cause);
+    }
   }
 
   /**

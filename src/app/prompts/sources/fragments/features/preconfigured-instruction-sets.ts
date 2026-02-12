@@ -7,7 +7,7 @@
  * // Use in instruction blocks for better clarity
  * buildInstructionBlock(
  *   INSTRUCTION_SECTION_TITLES.CODE_QUALITY_METRICS,
- *   COMPOSITES.CODE_QUALITY,
+ *   PRECONFIGURED_INSTRUCTION_SETS.CODE_QUALITY,
  * )
  * ```
  */
@@ -19,7 +19,7 @@ import { DB_INTEGRATION_FRAGMENTS } from "./database.fragments";
  * Composable instruction sets for common patterns across file types.
  * These pre-composed instruction blocks combine related fragments for convenience and consistency.
  */
-export const COMPOSITES = {
+export const PRECONFIGURED_INSTRUCTION_SETS = {
   /** Pre-composed code quality analysis instructions including metrics and code smells */
   CODE_QUALITY: [
     CODE_QUALITY_FRAGMENTS.INTRO,

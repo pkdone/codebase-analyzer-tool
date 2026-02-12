@@ -10,7 +10,7 @@ import {
   CSHARP_SPECIFIC_FRAGMENTS,
   PYTHON_SPECIFIC_FRAGMENTS,
   RUBY_SPECIFIC_FRAGMENTS,
-  COMPOSITES,
+  PRECONFIGURED_INSTRUCTION_SETS,
 } from "../../../src/app/prompts/sources/fragments";
 
 describe("Fragment Consolidation", () => {
@@ -28,27 +28,29 @@ describe("Fragment Consolidation", () => {
     });
   });
 
-  describe("COMPOSITES", () => {
+  describe("PRECONFIGURED_INSTRUCTION_SETS", () => {
     it("should have CODE_QUALITY composite", () => {
-      expect(COMPOSITES.CODE_QUALITY).toBeDefined();
-      expect(COMPOSITES.CODE_QUALITY.length).toBeGreaterThan(0);
-      expect(COMPOSITES.CODE_QUALITY).toContain(CODE_QUALITY_FRAGMENTS.INTRO);
+      expect(PRECONFIGURED_INSTRUCTION_SETS.CODE_QUALITY).toBeDefined();
+      expect(PRECONFIGURED_INSTRUCTION_SETS.CODE_QUALITY.length).toBeGreaterThan(0);
+      expect(PRECONFIGURED_INSTRUCTION_SETS.CODE_QUALITY).toContain(CODE_QUALITY_FRAGMENTS.INTRO);
     });
 
     it("should have DB_INTEGRATION composite", () => {
-      expect(COMPOSITES.DB_INTEGRATION).toBeDefined();
-      expect(COMPOSITES.DB_INTEGRATION.length).toBeGreaterThan(0);
-      expect(COMPOSITES.DB_INTEGRATION).toContain(DB_INTEGRATION_FRAGMENTS.INTRO);
+      expect(PRECONFIGURED_INSTRUCTION_SETS.DB_INTEGRATION).toBeDefined();
+      expect(PRECONFIGURED_INSTRUCTION_SETS.DB_INTEGRATION.length).toBeGreaterThan(0);
+      expect(PRECONFIGURED_INSTRUCTION_SETS.DB_INTEGRATION).toContain(
+        DB_INTEGRATION_FRAGMENTS.INTRO,
+      );
     });
 
     it("should have INTEGRATION_POINTS composite", () => {
-      expect(COMPOSITES.INTEGRATION_POINTS).toBeDefined();
-      expect(COMPOSITES.INTEGRATION_POINTS.length).toBeGreaterThan(0);
+      expect(PRECONFIGURED_INSTRUCTION_SETS.INTEGRATION_POINTS).toBeDefined();
+      expect(PRECONFIGURED_INSTRUCTION_SETS.INTEGRATION_POINTS.length).toBeGreaterThan(0);
     });
 
     it("should have SCHEDULED_JOBS composite", () => {
-      expect(COMPOSITES.SCHEDULED_JOBS).toBeDefined();
-      expect(COMPOSITES.SCHEDULED_JOBS.length).toBeGreaterThan(0);
+      expect(PRECONFIGURED_INSTRUCTION_SETS.SCHEDULED_JOBS).toBeDefined();
+      expect(PRECONFIGURED_INSTRUCTION_SETS.SCHEDULED_JOBS.length).toBeGreaterThan(0);
     });
   });
 

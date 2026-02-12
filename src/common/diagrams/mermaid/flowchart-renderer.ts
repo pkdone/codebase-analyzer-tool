@@ -72,7 +72,7 @@ const DEFAULT_SHAPE_SYNTAX = SHAPE_SYNTAX.rectangle;
 /**
  * Gets the Mermaid syntax for a node shape, falling back to rectangle for unknown shapes.
  */
-export function getShapeSyntax(shape: NodeShape): { open: string; close: string } {
+function getShapeSyntax(shape: NodeShape): { open: string; close: string } {
   return SHAPE_SYNTAX[shape] ?? DEFAULT_SHAPE_SYNTAX;
 }
 
@@ -93,7 +93,7 @@ const DEFAULT_EDGE_SYNTAX = EDGE_SYNTAX.solid;
 /**
  * Gets the Mermaid syntax for an edge type, falling back to solid for unknown types.
  */
-export function getEdgeSyntax(edgeType: EdgeType): string {
+function getEdgeSyntax(edgeType: EdgeType): string {
   return EDGE_SYNTAX[edgeType] ?? DEFAULT_EDGE_SYNTAX;
 }
 
@@ -104,7 +104,7 @@ export function getEdgeSyntax(edgeType: EdgeType): string {
  * @param indent - Indentation prefix for the line
  * @returns The Mermaid syntax string for the node
  */
-export function renderNode(node: MermaidNode, indent: string): string {
+function renderNode(node: MermaidNode, indent: string): string {
   const syntax = getShapeSyntax(node.shape);
   const escapedLabel = escapeMermaidLabel(node.label);
   return `${indent}${node.id}${syntax.open}"${escapedLabel}"${syntax.close}`;
@@ -117,7 +117,7 @@ export function renderNode(node: MermaidNode, indent: string): string {
  * @param indent - Indentation prefix for the line
  * @returns The Mermaid syntax string for the edge
  */
-export function renderEdge(edge: MermaidEdge, indent: string): string {
+function renderEdge(edge: MermaidEdge, indent: string): string {
   const edgeSyntax = getEdgeSyntax(edge.type);
 
   if (edge.label) {
@@ -134,7 +134,7 @@ export function renderEdge(edge: MermaidEdge, indent: string): string {
  * @param subgraph - The subgraph to render
  * @returns Array of Mermaid syntax lines for the subgraph
  */
-export function renderSubgraph(subgraph: RenderableSubgraph): string[] {
+function renderSubgraph(subgraph: RenderableSubgraph): string[] {
   const lines: string[] = [];
 
   // Subgraph opening

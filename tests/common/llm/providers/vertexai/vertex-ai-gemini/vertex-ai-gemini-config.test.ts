@@ -175,7 +175,7 @@ describe("VertexAI Gemini Config Types", () => {
       expect(() => assertVertexAIGeminiConfig(invalidTypes)).toThrow(LLMError);
     });
 
-    it("should allow extra fields", () => {
+    it("should strip extra fields not in schema", () => {
       const extraFields = {
         projectId: "my-project",
         embeddingsLocation: "us-central1",
@@ -185,7 +185,9 @@ describe("VertexAI Gemini Config Types", () => {
 
       const result = assertVertexAIGeminiConfig(extraFields);
       expect(result.projectId).toBe("my-project");
-      expect(result.extraField).toBe("extra-value");
+      expect(result.embeddingsLocation).toBe("us-central1");
+      expect(result.completionsLocation).toBe("global");
+      expect(Object.hasOwn(result as Record<string, unknown>, "extraField")).toBe(false);
     });
   });
 

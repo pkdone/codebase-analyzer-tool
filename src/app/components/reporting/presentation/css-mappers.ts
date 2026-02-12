@@ -6,9 +6,9 @@
  * presentational and contains no business logic.
  */
 
-import { CouplingLevel } from "../config/module-coupling.config";
-import { DebtLevel, uiAnalysisConfig } from "../config/ui-analysis.config";
-import { LEVEL_LABELS, BADGE_CLASSES, WARNING_CLASSES } from "../config/presentation.config";
+import { CouplingLevel } from "../sections/architecture-analysis/module-coupling.config";
+import { DebtLevel, uiAnalysisConfig } from "../sections/ui-analysis/ui-analysis.config";
+import { LEVEL_LABELS, BADGE_CLASSES, WARNING_CLASSES } from "./presentation.config";
 
 /**
  * Result type for coupling level presentation.

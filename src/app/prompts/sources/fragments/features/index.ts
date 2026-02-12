@@ -20,5 +20,5 @@ export { DB_INTEGRATION_FRAGMENTS } from "./database.fragments";
 // Dependency extraction
 export { DEPENDENCY_EXTRACTION_FRAGMENTS } from "./dependency-extraction.fragments";
 
-// Composites (pre-grouped instruction sets)
-export { COMPOSITES } from "./composites";
+// Preconfigured instruction sets (pre-grouped instruction sets)
+export { PRECONFIGURED_INSTRUCTION_SETS } from "./preconfigured-instruction-sets";

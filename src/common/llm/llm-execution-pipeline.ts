@@ -278,6 +278,8 @@ export class LLMExecutionPipeline {
       if (nextAction.shouldTerminate) break;
 
       if (nextAction.shouldCropPrompt && llmResponse) {
+        const previousContentLength = currentContent.length;
+
         currentContent = adaptPromptFromResponse(
           currentContent,
           llmResponse,
@@ -289,6 +291,14 @@ export class LLMExecutionPipeline {
         if (currentContent.trim() === "") {
           logWarn(
             `Prompt became empty after cropping for resource '${resourceName}', terminating attempts.`,
+            executionContext,
+          );
+          break;
+        }
+
+        if (currentContent.length >= previousContentLength) {
+          logWarn(
+            `Prompt cropping did not reduce content size for resource '${resourceName}' (length: ${previousContentLength}), terminating to prevent infinite loop.`,
             executionContext,
           );
           break;
