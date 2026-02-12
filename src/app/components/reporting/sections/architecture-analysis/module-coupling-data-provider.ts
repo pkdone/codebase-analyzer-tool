@@ -3,8 +3,8 @@ import path from "path";
 import type { SourcesRepository } from "../../../../repositories/sources/sources.repository.interface";
 import { repositoryTokens } from "../../../../di/tokens";
 import type { ModuleCoupling } from "./architecture-analysis.types";
-import { moduleCouplingConfig } from "../../config/module-coupling.config";
-import { calculateCouplingLevel } from "../../domain/coupling-calculator";
+import { moduleCouplingConfig } from "./module-coupling.config";
+import { calculateCouplingLevel } from "./coupling-calculator";
 import { getCouplingLevelPresentation } from "../../presentation";
 
 type ModuleCouplingMap = Record<string, Record<string, number>>;

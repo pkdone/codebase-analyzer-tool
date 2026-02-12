@@ -6,22 +6,22 @@ import { llmConfig } from "../../../config/llm.config";
 import { VERTEXAI_COMMON_ERROR_PATTERNS } from "./vertex-ai-error-patterns";
 import { defaultVertexAIProviderConfig } from "./vertex-ai-gemini-defaults.config";
 import { assertVertexAIGeminiConfig, type VertexAIGeminiConfig } from "./vertex-ai-gemini.types";
+import { vertexAIBaseEnvSchema, extractVertexAIBaseConfig } from "../common/vertex-ai-env";
 
-// Environment variable name constants
-const VERTEXAI_PROJECTID_KEY = "VERTEXAI_PROJECTID";
+// Gemini-specific environment variable key for the embeddings endpoint location
 const VERTEXAI_EMBEDDINGS_LOCATION_KEY = "VERTEXAI_EMBEDDINGS_LOCATION";
-const VERTEXAI_COMPLETIONS_LOCATION_KEY = "VERTEXAI_COMPLETIONS_LOCATION";
 
 /**
- * Extracts and validates typed VertexAI configuration from raw environment parameters.
+ * Extracts and validates typed VertexAI Gemini configuration from raw environment parameters.
+ * Uses the shared VertexAI base config extraction for projectId and completionsLocation,
+ * then adds the Gemini-specific embeddingsLocation field.
  * Throws an LLMError if validation fails, ensuring fail-fast at provider instantiation.
- * This decouples the provider implementation from specific env var names.
  */
 function extractVertexAIConfig(providerParams: Record<string, unknown>): VertexAIGeminiConfig {
+  const baseConfig = extractVertexAIBaseConfig(providerParams);
   const rawConfig = {
-    projectId: providerParams[VERTEXAI_PROJECTID_KEY],
+    ...baseConfig,
     embeddingsLocation: providerParams[VERTEXAI_EMBEDDINGS_LOCATION_KEY],
-    completionsLocation: providerParams[VERTEXAI_COMPLETIONS_LOCATION_KEY],
   };
   return assertVertexAIGeminiConfig(rawConfig);
 }
@@ -37,15 +37,15 @@ const VERTEXAI_GEMINI_20_FLASH_MODEL_URN_ID = "VERTEXAI_GEMINI_20_FLASH_MODEL_UR
 
 export const vertexAIGeminiProviderManifest: LLMProviderManifest = {
   providerFamily: VERTEXAI_GEMINI_FAMILY,
-  envSchema: z.object({
-    [VERTEXAI_PROJECTID_KEY]: z.string().min(1),
-    [VERTEXAI_EMBEDDINGS_LOCATION_KEY]: z.string().min(1),
-    [VERTEXAI_COMPLETIONS_LOCATION_KEY]: z.string().min(1),
-    [VERTEXAI_GEMINI_EMBEDDING_001_MODEL_URN_ID]: z.string().min(1),
-    [VERTEXAI_GEMINI_3_PRO_MODEL_URN_ID]: z.string().min(1),
-    [VERTEXAI_GEMINI_25_PRO_MODEL_URN_ID]: z.string().min(1),
-    [VERTEXAI_GEMINI_20_FLASH_MODEL_URN_ID]: z.string().min(1),
-  }),
+  envSchema: vertexAIBaseEnvSchema.merge(
+    z.object({
+      [VERTEXAI_EMBEDDINGS_LOCATION_KEY]: z.string().min(1),
+      [VERTEXAI_GEMINI_EMBEDDING_001_MODEL_URN_ID]: z.string().min(1),
+      [VERTEXAI_GEMINI_3_PRO_MODEL_URN_ID]: z.string().min(1),
+      [VERTEXAI_GEMINI_25_PRO_MODEL_URN_ID]: z.string().min(1),
+      [VERTEXAI_GEMINI_20_FLASH_MODEL_URN_ID]: z.string().min(1),
+    }),
+  ),
   models: {
     embeddings: [
       {
@@ -61,22 +61,22 @@ export const vertexAIGeminiProviderManifest: LLMProviderManifest = {
         modelKey: "vertexai-gemini-3-pro",
         purpose: LLMPurpose.COMPLETIONS,
         urnEnvKey: VERTEXAI_GEMINI_3_PRO_MODEL_URN_ID,
-        maxCompletionTokens: 65535,
-        maxTotalTokens: 1048576,
+        maxCompletionTokens: 65_535,
+        maxTotalTokens: 1_048_576,
       },
       {
         modelKey: "vertexai-gemini-2.5-pro",
         purpose: LLMPurpose.COMPLETIONS,
         urnEnvKey: VERTEXAI_GEMINI_25_PRO_MODEL_URN_ID,
-        maxCompletionTokens: 65535,
-        maxTotalTokens: 1048576,
+        maxCompletionTokens: 65_535,
+        maxTotalTokens: 1_048_576,
       },
       {
         modelKey: "vertexai-gemini-2.0-flash",
         purpose: LLMPurpose.COMPLETIONS,
         urnEnvKey: VERTEXAI_GEMINI_20_FLASH_MODEL_URN_ID,
         maxCompletionTokens: 8192,
-        maxTotalTokens: 1048576,
+        maxTotalTokens: 1_048_576,
       },
     ],
   },

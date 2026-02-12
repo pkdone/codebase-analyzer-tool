@@ -54,7 +54,7 @@ type EnvVarValue = string | number | boolean | undefined;
 
 /**
  * Represents the fully parsed environment variables, including provider-specific ones.
- * The actual shape depends on the dynamically constructed schema in bootstrap.ts.
+ * The actual shape depends on the dynamically constructed schema in the DI registration modules (specifically env-registration.ts).
  * Uses EnvVarValue constraint to ensure only valid parsed types are allowed.
  */
 export type EnvVars = BaseEnvVars & Record<string, EnvVarValue>;

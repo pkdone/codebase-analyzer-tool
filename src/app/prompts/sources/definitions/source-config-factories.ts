@@ -4,7 +4,7 @@ import {
   BASE_FRAGMENTS,
   SCHEDULED_JOBS_FRAGMENTS,
   INTEGRATION_POINTS_FRAGMENTS,
-  COMPOSITES,
+  PRECONFIGURED_INSTRUCTION_SETS,
 } from "../fragments";
 import type { LanguageSpecificFragments } from "../sources.types";
 import {
@@ -200,7 +200,9 @@ export function createStandardCodeConfig(
   const publicApiFragment = fragments.PUBLIC_FUNCTIONS ?? fragments.PUBLIC_METHODS ?? "";
 
   // Build code quality block with optional extra metrics
-  const codeQualityParts: (string | readonly string[])[] = [COMPOSITES.CODE_QUALITY];
+  const codeQualityParts: (string | readonly string[])[] = [
+    PRECONFIGURED_INSTRUCTION_SETS.CODE_QUALITY,
+  ];
 
   if (extraComplexityMetrics) {
     codeQualityParts.push(extraComplexityMetrics);
@@ -225,7 +227,7 @@ export function createStandardCodeConfig(
       ),
       buildInstructionBlock(
         INSTRUCTION_SECTION_TITLES.DATABASE_INTEGRATION_ANALYSIS,
-        COMPOSITES.DB_INTEGRATION,
+        PRECONFIGURED_INSTRUCTION_SETS.DB_INTEGRATION,
         fragments.DB_MECHANISM_MAPPING,
       ),
       buildInstructionBlock(INSTRUCTION_SECTION_TITLES.CODE_QUALITY_METRICS, ...codeQualityParts),

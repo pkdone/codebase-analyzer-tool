@@ -1,7 +1,7 @@
 import { executeRules } from "../../../../../../../src/common/llm/json-processing/sanitizers/rules/rule-executor";
 import {
   LLM_METADATA_PROPERTY_RULES,
-  isValidEmbeddedContentContext,
+  isValidPropertyStartPosition,
 } from "../../../../../../../src/common/llm/json-processing/sanitizers/rules/embedded-content/llm-metadata-property-rules";
 
 describe("LLM_METADATA_PROPERTY_RULES", () => {
@@ -478,7 +478,7 @@ extra_steps: step by step process
   });
 });
 
-describe("isValidEmbeddedContentContext", () => {
+describe("isValidPropertyStartPosition", () => {
   it("should return true when context is after JSON delimiter", () => {
     const context = {
       beforeMatch: '{"name": "test"},',
@@ -486,7 +486,7 @@ describe("isValidEmbeddedContentContext", () => {
       offset: 17,
       groups: [] as const,
     };
-    expect(isValidEmbeddedContentContext(context)).toBe(true);
+    expect(isValidPropertyStartPosition(context)).toBe(true);
   });
 
   it("should return true when context is empty (start of file)", () => {
@@ -496,7 +496,7 @@ describe("isValidEmbeddedContentContext", () => {
       offset: 0,
       groups: [] as const,
     };
-    expect(isValidEmbeddedContentContext(context)).toBe(true);
+    expect(isValidPropertyStartPosition(context)).toBe(true);
   });
 
   it("should return true when offset is at start of file", () => {
@@ -506,7 +506,7 @@ describe("isValidEmbeddedContentContext", () => {
       offset: 1,
       groups: [] as const,
     };
-    expect(isValidEmbeddedContentContext(context)).toBe(true);
+    expect(isValidPropertyStartPosition(context)).toBe(true);
   });
 
   it("should return true when offset is beyond start limit but has delimiter", () => {
@@ -518,6 +518,6 @@ describe("isValidEmbeddedContentContext", () => {
       offset: 22,
       groups: [] as const,
     };
-    expect(isValidEmbeddedContentContext(context)).toBe(true);
+    expect(isValidPropertyStartPosition(context)).toBe(true);
   });
 });

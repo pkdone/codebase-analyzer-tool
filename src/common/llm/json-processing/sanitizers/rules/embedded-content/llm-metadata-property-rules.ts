@@ -21,7 +21,7 @@ import { shouldRemoveAsLLMArtifact } from "../../../utils/llm-artifact-detection
 /**
  * Checks if a context is valid for embedded content removal.
  */
-export function isValidEmbeddedContentContext(context: ContextInfo): boolean {
+export function isValidPropertyStartPosition(context: ContextInfo): boolean {
   const { beforeMatch, offset } = context;
   return (
     /[}\],]\s*$/.test(beforeMatch) ||
@@ -151,7 +151,7 @@ export const LLM_METADATA_PROPERTY_RULES: readonly ReplacementRule[] = [
       const strayText = (groups[2] ?? "").substring(0, 30);
       return `Removed stray text (${strayText}...)`;
     },
-    contextCheck: isValidEmbeddedContentContext,
+    contextCheck: isValidPropertyStartPosition,
   },
 
   // Rule: Remove invalid property blocks (extra_*, _llm_*, _ai_*)

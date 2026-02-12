@@ -3,6 +3,7 @@ import { FileTypesSection } from "../../../../../src/app/components/reporting/se
 import { SourcesRepository } from "../../../../../src/app/repositories/sources/sources.repository.interface";
 import type { ProjectedFileExtensionStats } from "../../../../../src/app/repositories/sources/sources.model";
 import type { ReportData } from "../../../../../src/app/components/reporting/report-data.types";
+import { outputConfig } from "../../../../../src/app/config/output.config";
 
 describe("FileTypesSection", () => {
   let section: FileTypesSection;
@@ -13,7 +14,7 @@ describe("FileTypesSection", () => {
       getProjectFileExtensionStats: jest.fn(),
     } as unknown as jest.Mocked<SourcesRepository>;
 
-    section = new FileTypesSection(mockSourcesRepository);
+    section = new FileTypesSection(mockSourcesRepository, outputConfig);
   });
 
   describe("getName", () => {

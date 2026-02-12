@@ -1,20 +1,15 @@
 /**
- * Utility functions for building Mermaid diagram definitions from business data.
- * Each builder converts a specific data structure into Mermaid syntax.
+ * App-specific utility functions for building Mermaid diagram definitions.
+ * Provides initialization directives and placeholder SVGs that depend on
+ * application configuration (brand styles, layout presets).
  *
- * Core Mermaid utilities (escapeMermaidLabel, generateNodeId, buildArrow) are
- * imported from the common module to maintain a single source of truth.
+ * For core Mermaid utilities (escapeMermaidLabel, generateNodeId, buildArrow,
+ * applyStyleClass), import directly from the common module:
+ * `src/common/diagrams/mermaid`
  */
 
 import { currentArchitectureConfig } from "../diagrams.config";
 import { DIAGRAM_STYLES } from "../../config/brand-theme.config";
-
-// Re-export common Mermaid utilities for convenience
-export {
-  escapeMermaidLabel,
-  generateNodeId,
-  buildArrow,
-} from "../../../../../common/diagrams/mermaid/mermaid-utils";
 
 /**
  * Generate the Mermaid init directive for compact diagrams.

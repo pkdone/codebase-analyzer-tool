@@ -1,40 +1,40 @@
 import {
-  convertToDisplayName,
+  camelCaseToTitleCase,
   joinArrayWithSeparators,
 } from "../../../src/common/utils/text-utils";
 
 describe("text-formatting", () => {
-  describe("convertToDisplayName", () => {
+  describe("camelCaseToTitleCase", () => {
     test("should convert camelCase to Display Name", () => {
-      expect(convertToDisplayName("camelCaseString")).toBe("Camel Case String");
+      expect(camelCaseToTitleCase("camelCaseString")).toBe("Camel Case String");
     });
 
     test("should handle single word", () => {
-      expect(convertToDisplayName("word")).toBe("Word");
+      expect(camelCaseToTitleCase("word")).toBe("Word");
     });
 
     test("should handle already capitalized words", () => {
-      expect(convertToDisplayName("AlreadyCapitalized")).toBe("Already Capitalized");
+      expect(camelCaseToTitleCase("AlreadyCapitalized")).toBe("Already Capitalized");
     });
 
     test("should handle lowercase", () => {
-      expect(convertToDisplayName("lowercase")).toBe("Lowercase");
+      expect(camelCaseToTitleCase("lowercase")).toBe("Lowercase");
     });
 
     test("should handle multiple consecutive capitals", () => {
-      expect(convertToDisplayName("HTTPSConnection")).toBe("HTTPSConnection");
+      expect(camelCaseToTitleCase("HTTPSConnection")).toBe("HTTPSConnection");
     });
 
     test("should handle numbers in the string", () => {
-      expect(convertToDisplayName("field1Test")).toBe("Field1Test");
+      expect(camelCaseToTitleCase("field1Test")).toBe("Field1Test");
     });
 
     test("should handle empty string", () => {
-      expect(convertToDisplayName("")).toBe("");
+      expect(camelCaseToTitleCase("")).toBe("");
     });
 
     test("should handle string with spaces", () => {
-      expect(convertToDisplayName("already spaced")).toBe("Already Spaced");
+      expect(camelCaseToTitleCase("already spaced")).toBe("Already Spaced");
     });
   });
 

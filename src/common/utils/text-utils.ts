@@ -22,7 +22,7 @@ export function countLines(text: string): number {
  * Convert camelCase or compound words to space-separated words with proper capitalization.
  * Example: "camelCaseString" -> "Camel Case String"
  */
-export function convertToDisplayName(text: string): string {
+export function camelCaseToTitleCase(text: string): string {
   // Use lookbehind/lookahead to insert space between lowercase and uppercase
   const spacedText = text.replace(/(?<=[a-z])(?=[A-Z])/g, " ");
   return spacedText.replace(/\b\w/g, (char) => char.toUpperCase());

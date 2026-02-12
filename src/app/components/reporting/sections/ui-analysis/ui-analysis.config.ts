@@ -3,7 +3,7 @@
  * Contains tuning parameters and constants for UI technology analysis and JSP metrics.
  */
 
-import { BADGE_CLASSES } from "./presentation.config";
+import { BADGE_CLASSES } from "../../presentation/presentation.config";
 
 /**
  * Tag library type enumeration for consistent classification.

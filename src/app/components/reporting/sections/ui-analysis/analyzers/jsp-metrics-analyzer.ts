@@ -1,7 +1,7 @@
 import { injectable } from "tsyringe";
 import type { DetectedTagLibraryData, JspFileMetricsData } from "../ui-analysis.types";
-import { uiAnalysisConfig } from "../../../config/ui-analysis.config";
-import { classifyTagLibrary } from "../../../domain/ui-analysis-calculator";
+import { uiAnalysisConfig } from "../ui-analysis.config";
+import { classifyTagLibrary } from "../ui-analysis-calculator";
 import type { ProjectedSourceSummaryFields } from "../../../../../repositories/sources/sources.model";
 
 /**
@@ -83,13 +83,13 @@ export class JspMetricsAnalyzer {
   }
 
   /**
-   * Computes the top scriptlet files sorted by total blocks.
+   * Gets the top scriptlet files sorted by total blocks.
    * Returns raw metrics without debt level presentation data.
    *
    * @param jspFileMetrics - JSP file metrics to sort and limit
    * @returns Top scriptlet files sorted by total blocks descending
    */
-  computeTopScriptletFiles(jspFileMetrics: readonly JspFileMetricsData[]): JspFileMetricsData[] {
+  getTopScriptletFiles(jspFileMetrics: readonly JspFileMetricsData[]): JspFileMetricsData[] {
     return [...jspFileMetrics]
       .toSorted((a, b) => b.totalScriptletBlocks - a.totalScriptletBlocks)
       .slice(0, uiAnalysisConfig.TOP_FILES_LIMIT);

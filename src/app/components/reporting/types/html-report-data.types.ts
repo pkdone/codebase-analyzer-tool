@@ -73,7 +73,7 @@ export interface PreparedHtmlReportData {
       readonly ASSETS_DIR: string;
     };
   };
-  convertToDisplayName: (text: string) => string;
+  camelCaseToTitleCase: (text: string) => string;
   fileTypesTableViewModel: TableViewModel;
   dbInteractionsTableViewModel: TableViewModel;
   procsAndTriggersTableViewModel: TableViewModel;

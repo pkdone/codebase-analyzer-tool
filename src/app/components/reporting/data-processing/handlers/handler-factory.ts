@@ -23,7 +23,7 @@ import type { AppSummaryNameDescArray } from "../../../../repositories/app-summa
  * Maps category types to their expected data types for type-safe handler creation.
  * This ensures compile-time verification that the type guard matches the category.
  */
-export interface CategoryDataTypeMap {
+interface CategoryDataTypeMap {
   technologies: AppSummaryNameDescArray;
   businessProcesses: BusinessProcessesArray;
   boundedContexts: BoundedContextsArray;

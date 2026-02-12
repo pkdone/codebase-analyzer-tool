@@ -53,7 +53,7 @@ export interface ProcsAndTriggers {
  * Interface representing database integration information.
  * Contains details about how the application interacts with databases.
  *
- * The index signature enables compatibility with DisplayableTableRow for table rendering.
+ * The index signature enables compatibility with RawTableRowData for table rendering.
  */
 export interface DatabaseIntegrationInfo extends Record<
   string,

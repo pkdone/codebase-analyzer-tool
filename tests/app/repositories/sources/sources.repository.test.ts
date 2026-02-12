@@ -256,7 +256,7 @@ describe("SourcesRepositoryImpl", () => {
 
       await repository.vectorSearchProjectSources("test-project", queryVector, 100, 10);
 
-      // Verify that aggregate was called with the expected pipeline structure
+      // Verify that aggregate was called with BSON Double values (NODE-5714 workaround)
       expect(mockCollection.aggregate).toHaveBeenCalledWith(
         expect.arrayContaining([
           expect.objectContaining({

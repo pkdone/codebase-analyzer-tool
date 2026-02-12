@@ -75,9 +75,7 @@ export function createProviderConfigValidator<T>(
       const result = schema.safeParse(obj);
 
       if (result.success) {
-        // Merge parsed result (with defaults) with extra properties from original object
-        // This preserves backward compatibility while applying schema defaults
-        return { ...obj, ...result.data };
+        return result.data;
       }
 
       // Extract field-level errors for detailed message

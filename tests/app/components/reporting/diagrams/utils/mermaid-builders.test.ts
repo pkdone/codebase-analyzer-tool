@@ -10,11 +10,12 @@ import {
   buildCompactInitDirective,
   buildSpaciousInitDirective,
   generateEmptyDiagramSvg,
-  // These are re-exported from common - verify they're accessible
+} from "../../../../../../src/app/components/reporting/diagrams/utils/mermaid-builders";
+import {
   escapeMermaidLabel,
   generateNodeId,
   buildArrow,
-} from "../../../../../../src/app/components/reporting/diagrams/utils/mermaid-builders";
+} from "../../../../../../src/common/diagrams/mermaid";
 
 describe("mermaid-builders (app-specific)", () => {
   describe("buildCompactInitDirective", () => {

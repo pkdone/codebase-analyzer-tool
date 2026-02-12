@@ -1,8 +1,9 @@
 /**
  * Mermaid diagram utilities - public API
  *
- * Core Mermaid utilities are re-exported from the common module.
  * App-specific functions (init directives, style definitions) are provided locally.
+ * For core Mermaid utilities (escapeMermaidLabel, generateNodeId, buildArrow,
+ * applyStyleClass), import directly from `src/common/diagrams/mermaid`.
  */
 export {
   DIAGRAM_STYLES,
@@ -14,9 +15,6 @@ export {
   buildCompactInitDirective,
   buildSpaciousInitDirective,
   generateEmptyDiagramSvg,
-  escapeMermaidLabel,
-  generateNodeId,
-  buildArrow,
 } from "./mermaid-builders";
 
 export {
@@ -26,6 +24,3 @@ export {
   type DiagramElementColors,
   type DiagramCssClassNames,
 } from "./mermaid-styles";
-
-// Re-export applyStyleClass from common module for diagram generators
-export { applyStyleClass } from "../../../../../common/diagrams/mermaid/mermaid-utils";

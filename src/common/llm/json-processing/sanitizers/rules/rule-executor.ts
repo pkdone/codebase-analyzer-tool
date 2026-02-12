@@ -58,7 +58,9 @@ function executeRule(
 
       // Build context info for advanced checks
       const contextInfo: ContextInfo = {
-        beforeMatch: content.substring(Math.max(0, offset - contextLookback), offset),
+        get beforeMatch() {
+          return content.substring(Math.max(0, offset - contextLookback), offset);
+        },
         offset,
         fullContent: content,
         groups,

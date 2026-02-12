@@ -284,6 +284,67 @@ describe("MongoDBConnectionManager", () => {
     });
   });
 
+  describe("concurrent connect race condition", () => {
+    test("concurrent connect calls with same id return the same client", async () => {
+      const id = "race-test";
+      const url = "mongodb://localhost:27017/test";
+
+      // Simulate slow connection by delaying connect()
+      let resolveConnect: () => void;
+      const connectPromise = new Promise<void>((resolve) => {
+        resolveConnect = resolve;
+      });
+
+      const slowMockClient = {
+        connect: jest.fn().mockImplementation(async () => connectPromise),
+        close: jest.fn().mockResolvedValue(undefined),
+        db: jest.fn(),
+        topology: {},
+      } as unknown as jest.Mocked<MongoClient>;
+
+      MockedMongoClient.mockImplementation(() => slowMockClient);
+
+      // Launch two concurrent connect calls
+      const promise1 = connectionManager.connect(id, url);
+      const promise2 = connectionManager.connect(id, url);
+
+      // Resolve the pending connection
+      resolveConnect!();
+
+      const [client1, client2] = await Promise.all([promise1, promise2]);
+
+      // Both should return the same client
+      expect(client1).toBe(client2);
+
+      // MongoClient constructor should only be called once
+      expect(MockedMongoClient).toHaveBeenCalledTimes(1);
+    });
+
+    test("failed pending connection allows subsequent retry", async () => {
+      const id = "retry-test";
+      const url = "mongodb://localhost:27017/test";
+      const connectionError = new Error("Connection failed");
+
+      // First attempt fails
+      const failingMockClient = {
+        connect: jest.fn().mockRejectedValue(connectionError),
+        close: jest.fn().mockResolvedValue(undefined),
+        db: jest.fn(),
+        topology: {},
+      } as unknown as jest.Mocked<MongoClient>;
+
+      MockedMongoClient.mockImplementationOnce(() => failingMockClient);
+
+      await expect(connectionManager.connect(id, url)).rejects.toThrow(DatabaseConnectionError);
+
+      // Second attempt succeeds
+      MockedMongoClient.mockImplementationOnce(() => mockClient);
+
+      const client = await connectionManager.connect(id, url);
+      expect(client).toBe(mockClient);
+    });
+  });
+
   describe("integration scenarios", () => {
     test("can connect, retrieve, and close multiple clients", async () => {
       const connections = [

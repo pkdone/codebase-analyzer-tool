@@ -7,7 +7,7 @@
  */
 
 import { BRAND_COLORS, DIAGRAM_ELEMENT_COLORS } from "../../config/brand-theme.config";
-import { DIAGRAM_CSS_CLASSES } from "../../config/diagram-css-classes.config";
+import { DIAGRAM_CSS_CLASSES } from "../../presentation/diagram-css-classes.config";
 
 /**
  * Brand colors required for diagram styling.

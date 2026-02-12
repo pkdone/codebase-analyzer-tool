@@ -2,6 +2,7 @@ import "reflect-metadata";
 import { DatabaseSection } from "../../../../../src/app/components/reporting/sections/database/database-section";
 import { DatabaseReportDataProvider } from "../../../../../src/app/components/reporting/sections/database/database-report-data-provider";
 import type { ReportData } from "../../../../../src/app/components/reporting/report-data.types";
+import { outputConfig } from "../../../../../src/app/config/output.config";
 
 describe("DatabaseSection", () => {
   let section: DatabaseSection;
@@ -13,7 +14,7 @@ describe("DatabaseSection", () => {
       getStoredProceduresAndTriggers: jest.fn(),
     } as unknown as jest.Mocked<DatabaseReportDataProvider>;
 
-    section = new DatabaseSection(mockDatabaseDataProvider);
+    section = new DatabaseSection(mockDatabaseDataProvider, outputConfig);
   });
 
   describe("getName", () => {

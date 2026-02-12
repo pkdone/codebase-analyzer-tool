@@ -49,7 +49,7 @@ export class JavaUiTechnologyDataProvider {
     const jspAnalysis = this.jspMetricsAnalyzer.analyzeJspMetrics(sourceFiles);
 
     // Process and sort the results
-    const topScriptletFiles = this.jspMetricsAnalyzer.computeTopScriptletFiles(
+    const topScriptletFiles = this.jspMetricsAnalyzer.getTopScriptletFiles(
       jspAnalysis.jspFileMetrics,
     );
     const detectedTagLibraries = this.jspMetricsAnalyzer.computeTagLibraries(

@@ -6,7 +6,7 @@ import {
   LEVEL_LABELS,
   BADGE_CLASSES,
   WARNING_CLASSES,
-} from "../../../../../src/app/components/reporting/config/presentation.config";
+} from "../../../../../src/app/components/reporting/presentation/presentation.config";
 
 describe("Presentation Configuration", () => {
   describe("LEVEL_LABELS", () => {

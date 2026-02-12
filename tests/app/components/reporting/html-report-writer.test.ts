@@ -130,7 +130,7 @@ describe("HtmlReportWriter", () => {
         ASSETS_DIR: "assets/",
       },
     },
-    convertToDisplayName: (text: string) => text.replace(/_/g, " "),
+    camelCaseToTitleCase: (text: string) => text.replace(/_/g, " "),
     fileTypesTableViewModel: new (jest.requireActual(
       "../../../../src/app/components/reporting/presentation",
     ).TableViewModel)([]),
@@ -315,7 +315,7 @@ describe("HtmlReportWriter", () => {
       // Verify original data is preserved
       expect(passedData.appStats).toEqual(mockPreparedDataWithoutAssets.appStats);
       expect(passedData.categorizedData).toEqual(mockPreparedDataWithoutAssets.categorizedData);
-      expect(passedData).toHaveProperty("convertToDisplayName");
+      expect(passedData).toHaveProperty("camelCaseToTitleCase");
     });
 
     it("should handle different file paths correctly", async () => {

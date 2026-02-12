@@ -28,7 +28,7 @@ export type {
 export { executeRules, executeRulesMultiPass } from "./rule-executor";
 
 // Rule category exports - organized by subfolder
-export { STRAY_CHARACTER_RULES } from "./characters";
+export { STRAY_TEXT_RULES } from "./characters";
 export { STRUCTURAL_RULES } from "./structural";
 export { PROPERTY_NAME_RULES, ASSIGNMENT_RULES } from "./properties";
 export { ARRAY_ELEMENT_RULES } from "./arrays";
@@ -42,7 +42,7 @@ export {
 
 // Import all rules for aggregation
 import type { ReplacementRule } from "../../../types/sanitizer-config.types";
-import { STRAY_CHARACTER_RULES } from "./characters";
+import { STRAY_TEXT_RULES } from "./characters";
 import { STRUCTURAL_RULES } from "./structural";
 import { PROPERTY_NAME_RULES } from "./properties";
 import { ARRAY_ELEMENT_RULES } from "./arrays";
@@ -72,8 +72,8 @@ export const ALL_RULES: readonly ReplacementRule[] = [
   // Second pass: Fix structural issues
   ...STRUCTURAL_RULES,
 
-  // Third pass: Clean up stray characters
-  ...STRAY_CHARACTER_RULES,
+  // Third pass: Clean up stray text
+  ...STRAY_TEXT_RULES,
 
   // Fourth pass: Fix property name issues
   ...PROPERTY_NAME_RULES,

@@ -65,8 +65,8 @@ export class DomainModelTransformer {
     const boundedContexts = this.transformHierarchicalContexts(hierarchicalContexts);
 
     // Flatten all aggregates, entities, and repositories from bounded contexts
-    const aggregates = this.flattenAggregates(boundedContexts);
-    const entities = this.flattenEntities(boundedContexts);
+    const aggregates = this.extractUniqueAggregates(boundedContexts);
+    const entities = this.extractUniqueEntities(boundedContexts);
     const repositories = this.flattenRepositories(boundedContexts);
 
     return {
@@ -200,16 +200,16 @@ export class DomainModelTransformer {
   }
 
   /**
-   * Flatten all aggregates from all bounded contexts
+   * Extract all unique aggregates from all bounded contexts
    */
-  private flattenAggregates(boundedContexts: DomainBoundedContext[]): DomainAggregate[] {
+  private extractUniqueAggregates(boundedContexts: DomainBoundedContext[]): DomainAggregate[] {
     return this.flattenDomainItems(boundedContexts, (ctx) => ctx.aggregates);
   }
 
   /**
-   * Flatten all entities from all bounded contexts
+   * Extract all unique entities from all bounded contexts
    */
-  private flattenEntities(boundedContexts: DomainBoundedContext[]): DomainEntity[] {
+  private extractUniqueEntities(boundedContexts: DomainBoundedContext[]): DomainEntity[] {
     return this.flattenDomainItems(boundedContexts, (ctx) => ctx.entities);
   }
 

@@ -25,7 +25,7 @@ export {
 // Table presentation
 export {
   TableViewModel,
-  type DisplayableTableRow,
+  type RawTableRowData,
   type ProcessedTableCell,
   type ProcessedListItem,
 } from "./table-view-model";

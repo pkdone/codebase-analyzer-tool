@@ -19,12 +19,31 @@ import {
 import type { LLMExecutionContext } from "../../../../src/common/llm/types/llm-request.types";
 import type { LLMRetryConfig } from "../../../../src/common/llm/providers/llm-provider.types";
 import type { ResolvedLLMModelMetadata } from "../../../../src/common/llm/types/llm-model.types";
-import { isOk } from "../../../../src/common/types/result.types";
+import { isOk, isErr } from "../../../../src/common/types/result.types";
+import { adaptPromptFromResponse } from "../../../../src/common/llm/strategies/prompt-adaptation-strategy";
+import { determineNextAction } from "../../../../src/common/llm/strategies/fallback-decision";
+
+const mockAdaptPrompt = adaptPromptFromResponse as jest.MockedFunction<
+  typeof adaptPromptFromResponse
+>;
+const mockDetermineNextAction = determineNextAction as jest.MockedFunction<
+  typeof determineNextAction
+>;
 
 // Mock logging
 jest.mock("../../../../src/common/utils/logging", () => ({
   logWarn: jest.fn(),
   logError: jest.fn(),
+}));
+
+// Mock prompt adaptation strategy
+jest.mock("../../../../src/common/llm/strategies/prompt-adaptation-strategy", () => ({
+  adaptPromptFromResponse: jest.fn(),
+}));
+
+// Mock fallback decision
+jest.mock("../../../../src/common/llm/strategies/fallback-decision", () => ({
+  determineNextAction: jest.fn(),
 }));
 
 describe("LLMExecutionPipeline convenience methods", () => {
@@ -76,6 +95,10 @@ describe("LLMExecutionPipeline convenience methods", () => {
     };
 
     pipeline = new LLMExecutionPipeline(mockRetryStrategy, mockStats, pipelineConfig);
+
+    // Reset mocks for modules mocked at the top level
+    mockAdaptPrompt.mockReset();
+    mockDetermineNextAction.mockReset();
   });
 
   describe("executeCompletion", () => {
@@ -312,6 +335,78 @@ describe("LLMExecutionPipeline convenience methods", () => {
       expect(retryOnInvalidCalls[0]).toBe(true);
       // Second call (embedding) should have retryOnInvalid=false
       expect(retryOnInvalidCalls[1]).toBe(false);
+    });
+  });
+
+  describe("prompt crop unchanged-length guard", () => {
+    test("should terminate when prompt cropping does not reduce content size", async () => {
+      let callCount = 0;
+
+      // Return EXCEEDED on every call to force cropping
+      mockRetryStrategy.executeWithRetries.mockImplementation(
+        async <T extends LLMResponsePayload>(
+          _fn: BoundLLMFunction<T>,
+          _content: string,
+          _ctx: LLMExecutionContext,
+          _config: LLMRetryConfig,
+        ): Promise<LLMFunctionResponse<T> | null> => {
+          callCount++;
+          return {
+            status: LLMResponseStatus.EXCEEDED,
+            request: "test",
+            modelKey: "test-model",
+            context: { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
+            tokensUsage: {
+              promptTokens: 100,
+              completionTokens: 50,
+              maxTotalTokens: 100,
+            },
+          } as LLMFunctionResponse<T>;
+        },
+      );
+
+      // Mock determineNextAction to return shouldCropPrompt (single candidate, EXCEEDED)
+      mockDetermineNextAction.mockReturnValue({
+        shouldTerminate: false,
+        shouldCropPrompt: true,
+        shouldSwitchToNextLLM: false,
+      });
+
+      // Mock adaptPromptFromResponse to return the same-length content (no reduction)
+      mockAdaptPrompt.mockImplementation((prompt: string) => prompt);
+
+      const candidate: ExecutableCandidate<LLMResponsePayload> = {
+        execute: jest.fn<BoundLLMFunction<LLMResponsePayload>>().mockResolvedValue({
+          status: LLMResponseStatus.EXCEEDED,
+          request: "test",
+          modelKey: "test-model",
+          context: { resource: "test", purpose: LLMPurpose.COMPLETIONS, modelKey: "test-model" },
+          tokensUsage: {
+            promptTokens: 100,
+            completionTokens: 50,
+            maxTotalTokens: 100,
+          },
+        }),
+        providerFamily: "TestProvider",
+        modelKey: "test-model",
+        description: "Test/test-model",
+      };
+
+      const result = await pipeline.executeCompletion({
+        resourceName: "test-resource",
+        content: "test prompt that is too long",
+        context: {
+          resource: "test-resource",
+          purpose: LLMPurpose.COMPLETIONS,
+        },
+        candidates: [candidate],
+      });
+
+      // Pipeline should terminate rather than looping infinitely
+      expect(isErr(result)).toBe(true);
+
+      // Should only be called once before crop guard terminates the loop
+      expect(callCount).toBe(1);
     });
   });
 });

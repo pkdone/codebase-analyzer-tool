@@ -4,12 +4,12 @@ import {
   TAG_LIBRARY_BADGE_CLASSES,
   DEBT_THRESHOLDS,
   DebtLevel,
-} from "../../../../../src/app/components/reporting/config/ui-analysis.config";
+} from "../../../../../../src/app/components/reporting/sections/ui-analysis/ui-analysis.config";
 import {
   calculateDebtLevel,
   classifyTagLibrary,
-} from "../../../../../src/app/components/reporting/domain/ui-analysis-calculator";
-import { BADGE_CLASSES } from "../../../../../src/app/components/reporting/config/presentation.config";
+} from "../../../../../../src/app/components/reporting/sections/ui-analysis/ui-analysis-calculator";
+import { BADGE_CLASSES } from "../../../../../../src/app/components/reporting/presentation/presentation.config";
 
 describe("DebtLevel enum", () => {
   it("should define all expected debt levels", () => {

@@ -10,7 +10,7 @@ import {
   DEBT_THRESHOLDS,
   TAG_LIBRARY_PATTERNS,
   type TagLibraryType,
-} from "../config/ui-analysis.config";
+} from "./ui-analysis.config";
 
 /**
  * Calculates the technical debt level for a JSP file based on

@@ -1,8 +1,8 @@
 import {
   calculateDebtLevel,
   classifyTagLibrary,
-} from "../../../../../src/app/components/reporting/domain/ui-analysis-calculator";
-import { DebtLevel } from "../../../../../src/app/components/reporting/config/ui-analysis.config";
+} from "../../../../../../src/app/components/reporting/sections/ui-analysis/ui-analysis-calculator";
+import { DebtLevel } from "../../../../../../src/app/components/reporting/sections/ui-analysis/ui-analysis.config";
 
 describe("ui-analysis-calculator", () => {
   describe("calculateDebtLevel", () => {

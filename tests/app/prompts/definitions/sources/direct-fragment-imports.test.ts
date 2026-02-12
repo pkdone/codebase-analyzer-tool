@@ -32,7 +32,7 @@ import {
   BATCH_SCRIPT_SPECIFIC_FRAGMENTS,
   JCL_SPECIFIC_FRAGMENTS,
   // Composites
-  COMPOSITES,
+  PRECONFIGURED_INSTRUCTION_SETS,
 } from "../../../../../src/app/prompts/sources/fragments";
 
 describe("Direct Fragment Imports", () => {
@@ -215,13 +215,13 @@ describe("Direct Fragment Imports", () => {
     });
   });
 
-  describe("COMPOSITES export from fragments barrel", () => {
-    it("should export COMPOSITES from the fragments barrel file", () => {
-      expect(COMPOSITES).toBeDefined();
-      expect(COMPOSITES.CODE_QUALITY).toBeDefined();
-      expect(COMPOSITES.DB_INTEGRATION).toBeDefined();
-      expect(COMPOSITES.INTEGRATION_POINTS).toBeDefined();
-      expect(COMPOSITES.SCHEDULED_JOBS).toBeDefined();
+  describe("PRECONFIGURED_INSTRUCTION_SETS export from fragments barrel", () => {
+    it("should export PRECONFIGURED_INSTRUCTION_SETS from the fragments barrel file", () => {
+      expect(PRECONFIGURED_INSTRUCTION_SETS).toBeDefined();
+      expect(PRECONFIGURED_INSTRUCTION_SETS.CODE_QUALITY).toBeDefined();
+      expect(PRECONFIGURED_INSTRUCTION_SETS.DB_INTEGRATION).toBeDefined();
+      expect(PRECONFIGURED_INSTRUCTION_SETS.INTEGRATION_POINTS).toBeDefined();
+      expect(PRECONFIGURED_INSTRUCTION_SETS.SCHEDULED_JOBS).toBeDefined();
     });
   });
 

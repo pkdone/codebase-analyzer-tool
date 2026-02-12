@@ -1,5 +1,5 @@
 import { OpenAI, RateLimitError, InternalServerError } from "openai";
-import { APIError } from "openai/error";
+import { APIError } from "openai/core/error";
 import { LLMCompletionOptions, LLMOutputFormat } from "../../../types/llm-request.types";
 import { LLMModelFeature } from "../../../types/llm-model.types";
 import { createTokenUsageRecord } from "../../../types/llm-response.types";

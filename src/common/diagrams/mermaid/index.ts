@@ -28,11 +28,6 @@ export {
 // Pure rendering functions
 export {
   renderFlowchart,
-  renderNode,
-  renderEdge,
-  renderSubgraph,
-  getShapeSyntax,
-  getEdgeSyntax,
   type FlowchartRenderData,
   type RenderableSubgraph,
   type SubgraphStyleApplication,

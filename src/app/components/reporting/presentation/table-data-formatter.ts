@@ -1,4 +1,4 @@
-import { convertToDisplayName } from "../../../../common/utils/text-utils";
+import { camelCaseToTitleCase } from "../../../../common/utils/text-utils";
 import { SPECIAL_TABLE_COLUMNS } from "../config/reporting.config";
 
 /**
@@ -110,7 +110,7 @@ function formatArrayValue(values: readonly unknown[]): ProcessedListItem[] {
       const objectItem = item as Record<string, unknown>;
       const processedKeys = Object.fromEntries(
         Object.entries(objectItem).map(([key, val]) => [
-          convertToDisplayName(key),
+          camelCaseToTitleCase(key),
           typeof val === "object" && val !== null ? JSON.stringify(val) : String(val),
         ]),
       );

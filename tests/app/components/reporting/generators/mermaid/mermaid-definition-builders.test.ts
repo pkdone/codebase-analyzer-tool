@@ -4,12 +4,14 @@ import {
   buildCompactInitDirective,
   buildSpaciousInitDirective,
   generateEmptyDiagramSvg,
+  buildStyleDefinitions,
+} from "../../../../../../src/app/components/reporting/diagrams";
+import {
   escapeMermaidLabel,
   generateNodeId,
   buildArrow,
-  buildStyleDefinitions,
   applyStyleClass,
-} from "../../../../../../src/app/components/reporting/diagrams";
+} from "../../../../../../src/common/diagrams/mermaid";
 import { currentArchitectureConfig } from "../../../../../../src/app/components/reporting/diagrams/diagrams.config";
 
 describe("mermaid-definition-builders", () => {

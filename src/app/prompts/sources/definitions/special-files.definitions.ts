@@ -7,7 +7,7 @@ import {
   SHELL_SCRIPT_SPECIFIC_FRAGMENTS,
   BATCH_SCRIPT_SPECIFIC_FRAGMENTS,
   JCL_SPECIFIC_FRAGMENTS,
-  COMPOSITES,
+  PRECONFIGURED_INSTRUCTION_SETS,
 } from "../fragments";
 import { INSTRUCTION_SECTION_TITLES, buildInstructionBlock } from "../utils";
 import {
@@ -80,7 +80,7 @@ export const specialFileDefinitions = {
       createBasicInfoBlock(),
       buildInstructionBlock(
         INSTRUCTION_SECTION_TITLES.DATABASE_INTEGRATION_ANALYSIS,
-        COMPOSITES.DB_INTEGRATION,
+        PRECONFIGURED_INSTRUCTION_SETS.DB_INTEGRATION,
         COMMON_FRAGMENTS.DB_IN_DOCUMENTATION,
       ),
     ],
@@ -164,7 +164,7 @@ export const specialFileDefinitions = {
       createBasicInfoBlock(),
       buildInstructionBlock(
         INSTRUCTION_SECTION_TITLES.DATABASE_INTEGRATION_ANALYSIS,
-        COMPOSITES.DB_INTEGRATION,
+        PRECONFIGURED_INSTRUCTION_SETS.DB_INTEGRATION,
         COMMON_FRAGMENTS.DB_IN_FILE,
       ),
     ],

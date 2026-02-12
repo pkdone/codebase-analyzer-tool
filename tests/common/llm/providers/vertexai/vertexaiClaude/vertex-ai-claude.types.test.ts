@@ -150,7 +150,7 @@ describe("VertexAI Claude Config Types", () => {
       expect(() => assertVertexAIClaudeConfig(invalidTypes)).toThrow(LLMError);
     });
 
-    it("should allow extra fields", () => {
+    it("should strip extra fields not in schema", () => {
       const extraFields = {
         projectId: "my-project",
         location: "us-east5",
@@ -159,7 +159,8 @@ describe("VertexAI Claude Config Types", () => {
 
       const result = assertVertexAIClaudeConfig(extraFields);
       expect(result.projectId).toBe("my-project");
-      expect(result.extraField).toBe("extra-value");
+      expect(result.location).toBe("us-east5");
+      expect(Object.hasOwn(result as Record<string, unknown>, "extraField")).toBe(false);
     });
   });
 

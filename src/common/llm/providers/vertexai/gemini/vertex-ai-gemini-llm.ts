@@ -16,6 +16,7 @@ import { ShutdownBehavior } from "../../../types/llm-shutdown.types";
 import { createTokenUsageRecord } from "../../../types/llm-response.types";
 import { logWarn, logErr } from "../../../../utils/logging";
 import { formatError } from "../../../../utils/error-formatters";
+import { isJsonObject } from "../../../../utils/type-guards";
 import BaseLLMProvider from "../../base-llm-provider";
 import { LLMError, LLMErrorCode } from "../../../types/llm-errors.types";
 import {
@@ -396,10 +397,9 @@ interface VertexCompatibleSchema extends Record<string, unknown> {
  * @returns True if the schema is compatible with VertexAI
  */
 function isVertexAICompatibleSchema(schema: unknown): schema is VertexCompatibleSchema {
-  if (!schema || typeof schema !== "object") return false;
-  const schemaObj = schema as Record<string, unknown>;
-  if (!("type" in schemaObj) || typeof schemaObj.type !== "string") return false;
+  if (!isJsonObject(schema)) return false;
+  if (!Object.hasOwn(schema, "type") || typeof schema.type !== "string") return false;
   // For object types, require properties to be present
-  if (schemaObj.type === "object" && !("properties" in schemaObj)) return false;
+  if (schema.type === "object" && !Object.hasOwn(schema, "properties")) return false;
   return true;
 }

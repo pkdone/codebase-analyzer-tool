@@ -1,5 +1,5 @@
 /**
- * Replacement rules for handling stray characters in JSON.
+ * Replacement rules for handling stray text in JSON.
  * This module handles:
  * - Single character removal before properties and array elements
  * - Bullet points and asterisks before property names
@@ -40,9 +40,9 @@ function looksLikeStrayTextBeforeProperty(text: string): boolean {
 }
 
 /**
- * Rules for removing stray characters from JSON content.
+ * Rules for removing stray text from JSON content.
  */
-export const STRAY_CHARACTER_RULES: readonly ReplacementRule[] = [
+export const STRAY_TEXT_RULES: readonly ReplacementRule[] = [
   // Rule: Generic removal of stray text before property names
   // Catches single chars, short text, and longer text before properties
   // Pattern: `a  "prop":`, `stray text "prop":`, `running on a different machine "prop":`

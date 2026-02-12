@@ -1,9 +1,10 @@
 import "reflect-metadata";
-import { UiAnalysisSection } from "../../../../../src/app/components/reporting/sections/ui-analysis/ui-analysis-section";
+import { JavaServerSideUiSection } from "../../../../../src/app/components/reporting/sections/ui-analysis/java-server-side-ui-section";
 import { JavaUiTechnologyDataProvider } from "../../../../../src/app/components/reporting/sections/ui-analysis/java-ui-technology-data-provider";
 import type { ReportData } from "../../../../../src/app/components/reporting/report-data.types";
 import type { UiTechnologyAnalysisData } from "../../../../../src/app/components/reporting/sections/ui-analysis/ui-analysis.types";
 import { UNKNOWN_VALUE_PLACEHOLDER } from "../../../../../src/app/components/reporting/config/placeholders.config";
+import { outputConfig } from "../../../../../src/app/config/output.config";
 
 /**
  * Creates mock raw UI technology analysis data (without presentation fields).
@@ -25,8 +26,8 @@ function createMockUiAnalysisData(
   };
 }
 
-describe("UiAnalysisSection", () => {
-  let section: UiAnalysisSection;
+describe("JavaServerSideUiSection", () => {
+  let section: JavaServerSideUiSection;
   let mockDataProvider: jest.Mocked<JavaUiTechnologyDataProvider>;
 
   beforeEach(() => {
@@ -34,7 +35,7 @@ describe("UiAnalysisSection", () => {
       getUiTechnologyAnalysis: jest.fn(),
     } as unknown as jest.Mocked<JavaUiTechnologyDataProvider>;
 
-    section = new UiAnalysisSection(mockDataProvider);
+    section = new JavaServerSideUiSection(mockDataProvider, outputConfig);
   });
 
   describe("prepareHtmlData", () => {
