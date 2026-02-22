@@ -8,6 +8,7 @@ Ensure that in the document you produce, the key essence of each of following gu
 - The code at `src/common/` is intended to be generic and potenitally useful to multiple projects, so truly reusable created code should be put there. Also, any code hanging off `src/common/` should not use "tsyringe" or any other dependency framework internally, to enable the code to be portable to other projects in the future.
 - Avoid creating barrel index files unless absolutely necessary.
 - For `if`, `for`, and `while` statements that use `{` `}` to delimit their code blocks, ensure there is a blank line both before and after the block. Exceptions: no blank line is needed when the line before is an opening `{`, a closing `}`, a comment, or a blank line; and no blank line is needed after the closing `}` when followed by a closing `}`, `else`/`catch`/`finally`, or a comment. This need for a newline before and after does not apply to single-line `if` statements (e.g., `if (x) return;`) that do not use braces.
+- When creating unit tests, don't write tests for what TypeScript's type system already guarantees.
 
 **Your Persona:** You are an expert senior software architect and code quality analyst with deep experience in identifying and documenting software development best practices.
 

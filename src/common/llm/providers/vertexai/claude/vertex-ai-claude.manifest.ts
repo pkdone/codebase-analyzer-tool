@@ -29,6 +29,7 @@ export const VERTEXAI_CLAUDE_FAMILY = "VertexAIClaude";
 
 // Environment variable keys for model URNs
 const VERTEXAI_CLAUDE_OPUS_46_MODEL_URN_ID = "VERTEXAI_CLAUDE_OPUS_46_MODEL_URN";
+const VERTEXAI_CLAUDE_SONNET_46_MODEL_URN_ID = "VERTEXAI_CLAUDE_SONNET_46_MODEL_URN";
 const VERTEXAI_CLAUDE_OPUS_45_MODEL_URN_ID = "VERTEXAI_CLAUDE_OPUS_45_MODEL_URN";
 const VERTEXAI_CLAUDE_SONNET_45_MODEL_URN_ID = "VERTEXAI_CLAUDE_SONNET_45_MODEL_URN";
 
@@ -37,6 +38,7 @@ export const vertexAIClaudeProviderManifest: LLMProviderManifest = {
   envSchema: vertexAIBaseEnvSchema.merge(
     z.object({
       [VERTEXAI_CLAUDE_OPUS_46_MODEL_URN_ID]: z.string().min(1),
+      [VERTEXAI_CLAUDE_SONNET_46_MODEL_URN_ID]: z.string().min(1),
       [VERTEXAI_CLAUDE_OPUS_45_MODEL_URN_ID]: z.string().min(1),
       [VERTEXAI_CLAUDE_SONNET_45_MODEL_URN_ID]: z.string().min(1),
     }),
@@ -49,6 +51,13 @@ export const vertexAIClaudeProviderManifest: LLMProviderManifest = {
         purpose: LLMPurpose.COMPLETIONS,
         urnEnvKey: VERTEXAI_CLAUDE_OPUS_46_MODEL_URN_ID,
         maxCompletionTokens: 128_000, // Opus 4.6 supports 128K output
+        maxTotalTokens: 1_000_000, // 1M with beta flag
+      },
+      {
+        modelKey: "vertexai-claude-sonnet-4.6",
+        purpose: LLMPurpose.COMPLETIONS,
+        urnEnvKey: VERTEXAI_CLAUDE_SONNET_46_MODEL_URN_ID,
+        maxCompletionTokens: 64_000,
         maxTotalTokens: 1_000_000, // 1M with beta flag
       },
       {
