@@ -211,8 +211,8 @@ describe("VertexAI Claude Config Types", () => {
       expect(vertexAIClaudeProviderManifest.models.embeddings).toEqual([]);
     });
 
-    it("should have three completion models", () => {
-      expect(vertexAIClaudeProviderManifest.models.completions).toHaveLength(3);
+    it("should have four completion models", () => {
+      expect(vertexAIClaudeProviderManifest.models.completions).toHaveLength(4);
     });
 
     it("should have opus-4.6 completion model with 1M context", () => {
@@ -231,6 +231,15 @@ describe("VertexAI Claude Config Types", () => {
       expect(opusModel).toBeDefined();
       expect(opusModel?.maxCompletionTokens).toBe(64000);
       expect(opusModel?.maxTotalTokens).toBe(200000);
+    });
+
+    it("should have sonnet-4.6 completion model with 1M context", () => {
+      const sonnetModel = vertexAIClaudeProviderManifest.models.completions.find(
+        (m) => m.modelKey === "vertexai-claude-sonnet-4.6",
+      );
+      expect(sonnetModel).toBeDefined();
+      expect(sonnetModel?.maxCompletionTokens).toBe(64000);
+      expect(sonnetModel?.maxTotalTokens).toBe(1000000);
     });
 
     it("should have sonnet-4.5 completion model", () => {

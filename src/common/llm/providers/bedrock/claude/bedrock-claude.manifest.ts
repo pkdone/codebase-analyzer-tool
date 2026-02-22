@@ -9,6 +9,7 @@ export const BEDROCK_CLAUDE_FAMILY = "BedrockClaude";
 
 // Environment variable keys for model URNs
 const BEDROCK_CLAUDE_OPUS_46_MODEL_URN_ID = "BEDROCK_CLAUDE_OPUS_46_MODEL_URN";
+const BEDROCK_CLAUDE_SONNET_46_MODEL_URN_ID = "BEDROCK_CLAUDE_SONNET_46_MODEL_URN";
 const BEDROCK_CLAUDE_OPUS_45_MODEL_URN_ID = "BEDROCK_CLAUDE_OPUS_45_MODEL_URN";
 const BEDROCK_CLAUDE_SONNET_45_MODEL_URN_ID = "BEDROCK_CLAUDE_SONNET_45_MODEL_URN";
 
@@ -21,6 +22,13 @@ export const bedrockClaudeProviderManifest = createBedrockManifest(
         modelKey: "bedrock-claude-opus-4.6",
         purpose: LLMPurpose.COMPLETIONS,
         urnEnvKey: BEDROCK_CLAUDE_OPUS_46_MODEL_URN_ID,
+        maxCompletionTokens: 64_000,
+        maxTotalTokens: 1_000_000,
+      },
+      {
+        modelKey: "bedrock-claude-sonnet-4.6",
+        purpose: LLMPurpose.COMPLETIONS,
+        urnEnvKey: BEDROCK_CLAUDE_SONNET_46_MODEL_URN_ID,
         maxCompletionTokens: 64_000,
         maxTotalTokens: 1_000_000,
       },
@@ -42,6 +50,7 @@ export const bedrockClaudeProviderManifest = createBedrockManifest(
   },
   {
     [BEDROCK_CLAUDE_OPUS_46_MODEL_URN_ID]: z.string().min(1),
+    [BEDROCK_CLAUDE_SONNET_46_MODEL_URN_ID]: z.string().min(1),
     [BEDROCK_CLAUDE_OPUS_45_MODEL_URN_ID]: z.string().min(1),
     [BEDROCK_CLAUDE_SONNET_45_MODEL_URN_ID]: z.string().min(1),
   },

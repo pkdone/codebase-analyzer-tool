@@ -21,6 +21,7 @@ describe("BedrockClaudeLLM - Type Safety", () => {
     [BEDROCK_CLAUDE_OPUS_V45, "bedrock-claude-sonnet-4.5"],
     {
       BEDROCK_CLAUDE_OPUS_46_MODEL_URN: "global.anthropic.claude-opus-4-6-v1",
+      BEDROCK_CLAUDE_SONNET_46_MODEL_URN: "global.anthropic.claude-sonnet-4-6-v1",
       BEDROCK_CLAUDE_OPUS_45_MODEL_URN: "global.anthropic.claude-opus-4-5-20251101-v1:0",
       BEDROCK_CLAUDE_SONNET_45_MODEL_URN: "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
     },
