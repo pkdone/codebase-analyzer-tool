@@ -31,6 +31,7 @@ export const VERTEXAI_GEMINI_FAMILY = "VertexAIGemini";
 
 // Environment variable keys for model URNs
 const VERTEXAI_GEMINI_EMBEDDING_001_MODEL_URN_ID = "VERTEXAI_GEMINI_EMBEDDING_001_MODEL_URN";
+const VERTEXAI_GEMINI_31_PRO_MODEL_URN_ID = "VERTEXAI_GEMINI_31_PRO_MODEL_URN";
 const VERTEXAI_GEMINI_3_PRO_MODEL_URN_ID = "VERTEXAI_GEMINI_3_PRO_MODEL_URN";
 const VERTEXAI_GEMINI_25_PRO_MODEL_URN_ID = "VERTEXAI_GEMINI_25_PRO_MODEL_URN";
 const VERTEXAI_GEMINI_20_FLASH_MODEL_URN_ID = "VERTEXAI_GEMINI_20_FLASH_MODEL_URN";
@@ -41,6 +42,7 @@ export const vertexAIGeminiProviderManifest: LLMProviderManifest = {
     z.object({
       [VERTEXAI_EMBEDDINGS_LOCATION_KEY]: z.string().min(1),
       [VERTEXAI_GEMINI_EMBEDDING_001_MODEL_URN_ID]: z.string().min(1),
+      [VERTEXAI_GEMINI_31_PRO_MODEL_URN_ID]: z.string().min(1),
       [VERTEXAI_GEMINI_3_PRO_MODEL_URN_ID]: z.string().min(1),
       [VERTEXAI_GEMINI_25_PRO_MODEL_URN_ID]: z.string().min(1),
       [VERTEXAI_GEMINI_20_FLASH_MODEL_URN_ID]: z.string().min(1),
@@ -57,6 +59,13 @@ export const vertexAIGeminiProviderManifest: LLMProviderManifest = {
       },
     ],
     completions: [
+      {
+        modelKey: "vertexai-gemini-3.1-pro",
+        purpose: LLMPurpose.COMPLETIONS,
+        urnEnvKey: VERTEXAI_GEMINI_31_PRO_MODEL_URN_ID,
+        maxCompletionTokens: 65_536,
+        maxTotalTokens: 1_048_576,
+      },
       {
         modelKey: "vertexai-gemini-3-pro",
         purpose: LLMPurpose.COMPLETIONS,
