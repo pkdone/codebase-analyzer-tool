@@ -483,7 +483,7 @@ describe("DatabaseReportDataProvider", () => {
     });
   });
 
-  describe("getDatabaseInteractions", () => {
+  describe("getDatabaseIntegrations", () => {
     test("should extract all database integration fields including new ones", async () => {
       mockSourcesRepository.getProjectDatabaseIntegrations.mockResolvedValue([
         {
@@ -508,7 +508,7 @@ describe("DatabaseReportDataProvider", () => {
         },
       ]);
 
-      const result = await provider.getDatabaseInteractions("test-project");
+      const result = await provider.getDatabaseIntegrations("test-project");
 
       expect(result).toHaveLength(1);
       expect(result[0]).toEqual({
@@ -541,7 +541,7 @@ describe("DatabaseReportDataProvider", () => {
         },
       ]);
 
-      const result = await provider.getDatabaseInteractions("test-project");
+      const result = await provider.getDatabaseIntegrations("test-project");
 
       expect(result).toHaveLength(1);
       expect(result[0]).toEqual({
@@ -578,7 +578,7 @@ describe("DatabaseReportDataProvider", () => {
         },
       ]);
 
-      const result = await provider.getDatabaseInteractions("test-project");
+      const result = await provider.getDatabaseIntegrations("test-project");
 
       expect(result).toHaveLength(1);
       expect(result[0].mechanism).toBe("HIBERNATE");
@@ -613,7 +613,7 @@ describe("DatabaseReportDataProvider", () => {
         },
       ]);
 
-      const result = await provider.getDatabaseInteractions("test-project");
+      const result = await provider.getDatabaseIntegrations("test-project");
 
       expect(result).toHaveLength(2);
       expect(result[0].mechanism).toBe("JDBC");

@@ -1,5 +1,5 @@
 import {
-  JSONSchemaPrompt,
+  renderJsonSchemaPrompt,
   type JSONSchemaPromptConfig,
 } from "../../../src/common/prompts/json-schema-prompt";
 import { DEFAULT_PERSONA_INTRODUCTION } from "../../../src/app/prompts/prompts.constants";
@@ -11,7 +11,7 @@ import {
 import type { AppSummaryCategoryType } from "../../../src/app/components/insights/insights.types";
 import { z } from "zod";
 
-describe("JSONSchemaPrompt Types", () => {
+describe("JSONSchemaPromptConfig Types", () => {
   describe("PromptConfig", () => {
     it("should require contentDesc, instructions, responseSchema, dataBlockHeader, and wrapInCodeBlock", () => {
       const schema = z.object({ result: z.string() });
@@ -66,35 +66,39 @@ describe("JSONSchemaPrompt Types", () => {
     });
   });
 
-  describe("JSONSchemaPrompt class", () => {
-    it("should have required fields", () => {
-      const prompt = new JSONSchemaPrompt({
+  describe("renderJsonSchemaPrompt function", () => {
+    it("should render with required config fields", () => {
+      const config: JSONSchemaPromptConfig = {
         personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
         contentDesc: "Test intro text template",
         instructions: ["test"],
         responseSchema: z.string(),
         dataBlockHeader: "CODE",
         wrapInCodeBlock: false,
-      });
+      };
 
-      expect(prompt.contentDesc).toBe("Test intro text template");
-      expect(prompt.instructions).toEqual(["test"]);
-      expect(prompt.responseSchema).toBeDefined();
+      const rendered = renderJsonSchemaPrompt(config, "test content");
+
+      expect(rendered).toContain("Test intro text template");
+      expect(rendered).toContain("test");
     });
 
     it("should support readonly string arrays", () => {
       const readonlyInstructions: readonly string[] = ["instruction 1", "instruction 2"];
 
-      const prompt = new JSONSchemaPrompt({
+      const config: JSONSchemaPromptConfig = {
         personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
         contentDesc: "Test intro text template",
         instructions: readonlyInstructions,
         responseSchema: z.string(),
         dataBlockHeader: "CODE",
         wrapInCodeBlock: false,
-      });
+      };
 
-      expect(prompt.instructions).toEqual(["instruction 1", "instruction 2"]);
+      const rendered = renderJsonSchemaPrompt(config, "test content");
+
+      expect(rendered).toContain("instruction 1");
+      expect(rendered).toContain("instruction 2");
     });
   });
 

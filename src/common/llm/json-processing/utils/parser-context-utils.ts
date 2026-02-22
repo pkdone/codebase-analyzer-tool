@@ -18,7 +18,7 @@ import type { ContextInfo } from "../../types/sanitizer-config.types";
  * Represents a string literal boundary in JSON content.
  * Start is the position of the opening quote, end is the position after the closing quote.
  */
-export interface StringBoundary {
+interface StringBoundary {
   /** Position of the opening quote (inclusive) */
   start: number;
   /** Position after the closing quote (exclusive) */

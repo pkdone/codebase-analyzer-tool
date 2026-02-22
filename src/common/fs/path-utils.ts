@@ -1,4 +1,4 @@
-import path from "path";
+import path from "node:path";
 
 /**
  * Get the base name from a file or directory path.

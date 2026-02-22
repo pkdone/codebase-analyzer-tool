@@ -197,7 +197,7 @@ describe("HtmlReportAssetService", () => {
       expect(mockAccess).toHaveBeenCalled();
       expect(mockWriteFile).not.toHaveBeenCalled();
       expect(consoleSpy).toHaveBeenCalledWith(
-        "Mermaid.js already exists in assets directory, skipping download",
+        "Mermaid.js already exists in assets directory, skipping",
       );
     });
 
@@ -278,22 +278,17 @@ describe("HtmlReportAssetService", () => {
         await service.ensureMermaidAsset(outputDir);
 
         expect(consoleWarnSpy).toHaveBeenCalledWith(
-          expect.stringContaining("Warning: Failed to download Mermaid.js"),
+          expect.stringContaining("Warning: Failed to ensure Mermaid.js"),
         );
       } finally {
         global.fetch = originalFetch;
       }
     });
 
-    it("should handle mkdir failure gracefully", async () => {
+    it("should propagate mkdir failure", async () => {
       mockMkdir.mockRejectedValue(new Error("Permission denied"));
 
-      // Should not throw
-      await service.ensureMermaidAsset(outputDir);
-
-      expect(consoleWarnSpy).toHaveBeenCalledWith(
-        expect.stringContaining("Warning: Failed to download Mermaid.js"),
-      );
+      await expect(service.ensureMermaidAsset(outputDir)).rejects.toThrow("Permission denied");
     });
   });
 

@@ -2,9 +2,6 @@
  * Utility class for collecting diagnostic messages during JSON sanitization.
  * Encapsulates the common pattern of tracking diagnostics with a configurable limit.
  *
- * This eliminates the repetitive pattern of:
- *   `if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) { diagnostics.push(...) }`
- *
  * Usage:
  *   const collector = new DiagnosticCollector(20);
  *   collector.add("Fixed something");

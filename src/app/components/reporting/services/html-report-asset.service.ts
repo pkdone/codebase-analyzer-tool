@@ -1,6 +1,6 @@
 import { injectable, inject } from "tsyringe";
-import path from "path";
-import { promises as fs } from "fs";
+import path from "node:path";
+import { promises as fs } from "node:fs";
 import { coreTokens } from "../../../di/tokens";
 import type { OutputConfigType } from "../../../config/output.config";
 import { generateBrandColorCssBlock } from "../config/brand-theme.config";
@@ -71,51 +71,13 @@ export class HtmlReportAssetService {
    */
   async ensureMermaidAsset(outputDir: string): Promise<void> {
     const assetsDir = path.join(outputDir, this.outputConfig.assets.ASSETS_SUBDIR);
-    const mermaidPath = path.join(assetsDir, this.outputConfig.externalAssets.MERMAID_UMD_FILENAME);
-
-    try {
-      await fs.mkdir(assetsDir, { recursive: true });
-
-      // Check if file already exists
-      try {
-        await fs.access(mermaidPath);
-        console.log("Mermaid.js already exists in assets directory, skipping download");
-        return;
-      } catch {
-        // File doesn't exist, proceed with download
-      }
-
-      // Prefer copying from local node_modules for true offline report generation.
-      // Use require.resolve to find the package reliably regardless of CWD
-      try {
-        const localMermaidPath = require.resolve("mermaid/dist/mermaid.min.js");
-        const buffer = await fs.readFile(localMermaidPath);
-        await fs.writeFile(mermaidPath, buffer);
-        console.log(`Mermaid.js copied from node_modules to ${mermaidPath}`);
-        return;
-      } catch {
-        // Fall back to downloading from CDN (requires internet during report generation)
-      }
-
-      console.log("Downloading Mermaid.js for offline report support...");
-      const response = await fetch(this.outputConfig.externalAssets.MERMAID_CDN_UMD_URL);
-
-      if (!response.ok) {
-        throw new Error(`Failed to download Mermaid.js: ${response.status} ${response.statusText}`);
-      }
-
-      const arrayBuffer = await response.arrayBuffer();
-      const buffer = Buffer.from(arrayBuffer);
-
-      await fs.writeFile(mermaidPath, buffer);
-      console.log(`Mermaid.js downloaded and copied to ${mermaidPath}`);
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      console.warn(
-        `Warning: Failed to download Mermaid.js. Report will require internet connection: ${errorMessage}`,
-      );
-      // Don't throw - allow report generation to continue even if Mermaid download fails
-    }
+    await fs.mkdir(assetsDir, { recursive: true });
+    await this.ensureSingleAsset(
+      path.join(assetsDir, this.outputConfig.externalAssets.MERMAID_UMD_FILENAME),
+      "mermaid/dist/mermaid.min.js",
+      this.outputConfig.externalAssets.MERMAID_CDN_UMD_URL,
+      "Mermaid.js",
+    );
   }
 
   /**

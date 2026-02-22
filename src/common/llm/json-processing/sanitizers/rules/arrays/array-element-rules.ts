@@ -256,7 +256,7 @@ export const ARRAY_ELEMENT_RULES: readonly ReplacementRule[] = [
   // Rule: Fix missing quotes with stray text before strings in arrays
   // Pattern: `strayPrefix.stringValue",` -> `"stringValue",`
   {
-    name: "missingQuoteWithStrayText",
+    name: "missingQuoteOnDotSeparatedIdentifier",
     pattern: /([}\],]|\n|^)(\s*)([a-zA-Z][a-zA-Z0-9_.]*\.)([a-zA-Z][a-zA-Z0-9_.]*)"\s*,/g,
     replacement: (_match, groups, context) => {
       if (!isInArrayContextSimple(context)) {
@@ -331,27 +331,6 @@ export const ARRAY_ELEMENT_RULES: readonly ReplacementRule[] = [
       return `Removed 'stop' before array element: "${stringValue.substring(0, 30)}..."`;
     },
   }),
-
-  // Rule: Remove trailing comma in last array element
-  // Pattern: `"value",\n  ]` -> `"value"\n  ]`
-  {
-    name: "trailingCommaInArray",
-    pattern: /"([^"]+)",(\s*\])/g,
-    replacement: (_match, groups, context) => {
-      // Check if we're in an array context and this is likely the last element
-      const { fullContent, offset } = context;
-      const matchLen = typeof _match === "string" ? _match.length : 0;
-      const after = fullContent.substring(offset + matchLen).trim();
-      // Only fix if there's nothing significant before the next closing bracket
-      if (!/^\s*[}\]]/.test(after) && after.length > 0) {
-        return null;
-      }
-      const value = safeGroup(groups, 0);
-      const ws = safeGroup(groups, 1);
-      return `"${value}"${ws}`;
-    },
-    diagnosticMessage: "Removed trailing comma before array closing bracket",
-  },
 
   // Rule: Fix markdown asterisk in arrays (more lenient)
   // Pattern: `*   "value",` -> `"value",`

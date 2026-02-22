@@ -1,18 +1,23 @@
+import "reflect-metadata";
 import {
-  executeInsightCompletion,
+  InsightsCompletionExecutor,
   InsightCompletionOptions,
 } from "../../../../../src/app/components/insights/strategies/insights-completion-executor";
 
 describe("insight-completion.service", () => {
-  describe("executeInsightCompletion", () => {
-    it("should export executeInsightCompletion function", () => {
-      expect(typeof executeInsightCompletion).toBe("function");
+  describe("InsightsCompletionExecutor", () => {
+    it("should export InsightsCompletionExecutor as a class", () => {
+      expect(typeof InsightsCompletionExecutor).toBe("function");
+      expect(InsightsCompletionExecutor.prototype).toBeDefined();
+      expect(InsightsCompletionExecutor.prototype.constructor).toBe(InsightsCompletionExecutor);
     });
 
-    it("should have correct function signature", () => {
-      expect(executeInsightCompletion.length).toBe(4); // Takes 4 required parameters
-      // Note: The function no longer uses a generic type parameter.
-      // Return type is now inferred from the category's response schema.
+    it("should have an execute method on its prototype", () => {
+      expect(typeof InsightsCompletionExecutor.prototype.execute).toBe("function");
+    });
+
+    it("should have correct execute method signature", () => {
+      expect(InsightsCompletionExecutor.prototype.execute.length).toBe(3); // Takes 3 parameters: category, summaries, options?
     });
 
     describe("InsightCompletionOptions interface", () => {

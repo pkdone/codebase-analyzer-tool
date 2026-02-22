@@ -1,7 +1,7 @@
 import { injectable, inject } from "tsyringe";
 import type LLMRouter from "../../../common/llm/llm-router";
 import type { EmbeddingResult } from "../../../common/llm/llm-router";
-import path from "path";
+import path from "node:path";
 import { type FileProcessingRulesType } from "../../config/file-handling";
 import { getCanonicalFileType } from "./utils";
 import type { CanonicalFileType } from "../../schemas/canonical-file-types";

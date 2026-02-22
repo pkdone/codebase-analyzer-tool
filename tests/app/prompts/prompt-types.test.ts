@@ -1,9 +1,12 @@
 import { z } from "zod";
-import { JSONSchemaPrompt } from "../../../src/common/prompts/json-schema-prompt";
+import {
+  renderJsonSchemaPrompt,
+  type JSONSchemaPromptConfig,
+} from "../../../src/common/prompts/json-schema-prompt";
 import { DEFAULT_PERSONA_INTRODUCTION } from "../../../src/app/prompts/prompts.constants";
 
-describe("JSONSchemaPrompt Generic Type", () => {
-  it("should allow JSONSchemaPrompt with specific schema types", () => {
+describe("renderJsonSchemaPrompt Generic Type", () => {
+  it("should allow renderJsonSchemaPrompt with specific schema types", () => {
     const stringSchema = z.string();
     const numberSchema = z.number();
     const objectSchema = z.object({
@@ -11,54 +14,59 @@ describe("JSONSchemaPrompt Generic Type", () => {
       age: z.number(),
     });
 
-    // Type-level test: These should compile without errors
-    const stringPrompt = new JSONSchemaPrompt<typeof stringSchema>({
+    // Type-level test: These configs should compile without errors
+    const stringConfig: JSONSchemaPromptConfig<typeof stringSchema> = {
       personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
       contentDesc: "Test intro",
       instructions: ["Instruction 1"],
       responseSchema: stringSchema,
       dataBlockHeader: "CODE",
       wrapInCodeBlock: true,
-    });
+    };
 
-    const numberPrompt = new JSONSchemaPrompt<typeof numberSchema>({
+    const numberConfig: JSONSchemaPromptConfig<typeof numberSchema> = {
       personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
       contentDesc: "Test intro",
       instructions: ["Instruction 1"],
       responseSchema: numberSchema,
       dataBlockHeader: "FILE_SUMMARIES",
       wrapInCodeBlock: false,
-    });
+    };
 
-    const objectPrompt = new JSONSchemaPrompt<typeof objectSchema>({
+    const objectConfig: JSONSchemaPromptConfig<typeof objectSchema> = {
       personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
       contentDesc: "Test intro",
       instructions: ["Instruction 1"],
       responseSchema: objectSchema,
       dataBlockHeader: "FRAGMENTED_DATA",
       wrapInCodeBlock: false,
-    });
+    };
 
-    // Runtime assertions
-    expect(stringPrompt.responseSchema).toBe(stringSchema);
-    expect(numberPrompt.responseSchema).toBe(numberSchema);
-    expect(objectPrompt.responseSchema).toBe(objectSchema);
+    // Runtime assertions - render and verify
+    const stringResult = renderJsonSchemaPrompt(stringConfig, "test");
+    const numberResult = renderJsonSchemaPrompt(numberConfig, "test");
+    const objectResult = renderJsonSchemaPrompt(objectConfig, "test");
+
+    expect(stringResult).toBeDefined();
+    expect(numberResult).toBeDefined();
+    expect(objectResult).toBeDefined();
   });
 
   it("should work with default generic parameter (backward compatibility)", () => {
     const genericSchema = z.unknown();
 
     // Type-level test: Should compile without explicit generic parameter
-    const genericPrompt = new JSONSchemaPrompt({
+    const config: JSONSchemaPromptConfig = {
       personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
       contentDesc: "Test intro",
       instructions: ["Instruction 1"],
       responseSchema: genericSchema,
       dataBlockHeader: "CODE",
       wrapInCodeBlock: true,
-    });
+    };
 
-    expect(genericPrompt.responseSchema).toBe(genericSchema);
+    const result = renderJsonSchemaPrompt(config, "test");
+    expect(result).toBeDefined();
   });
 
   it("should preserve schema type through generic parameter", () => {
@@ -69,20 +77,20 @@ describe("JSONSchemaPrompt Generic Type", () => {
       age: z.number().min(0),
     });
 
-    const userPrompt = new JSONSchemaPrompt<typeof userSchema>({
+    const config: JSONSchemaPromptConfig<typeof userSchema> = {
       personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
       contentDesc: "User data analysis",
       instructions: ["Extract user information"],
       responseSchema: userSchema,
       dataBlockHeader: "CODE",
       wrapInCodeBlock: true,
-    });
+    };
 
     // Verify the schema is preserved at runtime
-    expect(userPrompt.responseSchema).toBe(userSchema);
+    expect(config.responseSchema).toBe(userSchema);
 
     // Type-level test: responseSchema should be typed as the specific user schema
-    const parsed = userPrompt.responseSchema.parse({
+    const parsed = config.responseSchema.parse({
       id: "123",
       name: "John Doe",
       email: "john@example.com",
@@ -103,15 +111,15 @@ describe("JSONSchemaPrompt Generic Type", () => {
       optional: z.string().optional(),
     });
 
-    const prompt = new JSONSchemaPrompt<typeof schema>({
+    const config: JSONSchemaPromptConfig<typeof schema> = {
       personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
       contentDesc: "Test",
       instructions: [],
       responseSchema: schema,
       dataBlockHeader: "CODE",
       wrapInCodeBlock: true,
-    });
+    };
 
-    expect(prompt.wrapInCodeBlock).toBe(true);
+    expect(config.wrapInCodeBlock).toBe(true);
   });
 });

@@ -4,7 +4,7 @@ import { z } from "zod";
 import LLMRouter from "../../../../../src/common/llm/llm-router";
 import { LLMOutputFormat } from "../../../../../src/common/llm/types/llm-request.types";
 import {
-  executeInsightCompletion,
+  InsightsCompletionExecutor,
   type InsightCompletionOptions,
 } from "../../../../../src/app/components/insights/strategies/insights-completion-executor";
 import {
@@ -31,8 +31,9 @@ jest.mock("../../../../../src/common/utils/text-utils", () => ({
   joinArrayWithSeparators: jest.fn((arr: string[]) => arr.join("\n")),
 }));
 
-describe("executeInsightCompletion - Type Inference", () => {
+describe("InsightsCompletionExecutor - Type Inference", () => {
   let mockLLMRouter: jest.Mocked<LLMRouter>;
+  let executor: InsightsCompletionExecutor;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -45,6 +46,7 @@ describe("executeInsightCompletion - Type Inference", () => {
       getEmbeddingModelDimensions: jest.fn(),
       close: jest.fn(),
     } as unknown as jest.Mocked<LLMRouter>;
+    executor = new InsightsCompletionExecutor(mockLLMRouter);
   });
 
   describe("category-specific result type inference", () => {
@@ -60,8 +62,7 @@ describe("executeInsightCompletion - Type Inference", () => {
         llmOk(mockResponse, createExecutionMetadata("gpt-4", "openai")),
       );
 
-      const result = await executeInsightCompletion(
-        mockLLMRouter,
+      const result = await executor.execute(
         "technologies",
         ["* file1.ts: implementation"],
         undefined,
@@ -88,8 +89,7 @@ describe("executeInsightCompletion - Type Inference", () => {
         llmOk(mockResponse, createExecutionMetadata("gpt-4", "openai")),
       );
 
-      const result = await executeInsightCompletion(
-        mockLLMRouter,
+      const result = await executor.execute(
         "technologies",
         ["* file1.ts: implementation"],
         undefined,
@@ -112,8 +112,7 @@ describe("executeInsightCompletion - Type Inference", () => {
         llmOk(mockResponse, createExecutionMetadata("gpt-4", "openai")),
       );
 
-      const result = await executeInsightCompletion(
-        mockLLMRouter,
+      const result = await executor.execute(
         "appDescription",
         ["* file1.ts: implementation"],
         undefined,
@@ -140,8 +139,7 @@ describe("executeInsightCompletion - Type Inference", () => {
         llmOk(mockResponse, createExecutionMetadata("gpt-4", "openai")),
       );
 
-      const result = await executeInsightCompletion(
-        mockLLMRouter,
+      const result = await executor.execute(
         "boundedContexts",
         ["* file1.ts: implementation"],
         undefined,
@@ -179,8 +177,7 @@ describe("executeInsightCompletion - Type Inference", () => {
         llmOk(mockResponse, createExecutionMetadata("gpt-4", "openai")),
       );
 
-      const result = await executeInsightCompletion(
-        mockLLMRouter,
+      const result = await executor.execute(
         "boundedContexts",
         ["* file1.ts: implementation"],
         undefined,
@@ -206,8 +203,7 @@ describe("executeInsightCompletion - Type Inference", () => {
       );
 
       // Type should be inferred from the category parameter
-      const result = await executeInsightCompletion(
-        mockLLMRouter,
+      const result = await executor.execute(
         category,
         ["* file1.ts: implementation"],
         undefined,
@@ -233,8 +229,7 @@ describe("executeInsightCompletion - Type Inference", () => {
           llmOk(mockResponse, createExecutionMetadata("gpt-4", "openai")),
         );
 
-        const result = await executeInsightCompletion(
-          mockLLMRouter,
+        const result = await executor.execute(
           category,
           ["* file1.ts: implementation"],
           undefined,
@@ -266,8 +261,7 @@ describe("executeInsightCompletion - Type Inference", () => {
         llmOk(mockResponse, createExecutionMetadata("gpt-4", "openai")),
       );
 
-      const result = await executeInsightCompletion(
-        mockLLMRouter,
+      const result = await executor.execute(
         "businessProcesses",
         ["* file1.ts: implementation"],
         undefined,
@@ -286,8 +280,7 @@ describe("executeInsightCompletion - Type Inference", () => {
         llmErr(new LLMExecutionError("Mock error", "test")),
       );
 
-      const result = await executeInsightCompletion(
-        mockLLMRouter,
+      const result = await executor.execute(
         "technologies",
         ["* file1.ts: implementation"],
         undefined,
@@ -299,8 +292,7 @@ describe("executeInsightCompletion - Type Inference", () => {
     test("should handle errors without breaking type safety", async () => {
       mockLLMRouter.executeCompletion.mockRejectedValue(new Error("LLM error"));
 
-      const result = await executeInsightCompletion(
-        mockLLMRouter,
+      const result = await executor.execute(
         "technologies",
         ["* file1.ts: implementation"],
         undefined,
@@ -321,7 +313,7 @@ describe("executeInsightCompletion - Type Inference", () => {
         llmOk(mockResponse, createExecutionMetadata("gpt-4", "openai")),
       );
 
-      await executeInsightCompletion(mockLLMRouter, category, ["* file1.ts: implementation"], {});
+      await executor.execute(category, ["* file1.ts: implementation"], {});
       // Verify the correct schema was used
       expect(mockLLMRouter.executeCompletion).toHaveBeenCalledWith(
         category,
@@ -363,8 +355,7 @@ describe("executeInsightCompletion - Type Inference", () => {
         llmOk(mockResponse, createExecutionMetadata("gpt-4", "openai")),
       );
 
-      const result = await executeInsightCompletion(
-        mockLLMRouter,
+      const result = await executor.execute(
         "potentialMicroservices",
         ["* file1.ts: implementation"],
         undefined,
@@ -392,8 +383,7 @@ describe("executeInsightCompletion - Type Inference", () => {
         taskCategory: "entities-chunk",
       };
 
-      const result = await executeInsightCompletion(
-        mockLLMRouter,
+      const result = await executor.execute(
         "technologies",
         ["* file1.ts: implementation"],
         options,
@@ -448,8 +438,7 @@ describe("executeInsightCompletion - Type Inference", () => {
         llmOk(mockResponse, createExecutionMetadata("gpt-4", "openai")),
       );
 
-      const result = await executeInsightCompletion(
-        mockLLMRouter,
+      const result = await executor.execute(
         "technologies",
         ["* file1.ts: implementation"],
         undefined,
@@ -476,7 +465,7 @@ describe("executeInsightCompletion - Type Inference", () => {
         llmOk(mockResponse, createExecutionMetadata("gpt-4", "openai")),
       );
 
-      await executeInsightCompletion(mockLLMRouter, category, ["* file1.ts: implementation"], {});
+      await executor.execute(category, ["* file1.ts: implementation"], {});
       // Verify the configuration is correct
       expect(config).toBeDefined();
       expect(config.responseSchema).toBeDefined();
@@ -497,8 +486,7 @@ describe("executeInsightCompletion - Type Inference", () => {
         llmOk(mockResponse, createExecutionMetadata("gpt-4", "openai")),
       );
 
-      const result = await executeInsightCompletion(
-        mockLLMRouter,
+      const result = await executor.execute(
         "technologies",
         ["* file1.ts: implementation"],
         undefined,
@@ -537,8 +525,7 @@ describe("executeInsightCompletion - Type Inference", () => {
       );
 
       // No eslint-disable comments needed
-      const result = await executeInsightCompletion(
-        mockLLMRouter,
+      const result = await executor.execute(
         "boundedContexts",
         ["* file1.ts: implementation"],
         undefined,
@@ -578,8 +565,7 @@ describe("executeInsightCompletion - Type Inference", () => {
         llmOk(mockResponse, createExecutionMetadata("gpt-4", "openai")),
       );
 
-      const result = await executeInsightCompletion(
-        mockLLMRouter,
+      const result = await executor.execute(
         category,
         ["* file1.ts: implementation"],
         undefined,

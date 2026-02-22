@@ -2,11 +2,9 @@ import "reflect-metadata";
 import { injectable, inject } from "tsyringe";
 import { readFile } from "../../../common/fs/file-operations";
 import { formatError } from "../../../common/utils/error-formatters";
-import { queryCodebaseWithQuestion } from "../../components/querying/codebase-query-processor";
-import { coreTokens, repositoryTokens, llmTokens } from "../../di/tokens";
+import type { CodebaseQueryProcessor } from "../../components/querying/codebase-query-processor";
+import { coreTokens, llmTokens, queryingTokens } from "../../di/tokens";
 import { inputConfig } from "../../config/input.config";
-import type { SourcesRepository } from "../../repositories/sources/sources.repository.interface";
-import type LLMRouter from "../../../common/llm/llm-router";
 import type LLMExecutionStats from "../../../common/llm/tracking/llm-execution-stats";
 import { BaseAnalysisTask } from "../base-analysis-task";
 
@@ -22,9 +20,8 @@ export class CodebaseQueryTask extends BaseAnalysisTask {
   constructor(
     @inject(llmTokens.LLMExecutionStats) llmStats: LLMExecutionStats,
     @inject(coreTokens.ProjectName) projectName: string,
-    @inject(repositoryTokens.SourcesRepository)
-    private readonly sourcesRepository: SourcesRepository,
-    @inject(llmTokens.LLMRouter) private readonly llmRouter: LLMRouter,
+    @inject(queryingTokens.CodebaseQueryProcessor)
+    private readonly queryProcessor: CodebaseQueryProcessor,
   ) {
     super(llmStats, projectName);
   }
@@ -53,7 +50,7 @@ export class CodebaseQueryTask extends BaseAnalysisTask {
       .filter((line) => line !== "" && !line.startsWith("#"));
 
     const queryPromises = questions.map(async (question) =>
-      queryCodebaseWithQuestion(this.sourcesRepository, this.llmRouter, question, this.projectName),
+      this.queryProcessor.execute(question, this.projectName),
     );
     const results = await Promise.allSettled(queryPromises);
     results.forEach((result, index) => {

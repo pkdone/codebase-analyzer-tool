@@ -24,7 +24,7 @@ import type { Sanitizer, SanitizerResult } from "./sanitizers-types";
 import { createPipeline } from "./pipeline";
 import {
   duplicateEntryRemover,
-  textOutsideJsonRemover,
+  embeddedCommentaryRemover,
   extraPropertiesRemover,
   propertyNameFixer,
 } from "./strategies";
@@ -40,7 +40,7 @@ import {
 const llmArtifactPipeline = createPipeline([
   duplicateEntryRemover,
   propertyNameFixer,
-  textOutsideJsonRemover,
+  embeddedCommentaryRemover,
   extraPropertiesRemover,
 ]);
 

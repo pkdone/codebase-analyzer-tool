@@ -274,6 +274,7 @@ describe("OpenAI LLM Provider", () => {
       expect(params).toEqual({
         model: "gpt-4",
         temperature: 0, // default zero temperature
+        top_p: 0, // default lowest top_p
         messages: [{ role: "user", content: "test prompt" }],
         max_tokens: 4096,
       });
@@ -289,6 +290,7 @@ describe("OpenAI LLM Provider", () => {
       expect(params).toEqual({
         model: "gpt-4",
         temperature: 0,
+        top_p: 0,
         messages: [{ role: "user", content: "test prompt" }],
         max_tokens: 4096,
         response_format: { type: "json_object" },

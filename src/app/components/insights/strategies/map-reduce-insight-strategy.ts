@@ -7,7 +7,7 @@ import { insightsConfig } from "../insights.config";
 import { getCategoryLabel } from "../../../config/category-labels.config";
 import { logWarn } from "../../../../common/utils/logging";
 import { isNotNull } from "../../../../common/utils/type-guards";
-import { llmTokens, serviceTokens } from "../../../di/tokens";
+import { llmTokens, insightsTokens, serviceTokens } from "../../../di/tokens";
 import { InsightGenerationStrategy } from "./insight-generation-strategy.interface";
 import type { LlmConcurrencyService } from "../../concurrency";
 import {
@@ -17,7 +17,7 @@ import {
   appSummaryCategorySchemas,
 } from "../insights.types";
 import { getLlmArtifactCorrections } from "../../../llm";
-import { executeInsightCompletion } from "./insights-completion-executor";
+import type { InsightsCompletionExecutor } from "./insights-completion-executor";
 import { batchItemsByTokenLimit } from "../../../../common/llm/utils/text-chunking";
 import { buildReducePrompt } from "../../../prompts/prompt-builders";
 
@@ -32,10 +32,13 @@ export class MapReduceInsightStrategy implements InsightGenerationStrategy {
   /**
    * Creates a new MapReduceInsightStrategy.
    * @param llmRouter - Router for LLM operations
+   * @param completionExecutor - Executor for insight completions (MAP step)
    * @param llmConcurrencyService - Service for managing LLM call concurrency
    */
   constructor(
     @inject(llmTokens.LLMRouter) private readonly llmRouter: LLMRouter,
+    @inject(insightsTokens.InsightsCompletionExecutor)
+    private readonly completionExecutor: InsightsCompletionExecutor,
     @inject(serviceTokens.LlmConcurrencyService)
     private readonly llmConcurrencyService: LlmConcurrencyService,
   ) {
@@ -122,7 +125,7 @@ export class MapReduceInsightStrategy implements InsightGenerationStrategy {
     category: C,
     summaryChunk: string[],
   ): Promise<CategoryInsightResult<C> | null> {
-    return executeInsightCompletion(this.llmRouter, category, summaryChunk, {
+    return this.completionExecutor.execute(category, summaryChunk, {
       forPartialAnalysis: true,
       taskCategory: `${category}-chunk`,
     });

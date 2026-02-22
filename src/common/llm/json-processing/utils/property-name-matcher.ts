@@ -7,7 +7,7 @@
 /**
  * Configuration for property name matching behavior.
  */
-export interface PropertyMatcherConfig {
+interface PropertyMatcherConfig {
   /** Minimum length for a fragment to be considered for prefix matching */
   readonly minPrefixLength: number;
   /** Maximum Levenshtein distance allowed for fuzzy matching (use 0 for dynamic threshold) */
@@ -91,7 +91,7 @@ function normalizeIdentifier(identifier: string): string {
 /**
  * Result of a property name match attempt.
  */
-export interface PropertyMatchResult {
+interface PropertyMatchResult {
   /** The matched property name, or undefined if no match */
   readonly matched: string | undefined;
   /** The type of match that was found */

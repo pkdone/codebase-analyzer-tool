@@ -14,7 +14,7 @@ import type { BasePromptConfigEntry } from "../prompts.types";
 
 /**
  * Configuration entry for app summary prompts.
- * Type alias for BasePromptConfigEntry as all required fields are now in the base interface.
+ * Type alias for BasePromptConfigEntry.
  *
  * Each entry is self-describing with all fields necessary to construct a complete prompt,
  * including presentation fields (dataBlockHeader, wrapInCodeBlock). This design is

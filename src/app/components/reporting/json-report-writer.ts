@@ -1,5 +1,5 @@
 import { injectable, inject } from "tsyringe";
-import path from "path";
+import path from "node:path";
 import { coreTokens } from "../../di/tokens";
 import type { OutputConfigType } from "../../config/output.config";
 import { writeFile } from "../../../common/fs/file-operations";

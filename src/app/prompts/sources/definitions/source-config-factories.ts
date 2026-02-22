@@ -22,7 +22,7 @@ import { CODE_DATA_BLOCK_HEADER } from "../../prompts.constants";
  * Each entry is self-describing with all fields needed to construct a complete prompt,
  * including presentation fields (dataBlockHeader, wrapInCodeBlock). This design ensures
  * consistency with AppSummaryConfigEntry and enables the prompt builders to act as
- * simple assemblers without hardcoding presentation logic.
+ * simple assemblers.
  *
  * The hasComplexSchema field is inherited from BasePromptConfigEntry and indicates
  * whether the schema is incompatible with some LLM providers' strict JSON mode.

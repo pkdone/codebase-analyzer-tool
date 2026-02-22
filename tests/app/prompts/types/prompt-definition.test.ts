@@ -1,13 +1,13 @@
 import {
-  JSONSchemaPrompt,
+  renderJsonSchemaPrompt,
   type JSONSchemaPromptConfig,
 } from "../../../../src/common/prompts/json-schema-prompt";
 import { DEFAULT_PERSONA_INTRODUCTION } from "../../../../src/app/prompts/prompts.constants";
 import { z } from "zod";
 
-describe("JSONSchemaPrompt", () => {
-  const createMockPrompt = (overrides?: Partial<JSONSchemaPromptConfig>): JSONSchemaPrompt => {
-    const config: JSONSchemaPromptConfig = {
+describe("renderJsonSchemaPrompt", () => {
+  const createMockConfig = (overrides?: Partial<JSONSchemaPromptConfig>): JSONSchemaPromptConfig => {
+    return {
       personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
       contentDesc: "Test intro text template with {{placeholder}}",
       instructions: ["instruction 1", "instruction 2"],
@@ -16,58 +16,68 @@ describe("JSONSchemaPrompt", () => {
       wrapInCodeBlock: false,
       ...overrides,
     };
-    return new JSONSchemaPrompt(config);
   };
 
   describe("structure", () => {
-    it("should have required fields", () => {
-      const prompt = new JSONSchemaPrompt({
+    it("should render with required config fields", () => {
+      const config: JSONSchemaPromptConfig = {
         personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
         contentDesc: "Test intro text template",
         instructions: ["test"],
         responseSchema: z.string(),
         dataBlockHeader: "CODE",
         wrapInCodeBlock: false,
-      });
+      };
 
-      expect(prompt.contentDesc).toBe("Test intro text template");
-      expect(prompt.instructions).toEqual(["test"]);
-      expect(prompt.responseSchema).toBeDefined();
+      const rendered = renderJsonSchemaPrompt(config, "test content");
+
+      expect(rendered).toContain("Test intro text template");
+      expect(rendered).toContain("test");
     });
   });
 
   describe("compatibility", () => {
     it("should accept readonly string arrays for instructions", () => {
-      const prompt = new JSONSchemaPrompt({
+      const config: JSONSchemaPromptConfig = {
         personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
         contentDesc: "Test intro text template",
         instructions: ["a", "b", "c"],
         responseSchema: z.string(),
         dataBlockHeader: "CODE",
         wrapInCodeBlock: false,
-      });
+      };
 
-      expect(Array.isArray(prompt.instructions)).toBe(true);
-      expect(prompt.instructions.length).toBe(3);
+      const rendered = renderJsonSchemaPrompt(config, "test content");
+
+      expect(rendered).toContain("a");
+      expect(rendered).toContain("b");
+      expect(rendered).toContain("c");
     });
 
     it("should accept various Zod schema types", () => {
-      const stringPrompt = createMockPrompt({ responseSchema: z.string() });
-      expect(stringPrompt.responseSchema).toBeDefined();
+      const stringResult = renderJsonSchemaPrompt(
+        createMockConfig({ responseSchema: z.string() }),
+        "test",
+      );
+      expect(stringResult).toBeDefined();
 
-      const objectPrompt = createMockPrompt({
-        responseSchema: z.object({ name: z.string() }),
-      });
-      expect(objectPrompt.responseSchema).toBeDefined();
+      const objectResult = renderJsonSchemaPrompt(
+        createMockConfig({ responseSchema: z.object({ name: z.string() }) }),
+        "test",
+      );
+      expect(objectResult).toBeDefined();
 
-      const arrayPrompt = createMockPrompt({ responseSchema: z.array(z.string()) });
-      expect(arrayPrompt.responseSchema).toBeDefined();
+      const arrayResult = renderJsonSchemaPrompt(
+        createMockConfig({ responseSchema: z.array(z.string()) }),
+        "test",
+      );
+      expect(arrayResult).toBeDefined();
     });
   });
 
   describe("usage examples", () => {
     it("should work with source file prompting", () => {
-      const sourceFilePrompt = new JSONSchemaPrompt({
+      const config: JSONSchemaPromptConfig = {
         personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
         contentDesc:
           "Act as a senior developer analyzing the code in an existing application. Based on the JVM code shown below...",
@@ -83,14 +93,14 @@ describe("JSONSchemaPrompt", () => {
         }),
         dataBlockHeader: "CODE",
         wrapInCodeBlock: true,
-      });
+      };
 
-      expect(sourceFilePrompt.contentDesc).toContain("JVM code");
-      expect(sourceFilePrompt.instructions).toHaveLength(3);
+      expect(config.contentDesc).toContain("JVM code");
+      expect(config.instructions).toHaveLength(3);
     });
 
     it("should work with app summary prompting", () => {
-      const appSummaryPrompt = new JSONSchemaPrompt({
+      const config: JSONSchemaPromptConfig = {
         personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
         contentDesc:
           "Act as a senior developer analyzing the code in an existing application. Based on the source files shown below...",
@@ -101,12 +111,12 @@ describe("JSONSchemaPrompt", () => {
         }),
         dataBlockHeader: "FILE_SUMMARIES",
         wrapInCodeBlock: false,
-      });
+      };
 
-      expect(appSummaryPrompt.contentDesc).toContain("source files");
-      expect(appSummaryPrompt.instructions).toHaveLength(2);
-      expect(appSummaryPrompt.instructions[0]).toBe("Extract entities");
-      expect(appSummaryPrompt.instructions[1]).toBe("Extract bounded contexts");
+      expect(config.contentDesc).toContain("source files");
+      expect(config.instructions).toHaveLength(2);
+      expect(config.instructions[0]).toBe("Extract entities");
+      expect(config.instructions[1]).toBe("Extract bounded contexts");
     });
   });
 
@@ -114,16 +124,16 @@ describe("JSONSchemaPrompt", () => {
     it("should support readonly string arrays", () => {
       const readonlyInstructions: readonly string[] = ["instruction 1", "instruction 2"];
 
-      const prompt = new JSONSchemaPrompt({
+      const config: JSONSchemaPromptConfig = {
         personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
         contentDesc: "Test intro text template",
         instructions: readonlyInstructions,
         responseSchema: z.string(),
         dataBlockHeader: "CODE",
         wrapInCodeBlock: false,
-      });
+      };
 
-      expect(prompt.instructions).toEqual(["instruction 1", "instruction 2"]);
+      expect(config.instructions).toEqual(["instruction 1", "instruction 2"]);
     });
   });
 });

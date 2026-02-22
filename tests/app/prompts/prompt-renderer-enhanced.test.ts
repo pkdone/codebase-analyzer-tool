@@ -1,9 +1,9 @@
 import { z } from "zod";
-import { JSONSchemaPrompt } from "../../../src/common/prompts/json-schema-prompt";
+import { renderJsonSchemaPrompt } from "../../../src/common/prompts/json-schema-prompt";
 import { DEFAULT_PERSONA_INTRODUCTION } from "../../../src/app/prompts/prompts.constants";
 import { buildReduceInsightsContentDesc } from "../../../src/app/prompts/app-summaries/app-summaries.constants";
 
-describe("JSONSchemaPrompt Renderer", () => {
+describe("renderJsonSchemaPrompt Renderer", () => {
   const baseSchema = z.object({
     name: z.string(),
     value: z.number(),
@@ -18,11 +18,9 @@ describe("JSONSchemaPrompt Renderer", () => {
     wrapInCodeBlock: false,
   } as const;
 
-  const testPrompt = new JSONSchemaPrompt(testConfig);
-
   describe("Basic Rendering", () => {
     it("should render prompt with definition schema", () => {
-      const result = testPrompt.renderPrompt("sample code");
+      const result = renderJsonSchemaPrompt(testConfig, "sample code");
 
       expect(result).toContain("test content");
       expect(result).toContain("sample code");
@@ -31,7 +29,7 @@ describe("JSONSchemaPrompt Renderer", () => {
     });
 
     it("should use definition's responseSchema for JSON schema generation", () => {
-      const result = testPrompt.renderPrompt("sample code");
+      const result = renderJsonSchemaPrompt(testConfig, "sample code");
 
       // The result should contain the JSON schema from the definition's responseSchema
       expect(result).toContain('"name"');
@@ -55,12 +53,13 @@ describe("JSONSchemaPrompt Renderer", () => {
         total: z.number(),
       });
 
-      const complexPrompt = new JSONSchemaPrompt({
-        ...testConfig,
-        responseSchema: complexSchema,
-      });
-
-      const result = complexPrompt.renderPrompt("sample code");
+      const result = renderJsonSchemaPrompt(
+        {
+          ...testConfig,
+          responseSchema: complexSchema,
+        },
+        "sample code",
+      );
 
       expect(result).toContain('"items"');
       expect(result).toContain('"metadata"');
@@ -68,12 +67,13 @@ describe("JSONSchemaPrompt Renderer", () => {
     });
 
     it("should handle z.unknown() schema", () => {
-      const unknownPrompt = new JSONSchemaPrompt({
-        ...testConfig,
-        responseSchema: z.unknown(),
-      });
-
-      const result = unknownPrompt.renderPrompt("sample code");
+      const result = renderJsonSchemaPrompt(
+        {
+          ...testConfig,
+          responseSchema: z.unknown(),
+        },
+        "sample code",
+      );
 
       // Should still render a valid prompt
       expect(result).toContain("sample code");
@@ -81,12 +81,13 @@ describe("JSONSchemaPrompt Renderer", () => {
     });
 
     it("should work with primitive schemas", () => {
-      const stringPrompt = new JSONSchemaPrompt({
-        ...testConfig,
-        responseSchema: z.string(),
-      });
-
-      const result = stringPrompt.renderPrompt("sample code");
+      const result = renderJsonSchemaPrompt(
+        {
+          ...testConfig,
+          responseSchema: z.string(),
+        },
+        "sample code",
+      );
 
       expect(result).toContain('"type": "string"');
     });
@@ -99,12 +100,13 @@ describe("JSONSchemaPrompt Renderer", () => {
         }),
       );
 
-      const arrayPrompt = new JSONSchemaPrompt({
-        ...testConfig,
-        responseSchema: arraySchema,
-      });
-
-      const result = arrayPrompt.renderPrompt("sample code");
+      const result = renderJsonSchemaPrompt(
+        {
+          ...testConfig,
+          responseSchema: arraySchema,
+        },
+        "sample code",
+      );
 
       expect(result).toContain('"type": "array"');
       expect(result).toContain('"description"');
@@ -116,12 +118,13 @@ describe("JSONSchemaPrompt Renderer", () => {
       // Use contextNote to test the partial analysis note
       const contextNote =
         "Note, this is a partial analysis of what is a much larger set of code; focus on extracting insights from this subset of code only.\n\n";
-      const promptWithContextNote = new JSONSchemaPrompt({
-        ...testConfig,
-        contextNote,
-      });
-
-      const result = promptWithContextNote.renderPrompt("sample code");
+      const result = renderJsonSchemaPrompt(
+        {
+          ...testConfig,
+          contextNote,
+        },
+        "sample code",
+      );
 
       expect(result).toContain("sample code");
       expect(result).toContain("partial analysis");
@@ -130,7 +133,7 @@ describe("JSONSchemaPrompt Renderer", () => {
     });
 
     it("should render without partial analysis note", () => {
-      const result = testPrompt.renderPrompt("sample code");
+      const result = renderJsonSchemaPrompt(testConfig, "sample code");
 
       // Should render without errors
       expect(result).toContain("sample code");
@@ -141,19 +144,20 @@ describe("JSONSchemaPrompt Renderer", () => {
 
   describe("Code Block Wrapping", () => {
     it("should wrap content in code blocks when wrapInCodeBlock is true", () => {
-      const wrappedPrompt = new JSONSchemaPrompt({
-        ...testConfig,
-        wrapInCodeBlock: true,
-      });
-
-      const result = wrappedPrompt.renderPrompt("sample code");
+      const result = renderJsonSchemaPrompt(
+        {
+          ...testConfig,
+          wrapInCodeBlock: true,
+        },
+        "sample code",
+      );
 
       // The content should be wrapped with ``` markers
       expect(result).toContain("```\nsample code```");
     });
 
     it("should not wrap content when wrapInCodeBlock is false", () => {
-      const result = testPrompt.renderPrompt("sample code");
+      const result = renderJsonSchemaPrompt(testConfig, "sample code");
 
       // Content should appear without surrounding ``` markers (except in JSON schema block)
       const contentSection = result.split("CODE:")[1];
@@ -172,21 +176,22 @@ describe("JSONSchemaPrompt Renderer", () => {
         ),
       });
 
-      // Create a typed prompt definition (JSON mode = responseSchema present)
-      const reducePrompt = new JSONSchemaPrompt({
-        personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
-        contentDesc: buildReduceInsightsContentDesc("technologies"),
-        instructions: [`a consolidated list of 'technologies'`],
-        responseSchema: categorySchema,
-        dataBlockHeader: "FRAGMENTED_DATA",
-        wrapInCodeBlock: false,
-      });
-
       const partialData = {
         technologies: [{ name: "TypeScript", description: "Typed JavaScript" }],
       };
 
-      const result = reducePrompt.renderPrompt(JSON.stringify(partialData));
+      // Create a typed prompt definition (JSON mode = responseSchema present)
+      const result = renderJsonSchemaPrompt(
+        {
+          personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+          contentDesc: buildReduceInsightsContentDesc("technologies"),
+          instructions: [`a consolidated list of 'technologies'`],
+          responseSchema: categorySchema,
+          dataBlockHeader: "FRAGMENTED_DATA",
+          wrapInCodeBlock: false,
+        },
+        JSON.stringify(partialData),
+      );
 
       // Should have categoryKey baked into the prompt definition
       expect(result).toContain("'technologies'");
@@ -204,16 +209,15 @@ describe("JSONSchemaPrompt Renderer", () => {
         technologies: z.array(z.object({ name: z.string(), version: z.string() })),
       });
 
-      const reducePrompt = new JSONSchemaPrompt({
-        personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
-        contentDesc: buildReduceInsightsContentDesc("technologies"),
-        instructions: [`a consolidated list of 'technologies'`],
-        responseSchema: techSchema,
-        dataBlockHeader: "FRAGMENTED_DATA",
-        wrapInCodeBlock: false,
-      });
-
-      const result = reducePrompt.renderPrompt(
+      const result = renderJsonSchemaPrompt(
+        {
+          personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+          contentDesc: buildReduceInsightsContentDesc("technologies"),
+          instructions: [`a consolidated list of 'technologies'`],
+          responseSchema: techSchema,
+          dataBlockHeader: "FRAGMENTED_DATA",
+          wrapInCodeBlock: false,
+        },
         JSON.stringify({ technologies: [{ name: "TypeScript", version: "5.7" }] }),
       );
 
@@ -224,27 +228,29 @@ describe("JSONSchemaPrompt Renderer", () => {
 
   describe("Data Block Header", () => {
     it("should use the correct dataBlockHeader in output", () => {
-      const result = testPrompt.renderPrompt("sample code");
+      const result = renderJsonSchemaPrompt(testConfig, "sample code");
       expect(result).toContain("CODE:");
     });
 
     it("should handle different dataBlockHeaders", () => {
-      const fileSummariesPrompt = new JSONSchemaPrompt({
-        ...testConfig,
-        dataBlockHeader: "FILE_SUMMARIES",
-      });
-
-      const result = fileSummariesPrompt.renderPrompt("summaries");
+      const result = renderJsonSchemaPrompt(
+        {
+          ...testConfig,
+          dataBlockHeader: "FILE_SUMMARIES",
+        },
+        "summaries",
+      );
       expect(result).toContain("FILE_SUMMARIES:");
     });
 
     it("should handle FRAGMENTED_DATA header", () => {
-      const fragmentedPrompt = new JSONSchemaPrompt({
-        ...testConfig,
-        dataBlockHeader: "FRAGMENTED_DATA",
-      });
-
-      const result = fragmentedPrompt.renderPrompt("data");
+      const result = renderJsonSchemaPrompt(
+        {
+          ...testConfig,
+          dataBlockHeader: "FRAGMENTED_DATA",
+        },
+        "data",
+      );
       expect(result).toContain("FRAGMENTED_DATA:");
     });
   });

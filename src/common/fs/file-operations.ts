@@ -1,5 +1,5 @@
-import { promises as fs } from "fs";
-import path from "path";
+import { promises as fs } from "node:fs";
+import path from "node:path";
 import { ensureDirectoryExists } from "./directory-operations";
 import { ENCODING_UTF8 } from "../constants";
 

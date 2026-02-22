@@ -20,8 +20,8 @@ import { isLLMArtifactOrInternalProperty } from "../../utils/llm-artifact-detect
 /**
  * Strategy that removes text appearing outside JSON string values.
  */
-export const textOutsideJsonRemover: SanitizerStrategy = {
-  name: "TextOutsideJsonRemover",
+export const embeddedCommentaryRemover: SanitizerStrategy = {
+  name: "EmbeddedCommentaryRemover",
 
   apply(input: string, _config?: LLMSanitizerConfig): StrategyResult {
     if (!input) {

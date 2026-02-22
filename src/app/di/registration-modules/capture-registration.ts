@@ -9,12 +9,11 @@
  */
 
 import { container } from "tsyringe";
-import { captureTokens, repositoryTokens } from "../tokens";
+import { captureTokens } from "../tokens";
 import { fileTypePromptRegistry } from "../../prompts/sources/sources.definitions";
 import { FileSummarizerService } from "../../components/capture/file-summarizer.service";
 import { BufferedSourcesWriter } from "../../components/capture/buffered-sources-writer";
 import CodebaseCaptureOrchestrator from "../../components/capture/codebase-capture-orchestrator";
-import type { SourcesRepository } from "../../repositories/sources/sources.repository.interface";
 
 /**
  * Register capture module dependencies in the container.
@@ -27,14 +26,8 @@ export function registerCaptureDependencies(): void {
   // Register the FileSummarizerService
   container.register(captureTokens.FileSummarizerService, { useClass: FileSummarizerService });
 
-  // Register the BufferedSourcesWriter using a factory
-  // (tsyringe cannot inject primitive types like number, so we use a factory to pass defaults)
-  container.register(captureTokens.BufferedSourcesWriter, {
-    useFactory: (c) => {
-      const sourcesRepository = c.resolve<SourcesRepository>(repositoryTokens.SourcesRepository);
-      return new BufferedSourcesWriter(sourcesRepository);
-    },
-  });
+  // Register the BufferedSourcesWriter
+  container.register(captureTokens.BufferedSourcesWriter, { useClass: BufferedSourcesWriter });
 
   // Register the main capture orchestrator
   container.registerSingleton(

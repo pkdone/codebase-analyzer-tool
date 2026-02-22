@@ -1,11 +1,11 @@
 import {
-  JSONSchemaPrompt,
+  renderJsonSchemaPrompt,
   JSON_SCHEMA_PROMPT_TEMPLATE,
 } from "../../../src/common/prompts/json-schema-prompt";
 import { DEFAULT_PERSONA_INTRODUCTION } from "../../../src/app/prompts/prompts.constants";
 import { z } from "zod";
 
-describe("JSONSchemaPrompt Refactoring", () => {
+describe("renderJsonSchemaPrompt Refactoring", () => {
   const testConfig = {
     personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
     contentDesc:
@@ -16,12 +16,11 @@ describe("JSONSchemaPrompt Refactoring", () => {
     wrapInCodeBlock: true,
   } as const;
 
-  const testPrompt = new JSONSchemaPrompt(testConfig);
   const testContent = "test file content";
 
   describe("Function-based rendering", () => {
     it("should render prompts correctly with function", () => {
-      const rendered = testPrompt.renderPrompt(testContent);
+      const rendered = renderJsonSchemaPrompt(testConfig, testContent);
 
       expect(rendered).toContain("Act as a senior developer analyzing the code");
       expect(rendered).toContain("CODE:");
@@ -31,12 +30,14 @@ describe("JSONSchemaPrompt Refactoring", () => {
     });
 
     it("should handle different template types", () => {
-      const appSummaryPrompt = new JSONSchemaPrompt({
-        ...testConfig,
-        dataBlockHeader: "FILE_SUMMARIES",
-        wrapInCodeBlock: false,
-      });
-      const rendered = appSummaryPrompt.renderPrompt(testContent);
+      const rendered = renderJsonSchemaPrompt(
+        {
+          ...testConfig,
+          dataBlockHeader: "FILE_SUMMARIES",
+          wrapInCodeBlock: false,
+        },
+        testContent,
+      );
 
       expect(rendered).toContain("FILE_SUMMARIES:");
       expect(rendered).not.toContain("CODE:");
@@ -45,14 +46,16 @@ describe("JSONSchemaPrompt Refactoring", () => {
     it("should handle reduce template with category key via inline definition", () => {
       // categoryKey is directly embedded in contentDesc, rather than being a placeholder
       const categoryKey = "technologies";
-      const reducePrompt = new JSONSchemaPrompt({
-        ...testConfig,
-        // Factory would pre-populate contentDesc with the category key
-        contentDesc: `Consolidate ${categoryKey} from the data below.`,
-        dataBlockHeader: "FRAGMENTED_DATA",
-        wrapInCodeBlock: false,
-      });
-      const rendered = reducePrompt.renderPrompt(testContent);
+      const rendered = renderJsonSchemaPrompt(
+        {
+          ...testConfig,
+          // Factory would pre-populate contentDesc with the category key
+          contentDesc: `Consolidate ${categoryKey} from the data below.`,
+          dataBlockHeader: "FRAGMENTED_DATA",
+          wrapInCodeBlock: false,
+        },
+        testContent,
+      );
 
       expect(rendered).toContain("FRAGMENTED_DATA:");
       expect(rendered).toContain(categoryKey);
@@ -61,15 +64,17 @@ describe("JSONSchemaPrompt Refactoring", () => {
     });
 
     it("should handle complex instruction sections with titles", () => {
-      const complexPrompt = new JSONSchemaPrompt({
-        ...testConfig,
-        instructions: [
-          "__Section 1__\npoint 1\npoint 2",
-          "point without title",
-          "__Section 2__\npoint 3",
-        ],
-      });
-      const rendered = complexPrompt.renderPrompt(testContent);
+      const rendered = renderJsonSchemaPrompt(
+        {
+          ...testConfig,
+          instructions: [
+            "__Section 1__\npoint 1\npoint 2",
+            "point without title",
+            "__Section 2__\npoint 3",
+          ],
+        },
+        testContent,
+      );
 
       expect(rendered).toContain("__Section 1__");
       expect(rendered).toContain("__Section 2__");
@@ -83,20 +88,22 @@ describe("JSONSchemaPrompt Refactoring", () => {
       // Use contextNote for partial analysis
       const contextNote =
         "Note, this is a partial analysis of what is a much larger set of file summaries; focus on extracting insights from this subset of file summaries only.\n\n";
-      const appSummaryPrompt = new JSONSchemaPrompt({
-        ...testConfig,
-        dataBlockHeader: "FILE_SUMMARIES",
-        wrapInCodeBlock: false,
-        contextNote,
-      });
-      const rendered = appSummaryPrompt.renderPrompt(testContent);
+      const rendered = renderJsonSchemaPrompt(
+        {
+          ...testConfig,
+          dataBlockHeader: "FILE_SUMMARIES",
+          wrapInCodeBlock: false,
+          contextNote,
+        },
+        testContent,
+      );
 
       expect(rendered).toContain("partial analysis");
       expect(rendered).toContain("focus on extracting insights from this subset");
     });
 
     it("should handle empty additional parameters", () => {
-      const rendered = testPrompt.renderPrompt(testContent);
+      const rendered = renderJsonSchemaPrompt(testConfig, testContent);
 
       expect(rendered).toContain("Act as a senior developer analyzing the code");
       expect(rendered).toContain(testContent);
@@ -118,7 +125,7 @@ describe("JSONSchemaPrompt Refactoring", () => {
     });
 
     it("should not have any placeholder syntax in rendered output", () => {
-      const rendered = testPrompt.renderPrompt(testContent);
+      const rendered = renderJsonSchemaPrompt(testConfig, testContent);
 
       expect(rendered).not.toMatch(/\{\{[a-zA-Z]+\}\}/);
     });
@@ -126,20 +133,23 @@ describe("JSONSchemaPrompt Refactoring", () => {
 
   describe("Backward compatibility", () => {
     it("should produce identical output as before refactoring", () => {
-      // Test that the constructor produces the same output as the old factory methods
-      const sourcePrompt = new JSONSchemaPrompt({
-        ...testConfig,
-        dataBlockHeader: "CODE",
-        wrapInCodeBlock: true,
-      });
-      const appSummaryPrompt = new JSONSchemaPrompt({
-        ...testConfig,
-        dataBlockHeader: "FILE_SUMMARIES",
-        wrapInCodeBlock: false,
-      });
-
-      const sourceRendered = sourcePrompt.renderPrompt(testContent);
-      const appSummaryRendered = appSummaryPrompt.renderPrompt(testContent);
+      // Test that the function produces the same output as the old factory methods
+      const sourceRendered = renderJsonSchemaPrompt(
+        {
+          ...testConfig,
+          dataBlockHeader: "CODE",
+          wrapInCodeBlock: true,
+        },
+        testContent,
+      );
+      const appSummaryRendered = renderJsonSchemaPrompt(
+        {
+          ...testConfig,
+          dataBlockHeader: "FILE_SUMMARIES",
+          wrapInCodeBlock: false,
+        },
+        testContent,
+      );
 
       // Verify the structure is correct
       expect(sourceRendered).toContain("CODE:");

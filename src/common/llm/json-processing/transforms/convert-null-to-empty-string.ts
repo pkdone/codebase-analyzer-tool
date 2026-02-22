@@ -19,7 +19,7 @@
  *   Input:  { tables: [{ name: "m_deposit", fields: null }] }
  *   Output: { tables: [{ name: "m_deposit", fields: "" }] }
  */
-import { deepMapObject, isPlainObject } from "../utils/object-traversal";
+import { deepTransform, isPlainObject } from "../utils/object-traversal";
 
 /**
  * Properties that commonly contain required string values and should have null converted to "".
@@ -61,7 +61,7 @@ export function convertNullToEmptyStringForRequiredFields(
   _config?: import("../../config/llm-module-config.types").LLMSanitizerConfig,
   visited = new WeakSet<object>(),
 ): unknown {
-  return deepMapObject(
+  return deepTransform(
     value,
     (val) => {
       // Only transform plain objects

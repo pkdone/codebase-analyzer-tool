@@ -7,7 +7,7 @@
 import type { LLMSanitizerConfig } from "../../../config/llm-module-config.types";
 import type { SanitizerStrategy, StrategyResult } from "../pipeline/sanitizer-pipeline.types";
 import { isInStringAt, isDirectlyInArrayContext } from "../../utils/parser-context-utils";
-import { looksLikeStrayArrayPrefix } from "../../utils/stray-text-detection";
+import { isStrayWordCandidate } from "../../utils/stray-text-detection";
 import { processingConfig, parsingHeuristics } from "../../constants/json-processing.config";
 import { looksLikeDotSeparatedIdentifier } from "../../utils/property-name-matcher";
 import { DiagnosticCollector } from "../../utils/diagnostic-collector";
@@ -176,7 +176,7 @@ export const arrayElementFixer: SanitizerStrategy = {
           isDirectlyInArrayContext(offset, sanitized);
 
         // Use generic stray word detection
-        if (isInArray && looksLikeStrayArrayPrefix(prefixWordStr)) {
+        if (isInArray && isStrayWordCandidate(prefixWordStr)) {
           hasChanges = true;
           diagnostics.add(`Removed prefix word '${prefixWordStr}' before quoted string in array`);
           return `${prefixStr}${whitespaceStr}"${quotedValueStr}"${terminatorStr}`;

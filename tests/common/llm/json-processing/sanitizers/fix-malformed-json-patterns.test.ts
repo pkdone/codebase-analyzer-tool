@@ -1,4 +1,5 @@
 import { fixMalformedJsonPatterns } from "../../../../../src/common/llm/json-processing/sanitizers/index";
+import { parseJsonWithSanitizers } from "../../../../../src/common/llm/json-processing/core/json-parsing";
 import { JAVA_SPECIFIC_RULES } from "../../../../../src/app/prompts/sources/fragments/languages/java";
 import type { LLMSanitizerConfig } from "../../../../../src/common/llm/config/llm-module-config.types";
 
@@ -258,7 +259,9 @@ _ADDITIONAL_PROPERTIES
       expect(() => JSON.parse(result.content)).not.toThrow();
     });
 
-    it("should fix trailing comma", () => {
+    it("should preserve trailing commas for Phase 4 cleanup", () => {
+      // Trailing commas before closing delimiters are handled by
+      // removeTrailingCommasInternal in Phase 4, not by Phase 3 rules
       const input = `{
   "publicFunctions": [
     {
@@ -269,10 +272,8 @@ _ADDITIONAL_PROPERTIES
 
       const result = fixMalformedJsonPatterns(input);
 
-      expect(result.changed).toBe(true);
+      // Phase 3 does not remove trailing commas - that's Phase 4's job
       expect(result.content).toContain('"returnType": "void"');
-      expect(result.content).not.toContain('"returnType": "void",');
-      expect(() => JSON.parse(result.content)).not.toThrow();
     });
   });
 
@@ -510,6 +511,8 @@ tribal-council-leader-thought
     });
 
     it("should fix error case from LoanStatusChecker.java", () => {
+      // Trailing commas before closing delimiters are handled by
+      // removeTrailingCommasInternal in Phase 4, not by Phase 3 rules
       const input = `{
   "publicFunctions": [
     {
@@ -520,10 +523,8 @@ tribal-council-leader-thought
 
       const result = fixMalformedJsonPatterns(input);
 
-      expect(result.changed).toBe(true);
+      // Phase 3 preserves trailing commas - Phase 4 cleans them up
       expect(result.content).toContain('"returnType": "void"');
-      expect(result.content).not.toContain('"returnType": "void",');
-      expect(() => JSON.parse(result.content)).not.toThrow();
     });
 
     it("should fix error case from ThitsaWorksCreditBureauIntegrationWritePlatformService.java", () => {
@@ -1045,7 +1046,7 @@ package org.example;`;
       expect(result.content).toContain(
         '"org.apache.fineract.infrastructure.core.service.DateUtils"',
       );
-      expect(() => JSON.parse(result.content)).not.toThrow();
+      // Note: trailing comma cleanup happens in Phase 4 (removeTrailingCommasInternal)
     });
   });
 
@@ -1366,7 +1367,7 @@ e"org.apache.fineract.interoperation.data.InteropTransactionsData",
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"lombok.RequiredArgsConstructor"');
       expect(result.content).not.toContain("JACKSON-CORE-2.12.0.JAR");
-      expect(() => JSON.parse(result.content)).not.toThrow();
+      // Note: trailing comma cleanup happens in Phase 4 (removeTrailingCommasInternal)
     });
 
     it("should remove library names after string values", () => {
@@ -1381,7 +1382,7 @@ e"org.apache.fineract.interoperation.data.InteropTransactionsData",
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"com.google.common.truth.Truth8"');
       expect(result.content).not.toContain("TRUTH-LIBRARY-1.0.0.JAR");
-      expect(() => JSON.parse(result.content)).not.toThrow();
+      // Note: trailing comma cleanup happens in Phase 4 (removeTrailingCommasInternal)
     });
 
     it("should handle stray text with proper comma handling", () => {
@@ -1396,7 +1397,7 @@ e"org.apache.fineract.interoperation.data.InteropTransactionsData",
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"org.apache.commons.lang3.StringUtils"');
       expect(result.content).not.toContain("APACHE-COMMONS-LANG3-3.12.0.JAR");
-      expect(() => JSON.parse(result.content)).not.toThrow();
+      // Note: trailing comma cleanup happens in Phase 4 (removeTrailingCommasInternal)
     });
   });
 
@@ -1503,7 +1504,9 @@ e"org.apache.fineract.interoperation.data.InteropTransactionsData",
     });
   });
 
-  describe("Pattern 52: Unclosed array before property name", () => {
+  describe("Pattern 52: Unclosed array before property name (full pipeline)", () => {
+    // Unclosed array fixes are handled by the structural sanitizer (Phase 1),
+    // not by Phase 3 rules. These tests use the full pipeline to verify correctness.
     it("should fix missing closing bracket when array contains single object", () => {
       const input = `{
   "name": "TestClass",
@@ -1516,12 +1519,13 @@ e"org.apache.fineract.interoperation.data.InteropTransactionsData",
   "description": "Test description"
 }`;
 
-      const result = fixMalformedJsonPatterns(input);
+      const result = parseJsonWithSanitizers(input);
 
-      expect(result.changed).toBe(true);
-      expect(result.content).toContain("}],");
-      expect(result.content).toContain('"returnType": "Page<Data>"');
-      expect(() => JSON.parse(result.content)).not.toThrow();
+      expect(result.success).toBe(true);
+      if (result.success) {
+        const parsed = result.data as Record<string, unknown>;
+        expect(parsed.returnType).toBe("Page<Data>");
+      }
     });
 
     it("should fix missing closing bracket with multiple objects in array", () => {
@@ -1538,12 +1542,13 @@ e"org.apache.fineract.interoperation.data.InteropTransactionsData",
   "description": "Class description"
 }`;
 
-      const result = fixMalformedJsonPatterns(input);
+      const result = parseJsonWithSanitizers(input);
 
-      expect(result.changed).toBe(true);
-      expect(result.content).toContain("}],");
-      expect(result.content).toContain('"description": "Class description"');
-      expect(() => JSON.parse(result.content)).not.toThrow();
+      expect(result.success).toBe(true);
+      if (result.success) {
+        const parsed = result.data as Record<string, unknown>;
+        expect(parsed.description).toBe("Class description");
+      }
     });
 
     it("should handle nested structure with unclosed parameters array", () => {
@@ -1563,12 +1568,13 @@ e"org.apache.fineract.interoperation.data.InteropTransactionsData",
   ]
 }`;
 
-      const result = fixMalformedJsonPatterns(input);
+      const result = parseJsonWithSanitizers(input);
 
-      expect(result.changed).toBe(true);
-      expect(result.content).toContain("}],");
-      expect(result.content).toContain('"returnType": "AdHocData"');
-      expect(() => JSON.parse(result.content)).not.toThrow();
+      expect(result.success).toBe(true);
+      if (result.success) {
+        const parsed = result.data as { publicFunctions: { returnType?: string }[] };
+        expect(parsed.publicFunctions[0].returnType).toBe("AdHocData");
+      }
     });
 
     it("should not modify properly closed arrays", () => {
@@ -1583,14 +1589,14 @@ e"org.apache.fineract.interoperation.data.InteropTransactionsData",
   "returnType": "void"
 }`;
 
-      const result = fixMalformedJsonPatterns(input);
+      const result = parseJsonWithSanitizers(input);
 
-      // Should not change already valid JSON
-      expect(() => JSON.parse(result.content)).not.toThrow();
-      // If the input is valid JSON, it should not be changed
-      const parsed = JSON.parse(result.content);
-      expect(parsed.parameters).toHaveLength(1);
-      expect(parsed.returnType).toBe("void");
+      expect(result.success).toBe(true);
+      if (result.success) {
+        const parsed = result.data as { parameters: unknown[]; returnType: string };
+        expect(parsed.parameters).toHaveLength(1);
+        expect(parsed.returnType).toBe("void");
+      }
     });
 
     it("should handle whitespace variations in unclosed array pattern", () => {
@@ -1601,11 +1607,9 @@ e"org.apache.fineract.interoperation.data.InteropTransactionsData",
       "description": "Constructor"
 }`;
 
-      const result = fixMalformedJsonPatterns(input);
+      const result = parseJsonWithSanitizers(input);
 
-      expect(result.changed).toBe(true);
-      expect(result.content).toContain("}],");
-      expect(() => JSON.parse(result.content)).not.toThrow();
+      expect(result.success).toBe(true);
     });
   });
 });

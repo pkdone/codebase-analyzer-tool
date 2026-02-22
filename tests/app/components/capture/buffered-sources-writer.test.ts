@@ -46,13 +46,8 @@ describe("BufferedSourcesWriter", () => {
 
   describe("constructor", () => {
     it("should create writer with default batch size of 200", () => {
-      const customWriter = new BufferedSourcesWriter(mockSourcesRepository);
-      expect(customWriter.bufferedCount).toBe(0);
-    });
-
-    it("should create writer with custom batch size", () => {
-      const customWriter = new BufferedSourcesWriter(mockSourcesRepository, 10);
-      expect(customWriter.bufferedCount).toBe(0);
+      const newWriter = new BufferedSourcesWriter(mockSourcesRepository);
+      expect(newWriter.bufferedCount).toBe(0);
     });
   });
 
@@ -66,39 +61,34 @@ describe("BufferedSourcesWriter", () => {
       expect(mockSourcesRepository.insertSources).not.toHaveBeenCalled();
     });
 
-    it("should auto-flush when batch size is reached", async () => {
-      // Create writer with small batch size for testing
-      const smallBatchWriter = new BufferedSourcesWriter(mockSourcesRepository, 3);
+    it("should auto-flush when batch size (200) is reached", async () => {
+      // Queue 199 records - should not flush
+      for (let i = 0; i < 199; i++) {
+        await writer.queueRecord(createMockSourceRecord(`file${i}`));
+      }
 
-      // Add records up to batch size
-      await smallBatchWriter.queueRecord(createMockSourceRecord("file1"));
-      await smallBatchWriter.queueRecord(createMockSourceRecord("file2"));
-
-      expect(smallBatchWriter.bufferedCount).toBe(2);
+      expect(writer.bufferedCount).toBe(199);
       expect(mockSourcesRepository.insertSources).not.toHaveBeenCalled();
 
-      // Adding third record should trigger auto-flush
-      await smallBatchWriter.queueRecord(createMockSourceRecord("file3"));
+      // Adding 200th record should trigger auto-flush
+      await writer.queueRecord(createMockSourceRecord("file199"));
 
-      expect(smallBatchWriter.bufferedCount).toBe(0);
+      expect(writer.bufferedCount).toBe(0);
       expect(mockSourcesRepository.insertSources).toHaveBeenCalledTimes(1);
       expect(mockSourcesRepository.insertSources).toHaveBeenCalledWith(
         expect.arrayContaining([
-          expect.objectContaining({ filepath: "file1" }),
-          expect.objectContaining({ filepath: "file2" }),
-          expect.objectContaining({ filepath: "file3" }),
+          expect.objectContaining({ filepath: "file0" }),
+          expect.objectContaining({ filepath: "file199" }),
         ]),
       );
     });
 
     it("should accumulate multiple records before reaching batch size", async () => {
-      const smallBatchWriter = new BufferedSourcesWriter(mockSourcesRepository, 5);
+      await writer.queueRecord(createMockSourceRecord("file1"));
+      await writer.queueRecord(createMockSourceRecord("file2"));
+      await writer.queueRecord(createMockSourceRecord("file3"));
 
-      await smallBatchWriter.queueRecord(createMockSourceRecord("file1"));
-      await smallBatchWriter.queueRecord(createMockSourceRecord("file2"));
-      await smallBatchWriter.queueRecord(createMockSourceRecord("file3"));
-
-      expect(smallBatchWriter.bufferedCount).toBe(3);
+      expect(writer.bufferedCount).toBe(3);
       expect(mockSourcesRepository.insertSources).not.toHaveBeenCalled();
     });
   });
@@ -235,15 +225,14 @@ describe("BufferedSourcesWriter", () => {
 
   describe("integration scenarios", () => {
     it("should handle multiple flush cycles correctly", async () => {
-      const smallBatchWriter = new BufferedSourcesWriter(mockSourcesRepository, 2);
+      // First cycle: manual flush
+      await writer.queueRecord(createMockSourceRecord("file1"));
+      await writer.queueRecord(createMockSourceRecord("file2"));
+      await writer.flush();
 
-      // First cycle
-      await smallBatchWriter.queueRecord(createMockSourceRecord("file1"));
-      await smallBatchWriter.queueRecord(createMockSourceRecord("file2")); // Auto-flush
-
-      // Second cycle
-      await smallBatchWriter.queueRecord(createMockSourceRecord("file3"));
-      await smallBatchWriter.flush(); // Manual flush
+      // Second cycle: manual flush
+      await writer.queueRecord(createMockSourceRecord("file3"));
+      await writer.flush();
 
       expect(mockSourcesRepository.insertSources).toHaveBeenCalledTimes(2);
       expect(mockSourcesRepository.insertSources).toHaveBeenNthCalledWith(1, [

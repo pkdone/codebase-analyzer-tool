@@ -15,7 +15,7 @@ import { z } from "zod";
 import { LLMError, LLMErrorCode } from "../../../types/llm-errors.types";
 import type { JsonObject } from "../../../types/json-value.types";
 import {
-  extractTextCompletionResponse,
+  extractCompletionResponse,
   extractEmbeddingResponse,
   type ResponsePathConfig,
 } from "./bedrock-response-parser";
@@ -137,7 +137,7 @@ export default abstract class BaseBedrockLLM extends BaseLLMProvider {
     const jsonString = new TextDecoder(llmConfig.UTF8_ENCODING).decode(rawResponse.body);
     const llmResponse: unknown = JSON.parse(jsonString);
     const config = this.getResponseExtractionConfig();
-    return extractTextCompletionResponse(
+    return extractCompletionResponse(
       llmResponse,
       config.schema,
       config.pathConfig,

@@ -1,10 +1,10 @@
 /**
- * Tests for JSONSchemaPrompt class and exported constants.
+ * Tests for renderJsonSchemaPrompt function and exported constants.
  */
 
 import { z } from "zod";
 import {
-  JSONSchemaPrompt,
+  renderJsonSchemaPrompt,
   JSON_SCHEMA_PROMPT_TEMPLATE,
   FORCE_JSON_FORMAT_INSTRUCTIONS,
 } from "../../../src/common/prompts/json-schema-prompt";
@@ -60,7 +60,7 @@ describe("JSONSchemaPrompt constants", () => {
   });
 });
 
-describe("JSONSchemaPrompt class", () => {
+describe("renderJsonSchemaPrompt function", () => {
   const testSchema = z.object({
     name: z.string(),
     value: z.number(),
@@ -75,31 +75,9 @@ describe("JSONSchemaPrompt class", () => {
     wrapInCodeBlock: false,
   };
 
-  describe("constructor", () => {
-    it("should initialize all properties from config", () => {
-      const prompt = new JSONSchemaPrompt(baseConfig);
-
-      expect(prompt.personaIntroduction).toBe(baseConfig.personaIntroduction);
-      expect(prompt.contentDesc).toBe(baseConfig.contentDesc);
-      expect(prompt.instructions).toEqual(baseConfig.instructions);
-      expect(prompt.responseSchema).toBe(testSchema);
-      expect(prompt.dataBlockHeader).toBe(baseConfig.dataBlockHeader);
-      expect(prompt.wrapInCodeBlock).toBe(baseConfig.wrapInCodeBlock);
-      expect(prompt.contextNote).toBe("");
-    });
-
-    it("should use provided contextNote when specified", () => {
-      const contextNote = "This is a context note.\n\n";
-      const prompt = new JSONSchemaPrompt({ ...baseConfig, contextNote });
-
-      expect(prompt.contextNote).toBe(contextNote);
-    });
-  });
-
-  describe("renderPrompt", () => {
+  describe("basic rendering", () => {
     it("should render a prompt with all template values filled", () => {
-      const prompt = new JSONSchemaPrompt(baseConfig);
-      const rendered = prompt.renderPrompt("sample content");
+      const rendered = renderJsonSchemaPrompt(baseConfig, "sample content");
 
       expect(rendered).toContain(baseConfig.personaIntroduction);
       expect(rendered).toContain(baseConfig.contentDesc);
@@ -111,8 +89,7 @@ describe("JSONSchemaPrompt class", () => {
     });
 
     it("should include JSON schema in rendered prompt", () => {
-      const prompt = new JSONSchemaPrompt(baseConfig);
-      const rendered = prompt.renderPrompt("content");
+      const rendered = renderJsonSchemaPrompt(baseConfig, "content");
 
       expect(rendered).toContain("JSON schema");
       expect(rendered).toContain('"name"');
@@ -120,16 +97,17 @@ describe("JSONSchemaPrompt class", () => {
     });
 
     it("should include FORCE_JSON_FORMAT_INSTRUCTIONS in rendered prompt", () => {
-      const prompt = new JSONSchemaPrompt(baseConfig);
-      const rendered = prompt.renderPrompt("content");
+      const rendered = renderJsonSchemaPrompt(baseConfig, "content");
 
       expect(rendered).toContain("valid JSON");
       expect(rendered).toContain("property names must be quoted");
     });
 
     it("should wrap content in code blocks when wrapInCodeBlock is true", () => {
-      const prompt = new JSONSchemaPrompt({ ...baseConfig, wrapInCodeBlock: true });
-      const rendered = prompt.renderPrompt("test content");
+      const rendered = renderJsonSchemaPrompt(
+        { ...baseConfig, wrapInCodeBlock: true },
+        "test content",
+      );
 
       // Should have 4 code blocks: 2 for JSON schema, 2 for content
       const codeBlockCount = (rendered.match(/```/g) ?? []).length;
@@ -137,8 +115,10 @@ describe("JSONSchemaPrompt class", () => {
     });
 
     it("should NOT wrap content in code blocks when wrapInCodeBlock is false", () => {
-      const prompt = new JSONSchemaPrompt({ ...baseConfig, wrapInCodeBlock: false });
-      const rendered = prompt.renderPrompt("test content");
+      const rendered = renderJsonSchemaPrompt(
+        { ...baseConfig, wrapInCodeBlock: false },
+        "test content",
+      );
 
       // Should have 2 code blocks: only for JSON schema
       const codeBlockCount = (rendered.match(/```/g) ?? []).length;
@@ -147,16 +127,14 @@ describe("JSONSchemaPrompt class", () => {
 
     it("should include contextNote when provided", () => {
       const contextNote = "This is a partial analysis.\n\n";
-      const prompt = new JSONSchemaPrompt({ ...baseConfig, contextNote });
-      const rendered = prompt.renderPrompt("content");
+      const rendered = renderJsonSchemaPrompt({ ...baseConfig, contextNote }, "content");
 
       expect(rendered).toContain("This is a partial analysis.");
     });
 
     it("should position contextNote before the JSON schema section", () => {
       const contextNote = "CONTEXT_MARKER\n\n";
-      const prompt = new JSONSchemaPrompt({ ...baseConfig, contextNote });
-      const rendered = prompt.renderPrompt("content");
+      const rendered = renderJsonSchemaPrompt({ ...baseConfig, contextNote }, "content");
 
       const contextIndex = rendered.indexOf("CONTEXT_MARKER");
       const schemaIndex = rendered.indexOf("JSON schema");
@@ -165,11 +143,13 @@ describe("JSONSchemaPrompt class", () => {
     });
 
     it("should join multiple instructions with double newlines", () => {
-      const prompt = new JSONSchemaPrompt({
-        ...baseConfig,
-        instructions: ["First instruction", "Second instruction", "Third instruction"],
-      });
-      const rendered = prompt.renderPrompt("content");
+      const rendered = renderJsonSchemaPrompt(
+        {
+          ...baseConfig,
+          instructions: ["First instruction", "Second instruction", "Third instruction"],
+        },
+        "content",
+      );
 
       expect(rendered).toContain("First instruction\n\nSecond instruction\n\nThird instruction");
     });
@@ -191,22 +171,17 @@ describe("JSONSchemaPrompt class", () => {
         }),
       });
 
-      const prompt = new JSONSchemaPrompt({
-        ...baseConfig,
-        responseSchema: complexSchema,
-      });
-
-      const rendered = prompt.renderPrompt("content");
+      const rendered = renderJsonSchemaPrompt(
+        {
+          ...baseConfig,
+          responseSchema: complexSchema,
+        },
+        "content",
+      );
 
       expect(rendered).toContain('"users"');
       expect(rendered).toContain('"metadata"');
       expect(rendered).toContain('"roles"');
-    });
-
-    it("should preserve the response schema reference", () => {
-      const prompt = new JSONSchemaPrompt(baseConfig);
-
-      expect(prompt.responseSchema).toBe(testSchema);
     });
   });
 });

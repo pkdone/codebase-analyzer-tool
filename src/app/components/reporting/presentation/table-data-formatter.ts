@@ -2,22 +2,50 @@ import { camelCaseToTitleCase } from "../../../../common/utils/text-utils";
 import { SPECIAL_TABLE_COLUMNS } from "../config/reporting.config";
 
 /**
- * Interface for processed table cell data.
- * This is a pure data transfer object (DTO) containing display-ready cell content.
+ * A text, link, or code cell containing a string value.
  */
-export interface ProcessedTableCell {
-  readonly type: "text" | "link" | "code" | "list";
-  readonly content: string | readonly ProcessedListItem[];
+interface ProcessedScalarCell {
+  readonly type: "text" | "link" | "code";
+  readonly content: string;
   readonly columnClass?: string;
 }
 
 /**
- * Interface for processed list items within a table cell.
+ * A list cell containing structured list items.
  */
-export interface ProcessedListItem {
-  readonly type: "object" | "primitive";
-  readonly content: string | Readonly<Record<string, string>>;
+interface ProcessedListCell {
+  readonly type: "list";
+  readonly content: readonly ProcessedListItem[];
+  readonly columnClass?: string;
 }
+
+/**
+ * Discriminated union for processed table cell data.
+ * Narrows the `content` type based on the `type` discriminant.
+ */
+export type ProcessedTableCell = ProcessedScalarCell | ProcessedListCell;
+
+/**
+ * A list item representing a key-value object.
+ */
+interface ProcessedObjectListItem {
+  readonly type: "object";
+  readonly content: Readonly<Record<string, string>>;
+}
+
+/**
+ * A list item representing a primitive value.
+ */
+interface ProcessedPrimitiveListItem {
+  readonly type: "primitive";
+  readonly content: string;
+}
+
+/**
+ * Discriminated union for processed list items within a table cell.
+ * Narrows the `content` type based on the `type` discriminant.
+ */
+export type ProcessedListItem = ProcessedObjectListItem | ProcessedPrimitiveListItem;
 
 /**
  * Stateless utility module for formatting table cell values.

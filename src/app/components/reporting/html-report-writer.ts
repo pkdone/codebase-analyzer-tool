@@ -1,5 +1,5 @@
 import { injectable, inject } from "tsyringe";
-import path from "path";
+import path from "node:path";
 import ejs from "ejs";
 import { coreTokens, reportingTokens } from "../../di/tokens";
 import type { OutputConfigType } from "../../config/output.config";

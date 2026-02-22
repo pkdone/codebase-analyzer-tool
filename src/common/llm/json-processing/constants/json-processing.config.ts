@@ -238,7 +238,7 @@ export const corruptionHeuristics = Object.freeze({
 export const pipelineConfig = Object.freeze({
   /**
    * Default maximum number of passes for multi-pass rule execution.
-   * Reduced from 10 to 5 for improved performance - most fixes complete in 1-3 passes.
+   * Most fixes complete in 1-3 passes.
    */
   DEFAULT_MAX_PASSES: 5,
 });

@@ -1,5 +1,5 @@
 /**
- * Tests for contextNote functionality in JSONSchemaPrompt.
+ * Tests for contextNote functionality in renderJsonSchemaPrompt.
  *
  * These tests verify that the contextNote mechanism works correctly,
  * allowing the application layer to inject context-specific information
@@ -7,10 +7,10 @@
  */
 
 import { z } from "zod";
-import { JSONSchemaPrompt } from "../../../src/common/prompts/json-schema-prompt";
+import { renderJsonSchemaPrompt } from "../../../src/common/prompts/json-schema-prompt";
 import { DEFAULT_PERSONA_INTRODUCTION } from "../../../src/app/prompts/prompts.constants";
 
-describe("JSONSchemaPrompt contextNote", () => {
+describe("renderJsonSchemaPrompt contextNote", () => {
   const baseConfig = {
     personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
     contentDesc: "test content",
@@ -23,20 +23,19 @@ describe("JSONSchemaPrompt contextNote", () => {
   describe("contextNote rendering", () => {
     it("should include contextNote text when provided", () => {
       const contextNote = "This is a custom context note for the prompt.\n\n";
-      const prompt = new JSONSchemaPrompt({
-        ...baseConfig,
-        contextNote,
-      });
-
-      const rendered = prompt.renderPrompt("sample content");
+      const rendered = renderJsonSchemaPrompt(
+        {
+          ...baseConfig,
+          contextNote,
+        },
+        "sample content",
+      );
 
       expect(rendered).toContain("This is a custom context note for the prompt.");
     });
 
     it("should not include any context note when contextNote is undefined", () => {
-      const prompt = new JSONSchemaPrompt(baseConfig);
-
-      const rendered = prompt.renderPrompt("sample content");
+      const rendered = renderJsonSchemaPrompt(baseConfig, "sample content");
 
       // Should not contain undefined text
       expect(rendered).not.toContain("undefined");
@@ -46,12 +45,13 @@ describe("JSONSchemaPrompt contextNote", () => {
     });
 
     it("should not include any context note when contextNote is empty string", () => {
-      const prompt = new JSONSchemaPrompt({
-        ...baseConfig,
-        contextNote: "",
-      });
-
-      const rendered = prompt.renderPrompt("sample content");
+      const rendered = renderJsonSchemaPrompt(
+        {
+          ...baseConfig,
+          contextNote: "",
+        },
+        "sample content",
+      );
 
       // Should render without any extra whitespace issues
       expect(rendered).toContain("sample content");
@@ -60,12 +60,13 @@ describe("JSONSchemaPrompt contextNote", () => {
 
     it("should position contextNote before the schema section", () => {
       const contextNote = "CONTEXT_NOTE_MARKER\n\n";
-      const prompt = new JSONSchemaPrompt({
-        ...baseConfig,
-        contextNote,
-      });
-
-      const rendered = prompt.renderPrompt("sample content");
+      const rendered = renderJsonSchemaPrompt(
+        {
+          ...baseConfig,
+          contextNote,
+        },
+        "sample content",
+      );
 
       const contextNoteIndex = rendered.indexOf("CONTEXT_NOTE_MARKER");
       const schemaIndex = rendered.indexOf("JSON schema");
@@ -87,13 +88,14 @@ describe("JSONSchemaPrompt contextNote", () => {
 
     it("should support partial analysis note via contextNote", () => {
       const contextNote = buildPartialAnalysisNote("FILE_SUMMARIES");
-      const prompt = new JSONSchemaPrompt({
-        ...baseConfig,
-        dataBlockHeader: "FILE_SUMMARIES",
-        contextNote,
-      });
-
-      const rendered = prompt.renderPrompt("file summaries content");
+      const rendered = renderJsonSchemaPrompt(
+        {
+          ...baseConfig,
+          dataBlockHeader: "FILE_SUMMARIES",
+          contextNote,
+        },
+        "file summaries content",
+      );
 
       expect(rendered).toContain("partial analysis");
       expect(rendered).toContain("file summaries");
@@ -109,13 +111,14 @@ describe("JSONSchemaPrompt contextNote", () => {
 
       testCases.forEach(({ header, expected }) => {
         const contextNote = buildPartialAnalysisNote(header);
-        const prompt = new JSONSchemaPrompt({
-          ...baseConfig,
-          dataBlockHeader: header,
-          contextNote,
-        });
-
-        const rendered = prompt.renderPrompt("test content");
+        const rendered = renderJsonSchemaPrompt(
+          {
+            ...baseConfig,
+            dataBlockHeader: header,
+            contextNote,
+          },
+          "test content",
+        );
 
         expect(rendered).toContain(`much larger set of ${expected}`);
       });
@@ -125,13 +128,14 @@ describe("JSONSchemaPrompt contextNote", () => {
   describe("contextNote with different content types", () => {
     it("should work with JSON content", () => {
       const contextNote = "Processing multiple JSON fragments.\n\n";
-      const prompt = new JSONSchemaPrompt({
-        ...baseConfig,
-        contextNote,
-      });
-
       const jsonContent = JSON.stringify({ key: "value", nested: { data: [1, 2, 3] } });
-      const rendered = prompt.renderPrompt(jsonContent);
+      const rendered = renderJsonSchemaPrompt(
+        {
+          ...baseConfig,
+          contextNote,
+        },
+        jsonContent,
+      );
 
       expect(rendered).toContain("Processing multiple JSON fragments.");
       expect(rendered).toContain(jsonContent);
@@ -139,37 +143,20 @@ describe("JSONSchemaPrompt contextNote", () => {
 
     it("should work with multiline code content", () => {
       const contextNote = "Analyzing a code snippet.\n\n";
-      const prompt = new JSONSchemaPrompt({
-        ...baseConfig,
-        wrapInCodeBlock: true,
-        contextNote,
-      });
-
       const codeContent = `function test() {
   return "hello";
 }`;
-      const rendered = prompt.renderPrompt(codeContent);
+      const rendered = renderJsonSchemaPrompt(
+        {
+          ...baseConfig,
+          wrapInCodeBlock: true,
+          contextNote,
+        },
+        codeContent,
+      );
 
       expect(rendered).toContain("Analyzing a code snippet.");
       expect(rendered).toContain(codeContent);
-    });
-  });
-
-  describe("contextNote property access", () => {
-    it("should expose contextNote as a readonly property", () => {
-      const contextNote = "Test context note\n\n";
-      const prompt = new JSONSchemaPrompt({
-        ...baseConfig,
-        contextNote,
-      });
-
-      expect(prompt.contextNote).toBe(contextNote);
-    });
-
-    it("should default contextNote to empty string when not provided", () => {
-      const prompt = new JSONSchemaPrompt(baseConfig);
-
-      expect(prompt.contextNote).toBe("");
     });
   });
 });

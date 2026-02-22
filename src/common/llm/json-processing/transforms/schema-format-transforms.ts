@@ -1,5 +1,6 @@
 import type { LLMSanitizerConfig } from "../../config/llm-module-config.types";
 import type { JsonValue } from "../../types/json-value.types";
+import { isJsonObject } from "../../../utils/type-guards";
 
 /**
  * Generic schema fixing transformations that operate on already-parsed JSON objects.
@@ -130,8 +131,12 @@ function isJsonSchemaObjectWithDataInProperties(obj: Record<string, unknown>): b
   }
 
   // Check if the properties contain data values or schema field definitions
-  const propsObj = props as Record<string, unknown>;
-  const propValues = Object.values(propsObj);
+  // props is already validated as non-null, non-array object by the guard above
+  if (!isJsonObject(props)) {
+    return false;
+  }
+
+  const propValues = Object.values(props);
 
   // Properties contain extractable content if any of:
   // - Primitive values (data)
@@ -148,26 +153,28 @@ function isJsonSchemaObjectWithDataInProperties(obj: Record<string, unknown>): b
     }
 
     // Object value - check if it looks like a schema field or data
-    const valObj = val as Record<string, unknown>;
+    if (!isJsonObject(val)) {
+      return false;
+    }
 
     // No type = regular data object
-    if (!Object.hasOwn(valObj, "type")) {
+    if (!Object.hasOwn(val, "type")) {
       return true;
     }
 
     // Invalid JSON Schema type = regular data object
-    if (!JSON_SCHEMA_TYPE_VALUES.has(valObj.type as string)) {
+    if (typeof val.type !== "string" || !JSON_SCHEMA_TYPE_VALUES.has(val.type)) {
       return true;
     }
 
     // Has valid type - could be schema field definition if it also has description
     // Schema field definitions ARE extractable (we'll extract their description)
-    if (Object.hasOwn(valObj, "description")) {
+    if (Object.hasOwn(val, "description")) {
       return true; // Schema field definition = extractable
     }
 
     // Type but no description - ambiguous, but if it has properties it might be nested schema
-    if (Object.hasOwn(valObj, "properties")) {
+    if (Object.hasOwn(val, "properties")) {
       return true; // Nested object schema = recursively extractable
     }
 
@@ -198,12 +205,10 @@ function extractSchemaFieldValues(value: unknown): JsonValue {
   }
 
   // Handle objects
-  if (typeof value === "object") {
-    const obj = value as Record<string, unknown>;
-
+  if (isJsonObject(value)) {
     // Case 1: Primitive field definition - extract from description
-    if (isJsonSchemaPrimitiveFieldDefinition(obj)) {
-      const extractedValue = obj.description;
+    if (isJsonSchemaPrimitiveFieldDefinition(value)) {
+      const extractedValue = value.description;
 
       // If the extracted value is itself an object/array, recursively process it
       if (typeof extractedValue === "object" && extractedValue !== null) {
@@ -215,16 +220,19 @@ function extractSchemaFieldValues(value: unknown): JsonValue {
     }
 
     // Case 2: Object schema with data in properties - extract from properties
-    if (isJsonSchemaObjectWithDataInProperties(obj)) {
-      const props = obj.properties as Record<string, unknown>;
+    if (isJsonSchemaObjectWithDataInProperties(value)) {
+      if (!isJsonObject(value.properties)) {
+        return null;
+      }
+
       // Recursively process the properties (which may contain nested schema fields)
-      return extractSchemaFieldValues(props);
+      return extractSchemaFieldValues(value.properties);
     }
 
     // Not a schema field definition - recursively process all properties
     const result: Record<string, JsonValue> = {};
 
-    for (const [key, propValue] of Object.entries(obj)) {
+    for (const [key, propValue] of Object.entries(value)) {
       result[key] = extractSchemaFieldValues(propValue);
     }
 
@@ -258,27 +266,12 @@ export function unwrapJsonSchemaStructure(parsed: unknown, _config?: LLMSanitize
   let result = parsed;
 
   // Step 1: Handle top-level schema wrapper
-  if (
-    typeof result === "object" &&
-    result !== null &&
-    !Array.isArray(result) &&
-    "type" in result &&
-    "properties" in result
-  ) {
-    const obj = result as Record<string, unknown>;
-
+  if (isJsonObject(result) && "type" in result && "properties" in result) {
     // Verify it's a JSON Schema "object" type with properties
-    if (
-      obj.type === "object" &&
-      typeof obj.properties === "object" &&
-      obj.properties !== null &&
-      !Array.isArray(obj.properties)
-    ) {
-      const props = obj.properties as Record<string, unknown>;
-
+    if (result.type === "object" && isJsonObject(result.properties)) {
       // Only unwrap if properties is non-empty
-      if (Object.keys(props).length > 0) {
-        result = props;
+      if (Object.keys(result.properties).length > 0) {
+        result = result.properties;
       }
     }
   }
@@ -362,12 +355,11 @@ export function coerceNumericProperties(parsed: unknown, config?: LLMSanitizerCo
     return parsed.map((item) => coerceNumericProperties(item, config));
   }
 
-  if (typeof parsed === "object") {
-    const obj = parsed as Record<string, unknown>;
+  if (isJsonObject(parsed)) {
     const result: Record<string, unknown> = {};
     const numericProperties = config?.numericProperties ?? [];
 
-    for (const [key, value] of Object.entries(obj)) {
+    for (const [key, value] of Object.entries(parsed)) {
       const lowerKey = key.toLowerCase();
 
       // Check if this is a known numeric property with a string value

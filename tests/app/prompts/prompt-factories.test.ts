@@ -1,11 +1,11 @@
 import {
-  JSONSchemaPrompt,
+  renderJsonSchemaPrompt,
   JSON_SCHEMA_PROMPT_TEMPLATE,
 } from "../../../src/common/prompts/json-schema-prompt";
 import { DEFAULT_PERSONA_INTRODUCTION } from "../../../src/app/prompts/prompts.constants";
 import { z } from "zod";
 
-describe("JSONSchemaPrompt Constructor and Templates", () => {
+describe("renderJsonSchemaPrompt and Templates", () => {
   const sourceConfig = {
     personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
     contentDesc:
@@ -26,14 +26,11 @@ describe("JSONSchemaPrompt Constructor and Templates", () => {
     wrapInCodeBlock: false,
   } as const;
 
-  const sourcePrompt = new JSONSchemaPrompt(sourceConfig);
-  const appSummaryPrompt = new JSONSchemaPrompt(appSummaryConfig);
-
   const testContent = "test file content";
 
-  describe("renderPrompt function", () => {
+  describe("renderJsonSchemaPrompt function", () => {
     it("should render a prompt with JSON_SCHEMA_PROMPT_TEMPLATE for sources", () => {
-      const rendered = sourcePrompt.renderPrompt(testContent);
+      const rendered = renderJsonSchemaPrompt(sourceConfig, testContent);
 
       expect(rendered).toContain("Act as a senior developer analyzing the code");
       expect(rendered).toContain("CODE:");
@@ -41,7 +38,7 @@ describe("JSONSchemaPrompt Constructor and Templates", () => {
     });
 
     it("should render a prompt with JSON_SCHEMA_PROMPT_TEMPLATE for app summaries", () => {
-      const rendered = appSummaryPrompt.renderPrompt(testContent);
+      const rendered = renderJsonSchemaPrompt(appSummaryConfig, testContent);
 
       expect(rendered).toContain("Act as a senior developer analyzing the code");
       expect(rendered).toContain("FILE_SUMMARIES:");
@@ -51,8 +48,10 @@ describe("JSONSchemaPrompt Constructor and Templates", () => {
     it("should use contextNote for partial analysis", () => {
       const contextNote =
         "Note, this is a partial analysis of what is a much larger set of file summaries; focus on extracting insights from this subset of file summaries only.\n\n";
-      const partialPrompt = new JSONSchemaPrompt({ ...appSummaryConfig, contextNote });
-      const rendered = partialPrompt.renderPrompt(testContent);
+      const rendered = renderJsonSchemaPrompt(
+        { ...appSummaryConfig, contextNote },
+        testContent,
+      );
 
       expect(rendered).toContain("partial analysis");
       expect(rendered).toContain("focus on extracting insights from this subset");
@@ -77,14 +76,16 @@ describe("JSONSchemaPrompt Constructor and Templates", () => {
     it("should handle reduce template with category key via inline definition", () => {
       // categoryKey is directly embedded in contentDesc, rather than being a placeholder
       const categoryKey = "technologies";
-      const reducePrompt = new JSONSchemaPrompt({
-        ...sourceConfig,
-        // Factory would pre-populate contentDesc with the category key
-        contentDesc: `Act as a senior developer. You've been provided with data containing '${categoryKey}'...`,
-        dataBlockHeader: "FRAGMENTED_DATA",
-        wrapInCodeBlock: false,
-      });
-      const rendered = reducePrompt.renderPrompt(testContent);
+      const rendered = renderJsonSchemaPrompt(
+        {
+          ...sourceConfig,
+          // Factory would pre-populate contentDesc with the category key
+          contentDesc: `Act as a senior developer. You've been provided with data containing '${categoryKey}'...`,
+          dataBlockHeader: "FRAGMENTED_DATA",
+          wrapInCodeBlock: false,
+        },
+        testContent,
+      );
 
       expect(rendered).toContain("FRAGMENTED_DATA:");
       expect(rendered).toContain(categoryKey);

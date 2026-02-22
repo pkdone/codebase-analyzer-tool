@@ -1,5 +1,5 @@
-import path from "path";
-import os from "os";
+import path from "node:path";
+import os from "node:os";
 import { injectable, inject } from "tsyringe";
 import type { FileProcessingRulesType } from "../../../config/file-handling";
 import { outputConfig } from "../../../config/output.config";

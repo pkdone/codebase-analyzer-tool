@@ -100,12 +100,11 @@ function isZodLike(schema: unknown): schema is ZodLike {
     return false;
   }
 
-  if (!Object.hasOwn(schema, "_def")) {
+  if (!Object.hasOwn(schema, "_def") || !("_def" in schema)) {
     return false;
   }
 
-  const candidate = schema as { _def?: unknown };
-  return typeof candidate._def === "object" && candidate._def !== null;
+  return typeof schema._def === "object" && schema._def !== null;
 }
 
 /**

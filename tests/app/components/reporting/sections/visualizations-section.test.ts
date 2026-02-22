@@ -58,7 +58,7 @@ describe("DomainModelSection", () => {
 
   beforeEach(() => {
     mockDomainModelTransformer = {
-      getDomainModelData: jest.fn().mockReturnValue({
+      transformToDomainModel: jest.fn().mockReturnValue({
         boundedContexts: [],
         aggregates: [],
         entities: [],
@@ -98,7 +98,7 @@ describe("DomainModelSection", () => {
 
       const result = await section.prepareHtmlData(baseData, {}, "/output");
 
-      expect(mockDomainModelTransformer.getDomainModelData).toHaveBeenCalledWith(
+      expect(mockDomainModelTransformer.transformToDomainModel).toHaveBeenCalledWith(
         baseData.categorizedData,
       );
       expect(mockDomainModelDiagramGenerator.generateMultipleContextDiagrams).toHaveBeenCalled();

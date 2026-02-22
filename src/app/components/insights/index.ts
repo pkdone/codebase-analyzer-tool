@@ -20,7 +20,7 @@ export { RequirementPromptExecutor } from "./generators/requirement-prompt-execu
 // Strategies
 export type { InsightGenerationStrategy } from "./strategies/insight-generation-strategy.interface";
 export {
-  executeInsightCompletion,
+  InsightsCompletionExecutor,
   type InsightCompletionOptions,
 } from "./strategies/insights-completion-executor";
 export { MapReduceInsightStrategy } from "./strategies/map-reduce-insight-strategy";

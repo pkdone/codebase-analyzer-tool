@@ -49,12 +49,20 @@ export const captureTokens = {
 
 export type CaptureToken = keyof typeof captureTokens;
 
+// Querying module tokens
+export const queryingTokens = {
+  CodebaseQueryProcessor: Symbol("CodebaseQueryProcessor"),
+} as const;
+
+export type QueryingToken = keyof typeof queryingTokens;
+
 // Insights module tokens
 export const insightsTokens = {
   InsightsGenerator: Symbol("InsightsGenerator"),
   RequirementPromptExecutor: Symbol("RequirementPromptExecutor"),
   SinglePassInsightStrategy: Symbol("SinglePassInsightStrategy"),
   MapReduceInsightStrategy: Symbol("MapReduceInsightStrategy"),
+  InsightsCompletionExecutor: Symbol("InsightsCompletionExecutor"),
 } as const;
 
 export type InsightsToken = keyof typeof insightsTokens;

@@ -1,6 +1,6 @@
 import { z } from "zod";
 import {
-  JSONSchemaPrompt,
+  renderJsonSchemaPrompt,
   type JSONSchemaPromptConfig,
 } from "../../../src/common/prompts/json-schema-prompt";
 import { DEFAULT_PERSONA_INTRODUCTION } from "../../../src/app/prompts/prompts.constants";
@@ -13,54 +13,67 @@ import { appSummaryConfigMap } from "../../../src/app/prompts/app-summaries/app-
 import { APP_SUMMARY_CONTENT_DESC } from "../../../src/app/prompts/app-summaries/app-summaries.constants";
 
 /**
- * Helper to create a JSONSchemaPrompt from fileTypePromptRegistry config.
+ * Helper to render a prompt from fileTypePromptRegistry config.
  * Adds dataBlockHeader and wrapInCodeBlock which are no longer in the registry entries.
  */
-function createSourcePrompt(fileType: keyof typeof fileTypePromptRegistry): JSONSchemaPrompt {
+function renderSourcePrompt(
+  fileType: keyof typeof fileTypePromptRegistry,
+  content: string,
+): string {
   const config = fileTypePromptRegistry[fileType];
-  return new JSONSchemaPrompt({
-    personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
-    ...config,
-    dataBlockHeader: CODE_DATA_BLOCK_HEADER,
-    wrapInCodeBlock: true,
-  } as JSONSchemaPromptConfig);
+  return renderJsonSchemaPrompt(
+    {
+      personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+      ...config,
+      dataBlockHeader: CODE_DATA_BLOCK_HEADER,
+      wrapInCodeBlock: true,
+    } as JSONSchemaPromptConfig,
+    content,
+  );
 }
 
 /**
- * Helper to create a JSONSchemaPrompt from appSummaryConfigMap config.
+ * Helper to render a prompt from appSummaryConfigMap config.
  * Adds contentDesc, dataBlockHeader, and wrapInCodeBlock which are no longer in the config entries.
  */
-function createAppSummaryPrompt(category: keyof typeof appSummaryConfigMap): JSONSchemaPrompt {
+function renderAppSummaryPrompt(
+  category: keyof typeof appSummaryConfigMap,
+  content: string,
+): string {
   const config = appSummaryConfigMap[category];
-  return new JSONSchemaPrompt({
-    personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
-    ...config,
-    contentDesc: APP_SUMMARY_CONTENT_DESC,
-    dataBlockHeader: FILE_SUMMARIES_DATA_BLOCK_HEADER,
-    wrapInCodeBlock: false,
-  } as JSONSchemaPromptConfig);
+  return renderJsonSchemaPrompt(
+    {
+      personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+      ...config,
+      contentDesc: APP_SUMMARY_CONTENT_DESC,
+      dataBlockHeader: FILE_SUMMARIES_DATA_BLOCK_HEADER,
+      wrapInCodeBlock: false,
+    } as JSONSchemaPromptConfig,
+    content,
+  );
 }
 
 /**
  * Tests for the prompt refactoring changes:
- * 1. Schema section rendering via renderPrompt
+ * 1. Schema section rendering via renderJsonSchemaPrompt
  * 2. Self-contained source configs with "the " prefix
  * 3. Self-contained app summary configs with contentDesc
- * 4. Simplified JSONSchemaPrompt class constructor
+ * 4. Simplified renderJsonSchemaPrompt function
  */
-describe("JSONSchemaPrompt Refactoring", () => {
-  describe("Schema section rendering via renderPrompt", () => {
+describe("renderJsonSchemaPrompt Refactoring", () => {
+  describe("Schema section rendering via renderJsonSchemaPrompt", () => {
     it("should generate proper JSON schema section", () => {
-      const prompt = new JSONSchemaPrompt({
-        personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
-        contentDesc: "test content",
-        instructions: ["test instruction"],
-        responseSchema: z.object({ name: z.string(), count: z.number() }),
-        dataBlockHeader: CODE_DATA_BLOCK_HEADER,
-        wrapInCodeBlock: false,
-      });
-
-      const result = prompt.renderPrompt("test data");
+      const result = renderJsonSchemaPrompt(
+        {
+          personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+          contentDesc: "test content",
+          instructions: ["test instruction"],
+          responseSchema: z.object({ name: z.string(), count: z.number() }),
+          dataBlockHeader: CODE_DATA_BLOCK_HEADER,
+          wrapInCodeBlock: false,
+        },
+        "test data",
+      );
 
       // Should contain schema header
       expect(result).toContain("The JSON response must follow this JSON schema:");
@@ -79,16 +92,17 @@ describe("JSONSchemaPrompt Refactoring", () => {
     });
 
     it("should work with array schemas", () => {
-      const prompt = new JSONSchemaPrompt({
-        personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
-        contentDesc: "test content",
-        instructions: ["test instruction"],
-        responseSchema: z.array(z.object({ id: z.string(), value: z.number() })),
-        dataBlockHeader: CODE_DATA_BLOCK_HEADER,
-        wrapInCodeBlock: false,
-      });
-
-      const result = prompt.renderPrompt("test data");
+      const result = renderJsonSchemaPrompt(
+        {
+          personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+          contentDesc: "test content",
+          instructions: ["test instruction"],
+          responseSchema: z.array(z.object({ id: z.string(), value: z.number() })),
+          dataBlockHeader: CODE_DATA_BLOCK_HEADER,
+          wrapInCodeBlock: false,
+        },
+        "test data",
+      );
 
       expect(result).toContain('"type": "array"');
       expect(result).toContain('"id"');
@@ -96,16 +110,17 @@ describe("JSONSchemaPrompt Refactoring", () => {
     });
 
     it("should include schema section in full prompt", () => {
-      const prompt = new JSONSchemaPrompt({
-        personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
-        contentDesc: "test content",
-        instructions: ["test instruction"],
-        responseSchema: z.object({ field: z.string() }),
-        dataBlockHeader: CODE_DATA_BLOCK_HEADER,
-        wrapInCodeBlock: false,
-      });
-
-      const result = prompt.renderPrompt("test data");
+      const result = renderJsonSchemaPrompt(
+        {
+          personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+          contentDesc: "test content",
+          instructions: ["test instruction"],
+          responseSchema: z.object({ field: z.string() }),
+          dataBlockHeader: CODE_DATA_BLOCK_HEADER,
+          wrapInCodeBlock: false,
+        },
+        "test data",
+      );
 
       // The rendered prompt should contain the schema section
       expect(result).toContain("The JSON response must follow this JSON schema:");
@@ -148,23 +163,22 @@ describe("JSONSchemaPrompt Refactoring", () => {
   });
 
   describe("Config DATA_BLOCK_HEADERS", () => {
-    it("should use CODE header for source prompts (set at instantiation time)", () => {
-      // Source configs no longer include dataBlockHeader; it's added at instantiation
-      const prompt = createSourcePrompt("java");
-      expect(prompt.dataBlockHeader).toBe(CODE_DATA_BLOCK_HEADER);
+    it("should use CODE header for source prompts (set at render time)", () => {
+      // Source configs no longer include dataBlockHeader; it's added at render time
+      const rendered = renderSourcePrompt("java", "test");
+      expect(rendered).toContain(CODE_DATA_BLOCK_HEADER + ":");
     });
 
-    it("should use FILE_SUMMARIES header for app summary prompts (set at instantiation time)", () => {
-      // App summary configs no longer include dataBlockHeader; it's added at instantiation
-      const prompt = createAppSummaryPrompt("appDescription");
-      expect(prompt.dataBlockHeader).toBe(FILE_SUMMARIES_DATA_BLOCK_HEADER);
+    it("should use FILE_SUMMARIES header for app summary prompts (set at render time)", () => {
+      // App summary configs no longer include dataBlockHeader; it's added at render time
+      const rendered = renderAppSummaryPrompt("appDescription", "test");
+      expect(rendered).toContain(FILE_SUMMARIES_DATA_BLOCK_HEADER + ":");
     });
   });
 
   describe("Rendered prompts maintain correct output", () => {
     it("should render source prompt with correct structure", () => {
-      const javaPrompt = createSourcePrompt("java");
-      const result = javaPrompt.renderPrompt("public class Test {}");
+      const result = renderSourcePrompt("java", "public class Test {}");
 
       // Should contain contentDesc with "the " prefix
       expect(result).toContain("the JVM code");
@@ -180,8 +194,7 @@ describe("JSONSchemaPrompt Refactoring", () => {
     });
 
     it("should render app summary prompt with correct structure", () => {
-      const appDescPrompt = createAppSummaryPrompt("appDescription");
-      const result = appDescPrompt.renderPrompt("test file summaries");
+      const result = renderAppSummaryPrompt("appDescription", "test file summaries");
 
       // Should contain contentDesc
       expect(result).toContain("a set of source file summaries");
@@ -195,17 +208,20 @@ describe("JSONSchemaPrompt Refactoring", () => {
   });
 
   describe("Type safety", () => {
-    it("should work with JSONSchemaPrompt class", () => {
-      const prompt = new JSONSchemaPrompt({
-        personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
-        contentDesc: "test content",
-        instructions: ["test instruction"],
-        responseSchema: z.string(),
-        dataBlockHeader: CODE_DATA_BLOCK_HEADER,
-        wrapInCodeBlock: true,
-      });
+    it("should work with renderJsonSchemaPrompt function", () => {
+      const result = renderJsonSchemaPrompt(
+        {
+          personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+          contentDesc: "test content",
+          instructions: ["test instruction"],
+          responseSchema: z.string(),
+          dataBlockHeader: CODE_DATA_BLOCK_HEADER,
+          wrapInCodeBlock: true,
+        },
+        "test",
+      );
 
-      expect(prompt.dataBlockHeader).toBe(CODE_DATA_BLOCK_HEADER);
+      expect(result).toContain(CODE_DATA_BLOCK_HEADER + ":");
     });
   });
 });

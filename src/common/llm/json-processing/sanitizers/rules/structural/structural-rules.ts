@@ -11,6 +11,7 @@
 import type { ReplacementRule, ContextInfo } from "../../../../types/sanitizer-config.types";
 import { isAfterJsonDelimiter, isInArrayContextSimple } from "../../../utils/parser-context-utils";
 import { parsingHeuristics } from "../../../constants/json-processing.config";
+import { safeGroup, getSafeGroups } from "../../../utils/safe-group-extractor";
 
 /**
  * Checks if a context is valid for structural fixes.
@@ -48,8 +49,8 @@ export const STRUCTURAL_RULES: readonly ReplacementRule[] = [
         return null;
       }
 
-      const before = groups[0] ?? "";
-      const after = groups[2] ?? "";
+      const before = safeGroup(groups, 0);
+      const after = safeGroup(groups, 2);
       return `${before}\n${after}`;
     },
     diagnosticMessage: "Removed extra closing brackets",
@@ -61,14 +62,11 @@ export const STRUCTURAL_RULES: readonly ReplacementRule[] = [
     name: "malformedObjectUnquotedProp",
     pattern: /([}\],]|\n|^)(\s*){([a-zA-Z_$][a-zA-Z0-9_$]*)}\s*([,}\]]|$)/g,
     replacement: (_match, groups) => {
-      const [delimiter, whitespace, , terminator] = groups;
-      const delimiterStr = delimiter ?? "";
-      const whitespaceStr = whitespace ?? "";
-      const terminatorStr = terminator ?? "";
+      const [delimiterStr, whitespaceStr, , terminatorStr] = getSafeGroups(groups, 4);
       return `${delimiterStr}${whitespaceStr}{}${terminatorStr}`;
     },
     diagnosticMessage: (_match, groups) => {
-      const invalidProp = groups[2] ?? "";
+      const invalidProp = safeGroup(groups, 2);
       return `Removed malformed object: {${invalidProp}}`;
     },
     contextCheck: isAfterJsonDelimiter,
@@ -104,9 +102,7 @@ export const STRUCTURAL_RULES: readonly ReplacementRule[] = [
     name: "strayDashAfterDelimiter",
     pattern: /([}\],])\s*-\s*([,}\]]|\n|$)/g,
     replacement: (_match, groups) => {
-      const [delimiter, after] = groups;
-      const delimiterStr = delimiter ?? "";
-      const afterStr = after ?? "";
+      const [delimiterStr, afterStr] = getSafeGroups(groups, 2);
       return `${delimiterStr}${afterStr}`;
     },
     diagnosticMessage: "Removed stray dash after delimiter",
@@ -129,14 +125,11 @@ export const STRUCTURAL_RULES: readonly ReplacementRule[] = [
         return null;
       }
 
-      const [delimiter, whitespace, , nextToken] = groups;
-      const delimiterStr = delimiter ?? "";
-      const whitespaceStr = whitespace ?? "";
-      const nextTokenStr = nextToken ?? "";
+      const [delimiterStr, whitespaceStr, , nextTokenStr] = getSafeGroups(groups, 4);
       return `${delimiterStr}${whitespaceStr}${nextTokenStr}`;
     },
     diagnosticMessage: (_match, groups) => {
-      const strayChar = groups[2] ?? "";
+      const strayChar = safeGroup(groups, 2);
       return `Removed stray character '${strayChar}' on its own line`;
     },
   },
@@ -159,14 +152,11 @@ export const STRUCTURAL_RULES: readonly ReplacementRule[] = [
         return null;
       }
 
-      const [delimiter, whitespace, , closingBrace] = groups;
-      const delimiterStr = delimiter ?? "";
-      const whitespaceStr = whitespace ?? "";
-      const closingBraceStr = closingBrace ?? "";
+      const [delimiterStr, whitespaceStr, , closingBraceStr] = getSafeGroups(groups, 4);
       return `${delimiterStr}${whitespaceStr}${closingBraceStr}`;
     },
     diagnosticMessage: (_match, groups) => {
-      const strayChar = groups[2] ?? "";
+      const strayChar = safeGroup(groups, 2);
       return `Removed stray character '${strayChar}' before closing brace`;
     },
   },
@@ -177,11 +167,11 @@ export const STRUCTURAL_RULES: readonly ReplacementRule[] = [
     name: "malformedPropertyStart",
     pattern: /\{-\s*"([^"]+)"\s*:/g,
     replacement: (_match, groups) => {
-      const propertyName = groups[0] ?? "";
+      const propertyName = safeGroup(groups, 0);
       return `{ "${propertyName}":`;
     },
     diagnosticMessage: (_match, groups) => {
-      const propertyName = groups[0] ?? "";
+      const propertyName = safeGroup(groups, 0);
       return `Fixed malformed property start: {- "${propertyName}" -> { "${propertyName}"`;
     },
   },
@@ -192,11 +182,11 @@ export const STRUCTURAL_RULES: readonly ReplacementRule[] = [
     name: "stringArrayToActual",
     pattern: /"([^"]+)"\s*:\s*"(\[\])"/g,
     replacement: (_match, groups) => {
-      const propertyName = groups[0] ?? "";
+      const propertyName = safeGroup(groups, 0);
       return `"${propertyName}": []`;
     },
     diagnosticMessage: (_match, groups) => {
-      const propertyName = groups[0] ?? "";
+      const propertyName = safeGroup(groups, 0);
       return `Fixed string array to actual array: "${propertyName}": "[]" -> "${propertyName}": []`;
     },
   },
@@ -208,9 +198,7 @@ export const STRUCTURAL_RULES: readonly ReplacementRule[] = [
     pattern:
       /([}\]])\s*,\s*\n\s*(there are|but the response|getting too long|I will stop|I'll stop|for brevity)[^}]*\n\s*([{"])/gi,
     replacement: (_match, groups) => {
-      const [delimiter, , nextToken] = groups;
-      const delimiterStr = delimiter ?? "";
-      const nextTokenStr = nextToken ?? "";
+      const [delimiterStr, , nextTokenStr] = getSafeGroups(groups, 3);
       return `${delimiterStr},\n    ${nextTokenStr}`;
     },
     diagnosticMessage: "Removed explanatory text breaking JSON structure",
@@ -231,7 +219,7 @@ export const STRUCTURAL_RULES: readonly ReplacementRule[] = [
         return null;
       }
 
-      const strayText = groups[1] ?? "";
+      const strayText = safeGroup(groups, 1);
       const isTruncatedText =
         /(so many|I will|stop here|for brevity|methods|I'll|truncated|there are|but the response|\.\.\.)/i.test(
           strayText,
@@ -246,11 +234,11 @@ export const STRUCTURAL_RULES: readonly ReplacementRule[] = [
         return null;
       }
 
-      const closingBrace = groups[0] ?? "}";
+      const closingBrace = safeGroup(groups, 0) || "}";
       return closingBrace;
     },
     diagnosticMessage: (_match, groups) => {
-      const strayText = (groups[1] ?? "").substring(0, 50);
+      const strayText = safeGroup(groups, 1).substring(0, 50);
       return `Removed truncated/explanatory text after final closing brace: "${strayText}..."`;
     },
   },
@@ -272,13 +260,11 @@ export const STRUCTURAL_RULES: readonly ReplacementRule[] = [
         return null;
       }
 
-      const [value, nextProperty] = groups;
-      const valueStr = value ?? "";
-      const nextPropertyStr = nextProperty ?? "";
+      const [valueStr, nextPropertyStr] = getSafeGroups(groups, 2);
       return `"${valueStr}",${nextPropertyStr}`;
     },
     diagnosticMessage: (_match, groups) => {
-      const value = groups[0] ?? "";
+      const value = safeGroup(groups, 0);
       return `Removed stray underscore after property value: "${value}",_`;
     },
   },
@@ -289,9 +275,7 @@ export const STRUCTURAL_RULES: readonly ReplacementRule[] = [
     name: "strayTextAfterOpeningBrace",
     pattern: /(\{\s*)\.([a-z]+)(\s*")/g,
     replacement: (_match, groups) => {
-      const [brace, , property] = groups;
-      const braceStr = brace ?? "";
-      const propertyStr = property ?? "";
+      const [braceStr, , propertyStr] = getSafeGroups(groups, 3);
       return `${braceStr}${propertyStr}`;
     },
     diagnosticMessage: "Removed stray text after opening brace",
@@ -303,14 +287,12 @@ export const STRUCTURAL_RULES: readonly ReplacementRule[] = [
     name: "truncatedTextMarker",
     pattern: /([a-zA-Z_$][a-zA-Z0-9_$]*)\s*:\s*([^,}]+),(_[A-Z_]+)/g,
     replacement: (_match, groups) => {
-      const [propertyName, value] = groups;
-      const propertyNameStr = propertyName ?? "";
-      const valueStr = value ?? "";
+      const [propertyNameStr, valueStr] = getSafeGroups(groups, 2);
       return `${propertyNameStr}: ${valueStr},`;
     },
     diagnosticMessage: (_match, groups) => {
-      const propertyName = groups[0] ?? "";
-      const truncationMarker = groups[2] ?? "";
+      const propertyName = safeGroup(groups, 0);
+      const truncationMarker = safeGroup(groups, 2);
       return `Removed truncation marker: ${propertyName}: ...,${truncationMarker}`;
     },
   },
@@ -321,9 +303,7 @@ export const STRUCTURAL_RULES: readonly ReplacementRule[] = [
     name: "doubleCommaAfterBracket",
     pattern: /(\])\s*,\s*,(\s*"[a-zA-Z_$][a-zA-Z0-9_$]*"\s*:)/g,
     replacement: (_match, groups) => {
-      const [bracket, property] = groups;
-      const bracketStr = bracket ?? "";
-      const propertyStr = property ?? "";
+      const [bracketStr, propertyStr] = getSafeGroups(groups, 2);
       return `${bracketStr},${propertyStr}`;
     },
     diagnosticMessage: "Fixed double comma after closing bracket",
@@ -346,9 +326,7 @@ export const STRUCTURAL_RULES: readonly ReplacementRule[] = [
         return null;
       }
 
-      const [bracket, property] = groups;
-      const bracketStr = bracket ?? "";
-      const propertyStr = property ?? "";
+      const [bracketStr, propertyStr] = getSafeGroups(groups, 2);
       return `${bracketStr},${propertyStr}`;
     },
     diagnosticMessage: "Added missing comma after array closing bracket",
@@ -360,10 +338,7 @@ export const STRUCTURAL_RULES: readonly ReplacementRule[] = [
     name: "missingCommaAfterArrayBeforeExtraText",
     pattern: /(\])\s*\n(\s*)(extra_[a-zA-Z_$]+)\s*:/g,
     replacement: (_match, groups) => {
-      const [bracket, whitespace, extraText] = groups;
-      const bracketStr = bracket ?? "";
-      const whitespaceStr = whitespace ?? "";
-      const extraTextStr = extraText ?? "";
+      const [bracketStr, whitespaceStr, extraTextStr] = getSafeGroups(groups, 3);
       // Add comma - the extra_text will be removed by another rule
       return `${bracketStr},\n${whitespaceStr}${extraTextStr}:`;
     },
@@ -376,94 +351,10 @@ export const STRUCTURAL_RULES: readonly ReplacementRule[] = [
     name: "removeTrailingCommaAfterArrayBeforeBrace",
     pattern: /(\])\s*,\s*\n(\s*)\n(\s*)(\})/g,
     replacement: (_match, groups) => {
-      const [bracket, , , closingBrace] = groups;
-      const bracketStr = bracket ?? "";
-      const closingBraceStr = closingBrace ?? "";
+      const [bracketStr, , , closingBraceStr] = getSafeGroups(groups, 4);
       return `${bracketStr}\n${closingBraceStr}`;
     },
     diagnosticMessage: "Removed trailing comma after array before closing brace",
-  },
-
-  // Rule: Fix unclosed array before property name
-  // Pattern: `}, "propertyName":` after array opening -> `}], "propertyName":`
-  {
-    name: "unclosedArrayBeforeProperty",
-    pattern: /(\})\s*,\s*\n\s*("[a-zA-Z_$][a-zA-Z0-9_$]*"\s*:)/g,
-    replacement: (_match, groups, context) => {
-      const { beforeMatch } = context;
-
-      // Check if we're in an array context by scanning backwards
-      let bracketDepth = 0;
-      let inString = false;
-      let escape = false;
-      let foundUnclosedArray = false;
-
-      for (let i = beforeMatch.length - 1; i >= 0; i--) {
-        const char = beforeMatch[i];
-
-        if (escape) {
-          escape = false;
-          continue;
-        }
-
-        if (char === "\\") {
-          escape = true;
-          continue;
-        }
-
-        if (char === '"') {
-          inString = !inString;
-          continue;
-        }
-
-        if (!inString) {
-          if (char === "]") {
-            bracketDepth++;
-          } else if (char === "[") {
-            bracketDepth--;
-
-            if (bracketDepth < 0) {
-              // Found an unclosed array
-              foundUnclosedArray = true;
-              break;
-            }
-          }
-        }
-      }
-
-      if (!foundUnclosedArray) {
-        return null;
-      }
-
-      const [closingBrace, property] = groups;
-      const closingBraceStr = closingBrace ?? "";
-      const propertyStr = property ?? "";
-      return `${closingBraceStr}],\n    ${propertyStr}`;
-    },
-    diagnosticMessage: "Fixed unclosed array before property name",
-  },
-
-  // Rule: Remove trailing comma before closing bracket/brace
-  // Pattern: `"value", ]` -> `"value" ]`
-  {
-    name: "trailingCommaBeforeClosing",
-    pattern: /"([^"]+)",(\s*[}\]])/g,
-    replacement: (_match, groups, context) => {
-      const { fullContent, offset } = context;
-      const matchLen = typeof _match === "string" ? _match.length : 0;
-      const after = fullContent.substring(offset + matchLen).trim();
-
-      // Only remove if this is the last element before closing
-      if (after.length > 0 && !/^[}\]]/.test(after)) {
-        return null;
-      }
-
-      const [value, ws] = groups;
-      const valueStr = value ?? "";
-      const wsStr = ws ?? "";
-      return `"${valueStr}"${wsStr}`;
-    },
-    diagnosticMessage: "Removed trailing comma before closing bracket/brace",
   },
 
   // Rule: Escape unescaped quotes in string values
@@ -472,14 +363,8 @@ export const STRUCTURAL_RULES: readonly ReplacementRule[] = [
     name: "escapeUnescapedQuotesInString",
     pattern: /("([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:\s*")([^"\\]*)(")([^":]+)(")([^"\\]*)(")(\s*[,}])/g,
     replacement: (_match, groups) => {
-      const [propertyPart, , beforeText, , middleText, , afterText, closingQuote, terminator] =
-        groups;
-      const propertyPartStr = propertyPart ?? "";
-      const beforeTextStr = beforeText ?? "";
-      const middleTextStr = middleText ?? "";
-      const afterTextStr = afterText ?? "";
-      const closingQuoteStr = closingQuote ?? "";
-      const terminatorStr = terminator ?? "";
+      const [propertyPartStr, , beforeTextStr, , middleTextStr, , afterTextStr, closingQuoteStr, terminatorStr] =
+        getSafeGroups(groups, 9);
 
       // Only process if we have quotes in the middle (unescaped quotes)
       if (!middleTextStr || middleTextStr.length === 0) {
@@ -522,11 +407,11 @@ export const STRUCTURAL_RULES: readonly ReplacementRule[] = [
         return null;
       }
       // Return just the closing delimiter, removing the incomplete property
-      const closingDelimiter = groups[1] ?? "";
+      const closingDelimiter = safeGroup(groups, 1);
       return closingDelimiter;
     },
     diagnosticMessage: (_match, groups) => {
-      const propertyName = groups[0] ?? "";
+      const propertyName = safeGroup(groups, 0);
       return `Removed truncated property with missing value: "${propertyName}":`;
     },
   },

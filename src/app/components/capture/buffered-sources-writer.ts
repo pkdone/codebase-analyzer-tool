@@ -35,15 +35,16 @@ export class BufferedSourcesWriter {
   /** Buffer for collecting records to batch insert */
   private recordBuffer: SourceRecord[] = [];
 
+  /** Number of records to accumulate before auto-flushing */
+  private readonly batchSize = DEFAULT_BATCH_SIZE;
+
   /**
    * Constructor.
    * @param sourcesRepository - Repository for storing source file data
-   * @param batchSize - Number of records to accumulate before auto-flushing (default: 200)
    */
   constructor(
     @inject(repositoryTokens.SourcesRepository)
     private readonly sourcesRepository: SourcesRepository,
-    private readonly batchSize: number = DEFAULT_BATCH_SIZE,
   ) {}
 
   /**
