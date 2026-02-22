@@ -83,7 +83,7 @@ describe("PROPERTY_NAME_RULES", () => {
     });
   });
 
-  describe("typeWithEmbeddedWord rule", () => {
+  describe("propertyNameWithEmbeddedWord rule", () => {
     it("should fix type property with embedded word", () => {
       const input = '{"type savory": "SavingsInterestCalculationType"}';
       const result = executeRules(input, PROPERTY_NAME_RULES);

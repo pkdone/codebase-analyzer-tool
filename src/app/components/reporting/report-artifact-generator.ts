@@ -14,7 +14,7 @@ import type { ReportData } from "./report-data.types";
 import { TableViewModel, type RawTableRowData } from "./presentation";
 import { camelCaseToTitleCase } from "../../../common/utils/text-utils";
 import type { ReportSection } from "./sections/report-section.interface";
-import path from "path";
+import path from "node:path";
 import type { OutputConfigType } from "../../config/output.config";
 import { HtmlReportAssetService } from "./services/html-report-asset.service";
 import { CORE_REQUIRED_APP_SUMMARY_FIELDS } from "./config/reporting.config";

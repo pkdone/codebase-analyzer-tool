@@ -2,18 +2,18 @@
  * Tests for the text outside JSON remover strategy.
  */
 
-import { textOutsideJsonRemover } from "../../../../../../src/common/llm/json-processing/sanitizers/strategies/text-outside-json-remover";
+import { embeddedCommentaryRemover } from "../../../../../../src/common/llm/json-processing/sanitizers/strategies/embedded-commentary-remover";
 
-describe("textOutsideJsonRemover", () => {
+describe("embeddedCommentaryRemover", () => {
   it("should return unchanged for empty input", () => {
-    const result = textOutsideJsonRemover.apply("");
+    const result = embeddedCommentaryRemover.apply("");
     expect(result.content).toBe("");
     expect(result.changed).toBe(false);
   });
 
   it("should return unchanged for valid JSON", () => {
     const input = '{"name": "test", "value": 123}';
-    const result = textOutsideJsonRemover.apply(input);
+    const result = embeddedCommentaryRemover.apply(input);
     expect(result.content).toBe(input);
     expect(result.changed).toBe(false);
   });
@@ -24,7 +24,7 @@ describe("textOutsideJsonRemover", () => {
   "name": "TestClass"
 }
 _llm_thought: This is my reasoning`;
-      const result = textOutsideJsonRemover.apply(input);
+      const result = embeddedCommentaryRemover.apply(input);
       expect(result.changed).toBe(true);
       expect(result.content).not.toContain("_llm_thought");
       expect(() => JSON.parse(result.content)).not.toThrow();
@@ -35,7 +35,7 @@ _llm_thought: This is my reasoning`;
   "name": "TestClass"
 }
 "_llm_thought": "This is my reasoning"`;
-      const result = textOutsideJsonRemover.apply(input);
+      const result = embeddedCommentaryRemover.apply(input);
       expect(result.changed).toBe(true);
       expect(result.content).not.toContain("_llm_thought");
       expect(() => JSON.parse(result.content)).not.toThrow();
@@ -46,7 +46,7 @@ _llm_thought: This is my reasoning`;
   "name": "TestClass"
 }
 ai_thoughts: This is AI thinking`;
-      const result = textOutsideJsonRemover.apply(input);
+      const result = embeddedCommentaryRemover.apply(input);
       expect(result.changed).toBe(true);
       expect(result.content).not.toContain("ai_thoughts");
       expect(() => JSON.parse(result.content)).not.toThrow();
@@ -57,7 +57,7 @@ ai_thoughts: This is AI thinking`;
   "name": "TestClass"
 }
 llm_reasoning: My step-by-step reasoning`;
-      const result = textOutsideJsonRemover.apply(input);
+      const result = embeddedCommentaryRemover.apply(input);
       expect(result.changed).toBe(true);
       expect(result.content).not.toContain("llm_reasoning");
       expect(() => JSON.parse(result.content)).not.toThrow();
@@ -72,7 +72,7 @@ llm_reasoning: My step-by-step reasoning`;
 },
 Next, I will analyze the remaining methods
   "otherProperty": "value"`;
-      const result = textOutsideJsonRemover.apply(input);
+      const result = embeddedCommentaryRemover.apply(input);
       expect(result.changed).toBe(true);
       expect(result.content).not.toContain("Next, I will");
     });
@@ -83,7 +83,7 @@ Next, I will analyze the remaining methods
 },
 Let me analyze this further
   "otherProperty": "value"`;
-      const result = textOutsideJsonRemover.apply(input);
+      const result = embeddedCommentaryRemover.apply(input);
       expect(result.changed).toBe(true);
       expect(result.content).not.toContain("Let me analyze");
     });
@@ -94,7 +94,7 @@ Let me analyze this further
 },
 Moving on to the next part
   "otherProperty": "value"`;
-      const result = textOutsideJsonRemover.apply(input);
+      const result = embeddedCommentaryRemover.apply(input);
       expect(result.changed).toBe(true);
       expect(result.content).not.toContain("Moving on");
     });
@@ -105,7 +105,7 @@ Moving on to the next part
       const input = `{
   "name": "TestClass"
 }to be continued...`;
-      const result = textOutsideJsonRemover.apply(input);
+      const result = embeddedCommentaryRemover.apply(input);
       expect(result.changed).toBe(true);
       expect(result.content).not.toContain("to be continued");
       expect(() => JSON.parse(result.content)).not.toThrow();
@@ -115,7 +115,7 @@ Moving on to the next part
       const input = `{
   "name": "TestClass"
 }to be conti...`;
-      const result = textOutsideJsonRemover.apply(input);
+      const result = embeddedCommentaryRemover.apply(input);
       expect(result.changed).toBe(true);
       expect(result.content).not.toContain("to be conti");
       expect(() => JSON.parse(result.content)).not.toThrow();
@@ -128,7 +128,7 @@ Moving on to the next part
   "name": "test"
 },
 so "otherProperty"`;
-      const result = textOutsideJsonRemover.apply(input);
+      const result = embeddedCommentaryRemover.apply(input);
       expect(result.changed).toBe(true);
       expect(result.content).not.toContain("so ");
     });
@@ -138,7 +138,7 @@ so "otherProperty"`;
   "name": "test"
 },
 and "otherProperty"`;
-      const result = textOutsideJsonRemover.apply(input);
+      const result = embeddedCommentaryRemover.apply(input);
       expect(result.changed).toBe(true);
       expect(result.content).not.toContain("and ");
     });
@@ -148,7 +148,7 @@ and "otherProperty"`;
   "name": "test"
 },
 then "otherProperty"`;
-      const result = textOutsideJsonRemover.apply(input);
+      const result = embeddedCommentaryRemover.apply(input);
       expect(result.changed).toBe(true);
       expect(result.content).not.toContain("then ");
     });
@@ -158,7 +158,7 @@ then "otherProperty"`;
   "name": "test"
 },
 here "otherProperty"`;
-      const result = textOutsideJsonRemover.apply(input);
+      const result = embeddedCommentaryRemover.apply(input);
       expect(result.changed).toBe(true);
       expect(result.content).not.toContain("here ");
     });
@@ -187,7 +187,7 @@ here "otherProperty"`;
   "name": "test"
 },
 ${word} "property"`;
-        const result = textOutsideJsonRemover.apply(input);
+        const result = embeddedCommentaryRemover.apply(input);
         expect(result.changed).toBe(true);
         expect(result.content).not.toContain(`${word} `);
       }
@@ -200,7 +200,7 @@ ${word} "property"`;
 THEN "otherProperty"`;
       // Note: The pattern checks for lowercase words, so THEN may not match
       // This test documents the current behavior
-      const result = textOutsideJsonRemover.apply(input);
+      const result = embeddedCommentaryRemover.apply(input);
       // Uppercase words may not match the pattern since regex uses [a-z]
       expect(result).toBeDefined();
     });
@@ -215,7 +215,7 @@ THEN "otherProperty"`;
   "name": "test"
 },
 ${word} "property"`;
-        const result = textOutsideJsonRemover.apply(input);
+        const result = embeddedCommentaryRemover.apply(input);
         expect(result.changed).toBe(true);
         expect(result.content).not.toContain(`${word} `);
       }
@@ -230,7 +230,7 @@ ${word} "property"`;
   "name": "test"
 },
 ${keyword} "property"`;
-        const result = textOutsideJsonRemover.apply(input);
+        const result = embeddedCommentaryRemover.apply(input);
         // JSON keywords should be preserved
         expect(result.content).toContain(keyword);
       }
@@ -243,7 +243,7 @@ ${keyword} "property"`;
   "name": "TestClass"
 }
 so many methods to analyze`;
-      const result = textOutsideJsonRemover.apply(input);
+      const result = embeddedCommentaryRemover.apply(input);
       expect(result.changed).toBe(true);
       expect(result.content).not.toContain("so many methods");
       expect(() => JSON.parse(result.content)).not.toThrow();
@@ -254,7 +254,7 @@ so many methods to analyze`;
   "name": "TestClass"
 }
 I will stop here for brevity`;
-      const result = textOutsideJsonRemover.apply(input);
+      const result = embeddedCommentaryRemover.apply(input);
       expect(result.changed).toBe(true);
       expect(result.content).not.toContain("I will stop here");
       expect(() => JSON.parse(result.content)).not.toThrow();
@@ -265,7 +265,7 @@ I will stop here for brevity`;
   "name": "TestClass"
 }
 Let me continue with the analysis`;
-      const result = textOutsideJsonRemover.apply(input);
+      const result = embeddedCommentaryRemover.apply(input);
       expect(result.changed).toBe(true);
       expect(result.content).not.toContain("Let me continue");
       expect(() => JSON.parse(result.content)).not.toThrow();
@@ -278,7 +278,7 @@ Let me continue with the analysis`;
   "name": "test"
 },ce
   "other": "value"`;
-      const result = textOutsideJsonRemover.apply(input);
+      const result = embeddedCommentaryRemover.apply(input);
       expect(result.changed).toBe(true);
       expect(result.content).not.toContain(",ce");
     });
@@ -288,7 +288,7 @@ Let me continue with the analysis`;
   "name": "test"
 },12-34
   "other": "value"`;
-      const result = textOutsideJsonRemover.apply(input);
+      const result = embeddedCommentaryRemover.apply(input);
       expect(result.changed).toBe(true);
       expect(result.content).not.toContain("12-34");
     });
@@ -301,7 +301,7 @@ Let me continue with the analysis`;
 },
       "codeSmells": []
     },`;
-      const result = textOutsideJsonRemover.apply(input);
+      const result = embeddedCommentaryRemover.apply(input);
       expect(result.changed).toBe(true);
       expect(result.content).not.toContain("codeSmells");
     });
@@ -312,7 +312,7 @@ Let me continue with the analysis`;
 },
       "extra_info": []
     },`;
-      const result = textOutsideJsonRemover.apply(input);
+      const result = embeddedCommentaryRemover.apply(input);
       expect(result.changed).toBe(true);
       expect(result.content).not.toContain("extra_info");
     });
@@ -321,7 +321,7 @@ Let me continue with the analysis`;
   describe("Preserves valid content", () => {
     it("should not modify strings inside string values", () => {
       const input = '{"description": "I will stop here and continue later"}';
-      const result = textOutsideJsonRemover.apply(input);
+      const result = embeddedCommentaryRemover.apply(input);
       expect(result.content).toBe(input);
       expect(result.changed).toBe(false);
     });
@@ -333,7 +333,7 @@ Let me continue with the analysis`;
     "key": "value"
   }
 }`;
-      const result = textOutsideJsonRemover.apply(input);
+      const result = embeddedCommentaryRemover.apply(input);
       expect(result.content).toBe(input);
       expect(result.changed).toBe(false);
     });
@@ -355,7 +355,7 @@ Let me continue with the analysis`;
 },
 ${pattern} with the code
   "otherProperty": "value"`;
-        const result = textOutsideJsonRemover.apply(input);
+        const result = embeddedCommentaryRemover.apply(input);
         expect(result.changed).toBe(true);
         expect(result.content).not.toContain(pattern);
       }
@@ -375,7 +375,7 @@ ${pattern} with the code
 },
 ${pattern}
   "otherProperty": "value"`;
-        const result = textOutsideJsonRemover.apply(input);
+        const result = embeddedCommentaryRemover.apply(input);
         expect(result.changed).toBe(true);
         expect(result.content).not.toContain(pattern);
       }
@@ -387,7 +387,7 @@ ${pattern}
       const input = `{
   "name": "TestClass"
 }`;
-      const result = textOutsideJsonRemover.apply(input);
+      const result = embeddedCommentaryRemover.apply(input);
       expect(result.changed).toBe(false);
     });
   });

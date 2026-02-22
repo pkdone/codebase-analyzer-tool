@@ -7,7 +7,7 @@ import { appSummaryConfigMap } from "../../../src/app/prompts/app-summaries/app-
 import { APP_SUMMARY_CONTENT_DESC } from "../../../src/app/prompts/app-summaries/app-summaries.constants";
 import { fileTypePromptRegistry } from "../../../src/app/prompts/sources/sources.definitions";
 import {
-  JSONSchemaPrompt,
+  renderJsonSchemaPrompt,
   type JSONSchemaPromptConfig,
 } from "../../../src/common/prompts/json-schema-prompt";
 import { DEFAULT_PERSONA_INTRODUCTION } from "../../../src/app/prompts/prompts.constants";
@@ -25,35 +25,47 @@ function getSchemaFields(
 }
 
 /**
- * Helper to create a JSONSchemaPrompt from fileTypePromptRegistry config.
+ * Helper to render a prompt from fileTypePromptRegistry config.
  * Adds dataBlockHeader and wrapInCodeBlock which are no longer in the registry entries.
  */
-function createSourcePrompt(fileType: keyof typeof fileTypePromptRegistry): JSONSchemaPrompt {
+function renderSourcePrompt(
+  fileType: keyof typeof fileTypePromptRegistry,
+  content: string,
+): string {
   const config = fileTypePromptRegistry[fileType];
-  return new JSONSchemaPrompt({
-    personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
-    ...config,
-    dataBlockHeader: CODE_DATA_BLOCK_HEADER,
-    wrapInCodeBlock: true,
-  } as JSONSchemaPromptConfig);
+  return renderJsonSchemaPrompt(
+    {
+      personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+      ...config,
+      dataBlockHeader: CODE_DATA_BLOCK_HEADER,
+      wrapInCodeBlock: true,
+    } as JSONSchemaPromptConfig,
+    content,
+  );
 }
 
 /**
- * Helper to create a JSONSchemaPrompt from appSummaryConfigMap config.
+ * Helper to render a prompt from appSummaryConfigMap config.
  * Adds contentDesc, dataBlockHeader, and wrapInCodeBlock which are no longer in the config entries.
  */
-function createAppSummaryPrompt(category: keyof typeof appSummaryConfigMap): JSONSchemaPrompt {
+function renderAppSummaryPrompt(
+  category: keyof typeof appSummaryConfigMap,
+  content: string,
+): string {
   const config = appSummaryConfigMap[category];
-  return new JSONSchemaPrompt({
-    personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
-    ...config,
-    contentDesc: APP_SUMMARY_CONTENT_DESC,
-    dataBlockHeader: FILE_SUMMARIES_DATA_BLOCK_HEADER,
-    wrapInCodeBlock: false,
-  } as JSONSchemaPromptConfig);
+  return renderJsonSchemaPrompt(
+    {
+      personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+      ...config,
+      contentDesc: APP_SUMMARY_CONTENT_DESC,
+      dataBlockHeader: FILE_SUMMARIES_DATA_BLOCK_HEADER,
+      wrapInCodeBlock: false,
+    } as JSONSchemaPromptConfig,
+    content,
+  );
 }
 
-describe("Data-driven JSONSchemaPrompt System", () => {
+describe("Data-driven renderJsonSchemaPrompt System", () => {
   describe("Source config structure", () => {
     it("should have all file types in configuration", () => {
       const configFileTypes = Object.keys(fileTypePromptRegistry);
@@ -70,7 +82,7 @@ describe("Data-driven JSONSchemaPrompt System", () => {
         expect(config.contentDesc).toBeDefined();
         expect(config.instructions).toBeDefined();
         expect(config.responseSchema).toBeDefined();
-        // dataBlockHeader and wrapInCodeBlock are now set at instantiation time
+        // dataBlockHeader and wrapInCodeBlock are now set at render time
         // and are not part of the registry entries
       });
     });
@@ -121,7 +133,7 @@ describe("Data-driven JSONSchemaPrompt System", () => {
 
     it("should have consistent structure in configs", () => {
       // contentDesc, dataBlockHeader, wrapInCodeBlock are no longer in config entries
-      // They are set at instantiation time by the consumer (InsightCompletionExecutor)
+      // They are set at render time by the consumer (InsightCompletionExecutor)
       Object.entries(appSummaryConfigMap).forEach(([, config]) => {
         expect(config.responseSchema).toBeDefined();
         expect(config.instructions).toBeDefined();
@@ -141,12 +153,14 @@ describe("Data-driven JSONSchemaPrompt System", () => {
     });
   });
 
-  describe("JSONSchemaPrompt rendering consistency", () => {
+  describe("renderJsonSchemaPrompt rendering consistency", () => {
     it("should render all source file types with JSON_SCHEMA_PROMPT_TEMPLATE structure", () => {
       // All source file types should render with the standard template
       Object.keys(fileTypePromptRegistry).forEach((fileType) => {
-        const prompt = createSourcePrompt(fileType as keyof typeof fileTypePromptRegistry);
-        const rendered = prompt.renderPrompt("test");
+        const rendered = renderSourcePrompt(
+          fileType as keyof typeof fileTypePromptRegistry,
+          "test",
+        );
         expect(rendered).toContain("Act as a senior developer");
       });
     });
@@ -154,8 +168,10 @@ describe("Data-driven JSONSchemaPrompt System", () => {
     it("should render app summary configs with JSON_SCHEMA_PROMPT_TEMPLATE structure", () => {
       // All app summary configs should be rendered with JSON_SCHEMA_PROMPT_TEMPLATE
       Object.keys(appSummaryConfigMap).forEach((categoryKey) => {
-        const prompt = createAppSummaryPrompt(categoryKey as keyof typeof appSummaryConfigMap);
-        const rendered = prompt.renderPrompt("test");
+        const rendered = renderAppSummaryPrompt(
+          categoryKey as keyof typeof appSummaryConfigMap,
+          "test",
+        );
         // Should contain template markers rendered
         expect(rendered).toContain("Act as a senior developer");
       });

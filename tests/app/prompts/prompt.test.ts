@@ -1,5 +1,5 @@
 import {
-  JSONSchemaPrompt,
+  renderJsonSchemaPrompt,
   type JSONSchemaPromptConfig,
 } from "../../../src/common/prompts/json-schema-prompt";
 import { DEFAULT_PERSONA_INTRODUCTION } from "../../../src/app/prompts/prompts.constants";
@@ -12,20 +12,26 @@ import {
 import { INSTRUCTION_SECTION_TITLES } from "../../../src/app/prompts/sources/utils";
 
 /**
- * Helper to create a JSONSchemaPrompt from fileTypePromptRegistry config.
+ * Helper to render a prompt from fileTypePromptRegistry config.
  * Adds dataBlockHeader and wrapInCodeBlock which are no longer in the registry entries.
  */
-function createSourcePrompt(fileType: keyof typeof fileTypePromptRegistry): JSONSchemaPrompt {
+function renderSourcePrompt(
+  fileType: keyof typeof fileTypePromptRegistry,
+  content: string,
+): string {
   const config = fileTypePromptRegistry[fileType];
-  return new JSONSchemaPrompt({
-    personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
-    ...config,
-    dataBlockHeader: CODE_DATA_BLOCK_HEADER,
-    wrapInCodeBlock: true,
-  } as JSONSchemaPromptConfig);
+  return renderJsonSchemaPrompt(
+    {
+      personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+      ...config,
+      dataBlockHeader: CODE_DATA_BLOCK_HEADER,
+      wrapInCodeBlock: true,
+    } as JSONSchemaPromptConfig,
+    content,
+  );
 }
 
-describe("JSONSchemaPrompt.renderPrompt", () => {
+describe("renderJsonSchemaPrompt", () => {
   const javaCodeSample = `package com.acme.myapp.address.ejb;
 
 import javax.ejb.EntityBean;
@@ -106,9 +112,7 @@ public abstract class AddressEJB implements EntityBean {
 
   describe("renderPrompt()", () => {
     it("should render prompt correctly with Java file type metadata", () => {
-      const javaPrompt = createSourcePrompt("java");
-
-      const renderedPrompt = javaPrompt.renderPrompt(javaCodeSample);
+      const renderedPrompt = renderSourcePrompt("java", javaCodeSample);
 
       // Verify template structure is present
       expect(renderedPrompt).toContain("Act as a senior developer analyzing the code");
@@ -150,6 +154,7 @@ public abstract class AddressEJB implements EntityBean {
       const jsonSchemaRegex = /```json\n([\s\S]*?)\n```/;
       const jsonSchemaMatch = jsonSchemaRegex.exec(renderedPrompt);
       expect(jsonSchemaMatch).not.toBeNull();
+
       if (jsonSchemaMatch) {
         const jsonSchema = JSON.parse(jsonSchemaMatch[1]);
         expect(jsonSchema.properties).toBeDefined();
@@ -164,9 +169,7 @@ public abstract class AddressEJB implements EntityBean {
     });
 
     it("should format instruction sections with titles correctly", () => {
-      const javaPrompt = createSourcePrompt("java");
-
-      const renderedPrompt = javaPrompt.renderPrompt(javaCodeSample);
+      const renderedPrompt = renderSourcePrompt("java", javaCodeSample);
 
       // Verify sections are separated by double newlines
       const basicInfoSection = `__${INSTRUCTION_SECTION_TITLES.BASIC_INFO}__`;
@@ -183,9 +186,7 @@ public abstract class AddressEJB implements EntityBean {
     });
 
     it("should include all template placeholders correctly", () => {
-      const javaPrompt = createSourcePrompt("java");
-
-      const renderedPrompt = javaPrompt.renderPrompt(javaCodeSample);
+      const renderedPrompt = renderSourcePrompt("java", javaCodeSample);
 
       // Verify no placeholder syntax remains
       expect(renderedPrompt).not.toMatch(/\{\{[a-zA-Z]+\}\}/);
@@ -201,17 +202,18 @@ public abstract class AddressEJB implements EntityBean {
       // Use contextNote for partial analysis scenarios
       const contextNote =
         "Note, this is a partial analysis of what is a much larger set of file summaries; focus on extracting insights from this subset of file summaries only.\n\n";
-      const prompt = new JSONSchemaPrompt({
-        personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
-        contentDesc: "test code",
-        instructions: ["test instruction"],
-        responseSchema: javaConfig.responseSchema,
-        dataBlockHeader: "FILE_SUMMARIES",
-        wrapInCodeBlock: false,
-        contextNote,
-      });
-
-      const renderedPrompt = prompt.renderPrompt(javaCodeSample);
+      const renderedPrompt = renderJsonSchemaPrompt(
+        {
+          personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+          contentDesc: "test code",
+          instructions: ["test instruction"],
+          responseSchema: javaConfig.responseSchema,
+          dataBlockHeader: "FILE_SUMMARIES",
+          wrapInCodeBlock: false,
+          contextNote,
+        },
+        javaCodeSample,
+      );
 
       // Verify partial analysis note is included (from the contextNote)
       expect(renderedPrompt).toContain("partial analysis");
@@ -222,9 +224,7 @@ public abstract class AddressEJB implements EntityBean {
     });
 
     it("should handle missing content gracefully", () => {
-      const javaPrompt = createSourcePrompt("java");
-
-      const renderedPrompt = javaPrompt.renderPrompt("");
+      const renderedPrompt = renderSourcePrompt("java", "");
 
       // Should still render the template structure
       expect(renderedPrompt).toContain("Act as a senior developer analyzing the code");
@@ -232,10 +232,8 @@ public abstract class AddressEJB implements EntityBean {
     });
 
     it("should require content parameter", () => {
-      const javaPrompt = createSourcePrompt("java");
-
-      // Content is now a required field in RenderPromptData - provide empty string
-      const renderedPrompt = javaPrompt.renderPrompt("");
+      // Content is now a required field in renderJsonSchemaPrompt - provide empty string
+      const renderedPrompt = renderSourcePrompt("java", "");
 
       // Template should still render with empty content
       expect(renderedPrompt).toContain("Act as a senior developer analyzing the code");

@@ -81,7 +81,10 @@ export default abstract class BaseOpenAILLM extends BaseLLMProvider {
       messages: [{ role: llmConfig.LLM_ROLE_USER, content: prompt }],
       ...(hasFixedTemperature
         ? {}
-        : { temperature: this.providerSpecificConfig.temperature ?? llmConfig.DEFAULT_ZERO_TEMP }),
+        : {
+            temperature: this.providerSpecificConfig.temperature ?? llmConfig.DEFAULT_ZERO_TEMP,
+            top_p: this.providerSpecificConfig.topP ?? llmConfig.DEFAULT_TOP_P_LOWEST,
+          }),
     };
 
     const params = usesMaxCompletionTokens

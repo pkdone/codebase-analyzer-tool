@@ -1,5 +1,5 @@
 import {
-  JSONSchemaPrompt,
+  renderJsonSchemaPrompt,
   type JSONSchemaPromptConfig,
 } from "../../../src/common/prompts/json-schema-prompt";
 import { DEFAULT_PERSONA_INTRODUCTION } from "../../../src/app/prompts/prompts.constants";
@@ -18,35 +18,47 @@ import { fileTypePromptRegistry } from "../../../src/app/prompts/sources/sources
 import { z } from "zod";
 
 /**
- * Helper to create a JSONSchemaPrompt from fileTypePromptRegistry config.
+ * Helper to render a prompt from fileTypePromptRegistry config.
  * Adds dataBlockHeader and wrapInCodeBlock which are no longer in the registry entries.
  */
-function createSourcePrompt(fileType: keyof typeof fileTypePromptRegistry): JSONSchemaPrompt {
+function renderSourcePrompt(
+  fileType: keyof typeof fileTypePromptRegistry,
+  content: string,
+): string {
   const config = fileTypePromptRegistry[fileType];
-  return new JSONSchemaPrompt({
-    personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
-    ...config,
-    dataBlockHeader: CODE_DATA_BLOCK_HEADER,
-    wrapInCodeBlock: true,
-  } as JSONSchemaPromptConfig);
+  return renderJsonSchemaPrompt(
+    {
+      personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+      ...config,
+      dataBlockHeader: CODE_DATA_BLOCK_HEADER,
+      wrapInCodeBlock: true,
+    } as JSONSchemaPromptConfig,
+    content,
+  );
 }
 
 /**
- * Helper to create a JSONSchemaPrompt from appSummaryConfigMap config.
+ * Helper to render a prompt from appSummaryConfigMap config.
  * Adds contentDesc, dataBlockHeader, and wrapInCodeBlock which are no longer in the config entries.
  */
-function createAppSummaryPrompt(category: keyof typeof appSummaryConfigMap): JSONSchemaPrompt {
+function renderAppSummaryPrompt(
+  category: keyof typeof appSummaryConfigMap,
+  content: string,
+): string {
   const config = appSummaryConfigMap[category];
-  return new JSONSchemaPrompt({
-    personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
-    ...config,
-    contentDesc: APP_SUMMARY_CONTENT_DESC,
-    dataBlockHeader: FILE_SUMMARIES_DATA_BLOCK_HEADER,
-    wrapInCodeBlock: false,
-  } as JSONSchemaPromptConfig);
+  return renderJsonSchemaPrompt(
+    {
+      personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+      ...config,
+      contentDesc: APP_SUMMARY_CONTENT_DESC,
+      dataBlockHeader: FILE_SUMMARIES_DATA_BLOCK_HEADER,
+      wrapInCodeBlock: false,
+    } as JSONSchemaPromptConfig,
+    content,
+  );
 }
 
-describe("JSONSchemaPrompt Refactoring - Unified Configuration", () => {
+describe("renderJsonSchemaPrompt Refactoring - Unified Configuration", () => {
   describe("Sources Configuration", () => {
     it("should have instructions as readonly string[] for all file types", () => {
       Object.entries(fileTypePromptRegistry).forEach(([, config]) => {
@@ -71,10 +83,8 @@ describe("JSONSchemaPrompt Refactoring - Unified Configuration", () => {
     });
 
     it("should render prompts correctly with new instruction format", () => {
-      const javaPrompt = createSourcePrompt("java");
       const testCode = "public class Test {}";
-
-      const rendered = javaPrompt.renderPrompt(testCode);
+      const rendered = renderSourcePrompt("java", testCode);
 
       // Verify section titles are present
       expect(rendered).toContain(`__${INSTRUCTION_SECTION_TITLES.BASIC_INFO}__`);
@@ -86,10 +96,8 @@ describe("JSONSchemaPrompt Refactoring - Unified Configuration", () => {
     });
 
     it("should maintain instruction separation with double newlines", () => {
-      const javaPrompt = createSourcePrompt("java");
       const testCode = "public class Test {}";
-
-      const rendered = javaPrompt.renderPrompt(testCode);
+      const rendered = renderSourcePrompt("java", testCode);
 
       // Since we can't directly test the template variable, we test the rendered output
       // which should have proper section separation
@@ -121,10 +129,8 @@ describe("JSONSchemaPrompt Refactoring - Unified Configuration", () => {
     });
 
     it("should render app summary prompts correctly when presentation values added", () => {
-      const prompt = createAppSummaryPrompt("appDescription");
       const testSummaries = "Test summary content";
-
-      const rendered = prompt.renderPrompt(testSummaries);
+      const rendered = renderAppSummaryPrompt("appDescription", testSummaries);
 
       // Should contain the instruction text (with bullet point prefix and capitalized)
       expect(rendered).toContain(
@@ -142,34 +148,36 @@ describe("JSONSchemaPrompt Refactoring - Unified Configuration", () => {
     });
   });
 
-  describe("JSONSchemaPrompt Rendering Consistency", () => {
+  describe("renderJsonSchemaPrompt Rendering Consistency", () => {
     it("should join instructions with double newlines", () => {
-      const testPrompt = new JSONSchemaPrompt({
-        personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
-        contentDesc: "test content",
-        instructions: ["Instruction 1", "Instruction 2", "Instruction 3"],
-        responseSchema: z.object({ test: z.string() }),
-        dataBlockHeader: "CODE",
-        wrapInCodeBlock: false,
-      });
-
-      const rendered = testPrompt.renderPrompt("test");
+      const rendered = renderJsonSchemaPrompt(
+        {
+          personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+          contentDesc: "test content",
+          instructions: ["Instruction 1", "Instruction 2", "Instruction 3"],
+          responseSchema: z.object({ test: z.string() }),
+          dataBlockHeader: "CODE",
+          wrapInCodeBlock: false,
+        },
+        "test",
+      );
 
       // Instructions are joined with double newlines
       expect(rendered).toContain("Instruction 1\n\nInstruction 2\n\nInstruction 3");
     });
 
     it("should handle single instruction correctly", () => {
-      const testPrompt = new JSONSchemaPrompt({
-        personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
-        contentDesc: "test content",
-        instructions: ["Single instruction"],
-        responseSchema: z.object({ test: z.string() }),
-        dataBlockHeader: "CODE",
-        wrapInCodeBlock: false,
-      });
-
-      const rendered = testPrompt.renderPrompt("test");
+      const rendered = renderJsonSchemaPrompt(
+        {
+          personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+          contentDesc: "test content",
+          instructions: ["Single instruction"],
+          responseSchema: z.object({ test: z.string() }),
+          dataBlockHeader: "CODE",
+          wrapInCodeBlock: false,
+        },
+        "test",
+      );
 
       expect(rendered).toContain("Single instruction");
     });

@@ -1,3 +1,4 @@
+import { injectable, inject } from "tsyringe";
 import LLMRouter from "../../../common/llm/llm-router";
 import { LLMOutputFormat } from "../../../common/llm/types/llm-request.types";
 import { isLLMOk } from "../../../common/llm/types/llm-result.types";
@@ -6,6 +7,7 @@ import type { VectorSearchResult } from "../../repositories/sources/sources.mode
 import { queryingInputConfig } from "./querying-input.config";
 import { formatFilesAsMarkdownCodeBlocks } from "../../../common/utils/markdown-formatter";
 import { buildQueryPrompt } from "../../prompts/prompt-builders";
+import { repositoryTokens, llmTokens } from "../../di/tokens";
 
 /**
  * Formats source file metadata into markdown code blocks for LLM prompts.
@@ -33,51 +35,58 @@ function formatSourcesForPrompt(vectorSearchResults: VectorSearchResult[]): stri
 }
 
 /**
- * Query the codebase, by first querying Vector Search and then using the results for RAG
+ * Injectable processor that queries the codebase using Vector Search and RAG
  * interaction with the LLM.
- *
- * @param sourcesRepository The sources repository instance
- * @param llmRouter The LLM router instance
- * @param question The question to ask about the codebase
- * @param projectName The name of the project to query
- * @returns The answer to the question or an error message
  */
-export async function queryCodebaseWithQuestion(
-  sourcesRepository: SourcesRepository,
-  llmRouter: LLMRouter,
-  question: string,
-  projectName: string,
-): Promise<string> {
-  const embeddingResult = await llmRouter.generateEmbeddings("Human question", question);
-  if (embeddingResult === null || embeddingResult.embeddings.length <= 0)
-    return "No vector was generated for the question - unable to answer question";
+@injectable()
+export class CodebaseQueryProcessor {
+  constructor(
+    @inject(repositoryTokens.SourcesRepository)
+    private readonly sourcesRepository: SourcesRepository,
+    @inject(llmTokens.LLMRouter) private readonly llmRouter: LLMRouter,
+  ) {}
 
-  const bestMatchFiles = await sourcesRepository.vectorSearchProjectSources(
-    projectName,
-    embeddingResult.embeddings,
-    queryingInputConfig.VECTOR_SEARCH_NUM_CANDIDATES,
-    queryingInputConfig.VECTOR_SEARCH_NUM_LIMIT,
-  );
+  /**
+   * Query the codebase by first querying Vector Search and then using the results for RAG
+   * interaction with the LLM.
+   *
+   * @param question The question to ask about the codebase
+   * @param projectName The name of the project to query
+   * @returns The answer to the question or an error message
+   */
+  async execute(question: string, projectName: string): Promise<string> {
+    const embeddingResult = await this.llmRouter.generateEmbeddings("Human question", question);
 
-  if (bestMatchFiles.length <= 0) {
-    console.log("Vector search on code using the question failed to return any results");
-    return "Unable to answer question because no relevent code was found";
-  }
+    if (embeddingResult === null || embeddingResult.embeddings.length <= 0)
+      return "No vector was generated for the question - unable to answer question";
 
-  const codeBlocksAsText = formatSourcesForPrompt(bestMatchFiles);
-  const resourceName = `Codebase query`;
-  const { prompt } = buildQueryPrompt(question, codeBlocksAsText);
-  const result = await llmRouter.executeCompletion(resourceName, prompt, {
-    outputFormat: LLMOutputFormat.TEXT,
-  });
-
-  if (isLLMOk(result)) {
-    const referencesText = bestMatchFiles.map((match) => ` * ${match.filepath}`).join("\n");
-    return `${result.value}\n\nReferences:\n${referencesText}`;
-  } else {
-    console.log(
-      `Called the LLM with data from Vector Search but completion failed: ${result.error.message}`,
+    const bestMatchFiles = await this.sourcesRepository.vectorSearchProjectSources(
+      projectName,
+      embeddingResult.embeddings,
+      queryingInputConfig.VECTOR_SEARCH_NUM_CANDIDATES,
+      queryingInputConfig.VECTOR_SEARCH_NUM_LIMIT,
     );
-    return "Unable to answer question because no insight was generated";
+
+    if (bestMatchFiles.length <= 0) {
+      console.log("Vector search on code using the question failed to return any results");
+      return "Unable to answer question because no relevent code was found";
+    }
+
+    const codeBlocksAsText = formatSourcesForPrompt(bestMatchFiles);
+    const resourceName = `Codebase query`;
+    const { prompt } = buildQueryPrompt(question, codeBlocksAsText);
+    const result = await this.llmRouter.executeCompletion(resourceName, prompt, {
+      outputFormat: LLMOutputFormat.TEXT,
+    });
+
+    if (isLLMOk(result)) {
+      const referencesText = bestMatchFiles.map((match) => ` * ${match.filepath}`).join("\n");
+      return `${result.value}\n\nReferences:\n${referencesText}`;
+    } else {
+      console.log(
+        `Called the LLM with data from Vector Search but completion failed: ${result.error.message}`,
+      );
+      return "Unable to answer question because no insight was generated";
+    }
   }
 }

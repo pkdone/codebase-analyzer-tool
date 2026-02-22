@@ -9,7 +9,7 @@
 
 import type { z } from "zod";
 import {
-  JSONSchemaPrompt,
+  renderJsonSchemaPrompt,
   fillTemplate,
   type GeneratedPrompt,
   type TextGeneratedPrompt,
@@ -80,32 +80,27 @@ export interface ReducePromptOptions {
 }
 
 /**
- * Creates a JSONSchemaPrompt from a self-describing config entry.
- * The config now includes all presentation fields (dataBlockHeader, wrapInCodeBlock),
- * enabling this function to act as a simple assembler without hardcoding presentation logic.
+ * Renders a prompt from a self-describing config entry and content.
+ * Combines the config with the default persona introduction and delegates to renderJsonSchemaPrompt.
  *
- * Note: This function uses z.ZodType<unknown> for the schema type parameter because
- * config registries contain heterogeneous entry types with different schemas. The
- * specific schema type is preserved by the caller through the returned prompt result.
- *
- * @param config - The complete prompt configuration entry containing content, instructions, schema, and presentation
- * @param contextNoteOverride - Optional contextual note to override the config's contextNote (for runtime-computed notes)
- * @returns A configured JSONSchemaPrompt ready to render prompts
+ * @param config - The complete prompt configuration entry
+ * @param content - The actual content to analyze (code, summaries, etc.)
+ * @param contextNoteOverride - Optional contextual note to override the config's contextNote
+ * @returns The fully rendered prompt string
  */
-function createPromptGenerator(
+function renderConfiguredPrompt(
   config: BasePromptConfigEntry,
+  content: string,
   contextNoteOverride?: string,
-): JSONSchemaPrompt {
-  return new JSONSchemaPrompt({
-    personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
-    contentDesc: config.contentDesc,
-    instructions: config.instructions,
-    responseSchema: config.responseSchema,
-    hasComplexSchema: config.hasComplexSchema,
-    dataBlockHeader: config.dataBlockHeader,
-    wrapInCodeBlock: config.wrapInCodeBlock,
-    contextNote: contextNoteOverride ?? config.contextNote,
-  });
+): string {
+  return renderJsonSchemaPrompt(
+    {
+      personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+      ...config,
+      contextNote: contextNoteOverride ?? config.contextNote,
+    },
+    content,
+  );
 }
 
 /**
@@ -154,9 +149,8 @@ export function buildSourcePrompt<K extends CanonicalFileType>(
   content: string,
 ): SourcePromptResult<K> {
   const config = fileTypePromptRegistry[canonicalFileType];
-  const promptGenerator = createPromptGenerator(config);
   return {
-    prompt: promptGenerator.renderPrompt(content),
+    prompt: renderConfiguredPrompt(config, content),
     schema: config.responseSchema,
     metadata: { hasComplexSchema: config.hasComplexSchema ?? false },
   };
@@ -196,9 +190,8 @@ export function buildInsightPrompt<C extends keyof AppSummaryConfigMap>(
   const contextNote = options?.forPartialAnalysis
     ? buildPartialAnalysisNote(config.dataBlockHeader)
     : undefined;
-  const promptGenerator = createPromptGenerator(config, contextNote);
   return {
-    prompt: promptGenerator.renderPrompt(content),
+    prompt: renderConfiguredPrompt(config, content, contextNote),
     schema: config.responseSchema,
     metadata: { hasComplexSchema: config.hasComplexSchema },
   };
@@ -243,9 +236,8 @@ export function buildReducePrompt<S extends z.ZodType<unknown>>(
     dataBlockHeader: FRAGMENTED_DATA_BLOCK_HEADER,
     wrapInCodeBlock: false,
   };
-  const promptGenerator = createPromptGenerator(reduceConfig);
   return {
-    prompt: promptGenerator.renderPrompt(content),
+    prompt: renderConfiguredPrompt(reduceConfig, content),
     schema,
     metadata: { hasComplexSchema: options?.hasComplexSchema ?? false },
   };

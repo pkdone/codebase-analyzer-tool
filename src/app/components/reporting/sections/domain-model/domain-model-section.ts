@@ -43,7 +43,7 @@ export class DomainModelSection implements ReportSection {
     _htmlDir: string,
   ): Promise<Partial<PreparedHtmlReportData> | null> {
     // Generate domain model data and diagrams (synchronous - client-side rendering)
-    const domainModelData = this.domainModelTransformer.getDomainModelData(
+    const domainModelData = this.domainModelTransformer.transformToDomainModel(
       baseData.categorizedData,
     );
     const contextDiagramSvgs = this.domainModelDiagramGenerator.generateMultipleContextDiagrams(

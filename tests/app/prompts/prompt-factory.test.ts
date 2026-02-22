@@ -1,5 +1,5 @@
 import {
-  JSONSchemaPrompt,
+  renderJsonSchemaPrompt,
   type JSONSchemaPromptConfig,
 } from "../../../src/common/prompts/json-schema-prompt";
 import { z } from "zod";
@@ -9,7 +9,7 @@ import {
 } from "../../../src/app/prompts/prompts.constants";
 import { DEFAULT_PERSONA_INTRODUCTION } from "../../../src/app/prompts/prompts.constants";
 
-describe("JSONSchemaPrompt Class", () => {
+describe("renderJsonSchemaPrompt Function", () => {
   /**
    * Helper to create a valid test config entry with required fields.
    */
@@ -25,8 +25,8 @@ describe("JSONSchemaPrompt Class", () => {
     };
   }
 
-  describe("constructor", () => {
-    it("should create prompt from config", () => {
+  describe("config-based rendering", () => {
+    it("should render prompts from different configs", () => {
       const config1 = createTestConfig({
         contentDesc: "content 1",
         responseSchema: z.string(),
@@ -40,15 +40,15 @@ describe("JSONSchemaPrompt Class", () => {
         wrapInCodeBlock: true,
       });
 
-      const prompt1 = new JSONSchemaPrompt(config1);
-      const prompt2 = new JSONSchemaPrompt(config2);
+      const rendered1 = renderJsonSchemaPrompt(config1, "test");
+      const rendered2 = renderJsonSchemaPrompt(config2, "test");
 
-      expect(prompt1).toBeDefined();
-      expect(prompt1.contentDesc).toBe("content 1");
-      expect(prompt1.dataBlockHeader).toBe(FILE_SUMMARIES_DATA_BLOCK_HEADER);
+      expect(rendered1).toBeDefined();
+      expect(rendered1).toContain("content 1");
+      expect(rendered1).toContain(FILE_SUMMARIES_DATA_BLOCK_HEADER + ":");
 
-      expect(prompt2).toBeDefined();
-      expect(prompt2.contentDesc).toBe("content 2");
+      expect(rendered2).toBeDefined();
+      expect(rendered2).toContain("content 2");
     });
 
     it("should preserve contentDesc from config entries", () => {
@@ -56,9 +56,9 @@ describe("JSONSchemaPrompt Class", () => {
         contentDesc: "custom content description",
       });
 
-      const prompt = new JSONSchemaPrompt(config);
+      const rendered = renderJsonSchemaPrompt(config, "test");
 
-      expect(prompt.contentDesc).toBe("custom content description");
+      expect(rendered).toContain("custom content description");
     });
 
     it("should preserve instructions from config entries", () => {
@@ -66,45 +66,53 @@ describe("JSONSchemaPrompt Class", () => {
         instructions: ["instruction 1", "instruction 2"],
       });
 
-      const prompt = new JSONSchemaPrompt(config);
+      const rendered = renderJsonSchemaPrompt(config, "test");
 
-      expect(prompt.instructions).toHaveLength(2);
-      expect(prompt.instructions[0]).toBe("instruction 1");
-      expect(prompt.instructions[1]).toBe("instruction 2");
+      expect(rendered).toContain("instruction 1");
+      expect(rendered).toContain("instruction 2");
     });
 
     it("should use dataBlockHeader from config entries", () => {
-      const config1 = createTestConfig({
-        contentDesc: "first content",
-        dataBlockHeader: CODE_DATA_BLOCK_HEADER,
-      });
-      const config2 = createTestConfig({
-        contentDesc: "second content",
-        dataBlockHeader: FILE_SUMMARIES_DATA_BLOCK_HEADER,
-      });
+      const rendered1 = renderJsonSchemaPrompt(
+        createTestConfig({
+          contentDesc: "first content",
+          dataBlockHeader: CODE_DATA_BLOCK_HEADER,
+        }),
+        "test",
+      );
+      const rendered2 = renderJsonSchemaPrompt(
+        createTestConfig({
+          contentDesc: "second content",
+          dataBlockHeader: FILE_SUMMARIES_DATA_BLOCK_HEADER,
+        }),
+        "test",
+      );
 
-      const prompt1 = new JSONSchemaPrompt(config1);
-      const prompt2 = new JSONSchemaPrompt(config2);
-
-      expect(prompt1.dataBlockHeader).toBe(CODE_DATA_BLOCK_HEADER);
-      expect(prompt2.dataBlockHeader).toBe(FILE_SUMMARIES_DATA_BLOCK_HEADER);
+      expect(rendered1).toContain(CODE_DATA_BLOCK_HEADER + ":");
+      expect(rendered2).toContain(FILE_SUMMARIES_DATA_BLOCK_HEADER + ":");
     });
 
-    it("should use wrapInCodeBlock from config entries", () => {
-      const config1 = createTestConfig({
-        contentDesc: "first content",
-        wrapInCodeBlock: true,
-      });
-      const config2 = createTestConfig({
-        contentDesc: "second content",
-        wrapInCodeBlock: false,
-      });
+    it("should handle wrapInCodeBlock correctly", () => {
+      const rendered1 = renderJsonSchemaPrompt(
+        createTestConfig({
+          contentDesc: "first content",
+          wrapInCodeBlock: true,
+        }),
+        "test content here",
+      );
+      const rendered2 = renderJsonSchemaPrompt(
+        createTestConfig({
+          contentDesc: "second content",
+          wrapInCodeBlock: false,
+        }),
+        "test content here",
+      );
 
-      const prompt1 = new JSONSchemaPrompt(config1);
-      const prompt2 = new JSONSchemaPrompt(config2);
-
-      expect(prompt1.wrapInCodeBlock).toBe(true);
-      expect(prompt2.wrapInCodeBlock).toBe(false);
+      // With wrapInCodeBlock: true, content should be wrapped in ```
+      expect(rendered1).toContain("```\ntest content here```");
+      // With wrapInCodeBlock: false, no wrapper around content
+      const contentSection2 = rendered2.split(CODE_DATA_BLOCK_HEADER + ":")[1];
+      expect(contentSection2).not.toMatch(/^```\n/);
     });
 
     it("should handle config with all fields", () => {
@@ -122,15 +130,13 @@ describe("JSONSchemaPrompt Class", () => {
         wrapInCodeBlock: true,
       } as const;
 
-      const prompt = new JSONSchemaPrompt(config);
-      expect(prompt.contentDesc).toBe("custom content description");
-      expect(prompt.instructions[0]).toBe("Instruction for test");
-      expect(prompt.dataBlockHeader).toBe(CODE_DATA_BLOCK_HEADER);
-      expect(prompt.wrapInCodeBlock).toBe(true);
-      expect(prompt.responseSchema).toBe(baseSchema);
+      const rendered = renderJsonSchemaPrompt(config, "test");
+      expect(rendered).toContain("custom content description");
+      expect(rendered).toContain("Instruction for test");
+      expect(rendered).toContain(CODE_DATA_BLOCK_HEADER + ":");
     });
 
-    it("should preserve schema type information through generic type parameter", () => {
+    it("should preserve schema type information through rendering", () => {
       const stringSchema = z.string();
       const numberSchema = z.number();
       const objectSchema = z.object({
@@ -138,44 +144,44 @@ describe("JSONSchemaPrompt Class", () => {
         age: z.number(),
       });
 
-      const stringConfig = {
-        personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
-        contentDesc: "string content",
-        responseSchema: stringSchema,
-        instructions: ["instruction"] as const,
-        dataBlockHeader: CODE_DATA_BLOCK_HEADER,
-        wrapInCodeBlock: true,
-      } as const;
-      const numberConfig = {
-        personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
-        contentDesc: "number content",
-        responseSchema: numberSchema,
-        instructions: ["instruction"] as const,
-        dataBlockHeader: CODE_DATA_BLOCK_HEADER,
-        wrapInCodeBlock: true,
-      } as const;
-      const objectConfig = {
-        personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
-        contentDesc: "object content",
-        responseSchema: objectSchema,
-        instructions: ["instruction"] as const,
-        dataBlockHeader: CODE_DATA_BLOCK_HEADER,
-        wrapInCodeBlock: true,
-      } as const;
+      const stringRendered = renderJsonSchemaPrompt(
+        {
+          personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+          contentDesc: "string content",
+          responseSchema: stringSchema,
+          instructions: ["instruction"] as const,
+          dataBlockHeader: CODE_DATA_BLOCK_HEADER,
+          wrapInCodeBlock: true,
+        },
+        "test",
+      );
+      const numberRendered = renderJsonSchemaPrompt(
+        {
+          personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+          contentDesc: "number content",
+          responseSchema: numberSchema,
+          instructions: ["instruction"] as const,
+          dataBlockHeader: CODE_DATA_BLOCK_HEADER,
+          wrapInCodeBlock: true,
+        },
+        "test",
+      );
+      const objectRendered = renderJsonSchemaPrompt(
+        {
+          personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+          contentDesc: "object content",
+          responseSchema: objectSchema,
+          instructions: ["instruction"] as const,
+          dataBlockHeader: CODE_DATA_BLOCK_HEADER,
+          wrapInCodeBlock: true,
+        },
+        "test",
+      );
 
-      const stringPrompt = new JSONSchemaPrompt(stringConfig);
-      const numberPrompt = new JSONSchemaPrompt(numberConfig);
-      const objectPrompt = new JSONSchemaPrompt(objectConfig);
-
-      // Verify runtime schema preservation
-      expect(stringPrompt.responseSchema).toBe(stringSchema);
-      expect(numberPrompt.responseSchema).toBe(numberSchema);
-      expect(objectPrompt.responseSchema).toBe(objectSchema);
-
-      // Type-level test: These should compile without type errors if generics work correctly
-      expect(stringPrompt.responseSchema).toBeDefined();
-      expect(numberPrompt.responseSchema).toBeDefined();
-      expect(objectPrompt.responseSchema).toBeDefined();
+      // Verify each renders with appropriate schema type
+      expect(stringRendered).toContain('"type": "string"');
+      expect(numberRendered).toContain('"type": "number"');
+      expect(objectRendered).toContain('"type": "object"');
     });
 
     it("should use FRAGMENTED_DATA header when specified in config", () => {
@@ -187,9 +193,9 @@ describe("JSONSchemaPrompt Class", () => {
         wrapInCodeBlock: false,
       });
 
-      const prompt = new JSONSchemaPrompt(config);
+      const rendered = renderJsonSchemaPrompt(config, "test");
 
-      expect(prompt.dataBlockHeader).toBe("FRAGMENTED_DATA");
+      expect(rendered).toContain("FRAGMENTED_DATA:");
     });
   });
 });

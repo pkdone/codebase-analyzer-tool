@@ -2,7 +2,7 @@ import { FILE_SUMMARIES_DATA_BLOCK_HEADER } from "../../../src/app/prompts/promp
 import { appSummaryConfigMap } from "../../../src/app/prompts/app-summaries/app-summaries.definitions";
 import { APP_SUMMARY_CONTENT_DESC } from "../../../src/app/prompts/app-summaries/app-summaries.constants";
 import {
-  JSONSchemaPrompt,
+  renderJsonSchemaPrompt,
   JSON_SCHEMA_PROMPT_TEMPLATE,
   type JSONSchemaPromptConfig,
 } from "../../../src/common/prompts/json-schema-prompt";
@@ -17,31 +17,35 @@ function buildPartialAnalysisNote(dataBlockHeader: string): string {
 }
 
 /**
- * Helper to create a JSONSchemaPrompt from appSummaryConfigMap config.
+ * Helper to render a prompt from appSummaryConfigMap config.
  * Adds contentDesc, dataBlockHeader, and wrapInCodeBlock which are no longer in the config entries.
  */
-function createAppSummaryPrompt(
+function renderAppSummaryPrompt(
   category: keyof typeof appSummaryConfigMap,
+  content: string,
   options?: { forPartialAnalysis?: boolean },
-): JSONSchemaPrompt {
+): string {
   const config = appSummaryConfigMap[category];
   const contextNote = options?.forPartialAnalysis
     ? buildPartialAnalysisNote(FILE_SUMMARIES_DATA_BLOCK_HEADER)
     : undefined;
-  return new JSONSchemaPrompt({
-    personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
-    ...config,
-    contentDesc: APP_SUMMARY_CONTENT_DESC,
-    dataBlockHeader: FILE_SUMMARIES_DATA_BLOCK_HEADER,
-    wrapInCodeBlock: false,
-    contextNote,
-  } as JSONSchemaPromptConfig);
+  return renderJsonSchemaPrompt(
+    {
+      personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+      ...config,
+      contentDesc: APP_SUMMARY_CONTENT_DESC,
+      dataBlockHeader: FILE_SUMMARIES_DATA_BLOCK_HEADER,
+      wrapInCodeBlock: false,
+      contextNote,
+    } as JSONSchemaPromptConfig,
+    content,
+  );
 }
 
 describe("App Summaries Refactoring", () => {
-  describe("JSONSchemaPrompt definitions consistency", () => {
+  describe("renderJsonSchemaPrompt definitions consistency", () => {
     it("should have proper instructions for all app summary categories", () => {
-      // contentDesc is now set at instantiation time by the consumer
+      // contentDesc is now set at render time by the consumer
       Object.entries(appSummaryConfigMap).forEach(([, config]) => {
         // Verify that instructions contain the specific instruction text
         expect(config.instructions).toBeDefined();
@@ -73,8 +77,7 @@ describe("App Summaries Refactoring", () => {
     it("should render JSON_SCHEMA_PROMPT_TEMPLATE for standard analysis", () => {
       const testContent = "Test file content";
 
-      const prompt = createAppSummaryPrompt("technologies");
-      const renderedPrompt = prompt.renderPrompt(testContent);
+      const renderedPrompt = renderAppSummaryPrompt("technologies", testContent);
 
       // Verify the template structure
       expect(renderedPrompt).toContain("Act as a senior developer analyzing the code");
@@ -90,8 +93,9 @@ describe("App Summaries Refactoring", () => {
       const testContent = "Test file content";
 
       // Use forPartialAnalysis flag for partial analysis
-      const partialPrompt = createAppSummaryPrompt("technologies", { forPartialAnalysis: true });
-      const renderedPrompt = partialPrompt.renderPrompt(testContent);
+      const renderedPrompt = renderAppSummaryPrompt("technologies", testContent, {
+        forPartialAnalysis: true,
+      });
 
       // Verify the template structure includes partial analysis note
       expect(renderedPrompt).toContain("Act as a senior developer analyzing the code");
@@ -117,8 +121,7 @@ describe("App Summaries Refactoring", () => {
 
     it("should verify prompt text structure with generic contentDesc and specific instructions", () => {
       const testContent = "Test file summaries content";
-      const prompt = createAppSummaryPrompt("technologies");
-      const renderedPrompt = prompt.renderPrompt(testContent);
+      const renderedPrompt = renderAppSummaryPrompt("technologies", testContent);
 
       // Verify generic contentDesc appears in template
       expect(renderedPrompt).toContain("a set of source file summaries");

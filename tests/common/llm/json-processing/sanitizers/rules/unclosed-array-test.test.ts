@@ -1,60 +1,14 @@
-import {
-  executeRulesMultiPass,
-  STRUCTURAL_RULES,
-  ALL_RULES,
-} from "../../../../../../src/common/llm/json-processing/sanitizers/rules";
 import { parseJsonWithSanitizers } from "../../../../../../src/common/llm/json-processing/core/json-parsing";
 import { sanitizeJsonStructure } from "../../../../../../src/common/llm/json-processing/sanitizers/structural-sanitizer";
 
-describe("unclosedArrayBeforeProperty rule", () => {
-  describe("STRUCTURAL_RULES", () => {
-    it("should fix missing closing bracket for parameters array before returnType", () => {
-      const input = `{
-  "name": "TestClass",
-  "publicFunctions": [
-    {
-      "name": "testMethod",
-      "parameters": [
-        {
-          "name": "entity",
-          "type": "String"
-        },
-      "returnType": "void",
-      "description": "Test method"
-    }
-  ]
-}`;
-
-      const result = executeRulesMultiPass(input, STRUCTURAL_RULES, { maxPasses: 5 });
-
-      expect(() => JSON.parse(result.content)).not.toThrow();
-      expect(result.changed).toBe(true);
-    });
-
-    it("should fix missing closing bracket with ALL_RULES", () => {
-      const input = `{
-  "name": "TestClass",
-  "publicFunctions": [
-    {
-      "name": "testMethod",
-      "parameters": [
-        {
-          "name": "entity",
-          "type": "String"
-        },
-      "returnType": "void",
-      "description": "Test method"
-    }
-  ]
-}`;
-
-      const result = executeRulesMultiPass(input, ALL_RULES, { maxPasses: 5 });
-
-      expect(() => JSON.parse(result.content)).not.toThrow();
-      expect(result.changed).toBe(true);
-    });
-  });
-
+/**
+ * Tests that the structural sanitizer's internal fixUnclosedArraysBeforePropertiesInternal
+ * function correctly handles unclosed arrays before property names. The buggy
+ * unclosedArrayBeforeProperty rule was removed from STRUCTURAL_RULES because it
+ * failed to track braceDepth and could corrupt nested objects. The structural
+ * sanitizer's Phase 1 internal function handles this correctly with proper depth tracking.
+ */
+describe("unclosed array fix (structural sanitizer)", () => {
   describe("sanitizeJsonStructure (early phase fix)", () => {
     it("should fix unclosed array before property in Phase 1", () => {
       const input = `{

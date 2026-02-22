@@ -1,5 +1,5 @@
 import { container } from "tsyringe";
-import { coreTokens, insightsTokens, configTokens, serviceTokens } from "../tokens";
+import { coreTokens, insightsTokens, configTokens, serviceTokens, queryingTokens } from "../tokens";
 import { repositoryTokens } from "../tokens";
 import { taskTokens } from "../tokens";
 
@@ -12,9 +12,13 @@ import { AppSummariesRepository } from "../../repositories/app-summaries/app-sum
 // Domain-specific registration function
 import { registerReportingComponents } from "./reporting-registration";
 
+// Querying component imports
+import { CodebaseQueryProcessor } from "../../components/querying/codebase-query-processor";
+
 // Insights component imports
 import InsightsGenerator from "../../components/insights/generators/insights-generator";
 import { RequirementPromptExecutor } from "../../components/insights/generators/requirement-prompt-executor";
+import { InsightsCompletionExecutor } from "../../components/insights/strategies/insights-completion-executor";
 import { SinglePassInsightStrategy } from "../../components/insights/strategies/single-pass-insight-strategy";
 import { MapReduceInsightStrategy } from "../../components/insights/strategies/map-reduce-insight-strategy";
 
@@ -99,9 +103,16 @@ function registerComponents(): void {
   // Register database components
   container.registerSingleton(coreTokens.DatabaseInitializer, DatabaseInitializer);
 
+  // Register querying components
+  container.registerSingleton(queryingTokens.CodebaseQueryProcessor, CodebaseQueryProcessor);
+
   // Register insights components
   container.registerSingleton(insightsTokens.RequirementPromptExecutor, RequirementPromptExecutor);
   container.registerSingleton(insightsTokens.InsightsGenerator, InsightsGenerator);
+  container.registerSingleton(
+    insightsTokens.InsightsCompletionExecutor,
+    InsightsCompletionExecutor,
+  );
   container.registerSingleton(insightsTokens.SinglePassInsightStrategy, SinglePassInsightStrategy);
   container.registerSingleton(insightsTokens.MapReduceInsightStrategy, MapReduceInsightStrategy);
 

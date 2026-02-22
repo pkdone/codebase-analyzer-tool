@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import { describe, test, expect, jest, beforeEach } from "@jest/globals";
 import { z } from "zod";
-import { executeInsightCompletion } from "../../../../src/app/components/insights/strategies/insights-completion-executor";
+import { InsightsCompletionExecutor } from "../../../../src/app/components/insights/strategies/insights-completion-executor";
 import { appSummaryCategorySchemas } from "../../../../src/app/components/insights/insights.types";
 import { AppSummaryCategories } from "../../../../src/app/schemas/app-summaries.schema";
 import LLMRouter from "../../../../src/common/llm/llm-router";
@@ -22,16 +22,18 @@ jest.mock("../../../../src/common/utils/logging", () => ({
 
 /**
  * Integration test suite verifying that the type fix enables proper type inference
- * in the executeInsightCompletion function without requiring unsafe type casts.
+ * in the InsightsCompletionExecutor class without requiring unsafe type casts.
  */
-describe("Completion Executor Type Safety - Post Fix", () => {
+describe("InsightsCompletionExecutor - Type Safety Post Fix", () => {
   let mockLLMRouter: jest.Mocked<LLMRouter>;
+  let executor: InsightsCompletionExecutor;
 
   beforeEach(() => {
     // Create a mock LLM router with proper typing
     mockLLMRouter = {
       executeCompletion: jest.fn(),
     } as unknown as jest.Mocked<LLMRouter>;
+    executor = new InsightsCompletionExecutor(mockLLMRouter);
   });
 
   describe("Category-Specific Type Inference", () => {
@@ -47,8 +49,7 @@ describe("Completion Executor Type Safety - Post Fix", () => {
         llmOk(mockTechnologiesData, createExecutionMetadata("gpt-4", "openai")) as any,
       );
 
-      const result = await executeInsightCompletion(
-        mockLLMRouter,
+      const result = await executor.execute(
         AppSummaryCategories.enum.technologies,
         ["file1.ts", "file2.ts"],
         undefined,
@@ -109,8 +110,7 @@ describe("Completion Executor Type Safety - Post Fix", () => {
         llmOk(mockBoundedContextsData, createExecutionMetadata("gpt-4", "openai")) as any,
       );
 
-      const result = await executeInsightCompletion(
-        mockLLMRouter,
+      const result = await executor.execute(
         AppSummaryCategories.enum.boundedContexts,
         ["file1.ts", "file2.ts"],
         undefined,
@@ -160,8 +160,7 @@ describe("Completion Executor Type Safety - Post Fix", () => {
         llmOk(mockBoundedContextsData, createExecutionMetadata("gpt-4", "openai")) as any,
       );
 
-      const result = await executeInsightCompletion(
-        mockLLMRouter,
+      const result = await executor.execute(
         AppSummaryCategories.enum.boundedContexts,
         ["file1.ts", "file2.ts"],
         undefined,
@@ -189,8 +188,7 @@ describe("Completion Executor Type Safety - Post Fix", () => {
         llmOk(mockTechData, createExecutionMetadata("gpt-4", "openai")) as any,
       );
 
-      const result = await executeInsightCompletion(
-        mockLLMRouter,
+      const result = await executor.execute(
         AppSummaryCategories.enum.technologies,
         ["file1.ts", "file2.ts"],
         undefined,
@@ -217,8 +215,7 @@ describe("Completion Executor Type Safety - Post Fix", () => {
         llmOk(mockData, createExecutionMetadata("gpt-4", "openai")) as any,
       );
 
-      await executeInsightCompletion(
-        mockLLMRouter,
+      await executor.execute(
         AppSummaryCategories.enum.technologies,
         ["file1.ts"],
         { taskCategory: "custom-entities" },
@@ -240,8 +237,7 @@ describe("Completion Executor Type Safety - Post Fix", () => {
         llmOk(mockData, createExecutionMetadata("gpt-4", "openai")) as any,
       );
 
-      await executeInsightCompletion(
-        mockLLMRouter,
+      await executor.execute(
         AppSummaryCategories.enum.technologies,
         ["file1.ts"],
         { forPartialAnalysis: true },
@@ -262,8 +258,7 @@ describe("Completion Executor Type Safety - Post Fix", () => {
         llmErr(new LLMExecutionError("Mock error", "test")),
       );
 
-      const result = await executeInsightCompletion(
-        mockLLMRouter,
+      const result = await executor.execute(
         AppSummaryCategories.enum.technologies,
         ["file1.ts"],
         undefined,
@@ -275,8 +270,7 @@ describe("Completion Executor Type Safety - Post Fix", () => {
     test("should return null when LLM throws error", async () => {
       mockLLMRouter.executeCompletion.mockRejectedValue(new Error("LLM error"));
 
-      const result = await executeInsightCompletion(
-        mockLLMRouter,
+      const result = await executor.execute(
         AppSummaryCategories.enum.technologies,
         ["file1.ts"],
         undefined,
@@ -294,8 +288,7 @@ describe("Completion Executor Type Safety - Post Fix", () => {
         llmOk(mockData, createExecutionMetadata("gpt-4", "openai")) as any,
       );
 
-      const result = await executeInsightCompletion(
-        mockLLMRouter,
+      const result = await executor.execute(
         AppSummaryCategories.enum.technologies,
         [],
         undefined,
@@ -322,8 +315,7 @@ describe("Completion Executor Type Safety - Post Fix", () => {
       );
 
       // This function call should now have proper type inference
-      const result = await executeInsightCompletion(
-        mockLLMRouter,
+      const result = await executor.execute(
         AppSummaryCategories.enum.technologies,
         ["file1.ts"],
         undefined,
@@ -366,8 +358,7 @@ describe("Completion Executor Type Safety - Post Fix", () => {
 
       // The function is generic over C extends AppSummaryCategoryType
       // The return type should be CategoryInsightResult<C> | null
-      const result = await executeInsightCompletion(
-        mockLLMRouter,
+      const result = await executor.execute(
         AppSummaryCategories.enum.boundedContexts,
         ["file1.ts"],
         undefined,
@@ -408,8 +399,7 @@ describe("Completion Executor Type Safety - Post Fix", () => {
         llmOk(mockData, createExecutionMetadata("gpt-4", "openai")) as any,
       );
 
-      await executeInsightCompletion(
-        mockLLMRouter,
+      await executor.execute(
         AppSummaryCategories.enum.technologies,
         ["file1.ts"],
         undefined,

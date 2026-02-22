@@ -1,29 +1,29 @@
-import { JSONSchemaPrompt } from "../../../../../src/common/prompts/json-schema-prompt";
+import { renderJsonSchemaPrompt } from "../../../../../src/common/prompts/json-schema-prompt";
 import { DEFAULT_PERSONA_INTRODUCTION } from "../../../../../src/app/prompts/prompts.constants";
 import { buildReduceInsightsContentDesc } from "../../../../../src/app/prompts/app-summaries/app-summaries.constants";
 import { z } from "zod";
 
 describe("MapReduceInsightStrategy - categoryKey parameter handling", () => {
   it("should embed categoryKey in contentDesc", () => {
-    // categoryKey is embedded directly in contentDesc, not as a placeholder for renderPrompt
+    // categoryKey is embedded directly in contentDesc, not as a placeholder for renderJsonSchemaPrompt
     const categoryKey = "technologies";
     const schema = z.object({ technologies: z.array(z.object({ name: z.string() })) });
 
-    // Create a reduce prompt definition (JSON mode = responseSchema present)
-    const reducePrompt = new JSONSchemaPrompt({
+    // Create a reduce prompt config (JSON mode = responseSchema present)
+    const reduceConfig = {
       personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
       contentDesc: buildReduceInsightsContentDesc(categoryKey),
       instructions: [`a consolidated list of '${categoryKey}'`],
       responseSchema: schema,
       dataBlockHeader: "FRAGMENTED_DATA",
       wrapInCodeBlock: false,
-    });
+    };
 
     // Verify the categoryKey is embedded in contentDesc
-    expect(reducePrompt.contentDesc).toContain(categoryKey);
+    expect(reduceConfig.contentDesc).toContain(categoryKey);
 
-    // Now render with the definition
-    const rendered = reducePrompt.renderPrompt('{"technologies": []}');
+    // Now render with the config
+    const rendered = renderJsonSchemaPrompt(reduceConfig, '{"technologies": []}');
 
     // Verify categoryKey appears in the rendered output
     expect(rendered).toContain("technologies");
@@ -33,17 +33,18 @@ describe("MapReduceInsightStrategy - categoryKey parameter handling", () => {
   it("should render reduce prompt with FRAGMENTED_DATA header", () => {
     const categoryKey = "technologies";
     const schema = z.object({ technologies: z.array(z.object({ name: z.string() })) });
-    const reducePrompt = new JSONSchemaPrompt({
-      personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
-      contentDesc: buildReduceInsightsContentDesc(categoryKey),
-      instructions: [`a consolidated list of '${categoryKey}'`],
-      responseSchema: schema,
-      dataBlockHeader: "FRAGMENTED_DATA",
-      wrapInCodeBlock: false,
-    });
-
     const content = JSON.stringify({ technologies: [{ name: "Test" }] }, null, 2);
-    const rendered = reducePrompt.renderPrompt(content);
+    const rendered = renderJsonSchemaPrompt(
+      {
+        personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+        contentDesc: buildReduceInsightsContentDesc(categoryKey),
+        instructions: [`a consolidated list of '${categoryKey}'`],
+        responseSchema: schema,
+        dataBlockHeader: "FRAGMENTED_DATA",
+        wrapInCodeBlock: false,
+      },
+      content,
+    );
 
     // Verify the template was rendered correctly
     expect(rendered).toContain("technologies");
@@ -54,17 +55,18 @@ describe("MapReduceInsightStrategy - categoryKey parameter handling", () => {
   it("should work with pre-populated contentDesc (simulating inline definition)", () => {
     // This tests the pattern where factory pre-populates the contentDesc
     const categoryKey = "technologies";
-    const testPrompt = new JSONSchemaPrompt({
-      personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
-      contentDesc: `Test intro with ${categoryKey} in the section below.`,
-      instructions: ["a consolidated list"],
-      responseSchema: z.object({ technologies: z.array(z.object({ name: z.string() })) }),
-      dataBlockHeader: "FRAGMENTED_DATA",
-      wrapInCodeBlock: false,
-    });
-
     const content = JSON.stringify({ technologies: [{ name: "Test" }] }, null, 2);
-    const rendered = testPrompt.renderPrompt(content);
+    const rendered = renderJsonSchemaPrompt(
+      {
+        personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+        contentDesc: `Test intro with ${categoryKey} in the section below.`,
+        instructions: ["a consolidated list"],
+        responseSchema: z.object({ technologies: z.array(z.object({ name: z.string() })) }),
+        dataBlockHeader: "FRAGMENTED_DATA",
+        wrapInCodeBlock: false,
+      },
+      content,
+    );
 
     // Verify the template was rendered correctly with categoryKey already embedded
     expect(rendered).toContain("technologies");

@@ -35,7 +35,7 @@ export class DatabaseReportDataProvider {
   /**
    * Returns a list of database integrations.
    */
-  async getDatabaseInteractions(projectName: string): Promise<DatabaseIntegrationInfo[]> {
+  async getDatabaseIntegrations(projectName: string): Promise<DatabaseIntegrationInfo[]> {
     const records = await this.sourcesRepository.getProjectDatabaseIntegrations(projectName);
     return records.flatMap((record) => {
       const { summary } = record;

@@ -6,7 +6,7 @@
 
 import { fixMalformedJsonPatterns } from "../../../../../src/common/llm/json-processing/sanitizers/index";
 import { extraPropertiesRemover } from "../../../../../src/common/llm/json-processing/sanitizers/strategies/extra-properties-remover";
-import { textOutsideJsonRemover } from "../../../../../src/common/llm/json-processing/sanitizers/strategies/text-outside-json-remover";
+import { embeddedCommentaryRemover } from "../../../../../src/common/llm/json-processing/sanitizers/strategies/embedded-commentary-remover";
 import { arrayElementFixer } from "../../../../../src/common/llm/json-processing/sanitizers/strategies/array-element-fixer";
 import { strayContentRemover } from "../../../../../src/common/llm/json-processing/sanitizers/strategies/stray-content-remover";
 
@@ -256,7 +256,7 @@ foo-bar-baz
   "name": "TestClass"
 }
 _llm_thought: This is my reasoning`;
-      const result = textOutsideJsonRemover.apply(input);
+      const result = embeddedCommentaryRemover.apply(input);
       expect(result.changed).toBe(true);
       expect(result.content).not.toContain("_llm_thought");
       expect(() => JSON.parse(result.content)).not.toThrow();
@@ -267,7 +267,7 @@ _llm_thought: This is my reasoning`;
   "name": "TestClass"
 }
 ai_thoughts: This is my reasoning`;
-      const result = textOutsideJsonRemover.apply(input);
+      const result = embeddedCommentaryRemover.apply(input);
       expect(result.changed).toBe(true);
       expect(result.content).not.toContain("ai_thoughts");
       expect(() => JSON.parse(result.content)).not.toThrow();
@@ -278,7 +278,7 @@ ai_thoughts: This is my reasoning`;
   "name": "TestClass"
 }
 model_reasoning: This is my reasoning`;
-      const result = textOutsideJsonRemover.apply(input);
+      const result = embeddedCommentaryRemover.apply(input);
       expect(result.changed).toBe(true);
       expect(result.content).not.toContain("model_reasoning");
       expect(() => JSON.parse(result.content)).not.toThrow();
@@ -524,7 +524,7 @@ moving on to the next item
   "name": "test"
 }
 This is the end of the response.`;
-      const result = textOutsideJsonRemover.apply(input);
+      const result = embeddedCommentaryRemover.apply(input);
       expect(result.changed).toBe(true);
       expect(result.content).not.toContain("This is the end");
       expect(() => JSON.parse(result.content)).not.toThrow();
@@ -587,7 +587,7 @@ extra_analysis: This is my analysis of the code
 this is descriptive text that explains the data
   "other": []
 }`;
-      const result = textOutsideJsonRemover.apply(input);
+      const result = embeddedCommentaryRemover.apply(input);
       expect(result.changed).toBe(true);
       expect(result.content).not.toContain("descriptive text");
     });
@@ -597,7 +597,7 @@ this is descriptive text that explains the data
   "data": "value"
 }
 I have completed the analysis!`;
-      const result = textOutsideJsonRemover.apply(input);
+      const result = embeddedCommentaryRemover.apply(input);
       expect(result.changed).toBe(true);
       expect(result.content).not.toContain("completed the analysis");
       expect(() => JSON.parse(result.content)).not.toThrow();

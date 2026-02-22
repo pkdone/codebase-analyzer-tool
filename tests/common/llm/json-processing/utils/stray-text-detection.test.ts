@@ -1,7 +1,7 @@
 import {
   isJsonKeyword,
   looksLikeStrayText,
-  looksLikeStrayArrayPrefix,
+  isStrayWordCandidate,
   looksLikeStrayPropertyPrefix,
   looksLikeDescriptiveText,
   looksLikeFirstPersonStatement,
@@ -123,27 +123,27 @@ describe("stray-text-detection", () => {
     });
   });
 
-  describe("looksLikeStrayArrayPrefix", () => {
+  describe("isStrayWordCandidate", () => {
     it("should return false for JSON keywords", () => {
-      expect(looksLikeStrayArrayPrefix("true")).toBe(false);
-      expect(looksLikeStrayArrayPrefix("false")).toBe(false);
-      expect(looksLikeStrayArrayPrefix("null")).toBe(false);
+      expect(isStrayWordCandidate("true")).toBe(false);
+      expect(isStrayWordCandidate("false")).toBe(false);
+      expect(isStrayWordCandidate("null")).toBe(false);
     });
 
     it("should return true for short lowercase words", () => {
-      expect(looksLikeStrayArrayPrefix("a")).toBe(true);
-      expect(looksLikeStrayArrayPrefix("from")).toBe(true);
-      expect(looksLikeStrayArrayPrefix("import")).toBe(true);
+      expect(isStrayWordCandidate("a")).toBe(true);
+      expect(isStrayWordCandidate("from")).toBe(true);
+      expect(isStrayWordCandidate("import")).toBe(true);
     });
 
     it("should return false for words longer than 7 chars", () => {
-      expect(looksLikeStrayArrayPrefix("something")).toBe(false);
-      expect(looksLikeStrayArrayPrefix("longword")).toBe(false);
+      expect(isStrayWordCandidate("something")).toBe(false);
+      expect(isStrayWordCandidate("longword")).toBe(false);
     });
 
     it("should return false for mixed case words", () => {
-      expect(looksLikeStrayArrayPrefix("Hello")).toBe(false);
-      expect(looksLikeStrayArrayPrefix("UPPER")).toBe(false);
+      expect(isStrayWordCandidate("Hello")).toBe(false);
+      expect(isStrayWordCandidate("UPPER")).toBe(false);
     });
   });
 

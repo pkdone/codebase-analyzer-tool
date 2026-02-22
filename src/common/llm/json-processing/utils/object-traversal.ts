@@ -36,7 +36,7 @@ export interface DeepMapObjectOptions {
 }
 
 /**
- * Type for the visitor function used in deepMap and deepMapObject.
+ * Type for the visitor function used in deepMap and deepTransform.
  */
 export type DeepMapVisitor = (value: unknown, visited: WeakSet<object>) => unknown;
 
@@ -152,7 +152,7 @@ export function deepMap(
  * @param visited - WeakSet to track visited objects (for circular reference detection)
  * @returns The transformed value
  */
-export function deepMapObject<T>(
+export function deepTransform<T>(
   value: T,
   visitor: DeepMapVisitor,
   options?: DeepMapObjectOptions,
@@ -160,10 +160,10 @@ export function deepMapObject<T>(
 ): T;
 
 /**
- * Implementation of deepMapObject.
+ * Implementation of deepTransform.
  * Optimized to avoid unnecessary object allocation when nothing changes.
  */
-export function deepMapObject(
+export function deepTransform(
   value: unknown,
   visitor: DeepMapVisitor,
   options: DeepMapObjectOptions = {},
@@ -189,7 +189,7 @@ export function deepMapObject(
     }
 
     const mapped = visitedValue.map((item: unknown) =>
-      deepMapObject(item, visitor, options, visited),
+      deepTransform(item, visitor, options, visited),
     );
 
     if (typeof value === "object" && value !== null) {
@@ -220,7 +220,7 @@ export function deepMapObject(
       const val = visitedValue[key];
 
       // Recursively process the value
-      const transformedVal = deepMapObject(val, visitor, options, visited);
+      const transformedVal = deepTransform(val, visitor, options, visited);
 
       // Check if property should be included
       if (options.shouldInclude && !options.shouldInclude(key, transformedVal)) {
@@ -257,7 +257,7 @@ export function deepMapObject(
 
   for (const sym of symbols) {
     const original = visitedValue[sym];
-    const transformedVal = deepMapObject(original, visitor, options, visited);
+    const transformedVal = deepTransform(original, visitor, options, visited);
 
     // Check if property should be included
     if (options.shouldInclude && !options.shouldInclude(String(sym), transformedVal)) {

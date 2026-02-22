@@ -143,7 +143,7 @@ export function looksLikeStrayText(text: string, options: StrayTextDetectionOpti
  * @param word - The word to check
  * @returns True if the word looks like stray text that should be removed
  */
-export function looksLikeStrayArrayPrefix(word: string): boolean {
+export function isStrayWordCandidate(word: string): boolean {
   // JSON keywords should never be removed
   if (isJsonKeyword(word)) {
     return false;

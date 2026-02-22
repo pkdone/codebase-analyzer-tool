@@ -17,14 +17,14 @@
  * - Preserves all other values unchanged
  * - Handles symbol keys and preserves them
  */
-import { deepMapObject } from "../utils/object-traversal";
+import { deepTransform } from "../utils/object-traversal";
 
 export function fixCommonPropertyNameTypos(
   value: unknown,
   _config?: import("../../config/llm-module-config.types").LLMSanitizerConfig,
   visited = new WeakSet<object>(),
 ): unknown {
-  return deepMapObject(
+  return deepTransform(
     value,
     (val) => val, // No value transformation, only key transformation
     {

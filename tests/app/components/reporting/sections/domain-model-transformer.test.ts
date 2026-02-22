@@ -10,13 +10,13 @@ describe("DomainModelTransformer", () => {
     transformer = new DomainModelTransformer();
   });
 
-  describe("getDomainModelData", () => {
+  describe("transformToDomainModel", () => {
     it("should return empty structure when no boundedContexts category exists", () => {
       const categorizedData: CategorizedSectionItem[] = [
         { category: "technologies", label: "Technologies", data: [] },
       ];
 
-      const result = transformer.getDomainModelData(categorizedData);
+      const result = transformer.transformToDomainModel(categorizedData);
 
       expect(result).toEqual({
         boundedContexts: [],
@@ -62,7 +62,7 @@ describe("DomainModelTransformer", () => {
         },
       ];
 
-      const result = transformer.getDomainModelData(categorizedData);
+      const result = transformer.transformToDomainModel(categorizedData);
 
       expect(result.aggregates).toHaveLength(2);
       expect(result.aggregates.map((a) => a.name)).toContain("Aggregate1");
@@ -105,7 +105,7 @@ describe("DomainModelTransformer", () => {
         },
       ];
 
-      const result = transformer.getDomainModelData(categorizedData);
+      const result = transformer.transformToDomainModel(categorizedData);
 
       // Should only have one aggregate with the name "SharedAggregate"
       expect(result.aggregates).toHaveLength(1);
@@ -154,7 +154,7 @@ describe("DomainModelTransformer", () => {
         },
       ];
 
-      const result = transformer.getDomainModelData(categorizedData);
+      const result = transformer.transformToDomainModel(categorizedData);
 
       // Should have 3 entities: SharedEntity (deduplicated), UniqueEntity1, UniqueEntity2
       expect(result.entities).toHaveLength(3);
@@ -198,7 +198,7 @@ describe("DomainModelTransformer", () => {
         },
       ];
 
-      const result = transformer.getDomainModelData(categorizedData);
+      const result = transformer.transformToDomainModel(categorizedData);
 
       // Should only have one repository with the name "SharedRepo"
       expect(result.repositories).toHaveLength(1);
@@ -241,7 +241,7 @@ describe("DomainModelTransformer", () => {
         },
       ];
 
-      const result = transformer.getDomainModelData(categorizedData);
+      const result = transformer.transformToDomainModel(categorizedData);
 
       // Should keep the first occurrence
       expect(result.aggregates[0].description).toBe("First description");
@@ -279,7 +279,7 @@ describe("DomainModelTransformer", () => {
         },
       ];
 
-      const result = transformer.getDomainModelData(categorizedData);
+      const result = transformer.transformToDomainModel(categorizedData);
 
       // Should have both bounded contexts
       expect(result.boundedContexts).toHaveLength(2);
@@ -318,7 +318,7 @@ describe("DomainModelTransformer", () => {
         },
       ];
 
-      const result = transformer.getDomainModelData(categorizedData);
+      const result = transformer.transformToDomainModel(categorizedData);
 
       expect(result.boundedContexts).toHaveLength(1);
       expect(result.boundedContexts[0].name).toBe("EmptyContext");

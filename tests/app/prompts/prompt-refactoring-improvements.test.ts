@@ -1,25 +1,26 @@
 import { z } from "zod";
 import {
-  JSONSchemaPrompt,
+  renderJsonSchemaPrompt,
   type JSONSchemaPromptConfig,
 } from "../../../src/common/prompts/json-schema-prompt";
 import { DEFAULT_PERSONA_INTRODUCTION } from "../../../src/app/prompts/prompts.constants";
 import { fileTypePromptRegistry } from "../../../src/app/prompts/sources/sources.definitions";
 
-describe("JSONSchemaPrompt Refactoring Improvements", () => {
+describe("renderJsonSchemaPrompt Refactoring Improvements", () => {
   describe("JSON Schema Rendering", () => {
     it("should include JSON schema section for JSON-mode prompts", () => {
       // JSON mode = responseSchema is provided (now mandatory)
-      const jsonPrompt = new JSONSchemaPrompt({
-        personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
-        contentDesc: "test content",
-        instructions: ["test instruction"],
-        responseSchema: z.object({ name: z.string() }),
-        dataBlockHeader: "CODE",
-        wrapInCodeBlock: false,
-      });
-
-      const result = jsonPrompt.renderPrompt("sample code");
+      const result = renderJsonSchemaPrompt(
+        {
+          personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+          contentDesc: "test content",
+          instructions: ["test instruction"],
+          responseSchema: z.object({ name: z.string() }),
+          dataBlockHeader: "CODE",
+          wrapInCodeBlock: false,
+        },
+        "sample code",
+      );
 
       // Should contain JSON schema section
       expect(result).toContain("JSON response must follow");
@@ -74,6 +75,7 @@ describe("JSONSchemaPrompt Refactoring Improvements", () => {
 
     it("should use CLASS base for other languages", () => {
       const classBasedLanguages = ["java", "javascript", "csharp", "python", "ruby", "cpp"];
+
       for (const lang of classBasedLanguages) {
         const config = fileTypePromptRegistry[lang as keyof typeof fileTypePromptRegistry];
         expect(config.instructions[0]).toContain("class/interface");
@@ -99,7 +101,7 @@ describe("JSONSchemaPrompt Refactoring Improvements", () => {
     });
   });
 
-  describe("JSONSchemaPrompt text preservation", () => {
+  describe("renderJsonSchemaPrompt text preservation", () => {
     it("should preserve Java prompt text structure", () => {
       const config = fileTypePromptRegistry.java;
       const fullInstructions = config.instructions.join("\n\n");
@@ -194,16 +196,17 @@ describe("JSONSchemaPrompt Refactoring Improvements", () => {
 
   describe("Rendered prompt comparison", () => {
     it("should render Java prompt with correct structure", () => {
-      const testPrompt = new JSONSchemaPrompt({
-        personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
-        contentDesc: `the ${fileTypePromptRegistry.java.contentDesc}`,
-        instructions: fileTypePromptRegistry.java.instructions,
-        responseSchema: fileTypePromptRegistry.java.responseSchema,
-        dataBlockHeader: "CODE",
-        wrapInCodeBlock: true,
-      });
-
-      const result = testPrompt.renderPrompt("public class Test {}");
+      const result = renderJsonSchemaPrompt(
+        {
+          personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+          contentDesc: `the ${fileTypePromptRegistry.java.contentDesc}`,
+          instructions: fileTypePromptRegistry.java.instructions,
+          responseSchema: fileTypePromptRegistry.java.responseSchema,
+          dataBlockHeader: "CODE",
+          wrapInCodeBlock: true,
+        },
+        "public class Test {}",
+      );
 
       expect(result).toContain("JVM code");
       expect(result).toContain("__Basic Information__");

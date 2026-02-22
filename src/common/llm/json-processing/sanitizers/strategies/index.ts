@@ -11,5 +11,5 @@ export { arrayElementFixer } from "./array-element-fixer";
 export { unescapedQuoteFixer } from "./unescaped-quote-fixer";
 export { strayContentRemover } from "./stray-content-remover";
 export { duplicateEntryRemover } from "./duplicate-entry-remover";
-export { textOutsideJsonRemover } from "./text-outside-json-remover";
+export { embeddedCommentaryRemover } from "./embedded-commentary-remover";
 export { extraPropertiesRemover } from "./extra-properties-remover";

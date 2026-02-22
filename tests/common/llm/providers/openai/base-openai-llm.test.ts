@@ -114,6 +114,14 @@ describe("BaseOpenAILLM refactored invokeProvider", () => {
     expect(result.tokenUsage.promptTokens).toBe(7);
   });
 
+  test("completion params include top_p", async () => {
+    const fakeClient = (llm as any).getClient();
+    const spy = jest.spyOn(fakeClient.chat.completions, "create");
+    await (llm as any).invokeCompletionProvider("COMPLETE", "test");
+    const callArg = spy.mock.calls[0][0] as Record<string, unknown>;
+    expect(callArg).toHaveProperty("top_p");
+  });
+
   test("JSON output option sets response_format", async () => {
     const fakeClient = (llm as any).getClient(); // Access fake client bypassing protected for test
     const spy = jest.spyOn(fakeClient.chat.completions, "create");

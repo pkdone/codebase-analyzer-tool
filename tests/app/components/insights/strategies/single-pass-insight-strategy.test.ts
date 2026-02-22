@@ -2,8 +2,9 @@ import "reflect-metadata";
 import { describe, test, expect, jest, beforeEach } from "@jest/globals";
 import { container } from "tsyringe";
 import { SinglePassInsightStrategy } from "../../../../../src/app/components/insights/strategies/single-pass-insight-strategy";
+import { InsightsCompletionExecutor } from "../../../../../src/app/components/insights/strategies/insights-completion-executor";
 import LLMRouter from "../../../../../src/common/llm/llm-router";
-import { llmTokens } from "../../../../../src/app/di/tokens";
+import { llmTokens, insightsTokens } from "../../../../../src/app/di/tokens";
 import {
   llmOk,
   llmErr,
@@ -43,6 +44,7 @@ describe("SinglePassInsightStrategy", () => {
     // Create a child container for testing
     testContainer = container.createChildContainer();
     testContainer.register(llmTokens.LLMRouter, { useValue: mockLLMRouter });
+    testContainer.registerSingleton(insightsTokens.InsightsCompletionExecutor, InsightsCompletionExecutor);
 
     strategy = testContainer.resolve(SinglePassInsightStrategy);
   });

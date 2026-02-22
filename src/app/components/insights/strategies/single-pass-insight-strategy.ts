@@ -1,9 +1,8 @@
 import { injectable, inject } from "tsyringe";
-import LLMRouter from "../../../../common/llm/llm-router";
-import { llmTokens } from "../../../di/tokens";
+import { insightsTokens } from "../../../di/tokens";
 import { InsightGenerationStrategy } from "./insight-generation-strategy.interface";
 import { AppSummaryCategoryType, CategoryInsightResult } from "../insights.types";
-import { executeInsightCompletion } from "./insights-completion-executor";
+import type { InsightsCompletionExecutor } from "./insights-completion-executor";
 
 /**
  * Single-pass insight generation strategy for small to medium codebases.
@@ -11,7 +10,10 @@ import { executeInsightCompletion } from "./insights-completion-executor";
  */
 @injectable()
 export class SinglePassInsightStrategy implements InsightGenerationStrategy {
-  constructor(@inject(llmTokens.LLMRouter) private readonly llmRouter: LLMRouter) {}
+  constructor(
+    @inject(insightsTokens.InsightsCompletionExecutor)
+    private readonly completionExecutor: InsightsCompletionExecutor,
+  ) {}
 
   /**
    * Generate insights for a category by processing all summaries in a single pass.
@@ -21,6 +23,6 @@ export class SinglePassInsightStrategy implements InsightGenerationStrategy {
     category: C,
     sourceFileSummaries: readonly string[],
   ): Promise<CategoryInsightResult<C> | null> {
-    return executeInsightCompletion(this.llmRouter, category, sourceFileSummaries);
+    return this.completionExecutor.execute(category, sourceFileSummaries);
   }
 }

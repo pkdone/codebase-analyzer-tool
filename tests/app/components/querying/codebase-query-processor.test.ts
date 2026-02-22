@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import { queryCodebaseWithQuestion } from "../../../../src/app/components/querying/codebase-query-processor";
+import { CodebaseQueryProcessor } from "../../../../src/app/components/querying/codebase-query-processor";
 import type { SourcesRepository } from "../../../../src/app/repositories/sources/sources.repository.interface";
 import type LLMRouter from "../../../../src/common/llm/llm-router";
 import { LLMOutputFormat } from "../../../../src/common/llm/types/llm-request.types";
@@ -11,9 +11,10 @@ import {
 } from "../../../../src/common/llm/types/llm-result.types";
 import { LLMExecutionError } from "../../../../src/common/llm/types/llm-execution-error.types";
 
-describe("queryCodebaseWithQuestion", () => {
+describe("CodebaseQueryProcessor", () => {
   let mockSourcesRepository: jest.Mocked<SourcesRepository>;
   let mockLLMRouter: jest.Mocked<LLMRouter>;
+  let processor: CodebaseQueryProcessor;
   const testProjectName = "test-project";
   const testQuestion = "How does authentication work?";
 
@@ -30,6 +31,8 @@ describe("queryCodebaseWithQuestion", () => {
       generateEmbeddings: jest.fn(),
       executeCompletion: jest.fn(),
     } as unknown as jest.Mocked<LLMRouter>;
+
+    processor = new CodebaseQueryProcessor(mockSourcesRepository, mockLLMRouter);
   });
 
   const mockMeta = createExecutionMetadata("gpt-4", "openai");
@@ -42,7 +45,7 @@ describe("queryCodebaseWithQuestion", () => {
     },
   });
 
-  describe("queryCodebaseWithQuestion", () => {
+  describe("execute", () => {
     it("should successfully query codebase and return formatted response with references", async () => {
       // Arrange
       const mockVector = [0.1, 0.2, 0.3];
@@ -69,12 +72,7 @@ describe("queryCodebaseWithQuestion", () => {
       );
 
       // Act
-      const result = await queryCodebaseWithQuestion(
-        mockSourcesRepository,
-        mockLLMRouter,
-        testQuestion,
-        testProjectName,
-      );
+      const result = await processor.execute(testQuestion, testProjectName);
 
       // Assert
       expect(mockLLMRouter.generateEmbeddings).toHaveBeenCalledWith("Human question", testQuestion);
@@ -100,12 +98,7 @@ describe("queryCodebaseWithQuestion", () => {
       mockLLMRouter.generateEmbeddings.mockResolvedValue(null);
 
       // Act
-      const result = await queryCodebaseWithQuestion(
-        mockSourcesRepository,
-        mockLLMRouter,
-        testQuestion,
-        testProjectName,
-      );
+      const result = await processor.execute(testQuestion, testProjectName);
 
       // Assert
       expect(result).toBe("No vector was generated for the question - unable to answer question");
@@ -117,12 +110,7 @@ describe("queryCodebaseWithQuestion", () => {
       mockLLMRouter.generateEmbeddings.mockResolvedValue(createEmbeddingResult([]));
 
       // Act
-      const result = await queryCodebaseWithQuestion(
-        mockSourcesRepository,
-        mockLLMRouter,
-        testQuestion,
-        testProjectName,
-      );
+      const result = await processor.execute(testQuestion, testProjectName);
 
       // Assert
       expect(result).toBe("No vector was generated for the question - unable to answer question");
@@ -136,12 +124,7 @@ describe("queryCodebaseWithQuestion", () => {
       mockSourcesRepository.vectorSearchProjectSources.mockResolvedValue([]);
 
       // Act
-      const result = await queryCodebaseWithQuestion(
-        mockSourcesRepository,
-        mockLLMRouter,
-        testQuestion,
-        testProjectName,
-      );
+      const result = await processor.execute(testQuestion, testProjectName);
 
       // Assert
       expect(result).toBe("Unable to answer question because no relevent code was found");
@@ -167,12 +150,7 @@ describe("queryCodebaseWithQuestion", () => {
       );
 
       // Act
-      const result = await queryCodebaseWithQuestion(
-        mockSourcesRepository,
-        mockLLMRouter,
-        testQuestion,
-        testProjectName,
-      );
+      const result = await processor.execute(testQuestion, testProjectName);
 
       // Assert
       expect(result).toBe("Unable to answer question because no insight was generated");
@@ -199,12 +177,7 @@ describe("queryCodebaseWithQuestion", () => {
       );
 
       // Act
-      const result = await queryCodebaseWithQuestion(
-        mockSourcesRepository,
-        mockLLMRouter,
-        testQuestion,
-        testProjectName,
-      );
+      const result = await processor.execute(testQuestion, testProjectName);
 
       // Assert
       // With TEXT output format, the response is already a string
@@ -227,12 +200,7 @@ describe("queryCodebaseWithQuestion", () => {
       (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(llmOk("response", mockMeta));
 
       // Act
-      await queryCodebaseWithQuestion(
-        mockSourcesRepository,
-        mockLLMRouter,
-        testQuestion,
-        testProjectName,
-      );
+      await processor.execute(testQuestion, testProjectName);
 
       // Assert - Verify the constants are used correctly
       const callArgs = mockSourcesRepository.vectorSearchProjectSources.mock.calls[0];
@@ -257,12 +225,7 @@ describe("queryCodebaseWithQuestion", () => {
       (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(llmOk("response", mockMeta));
 
       // Act
-      await queryCodebaseWithQuestion(
-        mockSourcesRepository,
-        mockLLMRouter,
-        testQuestion,
-        testProjectName,
-      );
+      await processor.execute(testQuestion, testProjectName);
 
       // Assert - Verify the prompt uses the template from templates.ts
       const callArgs = mockLLMRouter.executeCompletion.mock.calls[0];

@@ -14,6 +14,6 @@ export { JSON_SCHEMA_PROMPT_TEMPLATE, FORCE_JSON_FORMAT_INSTRUCTIONS } from "./c
 // Templating utilities
 export { fillTemplate } from "./templating";
 
-// Class exports
-export { JSONSchemaPrompt } from "./json-schema-prompt";
+// Prompt rendering function and config
+export { renderJsonSchemaPrompt } from "./json-schema-prompt";
 export type { JSONSchemaPromptConfig } from "./json-schema-prompt";

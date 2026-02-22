@@ -29,7 +29,7 @@ export class DatabaseSection extends BaseReportSection {
 
   async getData(projectName: string): Promise<Partial<ReportData>> {
     const [dbInteractions, procsAndTriggers] = await Promise.all([
-      this.databaseDataProvider.getDatabaseInteractions(projectName),
+      this.databaseDataProvider.getDatabaseIntegrations(projectName),
       this.databaseDataProvider.getStoredProceduresAndTriggers(projectName),
     ]);
 

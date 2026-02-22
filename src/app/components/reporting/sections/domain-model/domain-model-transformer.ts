@@ -41,7 +41,7 @@ export class DomainModelTransformer {
    *
    * Uses the discriminated union to automatically narrow the data type.
    */
-  getDomainModelData(categorizedData: CategorizedSectionItem[]): DomainModelData {
+  transformToDomainModel(categorizedData: CategorizedSectionItem[]): DomainModelData {
     // Find the boundedContexts category - type is automatically narrowed via discriminator
     const boundedContextsCategory = categorizedData.find(
       (item): item is Extract<CategorizedSectionItem, { category: "boundedContexts" }> =>

@@ -1,7 +1,10 @@
 import { appSummaryConfigMap } from "../../../src/app/prompts/app-summaries/app-summaries.definitions";
 import { fileTypePromptRegistry } from "../../../src/app/prompts/sources/sources.definitions";
 import { AppSummaryCategories } from "../../../src/app/schemas/app-summaries.schema";
-import { JSONSchemaPrompt } from "../../../src/common/prompts/json-schema-prompt";
+import {
+  renderJsonSchemaPrompt,
+  type JSONSchemaPromptConfig,
+} from "../../../src/common/prompts/json-schema-prompt";
 import { DEFAULT_PERSONA_INTRODUCTION } from "../../../src/app/prompts/prompts.constants";
 import { z } from "zod";
 
@@ -94,20 +97,20 @@ describe("JSONSchemaPrompt Configurations", () => {
       });
     });
 
-    it("should create valid JSONSchemaPrompt instances from configs when presentation values are added", () => {
+    it("should render valid prompts from configs when presentation values are added", () => {
       const config = fileTypePromptRegistry.java;
       // dataBlockHeader and wrapInCodeBlock must now be explicitly provided
-      const prompt = new JSONSchemaPrompt({
+      const fullConfig: JSONSchemaPromptConfig = {
         personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
         ...config,
         dataBlockHeader: "CODE",
         wrapInCodeBlock: true,
-      });
+      };
 
-      expect(prompt.contentDesc).toBe(config.contentDesc);
-      expect(prompt.instructions).toEqual(config.instructions);
-      expect(prompt.dataBlockHeader).toBe("CODE");
-      expect(prompt.wrapInCodeBlock).toBe(true);
+      const rendered = renderJsonSchemaPrompt(fullConfig, "test content");
+
+      expect(rendered).toContain(config.contentDesc);
+      expect(rendered).toContain("CODE:");
     });
   });
 

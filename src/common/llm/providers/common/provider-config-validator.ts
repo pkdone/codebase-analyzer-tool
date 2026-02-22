@@ -7,7 +7,7 @@ import { LLMError, LLMErrorCode } from "../../types/llm-errors.types";
  *
  * @template T - The validated config type
  */
-export interface ProviderConfigValidator<T> {
+interface ProviderConfigValidator<T> {
   /**
    * Type guard that checks if an object is a valid config.
    * @param obj - The object to validate

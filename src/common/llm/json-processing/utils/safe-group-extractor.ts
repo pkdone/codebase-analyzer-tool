@@ -1,20 +1,5 @@
 /**
  * Utilities for safely extracting regex capture groups in sanitizer rules.
- *
- * These helpers eliminate repetitive null-coalescing boilerplate code that appears
- * throughout sanitizer rule definitions. Instead of writing:
- * ```typescript
- * const [delimiter, whitespace, value] = groups;
- * const delimiterStr = delimiter ?? "";
- * const whitespaceStr = whitespace ?? "";
- * const valueStr = value ?? "";
- * ```
- *
- * Rules can now use the generic tuple extractor:
- * ```typescript
- * const [delimiter, whitespace, value] = getSafeGroups(groups, 3);
- * // All values are guaranteed to be strings (empty string if undefined)
- * ```
  */
 
 /**

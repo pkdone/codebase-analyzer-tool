@@ -8,6 +8,7 @@ import { CODE_FENCE_REGEXES } from "../constants/regex.constants";
 import { REPAIR_STEP } from "../constants/repair-steps.config";
 import { logWarn } from "../../../utils/logging";
 import { createStringBoundaryChecker } from "../utils/parser-context-utils";
+import { getSafeGroups } from "../utils/safe-group-extractor";
 
 /**
  * Consolidated structural sanitizer that handles high-level structural issues and noise.
@@ -68,7 +69,7 @@ export const sanitizeJsonStructure: Sanitizer = (input: string): SanitizerResult
 
     // Remove invalid prefixes (introductory text, stray prefixes, etc.)
     const beforePrefixes = sanitized;
-    sanitized = removeInvalidPrefixesInternal(sanitized, repairs);
+    sanitized = fixStructuralAnomaliesInternal(sanitized, repairs);
 
     if (sanitized !== beforePrefixes) {
       hasChanges = true;
@@ -134,7 +135,7 @@ export const sanitizeJsonStructure: Sanitizer = (input: string): SanitizerResult
 /**
  * Internal helper to remove invalid prefixes and stray text.
  */
-function removeInvalidPrefixesInternal(jsonString: string, repairs: string[]): string {
+function fixStructuralAnomaliesInternal(jsonString: string, repairs: string[]): string {
   let sanitized = jsonString;
 
   // Pattern 1: Remove thought markers
@@ -162,7 +163,7 @@ function removeInvalidPrefixesInternal(jsonString: string, repairs: string[]): s
   // Pattern 2: Remove introductory text before opening braces
   const genericPrefixPattern = /(^|\n|\r)\s*([a-zA-Z_]{2,20})\s*[:]?\s*\{/g;
   sanitized = sanitized.replace(genericPrefixPattern, (match, prefix, word, offset: number) => {
-    const wordStr = typeof word === "string" ? word : "";
+    const [wordStr] = getSafeGroups([word], 1);
 
     if (isInString(offset)) {
       return match;
@@ -197,10 +198,9 @@ function removeInvalidPrefixesInternal(jsonString: string, repairs: string[]): s
         return match;
       }
 
-      const delimiterStr = typeof delimiter === "string" ? delimiter : "";
-      const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
-      const strayTextStr = typeof strayText === "string" ? strayText : "";
-      const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
+      const [delimiterStr, whitespaceStr, strayTextStr, propertyNameStr] = getSafeGroups(
+        [delimiter, whitespace, strayText, propertyName], 4,
+      );
 
       const isValidDelimiter =
         delimiterStr === "" || delimiterStr === "\n" || /[}\],]/.test(delimiterStr);
@@ -231,9 +231,9 @@ function removeInvalidPrefixesInternal(jsonString: string, repairs: string[]): s
         return match;
       }
 
-      const prefixStr = typeof prefix === "string" ? prefix : "";
-      const strayCharStr = typeof strayChar === "string" ? strayChar : "";
-      const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
+      const [prefixStr, strayCharStr, propertyNameStr] = getSafeGroups(
+        [prefix, strayChar, propertyName], 3,
+      );
 
       // Check if this looks like a missing opening brace situation
       // The pattern is: close object }, newline, possibly a stray char, then property name with missing leading quote
@@ -270,8 +270,7 @@ function removeInvalidPrefixesInternal(jsonString: string, repairs: string[]): s
         return match;
       }
 
-      const prefixStr = typeof prefix === "string" ? prefix : "";
-      const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
+      const [prefixStr, propertyNameStr] = getSafeGroups([prefix, propertyName], 2);
 
       // Verify we're in an array context
       const beforeMatch = sanitized.substring(
@@ -333,9 +332,9 @@ function fixUnclosedArraysBeforePropertiesInternal(jsonString: string, repairs: 
         return match;
       }
 
-      const closingBraceStr = typeof closingBrace === "string" ? closingBrace : "";
-      const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
-      const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
+      const [closingBraceStr, whitespaceStr, propertyNameStr] = getSafeGroups(
+        [closingBrace, whitespace, propertyName], 3,
+      );
 
       // Check if we're in an array context by scanning backwards
       // We need to track BOTH bracket depth AND brace depth to correctly identify
@@ -629,7 +628,7 @@ function removeTruncationMarkersInternal(jsonString: string, repairs: string[]):
         return match;
       }
 
-      const markerStr = typeof marker === "string" ? marker : "";
+      const [markerStr] = getSafeGroups([marker], 1);
       const hasTrailingComma = optionalComma !== undefined && optionalComma !== null;
 
       if (repairs.length < 10) {
@@ -653,9 +652,9 @@ function removeTruncationMarkersInternal(jsonString: string, repairs: string[]):
         return _match;
       }
 
-      const contentStr = typeof stringContent === "string" ? stringContent : "";
-      const delimiterStr = typeof delimiter === "string" ? delimiter : "";
-      const ws2 = typeof whitespace2 === "string" ? whitespace2 : "";
+      const [contentStr, delimiterStr, ws2] = getSafeGroups(
+        [stringContent, delimiter, whitespace2], 3,
+      );
 
       if (repairs.length < 10) {
         repairs.push(
@@ -686,9 +685,9 @@ function removeTruncationMarkersInternal(jsonString: string, repairs: string[]):
         return _match;
       }
 
-      const delimiterStr = typeof delimiter === "string" ? delimiter : "";
-      const ws3 = typeof whitespace3 === "string" ? whitespace3 : "";
-      const beforeStr = typeof beforeMarker === "string" ? beforeMarker : "";
+      const [delimiterStr, ws3, beforeStr] = getSafeGroups(
+        [delimiter, whitespace3, beforeMarker], 3,
+      );
 
       if (repairs.length < 10) {
         repairs.push(
@@ -714,13 +713,11 @@ function removeTruncationMarkersInternal(jsonString: string, repairs: string[]):
         return match;
       }
 
+      const [markerStr, beforeStr, afterStr] = getSafeGroups([marker, before, after], 3);
+
       if (repairs.length < 10) {
-        const markerStr = typeof marker === "string" ? marker : "";
         repairs.push(`Removed truncation marker: ${markerStr}`);
       }
-
-      const beforeStr = typeof before === "string" ? before : "";
-      const afterStr = typeof after === "string" ? after : "";
 
       if (beforeStr.includes(",")) {
         return `${beforeStr}\n${afterStr}`;
@@ -742,7 +739,7 @@ function removeTruncationMarkersInternal(jsonString: string, repairs: string[]):
         return match;
       }
 
-      const delimiterStr = typeof delimiter === "string" ? delimiter : "";
+      const [delimiterStr] = getSafeGroups([delimiter], 1);
 
       if (repairs.length < 10) {
         repairs.push(REPAIR_STEP.REMOVED_LLM_INSTRUCTION_TEXT);
@@ -763,8 +760,7 @@ function removeTruncationMarkersInternal(jsonString: string, repairs: string[]):
         return match;
       }
 
-      const delimiter1Str = typeof delimiter1 === "string" ? delimiter1 : "";
-      const delimiter2Str = typeof delimiter2 === "string" ? delimiter2 : "";
+      const [delimiter1Str, delimiter2Str] = getSafeGroups([delimiter1, delimiter2], 2);
       const delimiterStr = delimiter1Str !== "" ? delimiter1Str : delimiter2Str;
 
       if (delimiterStr !== "") {

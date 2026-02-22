@@ -1,5 +1,5 @@
-import { promises as fs, Dirent } from "fs";
-import path from "path";
+import { promises as fs, Dirent } from "node:fs";
+import path from "node:path";
 import glob, { Entry } from "fast-glob";
 import { logErr } from "../utils/logging";
 import { isJsonObject } from "../utils/type-guards";
@@ -112,7 +112,7 @@ export async function findFilesRecursively(
 /**
  * Result type for files discovered with their sizes.
  */
-export interface FileWithSize {
+interface FileWithSize {
   /** Absolute path to the file */
   filepath: string;
   /** File size in bytes */

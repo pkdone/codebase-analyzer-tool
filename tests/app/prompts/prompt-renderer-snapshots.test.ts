@@ -1,5 +1,5 @@
 import {
-  JSONSchemaPrompt,
+  renderJsonSchemaPrompt,
   type JSONSchemaPromptConfig,
 } from "../../../src/common/prompts/json-schema-prompt";
 import { DEFAULT_PERSONA_INTRODUCTION } from "../../../src/app/prompts/prompts.constants";
@@ -12,17 +12,23 @@ import { APP_SUMMARY_CONTENT_DESC } from "../../../src/app/prompts/app-summaries
 import { fileTypePromptRegistry } from "../../../src/app/prompts/sources/sources.definitions";
 
 /**
- * Helper to create a JSONSchemaPrompt from fileTypePromptRegistry config.
+ * Helper to render a prompt from fileTypePromptRegistry config.
  * Adds dataBlockHeader and wrapInCodeBlock which are no longer in the registry entries.
  */
-function createSourcePrompt(fileType: keyof typeof fileTypePromptRegistry): JSONSchemaPrompt {
+function renderSourcePrompt(
+  fileType: keyof typeof fileTypePromptRegistry,
+  content: string,
+): string {
   const config = fileTypePromptRegistry[fileType];
-  return new JSONSchemaPrompt({
-    personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
-    ...config,
-    dataBlockHeader: CODE_DATA_BLOCK_HEADER,
-    wrapInCodeBlock: true,
-  } as JSONSchemaPromptConfig);
+  return renderJsonSchemaPrompt(
+    {
+      personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+      ...config,
+      dataBlockHeader: CODE_DATA_BLOCK_HEADER,
+      wrapInCodeBlock: true,
+    } as JSONSchemaPromptConfig,
+    content,
+  );
 }
 
 /**
@@ -34,25 +40,29 @@ function buildPartialAnalysisNote(dataBlockHeader: string): string {
 }
 
 /**
- * Helper to create a JSONSchemaPrompt from appSummaryConfigMap config.
+ * Helper to render a prompt from appSummaryConfigMap config.
  * Adds contentDesc, dataBlockHeader, and wrapInCodeBlock which are no longer in the config entries.
  */
-function createAppSummaryPrompt(
+function renderAppSummaryPrompt(
   category: keyof typeof appSummaryConfigMap,
+  content: string,
   options?: { forPartialAnalysis?: boolean },
-): JSONSchemaPrompt {
+): string {
   const config = appSummaryConfigMap[category];
   const contextNote = options?.forPartialAnalysis
     ? buildPartialAnalysisNote(FILE_SUMMARIES_DATA_BLOCK_HEADER)
     : undefined;
-  return new JSONSchemaPrompt({
-    personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
-    ...config,
-    contentDesc: APP_SUMMARY_CONTENT_DESC,
-    dataBlockHeader: FILE_SUMMARIES_DATA_BLOCK_HEADER,
-    wrapInCodeBlock: false,
-    contextNote,
-  } as JSONSchemaPromptConfig);
+  return renderJsonSchemaPrompt(
+    {
+      personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+      ...config,
+      contentDesc: APP_SUMMARY_CONTENT_DESC,
+      dataBlockHeader: FILE_SUMMARIES_DATA_BLOCK_HEADER,
+      wrapInCodeBlock: false,
+      contextNote,
+    } as JSONSchemaPromptConfig,
+    content,
+  );
 }
 
 describe("renderPrompt Snapshot Tests", () => {
@@ -60,70 +70,62 @@ describe("renderPrompt Snapshot Tests", () => {
 
   describe("rendered prompts should match snapshots", () => {
     test("Java prompt should match snapshot", () => {
-      const prompt = createSourcePrompt("java");
-      const rendered = prompt.renderPrompt(testContent);
+      const rendered = renderSourcePrompt("java", testContent);
       expect(rendered).toMatchSnapshot();
     });
 
     test("JavaScript prompt should match snapshot", () => {
-      const prompt = createSourcePrompt("javascript");
-      const rendered = prompt.renderPrompt(testContent);
+      const rendered = renderSourcePrompt("javascript", testContent);
       expect(rendered).toMatchSnapshot();
     });
 
     test("C# prompt should match snapshot", () => {
-      const prompt = createSourcePrompt("csharp");
-      const rendered = prompt.renderPrompt(testContent);
+      const rendered = renderSourcePrompt("csharp", testContent);
       expect(rendered).toMatchSnapshot();
     });
 
     test("Python prompt should match snapshot", () => {
-      const prompt = createSourcePrompt("python");
-      const rendered = prompt.renderPrompt(testContent);
+      const rendered = renderSourcePrompt("python", testContent);
       expect(rendered).toMatchSnapshot();
     });
 
     test("Ruby prompt should match snapshot", () => {
-      const prompt = createSourcePrompt("ruby");
-      const rendered = prompt.renderPrompt(testContent);
+      const rendered = renderSourcePrompt("ruby", testContent);
       expect(rendered).toMatchSnapshot();
     });
 
     test("SQL prompt should match snapshot", () => {
-      const prompt = createSourcePrompt("sql");
-      const rendered = prompt.renderPrompt("CREATE TABLE test (id INT);");
+      const rendered = renderSourcePrompt("sql", "CREATE TABLE test (id INT);");
       expect(rendered).toMatchSnapshot();
     });
 
     test("Markdown prompt should match snapshot", () => {
-      const prompt = createSourcePrompt("markdown");
-      const rendered = prompt.renderPrompt("# Test Document\n\nContent here");
+      const rendered = renderSourcePrompt("markdown", "# Test Document\n\nContent here");
       expect(rendered).toMatchSnapshot();
     });
 
     test("XML prompt should match snapshot", () => {
-      const prompt = createSourcePrompt("xml");
-      const rendered = prompt.renderPrompt("<root><element>test</element></root>");
+      const rendered = renderSourcePrompt("xml", "<root><element>test</element></root>");
       expect(rendered).toMatchSnapshot();
     });
 
     test("JSP prompt should match snapshot", () => {
-      const prompt = createSourcePrompt("jsp");
-      const rendered = prompt.renderPrompt('<%@ page language="java" %>\n<html>test</html>');
+      const rendered = renderSourcePrompt(
+        "jsp",
+        '<%@ page language="java" %>\n<html>test</html>',
+      );
       expect(rendered).toMatchSnapshot();
     });
 
     test("Default prompt should match snapshot", () => {
-      const prompt = createSourcePrompt("default");
-      const rendered = prompt.renderPrompt(testContent);
+      const rendered = renderSourcePrompt("default", testContent);
       expect(rendered).toMatchSnapshot();
     });
   });
 
   describe("renderPrompt basic handling", () => {
     test("prompt should render correctly", () => {
-      const prompt = createSourcePrompt("java");
-      const rendered = prompt.renderPrompt(testContent);
+      const rendered = renderSourcePrompt("java", testContent);
       expect(rendered).toBeTruthy();
       expect(rendered).toContain("CODE:");
     });
@@ -131,8 +133,7 @@ describe("renderPrompt Snapshot Tests", () => {
 
   describe("instruction block formatting", () => {
     test("instructions should be properly formatted with double underscores", () => {
-      const prompt = createSourcePrompt("java");
-      const rendered = prompt.renderPrompt(testContent);
+      const rendered = renderSourcePrompt("java", testContent);
 
       // Should contain properly formatted instruction section titles
       expect(rendered).toContain("__Basic Information__");
@@ -143,14 +144,13 @@ describe("renderPrompt Snapshot Tests", () => {
     });
 
     test("instructions should be properly formatted", () => {
-      const prompt = createSourcePrompt("java");
-      const rendered = prompt.renderPrompt(testContent);
+      const rendered = renderSourcePrompt("java", testContent);
       const instructionsSection = rendered.split("CODE:")[0];
 
       // Should have instruction section titles with double underscores
       expect(instructionsSection).toContain("__Basic Information__");
       expect(instructionsSection).toContain("__References and Dependencies__");
-      // Instructions are joined with "\n\n" in renderPrompt
+      // Instructions are joined with "\n\n" in renderJsonSchemaPrompt
       expect(instructionsSection).toContain("\n\n");
     });
   });
@@ -184,10 +184,8 @@ describe("renderPrompt Snapshot Tests", () => {
 
     fileTypes.forEach((fileType) => {
       test(`${fileType} should render successfully`, () => {
-        const prompt = createSourcePrompt(fileType);
-
         expect(() => {
-          const rendered = prompt.renderPrompt("test content");
+          const rendered = renderSourcePrompt(fileType, "test content");
           expect(rendered).toBeTruthy();
           expect(typeof rendered).toBe("string");
           expect(rendered.length).toBeGreaterThan(0);
@@ -210,9 +208,7 @@ describe("renderPrompt Snapshot Tests", () => {
     });
 
     test("app summary prompts should include JSON schema", () => {
-      const prompt = createAppSummaryPrompt(appSummaryTypes[0]);
-
-      const rendered = prompt.renderPrompt("[{summary: 'test'}]");
+      const rendered = renderAppSummaryPrompt(appSummaryTypes[0], "[{summary: 'test'}]");
 
       // JSON mode prompts should include JSON enforcement
       expect(rendered).toContain("The response MUST be valid JSON");
@@ -220,10 +216,11 @@ describe("renderPrompt Snapshot Tests", () => {
 
     appSummaryTypes.forEach((category) => {
       test(`${category} app summary prompt should render successfully`, () => {
-        const prompt = createAppSummaryPrompt(category);
-
         expect(() => {
-          const rendered = prompt.renderPrompt("[{summary: 'test file summary'}]");
+          const rendered = renderAppSummaryPrompt(
+            category,
+            "[{summary: 'test file summary'}]",
+          );
           expect(rendered).toBeTruthy();
           expect(typeof rendered).toBe("string");
           expect(rendered.length).toBeGreaterThan(0);
@@ -239,44 +236,39 @@ describe("renderPrompt Snapshot Tests", () => {
     ]);
 
     test("appDescription prompt should match snapshot", () => {
-      const prompt = createAppSummaryPrompt("appDescription");
-      const rendered = prompt.renderPrompt(testSummaryContent);
+      const rendered = renderAppSummaryPrompt("appDescription", testSummaryContent);
       expect(rendered).toMatchSnapshot();
     });
 
     test("technologies prompt should match snapshot", () => {
-      const prompt = createAppSummaryPrompt("technologies");
-      const rendered = prompt.renderPrompt(testSummaryContent);
+      const rendered = renderAppSummaryPrompt("technologies", testSummaryContent);
       expect(rendered).toMatchSnapshot();
     });
 
     test("businessProcesses prompt should match snapshot", () => {
-      const prompt = createAppSummaryPrompt("businessProcesses");
-      const rendered = prompt.renderPrompt(testSummaryContent);
+      const rendered = renderAppSummaryPrompt("businessProcesses", testSummaryContent);
       expect(rendered).toMatchSnapshot();
     });
 
     test("boundedContexts prompt should match snapshot", () => {
-      const prompt = createAppSummaryPrompt("boundedContexts");
-      const rendered = prompt.renderPrompt(testSummaryContent);
+      const rendered = renderAppSummaryPrompt("boundedContexts", testSummaryContent);
       expect(rendered).toMatchSnapshot();
     });
 
     test("potentialMicroservices prompt should match snapshot", () => {
-      const prompt = createAppSummaryPrompt("potentialMicroservices");
-      const rendered = prompt.renderPrompt(testSummaryContent);
+      const rendered = renderAppSummaryPrompt("potentialMicroservices", testSummaryContent);
       expect(rendered).toMatchSnapshot();
     });
 
     test("inferredArchitecture prompt should match snapshot", () => {
-      const prompt = createAppSummaryPrompt("inferredArchitecture");
-      const rendered = prompt.renderPrompt(testSummaryContent);
+      const rendered = renderAppSummaryPrompt("inferredArchitecture", testSummaryContent);
       expect(rendered).toMatchSnapshot();
     });
 
     test("app summary prompt with forPartialAnalysis should match snapshot", () => {
-      const prompt = createAppSummaryPrompt("technologies", { forPartialAnalysis: true });
-      const rendered = prompt.renderPrompt(testSummaryContent);
+      const rendered = renderAppSummaryPrompt("technologies", testSummaryContent, {
+        forPartialAnalysis: true,
+      });
       expect(rendered).toMatchSnapshot();
     });
   });

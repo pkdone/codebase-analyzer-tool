@@ -1,23 +1,29 @@
 import { FILE_SUMMARIES_DATA_BLOCK_HEADER } from "../../../src/app/prompts/prompts.constants";
 import { appSummaryConfigMap } from "../../../src/app/prompts/app-summaries/app-summaries.definitions";
 import { APP_SUMMARY_CONTENT_DESC } from "../../../src/app/prompts/app-summaries/app-summaries.constants";
-import { JSONSchemaPrompt } from "../../../src/common/prompts/json-schema-prompt";
+import { renderJsonSchemaPrompt } from "../../../src/common/prompts/json-schema-prompt";
 import { DEFAULT_PERSONA_INTRODUCTION } from "../../../src/app/prompts/prompts.constants";
 
 /**
- * Helper to create a JSONSchemaPrompt from appSummaryConfigMap config.
+ * Helper to render a prompt from appSummaryConfigMap config.
  * Config entries are now self-describing with contentDesc and dataBlockHeader.
  */
-function createAppSummaryPrompt(category: keyof typeof appSummaryConfigMap): JSONSchemaPrompt {
+function renderAppSummaryPrompt(
+  category: keyof typeof appSummaryConfigMap,
+  content: string,
+): string {
   const config = appSummaryConfigMap[category];
-  return new JSONSchemaPrompt({
-    personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
-    contentDesc: config.contentDesc,
-    instructions: config.instructions,
-    responseSchema: config.responseSchema,
-    dataBlockHeader: config.dataBlockHeader,
-    wrapInCodeBlock: false,
-  });
+  return renderJsonSchemaPrompt(
+    {
+      personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+      contentDesc: config.contentDesc,
+      instructions: config.instructions,
+      responseSchema: config.responseSchema,
+      dataBlockHeader: config.dataBlockHeader,
+      wrapInCodeBlock: false,
+    },
+    content,
+  );
 }
 
 describe("App Summaries Config Refactoring", () => {
@@ -58,31 +64,34 @@ describe("App Summaries Config Refactoring", () => {
   });
 
   describe("Config Usage", () => {
-    it("should work correctly with JSONSchemaPrompt class when presentation values added", () => {
+    it("should render correctly with renderJsonSchemaPrompt when presentation values added", () => {
       Object.keys(appSummaryConfigMap).forEach((categoryKey) => {
-        const prompt = createAppSummaryPrompt(categoryKey as keyof typeof appSummaryConfigMap);
-        const config = appSummaryConfigMap[categoryKey as keyof typeof appSummaryConfigMap];
+        const rendered = renderAppSummaryPrompt(
+          categoryKey as keyof typeof appSummaryConfigMap,
+          "test",
+        );
 
-        expect(prompt).toBeDefined();
-        expect(prompt.contentDesc).toBe(APP_SUMMARY_CONTENT_DESC);
-        expect(prompt.responseSchema).toBe(config.responseSchema);
-        expect(prompt.instructions).toEqual(config.instructions);
+        expect(rendered).toBeDefined();
+        expect(rendered).toContain(APP_SUMMARY_CONTENT_DESC);
       });
     });
 
-    it("should have generic contentDesc when presentation values are added at instantiation", () => {
+    it("should have generic contentDesc when presentation values are added at render time", () => {
       Object.keys(appSummaryConfigMap).forEach((categoryKey) => {
-        const prompt = createAppSummaryPrompt(categoryKey as keyof typeof appSummaryConfigMap);
-        const config = appSummaryConfigMap[categoryKey as keyof typeof appSummaryConfigMap];
-        expect(prompt.contentDesc).toBe(APP_SUMMARY_CONTENT_DESC);
-        expect(prompt.instructions).toEqual(config.instructions);
+        const rendered = renderAppSummaryPrompt(
+          categoryKey as keyof typeof appSummaryConfigMap,
+          "test",
+        );
+        expect(rendered).toContain(APP_SUMMARY_CONTENT_DESC);
       });
     });
 
     it("should render prompts correctly", () => {
       Object.keys(appSummaryConfigMap).forEach((categoryKey) => {
-        const prompt = createAppSummaryPrompt(categoryKey as keyof typeof appSummaryConfigMap);
-        const rendered = prompt.renderPrompt("test summaries");
+        const rendered = renderAppSummaryPrompt(
+          categoryKey as keyof typeof appSummaryConfigMap,
+          "test summaries",
+        );
         expect(rendered).toContain("Act as a senior developer");
         expect(rendered).toContain("test summaries");
       });

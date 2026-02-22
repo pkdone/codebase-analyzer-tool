@@ -10,7 +10,7 @@ describe("DatabaseSection", () => {
 
   beforeEach(() => {
     mockDatabaseDataProvider = {
-      getDatabaseInteractions: jest.fn(),
+      getDatabaseIntegrations: jest.fn(),
       getStoredProceduresAndTriggers: jest.fn(),
     } as unknown as jest.Mocked<DatabaseReportDataProvider>;
 
@@ -40,7 +40,7 @@ describe("DatabaseSection", () => {
         list: [],
       };
 
-      mockDatabaseDataProvider.getDatabaseInteractions.mockResolvedValue(mockDbInteractions);
+      mockDatabaseDataProvider.getDatabaseIntegrations.mockResolvedValue(mockDbInteractions);
       mockDatabaseDataProvider.getStoredProceduresAndTriggers.mockResolvedValue(
         mockProcsAndTriggers,
       );

@@ -34,7 +34,7 @@ export const fixLlmTokenArtifacts: Sanitizer = (jsonString: string): SanitizerRe
 
     // Pattern: Remove all LLM token artifacts <y_bin_XXX>
     // This is a simple, generic approach that removes the artifacts and lets
-    // other sanitizers (like unifiedSyntaxSanitizer) handle any resulting typos
+    // downstream sanitizers handle any resulting typos
     // Also handles cases where the artifact appears before opening braces: `<y_bin_305>{` -> `{`
     sanitized = sanitized.replace(LLM_TOKEN_ARTIFACT_REGEX, (match, offset: number) => {
       // Check if we're inside a string literal - if so, don't modify

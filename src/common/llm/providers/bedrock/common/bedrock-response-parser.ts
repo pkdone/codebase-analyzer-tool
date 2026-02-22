@@ -122,7 +122,7 @@ interface ResponsePathConfig {
  * @param providerName The name of the provider (for error messages)
  * @returns Standardized LLMImplSpecificResponseSummary object
  */
-export function extractTextCompletionResponse(
+export function extractCompletionResponse(
   llmResponse: unknown,
   schema: z.ZodType<unknown>,
   pathConfig: ResponsePathConfig,

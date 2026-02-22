@@ -1,5 +1,5 @@
 import {
-  JSONSchemaPrompt,
+  renderJsonSchemaPrompt,
   JSON_SCHEMA_PROMPT_TEMPLATE,
 } from "../../../src/common/prompts/json-schema-prompt";
 import { DEFAULT_PERSONA_INTRODUCTION } from "../../../src/app/prompts/prompts.constants";
@@ -23,32 +23,36 @@ describe("Template Consolidation", () => {
     });
 
     it("should render correctly with sources configuration", () => {
-      const prompt = new JSONSchemaPrompt({
-        personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
-        contentDesc:
-          "Act as a senior developer analyzing the code in an existing application. Based on JVM code shown below...",
-        instructions: ["Extract class name"] as const,
-        responseSchema: z.string(),
-        dataBlockHeader: "CODE",
-        wrapInCodeBlock: true,
-      });
-      const rendered = prompt.renderPrompt("test code");
+      const rendered = renderJsonSchemaPrompt(
+        {
+          personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+          contentDesc:
+            "Act as a senior developer analyzing the code in an existing application. Based on JVM code shown below...",
+          instructions: ["Extract class name"] as const,
+          responseSchema: z.string(),
+          dataBlockHeader: "CODE",
+          wrapInCodeBlock: true,
+        },
+        "test code",
+      );
       expect(rendered).toContain("Act as a senior developer analyzing the code");
       expect(rendered).toContain("CODE:");
       expect(rendered).toContain("```");
     });
 
     it("should render correctly with app summary configuration", () => {
-      const prompt = new JSONSchemaPrompt({
-        personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
-        contentDesc:
-          "Act as a senior developer analyzing the code in an existing application. Based on source file summaries shown below...",
-        instructions: ["Extract entities"] as const,
-        responseSchema: z.string(),
-        dataBlockHeader: "FILE_SUMMARIES",
-        wrapInCodeBlock: false,
-      });
-      const rendered = prompt.renderPrompt("test summaries");
+      const rendered = renderJsonSchemaPrompt(
+        {
+          personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+          contentDesc:
+            "Act as a senior developer analyzing the code in an existing application. Based on source file summaries shown below...",
+          instructions: ["Extract entities"] as const,
+          responseSchema: z.string(),
+          dataBlockHeader: "FILE_SUMMARIES",
+          wrapInCodeBlock: false,
+        },
+        "test summaries",
+      );
       expect(rendered).toContain("Act as a senior developer analyzing the code");
       expect(rendered).toContain("FILE_SUMMARIES:");
       // JSON schema section has code blocks, but content section should not
@@ -85,31 +89,35 @@ describe("Template Consolidation", () => {
     it("should include partial analysis note when contextNote is provided", () => {
       const contextNote =
         "Note, this is a partial analysis of what is a much larger set of file summaries; focus on extracting insights from this subset of file summaries only.\n\n";
-      const prompt = new JSONSchemaPrompt({
-        personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
-        contentDesc: "a set of source file summaries",
-        instructions: ["Extract entities"] as const,
-        responseSchema: z.string(),
-        dataBlockHeader: "FILE_SUMMARIES",
-        wrapInCodeBlock: false,
-        contextNote,
-      });
-      const rendered = prompt.renderPrompt("test summaries");
+      const rendered = renderJsonSchemaPrompt(
+        {
+          personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+          contentDesc: "a set of source file summaries",
+          instructions: ["Extract entities"] as const,
+          responseSchema: z.string(),
+          dataBlockHeader: "FILE_SUMMARIES",
+          wrapInCodeBlock: false,
+          contextNote,
+        },
+        "test summaries",
+      );
       expect(rendered).toContain("partial analysis");
       expect(rendered).toContain("focus on extracting insights from this subset");
     });
 
     it("should NOT include partial analysis note when contextNote is empty", () => {
-      const prompt = new JSONSchemaPrompt({
-        personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
-        contentDesc: "a set of source file summaries",
-        instructions: ["Extract entities"] as const,
-        responseSchema: z.string(),
-        dataBlockHeader: "FILE_SUMMARIES",
-        wrapInCodeBlock: false,
-        contextNote: "",
-      });
-      const rendered = prompt.renderPrompt("test summaries");
+      const rendered = renderJsonSchemaPrompt(
+        {
+          personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+          contentDesc: "a set of source file summaries",
+          instructions: ["Extract entities"] as const,
+          responseSchema: z.string(),
+          dataBlockHeader: "FILE_SUMMARIES",
+          wrapInCodeBlock: false,
+          contextNote: "",
+        },
+        "test summaries",
+      );
       expect(rendered).not.toContain("partial analysis");
     });
   });
@@ -120,15 +128,17 @@ describe("Template Consolidation", () => {
     });
 
     it("should render JSON schema in schemaSection for JSON-mode prompts", () => {
-      const prompt = new JSONSchemaPrompt({
-        personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
-        contentDesc: "test content",
-        instructions: ["test instruction"],
-        responseSchema: z.object({ name: z.string() }),
-        dataBlockHeader: "CODE",
-        wrapInCodeBlock: false,
-      });
-      const rendered = prompt.renderPrompt("test");
+      const rendered = renderJsonSchemaPrompt(
+        {
+          personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+          contentDesc: "test content",
+          instructions: ["test instruction"],
+          responseSchema: z.object({ name: z.string() }),
+          dataBlockHeader: "CODE",
+          wrapInCodeBlock: false,
+        },
+        "test",
+      );
 
       // schemaSection should contain the JSON schema code block
       expect(rendered).toContain("```json");
@@ -138,19 +148,20 @@ describe("Template Consolidation", () => {
   });
 
   describe("Template Usage", () => {
-    it("should be usable in JSONSchemaPrompt class", () => {
-      const prompt = new JSONSchemaPrompt({
-        personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
-        contentDesc: "Test intro template with test content",
-        instructions: ["test instruction"],
-        responseSchema: z.string(),
-        dataBlockHeader: "CODE",
-        wrapInCodeBlock: true,
-      });
-
+    it("should be usable with renderJsonSchemaPrompt function", () => {
       // This should not throw an error
       expect(() => {
-        prompt.renderPrompt("test");
+        renderJsonSchemaPrompt(
+          {
+            personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+            contentDesc: "Test intro template with test content",
+            instructions: ["test instruction"],
+            responseSchema: z.string(),
+            dataBlockHeader: "CODE",
+            wrapInCodeBlock: true,
+          },
+          "test",
+        );
       }).not.toThrow();
     });
   });

@@ -2,7 +2,7 @@ import "reflect-metadata";
 import { InsightGenerationStrategy } from "../../../../../src/app/components/insights/strategies/insight-generation-strategy.interface";
 import { SinglePassInsightStrategy } from "../../../../../src/app/components/insights/strategies/single-pass-insight-strategy";
 import { MapReduceInsightStrategy } from "../../../../../src/app/components/insights/strategies/map-reduce-insight-strategy";
-import { executeInsightCompletion } from "../../../../../src/app/components/insights/strategies/insights-completion-executor";
+import { InsightsCompletionExecutor } from "../../../../../src/app/components/insights/strategies/insights-completion-executor";
 import {
   PartialAppSummaryRecord,
   AppSummaryCategoryType,
@@ -71,7 +71,8 @@ describe("Type Safety Tests", () => {
       mockLLMRouter = {
         executeCompletion: jest.fn(),
       } as unknown as jest.Mocked<LLMRouter>;
-      strategy = new SinglePassInsightStrategy(mockLLMRouter);
+      const completionExecutor = new InsightsCompletionExecutor(mockLLMRouter);
+      strategy = new SinglePassInsightStrategy(completionExecutor);
     });
 
     it("should return strongly-typed result for appDescription", async () => {
@@ -135,7 +136,8 @@ describe("Type Safety Tests", () => {
         getFirstCompletionModelMaxTokens: jest.fn().mockReturnValue(100000),
       } as unknown as jest.Mocked<LLMRouter>;
       mockLlmConcurrencyService = createMockLlmConcurrencyService();
-      strategy = new MapReduceInsightStrategy(mockLLMRouter, mockLlmConcurrencyService);
+      const completionExecutor = new InsightsCompletionExecutor(mockLLMRouter);
+      strategy = new MapReduceInsightStrategy(mockLLMRouter, completionExecutor, mockLlmConcurrencyService);
     });
 
     it("should return strongly-typed result for technologies category", async () => {
@@ -268,7 +270,8 @@ describe("Type Safety Tests", () => {
         }),
       } as unknown as jest.Mocked<LLMRouter>;
 
-      const strategy = new SinglePassInsightStrategy(mockLLMRouter);
+      const completionExecutor = new InsightsCompletionExecutor(mockLLMRouter);
+      const strategy = new SinglePassInsightStrategy(completionExecutor);
       const category: AppSummaryCategoryType = "appDescription";
 
       // This should compile without any type assertions or casts
@@ -285,21 +288,22 @@ describe("Type Safety Tests", () => {
     });
   });
 
-  describe("executeInsightCompletion generic type inference", () => {
+  describe("InsightsCompletionExecutor generic type inference", () => {
     let mockLLMRouter: jest.Mocked<LLMRouter>;
+    let executor: InsightsCompletionExecutor;
 
     beforeEach(() => {
       mockLLMRouter = {
         executeCompletion: jest.fn(),
       } as unknown as jest.Mocked<LLMRouter>;
+      executor = new InsightsCompletionExecutor(mockLLMRouter);
     });
 
     it("should infer correct return type for appDescription category", async () => {
       const mockResponse = { appDescription: "Test description" };
       mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(mockResponse);
 
-      const result = await executeInsightCompletion(
-        mockLLMRouter,
+      const result = await executor.execute(
         "appDescription",
         ["* file1.ts: purpose"],
         {},
@@ -319,8 +323,7 @@ describe("Type Safety Tests", () => {
       };
       mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(mockResponse);
 
-      const result = await executeInsightCompletion(
-        mockLLMRouter,
+      const result = await executor.execute(
         "technologies",
         ["* file1.ts: purpose"],
         {},
@@ -356,8 +359,7 @@ describe("Type Safety Tests", () => {
       };
       mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(mockResponse);
 
-      const result = await executeInsightCompletion(
-        mockLLMRouter,
+      const result = await executor.execute(
         "boundedContexts",
         ["* file1.ts: purpose"],
         {},
@@ -385,8 +387,7 @@ describe("Type Safety Tests", () => {
       };
       mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(mockResponse);
 
-      const result = await executeInsightCompletion(
-        mockLLMRouter,
+      const result = await executor.execute(
         "potentialMicroservices",
         ["* file1.ts: purpose"],
         {},

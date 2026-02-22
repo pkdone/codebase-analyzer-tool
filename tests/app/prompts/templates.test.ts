@@ -1,5 +1,5 @@
 import {
-  JSONSchemaPrompt,
+  renderJsonSchemaPrompt,
   JSON_SCHEMA_PROMPT_TEMPLATE,
 } from "../../../src/common/prompts/json-schema-prompt";
 import { DEFAULT_PERSONA_INTRODUCTION } from "../../../src/app/prompts/prompts.constants";
@@ -40,24 +40,21 @@ describe("prompts/templates", () => {
     it("should include context note when contextNote is provided", () => {
       const contextNote =
         "Note, this is a partial analysis of what is a much larger set of test; focus on extracting insights from this subset of test only.\n\n";
-      const prompt = new JSONSchemaPrompt({ ...testConfig, contextNote });
-      const rendered = prompt.renderPrompt("test data");
+      const rendered = renderJsonSchemaPrompt({ ...testConfig, contextNote }, "test data");
 
       expect(rendered).toContain("partial analysis");
       expect(rendered).toContain("focus on extracting insights from this subset");
     });
 
     it("should NOT include context note when contextNote is empty string", () => {
-      const prompt = new JSONSchemaPrompt({ ...testConfig, contextNote: "" });
-      const rendered = prompt.renderPrompt("test data");
+      const rendered = renderJsonSchemaPrompt({ ...testConfig, contextNote: "" }, "test data");
 
       expect(rendered).not.toContain("partial analysis");
       expect(rendered).not.toContain("focus on extracting insights from this subset");
     });
 
     it("should NOT include context note when contextNote is omitted", () => {
-      const prompt = new JSONSchemaPrompt(testConfig);
-      const rendered = prompt.renderPrompt("test data");
+      const rendered = renderJsonSchemaPrompt(testConfig, "test data");
 
       expect(rendered).not.toContain("partial analysis");
       expect(rendered).not.toContain("focus on extracting insights from this subset");

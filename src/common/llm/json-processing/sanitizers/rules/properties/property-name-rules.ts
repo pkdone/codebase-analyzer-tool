@@ -11,7 +11,7 @@
  */
 
 import type { ReplacementRule } from "../../../../types/sanitizer-config.types";
-import { isAfterJsonDelimiter, isInPropertyContext } from "../../../utils/parser-context-utils";
+import { isInPropertyContext } from "../../../utils/parser-context-utils";
 import { inferPropertyName, isKnownProperty } from "../../../utils/property-name-inference";
 import { safeGroup, getSafeGroups } from "../../../utils/safe-group-extractor";
 
@@ -70,7 +70,6 @@ export const PROPERTY_NAME_RULES: readonly ReplacementRule[] = [
       const propertyName = safeGroup(groups, 2);
       return `Fixed missing quotes on property: ${propertyName}: -> "${propertyName}":`;
     },
-    contextCheck: isInPropertyContext,
   },
 
   // Rule: Fix missing opening quote on property names
@@ -124,7 +123,6 @@ export const PROPERTY_NAME_RULES: readonly ReplacementRule[] = [
       const propertyName = safeGroup(groups, 2);
       return `Fixed missing opening quote: ${propertyName}" -> "${propertyName}"`;
     },
-    contextCheck: isAfterJsonDelimiter,
   },
 
   // Rule: Fix space before quote in property names
@@ -196,7 +194,6 @@ export const PROPERTY_NAME_RULES: readonly ReplacementRule[] = [
       const truncated = safeGroup(groups, 2);
       return `Fixed truncated property name: ${truncated}" -> inferred property`;
     },
-    contextCheck: isInPropertyContext,
   },
 
   // Rule: Fix missing property name before colon
@@ -328,7 +325,6 @@ export const PROPERTY_NAME_RULES: readonly ReplacementRule[] = [
       const propertyName = safeGroup(groups, 2);
       return `Fixed missing opening quote: ${propertyName}" -> "${propertyName}"`;
     },
-    contextCheck: isInPropertyContext,
   },
 
   // Rule: Fix malformed property with backtick and colon
@@ -403,7 +399,7 @@ export const PROPERTY_NAME_RULES: readonly ReplacementRule[] = [
   // Pattern: `"type savory": "SavingsInterestCalculationType"` -> `"type": "SavingsInterestCalculationType"`
   // Uses schema-aware checking when config is available
   {
-    name: "typeWithEmbeddedWord",
+    name: "propertyNameWithEmbeddedWord",
     pattern: /"([a-zA-Z_$][a-zA-Z0-9_$]*)\s+[a-z]+"\s*:\s*"([^"]+)"/gi,
     replacement: (_match, groups, context) => {
       const [propertyName, value] = getSafeGroups(groups, 3);
@@ -482,7 +478,6 @@ export const PROPERTY_NAME_RULES: readonly ReplacementRule[] = [
       return `${delimiter}${whitespace}${propertyWithQuote}`;
     },
     diagnosticMessage: "Removed dash before property name",
-    contextCheck: isAfterJsonDelimiter,
   },
 
   // Rule: Fix missing property name with underscore fragment (with whitespace, no opening brace)

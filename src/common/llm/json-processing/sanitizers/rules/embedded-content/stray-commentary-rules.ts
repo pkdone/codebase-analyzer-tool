@@ -12,7 +12,6 @@
  */
 
 import type { ReplacementRule } from "../../../../types/sanitizer-config.types";
-import { parsingHeuristics } from "../../../constants/json-processing.config";
 import { looksLikeSentenceStructure } from "../../../utils/stray-text-detection";
 import { safeGroup, getSafeGroups } from "../../../utils/safe-group-extractor";
 import { isValidPropertyStartPosition } from "./llm-metadata-property-rules";
@@ -79,14 +78,7 @@ export const STRAY_COMMENTARY_RULES: readonly ReplacementRule[] = [
   {
     name: "strayEnglishText",
     pattern: /([}\],])\s*\n\s*([a-z][a-z\s,.'!?-]{5,100}?)\s*\n\s*([{[]|")/gi,
-    replacement: (_match, groups, context) => {
-      const { beforeMatch } = context;
-      const isAfterDelimiter = /[}\],]\s*\n\s*$/.test(beforeMatch);
-
-      if (!isAfterDelimiter && context.offset > parsingHeuristics.PROPERTY_CONTEXT_OFFSET_LIMIT) {
-        return null;
-      }
-
+    replacement: (_match, groups) => {
       const strayText = safeGroup(groups, 1).trim();
 
       // Use structural detection: check if it looks like sentence-like content

@@ -8,7 +8,6 @@
 
 import type { ReplacementRule } from "../../../../types/sanitizer-config.types";
 import {
-  isAfterJsonDelimiter,
   isInArrayContextSimple,
   isDeepArrayContext,
 } from "../../../utils/parser-context-utils";
@@ -64,7 +63,6 @@ export const STRAY_TEXT_RULES: readonly ReplacementRule[] = [
       const strayText = safeGroup(groups, 2).trim();
       return `Removed stray text '${strayText}' before property`;
     },
-    contextCheck: isAfterJsonDelimiter,
   },
 
   // Rule: Remove stray single characters before quoted strings in arrays
@@ -147,7 +145,6 @@ export const STRAY_TEXT_RULES: readonly ReplacementRule[] = [
       const marker = safeGroup(groups, 2);
       return `Removed list marker '${marker}' before property name`;
     },
-    contextCheck: isAfterJsonDelimiter,
   },
 
   // Rule: Remove stray text after closing braces
@@ -289,6 +286,5 @@ export const STRAY_TEXT_RULES: readonly ReplacementRule[] = [
       const extraChar = safeGroup(groups, 2);
       return `Removed extra character '${extraChar}' before opening brace`;
     },
-    contextCheck: isAfterJsonDelimiter,
   },
 ];

@@ -1,5 +1,5 @@
 import {
-  extractTextCompletionResponse,
+  extractCompletionResponse,
   extractEmbeddingResponse,
 } from "../../../../../src/common/llm/providers/bedrock/common/bedrock-response-parser";
 import { z } from "zod";
@@ -24,7 +24,7 @@ describe("bedrock-response-parser", () => {
       usage: { input_tokens: 1, output_tokens: 2 },
     };
 
-    const summary = extractTextCompletionResponse(
+    const summary = extractCompletionResponse(
       response,
       schema,
       {
@@ -52,7 +52,7 @@ describe("bedrock-response-parser", () => {
       usage: { input_tokens: 3, output_tokens: 4 },
     } as any; // alt path not part of schema but allowed via unknown properties
 
-    const summary = extractTextCompletionResponse(
+    const summary = extractCompletionResponse(
       response,
       schema,
       {
@@ -75,7 +75,7 @@ describe("bedrock-response-parser", () => {
       usage: { input_tokens: 5, output_tokens: 6 },
     };
 
-    const summary = extractTextCompletionResponse(
+    const summary = extractCompletionResponse(
       response,
       schema,
       {
@@ -94,7 +94,7 @@ describe("bedrock-response-parser", () => {
   it("throws for invalid structure", () => {
     const badResponse = { content: "wrong" };
     const errorFn = () =>
-      extractTextCompletionResponse(
+      extractCompletionResponse(
         badResponse,
         schema,
         {
@@ -123,7 +123,7 @@ describe("bedrock-response-parser", () => {
       usage: { input_tokens: 1, output_tokens: 2 },
     };
 
-    const summary = extractTextCompletionResponse(
+    const summary = extractCompletionResponse(
       response,
       schema,
       {
@@ -159,7 +159,7 @@ describe("bedrock-response-parser", () => {
       usage: { input_tokens: 1, output_tokens: 2 },
     };
 
-    const summary = extractTextCompletionResponse(
+    const summary = extractCompletionResponse(
       response,
       schemaWithNull,
       {
@@ -184,7 +184,7 @@ describe("bedrock-response-parser", () => {
       // usage field completely missing
     };
 
-    const summary = extractTextCompletionResponse(
+    const summary = extractCompletionResponse(
       response,
       schema,
       {
@@ -209,7 +209,7 @@ describe("bedrock-response-parser", () => {
       usage: { input_tokens: 1, output_tokens: 2 },
     };
 
-    const summary = extractTextCompletionResponse(
+    const summary = extractCompletionResponse(
       response,
       schema,
       {
@@ -234,7 +234,7 @@ describe("bedrock-response-parser", () => {
         usage: { input_tokens: 42, output_tokens: 24 },
       };
 
-      const summary = extractTextCompletionResponse(
+      const summary = extractCompletionResponse(
         response,
         schema,
         {
@@ -271,7 +271,7 @@ describe("bedrock-response-parser", () => {
         usage: { input_tokens: null, output_tokens: null },
       };
 
-      const summary = extractTextCompletionResponse(
+      const summary = extractCompletionResponse(
         response,
         schemaWithNull,
         {
@@ -308,7 +308,7 @@ describe("bedrock-response-parser", () => {
         usage: { input_tokens: "not a number", output_tokens: "also not a number" },
       };
 
-      const summary = extractTextCompletionResponse(
+      const summary = extractCompletionResponse(
         response,
         schemaWithString,
         {
@@ -420,7 +420,7 @@ describe("bedrock-response-parser", () => {
 
   describe("responseContent type guard validation", () => {
     /**
-     * These tests verify that the type guard in extractTextCompletionResponse
+     * These tests verify that the type guard in extractCompletionResponse
      * properly validates that extracted content is JSON-serializable before assignment.
      */
 
@@ -442,7 +442,7 @@ describe("bedrock-response-parser", () => {
         usage: { input_tokens: 1, output_tokens: 2 },
       };
 
-      const summary = extractTextCompletionResponse(
+      const summary = extractCompletionResponse(
         response,
         flexibleSchema,
         {
@@ -477,7 +477,7 @@ describe("bedrock-response-parser", () => {
         usage: { input_tokens: 1, output_tokens: 2 },
       };
 
-      const summary = extractTextCompletionResponse(
+      const summary = extractCompletionResponse(
         response,
         flexibleSchema,
         {
@@ -512,7 +512,7 @@ describe("bedrock-response-parser", () => {
         usage: { input_tokens: 1, output_tokens: 2 },
       };
 
-      const summary = extractTextCompletionResponse(
+      const summary = extractCompletionResponse(
         response,
         flexibleSchema,
         {
@@ -547,7 +547,7 @@ describe("bedrock-response-parser", () => {
         usage: { input_tokens: 1, output_tokens: 2 },
       };
 
-      const summary = extractTextCompletionResponse(
+      const summary = extractCompletionResponse(
         response,
         flexibleSchema,
         {
@@ -574,7 +574,7 @@ describe("bedrock-response-parser", () => {
         usage: { input_tokens: 100, output_tokens: 200 },
       };
 
-      const summary = extractTextCompletionResponse(
+      const summary = extractCompletionResponse(
         response,
         schema,
         {
@@ -598,7 +598,7 @@ describe("bedrock-response-parser", () => {
         usage: { input_tokens: 100, output_tokens: 200 },
       };
 
-      const summary = extractTextCompletionResponse(
+      const summary = extractCompletionResponse(
         response,
         schema,
         {
@@ -622,7 +622,7 @@ describe("bedrock-response-parser", () => {
         usage: { input_tokens: 50, output_tokens: 100 },
       };
 
-      const summary = extractTextCompletionResponse(
+      const summary = extractCompletionResponse(
         response,
         schema,
         {
@@ -646,7 +646,7 @@ describe("bedrock-response-parser", () => {
         usage: { input_tokens: 100, output_tokens: 200 },
       };
 
-      const summary = extractTextCompletionResponse(
+      const summary = extractCompletionResponse(
         response,
         schema,
         {
@@ -669,7 +669,7 @@ describe("bedrock-response-parser", () => {
         usage: { input_tokens: 100, output_tokens: 200 },
       };
 
-      const summary = extractTextCompletionResponse(
+      const summary = extractCompletionResponse(
         response,
         schema,
         {

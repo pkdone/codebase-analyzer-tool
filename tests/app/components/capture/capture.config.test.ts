@@ -2,7 +2,7 @@ import "reflect-metadata";
 import { CODE_DATA_BLOCK_HEADER } from "../../../../src/app/prompts/prompts.constants";
 import { fileTypePromptRegistry } from "../../../../src/app/prompts/sources/sources.definitions";
 import {
-  JSONSchemaPrompt,
+  renderJsonSchemaPrompt,
   type JSONSchemaPromptConfig,
 } from "../../../../src/common/prompts/json-schema-prompt";
 import { DEFAULT_PERSONA_INTRODUCTION } from "../../../../src/app/prompts/prompts.constants";
@@ -11,17 +11,23 @@ import { sourceSummarySchema } from "../../../../src/app/schemas/source-file.sch
 import { SourceSummaryType } from "../../../../src/app/components/capture/file-summarizer.service";
 
 /**
- * Helper to create a JSONSchemaPrompt from fileTypePromptRegistry config.
+ * Helper to render a prompt from fileTypePromptRegistry config.
  * Adds dataBlockHeader and wrapInCodeBlock which are not in the registry entries.
  */
-function createSourcePrompt(fileType: keyof typeof fileTypePromptRegistry): JSONSchemaPrompt {
+function renderSourcePrompt(
+  fileType: keyof typeof fileTypePromptRegistry,
+  content: string,
+): string {
   const config = fileTypePromptRegistry[fileType];
-  return new JSONSchemaPrompt({
-    personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
-    ...config,
-    dataBlockHeader: CODE_DATA_BLOCK_HEADER,
-    wrapInCodeBlock: true,
-  } as JSONSchemaPromptConfig);
+  return renderJsonSchemaPrompt(
+    {
+      personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+      ...config,
+      dataBlockHeader: CODE_DATA_BLOCK_HEADER,
+      wrapInCodeBlock: true,
+    } as JSONSchemaPromptConfig,
+    content,
+  );
 }
 
 describe("File Handler Configuration", () => {
@@ -83,38 +89,39 @@ describe("File Handler Configuration", () => {
     });
   });
 
-  describe("JSONSchemaPrompt structure", () => {
+  describe("renderJsonSchemaPrompt structure", () => {
     test("should enforce correct structure", () => {
-      const testPrompt = new JSONSchemaPrompt({
+      const config: JSONSchemaPromptConfig = {
         personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
         contentDesc: "test content",
         instructions: ["test instructions"],
         responseSchema: sourceSummarySchema,
         dataBlockHeader: "CODE",
         wrapInCodeBlock: true,
-      });
+      };
 
-      expect(testPrompt).toHaveProperty("contentDesc");
-      expect(testPrompt).toHaveProperty("instructions");
-      expect(testPrompt).toHaveProperty("responseSchema");
-      expect(typeof testPrompt.contentDesc).toBe("string");
-      expect(typeof testPrompt.instructions).toBe("object");
-      expect(Array.isArray(testPrompt.instructions)).toBe(true);
+      // Verify the config has the expected structure
+      expect(config.contentDesc).toBe("test content");
+      expect(config.instructions).toEqual(["test instructions"]);
+      expect(config.responseSchema).toBeDefined();
+      expect(typeof config.contentDesc).toBe("string");
+      expect(typeof config.instructions).toBe("object");
+      expect(Array.isArray(config.instructions)).toBe(true);
     });
 
     test("should work with type compatibility", () => {
-      // Test that JSONSchemaPrompt can work with inline schema types
-      const typedPrompt = new JSONSchemaPrompt({
+      // Test that renderJsonSchemaPrompt can work with inline schema types
+      const config: JSONSchemaPromptConfig = {
         personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
         contentDesc: "test content",
         instructions: ["test instructions"],
         responseSchema: sourceSummarySchema.pick({ purpose: true, implementation: true }),
         dataBlockHeader: "CODE",
         wrapInCodeBlock: true,
-      });
+      };
 
-      expect(typedPrompt.responseSchema).toBeDefined();
-      expect(typeof typedPrompt.responseSchema.parse).toBe("function");
+      expect(config.responseSchema).toBeDefined();
+      expect(typeof config.responseSchema.parse).toBe("function");
     });
   });
 
@@ -191,17 +198,22 @@ describe("File Handler Configuration", () => {
   });
 
   describe("Creating Prompts from configs", () => {
-    test("should create valid JSONSchemaPrompt instances from configs", () => {
-      const javaPrompt = createSourcePrompt("java");
+    test("should create valid rendered prompts from configs", () => {
+      const config = fileTypePromptRegistry.java;
+      const fullConfig: JSONSchemaPromptConfig = {
+        personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
+        ...config,
+        dataBlockHeader: CODE_DATA_BLOCK_HEADER,
+        wrapInCodeBlock: true,
+      };
 
-      expect(javaPrompt.contentDesc).toBe("the JVM code");
-      expect(javaPrompt.instructions.length).toBeGreaterThan(0);
-      expect(javaPrompt.responseSchema).toBeDefined();
+      expect(fullConfig.contentDesc).toBe("the JVM code");
+      expect(fullConfig.instructions.length).toBeGreaterThan(0);
+      expect(fullConfig.responseSchema).toBeDefined();
     });
 
     test("should render prompts correctly", () => {
-      const javaPrompt = createSourcePrompt("java");
-      const rendered = javaPrompt.renderPrompt("public class Test {}");
+      const rendered = renderSourcePrompt("java", "public class Test {}");
 
       expect(rendered).toContain("Act as a senior developer");
       expect(rendered).toContain("public class Test {}");

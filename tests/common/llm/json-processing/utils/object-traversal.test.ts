@@ -1,6 +1,6 @@
 import {
   deepMap,
-  deepMapObject,
+  deepTransform,
   isPlainObject,
 } from "../../../../../src/common/llm/json-processing/utils/object-traversal";
 
@@ -130,11 +130,11 @@ describe("deepMap", () => {
   });
 });
 
-describe("deepMapObject", () => {
+describe("deepTransform", () => {
   describe("property inclusion", () => {
     it("should omit properties when shouldInclude returns false", () => {
       const input = { a: 1, b: null, c: 2 };
-      const result = deepMapObject(input, (v: unknown) => (v === null ? undefined : v), {
+      const result = deepTransform(input, (v: unknown) => (v === null ? undefined : v), {
         shouldInclude: (_key: string, val: unknown) => val !== undefined,
       });
       expect(result).toEqual({ a: 1, c: 2 });
@@ -142,7 +142,7 @@ describe("deepMapObject", () => {
 
     it("should convert null to undefined and omit", () => {
       const input = { name: "foo", groupId: null, nested: { value: null } };
-      const result = deepMapObject(input, (v: unknown) => (v === null ? undefined : v), {
+      const result = deepTransform(input, (v: unknown) => (v === null ? undefined : v), {
         shouldInclude: (_key: string, val: unknown) => val !== undefined,
       });
       expect(result).toEqual({ name: "foo", nested: {} });
@@ -152,7 +152,7 @@ describe("deepMapObject", () => {
   describe("key transformation", () => {
     it("should transform keys when transformKey is provided", () => {
       const input = { type_: "string", name_: "param1", value: 123 };
-      const result = deepMapObject(input, (v: unknown) => v, {
+      const result = deepTransform(input, (v: unknown) => v, {
         transformKey: (key: string) =>
           key.endsWith("_") && key.length > 1 ? key.slice(0, -1) : key,
       });
@@ -161,7 +161,7 @@ describe("deepMapObject", () => {
 
     it("should skip properties when transformKey returns null", () => {
       const input = { keep: "value", skip: "value" };
-      const result = deepMapObject(input, (v: unknown) => v, {
+      const result = deepTransform(input, (v: unknown) => v, {
         transformKey: (key: string) => (key === "skip" ? null : key),
       });
       expect(result).toEqual({ keep: "value" });
@@ -219,14 +219,14 @@ describe("type safety", () => {
     });
   });
 
-  describe("deepMapObject generic type preservation", () => {
+  describe("deepTransform generic type preservation", () => {
     it("should preserve type for object input", () => {
       interface Config {
         enabled: boolean;
         value: string | null;
       }
       const input: Config = { enabled: true, value: null };
-      const result = deepMapObject(input, (v: unknown) => (v === null ? undefined : v));
+      const result = deepTransform(input, (v: unknown) => (v === null ? undefined : v));
 
       // TypeScript should infer result as Config
       expect(result.enabled).toBe(true);
@@ -238,7 +238,7 @@ describe("type safety", () => {
         maybe: string | null;
       }
       const input: Data = { keep: "value", maybe: null };
-      const result = deepMapObject(input, (v: unknown) => (v === null ? undefined : v), {
+      const result = deepTransform(input, (v: unknown) => (v === null ? undefined : v), {
         shouldInclude: (_key: string, val: unknown) => val !== undefined,
       });
 
@@ -319,16 +319,16 @@ describe("object allocation optimization", () => {
     });
   });
 
-  describe("deepMapObject reference preservation for plain objects", () => {
+  describe("deepTransform reference preservation for plain objects", () => {
     it("should return same object reference when nothing changes and no options filter", () => {
       const input = { a: 1, b: "test" };
-      const result = deepMapObject(input, (v: unknown) => v);
+      const result = deepTransform(input, (v: unknown) => v);
       expect(result).toBe(input);
     });
 
     it("should create new array when mapping (arrays always create new references)", () => {
       const input = ["a", "b", "c"];
-      const result = deepMapObject(input, (v: unknown) => v);
+      const result = deepTransform(input, (v: unknown) => v);
       // Arrays always create new references due to the .map() call
       expect(result).not.toBe(input);
       expect(result).toEqual(input);
@@ -336,13 +336,13 @@ describe("object allocation optimization", () => {
 
     it("should create new object when visitor transforms values", () => {
       const input = { value: null };
-      const result = deepMapObject(input, (v: unknown) => (v === null ? undefined : v));
+      const result = deepTransform(input, (v: unknown) => (v === null ? undefined : v));
       expect(result).not.toBe(input);
     });
 
     it("should create new object when properties are filtered out", () => {
       const input = { keep: 1, remove: 2 };
-      const result = deepMapObject(input, (v: unknown) => v, {
+      const result = deepTransform(input, (v: unknown) => v, {
         shouldInclude: (key: string) => key !== "remove",
       });
       expect(result).not.toBe(input);
@@ -351,7 +351,7 @@ describe("object allocation optimization", () => {
 
     it("should create new object when keys are transformed", () => {
       const input = { old_key: "value" };
-      const result = deepMapObject(input, (v: unknown) => v, {
+      const result = deepTransform(input, (v: unknown) => v, {
         transformKey: (key: string) => key.replace("old_", "new_"),
       });
       expect(result).not.toBe(input);

@@ -12,7 +12,7 @@ describe("DomainModelTransformer", () => {
     transformer = new DomainModelTransformer();
   });
 
-  describe("getDomainModelData with hierarchical bounded contexts", () => {
+  describe("transformToDomainModel with hierarchical bounded contexts", () => {
     it("should correctly extract hierarchical bounded context data with repository at aggregate level", () => {
       const categorizedData: CategorizedSectionItem[] = [
         {
@@ -68,7 +68,7 @@ describe("DomainModelTransformer", () => {
         },
       ];
 
-      const result = transformer.getDomainModelData(categorizedData);
+      const result = transformer.transformToDomainModel(categorizedData);
 
       // Check Order Management bounded context
       const orderContext = result.boundedContexts.find((bc) => bc.name === "Order Management");
@@ -134,7 +134,7 @@ describe("DomainModelTransformer", () => {
         },
       ];
 
-      const result = transformer.getDomainModelData(categorizedData);
+      const result = transformer.transformToDomainModel(categorizedData);
 
       const userContext = result.boundedContexts[0];
       // Aggregates should have entity names as string[]
@@ -178,7 +178,7 @@ describe("DomainModelTransformer", () => {
         },
       ];
 
-      const result = transformer.getDomainModelData(categorizedData);
+      const result = transformer.transformToDomainModel(categorizedData);
 
       const emptyContext = result.boundedContexts[0];
       expect(emptyContext.aggregates).toHaveLength(0);
@@ -195,7 +195,7 @@ describe("DomainModelTransformer", () => {
         },
       ];
 
-      const result = transformer.getDomainModelData(categorizedData);
+      const result = transformer.transformToDomainModel(categorizedData);
 
       expect(result.boundedContexts).toHaveLength(0);
       expect(result.aggregates).toHaveLength(0);
@@ -252,7 +252,7 @@ describe("DomainModelTransformer", () => {
         },
       ];
 
-      const result = transformer.getDomainModelData(categorizedData);
+      const result = transformer.transformToDomainModel(categorizedData);
 
       // Top-level should contain all items from all contexts
       expect(result.aggregates).toHaveLength(3);
@@ -311,7 +311,7 @@ describe("DomainModelTransformer", () => {
         },
       ];
 
-      const result = transformer.getDomainModelData(categorizedData);
+      const result = transformer.transformToDomainModel(categorizedData);
 
       // Entities should be deduplicated
       const context = result.boundedContexts[0];
@@ -348,7 +348,7 @@ describe("DomainModelTransformer", () => {
         },
       ];
 
-      const result = transformer.getDomainModelData(categorizedData);
+      const result = transformer.transformToDomainModel(categorizedData);
 
       const context = result.boundedContexts[0];
       expect(context.aggregates).toHaveLength(1);
@@ -376,7 +376,7 @@ describe("DomainModelTransformer", () => {
         },
       ];
 
-      const result = transformer.getDomainModelData(categorizedData);
+      const result = transformer.transformToDomainModel(categorizedData);
 
       const context = result.boundedContexts[0];
       expect(context.aggregates).toHaveLength(0);
