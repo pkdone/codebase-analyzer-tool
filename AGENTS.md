@@ -24,6 +24,8 @@ This document outlines the inferred coding standards, architectural patterns, an
 
 ### Line Endings & Spacing
 *   **Line Endings:** Unix style (`\n`).
+*   **If Statements**
+    * Use a single-line, braceless if statement when there is no else or else if, the body contains exactly one statement, and the condition plus statement fit within 100 characters.
 *   **Blank Lines (Control Structures):**
     *   **Rule:** For `if`, `for`, and `while` statements that use `{` `}` to delimit their code blocks, ensure there is a blank line both **before** and **after** the block.
     *   **Exceptions:**
