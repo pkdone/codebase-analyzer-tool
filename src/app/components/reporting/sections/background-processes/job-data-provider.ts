@@ -73,7 +73,7 @@ export class ScheduledJobDataProvider {
     return {
       jobs: sortedJobs,
       totalJobs: jobsList.length,
-      triggerTypes: Array.from(triggerTypesSet).toSorted(),
+      triggerTypes: Array.from(triggerTypesSet).toSorted((a, b) => a.localeCompare(b)),
       jobFiles: jobFilePaths,
     };
   }

@@ -99,8 +99,7 @@ export const STRAY_COMMENTARY_RULES: readonly ReplacementRule[] = [
   // Pattern: `post_max_size = 20M    "purpose":` -> `"purpose":`
   {
     name: "configTextBeforeProperty",
-    pattern:
-      /([}\],]|\n|^)(\s*)([a-zA-Z_][a-zA-Z0-9_]*\s*=\s*[^\s"]{1,20})\s+("([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:)/g,
+    pattern: /([}\],]|\n|^)(\s*)([a-zA-Z_]\w*\s*=\s*[^\s"]{1,20})\s+("([a-zA-Z_$][\w$]*)"\s*:)/g,
     replacement: (_match, groups, context) => {
       if (!isValidPropertyStartPosition(context)) {
         return null;

@@ -102,7 +102,7 @@ export const STRING_CORRUPTION_RULES: readonly ReplacementRule[] = [
       }
 
       // There might be more content, just truncate the newlines
-      return `${beforeStr}\\n...${afterStr}`;
+      return beforeStr + String.raw`\n` + "..." + afterStr;
     },
     diagnosticMessage: (_match, groups) => {
       const repetitiveSection = groups[1] ?? "";

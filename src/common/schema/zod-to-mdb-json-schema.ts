@@ -1,8 +1,6 @@
-import { z } from "zod";
-import { ignoreOverride } from "zod-to-json-schema";
+import { z, ZodType, ZodTypeDef } from "zod";
+import { ignoreOverride, zodToJsonSchema, Options, JsonSchema7Type } from "zod-to-json-schema";
 import { ObjectId } from "bson";
-import { ZodType, ZodTypeDef } from "zod";
-import { zodToJsonSchema, Options, JsonSchema7Type } from "zod-to-json-schema";
 
 import { traverseAndModifySchema } from "./schema-traversal";
 

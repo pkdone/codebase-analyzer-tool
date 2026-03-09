@@ -61,7 +61,7 @@ export const PROPERTY_NAME_RULES: readonly ReplacementRule[] = [
   // Pattern: `propertyName: [` -> `"propertyName": [`
   {
     name: "missingQuotesOnPropertyWithArrayObject",
-    pattern: /([}\],]|\n|^)(\s*)([a-zA-Z_$][a-zA-Z0-9_$]*)\s*:\s*(\[|{)/g,
+    pattern: /([}\],]|\n|^)(\s*)([a-zA-Z_$][a-zA-Z0-9_$]*)\s*:\s*[[{]/g,
     replacement: (_match, groups) => {
       const [delimiter, whitespace, propertyName, valueStart] = getSafeGroups(groups, 4);
       return `${delimiter}${whitespace}"${propertyName}": ${valueStart}`;
@@ -218,7 +218,7 @@ export const PROPERTY_NAME_RULES: readonly ReplacementRule[] = [
   // Pattern: `{_PARAM_TABLE": "table"` -> `{"name": "PARAM_TABLE"`
   {
     name: "missingPropertyNameWithFragment",
-    pattern: /\{\s*([_][a-zA-Z0-9_]+)"\s*:\s*"([^"]+)"/g,
+    pattern: /\{\s*(_\w+)"\s*:\s*"([^"]+)"/g,
     replacement: (_match, groups) => {
       const fragment = safeGroup(groups, 0);
       const fixedValue = fragment.substring(1); // Remove leading underscore
@@ -484,7 +484,7 @@ export const PROPERTY_NAME_RULES: readonly ReplacementRule[] = [
   // Pattern: `      _PARAM_TABLE": "table"` -> `      "name": "PARAM_TABLE"`
   {
     name: "missingPropertyNameWithFragmentWhitespace",
-    pattern: /(\s+)([_][A-Z0-9_]+)"\s*:\s*"([^"]+)"/g,
+    pattern: /(\s+)(_[A-Z0-9_]+)"\s*:\s*"([^"]+)"/g,
     replacement: (_match, groups, context) => {
       const { beforeMatch } = context;
       // Extract whitespace to preserve indentation - prefer from beforeMatch, fallback to groups

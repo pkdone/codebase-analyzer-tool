@@ -363,8 +363,17 @@ export const STRUCTURAL_RULES: readonly ReplacementRule[] = [
     name: "escapeUnescapedQuotesInString",
     pattern: /("([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:\s*")([^"\\]*)(")([^":]+)(")([^"\\]*)(")(\s*[,}])/g,
     replacement: (_match, groups) => {
-      const [propertyPartStr, , beforeTextStr, , middleTextStr, , afterTextStr, closingQuoteStr, terminatorStr] =
-        getSafeGroups(groups, 9);
+      const [
+        propertyPartStr,
+        ,
+        beforeTextStr,
+        ,
+        middleTextStr,
+        ,
+        afterTextStr,
+        closingQuoteStr,
+        terminatorStr,
+      ] = getSafeGroups(groups, 9);
 
       // Only process if we have quotes in the middle (unescaped quotes)
       if (!middleTextStr || middleTextStr.length === 0) {
@@ -377,7 +386,16 @@ export const STRUCTURAL_RULES: readonly ReplacementRule[] = [
       }
 
       // Escape the unescaped quotes
-      return `${propertyPartStr}${beforeTextStr}\\"${middleTextStr}\\"${afterTextStr}${closingQuoteStr}${terminatorStr}`;
+      return (
+        propertyPartStr +
+        beforeTextStr +
+        String.raw`\"` +
+        middleTextStr +
+        String.raw`\"` +
+        afterTextStr +
+        closingQuoteStr +
+        terminatorStr
+      );
     },
     diagnosticMessage: "Escaped unescaped quotes in string value",
     skipInString: false, // This rule specifically targets content within strings

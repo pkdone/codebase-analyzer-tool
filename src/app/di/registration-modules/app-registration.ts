@@ -1,7 +1,13 @@
 import { container } from "tsyringe";
-import { coreTokens, insightsTokens, configTokens, serviceTokens, queryingTokens } from "../tokens";
-import { repositoryTokens } from "../tokens";
-import { taskTokens } from "../tokens";
+import {
+  coreTokens,
+  insightsTokens,
+  configTokens,
+  serviceTokens,
+  queryingTokens,
+  repositoryTokens,
+  taskTokens,
+} from "../tokens";
 
 // Repository imports
 import SourcesRepositoryImpl from "../../repositories/sources/sources.repository";

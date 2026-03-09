@@ -328,7 +328,7 @@ function extractNumericValue(value: string): number {
     }
   }
 
-  return NaN;
+  return Number.NaN;
 }
 
 /**

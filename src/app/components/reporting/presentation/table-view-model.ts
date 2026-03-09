@@ -1,8 +1,7 @@
 import { camelCaseToTitleCase } from "../../../../common/utils/text-utils";
-import { formatRow, type ProcessedTableCell, type ProcessedListItem } from "./table-data-formatter";
+import { formatRow, type ProcessedTableCell } from "./table-data-formatter";
 
 // Re-export formatter types for convenience (used by tests and other consumers)
-export type { ProcessedTableCell, ProcessedListItem };
 
 /**
  * Interface for a table row that can be displayed.
@@ -58,3 +57,5 @@ export class TableViewModel<T extends RawTableRowData = RawTableRowData> {
     return this.data.length > 0;
   }
 }
+
+export { type ProcessedTableCell, type ProcessedListItem } from "./table-data-formatter";

@@ -95,9 +95,9 @@ export class BomDataProvider {
     const dependencies = Array.from(dependencyMap.values(), (dep) => ({
       name: dep.name,
       groupId: dep.groupId,
-      versions: Array.from(dep.versions).toSorted(),
+      versions: Array.from(dep.versions).toSorted((a, b) => a.localeCompare(b)),
       hasConflict: dep.versions.size > 1,
-      scopes: Array.from(dep.scopes).toSorted(),
+      scopes: Array.from(dep.scopes).toSorted((a, b) => a.localeCompare(b)),
       locations: dep.locations,
     }));
 

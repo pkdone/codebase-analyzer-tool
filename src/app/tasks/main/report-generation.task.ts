@@ -1,8 +1,7 @@
 import "reflect-metadata";
 import { injectable, inject } from "tsyringe";
 import { Task } from "../task.types";
-import { coreTokens } from "../../di/tokens";
-import { reportingTokens } from "../../di/tokens";
+import { coreTokens, reportingTokens } from "../../di/tokens";
 import { outputConfig } from "../../config/output.config";
 import { clearDirectory } from "../../../common/fs/directory-operations";
 import ReportArtifactGenerator from "../../components/reporting/report-artifact-generator";

@@ -25,7 +25,7 @@ export const duplicateEntryRemover: SanitizerStrategy = {
 
     // Pattern 1: Remove duplicate entries with missing opening quote (ending with comma or bracket)
     const duplicateEntryPattern1 = /"([^"]+)"\s*,\s*\n\s*([a-z]+)\.[^"]*"(\s*[,\]])/g;
-    sanitized = sanitized.replace(
+    sanitized = sanitized.replaceAll(
       duplicateEntryPattern1,
       (match, validEntry, prefix, terminator, offset: number) => {
         if (isInStringAt(offset, sanitized)) {
@@ -61,7 +61,7 @@ export const duplicateEntryRemover: SanitizerStrategy = {
     // Pattern 2: Remove quoted entries that start with corruption markers
     const duplicateEntryPattern2 =
       /"([^"]+)"\s*,\s*\n?\s*"(extra|duplicate|repeat|copy|another|second|third|additional|redundant|spurious)[^"]*"(\s*[,\]]\s*|\s*\n)/g;
-    sanitized = sanitized.replace(
+    sanitized = sanitized.replaceAll(
       duplicateEntryPattern2,
       (match, validEntry, prefix, delimiter, offset: number) => {
         if (isInStringAt(offset, sanitized)) {

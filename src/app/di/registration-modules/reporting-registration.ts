@@ -7,24 +7,28 @@ import { HtmlReportAssetService } from "../../components/reporting/services/html
 import { JsonReportWriter } from "../../components/reporting/json-report-writer";
 import { FlowchartDiagramGenerator } from "../../components/reporting/diagrams";
 // Domain-specific diagram generators are co-located with their sections
-import { DomainModelDiagramGenerator } from "../../components/reporting/sections/domain-model";
-import { ArchitectureDiagramGenerator } from "../../components/reporting/sections/potential-microservices";
-import { CurrentArchitectureDiagramGenerator } from "../../components/reporting/sections/inferred-architecture";
+import {
+  DomainModelDiagramGenerator,
+  DomainModelTransformer,
+  DomainModelSection,
+} from "../../components/reporting/sections/domain-model";
+import {
+  ArchitectureDiagramGenerator,
+  PotentialMicroservicesSection,
+} from "../../components/reporting/sections/potential-microservices";
+import {
+  CurrentArchitectureDiagramGenerator,
+  InferredArchitectureSection,
+} from "../../components/reporting/sections/inferred-architecture";
 import { DatabaseReportDataProvider } from "../../components/reporting/sections/database/database-report-data-provider";
 import { IntegrationPointsDataProvider } from "../../components/reporting/sections/integration-points/integration-points-data-provider";
 import { AppStatisticsDataProvider } from "../../components/reporting/sections/overview/app-statistics-data-provider";
 import { CategorizedSectionDataBuilder } from "../../components/reporting/data-processing";
-import { DomainModelTransformer } from "../../components/reporting/sections/domain-model/domain-model-transformer";
 import ReportArtifactGenerator from "../../components/reporting/report-artifact-generator";
 import { FileTypesSection } from "../../components/reporting/sections/file-types/file-types-section";
 import { DatabaseSection } from "../../components/reporting/sections/database/database-section";
 import { IntegrationPointsSection } from "../../components/reporting/sections/integration-points/integration-points-section";
 import { BusinessProcessesSection } from "../../components/reporting/sections/business-processes/business-processes-section";
-
-// Visualization sections (domain-organized)
-import { DomainModelSection } from "../../components/reporting/sections/domain-model";
-import { InferredArchitectureSection } from "../../components/reporting/sections/inferred-architecture";
-import { PotentialMicroservicesSection } from "../../components/reporting/sections/potential-microservices";
 
 // Focused report sections
 import { DependenciesSection } from "../../components/reporting/sections/dependencies/dependencies-section";

@@ -215,11 +215,9 @@ describe("InsightsCompletionExecutor - Type Safety Post Fix", () => {
         llmOk(mockData, createExecutionMetadata("gpt-4", "openai")) as any,
       );
 
-      await executor.execute(
-        AppSummaryCategories.enum.technologies,
-        ["file1.ts"],
-        { taskCategory: "custom-entities" },
-      );
+      await executor.execute(AppSummaryCategories.enum.technologies, ["file1.ts"], {
+        taskCategory: "custom-entities",
+      });
 
       expect(mockLLMRouter.executeCompletion).toHaveBeenCalledWith(
         "custom-entities",
@@ -237,11 +235,9 @@ describe("InsightsCompletionExecutor - Type Safety Post Fix", () => {
         llmOk(mockData, createExecutionMetadata("gpt-4", "openai")) as any,
       );
 
-      await executor.execute(
-        AppSummaryCategories.enum.technologies,
-        ["file1.ts"],
-        { forPartialAnalysis: true },
-      );
+      await executor.execute(AppSummaryCategories.enum.technologies, ["file1.ts"], {
+        forPartialAnalysis: true,
+      });
 
       // Verify the partial analysis note was included in the prompt
       const callArgs = mockLLMRouter.executeCompletion.mock.calls[0];
@@ -288,11 +284,7 @@ describe("InsightsCompletionExecutor - Type Safety Post Fix", () => {
         llmOk(mockData, createExecutionMetadata("gpt-4", "openai")) as any,
       );
 
-      const result = await executor.execute(
-        AppSummaryCategories.enum.technologies,
-        [],
-        undefined,
-      );
+      const result = await executor.execute(AppSummaryCategories.enum.technologies, [], undefined);
 
       expect(result).toBeDefined();
       if (result) {
@@ -399,11 +391,7 @@ describe("InsightsCompletionExecutor - Type Safety Post Fix", () => {
         llmOk(mockData, createExecutionMetadata("gpt-4", "openai")) as any,
       );
 
-      await executor.execute(
-        AppSummaryCategories.enum.technologies,
-        ["file1.ts"],
-        undefined,
-      );
+      await executor.execute(AppSummaryCategories.enum.technologies, ["file1.ts"], undefined);
 
       const callArgs = mockLLMRouter.executeCompletion.mock.calls[0];
       const completionOptions = callArgs[2];

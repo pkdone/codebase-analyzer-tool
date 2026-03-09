@@ -100,7 +100,7 @@ export const REPAIR_STEP_TEMPLATE = Object.freeze({
    * @returns Description string with proper pluralization
    */
   fixedConcatenationChains: (count: number): string =>
-    `Fixed ${count} concatenation chain${count !== 1 ? "s" : ""}`,
+    `Fixed ${count} concatenation chain${count === 1 ? "" : "s"}`,
 
   /**
    * Generate description for added missing commas
@@ -108,7 +108,7 @@ export const REPAIR_STEP_TEMPLATE = Object.freeze({
    * @returns Description string with proper pluralization
    */
   addedMissingCommas: (count: number): string =>
-    `Added ${count} missing comma${count !== 1 ? "s" : ""} between properties`,
+    `Added ${count} missing comma${count === 1 ? "" : "s"} between properties`,
 
   /**
    * Generate description for fixed mismatched delimiters
@@ -116,7 +116,7 @@ export const REPAIR_STEP_TEMPLATE = Object.freeze({
    * @returns Description string with proper pluralization
    */
   fixedMismatchedDelimiters: (count: number): string =>
-    `Fixed ${count} mismatched delimiter${count !== 1 ? "s" : ""}`,
+    `Fixed ${count} mismatched delimiter${count === 1 ? "" : "s"}`,
 } as const);
 
 /**

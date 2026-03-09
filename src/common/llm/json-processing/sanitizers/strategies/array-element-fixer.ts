@@ -56,7 +56,7 @@ export const arrayElementFixer: SanitizerStrategy = {
     // Pattern 1: Fix missing opening quotes in array elements
     // Uses generic dot-separated identifier detection
     const missingQuoteInArrayPattern = /(\[|,\s*)(\s*)([a-zA-Z][a-zA-Z0-9_.]*)"(\s*,|\s*\])/g;
-    sanitized = sanitized.replace(
+    sanitized = sanitized.replaceAll(
       missingQuoteInArrayPattern,
       (match, prefix, whitespace, unquotedValue, terminator, offset: number) => {
         const prefixStr = typeof prefix === "string" ? prefix : "";
@@ -108,7 +108,7 @@ export const arrayElementFixer: SanitizerStrategy = {
 
     // Pattern 2: Fix missing opening quotes in newline-separated array elements
     const missingQuoteInArrayNewlinePattern = /(\n\s*)([a-zA-Z][a-zA-Z0-9_.]*)"(\s*,|\s*\])/g;
-    sanitized = sanitized.replace(
+    sanitized = sanitized.replaceAll(
       missingQuoteInArrayNewlinePattern,
       (match, newlinePrefix, unquotedValue, terminator, offset: number) => {
         const newlinePrefixStr = typeof newlinePrefix === "string" ? newlinePrefix : "";
@@ -157,7 +157,7 @@ export const arrayElementFixer: SanitizerStrategy = {
     // Uses generic stray word detection instead of hardcoded word list
     const wordBeforeQuotedStringInArrayPattern =
       /(\[|,\s*)(\s*)([a-zA-Z]+)\s*"([^"]+)"(\s*,|\s*\])/g;
-    sanitized = sanitized.replace(
+    sanitized = sanitized.replaceAll(
       wordBeforeQuotedStringInArrayPattern,
       (match, prefix, whitespace, prefixWord, quotedValue, terminator, offset: number) => {
         const prefixStr = typeof prefix === "string" ? prefix : "";
@@ -194,7 +194,7 @@ export const arrayElementFixer: SanitizerStrategy = {
 
       const unquotedArrayElementPattern =
         /(\n\s*)([A-Z][A-Z0-9_]{3,})(\s*\n\s*\]|\s*\]|\s*,|\s*\n)/g;
-      sanitized = sanitized.replace(
+      sanitized = sanitized.replaceAll(
         unquotedArrayElementPattern,
         (match, newlinePrefix, element, terminator, offset: number) => {
           if (isInStringAt(offset, sanitized)) {
@@ -241,7 +241,7 @@ export const arrayElementFixer: SanitizerStrategy = {
 
     // Pattern 5: Fix missing commas between array elements (same line)
     const missingCommaSameLinePattern = /"([^"]+)"\s+"([^"]+)"(\s*[,\]]|\s*$)/g;
-    sanitized = sanitized.replace(
+    sanitized = sanitized.replaceAll(
       missingCommaSameLinePattern,
       (match, value1, value2, terminator, offset: number) => {
         if (isInStringAt(offset, sanitized)) {
@@ -270,7 +270,7 @@ export const arrayElementFixer: SanitizerStrategy = {
     // Pattern 6: Fix missing commas between array elements (newline)
     const missingCommaAfterArrayElementPattern =
       /"([^"]+)"(\s*)\n(\s*)"([^"]+)"(\s*[,}\]]|[,}\]]|$)/g;
-    sanitized = sanitized.replace(
+    sanitized = sanitized.replaceAll(
       missingCommaAfterArrayElementPattern,
       (match, value1, _whitespace1, newlineWhitespace, value2, terminator, offset: number) => {
         if (isInStringAt(offset, sanitized)) {
@@ -303,8 +303,8 @@ export const arrayElementFixer: SanitizerStrategy = {
     // Pattern 7: Generic fix for unquoted dot-separated identifiers in arrays
     // This is schema-agnostic and catches any dot-separated identifier
     const unquotedDotSeparatedPattern =
-      /(\[|,)(\s*)([a-zA-Z_$][a-zA-Z0-9_$]*(?:\.[a-zA-Z_$][a-zA-Z0-9_$]*)+)(\s*[,\]])/g;
-    sanitized = sanitized.replace(
+      /([[,])(\s*)([a-zA-Z_$][a-zA-Z0-9_$]*(?:\.[a-zA-Z_$][a-zA-Z0-9_$]*)+)(\s*[,\]])/g;
+    sanitized = sanitized.replaceAll(
       unquotedDotSeparatedPattern,
       (match, prefix, whitespace, identifier, terminator, offset: number) => {
         if (isInStringAt(offset, sanitized)) {

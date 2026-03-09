@@ -96,15 +96,15 @@ export class RequirementPromptExecutor {
         outputFormat: LLMOutputFormat.TEXT,
       });
 
-      if (!isLLMOk(result)) {
-        response = `LLM completion failed: ${result.error.message}`;
-      } else {
+      if (isLLMOk(result)) {
         // Type-safe: return type correctly infers string for TEXT output format
         response = result.value;
         // Detect and warn about empty responses
         if (!response.trim()) {
           logWarn(`Empty LLM response received for prompt: ${resource}`);
         }
+      } else {
+        response = `LLM completion failed: ${result.error.message}`;
       }
     } catch (error: unknown) {
       logErr("Problem introspecting and processing source files", error);

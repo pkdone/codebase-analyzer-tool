@@ -118,7 +118,7 @@ export function looksLikeStrayText(text: string, options: StrayTextDetectionOpti
 
   // Variable assignment patterns (config-like text)
   if (opts.detectAssignmentPatterns) {
-    if (/^[a-zA-Z_][a-zA-Z0-9_]*\s*=\s*[^\s]+$/.test(trimmed)) {
+    if (/^[a-zA-Z_]\w*\s*=\s*[^\s]+$/.test(trimmed)) {
       return true;
     }
   }
@@ -273,7 +273,7 @@ export function looksLikeFirstPersonStatement(text: string): boolean {
   }
 
   // "Next" at start followed by comma or "I/we"
-  if (/^Next[,]?\s+(?:I|we)\s+/i.test(trimmed)) {
+  if (/^Next,?\s+(?:I|we)\s+/i.test(trimmed)) {
     return true;
   }
 
@@ -342,7 +342,7 @@ export function looksLikeSentenceStructure(text: string): boolean {
   // Sentence structure: 3+ words
   if (words.length >= 3) {
     // Check if it's alphabetic content (not just numbers/symbols)
-    const alphabeticContent = trimmed.replace(/[^a-zA-Z]/g, "");
+    const alphabeticContent = trimmed.replaceAll(/[^a-zA-Z]/g, "");
 
     if (alphabeticContent.length > trimmed.length * 0.5) {
       return true;

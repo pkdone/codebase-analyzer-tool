@@ -61,7 +61,7 @@ function parseStringAsList(stringValue: string): string[] {
     } catch {
       // Try with single quotes converted to double quotes (common LLM output)
       try {
-        const normalizedQuotes = trimmed.replace(/'/g, '"');
+        const normalizedQuotes = trimmed.replaceAll(/'/g, '"');
         const parsed: unknown = JSON.parse(normalizedQuotes);
 
         if (Array.isArray(parsed)) {
@@ -76,7 +76,7 @@ function parseStringAsList(stringValue: string): string[] {
   // Strategy 1: Bulleted list (lines starting with -, *, •, or similar)
   // Pattern: "- item1\n- item2" or "* item1\n* item2" or "• item1\n• item2"
   // Extended to include additional Unicode bullet characters for robustness
-  const bulletedListPattern = /^[\s]*[-*•◦▪▸►▹‣⁃○●◆◇■□→➤➢]\s+/m;
+  const bulletedListPattern = /^\s*[-*•◦▪▸►▹‣⁃○●◆◇■□→➤➢]\s+/m;
 
   if (bulletedListPattern.test(trimmed)) {
     const items = trimmed
@@ -93,7 +93,7 @@ function parseStringAsList(stringValue: string): string[] {
 
   // Strategy 2: Numbered list (lines starting with 1., 2., etc. or 1), 2), etc.)
   // Pattern: "1. item1\n2. item2" or "1) item1\n2) item2"
-  const numberedListPattern = /^[\s]*\d+[.)]\s+/m;
+  const numberedListPattern = /^\s*\d+[.)]\s+/m;
 
   if (numberedListPattern.test(trimmed)) {
     const items = trimmed

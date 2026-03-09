@@ -38,13 +38,13 @@ export const LLM_METADATA_PROPERTY_RULES: readonly ReplacementRule[] = [
   // Pattern: `extra_text="  "externalReferences": [` -> `"externalReferences": [`
   {
     name: "extraTextAttribute",
-    pattern: /([}\],]|\n|^)(\s*)(extra_[a-zA-Z_$]+)\s*=\s*"([^"]*)"(\s*"|\s*\n)/g,
+    pattern: /([}\],]|\n|^)(\s*)(extra_[a-zA-Z_$]+)\s*=\s*"([^"]*)"( *"|\s*\n)/g,
     replacement: (_match, groups, context) => {
       // Check if the content after the closing quote looks like JSON
       const { fullContent, offset } = context;
       const matchLen = typeof _match === "string" ? _match.length : 0;
       const afterMatch = fullContent.substring(offset + matchLen);
-      const looksLikeJson = /^\s*"[a-zA-Z_$]|\s*[{[]/.test(afterMatch);
+      const looksLikeJson = /^\s*("[a-zA-Z_$]|[{[])/.test(afterMatch);
 
       const [delimiter, whitespace, , , next] = groups;
       const delimiterStr = delimiter ?? "";
@@ -53,8 +53,9 @@ export const LLM_METADATA_PROPERTY_RULES: readonly ReplacementRule[] = [
 
       // If next part looks like JSON continuation, preserve it
       if (looksLikeJson || nextStr.startsWith('"')) {
-        // Remove any leading whitespace from the next part
-        const cleanedNext = nextStr.trimStart();
+        // Only trim whitespace if there's actually a quote to preserve
+        // Otherwise keep the newline/whitespace as-is
+        const cleanedNext = nextStr.includes('"') ? nextStr.trimStart() : nextStr;
         return `${delimiterStr}${whitespaceStr}${cleanedNext}`;
       }
 
@@ -196,7 +197,7 @@ export const LLM_METADATA_PROPERTY_RULES: readonly ReplacementRule[] = [
   {
     name: "llmArtifactPropertyByPattern",
     pattern:
-      /([,{])\s*"([a-zA-Z_][a-zA-Z0-9_]*(?:thought|thinking|reasoning|scratchpad|analysis|trace|chain|scratch|intermediate|working_memory|step_by_step)[a-zA-Z0-9_]*)"\s*:\s*/gi,
+      /([,{])\s*"([a-zA-Z_]\w*(?:thought|thinking|reasoning|scratchpad|analysis|trace|chain|scratch|intermediate|working_memory|step_by_step)\w*)"\s*:\s*/gi,
     replacement: (_match, groups, context) => {
       const propertyName = groups[1] ?? "";
       const knownProperties = context.config?.knownProperties;

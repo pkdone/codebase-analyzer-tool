@@ -28,6 +28,7 @@
     "typescript-eslint": "^8.23.0"
   },
   "overrides": {
+    "whatwg-url": "^14.1.0",    
     "test-exclude": "^7.0.1",
     "glob": "^13.0.0"
   },

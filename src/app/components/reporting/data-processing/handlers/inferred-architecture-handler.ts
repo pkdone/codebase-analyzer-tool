@@ -16,7 +16,7 @@ export const inferredArchitectureHandler: CategoryDataHandler = {
     return {
       category: "inferredArchitecture",
       label,
-      data: parsedArchData !== null ? wrapInferredArchitectureAsArray(parsedArchData) : [],
+      data: parsedArchData === null ? [] : wrapInferredArchitectureAsArray(parsedArchData),
     };
   },
 };

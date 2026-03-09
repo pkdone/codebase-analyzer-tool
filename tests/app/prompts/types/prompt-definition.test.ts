@@ -6,7 +6,9 @@ import { DEFAULT_PERSONA_INTRODUCTION } from "../../../../src/app/prompts/prompt
 import { z } from "zod";
 
 describe("renderJsonSchemaPrompt", () => {
-  const createMockConfig = (overrides?: Partial<JSONSchemaPromptConfig>): JSONSchemaPromptConfig => {
+  const createMockConfig = (
+    overrides?: Partial<JSONSchemaPromptConfig>,
+  ): JSONSchemaPromptConfig => {
     return {
       personaIntroduction: DEFAULT_PERSONA_INTRODUCTION,
       contentDesc: "Test intro text template with {{placeholder}}",

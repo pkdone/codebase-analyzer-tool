@@ -24,8 +24,8 @@ export function countLines(text: string): number {
  */
 export function camelCaseToTitleCase(text: string): string {
   // Use lookbehind/lookahead to insert space between lowercase and uppercase
-  const spacedText = text.replace(/(?<=[a-z])(?=[A-Z])/g, " ");
-  return spacedText.replace(/\b\w/g, (char) => char.toUpperCase());
+  const spacedText = text.replaceAll(/(?<=[a-z])(?=[A-Z])/g, " ");
+  return spacedText.replaceAll(/\b\w/g, (char) => char.toUpperCase());
 }
 
 /**

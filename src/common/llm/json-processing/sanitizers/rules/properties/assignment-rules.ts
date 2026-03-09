@@ -141,7 +141,7 @@ export const ASSIGNMENT_RULES: readonly ReplacementRule[] = [
 
       // Verify property context
       const { beforeMatch } = context;
-      const hasPropertyNamePattern = /"\s*$/.test(beforeMatch) || /[}\],\]]\s*$/.test(beforeMatch);
+      const hasPropertyNamePattern = /"\s*$/.test(beforeMatch) || /[}\],]\s*$/.test(beforeMatch);
 
       if (!hasPropertyNamePattern && !beforeMatch.trim().endsWith('"')) {
         const trimmedContext = beforeMatch.trim();

@@ -226,4 +226,3 @@ export const COMPLEXITY_VALUES_SET = new Set<string>(COMPLEXITY_VALUES);
 
 /** Valid object type values for stored procedures/functions in PL/SQL packages */
 export const STORED_OBJECT_TYPE_VALUES = ["PROCEDURE", "FUNCTION"] as const;
-

@@ -1,19 +1,14 @@
 import { z } from "zod";
 import {
-  appSummaryCategorySchemas,
   type AppSummaryCategorySchemas,
   type AppSummaryCategoryType,
 } from "../../schemas/app-summaries.schema";
-import { PartialAppSummaryRecord } from "../../repositories/app-summaries/app-summaries.model";
 
 // Re-export schema utilities for convenient access within the insights module
-export { appSummaryCategorySchemas, type AppSummaryCategorySchemas };
 
 // Re-export category types for use by insight strategies and generators
-export type { AppSummaryCategoryType };
 
 // Re-export PartialAppSummaryRecord from the model for convenience
-export type { PartialAppSummaryRecord };
 
 /**
  * Type alias for category-specific insight result.
@@ -53,3 +48,10 @@ export type MapReduceIntermediateData<C extends AppSummaryCategoryType> = {
     ? string[] // String fields become arrays for consolidation
     : CategoryInsightResult<C>[K];
 };
+
+export {
+  type AppSummaryCategorySchemas,
+  appSummaryCategorySchemas,
+  type AppSummaryCategoryType,
+} from "../../schemas/app-summaries.schema";
+export { type PartialAppSummaryRecord } from "../../repositories/app-summaries/app-summaries.model";

@@ -18,15 +18,15 @@ export const CODE_FENCE_REGEXES = Object.freeze([
   /**
    * Matches JSON code fences: ```json with optional whitespace
    */
-  new RegExp(`${CODE_FENCE_MARKERS.JSON}\\s*`, "gi"),
+  new RegExp(String.raw`${CODE_FENCE_MARKERS.JSON}\s*`, "gi"),
   /**
    * Matches JavaScript code fences: ```javascript with optional whitespace
    */
-  new RegExp(`${CODE_FENCE_MARKERS.JAVASCRIPT}\\s*`, "gi"),
+  new RegExp(String.raw`${CODE_FENCE_MARKERS.JAVASCRIPT}\s*`, "gi"),
   /**
    * Matches TypeScript code fences: ```ts with optional whitespace
    */
-  new RegExp(`${CODE_FENCE_MARKERS.TYPESCRIPT}\\s*`, "gi"),
+  new RegExp(String.raw`${CODE_FENCE_MARKERS.TYPESCRIPT}\s*`, "gi"),
   /**
    * Matches any code fence with a language identifier: ```anyLanguage
    * This catches languages like python, yaml, xml, html, css, etc.

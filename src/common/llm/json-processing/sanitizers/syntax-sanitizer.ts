@@ -21,7 +21,7 @@ function addMissingCommasInternal(input: string): SanitizerResult {
   let sanitized = trimmed;
   let commaCount = 0;
 
-  sanitized = sanitized.replace(
+  sanitized = sanitized.replaceAll(
     missingCommaPattern,
     (match, terminator, quote2WithWhitespace, propertyName, offset) => {
       const offsetNum = typeof offset === "number" ? offset : 0;
@@ -67,7 +67,7 @@ function addMissingCommasInternal(input: string): SanitizerResult {
     },
   );
 
-  sanitized = sanitized.replace(
+  sanitized = sanitized.replaceAll(
     missingCommaBetweenQuotedStringsPattern,
     (match, value1, whitespace, value2, terminator, offset) => {
       const offsetNum = typeof offset === "number" ? offset : 0;
@@ -144,7 +144,7 @@ function addMissingCommasInternal(input: string): SanitizerResult {
     },
   );
 
-  sanitized = sanitized.replace(
+  sanitized = sanitized.replaceAll(
     missingCommaInArrayPattern,
     (match, terminator, whitespace, nextElement, offset) => {
       const offsetNum = typeof offset === "number" ? offset : 0;
@@ -266,7 +266,7 @@ function removeTrailingCommasInternal(input: string): SanitizerResult {
   let sanitized = trimmed;
   let commaCount = 0;
 
-  sanitized = sanitized.replace(
+  sanitized = sanitized.replaceAll(
     trailingCommaPattern,
     (match, _comma, _whitespace, delimiter, offset: number) => {
       // Check if we're inside a string literal by counting quotes before this position
@@ -559,7 +559,7 @@ function fixMissingArrayObjectBracesInternal(input: string): SanitizerResult {
 
     const corruptedPatternWithValue = /(\}\s*,\s*)(\n?)(\s*)([a-zA-Z]{1,3})"([^"]+)"(\s*,)/g;
 
-    sanitized = sanitized.replace(
+    sanitized = sanitized.replaceAll(
       corruptedPatternWithValue,
       (match, braceComma, newline, indent, strayText, quotedValue, commaAfter, offset: number) => {
         const braceCommaStr = typeof braceComma === "string" ? braceComma : "";
@@ -592,7 +592,7 @@ function fixMissingArrayObjectBracesInternal(input: string): SanitizerResult {
 
     const corruptedPatternWithPropertyName = /(\}\s*,\s*)(\n?)(\s*)([a-zA-Z]{1,3})"([^"]+)"(\s*:)/g;
 
-    sanitized = sanitized.replace(
+    sanitized = sanitized.replaceAll(
       corruptedPatternWithPropertyName,
       (
         match,
@@ -633,9 +633,9 @@ function fixMissingArrayObjectBracesInternal(input: string): SanitizerResult {
       },
     );
 
-    const truncatedElementPattern = /(\}\s*,)\s*\n(\s*)([a-zA-Z][a-zA-Z0-9_]*)"\s*,/g;
+    const truncatedElementPattern = /(\}\s*,)\s*\n(\s*)([a-zA-Z]\w*)"\s*,/g;
 
-    sanitized = sanitized.replace(
+    sanitized = sanitized.replaceAll(
       truncatedElementPattern,
       (match, closingBraceComma, whitespace, wordValue, offset: number) => {
         const closingBraceCommaStr = typeof closingBraceComma === "string" ? closingBraceComma : "";

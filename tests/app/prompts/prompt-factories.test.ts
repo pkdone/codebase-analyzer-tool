@@ -48,10 +48,7 @@ describe("renderJsonSchemaPrompt and Templates", () => {
     it("should use contextNote for partial analysis", () => {
       const contextNote =
         "Note, this is a partial analysis of what is a much larger set of file summaries; focus on extracting insights from this subset of file summaries only.\n\n";
-      const rendered = renderJsonSchemaPrompt(
-        { ...appSummaryConfig, contextNote },
-        testContent,
-      );
+      const rendered = renderJsonSchemaPrompt({ ...appSummaryConfig, contextNote }, testContent);
 
       expect(rendered).toContain("partial analysis");
       expect(rendered).toContain("focus on extracting insights from this subset");

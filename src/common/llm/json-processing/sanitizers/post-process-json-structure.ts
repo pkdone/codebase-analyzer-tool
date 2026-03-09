@@ -47,7 +47,7 @@ export const postProcessJsonStructure: Sanitizer = (input: string): SanitizerRes
 
   // Match: "propertyName " where space is inside the quotes, followed by delimiter
   const danglingPropertyPattern = /"([a-zA-Z_$][a-zA-Z0-9_$]*)\s+"(?=[,}\n])/g;
-  finalContent = finalContent.replace(danglingPropertyPattern, (match, propertyName, offset) => {
+  finalContent = finalContent.replaceAll(danglingPropertyPattern, (match, propertyName, offset) => {
     const offsetNum = typeof offset === "number" ? offset : 0;
 
     if (isInString(offsetNum)) {
@@ -85,8 +85,9 @@ export const postProcessJsonStructure: Sanitizer = (input: string): SanitizerRes
     }
 
     hasChanges = true;
+    const trailingComma = delimiter === "\n" || delimiter === "," ? "," : "";
     repairs.push(
-      `Fixed dangling property: "${propertyName} " -> "${propertyName}": null${delimiter === "\n" ? "," : delimiter === "," ? "," : ""}`,
+      `Fixed dangling property: "${propertyName} " -> "${propertyName}": null${trailingComma}`,
     );
 
     if (delimiter === "\n") {
@@ -106,12 +107,12 @@ export const postProcessJsonStructure: Sanitizer = (input: string): SanitizerRes
 
   // Post-processing pass 2: Fix missing opening quotes in array strings
   const beforeMissingQuotes = finalContent;
-  const missingOpeningQuotePattern1 = /((?:,|\[))\s*\n?(\s*)([a-zA-Z_$][a-zA-Z0-9_$.]+)"\s*,/g;
+  const missingOpeningQuotePattern1 = /([,[])\s*\n?(\s*)([a-zA-Z_$][a-zA-Z0-9_$.]+)"\s*,/g;
   let previousContent = "";
 
   while (previousContent !== finalContent) {
     previousContent = finalContent;
-    finalContent = finalContent.replace(
+    finalContent = finalContent.replaceAll(
       missingOpeningQuotePattern1,
       (match, delimiter, whitespace, unquotedValue, offset) => {
         const offsetNum = typeof offset === "number" ? offset : 0;
@@ -151,7 +152,7 @@ export const postProcessJsonStructure: Sanitizer = (input: string): SanitizerRes
 
   const strayCharsAfterValuePattern =
     /("(?:[^"\\]|\\.)*")(?:\s+)?([a-zA-Z_$0-9]+)(?=\s*[,}\]]|\s*\n)/g;
-  finalContent = finalContent.replace(
+  finalContent = finalContent.replaceAll(
     strayCharsAfterValuePattern,
     (match, quotedValue, strayChars, offset) => {
       const offsetNum = typeof offset === "number" ? offset : 0;
@@ -191,9 +192,8 @@ export const postProcessJsonStructure: Sanitizer = (input: string): SanitizerRes
   // Recreate cached string boundary checker after content changes
   isInString = createStringBoundaryChecker(finalContent);
 
-  const corruptedPattern1 =
-    /"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:\s*([A-Z][a-zA-Z0-9_]*)"\s*:\s*"([^"]+)"/g;
-  finalContent = finalContent.replace(
+  const corruptedPattern1 = /"([a-zA-Z_$][\w$]*)"\s*:\s*([A-Z]\w*)"\s*:\s*"([^"]+)"/g;
+  finalContent = finalContent.replaceAll(
     corruptedPattern1,
     (match, propertyName, corruptedValue, nextPropertyValue, offset) => {
       const offsetNum = typeof offset === "number" ? offset : 0;
@@ -220,8 +220,8 @@ export const postProcessJsonStructure: Sanitizer = (input: string): SanitizerRes
 
   // Pattern 2: More specific pattern with type property
   const corruptedPattern2 =
-    /\{\s*"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:\s*([A-Z][a-zA-Z0-9_]*)"\s*:\s*"([^"]+)"\s*,\s*"type"\s*:\s*"([^"]+)"/g;
-  finalContent = finalContent.replace(
+    /\{\s*"([a-zA-Z_$][\w$]*)"\s*:\s*([A-Z]\w*)"\s*:\s*"([^"]+)"\s*,\s*"type"\s*:\s*"([^"]+)"/g;
+  finalContent = finalContent.replaceAll(
     corruptedPattern2,
     (match, propertyName, corruptedValue, _nextPropertyValue, typeValue, offset) => {
       const offsetNum = typeof offset === "number" ? offset : 0;
@@ -260,12 +260,12 @@ export const postProcessJsonStructure: Sanitizer = (input: string): SanitizerRes
   const beforeTruncatedValues = finalContent;
   // Pattern matches: "type": "value"\nwhitespace + lowercaseWord",\nwhitespace + "nextProperty":
   const truncatedValuePattern1 =
-    /("type"\s*:\s*"[^"]*")\s*\n(\s*)([a-z][a-zA-Z0-9_]*)"\s*,\s*\n(\s*)"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:/g;
+    /("type"\s*:\s*"[^"]*")\s*\n(\s*)([a-z]\w*)"\s*,\s*\n(\s*)"([a-zA-Z_$][\w$]*)"\s*:/g;
   previousContent = "";
 
   while (previousContent !== finalContent) {
     previousContent = finalContent;
-    finalContent = finalContent.replace(
+    finalContent = finalContent.replaceAll(
       truncatedValuePattern1,
       (match, typeProperty, whitespace1, truncatedValue, whitespace2, nextProperty, offset) => {
         const offsetNum = typeof offset === "number" ? offset : 0;

@@ -92,7 +92,7 @@ export const propertyNameFixer: SanitizerStrategy = {
 
     // Pass 1: Fix concatenated property names
     const concatenatedPattern = /"([^"]+)"\s*\+\s*"([^"]+)"(\s*\+\s*"[^"]+")*\s*:/g;
-    sanitized = sanitized.replace(
+    sanitized = sanitized.replaceAll(
       concatenatedPattern,
       (_match, firstPart, secondPart, additionalParts, offset: number) => {
         if (isInStringAt(offset, sanitized)) {
@@ -126,7 +126,7 @@ export const propertyNameFixer: SanitizerStrategy = {
     while (previousPass2 !== sanitized) {
       previousPass2 = sanitized;
       const missingOpeningQuotePattern = /(\s*)([a-zA-Z_$][a-zA-Z0-9_$.-]*)"\s*:/g;
-      sanitized = sanitized.replace(
+      sanitized = sanitized.replaceAll(
         missingOpeningQuotePattern,
         (match, whitespace, propertyName, offset: number) => {
           const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
@@ -176,7 +176,7 @@ export const propertyNameFixer: SanitizerStrategy = {
 
     // Pass 2b: Fix very short property names with missing opening quotes
     const veryShortPropertyNamePattern = /([}\],]|\n|^)(\s*)([a-z]{1,2})"\s*:\s*"([^"]+)"/g;
-    sanitized = sanitized.replace(
+    sanitized = sanitized.replaceAll(
       veryShortPropertyNamePattern,
       (match, delimiter, whitespace, shortName, value, offset: number) => {
         if (isInStringAt(offset, sanitized)) {
@@ -224,7 +224,7 @@ export const propertyNameFixer: SanitizerStrategy = {
     // Pass 2c: Fix completely unquoted property names
     const unquotedPropertyNamePattern =
       /([{,]\s*|\n\s*)([a-zA-Z_$][a-zA-Z0-9_$]*)\s*:\s*([^",\n{[\]]+?)(\s*[,}])/g;
-    sanitized = sanitized.replace(
+    sanitized = sanitized.replaceAll(
       unquotedPropertyNamePattern,
       (match, prefix, propertyName, value, terminator, offset: number) => {
         if (isInStringAt(offset, sanitized)) {
@@ -289,7 +289,7 @@ export const propertyNameFixer: SanitizerStrategy = {
       previousPass3 = sanitized;
       // Pattern 3a: "name" "value" -> "name": "value" (missing colon between quoted strings)
       const missingColonBetweenQuotedPattern = /"([a-zA-Z_$][a-zA-Z0-9_$.-]*)"\s+"([^"]+)"/g;
-      sanitized = sanitized.replace(
+      sanitized = sanitized.replaceAll(
         missingColonBetweenQuotedPattern,
         (match, propertyName, value, offset: number) => {
           const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
@@ -342,7 +342,7 @@ export const propertyNameFixer: SanitizerStrategy = {
 
       // Pattern 3b: "name "value" -> "name": "value" (missing closing quote and colon)
       const missingClosingQuoteAndColonPattern = /"([a-zA-Z_$][a-zA-Z0-9_$.-]*)\s+"([^"]+)"/g;
-      sanitized = sanitized.replace(
+      sanitized = sanitized.replaceAll(
         missingClosingQuoteAndColonPattern,
         (match, propertyName, value, offset: number) => {
           const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
@@ -392,8 +392,8 @@ export const propertyNameFixer: SanitizerStrategy = {
     }
 
     // Pass 4: Fix truncated property names (quoted) using dynamic matching
-    const truncatedQuotedPattern = /(\s*)"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*(?=:|,|\})/g;
-    sanitized = sanitized.replace(truncatedQuotedPattern, (match, whitespace, propertyName) => {
+    const truncatedQuotedPattern = /(\s*)"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*(?=[:,}])/g;
+    sanitized = sanitized.replaceAll(truncatedQuotedPattern, (match, whitespace, propertyName) => {
       const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
 
       // Try dynamic matching first
@@ -410,7 +410,7 @@ export const propertyNameFixer: SanitizerStrategy = {
 
     // Pass 5: Fix trailing underscores in property names (removes ALL trailing underscores)
     const trailingUnderscorePattern = /("[\w]+_+")(\s*:)/g;
-    sanitized = sanitized.replace(
+    sanitized = sanitized.replaceAll(
       trailingUnderscorePattern,
       (match, quotedNameWithUnderscore, colonWithWhitespace, offset: number) => {
         const quotedNameStr =
@@ -435,27 +435,30 @@ export const propertyNameFixer: SanitizerStrategy = {
 
     // Pass 5b: Fix double underscores in property names (also strips trailing underscores)
     const doubleUnderscorePattern = /("[\w]*__+[\w]*")/g;
-    sanitized = sanitized.replace(doubleUnderscorePattern, (match, quotedName, offset: number) => {
-      const quotedNameStr = typeof quotedName === "string" ? quotedName : "";
+    sanitized = sanitized.replaceAll(
+      doubleUnderscorePattern,
+      (match, quotedName, offset: number) => {
+        const quotedNameStr = typeof quotedName === "string" ? quotedName : "";
 
-      if (isInStringAt(offset, sanitized)) {
-        return match;
-      }
+        if (isInStringAt(offset, sanitized)) {
+          return match;
+        }
 
-      const nameWithoutQuotes = quotedNameStr.slice(1, -1);
-      // Replace double underscores with single, then remove trailing underscores
-      let fixedName = nameWithoutQuotes.replace(/__+/g, "_");
-      fixedName = fixedName.replace(/_+$/, "");
-      hasChanges = true;
-      diagnostics.add(
-        `Fixed double underscores in property name: ${quotedNameStr} -> "${fixedName}"`,
-      );
-      return `"${fixedName}"`;
-    });
+        const nameWithoutQuotes = quotedNameStr.slice(1, -1);
+        // Replace double underscores with single, then remove trailing underscores
+        let fixedName = nameWithoutQuotes.replaceAll(/__+/g, "_");
+        fixedName = fixedName.replace(/_+$/, "");
+        hasChanges = true;
+        diagnostics.add(
+          `Fixed double underscores in property name: ${quotedNameStr} -> "${fixedName}"`,
+        );
+        return `"${fixedName}"`;
+      },
+    );
 
     // Pass 5c: Fix property name typos using typo corrections mapping
     const quotedPropertyPattern = /"([^"]+)"\s*:/g;
-    sanitized = sanitized.replace(
+    sanitized = sanitized.replaceAll(
       quotedPropertyPattern,
       (match, propertyName: string, _offset: number) => {
         if (isInStringAt(_offset, sanitized)) {
@@ -477,7 +480,7 @@ export const propertyNameFixer: SanitizerStrategy = {
     // Pass 5d: Fix property names with embedded text that matches the value
     // e.g., "name payLoanCharge": "payLoanCharge" -> "name": "payLoanCharge"
     const embeddedValuePattern = /"(\w+)\s+([^"]+)":\s*"([^"]+)"/g;
-    sanitized = sanitized.replace(
+    sanitized = sanitized.replaceAll(
       embeddedValuePattern,
       (match, propertyNamePart, embeddedPart, value, offset: number) => {
         const propertyNamePartStr = typeof propertyNamePart === "string" ? propertyNamePart : "";
@@ -513,7 +516,7 @@ export const propertyNameFixer: SanitizerStrategy = {
     // Pass 6: Fix single-quoted or backticked property names (full quotes)
     // Pattern: 'key': or `key`: -> "key":
     const alternateQuotePattern = /([{,}\],]|\n|^)(\s*)(['`])([a-zA-Z_$][a-zA-Z0-9_$.-]*)\3\s*:/g;
-    sanitized = sanitized.replace(
+    sanitized = sanitized.replaceAll(
       alternateQuotePattern,
       (match, delimiter, whitespace, quote, propertyName, offset: number) => {
         if (isInStringAt(offset, sanitized)) {
@@ -547,7 +550,7 @@ export const propertyNameFixer: SanitizerStrategy = {
 
     // Pass 6b: Fix completely unquoted property names (generalized)
     const unquotedPropertyPattern = /([{,}\],]|\n|^)(\s*)([a-zA-Z_$][a-zA-Z0-9_$.-]*)\s*:/g;
-    sanitized = sanitized.replace(
+    sanitized = sanitized.replaceAll(
       unquotedPropertyPattern,
       (match, delimiter, whitespace, propertyName, offset: number) => {
         const delimiterStr = typeof delimiter === "string" ? delimiter : "";

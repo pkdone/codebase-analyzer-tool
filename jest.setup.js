@@ -24,8 +24,10 @@ process.env.VERTEXAI_EMBEDDINGS_LOCATION ||= "us-central1";
 process.env.VERTEXAI_COMPLETIONS_LOCATION ||= "global";
 process.env.VERTEXAI_GEMINI_EMBEDDING_001_MODEL_URN ||= "gemini-embedding-001";
 process.env.VERTEXAI_GEMINI_31_PRO_MODEL_URN ||= "gemini-3.1-pro-preview";
+process.env.VERTEXAI_GEMINI_31_FLASH_LITE_MODEL_URN ||= "gemini-3.1-flash-lite";
 process.env.VERTEXAI_GEMINI_3_PRO_MODEL_URN ||= "gemini-3-pro";
 process.env.VERTEXAI_GEMINI_25_PRO_MODEL_URN ||= "gemini-2.5-pro";
+process.env.VERTEXAI_GEMINI_20_FLASH_MODEL_URN ||= "gemini-2.0-flash-001";
 process.env.VERTEXAI_CLAUDE_OPUS_46_MODEL_URN ||= "claude-opus-4-6@20250514";
 process.env.VERTEXAI_CLAUDE_SONNET_46_MODEL_URN ||= "claude-sonnet-4-6";
 // OpenAI
