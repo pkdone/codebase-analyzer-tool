@@ -12,8 +12,7 @@ import type { ReplacementRule } from "./rules";
  * - Non-ASCII characters
  * - Assignment-style attributes: `_PROP_ = "value"`
  */
-const OBVIOUS_ERRORS_PATTERN =
-  /"[^"]+\s+[a-zA-Z]+\s*":|<x_bin_\d+|[\u0080-\uFFFF]|_[A-Z_]+\s*=\s*"/i;
+const OBVIOUS_ERRORS_PATTERN = /"[^"]+\s+[a-z]+\s*":|<x_bin_\d+|[\u0080-\uFFFF]|_[a-z_]+\s*=\s*"/i;
 
 /**
  * Checks if JSON content has obvious errors that need sanitization.

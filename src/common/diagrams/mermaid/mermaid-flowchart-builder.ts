@@ -28,8 +28,6 @@
 
 import {
   AbstractGraphBuilder,
-  type NodeShape,
-  type EdgeType,
   type MermaidNode,
   type MermaidEdge,
   type StyleApplication,
@@ -43,7 +41,6 @@ import {
 
 // Re-export types for convenience
 export type { FlowchartDirection } from "./flowchart-renderer";
-export type { NodeShape, EdgeType };
 
 /**
  * Configuration options for MermaidFlowchartBuilder.
@@ -213,3 +210,5 @@ export class SubgraphBuilder extends AbstractGraphBuilder {
     return [...super.getStyles()];
   }
 }
+
+export { type NodeShape, type EdgeType } from "./abstract-graph-builder";

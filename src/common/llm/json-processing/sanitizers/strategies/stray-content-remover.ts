@@ -39,7 +39,7 @@ export const strayContentRemover: SanitizerStrategy = {
     // Pattern 1: Fix stray single characters before property names
     const strayCharBeforePropertyPattern =
       /([}\],]|\n|^)(\s*)([a-zA-Z])\s+"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:/g;
-    sanitized = sanitized.replace(
+    sanitized = sanitized.replaceAll(
       strayCharBeforePropertyPattern,
       (match, delimiter, whitespace, strayChar, propertyName, offset: number) => {
         if (isInString(offset)) {
@@ -75,7 +75,7 @@ export const strayContentRemover: SanitizerStrategy = {
     // Pattern 2: Fix stray characters before values
     const strayCharBeforeQuotedValuePattern =
       /"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:\s*([a-zA-Z])\s*"([^"]+)"(\s*[,}\]]|[,}\]]|$)/g;
-    sanitized = sanitized.replace(
+    sanitized = sanitized.replaceAll(
       strayCharBeforeQuotedValuePattern,
       (match, propertyName, strayChar, value, terminator, offset: number) => {
         if (isInString(offset)) {
@@ -96,7 +96,7 @@ export const strayContentRemover: SanitizerStrategy = {
     // Pattern 3: Fix stray characters before terminators (for numeric properties)
     const strayCharBeforeCommaPattern =
       /"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:\s*([a-zA-Z])(\s*[,}\]]|[,}\]]|$)/g;
-    sanitized = sanitized.replace(
+    sanitized = sanitized.replaceAll(
       strayCharBeforeCommaPattern,
       (match, propertyName, strayChar, terminator, offset: number) => {
         if (isInString(offset)) {
@@ -123,7 +123,7 @@ export const strayContentRemover: SanitizerStrategy = {
     for (const { pattern, replacement, description } of PACKAGE_NAME_TYPO_PATTERNS) {
       if (pattern.test(sanitized)) {
         const beforeFix = sanitized;
-        sanitized = sanitized.replace(pattern, replacement);
+        sanitized = sanitized.replaceAll(pattern, replacement);
 
         if (sanitized !== beforeFix) {
           hasChanges = true;
@@ -135,7 +135,7 @@ export const strayContentRemover: SanitizerStrategy = {
     // Pattern 5: Remove AI-generated content warnings (generic pattern)
     const aiWarningPattern =
       /AI-generated\s+content\.\s+Review\s+and\s+use\s+carefully\.\s+Content\s+may\s+be\s+inaccurate\./gi;
-    sanitized = sanitized.replace(aiWarningPattern, (match, offset: number) => {
+    sanitized = sanitized.replaceAll(aiWarningPattern, (match, offset: number) => {
       if (isInString(offset)) {
         return match;
       }
@@ -147,7 +147,7 @@ export const strayContentRemover: SanitizerStrategy = {
 
     // Pattern 6: Remove extra_text= stray lines (generic pattern for extra_* attributes)
     const extraAttributePattern = /(\n|^)(\s*)(extra_[a-z_]+\s*=?\s*[^\n]*)(\s*\n)/gi;
-    sanitized = sanitized.replace(
+    sanitized = sanitized.replaceAll(
       extraAttributePattern,
       (match, delimiter, _whitespace, strayText, newline, offset: number) => {
         if (isInString(offset)) {
@@ -166,7 +166,7 @@ export const strayContentRemover: SanitizerStrategy = {
     // Pattern 7: Generic removal of stray text on its own line between JSON elements
     const strayTextOnOwnLinePattern =
       /([}\],])\s*\n\s*([a-zA-Z_][a-zA-Z0-9_-]{1,30})\s*\n(\s*"|\s*[}\]])/g;
-    sanitized = sanitized.replace(
+    sanitized = sanitized.replaceAll(
       strayTextOnOwnLinePattern,
       (match, delimiter, strayText, continuation, offset: number) => {
         if (isInString(offset)) {
@@ -199,7 +199,7 @@ export const strayContentRemover: SanitizerStrategy = {
     // e.g., "semantically-similar-code-detection-results:" followed by indented YAML
     const yamlBlockPattern =
       /([}\],]|\n)(\s*)([a-z][a-z0-9_-]+:)\s*\n((?:\s+-\s+[^\n]+\n?)+)(\s*")/gi;
-    sanitized = sanitized.replace(
+    sanitized = sanitized.replaceAll(
       yamlBlockPattern,
       (match, delimiter, _whitespace, yamlKey, _yamlContent, continuation, offset: number) => {
         if (isInString(offset)) {
@@ -220,7 +220,7 @@ export const strayContentRemover: SanitizerStrategy = {
     // acting as a list marker (bullets, arrows, asterisks, dashes, etc.)
     const listMarkerPattern =
       /([}\],]|\n|^)(\s*)([^\w\s"'{}[\],:\n])(\s+)"([a-zA-Z_$][^"]+)"(\s*[,:])/g;
-    sanitized = sanitized.replace(
+    sanitized = sanitized.replaceAll(
       listMarkerPattern,
       (
         match,
@@ -283,7 +283,7 @@ export const strayContentRemover: SanitizerStrategy = {
     // This catches LLM commentary like "there are more methods, but I will stop here"
     const sentenceBeforePropertyPattern =
       /([}\],])\s*\n\s*([a-z][a-z\s,.'!?-]{10,60})\s*\n(\s*"[a-zA-Z_$])/gi;
-    sanitized = sanitized.replace(
+    sanitized = sanitized.replaceAll(
       sentenceBeforePropertyPattern,
       (match, delimiter, sentenceText, continuation, offset: number) => {
         if (isInString(offset)) {

@@ -112,7 +112,7 @@ function renderConfiguredPrompt(
  * @returns A formatted note string with trailing newlines for prompt formatting
  */
 function buildPartialAnalysisNote(dataBlockHeader: string): string {
-  const formattedHeader = dataBlockHeader.toLowerCase().replace(/_/g, " ");
+  const formattedHeader = dataBlockHeader.toLowerCase().replaceAll("_", " ");
   return fillTemplate(PARTIAL_ANALYSIS_NOTE_TEMPLATE, { header: formattedHeader });
 }
 

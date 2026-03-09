@@ -25,7 +25,7 @@ export const invalidLiteralFixer: SanitizerStrategy = {
 
     // Fix undefined values - convert to null
     const undefinedValuePattern = /(:\s*)undefined(\s*)([,}])/g;
-    sanitized = sanitized.replace(
+    sanitized = sanitized.replaceAll(
       undefinedValuePattern,
       (_match, beforeColon, afterUndefined, terminator) => {
         hasChanges = true;
@@ -36,7 +36,7 @@ export const invalidLiteralFixer: SanitizerStrategy = {
 
     // Fix corrupted numeric values like _3 -> 3
     const corruptedNumericPattern = /"([a-zA-Z_$][a-zA-Z0-9_$.]*)"\s*:\s*_(\d+)(\s*[,}\]]|,|$)/g;
-    sanitized = sanitized.replace(
+    sanitized = sanitized.replaceAll(
       corruptedNumericPattern,
       (match, propertyName, digits, terminator, offset: number) => {
         const propertyNameStr = typeof propertyName === "string" ? propertyName : "";

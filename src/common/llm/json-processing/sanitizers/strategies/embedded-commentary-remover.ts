@@ -36,7 +36,7 @@ export const embeddedCommentaryRemover: SanitizerStrategy = {
     // Uses structural detection instead of hardcoded word lists
     const textOutsideStringPattern =
       /"([^"]+)"\s*,\s*\n\s*([a-z][^"]{5,200}?)(?=\s*[,}\]]|\s*\n\s*"[a-zA-Z]|\.\s*$)/g;
-    sanitized = sanitized.replace(
+    sanitized = sanitized.replaceAll(
       textOutsideStringPattern,
       (match, value, strayText, offset: number) => {
         if (isInStringAt(offset, sanitized)) {
@@ -61,7 +61,7 @@ export const embeddedCommentaryRemover: SanitizerStrategy = {
 
     // Pattern 2: Text between closing brace and next structure
     const strayTextPattern = /([}\]])\s*,\s*\n\s*([a-z\s]{2,50})\n\s*([{"])/g;
-    sanitized = sanitized.replace(
+    sanitized = sanitized.replaceAll(
       strayTextPattern,
       (match, delimiter, strayText, nextToken, offset: number) => {
         if (isInStringAt(offset, sanitized)) {
@@ -134,7 +134,7 @@ export const embeddedCommentaryRemover: SanitizerStrategy = {
     // Pattern 5: LLM mid-JSON commentary using structural detection
     // Uses first-person statement detection instead of hardcoded phrases
     const llmMidJsonCommentaryPattern = /([,}\]])\s*\n\s*([a-zA-Z][^"]{5,150}?)\n(\s*")/gi;
-    sanitized = sanitized.replace(
+    sanitized = sanitized.replaceAll(
       llmMidJsonCommentaryPattern,
       (match, delimiter, commentary, nextQuote, offset: number) => {
         if (isInStringAt(offset, sanitized)) {
@@ -163,7 +163,7 @@ export const embeddedCommentaryRemover: SanitizerStrategy = {
 
     // Pattern 6: Continuation text
     const continuationTextPattern = /to\s+be\s+conti[nued]*\.\.\.?\s*/gi;
-    sanitized = sanitized.replace(continuationTextPattern, (match, offset: number) => {
+    sanitized = sanitized.replaceAll(continuationTextPattern, (match, offset: number) => {
       if (isInStringAt(offset, sanitized)) {
         return match;
       }
@@ -177,7 +177,7 @@ export const embeddedCommentaryRemover: SanitizerStrategy = {
     // e.g., "}, so    "connectionInfo" -> "}, "connectionInfo"
     // Generic pattern catches any short filler word (2-10 chars) before properties
     const strayTextBeforePropertyPattern = /([}\]],)\s*\n\s*([a-z]{2,10})\s+(")/gi;
-    sanitized = sanitized.replace(
+    sanitized = sanitized.replaceAll(
       strayTextBeforePropertyPattern,
       (match, delimiter, strayWord, quote, offset: number) => {
         if (isInStringAt(offset, sanitized)) {
@@ -201,7 +201,7 @@ export const embeddedCommentaryRemover: SanitizerStrategy = {
 
     // Pattern 8: Corrupted text after closing brace/bracket (like },ce or e-12,)
     const corruptedTextPattern = /([}\]]),([a-z]{1,4}|\d{1,3}(?:-\d+)?),?\s*\n/gi;
-    sanitized = sanitized.replace(
+    sanitized = sanitized.replaceAll(
       corruptedTextPattern,
       (match, delimiter, corruptedText, offset: number) => {
         if (isInStringAt(offset, sanitized)) {
@@ -226,8 +226,8 @@ export const embeddedCommentaryRemover: SanitizerStrategy = {
     // e.g., "},\n      "codeSmells": []\n    }," -> "},"
     // Generic pattern catches any LLM artifact or internal property that appears orphaned
     const orphanedPropertyPattern =
-      /([}\]]),\s*\n\s*"([a-zA-Z_][a-zA-Z0-9_]*)"\s*:\s*\[[^\]]*\]\s*\n\s*\},/gi;
-    sanitized = sanitized.replace(
+      /([}\]]),\s*\n\s*"([a-zA-Z_]\w*)"\s*:\s*\[[^\]]*\]\s*\n\s*\},/gi;
+    sanitized = sanitized.replaceAll(
       orphanedPropertyPattern,
       (match, delimiter, propertyName, offset: number) => {
         if (isInStringAt(offset, sanitized)) {

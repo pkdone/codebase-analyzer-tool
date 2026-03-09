@@ -161,8 +161,8 @@ function fixStructuralAnomaliesInternal(jsonString: string, repairs: string[]): 
   const isInString = createStringBoundaryChecker(sanitized);
 
   // Pattern 2: Remove introductory text before opening braces
-  const genericPrefixPattern = /(^|\n|\r)\s*([a-zA-Z_]{2,20})\s*[:]?\s*\{/g;
-  sanitized = sanitized.replace(genericPrefixPattern, (match, prefix, word, offset: number) => {
+  const genericPrefixPattern = /(^|\n|\r)\s*([a-zA-Z_]{2,20})\s*:?\s*\{/g;
+  sanitized = sanitized.replaceAll(genericPrefixPattern, (match, prefix, word, offset: number) => {
     const [wordStr] = getSafeGroups([word], 1);
 
     if (isInString(offset)) {
@@ -190,8 +190,8 @@ function fixStructuralAnomaliesInternal(jsonString: string, repairs: string[]): 
 
   // Pattern 3: Remove stray text before property names (simplified - handles common cases)
   const strayTextPattern =
-    /([}\],]|\n|^)(\s*)([\w\u0080-\uFFFF$]{1,})"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:/g;
-  sanitized = sanitized.replace(
+    /([}\],]|\n|^)(\s*)([\w\u0080-\uFFFF$]+)"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:/g;
+  sanitized = sanitized.replaceAll(
     strayTextPattern,
     (match, delimiter, whitespace, strayText, propertyName, offset: number) => {
       if (isInString(offset)) {
@@ -199,7 +199,8 @@ function fixStructuralAnomaliesInternal(jsonString: string, repairs: string[]): 
       }
 
       const [delimiterStr, whitespaceStr, strayTextStr, propertyNameStr] = getSafeGroups(
-        [delimiter, whitespace, strayText, propertyName], 4,
+        [delimiter, whitespace, strayText, propertyName],
+        4,
       );
 
       const isValidDelimiter =
@@ -223,8 +224,8 @@ function fixStructuralAnomaliesInternal(jsonString: string, repairs: string[]): 
   // Pattern: `},\n    _family_details":` -> `},\n    {"family_details":`
   // This handles cases where array elements are missing the opening brace and the property name
   // has a leading underscore or other character instead of a quote
-  const missingOpeningBracePattern = /(}\s*,\s*\n\s*)([_])([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:/g;
-  sanitized = sanitized.replace(
+  const missingOpeningBracePattern = /(}\s*,\s*\n\s*)(_)([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:/g;
+  sanitized = sanitized.replaceAll(
     missingOpeningBracePattern,
     (match, prefix, strayChar, propertyName, offset: number) => {
       if (isInString(offset)) {
@@ -232,7 +233,8 @@ function fixStructuralAnomaliesInternal(jsonString: string, repairs: string[]): 
       }
 
       const [prefixStr, strayCharStr, propertyNameStr] = getSafeGroups(
-        [prefix, strayChar, propertyName], 3,
+        [prefix, strayChar, propertyName],
+        3,
       );
 
       // Check if this looks like a missing opening brace situation
@@ -263,7 +265,7 @@ function fixStructuralAnomaliesInternal(jsonString: string, repairs: string[]): 
   // Pattern 5: Fix missing opening brace when property name has no leading quote at all
   // Pattern: `},\n    propertyName":` -> `},\n    {"propertyName":`
   const missingBraceAndQuotePattern = /(}\s*,\s*\n\s*)([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:/g;
-  sanitized = sanitized.replace(
+  sanitized = sanitized.replaceAll(
     missingBraceAndQuotePattern,
     (match, prefix, propertyName, offset: number) => {
       if (isInString(offset)) {
@@ -325,7 +327,7 @@ function fixUnclosedArraysBeforePropertiesInternal(jsonString: string, repairs: 
   // This indicates an unclosed array if we're inside an array context
   const unclosedArrayPattern = /(\})\s*,\s*\n(\s*)("[a-zA-Z_$][a-zA-Z0-9_$]*"\s*:)/g;
 
-  sanitized = sanitized.replace(
+  sanitized = sanitized.replaceAll(
     unclosedArrayPattern,
     (match, closingBrace, whitespace, propertyName, offset: number) => {
       if (isInString(offset)) {
@@ -333,7 +335,8 @@ function fixUnclosedArraysBeforePropertiesInternal(jsonString: string, repairs: 
       }
 
       const [closingBraceStr, whitespaceStr, propertyNameStr] = getSafeGroups(
-        [closingBrace, whitespace, propertyName], 3,
+        [closingBrace, whitespace, propertyName],
+        3,
       );
 
       // Check if we're in an array context by scanning backwards
@@ -621,7 +624,7 @@ function removeTruncationMarkersInternal(jsonString: string, repairs: string[]):
   const truncationMarkerPattern =
     /(,\s*)?\n(\s*)(\.\.\.|\[\.\.\.\]|\(truncated\)|\.\.\.\s*\(truncated\)|truncated|\.\.\.\s*truncated)(\s*)\n/g;
 
-  sanitized = sanitized.replace(
+  sanitized = sanitized.replaceAll(
     truncationMarkerPattern,
     (match, optionalComma, _whitespaceBefore, marker, _whitespaceAfter, offset: number) => {
       if (isInString(offset)) {
@@ -645,7 +648,7 @@ function removeTruncationMarkersInternal(jsonString: string, repairs: string[]):
 
   // Pattern 2: Handle incomplete strings before closing delimiters
   const incompleteStringPattern = /"([^"]*?)(\.\.\.|\[\.\.\.\]|\(truncated\))(\s*)\n(\s*)([}\]])/g;
-  sanitized = sanitized.replace(
+  sanitized = sanitized.replaceAll(
     incompleteStringPattern,
     (_match, stringContent, _marker, _whitespace1, whitespace2, delimiter, offset: number) => {
       if (isInString(offset)) {
@@ -653,7 +656,8 @@ function removeTruncationMarkersInternal(jsonString: string, repairs: string[]):
       }
 
       const [contentStr, delimiterStr, ws2] = getSafeGroups(
-        [stringContent, delimiter, whitespace2], 3,
+        [stringContent, delimiter, whitespace2],
+        3,
       );
 
       if (repairs.length < 10) {
@@ -669,7 +673,7 @@ function removeTruncationMarkersInternal(jsonString: string, repairs: string[]):
   // Pattern 3: Handle truncation markers right before closing delimiters
   const truncationBeforeDelimiterPattern =
     /("\s*,\s*|\n)(\s*)(\.\.\.|\[\.\.\.\]|\(truncated\))(\s*)\n(\s*)([}\]])/g;
-  sanitized = sanitized.replace(
+  sanitized = sanitized.replaceAll(
     truncationBeforeDelimiterPattern,
     (
       _match,
@@ -686,7 +690,8 @@ function removeTruncationMarkersInternal(jsonString: string, repairs: string[]):
       }
 
       const [delimiterStr, ws3, beforeStr] = getSafeGroups(
-        [delimiter, whitespace3, beforeMarker], 3,
+        [delimiter, whitespace3, beforeMarker],
+        3,
       );
 
       if (repairs.length < 10) {
@@ -706,7 +711,7 @@ function removeTruncationMarkersInternal(jsonString: string, repairs: string[]):
   // Pattern 4: Handle _TRUNCATED_ markers
   const underscoreTruncatedPattern =
     /([}\],]|\n|^)(\s*)(_TRUNCATED_|_INPUT_TOKEN_COUNT_|_DOC_GENERATION_TRUNCATED_)(\s*)([}\],]|\n|$)/gi;
-  sanitized = sanitized.replace(
+  sanitized = sanitized.replaceAll(
     underscoreTruncatedPattern,
     (match, before, _whitespace, marker, _whitespace2, after, offset: number) => {
       if (isInString(offset)) {
@@ -732,7 +737,7 @@ function removeTruncationMarkersInternal(jsonString: string, repairs: string[]):
   // These appear when the LLM adds instructions/commentary after the JSON output
   const llmInstructionAfterJsonPattern =
     /([}\]])\s*\n\s*(Please\s+(?:provide|note|ensure|make|check|review)|Here\s+(?:is|are)|Note\s*:|The\s+(?:JSON|response|output|above)|This\s+(?:JSON|response|output)|I\s+(?:have|will|shall)|Make\s+sure|Ensure\s+that|Remember\s+to)[^{}[\]]*$/gi;
-  sanitized = sanitized.replace(
+  sanitized = sanitized.replaceAll(
     llmInstructionAfterJsonPattern,
     (match, delimiter, _instruction, offset: number) => {
       if (isInString(offset)) {
@@ -753,7 +758,7 @@ function removeTruncationMarkersInternal(jsonString: string, repairs: string[]):
   // Pattern: Complete JSON followed by schema definitions like `{\n  "$schema":` or `{\n  "type":`
   const extraJsonAfterMainPattern =
     /([}\]])\s*\n\s*\{\s*"\$schema"\s*:|([}\]])\s*\n\s*\{\s*"type"\s*:\s*"(?:object|array|string|number)"/g;
-  sanitized = sanitized.replace(
+  sanitized = sanitized.replaceAll(
     extraJsonAfterMainPattern,
     (match, delimiter1, delimiter2, offset: number) => {
       if (isInString(offset)) {

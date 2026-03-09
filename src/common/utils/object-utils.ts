@@ -16,7 +16,7 @@ export function getNestedValue(obj: unknown, path: string): unknown {
   }
 
   // Split on dot, open bracket, or close bracket - handles 'a.b', 'a[0].b', and 'a[0][1]'
-  const keys = path.split(/\.|\[|\]/).filter(Boolean);
+  const keys = path.split(/[.[\]]/).filter(Boolean);
   let current: unknown = obj;
 
   for (const key of keys) {

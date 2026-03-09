@@ -82,10 +82,10 @@ function normalizeIdentifier(identifier: string): string {
 
   // First, insert a separator before capital letters in camelCase/PascalCase
   // e.g., "userName" -> "user_Name", "APIEndpoint" -> "API_Endpoint"
-  const withSeparators = identifier.replace(/([a-z])([A-Z])/g, "$1_$2");
+  const withSeparators = identifier.replaceAll(/([a-z])([A-Z])/g, "$1_$2");
 
   // Remove all separators (underscores and hyphens) and convert to lowercase
-  return withSeparators.replace(/[-_]/g, "").toLowerCase();
+  return withSeparators.replaceAll(/[-_]/g, "").toLowerCase();
 }
 
 /**

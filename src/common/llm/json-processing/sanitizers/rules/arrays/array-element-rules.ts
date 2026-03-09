@@ -156,7 +156,7 @@ export const ARRAY_ELEMENT_RULES: readonly ReplacementRule[] = [
       // Check if it looks like stray/corrupted content
       const looksLikeStrayContent =
         // Single special characters (>, ], }, etc.)
-        /^[>\]}<)>|\\/#@!$%^&*~`+=]+$/.test(strayContentStr) ||
+        /^[>\]}<)|\\/#@!$%^&*~`+=]+$/.test(strayContentStr) ||
         // Uppercase identifiers (like JACKSON-CORE-2.12.0.JAR)
         /^[A-Z][A-Z0-9_.-]{3,}$/.test(strayContentStr) ||
         // Text with underscores that doesn't look like a valid identifier
@@ -165,7 +165,7 @@ export const ARRAY_ELEMENT_RULES: readonly ReplacementRule[] = [
         (/^[a-z]{1,5}$/.test(strayContentStr) &&
           !["true", "false", "null"].includes(strayContentStr)) ||
         // Parenthetical annotations that LLMs add as commentary
-        // e.g., " (required)", " (optional)", " (deprecated)", " (TODO)"
+        // e.g., " (required)", " (optional)", " (deprecated)", " (task marker)"
         /^\s*\([^)]{1,30}\)$/.test(strayContentStr) ||
         // Arrow annotations used as inline comments
         // e.g., " <-- fix this", " --> important", " <- note"
@@ -219,7 +219,7 @@ export const ARRAY_ELEMENT_RULES: readonly ReplacementRule[] = [
   // Pattern: `"stringValue",\nunquotedString"` -> `"stringValue",\n    "unquotedString",`
   {
     name: "missingCommaAndQuoteAtArrayLineEnd",
-    pattern: /"([^"]+)"\s*,\s*\n(\s*)([a-zA-Z][a-zA-Z0-9_.]+)"\s*(,|\])/g,
+    pattern: /"([^"]+)"\s*,\s*\n(\s*)([a-zA-Z][a-zA-Z0-9_.]+)"\s*[,\]]/g,
     replacement: (_match, groups, context) => {
       if (!isDeepArrayContext(context)) {
         return null;
@@ -416,7 +416,7 @@ export const ARRAY_ELEMENT_RULES: readonly ReplacementRule[] = [
   // Pattern: `_DOC_GEN_NOTE_LIMITED_REF_LIST_ = "..."` -> remove
   {
     name: "invalidPropertyInArrayWithEquals",
-    pattern: /,\s*\n\s*([_][A-Z_]+)\s*=\s*"[^"]*"\s*,?\s*\n/g,
+    pattern: /,\s*\n\s*(_[A-Z_]+)\s*=\s*"[^"]*"\s*,?\s*\n/g,
     replacement: () => ",\n",
     diagnosticMessage: (_match, groups) => {
       const prop = safeGroup(groups, 0);

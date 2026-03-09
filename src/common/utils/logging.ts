@@ -2,7 +2,7 @@ import { inspect } from "node:util";
 import { formatError } from "./error-formatters";
 
 // Helper to sanitize a string for single-line logging
-const toSingleLine = (str: string) => str.replace(/(\r\n|\n|\r|\\n|\\r|\\r\\n)/gm, " ");
+const toSingleLine = (str: string) => str.replaceAll(/(\r\n|\n|\r|\\n|\\r|\\r\\n)/gm, " ");
 
 /**
  * Logs an error message to the console as a single line, including error details.

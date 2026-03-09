@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import { container } from "tsyringe";
+
 import {
   registerBaseEnvDependencies,
   registerLlmEnvDependencies,
@@ -23,4 +23,4 @@ export async function bootstrapContainer(): Promise<void> {
   registerAppDependencies();
 }
 
-export { container };
+export { container } from "tsyringe";

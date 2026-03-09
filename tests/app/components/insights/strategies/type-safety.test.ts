@@ -137,7 +137,11 @@ describe("Type Safety Tests", () => {
       } as unknown as jest.Mocked<LLMRouter>;
       mockLlmConcurrencyService = createMockLlmConcurrencyService();
       const completionExecutor = new InsightsCompletionExecutor(mockLLMRouter);
-      strategy = new MapReduceInsightStrategy(mockLLMRouter, completionExecutor, mockLlmConcurrencyService);
+      strategy = new MapReduceInsightStrategy(
+        mockLLMRouter,
+        completionExecutor,
+        mockLlmConcurrencyService,
+      );
     });
 
     it("should return strongly-typed result for technologies category", async () => {
@@ -303,11 +307,7 @@ describe("Type Safety Tests", () => {
       const mockResponse = { appDescription: "Test description" };
       mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(mockResponse);
 
-      const result = await executor.execute(
-        "appDescription",
-        ["* file1.ts: purpose"],
-        {},
-      );
+      const result = await executor.execute("appDescription", ["* file1.ts: purpose"], {});
 
       if (result) {
         // TypeScript should infer this as z.infer<AppSummaryCategorySchemas["appDescription"]>
@@ -323,11 +323,7 @@ describe("Type Safety Tests", () => {
       };
       mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(mockResponse);
 
-      const result = await executor.execute(
-        "technologies",
-        ["* file1.ts: purpose"],
-        {},
-      );
+      const result = await executor.execute("technologies", ["* file1.ts: purpose"], {});
 
       if (result) {
         // TypeScript should infer this as z.infer<AppSummaryCategorySchemas["technologies"]>
@@ -359,11 +355,7 @@ describe("Type Safety Tests", () => {
       };
       mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(mockResponse);
 
-      const result = await executor.execute(
-        "boundedContexts",
-        ["* file1.ts: purpose"],
-        {},
-      );
+      const result = await executor.execute("boundedContexts", ["* file1.ts: purpose"], {});
 
       if (result) {
         // Should be able to access boundedContext-specific properties directly
@@ -387,11 +379,7 @@ describe("Type Safety Tests", () => {
       };
       mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(mockResponse);
 
-      const result = await executor.execute(
-        "potentialMicroservices",
-        ["* file1.ts: purpose"],
-        {},
-      );
+      const result = await executor.execute("potentialMicroservices", ["* file1.ts: purpose"], {});
 
       if (result) {
         const typed: z.infer<AppSummaryCategorySchemas["potentialMicroservices"]> = result;

@@ -7,10 +7,7 @@
  */
 
 import type { ReplacementRule } from "../../../../types/sanitizer-config.types";
-import {
-  isInArrayContextSimple,
-  isDeepArrayContext,
-} from "../../../utils/parser-context-utils";
+import { isInArrayContextSimple, isDeepArrayContext } from "../../../utils/parser-context-utils";
 import { isJsonKeyword, looksLikeStrayText } from "../../../utils/stray-text-detection";
 import { parsingHeuristics } from "../../../constants/json-processing.config";
 import { safeGroup, getSafeGroups } from "../../../utils/safe-group-extractor";
@@ -202,7 +199,7 @@ export const STRAY_TEXT_RULES: readonly ReplacementRule[] = [
   // Pattern: `}tribal-council-assistant-v1-final-answer` -> `}`
   {
     name: "strayTextAfterClosingBrace",
-    pattern: /([}])\s*([a-zA-Z0-9\-_]{5,100})(\s*)$/g,
+    pattern: /(})\s*([a-zA-Z0-9\-_]{5,100})(\s*)$/g,
     replacement: (_match, groups, context) => {
       // Check if this is at the end of the JSON
       const { fullContent, offset } = context;
@@ -223,7 +220,7 @@ export const STRAY_TEXT_RULES: readonly ReplacementRule[] = [
 
   // Rule: Remove ALL_CAPS placeholder patterns surrounded by underscores
   // This catches generic placeholders LLMs may output, such as:
-  // _TODO_, _PLACEHOLDER_, _INSERT_CONTENT_, _FIXME_, etc.
+  // _TASK_, _PLACEHOLDER_, _INSERT_CONTENT_, _FIX_NEEDED_, etc.
   // Pattern: `_ANY_PLACEHOLDER_TEXT_` -> remove
   {
     name: "removePlaceholderText",

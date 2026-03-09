@@ -75,9 +75,10 @@ export class FlowchartDiagramGenerator extends BaseDiagramGenerator<FlowchartDia
       const nodeId = generateNodeId(activity.activity, index);
       nodeIds.push(nodeId);
       // Add node definition with rectangular shape
-      lines.push(`    ${nodeId}["${escapeMermaidLabel(activity.activity)}"]`);
-      // Apply style
-      lines.push(applyStyleClass(nodeId, DIAGRAM_CSS_CLASSES.PROCESS));
+      lines.push(
+        `    ${nodeId}["${escapeMermaidLabel(activity.activity)}"]`,
+        applyStyleClass(nodeId, DIAGRAM_CSS_CLASSES.PROCESS),
+      );
     });
 
     // Add connections between consecutive nodes

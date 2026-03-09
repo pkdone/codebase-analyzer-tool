@@ -19,7 +19,7 @@ const DEFAULT_RESULT: LLMResponseTokensUsage = {
  */
 function parseIntOrUndefined(value: string | undefined): number | undefined {
   if (value === undefined) return undefined;
-  const parsed = parseInt(value, 10);
+  const parsed = Number.parseInt(value, 10);
   return Number.isNaN(parsed) ? undefined : parsed;
 }
 

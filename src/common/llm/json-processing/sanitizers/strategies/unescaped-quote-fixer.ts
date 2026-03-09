@@ -23,39 +23,43 @@ export const unescapedQuoteFixer: SanitizerStrategy = {
     let hasChanges = false;
 
     // Fix HTML attribute quotes
-    const attributeQuotePattern = /(=\s*)"([^"]*)"(\s*[>]|\s+[a-zA-Z]|(?=\s*"))/g;
-    sanitized = sanitized.replace(attributeQuotePattern, (match, equalsAndSpace, value, after) => {
-      const matchIndex = sanitized.lastIndexOf(match);
-      if (matchIndex === -1) return match;
+    const attributeQuotePattern = /(=\s*)"([^"]*)"(\s*>|\s+[a-zA-Z]|(?=\s*"))/g;
+    sanitized = sanitized.replaceAll(
+      attributeQuotePattern,
+      (match, equalsAndSpace, value, after) => {
+        const matchIndex = sanitized.lastIndexOf(match);
+        if (matchIndex === -1) return match;
 
-      const contextBefore = sanitized.substring(
-        Math.max(0, matchIndex - parsingHeuristics.CONTEXT_LOOKBACK_LENGTH),
-        matchIndex,
-      );
+        const contextBefore = sanitized.substring(
+          Math.max(0, matchIndex - parsingHeuristics.CONTEXT_LOOKBACK_LENGTH),
+          matchIndex,
+        );
 
-      const isInStringValue =
-        /:\s*"[^"]*=/.test(contextBefore) ||
-        /:\s*[^"]*=/.test(contextBefore) ||
-        contextBefore.includes('": "') ||
-        contextBefore.includes('":{') ||
-        (contextBefore.includes(":") && !/"\s*$/.exec(contextBefore));
+        const isInStringValue =
+          /:\s*"[^"]*=/.test(contextBefore) ||
+          /:\s*[^"]*=/.test(contextBefore) ||
+          contextBefore.includes('": "') ||
+          contextBefore.includes('":{') ||
+          (contextBefore.includes(":") && !/"\s*$/.exec(contextBefore));
 
-      if (isInStringValue) {
-        hasChanges = true;
-        const afterStr = typeof after === "string" ? after : "";
-        const spacesAfterMatch = /^\s*/.exec(afterStr);
-        const spacesAfter = spacesAfterMatch?.[0] ?? "";
-        const restAfter = afterStr.substring(spacesAfter.length);
-        repairs.push(`Escaped quote in HTML attribute: = "${value}"`);
-        return `${equalsAndSpace}\\"${value}\\"${spacesAfter}${restAfter}`;
-      }
+        if (isInStringValue) {
+          hasChanges = true;
+          const afterStr = typeof after === "string" ? after : "";
+          const spacesAfterMatch = /^\s*/.exec(afterStr);
+          const spacesAfter = spacesAfterMatch?.[0] ?? "";
+          const restAfter = afterStr.substring(spacesAfter.length);
+          repairs.push(`Escaped quote in HTML attribute: = "${value}"`);
+          const escapedQuote = String.raw`\"`;
+          return `${equalsAndSpace}${escapedQuote}${value}${escapedQuote}${spacesAfter}${restAfter}`;
+        }
 
-      return match;
-    });
+        return match;
+      },
+    );
 
     // Fix escaped quotes followed by unescaped quotes
     const escapedQuoteFollowedByUnescapedPattern = /(\\")"(\s*\+|\s*\]|\s*,|(?=\s*[a-zA-Z_$]))/g;
-    sanitized = sanitized.replace(
+    sanitized = sanitized.replaceAll(
       escapedQuoteFollowedByUnescapedPattern,
       (match, _escapedQuote, after, offset: number, fullString: string) => {
         const contextBefore = fullString.substring(
@@ -72,8 +76,9 @@ export const unescapedQuoteFixer: SanitizerStrategy = {
         if (isInStringValue) {
           hasChanges = true;
           const afterStr = typeof after === "string" ? after : "";
-          repairs.push(`Fixed escaped quote followed by unescaped quote: \\"" -> \\"\\")`);
-          return `\\"\\"${afterStr}`;
+          repairs.push(String.raw`Fixed escaped quote followed by unescaped quote: \"" -> \"\"`);
+          const doubleEscapedQuote = String.raw`\"\"`;
+          return `${doubleEscapedQuote}${afterStr}`;
         }
 
         return match;

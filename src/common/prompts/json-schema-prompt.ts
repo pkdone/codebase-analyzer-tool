@@ -14,7 +14,6 @@ import { JSON_SCHEMA_PROMPT_TEMPLATE, FORCE_JSON_FORMAT_INSTRUCTIONS } from "./c
 import { fillTemplate } from "./templating";
 
 // Re-export constants for backwards compatibility
-export { JSON_SCHEMA_PROMPT_TEMPLATE, FORCE_JSON_FORMAT_INSTRUCTIONS };
 
 /**
  * Configuration for rendering a JSON schema prompt.
@@ -96,3 +95,5 @@ export function renderJsonSchemaPrompt(config: JSONSchemaPromptConfig, content: 
   };
   return fillTemplate(JSON_SCHEMA_PROMPT_TEMPLATE, templateData);
 }
+
+export { JSON_SCHEMA_PROMPT_TEMPLATE, FORCE_JSON_FORMAT_INSTRUCTIONS } from "./constants";

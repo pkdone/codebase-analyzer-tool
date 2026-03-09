@@ -11,8 +11,6 @@
  * Text generation functions are in insight-text-generators.ts.
  */
 
-import { uiAnalysisConfig } from "../sections/ui-analysis/ui-analysis.config";
-
 // Re-export CSS/badge mapping functions
 export {
   getCouplingLevelPresentation,
@@ -29,4 +27,5 @@ export {
 export { getCodeSmellRecommendation, getScriptletUsageInsight } from "./insight-text-generators";
 
 // Re-export config for tests
-export { uiAnalysisConfig };
+
+export { uiAnalysisConfig } from "../sections/ui-analysis/ui-analysis.config";

@@ -34,7 +34,7 @@ export const removeComments: Sanitizer = (input: string): SanitizerResult => {
     // Pattern 1: Remove multi-line comments /* ... */
     // Use non-greedy match with dotAll flag to handle comments spanning lines
     const multiLineCommentPattern = /\/\*.*?\*\//gs;
-    sanitized = sanitized.replace(multiLineCommentPattern, (match, offset: number) => {
+    sanitized = sanitized.replaceAll(multiLineCommentPattern, (match, offset: number) => {
       // Don't remove if we're inside a string
       if (isInStringAt(offset, sanitized)) {
         return match;
@@ -54,7 +54,7 @@ export const removeComments: Sanitizer = (input: string): SanitizerResult => {
     // Match from // to end of line, but not if // is inside a string
     // Also match the newline after the comment if it's at the start of a line
     const singleLineCommentPattern = /\/\/.*(?:\n|$)/g;
-    sanitized = sanitized.replace(singleLineCommentPattern, (match, offset: number) => {
+    sanitized = sanitized.replaceAll(singleLineCommentPattern, (match, offset: number) => {
       // Don't remove if we're inside a string
       if (isInStringAt(offset, sanitized)) {
         return match;

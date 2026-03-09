@@ -39,11 +39,7 @@ describe("InsightsCompletionExecutor type inference improvements", () => {
 
       mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(ok(mockResponse));
 
-      const result = await executor.execute(
-        category,
-        ["* file1.ts: User management"],
-        undefined,
-      );
+      const result = await executor.execute(category, ["* file1.ts: User management"], undefined);
 
       // Type should be inferred without explicit cast
       expect(result).not.toBeNull();
@@ -65,11 +61,7 @@ describe("InsightsCompletionExecutor type inference improvements", () => {
 
       mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(ok(mockResponse));
 
-      const result = await executor.execute(
-        category,
-        ["* file1.ts: Implementation"],
-        undefined,
-      );
+      const result = await executor.execute(category, ["* file1.ts: Implementation"], undefined);
 
       expect(result).not.toBeNull();
       if (result) {
@@ -146,11 +138,7 @@ describe("InsightsCompletionExecutor type inference improvements", () => {
 
       mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(ok(mockResponse));
 
-      const result = await executor.execute(
-        category,
-        ["* file1.ts: Process flows"],
-        undefined,
-      );
+      const result = await executor.execute(category, ["* file1.ts: Process flows"], undefined);
 
       expect(result).not.toBeNull();
       if (result) {
@@ -181,11 +169,7 @@ describe("InsightsCompletionExecutor type inference improvements", () => {
 
       mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(ok(mockResponse));
 
-      const result = await executor.execute(
-        category,
-        ["* file1.ts: Aggregate roots"],
-        undefined,
-      );
+      const result = await executor.execute(category, ["* file1.ts: Aggregate roots"], undefined);
 
       expect(result).not.toBeNull();
       if (result) {
@@ -263,11 +247,7 @@ describe("InsightsCompletionExecutor type inference improvements", () => {
       mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(ok(mockResponse));
 
       // Call executor.execute
-      const result = await executor.execute(
-        category,
-        ["* file1.ts: Implementation"],
-        undefined,
-      );
+      const result = await executor.execute(category, ["* file1.ts: Implementation"], undefined);
 
       // Verify the call to LLM router used correct schema
       const schema = appSummaryCategorySchemas[category];
@@ -296,11 +276,7 @@ describe("InsightsCompletionExecutor type inference improvements", () => {
 
       mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(ok(mockResponse));
 
-      const result = await executor.execute(
-        category,
-        ["* file1.ts: Implementation"],
-        undefined,
-      );
+      const result = await executor.execute(category, ["* file1.ts: Implementation"], undefined);
 
       // Direct assignment without cast
       if (result) {
@@ -320,11 +296,7 @@ describe("InsightsCompletionExecutor type inference improvements", () => {
 
       mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(ok(mockResponse));
 
-      const result = await executor.execute(
-        category,
-        ["* file1.ts: Entities"],
-        undefined,
-      );
+      const result = await executor.execute(category, ["* file1.ts: Entities"], undefined);
 
       // Destructuring should work without casts
       if (result) {
@@ -343,11 +315,7 @@ describe("InsightsCompletionExecutor type inference improvements", () => {
         .fn()
         .mockResolvedValue(err(new LLMError(LLMErrorCode.BAD_RESPONSE_CONTENT, "No response")));
 
-      const result = await executor.execute(
-        category,
-        ["* file1.ts: Implementation"],
-        undefined,
-      );
+      const result = await executor.execute(category, ["* file1.ts: Implementation"], undefined);
 
       // Result type should be inferred union type | null
       expect(result).toBeNull();
@@ -366,11 +334,7 @@ describe("InsightsCompletionExecutor type inference improvements", () => {
 
       mockLLMRouter.executeCompletion = jest.fn().mockRejectedValue(new Error("LLM error"));
 
-      const result = await executor.execute(
-        category,
-        ["* file1.ts: Implementation"],
-        undefined,
-      );
+      const result = await executor.execute(category, ["* file1.ts: Implementation"], undefined);
 
       expect(result).toBeNull();
     });
@@ -386,11 +350,9 @@ describe("InsightsCompletionExecutor type inference improvements", () => {
 
       mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(ok(mockResponse));
 
-      const result = await executor.execute(
-        category,
-        ["* file1.ts: Implementation"],
-        { taskCategory: customTaskCategory },
-      );
+      const result = await executor.execute(category, ["* file1.ts: Implementation"], {
+        taskCategory: customTaskCategory,
+      });
 
       // Verify custom category was used
       expect(mockLLMRouter.executeCompletion).toHaveBeenCalledWith(
@@ -414,11 +376,9 @@ describe("InsightsCompletionExecutor type inference improvements", () => {
 
       mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(ok(mockResponse));
 
-      const result = await executor.execute(
-        category,
-        ["* file1.ts: Implementation"],
-        { forPartialAnalysis: true },
-      );
+      const result = await executor.execute(category, ["* file1.ts: Implementation"], {
+        forPartialAnalysis: true,
+      });
 
       // Type should be preserved regardless of options
       if (result) {
@@ -439,11 +399,7 @@ describe("InsightsCompletionExecutor type inference improvements", () => {
       ): Promise<void> {
         mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(ok(mockResp));
 
-        const result = await executor.execute(
-          cat,
-          ["* file1.ts: Implementation"],
-          undefined,
-        );
+        const result = await executor.execute(cat, ["* file1.ts: Implementation"], undefined);
 
         if (result) {
           // Type should be inferred as z.infer<AppSummaryCategorySchemas[C]>
@@ -475,11 +431,7 @@ describe("InsightsCompletionExecutor type inference improvements", () => {
 
       mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(ok(mockResponse));
 
-      const result = await executor.execute(
-        category,
-        ["* file1.ts: Implementation"],
-        undefined,
-      );
+      const result = await executor.execute(category, ["* file1.ts: Implementation"], undefined);
 
       if (result) {
         // Type should be inferred from the literal type
@@ -496,11 +448,7 @@ describe("InsightsCompletionExecutor type inference improvements", () => {
 
       mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(ok(mockResponse));
 
-      const result = await executor.execute(
-        category,
-        ["* file1.ts: Implementation"],
-        undefined,
-      );
+      const result = await executor.execute(category, ["* file1.ts: Implementation"], undefined);
 
       // Direct property access without cast
       if (result) {
@@ -517,11 +465,7 @@ describe("InsightsCompletionExecutor type inference improvements", () => {
 
       mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(ok(mockResponse));
 
-      const result = await executor.execute(
-        category,
-        ["* file1.ts: Implementation"],
-        undefined,
-      );
+      const result = await executor.execute(category, ["* file1.ts: Implementation"], undefined);
 
       // Array access without cast
       if (result) {
@@ -545,11 +489,7 @@ describe("InsightsCompletionExecutor type inference improvements", () => {
 
       mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(ok(mockResponse));
 
-      const result = await executor.execute(
-        category,
-        ["* file1.ts: Implementation"],
-        undefined,
-      );
+      const result = await executor.execute(category, ["* file1.ts: Implementation"], undefined);
 
       // Nested access without cast
       if (result) {
@@ -570,11 +510,7 @@ describe("InsightsCompletionExecutor type inference improvements", () => {
 
       mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(ok(mockResponse));
 
-      const result = await executor.execute(
-        category,
-        ["* file1.ts: Implementation"],
-        undefined,
-      );
+      const result = await executor.execute(category, ["* file1.ts: Implementation"], undefined);
 
       // Spread operator should work without cast
       if (result) {
@@ -592,11 +528,7 @@ describe("InsightsCompletionExecutor type inference improvements", () => {
 
       mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(ok(mockResponse));
 
-      const result = await executor.execute(
-        category,
-        ["* file1.ts: Implementation"],
-        undefined,
-      );
+      const result = await executor.execute(category, ["* file1.ts: Implementation"], undefined);
 
       // Object methods should work without cast
       if (result) {

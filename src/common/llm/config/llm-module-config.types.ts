@@ -5,7 +5,7 @@
  */
 
 import type { LLMProviderManifest } from "../providers/llm-provider.types";
-import type { ModelChainEntry, ResolvedModelChain } from "../types/llm-model.types";
+import type { ResolvedModelChain } from "../types/llm-model.types";
 
 // Re-export sanitizer config types for convenience
 export type { LLMSanitizerConfig, ReplacementRule } from "../types/sanitizer-config.types";
@@ -16,9 +16,6 @@ export type { LLMSanitizerConfig, ReplacementRule } from "../types/sanitizer-con
  * allowing consuming applications to control which providers are included.
  */
 export type LLMProviderRegistry = ReadonlyMap<string, LLMProviderManifest>;
-
-// Re-export for convenience
-export type { ModelChainEntry, ResolvedModelChain };
 
 /**
  * Configuration for error logging behavior.
@@ -50,3 +47,5 @@ export interface LLMModuleConfig {
    */
   readonly providerRegistry: LLMProviderRegistry;
 }
+
+export { type ResolvedModelChain, type ModelChainEntry } from "../types/llm-model.types";

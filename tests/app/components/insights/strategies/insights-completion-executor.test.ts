@@ -204,11 +204,7 @@ describe("InsightsCompletionExecutor - Type Inference", () => {
       );
 
       // Type should be inferred from the category parameter
-      const result = await executor.execute(
-        category,
-        ["* file1.ts: implementation"],
-        undefined,
-      );
+      const result = await executor.execute(category, ["* file1.ts: implementation"], undefined);
       expect(result).toEqual(mockResponse);
     });
 
@@ -230,11 +226,7 @@ describe("InsightsCompletionExecutor - Type Inference", () => {
           llmOk(mockResponse, createExecutionMetadata("gpt-4", "openai")),
         );
 
-        const result = await executor.execute(
-          category,
-          ["* file1.ts: implementation"],
-          undefined,
-        );
+        const result = await executor.execute(category, ["* file1.ts: implementation"], undefined);
 
         expect(result).toEqual(mockResponse);
       }
@@ -566,11 +558,7 @@ describe("InsightsCompletionExecutor - Type Inference", () => {
         llmOk(mockResponse, createExecutionMetadata("gpt-4", "openai")),
       );
 
-      const result = await executor.execute(
-        category,
-        ["* file1.ts: implementation"],
-        undefined,
-      );
+      const result = await executor.execute(category, ["* file1.ts: implementation"], undefined);
       // Schema-specific type is preserved
       expect(mockLLMRouter.executeCompletion).toHaveBeenCalledWith(
         category,

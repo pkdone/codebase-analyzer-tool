@@ -5,9 +5,8 @@
  * prompt fragments, reducing duplication while allowing language-specific customization.
  */
 
-import { createDbMechanismInstructions, dbMech } from "../../utils";
+import { createDbMechanismInstructions } from "../../utils";
 import type { LanguageSpecificFragments } from "../../sources.types";
-import { MECHANISM_DESCRIPTIONS } from "../features/common.fragments";
 
 /**
  * Configuration options for creating C-family language fragments.
@@ -122,4 +121,6 @@ export function createCFamilyFragments(
 }
 
 // Re-export utilities for use in C and C++ fragment files
-export { MECHANISM_DESCRIPTIONS, dbMech };
+
+export { MECHANISM_DESCRIPTIONS } from "../features/common.fragments";
+export { dbMech } from "../../utils";

@@ -220,11 +220,11 @@ export default class VertexAIGeminiLLM extends BaseLLMProvider {
       );
 
     // Capture response content
-    // After the terminal finish reason check above, we can safely access content/parts.
-    // Per Vertex AI SDK types, content and parts are required on non-terminal responses.
-    // The parts array may be empty in edge cases, so check length before accessing.
-    const parts = llmResponse.content.parts;
-    const responseContent = parts.length > 0 ? (parts[0].text ?? null) : null;
+    // Type widened: some model variants (e.g., Flash-Lite) return undefined parts at runtime
+    // despite the SDK types declaring them as required.
+    const parts = llmResponse.content.parts as typeof llmResponse.content.parts | undefined;
+    const responseContent =
+      parts !== undefined && parts.length > 0 ? (parts[0].text ?? null) : null;
     const isIncompleteResponse = finishReason !== FinishReason.STOP || responseContent == null;
 
     // Capture token usage

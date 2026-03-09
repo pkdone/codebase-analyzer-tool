@@ -110,10 +110,7 @@ describe("renderPrompt Snapshot Tests", () => {
     });
 
     test("JSP prompt should match snapshot", () => {
-      const rendered = renderSourcePrompt(
-        "jsp",
-        '<%@ page language="java" %>\n<html>test</html>',
-      );
+      const rendered = renderSourcePrompt("jsp", '<%@ page language="java" %>\n<html>test</html>');
       expect(rendered).toMatchSnapshot();
     });
 
@@ -217,10 +214,7 @@ describe("renderPrompt Snapshot Tests", () => {
     appSummaryTypes.forEach((category) => {
       test(`${category} app summary prompt should render successfully`, () => {
         expect(() => {
-          const rendered = renderAppSummaryPrompt(
-            category,
-            "[{summary: 'test file summary'}]",
-          );
+          const rendered = renderAppSummaryPrompt(category, "[{summary: 'test file summary'}]");
           expect(rendered).toBeTruthy();
           expect(typeof rendered).toBe("string");
           expect(rendered.length).toBeGreaterThan(0);

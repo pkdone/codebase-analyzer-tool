@@ -2,8 +2,8 @@ import {
   generateEmptyDiagramSvg,
   buildCompactInitDirective,
   buildSpaciousInitDirective,
+  buildStyleDefinitions,
 } from "../utils";
-import { buildStyleDefinitions } from "../utils";
 
 /**
  * Diagram layout preset determining spacing and padding configuration.

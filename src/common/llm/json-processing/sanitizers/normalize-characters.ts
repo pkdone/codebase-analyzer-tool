@@ -90,20 +90,20 @@ export const normalizeCharacters: Sanitizer = (input: string): SanitizerResult =
       hasChanges = true;
 
       // Replace all double quote variants with ASCII double quote
-      result = result.replace(DOUBLE_QUOTE_PATTERN, '"');
+      result = result.replaceAll(DOUBLE_QUOTE_PATTERN, '"');
 
       // Replace all single quote variants with ASCII single quote
-      result = result.replace(SINGLE_QUOTE_PATTERN, "'");
+      result = result.replaceAll(SINGLE_QUOTE_PATTERN, "'");
 
       if (doubleQuoteCount > 0) {
         repairs.push(
-          `Converted ${doubleQuoteCount} curly/smart double quote${doubleQuoteCount !== 1 ? "s" : ""} to regular quote`,
+          `Converted ${doubleQuoteCount} curly/smart double quote${doubleQuoteCount === 1 ? "" : "s"} to regular quote`,
         );
       }
 
       if (singleQuoteCount > 0) {
         repairs.push(
-          `Converted ${singleQuoteCount} curly/smart single quote${singleQuoteCount !== 1 ? "s" : ""} to regular quote`,
+          `Converted ${singleQuoteCount} curly/smart single quote${singleQuoteCount === 1 ? "" : "s"} to regular quote`,
         );
       }
     }
@@ -151,13 +151,13 @@ export const normalizeCharacters: Sanitizer = (input: string): SanitizerResult =
 
               if (hexDigits.length === 4) {
                 // Valid unicode escape - keep as is
-                processedChars.push("\\u", hexDigits);
+                processedChars.push(String.raw`\u`, hexDigits);
                 i = j;
                 continue;
               } else {
                 // Invalid: \u without 4 hex digits - escape the backslash
-                repairs.push(`Fixed invalid unicode escape \\u${hexDigits}`);
-                processedChars.push("\\\\u", hexDigits);
+                repairs.push(String.raw`Fixed invalid unicode escape \u${hexDigits}`);
+                processedChars.push(String.raw`\\u`, hexDigits);
                 i = j;
                 hasChanges = true;
                 invalidEscapesFixed++;
@@ -165,7 +165,7 @@ export const normalizeCharacters: Sanitizer = (input: string): SanitizerResult =
               }
             } else if (nextChar === " ") {
               // Invalid: \ (backslash-space) - remove backslash, keep space
-              repairs.push("Fixed invalid escape sequence \\  (backslash-space)");
+              repairs.push(String.raw`Fixed invalid escape sequence \  (backslash-space)`);
               processedChars.push(" ");
               i += 2;
               hasChanges = true;
@@ -188,7 +188,7 @@ export const normalizeCharacters: Sanitizer = (input: string): SanitizerResult =
           } else {
             // Outside string: check if this is a valid escape (shouldn't happen in valid JSON, but handle gracefully)
             // Valid JSON escape sequences outside strings are not really a thing, but we'll preserve them
-            if ('"\\/bfnrtu'.includes(nextChar)) {
+            if (String.raw`"\/bfnrtu`.includes(nextChar)) {
               processedChars.push(char);
               escapeNext = true;
               i++;
@@ -234,29 +234,29 @@ export const normalizeCharacters: Sanitizer = (input: string): SanitizerResult =
           // Control character - all control chars must be escaped in JSON strings
           if (code === 0x09) {
             // Tab - escape as \t
-            processedChars.push("\\t");
+            processedChars.push(String.raw`\t`);
             hasChanges = true;
             controlCharsEscaped++;
           } else if (code === 0x0a) {
             // Newline (LF) - escape as \n (raw newline is NOT valid in JSON strings)
-            processedChars.push("\\n");
+            processedChars.push(String.raw`\n`);
             hasChanges = true;
             controlCharsEscaped++;
           } else if (code === 0x0d) {
             // Carriage return - escape as \r
-            processedChars.push("\\r");
+            processedChars.push(String.raw`\r`);
             hasChanges = true;
             controlCharsEscaped++;
           } else {
             // Other control characters need to be escaped as unicode
             const hex = code.toString(16).padStart(4, "0");
-            processedChars.push(`\\u${hex}`);
+            processedChars.push(String.raw`\u${hex}`);
             hasChanges = true;
             controlCharsEscaped++;
           }
         } else if (code === 0x7f) {
           // DEL character (0x7F) - also needs escaping in JSON strings
-          processedChars.push("\\u007f");
+          processedChars.push(String.raw`\u007f`);
           hasChanges = true;
           controlCharsEscaped++;
         } else {
@@ -317,7 +317,7 @@ export const normalizeCharacters: Sanitizer = (input: string): SanitizerResult =
         if (nextChar !== undefined) {
           if (inString && nextChar === "0") {
             // Convert \0 to \u0000 (valid JSON)
-            outputFinalChars.push("\\u0000");
+            outputFinalChars.push(String.raw`\u0000`);
             tracker.advanceTo(index + 2); // Skip both \ and 0
             fixedNullEscapes++;
             hasChanges = true;
@@ -335,7 +335,7 @@ export const normalizeCharacters: Sanitizer = (input: string): SanitizerResult =
 
     if (fixedNullEscapes > 0) {
       repairs.push(
-        `Fixed ${fixedNullEscapes} null escape sequence${fixedNullEscapes !== 1 ? "s" : ""} (\\0 -> \\u0000)`,
+        String.raw`Fixed ${fixedNullEscapes} null escape sequence${fixedNullEscapes === 1 ? "" : "s"} (\0 -> \u0000)`,
       );
     }
 
@@ -345,19 +345,19 @@ export const normalizeCharacters: Sanitizer = (input: string): SanitizerResult =
     if (hasChanges) {
       if (controlCharsRemoved > 0) {
         repairs.push(
-          `Removed ${controlCharsRemoved} control character${controlCharsRemoved !== 1 ? "s" : ""} outside strings`,
+          `Removed ${controlCharsRemoved} control character${controlCharsRemoved === 1 ? "" : "s"} outside strings`,
         );
       }
 
       if (controlCharsEscaped > 0) {
         repairs.push(
-          `Escaped ${controlCharsEscaped} control character${controlCharsEscaped !== 1 ? "s" : ""} in string values`,
+          `Escaped ${controlCharsEscaped} control character${controlCharsEscaped === 1 ? "" : "s"} in string values`,
         );
       }
 
       if (invalidEscapesFixed > 0) {
         repairs.push(
-          `Fixed ${invalidEscapesFixed} invalid escape sequence${invalidEscapesFixed !== 1 ? "s" : ""}`,
+          `Fixed ${invalidEscapesFixed} invalid escape sequence${invalidEscapesFixed === 1 ? "" : "s"}`,
         );
       }
 

@@ -44,7 +44,10 @@ describe("SinglePassInsightStrategy", () => {
     // Create a child container for testing
     testContainer = container.createChildContainer();
     testContainer.register(llmTokens.LLMRouter, { useValue: mockLLMRouter });
-    testContainer.registerSingleton(insightsTokens.InsightsCompletionExecutor, InsightsCompletionExecutor);
+    testContainer.registerSingleton(
+      insightsTokens.InsightsCompletionExecutor,
+      InsightsCompletionExecutor,
+    );
 
     strategy = testContainer.resolve(SinglePassInsightStrategy);
   });

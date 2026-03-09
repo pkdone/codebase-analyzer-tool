@@ -123,16 +123,16 @@ function processArtifactMatches(
           // Try fallback to next comma or newline
           const nextComma = sanitized.indexOf(",", valueStartPos);
 
-          if (nextComma !== -1) {
-            valueEndPos = nextComma + 1;
-          } else {
+          if (nextComma === -1) {
             const nextNewline = sanitized.indexOf("\n", valueStartPos);
 
-            if (nextNewline !== -1) {
-              valueEndPos = nextNewline;
-            } else {
+            if (nextNewline === -1) {
               continue;
             }
+
+            valueEndPos = nextNewline;
+          } else {
+            valueEndPos = nextComma + 1;
           }
         } else {
           // Skip this match if parsing failed and no fallback is allowed
@@ -165,7 +165,6 @@ function processArtifactMatches(
       let replacement = "";
 
       if (m.delimiter === ",") {
-        replacement = "";
         const beforeTrimmed = before.trimEnd();
         const afterTrimmed = after.trimStart();
 
@@ -221,7 +220,7 @@ export const extraPropertiesRemover: SanitizerStrategy = {
     // Generic pattern catches extra_*, llm_*, ai_* prefixed properties with malformed syntax
     const malformedArtifactPattern =
       /([,{])\s*((?:extra|llm|ai)_[a-z_]+)\s*=\s*"\s*"\s*([a-zA-Z_$][a-zA-Z0-9_$]*"\s*:\s*)/gi;
-    const sanitizedAfterMalformed = sanitized.replace(
+    const sanitizedAfterMalformed = sanitized.replaceAll(
       malformedArtifactPattern,
       (match, delimiter, artifactProp, propertyNameWithQuote, offset: number) => {
         if (isInString(offset)) {

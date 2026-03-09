@@ -250,13 +250,11 @@ export default class ReportArtifactGenerator {
       scheduledJobsSummary: reportData.scheduledJobsSummary,
       moduleCoupling: reportData.moduleCoupling,
     };
-    allJsonData.push({
-      filename: this.outputConfig.jsonFiles.COMPLETE_REPORT,
-      data: completeReportData,
-    });
-
-    // Add app stats and app description JSON files
     allJsonData.push(
+      {
+        filename: this.outputConfig.jsonFiles.COMPLETE_REPORT,
+        data: completeReportData,
+      },
       { filename: this.outputConfig.jsonFiles.APP_STATS, data: reportData.appStats },
       {
         filename: this.outputConfig.jsonFiles.APP_DESCRIPTION,

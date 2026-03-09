@@ -24,38 +24,38 @@ const OVER_ESCAPE_REPLACEMENT_PATTERNS: readonly ReplacementPattern[] = [
   [
     /\\\\\\'/g,
     "'",
-    "Fixes 5-backslash quote: \\\\\\\\\\' → ' (Example: \"it\\\\\\\\\\'s\" → \"it's\", common in SQL)",
+    String.raw`Fixes 5-backslash quote: \\\\' → ' (Example: "it\\\\'s" → "it's", common in SQL)`,
   ],
-  [
-    /\\\\'/g,
-    "'",
-    "Fixes 4-backslash quote: \\\\\\\\' → ' (Example: \"value\\\\\\'s\" → \"value's\")",
-  ],
-  [/\\'/g, "'", "Fixes 3-backslash quote: \\\\' → ' (Example: \"value\\'s\" → \"value's\")"],
+  [/\\\\'/g, "'", String.raw`Fixes 4-backslash quote: \\\' → ' (Example: "value\\'s" → "value's")`],
+  [/\\'/g, "'", String.raw`Fixes 3-backslash quote: \' → ' (Example: "value's" → "value's")`],
 
   // SINGLE QUOTE + DOT COMBINATIONS
   [
     /\\\\\\'\\\./g,
     "'.",
-    "Fixes 5-backslash quote + dot: \\\\\\\\\\'\\. → '. (Common in SQL column references)",
+    String.raw`Fixes 5-backslash quote + dot: \\\\\'\. → '. (Common in SQL column references)`,
   ],
   [
     /\\\\\\'\\\\\\'/g,
     "''",
-    "Fixes consecutive 5-backslash quotes: \\\\\\\\'\\\\\\\\' → '' (Common in SQL empty strings)",
+    String.raw`Fixes consecutive 5-backslash quotes: \\\\'\\\\\' → '' (Common in SQL empty strings)`,
   ],
-  [/\\'\\\./g, "'.", "Fixes simple quote + dot: \\'\\. → '."],
-  [/\\'\\\\'/g, "''", "Fixes mixed quote escaping: \\'\\\\\\' → ''"],
+  [/\\'\\\./g, "'.", String.raw`Fixes simple quote + dot: '\. → '.`],
+  [/\\'\\\\'/g, "''", String.raw`Fixes mixed quote escaping: '\\\' → ''`],
 
   // NULL CHARACTER OVER-ESCAPING
-  [/\\\\\\0/g, "\\0", "Fixes 5-backslash null: \\\\\\\\\\0 → \\0"],
-  [/\\\\0/g, "\\0", "Fixes 4-backslash null: \\\\\\\\0 → \\0"],
+  [/\\\\\\0/g, "\\0", String.raw`Fixes 5-backslash null: \\\\\0 → \0`],
+  [/\\\\0/g, "\\0", String.raw`Fixes 4-backslash null: \\0 → \0`],
 
   // CODE SNIPPET PUNCTUATION (commas, parentheses)
-  [/\\\\\s*,/g, ",", "Fixes 4-backslash comma: \\\\\\\\ , → , (Common in function parameters)"],
-  [/\\\\\s*\)/g, ")", "Fixes 4-backslash closing paren: \\\\\\\\ ) → )"],
-  [/\\,/g, ",", "Fixes 2-backslash comma: \\\\ , → ,"],
-  [/\\\)/g, ")", "Fixes 2-backslash closing paren: \\\\ ) → )"],
+  [
+    /\\\\\s*,/g,
+    ",",
+    String.raw`Fixes 4-backslash comma: \\\\ , → , (Common in function parameters)`,
+  ],
+  [/\\\\\s*\)/g, ")", String.raw`Fixes 4-backslash closing paren: \\\\ ) → )`],
+  [/\\,/g, ",", String.raw`Fixes 2-backslash comma: \\ , → ,`],
+  [/\\\)/g, ")", String.raw`Fixes 2-backslash closing paren: \\ ) → )`],
 ] as const;
 
 /**

@@ -31,13 +31,13 @@ export function buildModelRegistry(providerRegistry: LLMProviderRegistry): Map<s
     for (const model of manifest.models.embeddings) {
       const existingProvider = registry.get(model.modelKey);
 
-      if (existingProvider !== undefined) {
+      if (existingProvider === undefined) {
+        registry.set(model.modelKey, providerFamily);
+      } else {
         // Duplicate found - track it
         const existingDuplicates = duplicates.get(model.modelKey) ?? [existingProvider];
         existingDuplicates.push(providerFamily);
         duplicates.set(model.modelKey, existingDuplicates);
-      } else {
-        registry.set(model.modelKey, providerFamily);
       }
     }
 
@@ -45,13 +45,13 @@ export function buildModelRegistry(providerRegistry: LLMProviderRegistry): Map<s
     for (const model of manifest.models.completions) {
       const existingProvider = registry.get(model.modelKey);
 
-      if (existingProvider !== undefined) {
+      if (existingProvider === undefined) {
+        registry.set(model.modelKey, providerFamily);
+      } else {
         // Duplicate found - track it
         const existingDuplicates = duplicates.get(model.modelKey) ?? [existingProvider];
         existingDuplicates.push(providerFamily);
         duplicates.set(model.modelKey, existingDuplicates);
-      } else {
-        registry.set(model.modelKey, providerFamily);
       }
     }
   }
@@ -86,7 +86,7 @@ export function getProviderFamilyForModelKey(
   const providerFamily = modelRegistry.get(modelKey);
 
   if (!providerFamily) {
-    const availableKeys = Array.from(modelRegistry.keys()).sort();
+    const availableKeys = Array.from(modelRegistry.keys()).sort((a, b) => a.localeCompare(b));
     throw new LLMError(
       LLMErrorCode.BAD_CONFIGURATION,
       `Unknown model key "${modelKey}". Available model keys: ${availableKeys.join(", ")}`,
@@ -104,5 +104,5 @@ export function getProviderFamilyForModelKey(
  * @returns Array of all registered model keys, sorted alphabetically
  */
 export function getAllModelKeys(modelRegistry: Map<string, string>): string[] {
-  return Array.from(modelRegistry.keys()).sort();
+  return Array.from(modelRegistry.keys()).sort((a, b) => a.localeCompare(b));
 }

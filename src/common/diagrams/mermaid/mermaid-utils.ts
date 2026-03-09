@@ -33,9 +33,9 @@ export function escapeMermaidLabel(text: string): string {
  */
 export function generateNodeId(text: string, index: number): string {
   const sanitized = text
-    .replace(/[^a-zA-Z0-9]/g, "_")
-    .replace(/_+/g, "_")
-    .replace(/^_|_$/g, "")
+    .replaceAll(/[^a-zA-Z0-9]/g, "_")
+    .replaceAll(/_+/g, "_")
+    .replaceAll(/^_|_$/g, "")
     .toLowerCase();
   return `${sanitized}_${index}`;
 }
