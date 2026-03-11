@@ -40,7 +40,7 @@ export class FileBasedInsightsGenerationTask extends BaseAnalysisTask {
   protected async runTask(): Promise<void> {
     const modelsDescription = this.llmRouter.getCompletionModelKeys().join(", ");
     await this.requirementPromptExecutor.executeRequirementsToFiles(
-      this.env.CODEBASE_DIR_PATH,
+      this.env.CODEBASE_DIR_PATHS,
       modelsDescription,
     );
   }

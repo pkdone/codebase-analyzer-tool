@@ -142,6 +142,18 @@ export interface ProjectedDatabaseStatistics {
   };
 }
 /**
+ * Summary statistics for a single project as returned by the list-all-projects aggregation.
+ */
+export interface ProjectSummaryStats {
+  readonly projectName: string;
+  readonly fileCount: number;
+  readonly linesOfCode: number;
+  readonly fileExtensions: string[];
+  readonly hasSummaries: boolean;
+  readonly summarizedFileCount: number;
+}
+
+/**
  * Generate JSON schema for source file records
  */
 export function getJSONSchema() {

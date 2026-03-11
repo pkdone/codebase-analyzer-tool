@@ -94,7 +94,7 @@ export async function setupTestDatabase(): Promise<MongoClient> {
   container.registerInstance(coreTokens.DatabaseName, testDbName);
 
   // Set test environment for project name registration
-  process.env.CODEBASE_DIR_PATH ??= "/test/project";
+  process.env.CODEBASE_DIR_PATHS ??= "/test/project";
 
   // Register other application dependencies needed for the initializer
   registerAppDependencies();

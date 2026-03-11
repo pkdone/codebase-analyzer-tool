@@ -63,7 +63,7 @@ describe("Environment Registration Module", () => {
 
   const mockBaseEnvVars = {
     MONGODB_URL: "mongodb://localhost:27017/test",
-    CODEBASE_DIR_PATH: "/test/project",
+    CODEBASE_DIR_PATHS: ["/test/project"],
     SKIP_ALREADY_PROCESSED_FILES: false,
     LLM_COMPLETION_MODEL_CHAIN: "TestProvider:test-completion",
     LLM_EMBEDDING_MODEL_CHAIN: "TestProvider:test-embeddings",
@@ -80,7 +80,7 @@ describe("Environment Registration Module", () => {
     delete process.env.TEST_API_KEY;
     delete process.env.TEST_ENDPOINT;
     delete process.env.MONGODB_URL;
-    delete process.env.CODEBASE_DIR_PATH;
+    delete process.env.CODEBASE_DIR_PATHS;
 
     // Mock default implementations
     (dotenv.config as jest.Mock).mockReturnValue({ parsed: {} });
@@ -135,7 +135,7 @@ describe("Environment Registration Module", () => {
       process.env.TEST_EMBEDDINGS_URN = "test-embed-urn";
       process.env.TEST_COMPLETION_URN = "test-comp-urn";
       process.env.MONGODB_URL = "mongodb://localhost:27017/test";
-      process.env.CODEBASE_DIR_PATH = "/test/project";
+      process.env.CODEBASE_DIR_PATHS = "/test/project";
 
       registerLlmEnvDependencies();
 
@@ -146,7 +146,7 @@ describe("Environment Registration Module", () => {
     it("should fall back to base registration when LLM chains are missing", async () => {
       // Don't set LLM chain environment variables
       process.env.MONGODB_URL = "mongodb://localhost:27017/test";
-      process.env.CODEBASE_DIR_PATH = "/test/project";
+      process.env.CODEBASE_DIR_PATHS = "/test/project";
 
       // Should not throw, but fall back to base registration
       registerLlmEnvDependencies();
@@ -157,7 +157,7 @@ describe("Environment Registration Module", () => {
       process.env.LLM_COMPLETION_MODEL_CHAIN = "";
       process.env.LLM_EMBEDDING_MODEL_CHAIN = "";
       process.env.MONGODB_URL = "mongodb://localhost:27017/test";
-      process.env.CODEBASE_DIR_PATH = "/test/project";
+      process.env.CODEBASE_DIR_PATHS = "/test/project";
 
       // Should not throw, but fall back to base registration
       registerLlmEnvDependencies();
@@ -168,7 +168,7 @@ describe("Environment Registration Module", () => {
       process.env.LLM_COMPLETION_MODEL_CHAIN = "TestProvider:test-completion";
       process.env.LLM_EMBEDDING_MODEL_CHAIN = "TestProvider:test-embeddings";
       process.env.MONGODB_URL = "mongodb://localhost:27017/test";
-      process.env.CODEBASE_DIR_PATH = "/test/project";
+      process.env.CODEBASE_DIR_PATHS = "/test/project";
 
       const serviceError = new Error("Failed to load manifest");
       (loadManifestForProviderFamily as jest.Mock).mockImplementation(() => {

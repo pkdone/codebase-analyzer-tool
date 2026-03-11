@@ -15,6 +15,7 @@ import {
   ProjectedCodeSmellStatistic,
   ProjectedCodeQualityStatistics,
   ProjectedDatabaseStatistics,
+  ProjectSummaryStats,
 } from "./sources.model";
 import type { DatabaseConfigType } from "../../config/database.config";
 import type { CodeQualityConfigType } from "../../config/code-quality.config";
@@ -589,6 +590,43 @@ export default class SourcesRepositoryImpl
         totalTriggers: facet.triggerCounts[0]?.total ?? 0,
       },
     };
+  }
+
+  /**
+   * List all distinct projects with summary statistics.
+   * Uses a single aggregation pipeline to compute file count, lines of code,
+   * distinct file extensions, and summarization progress per project.
+   */
+  async getAllProjectStats(): Promise<ProjectSummaryStats[]> {
+    const pipeline = [
+      {
+        $group: {
+          _id: "$projectName",
+          fileCount: { $sum: 1 },
+          linesOfCode: { $sum: "$linesCount" },
+          fileExtensions: { $addToSet: "$fileExtension" },
+          summarizedFileCount: {
+            $sum: {
+              $cond: [{ $ifNull: ["$summary", false] }, 1, 0],
+            },
+          },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          projectName: "$_id",
+          fileCount: 1,
+          linesOfCode: 1,
+          fileExtensions: { $sortArray: { input: "$fileExtensions", sortBy: 1 } },
+          summarizedFileCount: 1,
+          hasSummaries: { $gt: ["$summarizedFileCount", 0] },
+        },
+      },
+      { $sort: { projectName: 1 } },
+    ];
+
+    return await this.collection.aggregate<ProjectSummaryStats>(pipeline).toArray();
   }
 
   /**

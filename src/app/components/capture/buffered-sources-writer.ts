@@ -3,6 +3,8 @@ import type { SourcesRepository } from "../../repositories/sources/sources.repos
 import type { SourceRecord } from "../../repositories/sources/sources.model";
 import { repositoryTokens } from "../../di/tokens";
 import { logErr } from "../../../common/utils/logging";
+import { MongoServerError } from "mongodb";
+import { MONGODB_DUPLICATE_OBJ_ERROR_CODES_SET } from "../../../common/mongodb/mdb.constants";
 
 /** Default batch size for bulk database inserts */
 const DEFAULT_BATCH_SIZE = 200;
@@ -90,6 +92,14 @@ export class BufferedSourcesWriter {
         try {
           await this.sourcesRepository.insertSource(record);
         } catch (insertError: unknown) {
+          if (
+            insertError instanceof MongoServerError &&
+            typeof insertError.code === "number" &&
+            MONGODB_DUPLICATE_OBJ_ERROR_CODES_SET.has(insertError.code)
+          ) {
+            continue;
+          }
+
           logErr(`Failed to insert record for: ${record.filepath}`, insertError);
         }
       }

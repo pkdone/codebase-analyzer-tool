@@ -8,12 +8,14 @@ import { AppStatisticsDataProvider } from "../../../../src/app/components/report
 import { CategorizedSectionDataBuilder } from "../../../../src/app/components/reporting/data-processing";
 import { HtmlReportAssetService } from "../../../../src/app/components/reporting/services/html-report-asset.service";
 import type { ReportSection } from "../../../../src/app/components/reporting/sections/report-section.interface";
+import type { SourcesRepository } from "../../../../src/app/repositories/sources/sources.repository.interface";
 // Import types for type checking only
 import type { ReportData } from "../../../../src/app/components/reporting/report-data.types";
 
 describe("ReportArtifactGenerator", () => {
   let generator: ReportArtifactGenerator;
   let mockAppSummariesRepository: jest.Mocked<AppSummariesRepository>;
+  let mockSourcesRepository: jest.Mocked<SourcesRepository>;
   let mockHtmlWriter: jest.Mocked<HtmlReportWriter>;
   let mockJsonWriter: jest.Mocked<JsonReportWriter>;
   let mockAppStatsDataProvider: jest.Mocked<AppStatisticsDataProvider>;
@@ -25,6 +27,10 @@ describe("ReportArtifactGenerator", () => {
     mockAppSummariesRepository = {
       getProjectAppSummaryFields: jest.fn(),
     } as unknown as jest.Mocked<AppSummariesRepository>;
+
+    mockSourcesRepository = {
+      getProjectFileAndLineStats: jest.fn().mockResolvedValue({ fileCount: 0, linesOfCode: 0 }),
+    } as unknown as jest.Mocked<SourcesRepository>;
 
     mockHtmlWriter = {
       writeHTMLReportFile: jest.fn().mockResolvedValue(undefined),
@@ -106,6 +112,7 @@ describe("ReportArtifactGenerator", () => {
 
     generator = new ReportArtifactGenerator(
       mockAppSummariesRepository,
+      mockSourcesRepository,
       mockHtmlWriter,
       mockJsonWriter,
       mockAppStatsDataProvider,
@@ -117,12 +124,31 @@ describe("ReportArtifactGenerator", () => {
   });
 
   describe("generateReportArtifacts", () => {
-    it("should throw error when no app summary data exists", async () => {
+    it("should suggest both capture and insights when no source data exists", async () => {
+      const consoleErrorSpy = jest.spyOn(console, "error").mockImplementation();
       mockAppSummariesRepository.getProjectAppSummaryFields.mockResolvedValue(null);
+      mockSourcesRepository.getProjectFileAndLineStats.mockResolvedValue({ fileCount: 0, linesOfCode: 0 });
 
-      await expect(
-        generator.generateReportArtifacts("project", "/output", "report.html"),
-      ).rejects.toThrow("Unable to generate report because no app summary data exists");
+      await generator.generateReportArtifacts("project", "/output", "report.html");
+
+      const allOutput = consoleErrorSpy.mock.calls.map((c) => c[0]).join("\n");
+      expect(allOutput).toContain("No insights data found for project");
+      expect(allOutput).toContain("'cba capture' then 'cba insights'");
+      consoleErrorSpy.mockRestore();
+    });
+
+    it("should suggest only insights when source data already exists", async () => {
+      const consoleErrorSpy = jest.spyOn(console, "error").mockImplementation();
+      mockAppSummariesRepository.getProjectAppSummaryFields.mockResolvedValue(null);
+      mockSourcesRepository.getProjectFileAndLineStats.mockResolvedValue({ fileCount: 50, linesOfCode: 5000 });
+
+      await generator.generateReportArtifacts("project", "/output", "report.html");
+
+      const allOutput = consoleErrorSpy.mock.calls.map((c) => c[0]).join("\n");
+      expect(allOutput).toContain("No insights data found for project");
+      expect(allOutput).toContain("Run 'cba insights' first.");
+      expect(allOutput).not.toContain("cba capture");
+      consoleErrorSpy.mockRestore();
     });
 
     it("should generate report artifacts using sections", async () => {

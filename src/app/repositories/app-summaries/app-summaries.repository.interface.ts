@@ -31,4 +31,9 @@ export interface AppSummariesRepository {
     projectName: string,
     fieldNames: readonly K[],
   ): Promise<Pick<AppSummaryRecordWithId, K> | null>;
+
+  /**
+   * Delete the app summary record for a specific project.
+   */
+  deleteAppSummaryByProject(projectName: string): Promise<void>;
 }

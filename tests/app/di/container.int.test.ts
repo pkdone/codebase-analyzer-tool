@@ -33,7 +33,7 @@ describe("DI Container Integration Tests", () => {
     container.clearInstances();
     container.reset();
     ensureEnvLoaded();
-    process.env.CODEBASE_DIR_PATH ??= "/test/path";
+    process.env.CODEBASE_DIR_PATHS ??= "/test/path";
   }
 
   afterEach(async () => {
@@ -188,7 +188,7 @@ describe("DI Container Integration Tests", () => {
       container.clearInstances();
       container.reset();
       ensureEnvLoaded();
-      process.env.CODEBASE_DIR_PATH ??= "/test/path";
+      process.env.CODEBASE_DIR_PATHS ??= "/test/path";
 
       await bootstrapContainer();
 

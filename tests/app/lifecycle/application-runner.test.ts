@@ -25,7 +25,7 @@ describe("application-runner", () => {
     });
 
     it("should have correct function signature", () => {
-      expect(runApplication.length).toBe(1); // Takes one parameter: taskToken
+      expect(runApplication.length).toBe(2); // taskToken (required) and configureTask (optional)
     });
   });
 });

@@ -45,7 +45,7 @@ export class CodebaseCaptureTask extends BaseAnalysisTask {
     await this.databaseInitializer.initializeDatabaseSchema(vectorDimensions);
     await this.codebaseCaptureOrchestrator.captureCodebase(
       this.projectName,
-      this.env.CODEBASE_DIR_PATH,
+      this.env.CODEBASE_DIR_PATHS,
       this.env.SKIP_ALREADY_PROCESSED_FILES,
     );
   }

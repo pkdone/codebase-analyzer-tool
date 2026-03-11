@@ -9,6 +9,7 @@ import { JsonReportWriter, type PreparedJsonData } from "./json-report-writer";
 import { AppStatisticsDataProvider } from "./sections/overview/app-statistics-data-provider";
 import { CategorizedSectionDataBuilder, isCategorizedDataNameDescArray } from "./data-processing";
 import type { AppSummariesRepository } from "../../repositories/app-summaries/app-summaries.repository.interface";
+import type { SourcesRepository } from "../../repositories/sources/sources.repository.interface";
 import type { RequestableAppSummaryField } from "../../repositories/app-summaries/app-summaries.model";
 import type { ReportData } from "./report-data.types";
 import { TableViewModel, type RawTableRowData } from "./presentation";
@@ -33,6 +34,8 @@ export default class ReportArtifactGenerator {
   constructor(
     @inject(repositoryTokens.AppSummariesRepository)
     private readonly appSummariesRepository: AppSummariesRepository,
+    @inject(repositoryTokens.SourcesRepository)
+    private readonly sourcesRepository: SourcesRepository,
     @inject(reportingTokens.HtmlReportWriter) private readonly htmlWriter: HtmlReportWriter,
     @inject(reportingTokens.JsonReportWriter) private readonly jsonWriter: JsonReportWriter,
     @inject(reportingTokens.AppStatisticsDataProvider)
@@ -65,9 +68,18 @@ export default class ReportArtifactGenerator {
     );
 
     if (!appSummaryData) {
-      throw new Error(
-        "Unable to generate report because no app summary data exists - ensure you first run the scripts to process the source data and generate insights",
-      );
+      const { fileCount } = await this.sourcesRepository.getProjectFileAndLineStats(projectName);
+      const hasCapture = fileCount > 0;
+      const guidance = hasCapture
+        ? `Run 'cba insights' first.`
+        : `Run 'cba capture' then 'cba insights' first.`;
+      console.error("");
+      console.error("=".repeat(70));
+      console.error(`  No insights data found for project "${projectName}".`);
+      console.error(`  ${guidance}`);
+      console.error("=".repeat(70));
+      console.error("");
+      return;
     }
 
     // Generate core app statistics and categorized data

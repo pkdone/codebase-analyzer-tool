@@ -37,7 +37,7 @@ describe("bedrock-test-helper", () => {
       // Model keys are globally unique, so no provider prefix is needed
       expect(result).toMatchObject({
         MONGODB_URL: "mongodb://test-url:27017",
-        CODEBASE_DIR_PATH: "/test/path",
+        CODEBASE_DIR_PATHS: "/test/path",
         SKIP_ALREADY_PROCESSED_FILES: false,
         LLM_COMPLETION_MODEL_CHAIN: "bedrock-claude-opus-4.5,bedrock-claude-sonnet-4.5",
         LLM_EMBEDDING_MODEL_CHAIN: "bedrock-amazon-titan-embed-text",
