@@ -1,6 +1,6 @@
 # Coding Standards and Architectural Conventions
 
-This document outlines the inferred coding standards, architectural patterns, and formatting conventions for the **Codebase Analyzer Tools (CAT)** project. 
+This document outlines the coding standards, architectural patterns, and formatting conventions for the **Codebase Analyzer Tools (CAT)** project. 
 
 ## 1. Language(s) and Framework(s) Identification
 
