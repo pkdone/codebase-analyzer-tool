@@ -56,7 +56,7 @@ export function registerLlmEnvDependencies(): void {
  */
 function registerProjectNameFromEnvVars(envVars: EnvVars): void {
   if (!container.isRegistered(coreTokens.ProjectName)) {
-    const projectName = getBaseNameFromPath(envVars.CODEBASE_DIR_PATH);
+    const projectName = envVars.PROJECT_NAME ?? getBaseNameFromPath(envVars.CODEBASE_DIR_PATHS[0]);
     container.registerInstance(coreTokens.ProjectName, projectName);
     console.log(`Project name '${projectName}' derived and registered.`);
   }

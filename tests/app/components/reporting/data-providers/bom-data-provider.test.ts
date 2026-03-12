@@ -47,6 +47,7 @@ describe("BomDataProvider", () => {
       getCodeSmellStatistics: jest.fn(),
       getCodeQualityStatistics: jest.fn(),
       getDatabaseStatistics: jest.fn(),
+      getAllProjectStats: jest.fn(),
     } as jest.Mocked<SourcesRepository>;
 
     mockFileProcessingConfig = {

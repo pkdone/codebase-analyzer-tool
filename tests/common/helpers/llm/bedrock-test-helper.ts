@@ -51,7 +51,7 @@ export function createBedrockMockEnv(
   // Model keys are globally unique, so no provider prefix is needed
   const mockEnv: Record<string, string | boolean> = {
     MONGODB_URL: baseEnv.MONGODB_URL,
-    CODEBASE_DIR_PATH: "/test/path",
+    CODEBASE_DIR_PATHS: "/test/path",
     SKIP_ALREADY_PROCESSED_FILES: false,
     LLM_COMPLETION_MODEL_CHAIN: completionsChain.join(","),
     LLM_EMBEDDING_MODEL_CHAIN: embeddingsChain.join(","),

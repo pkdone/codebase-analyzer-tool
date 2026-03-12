@@ -2,20 +2,23 @@ import {
   findFilesRecursively,
   clearDirectory,
   findFilesSortedBySize,
+  findFilesRecursivelyFromMultiple,
+  findFilesSortedBySizeFromMultiple,
 } from "../../../src/common/fs/directory-operations";
 import glob from "fast-glob";
-import { promises as fs } from "fs";
 import { logErr } from "../../../src/common/utils/logging";
 
 jest.mock("fast-glob");
 jest.mock("../../../src/common/utils/logging");
-jest.mock("fs", () => ({
+jest.mock("node:fs", () => ({
   promises: {
     readdir: jest.fn(),
     rm: jest.fn(),
     mkdir: jest.fn(),
   },
 }));
+
+import { promises as fs } from "node:fs";
 
 describe("directory-operations", () => {
   describe("findFilesRecursively", () => {
@@ -195,6 +198,107 @@ describe("directory-operations", () => {
       expect(result).toHaveLength(3);
       // All have same size - toSorted maintains stable order
       expect(result.map((f) => f.filepath)).toEqual(["/test/a.ts", "/test/b.ts", "/test/c.ts"]);
+    });
+  });
+
+  describe("findFilesRecursivelyFromMultiple", () => {
+    const mockGlob = glob as jest.MockedFunction<typeof glob>;
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    test("should aggregate files from multiple directories with source roots", async () => {
+      mockGlob
+        .mockResolvedValueOnce(["/app/file1.ts", "/app/file2.ts"] as any)
+        .mockResolvedValueOnce(["/procs/sp1.sql"] as any);
+
+      const result = await findFilesRecursivelyFromMultiple(["/app", "/procs"], {
+        folderIgnoreList: [],
+        filenameIgnorePrefix: ".",
+      });
+
+      expect(mockGlob).toHaveBeenCalledTimes(2);
+      expect(result).toEqual([
+        { filepath: "/app/file1.ts", sourceRoot: "/app" },
+        { filepath: "/app/file2.ts", sourceRoot: "/app" },
+        { filepath: "/procs/sp1.sql", sourceRoot: "/procs" },
+      ]);
+    });
+
+    test("should handle a single directory", async () => {
+      mockGlob.mockResolvedValueOnce(["/app/file1.ts"] as any);
+
+      const result = await findFilesRecursivelyFromMultiple(["/app"], {
+        folderIgnoreList: [],
+        filenameIgnorePrefix: ".",
+      });
+
+      expect(result).toEqual([{ filepath: "/app/file1.ts", sourceRoot: "/app" }]);
+    });
+
+    test("should handle empty directories", async () => {
+      mockGlob.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
+
+      const result = await findFilesRecursivelyFromMultiple(["/app", "/procs"], {
+        folderIgnoreList: [],
+        filenameIgnorePrefix: ".",
+      });
+
+      expect(result).toEqual([]);
+    });
+  });
+
+  describe("findFilesSortedBySizeFromMultiple", () => {
+    const mockGlob = glob as jest.MockedFunction<typeof glob>;
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    test("should aggregate and sort files from multiple directories by size", async () => {
+      mockGlob
+        .mockResolvedValueOnce([
+          { path: "/app/small.ts", stats: { size: 100 } },
+        ] as any)
+        .mockResolvedValueOnce([
+          { path: "/procs/large.sql", stats: { size: 2000 } },
+          { path: "/procs/medium.sql", stats: { size: 500 } },
+        ] as any);
+
+      const result = await findFilesSortedBySizeFromMultiple(["/app", "/procs"], {
+        folderIgnoreList: [],
+        filenameIgnorePrefix: ".",
+      });
+
+      expect(result).toHaveLength(3);
+      expect(result[0]).toEqual({ filepath: "/procs/large.sql", size: 2000, sourceRoot: "/procs" });
+      expect(result[1]).toEqual({ filepath: "/procs/medium.sql", size: 500, sourceRoot: "/procs" });
+      expect(result[2]).toEqual({ filepath: "/app/small.ts", size: 100, sourceRoot: "/app" });
+    });
+
+    test("should handle a single directory", async () => {
+      mockGlob.mockResolvedValueOnce([
+        { path: "/app/file.ts", stats: { size: 100 } },
+      ] as any);
+
+      const result = await findFilesSortedBySizeFromMultiple(["/app"], {
+        folderIgnoreList: [],
+        filenameIgnorePrefix: ".",
+      });
+
+      expect(result).toEqual([{ filepath: "/app/file.ts", size: 100, sourceRoot: "/app" }]);
+    });
+
+    test("should handle empty directories", async () => {
+      mockGlob.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
+
+      const result = await findFilesSortedBySizeFromMultiple(["/app", "/procs"], {
+        folderIgnoreList: [],
+        filenameIgnorePrefix: ".",
+      });
+
+      expect(result).toEqual([]);
     });
   });
 

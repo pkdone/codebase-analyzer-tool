@@ -3,8 +3,7 @@ import { HtmlReportAssetService } from "../../../../../src/app/components/report
 import type { OutputConfigType } from "../../../../../src/app/config/output.config";
 import { generateBrandColorCssBlock } from "../../../../../src/app/components/reporting/config/brand-theme.config";
 
-// Mock fs module
-jest.mock("fs", () => ({
+jest.mock("node:fs", () => ({
   promises: {
     readFile: jest.fn(),
     mkdir: jest.fn(),
@@ -13,7 +12,7 @@ jest.mock("fs", () => ({
   },
 }));
 
-import { promises as fs } from "fs";
+import { promises as fs } from "node:fs";
 
 const mockReadFile = fs.readFile as jest.MockedFunction<typeof fs.readFile>;
 const mockMkdir = fs.mkdir as jest.MockedFunction<typeof fs.mkdir>;

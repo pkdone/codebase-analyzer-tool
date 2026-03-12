@@ -35,7 +35,11 @@ const modelChainSchema = z
  */
 export const baseEnvVarsSchema = z.object({
   MONGODB_URL: z.string().url(),
-  CODEBASE_DIR_PATH: z.string().min(1, "CODEBASE_DIR_PATH cannot be empty"),
+  PROJECT_NAME: z.string().min(1).optional(),
+  CODEBASE_DIR_PATHS: z
+    .string()
+    .min(1, "CODEBASE_DIR_PATHS cannot be empty")
+    .transform((val) => val.split(",").map((s) => s.trim()).filter((s) => s.length > 0)),
   SKIP_ALREADY_PROCESSED_FILES: z
     .preprocess((val) => String(val).toLowerCase() === "true", z.boolean())
     .default(false),
@@ -50,7 +54,7 @@ export type BaseEnvVars = z.infer<typeof baseEnvVarsSchema>;
  * Environment variables are strings by default, but Zod can transform
  * them to numbers or booleans via preprocessing.
  */
-type EnvVarValue = string | number | boolean | undefined;
+type EnvVarValue = string | string[] | number | boolean | undefined;
 
 /**
  * Represents the fully parsed environment variables, including provider-specific ones.

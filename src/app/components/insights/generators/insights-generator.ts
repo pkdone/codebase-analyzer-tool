@@ -71,10 +71,13 @@ export default class InsightsGenerator {
     const sourceFileSummaries = await this.formatSourcesForLLMPrompt();
 
     if (sourceFileSummaries.length === 0) {
-      throw new Error(
-        "No existing code file summaries found in the metadata database. " +
-          "Please ensure you have run the script to process the source data first.",
-      );
+      console.error("");
+      console.error("=".repeat(70));
+      console.error(`  No captured source data found for project "${this.projectName}".`);
+      console.error(`  Run 'cba capture' first.`);
+      console.error("=".repeat(70));
+      console.error("");
+      return;
     }
 
     await this.appSummariesRepository.createOrReplaceAppSummary({

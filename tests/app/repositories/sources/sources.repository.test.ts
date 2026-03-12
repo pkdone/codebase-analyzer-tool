@@ -799,6 +799,72 @@ describe("SourcesRepositoryImpl", () => {
     });
   });
 
+  describe("getAllProjectStats", () => {
+    it("should return project stats grouped by project name", async () => {
+      const mockStats = [
+        {
+          projectName: "app-a",
+          fileCount: 100,
+          linesOfCode: 10000,
+          fileExtensions: [".java", ".xml"],
+          summarizedFileCount: 95,
+          hasSummaries: true,
+        },
+        {
+          projectName: "app-b",
+          fileCount: 50,
+          linesOfCode: 3000,
+          fileExtensions: [".ts"],
+          summarizedFileCount: 0,
+          hasSummaries: false,
+        },
+      ];
+      mockAggregationCursor.toArray.mockResolvedValue(mockStats);
+
+      const result = await repository.getAllProjectStats();
+
+      expect(result).toEqual(mockStats);
+      expect(mockCollection.aggregate).toHaveBeenCalled();
+    });
+
+    it("should return empty array when no projects exist", async () => {
+      mockAggregationCursor.toArray.mockResolvedValue([]);
+
+      const result = await repository.getAllProjectStats();
+
+      expect(result).toEqual([]);
+    });
+
+    it("should use $group pipeline stage on projectName", async () => {
+      mockAggregationCursor.toArray.mockResolvedValue([]);
+
+      await repository.getAllProjectStats();
+
+      const aggregateCalls = mockCollection.aggregate.mock.calls;
+      expect(aggregateCalls.length).toBeGreaterThan(0);
+      const pipeline = aggregateCalls[0][0] as Record<string, unknown>[];
+      const groupStage = pipeline.find((stage) => "$group" in stage);
+      expect(groupStage).toBeDefined();
+
+      const group = (groupStage as Record<string, Record<string, unknown>>).$group;
+      expect(group._id).toBe("$projectName");
+    });
+
+    it("should sort results by projectName", async () => {
+      mockAggregationCursor.toArray.mockResolvedValue([]);
+
+      await repository.getAllProjectStats();
+
+      const aggregateCalls = mockCollection.aggregate.mock.calls;
+      const pipeline = aggregateCalls[0][0] as Record<string, unknown>[];
+      const sortStage = pipeline.find((stage) => "$sort" in stage);
+      expect(sortStage).toBeDefined();
+
+      const sort = (sortStage as Record<string, Record<string, number>>).$sort;
+      expect(sort.projectName).toBe(1);
+    });
+  });
+
   describe("getProjectIntegrationPoints", () => {
     it("should return integration points for a project", async () => {
       const projectName = "test-project";

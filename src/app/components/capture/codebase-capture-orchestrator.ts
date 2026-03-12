@@ -6,7 +6,8 @@ import { type FileProcessingRulesType } from "../../config/file-handling";
 import { getCanonicalFileType } from "./utils";
 import type { CanonicalFileType } from "../../schemas/canonical-file-types";
 import { readFile } from "../../../common/fs/file-operations";
-import { findFilesSortedBySize } from "../../../common/fs/directory-operations";
+import { findFilesSortedBySizeFromMultiple } from "../../../common/fs/directory-operations";
+import type { FileWithSourceAndSize } from "../../../common/fs/directory-operations";
 import { getFileExtension } from "../../../common/fs/path-utils";
 import { countLines } from "../../../common/utils/text-utils";
 import { logErr } from "../../../common/utils/logging";
@@ -62,41 +63,32 @@ export default class CodebaseCaptureOrchestrator {
    * then persisting them to the database.
    *
    * @param projectName - The name of the project being captured
-   * @param srcDirPath - The root directory path containing source files
+   * @param srcDirPaths - One or more root directory paths containing source files
    * @param skipIfAlreadyIngested - Whether to skip files already in the database
    */
   async captureCodebase(
     projectName: string,
-    srcDirPath: string,
+    srcDirPaths: readonly string[],
     skipIfAlreadyIngested: boolean,
   ): Promise<void> {
-    // Use findFilesSortedBySize for efficient file discovery with sizes in a single pass
-    // Files are pre-sorted by size (largest first) for better work distribution
-    const filesWithSize = await findFilesSortedBySize(srcDirPath, {
+    const filesWithSource = await findFilesSortedBySizeFromMultiple(srcDirPaths, {
       folderIgnoreList: this.fileProcessingConfig.FOLDER_IGNORE_LIST,
       filenameIgnorePrefix: this.fileProcessingConfig.FILENAME_PREFIX_IGNORE,
       filenameIgnoreList: this.fileProcessingConfig.FILENAME_IGNORE_LIST,
     });
-    const sortedFilepaths = filesWithSize.map((f) => f.filepath);
-    await this.processAndStoreFiles(
-      sortedFilepaths,
-      projectName,
-      srcDirPath,
-      skipIfAlreadyIngested,
-    );
+    await this.processAndStoreFiles(filesWithSource, projectName, skipIfAlreadyIngested);
   }
 
   /**
    * Loops through a list of file paths, loads each file's content, and prints the content.
    */
   private async processAndStoreFiles(
-    filepaths: readonly string[],
+    files: readonly FileWithSourceAndSize[],
     projectName: string,
-    srcDirPath: string,
     skipIfAlreadyIngested: boolean,
   ) {
     console.log(
-      `Ingesting data on ${filepaths.length} files to go into the MongoDB database sources collection`,
+      `Ingesting data on ${files.length} files to go into the MongoDB database sources collection`,
     );
     let existingFiles: ReadonlySet<string> = new Set<string>();
 
@@ -121,20 +113,20 @@ export default class CodebaseCaptureOrchestrator {
 
     let successes = 0;
     let failures = 0;
-    const tasks = filepaths.map(async (filepath) => {
+    const tasks = files.map(async (file) => {
       return this.llmConcurrencyService.run(async () => {
         try {
           await this.processAndStoreSourceFile(
-            filepath,
+            file.filepath,
             projectName,
-            srcDirPath,
+            file.sourceRoot,
             skipIfAlreadyIngested,
             existingFiles,
           );
           successes++;
         } catch (error: unknown) {
           failures++;
-          logErr(`Failed to process file: ${filepath}`, error);
+          logErr(`Failed to process file: ${file.filepath}`, error);
         }
       });
     });
@@ -144,7 +136,7 @@ export default class CodebaseCaptureOrchestrator {
     await this.bufferedWriter.flush();
 
     console.log(
-      `Processed ${filepaths.length} files. Succeeded: ${successes}, Failed: ${failures}`,
+      `Processed ${files.length} files. Succeeded: ${successes}, Failed: ${failures}`,
     );
 
     if (failures > 0) {

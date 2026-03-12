@@ -10,6 +10,7 @@ import {
   ProjectedCodeSmellStatistic,
   ProjectedCodeQualityStatistics,
   ProjectedDatabaseStatistics,
+  ProjectSummaryStats,
   SourceRecord,
 } from "./sources.model";
 
@@ -117,4 +118,10 @@ export interface SourcesRepository {
    * Returns distributions of mechanisms, operation types, query patterns, and top accessed tables.
    */
   getDatabaseStatistics(projectName: string): Promise<ProjectedDatabaseStatistics>;
+
+  /**
+   * List all distinct projects in the sources collection with summary statistics
+   * including file count, lines of code, file extensions, and summarization progress.
+   */
+  getAllProjectStats(): Promise<ProjectSummaryStats[]>;
 }

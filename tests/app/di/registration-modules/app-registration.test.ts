@@ -30,6 +30,8 @@ describe("App Registration Module", () => {
       expect(container.isRegistered(taskTokens.InsightsGenerationTask)).toBe(true);
       expect(container.isRegistered(taskTokens.FileBasedInsightsGenerationTask)).toBe(true);
       expect(container.isRegistered(taskTokens.PluggableLLMsTestTask)).toBe(true);
+      expect(container.isRegistered(taskTokens.ListProjectsTask)).toBe(true);
+      expect(container.isRegistered(taskTokens.DeleteProjectTask)).toBe(true);
     });
 
     it("should register components only once even on multiple calls", () => {

@@ -281,12 +281,17 @@ describe("InsightsGenerator - Map-Reduce Strategy", () => {
       expect(mockAppSummaryRepository.updateAppSummary).toHaveBeenCalled();
     });
 
-    it("should throw error when no source summaries exist", async () => {
+    it("should log error and return when no source summaries exist", async () => {
+      const consoleErrorSpy = jest.spyOn(console, "error").mockImplementation();
       mockSourcesRepository.getProjectSourcesSummariesByFileExtension.mockResolvedValue([]);
 
-      await expect(generator.generateAndStoreInsights()).rejects.toThrow(
-        "No existing code file summaries found",
-      );
+      await generator.generateAndStoreInsights();
+
+      const allOutput = consoleErrorSpy.mock.calls.map((c) => c[0]).join("\n");
+      expect(allOutput).toContain("No captured source data found");
+      expect(allOutput).toContain("cba capture");
+      expect(mockAppSummaryRepository.createOrReplaceAppSummary).not.toHaveBeenCalled();
+      consoleErrorSpy.mockRestore();
     });
   });
 });

@@ -26,7 +26,7 @@ You can also view an examples of full report generated for various sample applic
     npm install
     ```
 
-1. Ensure you have the codebase for a sample application ready to access on your local filesystem. You can optionally [download a zip of some example projects](https://drive.google.com/file/d/1rDSOiLOH0xq3Hc5k8i3DvZpCDVvDccr1/view?usp=sharing) for testing (for subset of people who have link access). Note the current version of these tools work better with Java-based codebases, but over time, many more programming languages will be supported equally.
+1. Ensure you have the codebase for a sample application ready to access on your local filesystem. If the application's source spans multiple directories (e.g., application code in one directory and stored procedures in another), note the path to each directory. You can optionally [download a zip of some example projects](https://drive.google.com/file/d/1rDSOiLOH0xq3Hc5k8i3DvZpCDVvDccr1/view?usp=sharing) for testing (for subset of people who have link access). Note the current version of these tools work better with Java-based codebases, but over time, many more programming languages will be supported equally.
 
 1. Ensure you can leverage LLMs from OpenAI/Azure GPT, GCP Vertex AI or AWS Bedrock API, with at least one of embeddings model and at least one completions model available to use, along with appropriate LLM provider API keys / credentials:
 
@@ -44,7 +44,7 @@ You can also view an examples of full report generated for various sample applic
     Edit the `.env` file to:
     - Set your `LLM_COMPLETION_MODEL_CHAIN` to be the chain (comman-separated list) of one or model keys (e.g., "vertexai-gemini-3-pro,bedrock-claude-opus-4.6")
     - Set your `LLM_EMBEDDING_MODEL_CHAIN` to be the chain (comman-separated list) of one or model keys (e.g., "vertexai-gemini-embedding-001")
-    - Set your MongoDB URL and codebase directory path
+    - Set your MongoDB URL and codebase directory path(s) via `CODEBASE_DIR_PATHS` (supports a single path or multiple comma-separated paths for projects with source in separate directories, e.g., application code and stored procedures)
     - Set the specific environment variables required for your chosen LLM providers
     
     The system uses a **manifest-driven approach** - you only need to configure environment variables for your selected LLM provider. The application will automatically validate only the variables required for your chosen provider and provide clear error messages if any are missing. See the section [LLM Authentication And URN Notes](#llm-authentication-and-urn-notes) for help on determining the URNs for you to specify in the `.env` file.
@@ -65,55 +65,68 @@ There are various tools you need to run in a specific order (shown the next sect
 Alternatively, you also run the compiled JavaScript files (first compiled from TypeScript using the `npm build` command) from the terminal using the `node` command. The main tools are located in `./dist/src/app/` and optional tools are in `./dist/src/app/tools/`. The command to run each tool is shown the next section.
 
 
-## How To Run Main Tasks
+## CLI Usage
 
-(for a summary of the purpose of these tools, see the section [Analysis And Summary Capture Process](#analysis-and-summary-capture-process))
+All tasks are available through the `cba` CLI. First build the project and link the CLI:
 
-1. **BUILD THE PROJECT SOURCE CODE**: First build the project (this compiles TypeScript and moves some EJS template files to project's executable path) by executing the the following command.
+```console
+npm run build
+npm link
+```
 
-    ```console
-    npm run build
-    ```
+The `npm link` step only needs to be run once. After that, `cba` is available as a direct command.
+
+### Available Commands
+
+| Command | Description |
+|---------|-------------|
+| `cba capture` | Capture LLM-generated metadata for every source file into the database |
+| `cba insights` | Generate insights (tech stack, DDD aggregates, etc.) from database-captured sources |
+| `cba insights-files` | Generate insights directly from source files (bypasses database) |
+| `cba report` | Generate a static HTML report from captured metadata and insights |
+| `cba query` | Query the codebase using MongoDB Atlas Vector Search |
+| `cba projects` | List all projects stored in the database with summary statistics |
+| `cba delete <project-name>` | Delete a project and all its data (sources and insights) from the database |
+| `cba models` | List all available LLM models for completions and embeddings |
+| `cba test-mdb` | Test the MongoDB connection |
+| `cba test-llm` | Test configured LLM providers |
+
+Run `cba --help` for the full list of commands, or `cba <command> --help` for details on a specific command.
+
+### Typical Workflow
+
+```console
+npm run build
+cba capture
+cba insights
+cba report
+```
+
+Note 1. If you receive LLM provider authentication/authorisation errors when you execute a task, see the section [LLM Authentication And URN Notes](#llm-authentication-and-urn-notes) for help on configuring LLM provider credentials correctly.
+
+Note 2. The `capture` task may take a few minutes to tens of minutes to execute, depending on the complexity of the source project and the LLM used. This tool employs asynchronous IO and concurrency, but inevitably, the LLM will take time to respond to requests and may often apply throttling, which will be the main causes of slowdown. If you see messages with the character `?` in the tool's output, this indicates that the LLM is returning an "overloaded" response, and hence, the tool will transparently pause each affected LLM request job and then retry after a short wait.
 
 
-1. **CAPTURE SOURCES**: To capture LLM-generated metadata about every source file into the database, execute the the following commands from a terminal (or select the corresponding "src/app/capture-codebase.ts" file in your VS Code IDE and choose to "Run and Debug).
+## Easy Debugging (Running Individual Task Files)
 
-    ```console
-    node ./dist/src/app/capture-codebase.js
-    ```
+For debugging, you can also run individual task files directly. For each tool, you can debug using VS Code by following these steps:
 
-    Note 1. If you receive LLM provider authentication/authorisation errors when you execute the task, see the section [LLM Authentication And URN Notes](#llm-authentication-and-urn-notes) for help on configuring LLM provider credentials correctly.
+1. Open the project in VS Code
+1. In the _Explorer_ select the "src/app/*.ts" or "src/app/tools/*.ts" file you want to run
+1. From the _Activity Bar_ (left panel), select the _Run and Debug_ view
+1. Execute the pre-configured task _Run and Debug TypeScript_
+    - this will run the TypeScript compiler first (and copy some EJB templates to `dist/`), and then, if successful, it will run the program in debug mode, showing its output in the _Debug Console_ of the _Status Bar_ (bottom panel). 
 
-    Note 2. The task may take a few minutes to tens of minutes to execute, depending on the complexity of the source project and the LLM used. This tool employs asynchronous IO and concurrency, but inevitably, the LLM will take time to respond to requests and may often apply throttling, which will be the main causes of slowdown. If you see messages with the character `?` in the tool's output, this indicates that the LLM is returning an "overloaded" response, and hence, the tool will transparently pause each affected LLM request job and then retry after a short wait.
+Alternatively, you can run the compiled JavaScript files directly from the terminal using the `node` command:
 
-
-1. **GENERATE INSIGHTS**: Run the following command to generate insights (e.g. identified technology stack, business processes, DDD aggregates, potential microservices, etc.) leveraging the previously database captured sources files metadata.
-
-    ```console
-    node ./dist/src/app/generate-insights-from-db.js
-    ```
-
-1. **CREATE REPORT**: Run the following command to generate a static HTML-based report summarising the application from the previously captured source metadata and aggregated insights. 
-
-    ```console
-    node ./dist/src/app/produce-report.js
-    ```
-
-## OPTIONAL: How To Run Optional Additional Tasks
-
-1. **QUERY CODEBASE**: To ad hoc query the codebase (i.e., to "talk to your code", which uses MongoDB's Vector Search capability to search the database-captured metadata), place your questions in the file `input/questions.prompts` and then run the following command to execute the queries. 
-
-    ```console
-    node ./dist/src/app/tools/query-codebase.js
-    ```
-
-1. **LIST AVAILABLE MODELS**: To show the list of configured LLM models in this project that are candidate models that can be used in LLM completions and embeddings chains declared in `.env`.
-
-    ```console
-    node ./dist/src/app/tools/list-available-models.js
-    ```
-
-1. **OTHER TOOLS**: Other optional tools are provided in the "src/app/tools" subfolder which you can explore and run. These are currently undocumented and may disappear in the future. They are primarily intended for use by this project's developers or for specialized use cases.
+```console
+node ./dist/src/app/capture-codebase.js
+node ./dist/src/app/generate-insights-from-db.js
+node ./dist/src/app/produce-report.js
+node ./dist/src/app/tools/query-codebase.js
+node ./dist/src/app/tools/list-available-models.js
+node ./dist/src/app/tools/list-projects.js
+```
 
 
 ## Running The Project's Full Build Process Including Unit And Integration Tests
@@ -173,11 +186,11 @@ From this output, configure the URL defined for the `inferenceProfileArn` parame
 
 ## Analysis And Summary Capture Process
 
-The `capture-codebase` tool captures metadata about all the files in the codebase, including LLM-generated summary data, in a series of collections in the `codebase-analyzed` database. The main steps this tool conducts are:
+The `capture-codebase` tool captures metadata about all the files in the codebase, including LLM-generated summary data, in a series of collections in the `codebase-analyzed` database. When multiple codebase directories are configured (via comma-separated paths in `CODEBASE_DIR_PATHS`), files from each directory are captured together as a single project, with file paths prefixed by each directory's name to distinguish their origin (e.g., `app-source/src/Main.java`, `stored-procs/dbo/sp_getUser.sql`). The main steps this tool conducts are:
 
 1. Initialise database collections and indexes (including Atlas Vector Search indexes).
 
-1. Loop through every nested file in the referenced codebase, capturing the following into the database collection `sources`:
+1. Loop through every nested file in the referenced codebase directories, capturing the following into the database collection `sources`:
     - the file's content (e.g., code)
     - the file's metadata (e.g., file type, filepath)
     - LLM-generated summary data for the specific file type (e.g., if the file is a Java source, captures information about the the class, including its public methods with signatures, other classes referenced by this class, etc.)

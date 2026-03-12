@@ -36,7 +36,7 @@ describe("Dependency Registration", () => {
 
     // Mock environment variables
     process.env.MONGODB_URL = "mongodb://test:27017/test";
-    process.env.CODEBASE_DIR_PATH = "/test/path";
+    process.env.CODEBASE_DIR_PATHS = "/test/path";
   });
 
   describe("bootstrapContainer function", () => {
@@ -118,7 +118,7 @@ describe("Dependency Registration", () => {
       const envVars = container.resolve(coreTokens.EnvVars);
 
       expect(envVars).toBeDefined();
-      expect(envVars).toHaveProperty("CODEBASE_DIR_PATH");
+      expect(envVars).toHaveProperty("CODEBASE_DIR_PATHS");
     });
 
     it("should resolve MongoDB dependencies when registered", async () => {

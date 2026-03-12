@@ -68,6 +68,7 @@ describe("JavaUiTechnologyDataProvider", () => {
       getCodeSmellStatistics: jest.fn(),
       getCodeQualityStatistics: jest.fn(),
       getDatabaseStatistics: jest.fn(),
+      getAllProjectStats: jest.fn(),
     } as jest.Mocked<SourcesRepository>;
 
     // Use real analyzers since they have no external dependencies

@@ -47,7 +47,7 @@ describe("RequirementPromptExecutor", () => {
       mockFileProcessingConfig,
       mockLlmConcurrencyService,
     );
-    const result = await executor.executeRequirementsToFiles("/test/path", "test-llm");
+    const result = await executor.executeRequirementsToFiles(["/test/path"], "test-llm");
     expect(result).toHaveLength(1);
     expect(mockExecuteCompletion).toHaveBeenCalledTimes(1);
   });

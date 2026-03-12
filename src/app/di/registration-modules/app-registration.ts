@@ -36,6 +36,8 @@ import { FileBasedInsightsGenerationTask } from "../../tasks/main/file-based-ins
 import { MongoConnectionTestTask } from "../../tasks/dev/mdb-connection-test.task";
 import { PluggableLLMsTestTask } from "../../tasks/dev/test-pluggable-llms.task";
 import { ListAvailableModelsTask } from "../../tasks/dev/list-available-models.task";
+import { ListProjectsTask } from "../../tasks/dev/list-projects.task";
+import { DeleteProjectTask } from "../../tasks/dev/delete-project.task";
 import { ReportGenerationTask } from "../../tasks/main/report-generation.task";
 
 // Configuration imports
@@ -138,6 +140,8 @@ function registerTasks(): void {
   container.registerSingleton(taskTokens.ReportGenerationTask, ReportGenerationTask);
   container.registerSingleton(taskTokens.MongoConnectionTestTask, MongoConnectionTestTask);
   container.registerSingleton(taskTokens.ListAvailableModelsTask, ListAvailableModelsTask);
+  container.registerSingleton(taskTokens.ListProjectsTask, ListProjectsTask);
+  container.registerSingleton(taskTokens.DeleteProjectTask, DeleteProjectTask);
 
   // LLM-powered tasks (dependencies resolved automatically by tsyringe)
   container.registerSingleton(taskTokens.CodebaseQueryTask, CodebaseQueryTask);

@@ -112,9 +112,28 @@ export async function findFilesRecursively(
 /**
  * Result type for files discovered with their sizes.
  */
-interface FileWithSize {
+export interface FileWithSize {
   /** Absolute path to the file */
   filepath: string;
+  /** File size in bytes */
+  size: number;
+}
+
+/**
+ * Result type for files discovered from multiple source directories.
+ * Includes the source root so callers can compute directory-relative paths.
+ */
+export interface FileWithSource {
+  /** Absolute path to the file */
+  filepath: string;
+  /** The source root directory this file was discovered in */
+  sourceRoot: string;
+}
+
+/**
+ * Result type for files discovered from multiple source directories, including size.
+ */
+export interface FileWithSourceAndSize extends FileWithSource {
   /** File size in bytes */
   size: number;
 }
@@ -162,6 +181,50 @@ export async function findFilesSortedBySize(
 
   // Sort by size descending (largest first) for better work distribution
   return filesWithSize.sort((a, b) => b.size - a.size);
+}
+
+/**
+ * Build the list of files descending from multiple directories.
+ * Each result includes the source root directory it was found in,
+ * enabling callers to compute prefixed relative paths.
+ *
+ * @param srcDirPaths - Array of root directories to search
+ * @param config - Configuration for file discovery filtering
+ * @returns Promise resolving to array of files with their source roots
+ */
+export async function findFilesRecursivelyFromMultiple(
+  srcDirPaths: readonly string[],
+  config: FileDiscoveryConfig,
+): Promise<FileWithSource[]> {
+  const results = await Promise.all(
+    srcDirPaths.map(async (srcDirPath) => {
+      const files = await findFilesRecursively(srcDirPath, config);
+      return files.map((filepath) => ({ filepath, sourceRoot: srcDirPath }));
+    }),
+  );
+  return results.flat();
+}
+
+/**
+ * Build the list of files with sizes from multiple directories.
+ * Returns files sorted by size (largest first) across all directories.
+ * Each result includes the source root directory it was found in.
+ *
+ * @param srcDirPaths - Array of root directories to search
+ * @param config - Configuration for file discovery filtering
+ * @returns Promise resolving to array of files with sizes and source roots, sorted by size descending
+ */
+export async function findFilesSortedBySizeFromMultiple(
+  srcDirPaths: readonly string[],
+  config: FileDiscoveryConfig,
+): Promise<FileWithSourceAndSize[]> {
+  const results = await Promise.all(
+    srcDirPaths.map(async (srcDirPath) => {
+      const files = await findFilesSortedBySize(srcDirPath, config);
+      return files.map((f) => ({ ...f, sourceRoot: srcDirPath }));
+    }),
+  );
+  return results.flat().sort((a, b) => b.size - a.size);
 }
 
 /**

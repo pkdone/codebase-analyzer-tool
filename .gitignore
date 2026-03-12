@@ -2,6 +2,8 @@
 .DS_Store
 dist/
 node_modules/
+output/
+output-*/
 .vscode/settings.json
 *.log
 *.mongodb

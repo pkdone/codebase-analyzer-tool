@@ -35,6 +35,8 @@ export const taskTokens = {
   MongoConnectionTestTask: Symbol("MongoConnectionTestTask"),
   ReportGenerationTask: Symbol("ReportGenerationTask"),
   ListAvailableModelsTask: Symbol("ListAvailableModelsTask"),
+  ListProjectsTask: Symbol("ListProjectsTask"),
+  DeleteProjectTask: Symbol("DeleteProjectTask"),
 } as const;
 
 export type TaskToken = keyof typeof taskTokens;

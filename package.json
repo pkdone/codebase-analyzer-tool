@@ -1,8 +1,14 @@
 {
+  "name": "codebase-analyzer-tools",
+  "version": "1.0.0",
   "engines": {
     "node": ">=20.0.0"
   },
+  "bin": {
+    "cba": "./dist/src/app/cli.js"
+  },
   "scripts": {
+    "cba": "node ./dist/src/app/cli.js",
     "compile": "tsc && npm run copy-templates",
     "build": "tsc && npm run copy-templates",
     "copy-templates": "node -e \"require('fs').cpSync('src/app/components/reporting/templates','dist/src/app/components/reporting/templates',{recursive:true})\"",
@@ -52,6 +58,7 @@
     "tsyringe": "^4.10.0",
     "type-safe-prompt": "^0.0.3",
     "zod": "^3.24.2",
+    "commander": "^14.0.3",
     "zod-to-json-schema": "^3.24.5"
   }
 }

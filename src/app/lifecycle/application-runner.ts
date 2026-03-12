@@ -12,7 +12,10 @@ import { createShutdownOrchestrator } from "./shutdown-orchestrator";
  *
  * This function handles all error cases and process termination internally.
  */
-export async function runApplication(taskToken: symbol): Promise<void> {
+export async function runApplication(
+  taskToken: symbol,
+  configureTask?: (task: Task) => void,
+): Promise<void> {
   // Known Node.js + AWS SDK pattern - many AWS SDK applications need this keep-alive pattern to
   // prevent premature termination during long-running cloud operations.
   // See: https://github.com/aws/aws-sdk-js-v3/issues/3807
@@ -24,6 +27,7 @@ export async function runApplication(taskToken: symbol): Promise<void> {
     await bootstrapContainer();
     console.log(`START: ${formatDateForLogging()}`);
     const task = await container.resolve<Task | Promise<Task>>(taskToken);
+    configureTask?.(task);
     await task.execute();
     console.log(`END: ${formatDateForLogging()}`);
   } catch (error: unknown) {

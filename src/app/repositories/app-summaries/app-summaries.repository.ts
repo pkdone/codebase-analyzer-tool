@@ -61,6 +61,13 @@ export default class AppSummariesRepositoryImpl
   }
 
   /**
+   * Delete the app summary record for a specific project.
+   */
+  async deleteAppSummaryByProject(projectName: string): Promise<void> {
+    await this.collection.deleteMany({ projectName });
+  }
+
+  /**
    * Retrieves multiple fields from an app summary record for the given project in a single query.
    */
   async getProjectAppSummaryFields<K extends keyof AppSummaryRecordWithId>(

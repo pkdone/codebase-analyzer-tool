@@ -20,7 +20,7 @@ const baseEnv = loadBaseEnvVarsOnly();
 // Model keys are globally unique, so no provider prefix is needed
 const mockAzureOpenAIEnv: Record<string, string> = {
   MONGODB_URL: baseEnv.MONGODB_URL,
-  CODEBASE_DIR_PATH: "/test/path",
+  CODEBASE_DIR_PATHS: "/test/path",
   SKIP_ALREADY_PROCESSED_FILES: "false",
   LLM_COMPLETION_MODEL_CHAIN: "azure-gpt-4o,azure-gpt-4-turbo",
   LLM_EMBEDDING_MODEL_CHAIN: "azure-text-embedding-ada-002",
