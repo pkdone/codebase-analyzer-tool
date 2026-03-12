@@ -42,9 +42,10 @@ You can also view an examples of full report generated for various sample applic
     ```
 
     Edit the `.env` file to:
-    - Set your `LLM_COMPLETION_MODEL_CHAIN` to be the chain (comman-separated list) of one or model keys (e.g., "vertexai-gemini-3-pro,bedrock-claude-opus-4.6")
-    - Set your `LLM_EMBEDDING_MODEL_CHAIN` to be the chain (comman-separated list) of one or model keys (e.g., "vertexai-gemini-embedding-001")
+    - Set your `LLM_COMPLETION_MODEL_CHAIN` to be the chain (comma-separated list) of one or model keys (e.g., "vertexai-gemini-3-pro,bedrock-claude-opus-4.6")
+    - Set your `LLM_EMBEDDING_MODEL_CHAIN` to be the chain (comma-separated list) of one or model keys (e.g., "vertexai-gemini-embedding-001")
     - Set your MongoDB URL and codebase directory path(s) via `CODEBASE_DIR_PATHS` (supports a single path or multiple comma-separated paths for projects with source in separate directories, e.g., application code and stored procedures)
+    - Optionally set `PROJECT_NAME` to override the default project name (which is derived from the first directory in `CODEBASE_DIR_PATHS`)
     - Set the specific environment variables required for your chosen LLM providers
     
     The system uses a **manifest-driven approach** - you only need to configure environment variables for your selected LLM provider. The application will automatically validate only the variables required for your chosen provider and provide clear error messages if any are missing. See the section [LLM Authentication And URN Notes](#llm-authentication-and-urn-notes) for help on determining the URNs for you to specify in the `.env` file.
@@ -52,17 +53,17 @@ You can also view an examples of full report generated for various sample applic
 1. Ensure you have a running MongoDB [Atlas](https://www.mongodb.com/atlas) version 7.0 or greater dedicated cluster of any size/tier. You can even use an 'M0' free-tier version, although for some uses cases, the free-tier storage limit of 512MB may be insufficient. Ensure the appropriate network and database access rights are configured in Atlas.
 
 
-## Easy Debugging
+## Development and Debugging
 
-There are various tools you need to run in a specific order (shown the next section). For each tool, you can easily debug using VS Code, by following these steps:
+The primary interface for running tasks is the `cba` CLI (see the next section). However, for development and debugging purposes, you can also run task files directly using VS Code or Node.js.
+
+### VS Code Debugging
 
 1. Open the project in VS Code
 1. In the _Explorer_ select the "src/app/*.ts" or "src/app/tools/*.ts" file you want to run
 1. From the _Activity Bar_ (left panel), select the _Run and Debug_ view
 1. Execute the pre-configured task _Run and Debug TypeScript_
-    - this will run the TypeScript compiler first (and copy some EJB templates to `dist/`), and then, if successful, it will run the program in debug mode, showing its output in the _Debug Console_ of the _Status Bar_ (bottom panel). 
-
-Alternatively, you also run the compiled JavaScript files (first compiled from TypeScript using the `npm build` command) from the terminal using the `node` command. The main tools are located in `./dist/src/app/` and optional tools are in `./dist/src/app/tools/`. The command to run each tool is shown the next section.
+    - this will run the TypeScript compiler first (and copy some EJB templates to `dist/`), and then, if successful, it will run the program in debug mode, showing its output in the _Debug Console_ of the _Status Bar_ (bottom panel).
 
 
 ## CLI Usage
@@ -87,6 +88,7 @@ The `npm link` step only needs to be run once. After that, `cba` is available as
 | `cba query` | Query the codebase using MongoDB Atlas Vector Search |
 | `cba projects` | List all projects stored in the database with summary statistics |
 | `cba delete <project-name>` | Delete a project and all its data (sources and insights) from the database |
+| `cba pipeline` | Run the full workflow: capture → insights → report |
 | `cba models` | List all available LLM models for completions and embeddings |
 | `cba test-mdb` | Test the MongoDB connection |
 | `cba test-llm` | Test configured LLM providers |
@@ -94,6 +96,15 @@ The `npm link` step only needs to be run once. After that, `cba` is available as
 Run `cba --help` for the full list of commands, or `cba <command> --help` for details on a specific command.
 
 ### Typical Workflow
+
+You can run the full workflow with a single command:
+
+```console
+npm run build
+cba pipeline
+```
+
+Or run each step individually:
 
 ```console
 npm run build
@@ -107,17 +118,9 @@ Note 1. If you receive LLM provider authentication/authorisation errors when you
 Note 2. The `capture` task may take a few minutes to tens of minutes to execute, depending on the complexity of the source project and the LLM used. This tool employs asynchronous IO and concurrency, but inevitably, the LLM will take time to respond to requests and may often apply throttling, which will be the main causes of slowdown. If you see messages with the character `?` in the tool's output, this indicates that the LLM is returning an "overloaded" response, and hence, the tool will transparently pause each affected LLM request job and then retry after a short wait.
 
 
-## Easy Debugging (Running Individual Task Files)
+### Alternative: Running Task Files Directly
 
-For debugging, you can also run individual task files directly. For each tool, you can debug using VS Code by following these steps:
-
-1. Open the project in VS Code
-1. In the _Explorer_ select the "src/app/*.ts" or "src/app/tools/*.ts" file you want to run
-1. From the _Activity Bar_ (left panel), select the _Run and Debug_ view
-1. Execute the pre-configured task _Run and Debug TypeScript_
-    - this will run the TypeScript compiler first (and copy some EJB templates to `dist/`), and then, if successful, it will run the program in debug mode, showing its output in the _Debug Console_ of the _Status Bar_ (bottom panel). 
-
-Alternatively, you can run the compiled JavaScript files directly from the terminal using the `node` command:
+For advanced debugging scenarios, you can bypass the CLI and run the compiled JavaScript task files directly using Node.js:
 
 ```console
 node ./dist/src/app/capture-codebase.js
@@ -125,8 +128,9 @@ node ./dist/src/app/generate-insights-from-db.js
 node ./dist/src/app/produce-report.js
 node ./dist/src/app/tools/query-codebase.js
 node ./dist/src/app/tools/list-available-models.js
-node ./dist/src/app/tools/list-projects.js
 ```
+
+**Note:** These are thin wrapper files that delegate to the same task implementations used by the CLI. The `cba` CLI is the recommended interface for normal usage.
 
 
 ## Running The Project's Full Build Process Including Unit And Integration Tests
@@ -205,7 +209,7 @@ Using captured metadata about the source files stored in the `sources` collectio
 
 ## Demonstrated LLM Capabilities
 
-The following table shows the results of using this project with various LLMs against the codebase of the legacy [Sun/Oracle Java Petstore J2EE application](https://www.oracle.com/java/technologies/petstore-v1312.html) (tested on 17-July-2025, not the types of supported models have moved on since these tests were undertaken):
+The following table shows historical results of using this project with various LLMs against the codebase of the legacy [Sun/Oracle Java Petstore J2EE application](https://www.oracle.com/java/technologies/petstore-v1312.html). **Note:** This data is from July 2025 testing and many models have evolved since then. For the current list of supported models, run `cba models` or see [EXAMPLE.env](EXAMPLE.env).
 
 | LLM Hosting/API Provider | LLMs | Insight Quality <sup>1</sup> | Speed <sup>2</sup> | Average Error Rate <sup>3</sup> |
 | :---- | :---- | :---: | :---: | :---: |
