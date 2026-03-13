@@ -114,7 +114,7 @@ function loadEnvIncludingLLMVars(): EnvVars {
         throw new LLMError(
           LLMErrorCode.BAD_CONFIGURATION,
           `Missing required environment variables: ${missingEnvVars.join(", ")}. ` +
-            `Please add these variables to your .env file. See EXAMPLE.env for guidance.`,
+            `Please add these variables to your .env file. See .env.example for guidance.`,
         );
       }
     }
