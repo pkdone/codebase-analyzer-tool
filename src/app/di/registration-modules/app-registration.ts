@@ -39,6 +39,7 @@ import { ListAvailableModelsTask } from "../../tasks/dev/list-available-models.t
 import { ListProjectsTask } from "../../tasks/dev/list-projects.task";
 import { DeleteProjectTask } from "../../tasks/dev/delete-project.task";
 import { ReportGenerationTask } from "../../tasks/main/report-generation.task";
+import { PipelineTask } from "../../tasks/main/pipeline.task";
 
 // Configuration imports
 import { databaseConfig } from "../../config/database.config";
@@ -152,6 +153,9 @@ function registerTasks(): void {
     FileBasedInsightsGenerationTask,
   );
   container.registerSingleton(taskTokens.PluggableLLMsTestTask, PluggableLLMsTestTask);
+
+  // Workflow orchestration tasks
+  container.registerSingleton(taskTokens.PipelineTask, PipelineTask);
 
   console.log("Main executable tasks registered");
 }

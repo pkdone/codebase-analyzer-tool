@@ -24,10 +24,15 @@ describe("FILE_TYPE_REGISTRY", () => {
       expect(FILE_TYPE_REGISTRY.sql.isCode).toBe(true);
     });
 
+    it("should mark XML and JSP as code files", () => {
+      expect(FILE_TYPE_REGISTRY.xml.isCode).toBe(true);
+      expect(FILE_TYPE_REGISTRY.jsp.isCode).toBe(true);
+    });
+
     it("should mark non-code file extensions appropriately", () => {
-      expect(FILE_TYPE_REGISTRY.xml.isCode).toBe(false);
       expect(FILE_TYPE_REGISTRY.md.isCode).toBe(false);
-      expect(FILE_TYPE_REGISTRY.jsp.isCode).toBe(false);
+      expect(FILE_TYPE_REGISTRY.html.isCode).toBe(false);
+      expect(FILE_TYPE_REGISTRY.txt.isCode).toBe(false);
     });
 
     it("should map extensions to correct canonical types", () => {
@@ -93,9 +98,16 @@ describe("getEnabledCodeExtensions", () => {
 
   it("should not include non-code file extensions", () => {
     const extensions = getEnabledCodeExtensions();
-    expect(extensions).not.toContain("xml");
     expect(extensions).not.toContain("md");
     expect(extensions).not.toContain("markdown");
+    expect(extensions).not.toContain("html");
+    expect(extensions).not.toContain("txt");
+  });
+
+  it("should include XML and JSP as code extensions", () => {
+    const extensions = getEnabledCodeExtensions();
+    expect(extensions).toContain("xml");
+    expect(extensions).toContain("jsp");
   });
 
   it("should contain expected number of extensions", () => {

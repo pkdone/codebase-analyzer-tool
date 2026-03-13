@@ -160,6 +160,7 @@ export async function findFilesSortedBySize(
     onlyFiles: true,
     ignore: buildIgnorePatterns(config),
     stats: true, // Include file stats in the result
+    // Hidden files (dotfiles) are excluded by default (dot option defaults to false)
   };
 
   const entries = await glob("**/*", globOptions);

@@ -103,7 +103,7 @@ export const azureOpenAIProviderManifest: LLMProviderManifest = {
     temperature: llmConfig.DEFAULT_ZERO_TEMP,
     requestTimeoutMillis: 7 * 60 * 1000,
     minRetryDelayMillis: 15 * 1000,
-    maxRetryDelayMillis: 120 * 1000,
+    maxRetryDelayMillis: 90 * 1000,
     // Azure deployment mapping - maps model keys to deployment env var keys
     deploymentEnvKeys: AZURE_DEPLOYMENT_ENV_KEYS,
   },

@@ -48,6 +48,7 @@ describe("UI Technology Analysis Integration Test", () => {
       filepath: "webapp/pages/home.ts",
       fileExtension: "jsp",
       linesCount: 50,
+      isCode: true,
       content: "JSP content with scriptlets",
       summary: {
         purpose: "Home page JSP file with user interface.",
@@ -70,6 +71,7 @@ describe("UI Technology Analysis Integration Test", () => {
       filepath: "webapp/pages/login.ts",
       fileExtension: "jsp",
       linesCount: 30,
+      isCode: true,
       content: "Login JSP content",
       summary: {
         purpose: "Login page JSP file for authentication.",
@@ -89,6 +91,7 @@ describe("UI Technology Analysis Integration Test", () => {
       filepath: "webapp/admin/admin.ts",
       fileExtension: "jsp",
       linesCount: 80,
+      isCode: true,
       content: "Admin panel JSP",
       summary: {
         purpose: "Admin panel JSP file with complex operations.",
@@ -111,6 +114,7 @@ describe("UI Technology Analysis Integration Test", () => {
       filepath: "WEB-INF/web.xml",
       fileExtension: "xml",
       linesCount: 100,
+      isCode: true,
       content: "Web.xml with Struts configuration",
       summary: {
         purpose: "Web application deployment descriptor with Struts framework.",
@@ -129,6 +133,7 @@ describe("UI Technology Analysis Integration Test", () => {
       filepath: "WEB-INF/struts-config.xml",
       fileExtension: "xml",
       linesCount: 150,
+      isCode: true,
       content: "Struts configuration",
       summary: {
         purpose: "Struts framework configuration with action mappings.",
@@ -207,6 +212,7 @@ describe("UI Technology Analysis Integration Test", () => {
       filepath: "src/Main.java",
       fileExtension: "java",
       linesCount: 20,
+      isCode: true,
       content: "Java content",
       summary: {
         purpose: "Main application class for Java program.",
@@ -235,6 +241,7 @@ describe("UI Technology Analysis Integration Test", () => {
       filepath: "WEB-INF/web.xml",
       fileExtension: "xml",
       linesCount: 50,
+      isCode: true,
       content: "Struts config",
       summary: {
         purpose: "Web.xml with Struts configuration.",
@@ -253,6 +260,7 @@ describe("UI Technology Analysis Integration Test", () => {
       filepath: "WEB-INF/faces-config.xml",
       fileExtension: "xml",
       linesCount: 80,
+      isCode: true,
       content: "JSF config",
       summary: {
         purpose: "JSF configuration file for faces servlet.",
@@ -285,6 +293,7 @@ describe("UI Technology Analysis Integration Test", () => {
       filepath: "test.ts",
       fileExtension: "jsp",
       linesCount: 20,
+      isCode: true,
       content: "Test JSP",
       summary: {
         purpose: "Test JSP file for UI analysis integration test.",

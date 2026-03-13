@@ -51,6 +51,7 @@ describe("SourcesRepository Integration Tests", () => {
           filepath: "src/file1.ts",
           fileExtension: "ts",
           linesCount: 10,
+          isCode: true,
           content: "TypeScript content for testing",
           contentVector: await createTestVector(0.1),
           summary: {
@@ -65,6 +66,7 @@ describe("SourcesRepository Integration Tests", () => {
           filepath: "src/file2.ts",
           fileExtension: "ts",
           linesCount: 20,
+          isCode: true,
           content: "Another TypeScript file for testing",
           contentVector: await createTestVector(0.8),
           summary: {
@@ -79,6 +81,7 @@ describe("SourcesRepository Integration Tests", () => {
           filepath: "src/file3.java",
           fileExtension: "java",
           linesCount: 30,
+          isCode: true,
           content: "Java content for testing",
           contentVector: await createTestVector(0.4),
         },
@@ -131,6 +134,7 @@ describe("SourcesRepository Integration Tests", () => {
           filepath: "src/test.ts",
           fileExtension: "ts",
           linesCount: 10,
+          isCode: true,
           content: "TypeScript content",
           contentVector: await createTestVector(0.1),
         },
@@ -140,6 +144,7 @@ describe("SourcesRepository Integration Tests", () => {
           filepath: "src/test.java",
           fileExtension: "java",
           linesCount: 15,
+          isCode: true,
           content: "Java content",
           contentVector: await createTestVector(0.15),
         },
@@ -178,6 +183,7 @@ describe("SourcesRepository Integration Tests", () => {
           filepath: "src/test1.ts",
           fileExtension: "ts",
           linesCount: 100,
+          isCode: true,
           content: "content1",
         },
         {
@@ -186,6 +192,7 @@ describe("SourcesRepository Integration Tests", () => {
           filepath: "src/test2.ts",
           fileExtension: "ts",
           linesCount: 150,
+          isCode: true,
           content: "content2",
         },
         {
@@ -194,6 +201,7 @@ describe("SourcesRepository Integration Tests", () => {
           filepath: "src/test1.java",
           fileExtension: "java",
           linesCount: 200,
+          isCode: true,
           content: "content3",
         },
         {
@@ -202,6 +210,7 @@ describe("SourcesRepository Integration Tests", () => {
           filepath: "src/test1.py",
           fileExtension: "py",
           linesCount: 75,
+          isCode: true,
           content: "content4",
         },
       ];
@@ -238,6 +247,7 @@ describe("SourcesRepository Integration Tests", () => {
           filepath: "src/test1.ts",
           fileExtension: "ts",
           linesCount: 100,
+          isCode: true,
           content: "content1",
         },
         {
@@ -246,6 +256,7 @@ describe("SourcesRepository Integration Tests", () => {
           filepath: "src/test2.java",
           fileExtension: "java",
           linesCount: 200,
+          isCode: true,
           content: "content2",
         },
         {
@@ -254,6 +265,7 @@ describe("SourcesRepository Integration Tests", () => {
           filepath: "src/test3.py",
           fileExtension: "py",
           linesCount: 150,
+          isCode: true,
           content: "content3",
         },
       ];
@@ -280,6 +292,7 @@ describe("SourcesRepository Integration Tests", () => {
           filepath: "src/service.ts",
           fileExtension: "ts",
           linesCount: 100,
+          isCode: true,
           content: "service content",
           summary: {
             namespace: "UserService",
@@ -293,6 +306,7 @@ describe("SourcesRepository Integration Tests", () => {
           filepath: "src/controller.ts",
           fileExtension: "ts",
           linesCount: 80,
+          isCode: true,
           content: "controller content",
           summary: {
             namespace: "UserController",
@@ -306,6 +320,7 @@ describe("SourcesRepository Integration Tests", () => {
           filepath: "src/model.java",
           fileExtension: "java",
           linesCount: 50,
+          isCode: true,
           content: "model content",
           summary: {
             namespace: "UserModel",
@@ -351,6 +366,7 @@ describe("SourcesRepository Integration Tests", () => {
           filepath: "src/service.ts",
           fileExtension: "ts",
           linesCount: 100,
+          isCode: true,
           content: "service content",
           summary: {
             namespace: "DatabaseService",
@@ -369,6 +385,7 @@ describe("SourcesRepository Integration Tests", () => {
           filepath: "src/repository.java",
           fileExtension: "java",
           linesCount: 150,
+          isCode: true,
           content: "repository content",
           summary: {
             namespace: "UserRepository",
@@ -387,6 +404,7 @@ describe("SourcesRepository Integration Tests", () => {
           filepath: "src/util.ts",
           fileExtension: "ts",
           linesCount: 50,
+          isCode: true,
           content: "utility content",
           summary: {
             namespace: "Utility",
@@ -425,6 +443,7 @@ describe("SourcesRepository Integration Tests", () => {
         filepath: "src/test.ts",
         fileExtension: "ts",
         linesCount: 50,
+        isCode: true,
         content: "test content",
       };
 
@@ -446,6 +465,7 @@ describe("SourcesRepository Integration Tests", () => {
           filepath: "src/test1.ts",
           fileExtension: "ts",
           linesCount: 10,
+          isCode: true,
           content: "content1",
         },
         {
@@ -454,6 +474,7 @@ describe("SourcesRepository Integration Tests", () => {
           filepath: "src/test2.ts",
           fileExtension: "ts",
           linesCount: 20,
+          isCode: true,
           content: "content2",
         },
       ];
@@ -483,6 +504,7 @@ describe("SourcesRepository Integration Tests", () => {
           filepath: "src/components/test1.ts",
           fileExtension: "ts",
           linesCount: 10,
+          isCode: true,
           content: "content1",
         },
         {
@@ -491,6 +513,7 @@ describe("SourcesRepository Integration Tests", () => {
           filepath: "src/services/test2.java",
           fileExtension: "java",
           linesCount: 20,
+          isCode: true,
           content: "content2",
         },
         {
@@ -499,6 +522,7 @@ describe("SourcesRepository Integration Tests", () => {
           filepath: "scripts/test3.py",
           fileExtension: "py",
           linesCount: 30,
+          isCode: true,
           content: "content3",
         },
       ];

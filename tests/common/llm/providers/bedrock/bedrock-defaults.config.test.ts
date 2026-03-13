@@ -24,9 +24,9 @@ describe("bedrock-defaults.config", () => {
       expect(defaultBedrockProviderConfig.minRetryDelayMillis).toBe(25000);
     });
 
-    it("should have correct max retry delay value (240 seconds)", () => {
-      expect(defaultBedrockProviderConfig.maxRetryDelayMillis).toBe(240 * 1000);
-      expect(defaultBedrockProviderConfig.maxRetryDelayMillis).toBe(240000);
+    it("should have correct max retry delay value (120 seconds)", () => {
+      expect(defaultBedrockProviderConfig.maxRetryDelayMillis).toBe(120 * 1000);
+      expect(defaultBedrockProviderConfig.maxRetryDelayMillis).toBe(120000);
     });
 
     it("should have all positive values", () => {

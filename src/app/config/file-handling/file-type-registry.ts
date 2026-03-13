@@ -154,10 +154,10 @@ export const FILE_TYPE_REGISTRY: Readonly<Record<string, FileTypeEntry>> = {
   hs: { canonicalType: "default", isCode: true },
 
   // XML and related
-  xml: { canonicalType: "xml", isCode: false },
+  xml: { canonicalType: "xml", isCode: true },
 
   // JSP
-  jsp: { canonicalType: "jsp", isCode: false },
+  jsp: { canonicalType: "jsp", isCode: true },
 
   // Markdown
   md: { canonicalType: "markdown", isCode: false },
@@ -167,6 +167,15 @@ export const FILE_TYPE_REGISTRY: Readonly<Record<string, FileTypeEntry>> = {
   csproj: { canonicalType: "dotnet-proj", isCode: false },
   vbproj: { canonicalType: "dotnet-proj", isCode: false },
   fsproj: { canonicalType: "dotnet-proj", isCode: false },
+
+  // HTML documentation
+  html: { canonicalType: "default", isCode: false },
+  htm: { canonicalType: "default", isCode: false },
+
+  // Documentation formats
+  txt: { canonicalType: "default", isCode: false },
+  rst: { canonicalType: "default", isCode: false },
+  adoc: { canonicalType: "default", isCode: false },
 } as const;
 
 /**

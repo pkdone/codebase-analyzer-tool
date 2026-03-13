@@ -19,5 +19,5 @@ export const defaultBedrockProviderConfig: Pick<
   requestTimeoutMillis: 8 * 60 * 1000,
   maxRetryAttempts: 4,
   minRetryDelayMillis: 25 * 1000,
-  maxRetryDelayMillis: 240 * 1000,
+  maxRetryDelayMillis: 120 * 1000,
 } as const;

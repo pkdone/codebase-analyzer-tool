@@ -36,6 +36,7 @@ export abstract class BaseAnalysisTask implements Task {
    */
   async execute(): Promise<void> {
     console.log(`${this.getStartMessage()}: ${this.projectName}`);
+    this.llmStats.reset();
     this.llmStats.displayLLMStatusSummary();
 
     if (this.shouldClearOutputDirectory()) {

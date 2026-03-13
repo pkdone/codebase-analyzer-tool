@@ -50,6 +50,7 @@ describe("BaseAnalysisTask", () => {
     mockLlmStats = {
       displayLLMStatusSummary: jest.fn(),
       displayLLMStatusDetails: jest.fn(),
+      reset: jest.fn(),
     } as unknown as jest.Mocked<LLMExecutionStats>;
 
     consoleSpy = jest.spyOn(console, "log").mockImplementation();
@@ -76,6 +77,14 @@ describe("BaseAnalysisTask", () => {
       await task.execute();
 
       expect(mockLlmStats.displayLLMStatusSummary).toHaveBeenCalledTimes(1);
+    });
+
+    it("should reset LLM stats at the start", async () => {
+      const task = new TestAnalysisTask(mockLlmStats, "test-project");
+
+      await task.execute();
+
+      expect(mockLlmStats.reset).toHaveBeenCalledTimes(1);
     });
 
     it("should clear the output directory", async () => {

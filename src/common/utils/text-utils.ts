@@ -1,21 +1,22 @@
 /**
- * Count the lines in a piece of text.
+ * Count the physical lines in a piece of text, matching standard LoC tool behavior.
+ * A trailing newline terminates the last line rather than starting a new empty one.
  * Uses a simple for-loop with charCodeAt for maximum performance.
  * V8 heavily optimizes this pattern, making it faster than regex/iterator approaches.
  */
 export function countLines(text: string): number {
   if (text.length === 0) return 0;
 
-  let count = 1;
+  let newlineCount = 0;
 
   for (let i = 0; i < text.length; i++) {
-    if (text.charCodeAt(i) === 10) {
-      // 10 is the char code for \n
-      count++;
-    }
+    if (text.codePointAt(i) === 10) newlineCount++;
   }
 
-  return count;
+  // If text doesn't end with \n, there's an unterminated final line
+  if (text.codePointAt(text.length - 1) !== 10) return newlineCount + 1;
+
+  return newlineCount;
 }
 
 /**

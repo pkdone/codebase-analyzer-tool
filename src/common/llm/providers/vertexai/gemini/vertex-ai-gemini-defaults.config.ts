@@ -17,5 +17,5 @@ export const defaultVertexAIProviderConfig: Pick<
   // Vertex AI-specific overrides
   requestTimeoutMillis: 10 * 60 * 1000,
   minRetryDelayMillis: 30 * 1000,
-  maxRetryDelayMillis: 150 * 1000,
+  maxRetryDelayMillis: 80 * 1000,
 } as const;

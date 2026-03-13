@@ -1,7 +1,7 @@
 import { injectable, inject } from "tsyringe";
 import LLMRouter from "../../../../common/llm/llm-router";
 import type { FileProcessingRulesType } from "../../../config/file-handling";
-import { logErr, logWarn } from "../../../../common/utils/logging";
+import { logErr, logWarn, logInfo } from "../../../../common/utils/logging";
 import type { AppSummariesRepository } from "../../../repositories/app-summaries/app-summaries.repository.interface";
 import type { SourcesRepository } from "../../../repositories/sources/sources.repository.interface";
 import {
@@ -166,7 +166,7 @@ export default class InsightsGenerator {
       }
       // Store the result - the category-specific type is compatible with PartialAppSummaryRecord
       await this.appSummariesRepository.updateAppSummary(this.projectName, categorySummaryData);
-      console.log(`Captured main ${categoryLabel} summary details into database`);
+      logInfo(`Captured main ${categoryLabel} summary details into database`);
     } catch (error: unknown) {
       logErr(`Unable to generate ${categoryLabel} details into database`, error);
     }

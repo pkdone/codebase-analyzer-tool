@@ -32,7 +32,7 @@ describe("bedrockLlamaProviderManifest", () => {
       expect(config.requestTimeoutMillis).toBe(8 * 60 * 1000);
       expect(config.maxRetryAttempts).toBe(4);
       expect(config.minRetryDelayMillis).toBe(25 * 1000);
-      expect(config.maxRetryDelayMillis).toBe(240 * 1000);
+      expect(config.maxRetryDelayMillis).toBe(120 * 1000);
     });
   });
 

@@ -12,6 +12,8 @@ import { llmConfig } from "../../../../../src/common/llm/config/llm.config";
 jest.mock("../../../../../src/common/utils/logging", () => ({
   logError: jest.fn(),
   logWarn: jest.fn(),
+  logErr: jest.fn(),
+  logInfo: jest.fn(),
 }));
 
 describe("InsightsGenerator - Map-Reduce Strategy", () => {

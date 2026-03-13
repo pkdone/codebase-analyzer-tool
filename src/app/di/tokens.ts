@@ -37,6 +37,7 @@ export const taskTokens = {
   ListAvailableModelsTask: Symbol("ListAvailableModelsTask"),
   ListProjectsTask: Symbol("ListProjectsTask"),
   DeleteProjectTask: Symbol("DeleteProjectTask"),
+  PipelineTask: Symbol("PipelineTask"),
 } as const;
 
 export type TaskToken = keyof typeof taskTokens;

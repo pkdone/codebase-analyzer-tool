@@ -21,5 +21,5 @@ export const defaultVertexAIClaudeProviderConfig: Pick<
   // SDK enforces 10-minute max for non-streaming; use 9.5 minutes for safety margin
   requestTimeoutMillis: 9.5 * 60 * 1000,
   minRetryDelayMillis: 30 * 1000,
-  maxRetryDelayMillis: 200 * 1000,
+  maxRetryDelayMillis: 120 * 1000,
 } as const;
