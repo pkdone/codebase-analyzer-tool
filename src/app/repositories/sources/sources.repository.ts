@@ -257,11 +257,12 @@ export default class SourcesRepositoryImpl
   }
 
   /**
-   * Get file count and total lines of code for a project in a single query
+   * Get file count and total lines of code for a project in a single query.
+   * Only includes code files (isCode: true) in the totals.
    */
   async getProjectFileAndLineStats(projectName: string): Promise<ProjectedFileAndLineStats> {
     const pipeline = [
-      { $match: { projectName } },
+      { $match: { projectName, isCode: true } },
       {
         $group: {
           _id: null,
@@ -281,11 +282,12 @@ export default class SourcesRepositoryImpl
   }
 
   /**
-   * Get files count and lines of code count for each file extension for a project
+   * Get files count and lines of code count for each file extension for a project.
+   * Only includes code files (isCode: true) in the totals.
    */
   async getProjectFileExtensionStats(projectName: string): Promise<ProjectedFileExtensionStats[]> {
     const pipeline = [
-      { $match: { projectName } },
+      { $match: { projectName, isCode: true } },
       {
         $group: {
           _id: "$fileExtension",

@@ -3,6 +3,7 @@ import type LLMRouter from "../../../common/llm/llm-router";
 import type { EmbeddingResult } from "../../../common/llm/llm-router";
 import path from "node:path";
 import { type FileProcessingRulesType } from "../../config/file-handling";
+import { FILE_TYPE_REGISTRY } from "../../config/file-handling/file-type-registry";
 import { getCanonicalFileType } from "./utils";
 import type { CanonicalFileType } from "../../schemas/canonical-file-types";
 import { readFile } from "../../../common/fs/file-operations";
@@ -10,7 +11,7 @@ import { findFilesSortedBySizeFromMultiple } from "../../../common/fs/directory-
 import type { FileWithSourceAndSize } from "../../../common/fs/directory-operations";
 import { getFileExtension } from "../../../common/fs/path-utils";
 import { countLines } from "../../../common/utils/text-utils";
-import { logErr } from "../../../common/utils/logging";
+import { logErr, logInfo, logWarn } from "../../../common/utils/logging";
 import { FileSummarizerService, type PartialSourceSummaryType } from "./file-summarizer.service";
 import { BufferedSourcesWriter } from "./buffered-sources-writer";
 import type { SourcesRepository } from "../../repositories/sources/sources.repository.interface";
@@ -135,12 +136,10 @@ export default class CodebaseCaptureOrchestrator {
     // Flush any remaining records in the buffer
     await this.bufferedWriter.flush();
 
-    console.log(
-      `Processed ${files.length} files. Succeeded: ${successes}, Failed: ${failures}`,
-    );
+    logInfo(`Processed ${files.length} files. Succeeded: ${successes}, Failed: ${failures}`);
 
     if (failures > 0) {
-      console.warn(`Warning: ${failures} files failed to process. Check logs for details.`);
+      logWarn(`Warning: ${failures} files failed to process. Check logs for details.`);
     }
   }
 
@@ -164,15 +163,46 @@ export default class CodebaseCaptureOrchestrator {
       return; // Skip file if it has binary content
     }
 
+    if (
+      (this.fileProcessingConfig.MINIFIED_FILE_PATTERNS as readonly string[]).some((pattern) =>
+        fullFilepath.endsWith(pattern),
+      )
+    ) {
+      return; // Skip minified files
+    }
+
+    if (
+      (this.fileProcessingConfig.GENERATED_FILE_PATTERNS as readonly string[]).some((pattern) =>
+        fullFilepath.endsWith(pattern),
+      )
+    ) {
+      return; // Skip generated files by filename pattern
+    }
+
     const filepath = path.relative(srcDirPath, fullFilepath);
     if (skipIfAlreadyIngested && existingFiles.has(filepath)) return;
     const rawContent = await readFile(fullFilepath);
     const content = rawContent.trim();
     if (!content) return; // Skip empty files
+
+    // Check file header for generated file markers
+    const headerSlice = rawContent.slice(0, 1024);
+
+    if (
+      (this.fileProcessingConfig.GENERATED_FILE_MARKERS as readonly string[]).some((marker) =>
+        headerSlice.includes(marker),
+      )
+    ) {
+      return; // Skip generated files detected by header markers
+    }
+
     const filename = path.basename(filepath);
-    const linesCount = countLines(content);
+    const linesCount = countLines(rawContent);
     // Compute canonical type once and pass it through the call chain
     const canonicalType = getCanonicalFileType(filepath, fileExtension);
+    const isCode = Object.hasOwn(FILE_TYPE_REGISTRY, fileExtension)
+      ? FILE_TYPE_REGISTRY[fileExtension].isCode
+      : true;
 
     // Run summary generation and content embeddings in parallel for better throughput
     // These are independent LLM operations that don't depend on each other
@@ -194,6 +224,7 @@ export default class CodebaseCaptureOrchestrator {
       fileExtension,
       canonicalType,
       linesCount,
+      isCode,
       content,
       ...(summary && { summary }),
       ...(summaryError && { summaryError }),

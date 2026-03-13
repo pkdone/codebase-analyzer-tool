@@ -14,6 +14,7 @@ import { LLMError, LLMErrorCode } from "../../../../src/common/llm/types/llm-err
 import { getCanonicalFileType } from "../../../../src/app/components/capture/utils";
 import { type FileProcessingRulesType } from "../../../../src/app/config/file-handling";
 import type { LlmConcurrencyService } from "../../../../src/app/components/concurrency";
+import * as logging from "../../../../src/common/utils/logging";
 
 // Mock dependencies
 jest.mock("../../../../src/common/fs/file-operations");
@@ -24,6 +25,7 @@ jest.mock("../../../../src/common/utils/logging", () => ({
   logError: jest.fn(),
   logWarn: jest.fn(),
   logErr: jest.fn(),
+  logInfo: jest.fn(),
 }));
 jest.mock("../../../../src/app/components/capture/utils", () => ({
   getCanonicalFileType: jest.fn().mockReturnValue("javascript"),
@@ -39,6 +41,9 @@ const mockFileProcessingRules = {
   FILENAME_PREFIX_IGNORE: "test-",
   FILENAME_IGNORE_LIST: ["package-lock.json"],
   BINARY_FILE_EXTENSION_IGNORE_LIST: ["jpg", "png", "pdf", "exe"],
+  MINIFIED_FILE_PATTERNS: [".min.js", ".min.css"],
+  GENERATED_FILE_PATTERNS: [".generated.ts", "_pb.ts"],
+  GENERATED_FILE_MARKERS: ["DO NOT EDIT", "@generated"],
   CODE_FILE_EXTENSIONS: ["ts", "js"],
   BOM_DEPENDENCY_CANONICAL_TYPES: [],
   SCHEDULED_JOB_CANONICAL_TYPES: [],
@@ -311,7 +316,7 @@ describe("CodebaseCaptureOrchestrator", () => {
 
       await service.captureCodebase("test-project", ["/src"], false);
 
-      expect(mockConsoleWarn).toHaveBeenCalledWith(expect.stringContaining("failed to process"));
+      expect(logging.logWarn).toHaveBeenCalledWith(expect.stringContaining("failed to process"));
     });
 
     it("should include embeddings in source record", async () => {
@@ -350,6 +355,112 @@ describe("CodebaseCaptureOrchestrator", () => {
       await service.captureCodebase("test-project", ["/src"], false);
 
       expect(mockBufferedWriter.reset).toHaveBeenCalled();
+    });
+
+    it("should skip minified files", async () => {
+      const mockFilesWithSize = [
+        { filepath: "/src/vendor.min.js", size: 50000, sourceRoot: "/src" },
+        { filepath: "/src/file.ts", size: 100, sourceRoot: "/src" },
+      ];
+
+      mockDirectoryOperations.findFilesSortedBySizeFromMultiple.mockResolvedValue(mockFilesWithSize);
+      mockPathUtils.getFileExtension.mockReturnValueOnce("js").mockReturnValueOnce("ts");
+      mockPath.relative.mockReturnValue("file.ts");
+      mockPath.basename.mockReturnValue("file.ts");
+      mockFileOperations.readFile.mockResolvedValue("const x = 1;");
+      mockTextUtils.countLines.mockReturnValue(1);
+
+      await service.captureCodebase("test-project", ["/src"], false);
+
+      expect(mockBufferedWriter.queueRecord).toHaveBeenCalledTimes(1);
+    });
+
+    it("should skip generated files by filename pattern", async () => {
+      const mockFilesWithSize = [
+        { filepath: "/src/api.generated.ts", size: 5000, sourceRoot: "/src" },
+        { filepath: "/src/file.ts", size: 100, sourceRoot: "/src" },
+      ];
+
+      mockDirectoryOperations.findFilesSortedBySizeFromMultiple.mockResolvedValue(mockFilesWithSize);
+      mockPathUtils.getFileExtension.mockReturnValueOnce("ts").mockReturnValueOnce("ts");
+      mockPath.relative.mockReturnValue("file.ts");
+      mockPath.basename.mockReturnValue("file.ts");
+      mockFileOperations.readFile.mockResolvedValue("const x = 1;");
+      mockTextUtils.countLines.mockReturnValue(1);
+
+      await service.captureCodebase("test-project", ["/src"], false);
+
+      expect(mockBufferedWriter.queueRecord).toHaveBeenCalledTimes(1);
+    });
+
+    it("should skip generated files detected by header markers", async () => {
+      const mockFilesWithSize = [
+        { filepath: "/src/generated-api.ts", size: 5000, sourceRoot: "/src" },
+        { filepath: "/src/file.ts", size: 100, sourceRoot: "/src" },
+      ];
+
+      mockDirectoryOperations.findFilesSortedBySizeFromMultiple.mockResolvedValue(mockFilesWithSize);
+      mockPathUtils.getFileExtension.mockReturnValue("ts");
+      mockPath.relative
+        .mockReturnValueOnce("generated-api.ts")
+        .mockReturnValueOnce("file.ts");
+      mockPath.basename
+        .mockReturnValueOnce("generated-api.ts")
+        .mockReturnValueOnce("file.ts");
+      mockFileOperations.readFile
+        .mockResolvedValueOnce("// DO NOT EDIT - this file is auto-generated\nconst api = {};")
+        .mockResolvedValueOnce("const x = 1;");
+      mockTextUtils.countLines.mockReturnValue(1);
+
+      await service.captureCodebase("test-project", ["/src"], false);
+
+      expect(mockBufferedWriter.queueRecord).toHaveBeenCalledTimes(1);
+    });
+
+    it("should count lines from raw content, not trimmed content", async () => {
+      const mockFilesWithSize = [
+        { filepath: "/src/file.ts", size: 100, sourceRoot: "/src" },
+      ];
+      const rawContent = "const x = 1;\n\n";
+
+      mockDirectoryOperations.findFilesSortedBySizeFromMultiple.mockResolvedValue(mockFilesWithSize);
+      mockPathUtils.getFileExtension.mockReturnValue("ts");
+      mockPath.relative.mockReturnValue("file.ts");
+      mockPath.basename.mockReturnValue("file.ts");
+      mockFileOperations.readFile.mockResolvedValue(rawContent);
+      mockTextUtils.countLines.mockReturnValue(2);
+
+      await service.captureCodebase("test-project", ["/src"], false);
+
+      // countLines should be called with raw content (untrimmed)
+      expect(mockTextUtils.countLines).toHaveBeenCalledWith(rawContent);
+      // queueRecord should receive trimmed content
+      expect(mockBufferedWriter.queueRecord).toHaveBeenCalledWith(
+        expect.objectContaining({
+          content: "const x = 1;",
+        }),
+      );
+    });
+
+    it("should set isCode field on source records", async () => {
+      const mockFilesWithSize = [
+        { filepath: "/src/file.ts", size: 100, sourceRoot: "/src" },
+      ];
+
+      mockDirectoryOperations.findFilesSortedBySizeFromMultiple.mockResolvedValue(mockFilesWithSize);
+      mockPathUtils.getFileExtension.mockReturnValue("ts");
+      mockPath.relative.mockReturnValue("file.ts");
+      mockPath.basename.mockReturnValue("file.ts");
+      mockFileOperations.readFile.mockResolvedValue("const x = 1;");
+      mockTextUtils.countLines.mockReturnValue(1);
+
+      await service.captureCodebase("test-project", ["/src"], false);
+
+      expect(mockBufferedWriter.queueRecord).toHaveBeenCalledWith(
+        expect.objectContaining({
+          isCode: true,
+        }),
+      );
     });
   });
 });

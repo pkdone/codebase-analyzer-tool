@@ -66,6 +66,20 @@ export default class LLMExecutionStats {
   }
 
   /**
+   * Reset all counts to zero.
+   * Use this when starting a new phase/task to get fresh statistics.
+   */
+  reset(): void {
+    this.counts.SUCCESS = 0;
+    this.counts.FAILURE = 0;
+    this.counts.SWITCH = 0;
+    this.counts.OVERLOAD_RETRY = 0;
+    this.counts.HOPEFUL_RETRY = 0;
+    this.counts.CROP = 0;
+    this.counts.JSON_MUTATED = 0;
+  }
+
+  /**
    * Log LLM success event occurrence and print its symbol
    */
   recordSuccess(): void {

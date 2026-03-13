@@ -30,8 +30,8 @@ describe("text-utils", () => {
       expect(countLines("line1\nline2\nline3")).toBe(3);
     });
 
-    it("should count trailing newline as additional line", () => {
-      expect(countLines("line1\nline2\n")).toBe(3);
+    it("should not count trailing newline as additional line", () => {
+      expect(countLines("line1\nline2\n")).toBe(2);
     });
 
     it("should handle multiple consecutive newlines", () => {
@@ -39,12 +39,12 @@ describe("text-utils", () => {
     });
 
     it("should handle only newlines", () => {
-      expect(countLines("\n\n\n")).toBe(4);
+      expect(countLines("\n\n\n")).toBe(3);
     });
 
     it("should handle Windows-style line endings (CRLF)", () => {
-      // Only counts \n, not \r
-      expect(countLines("line1\r\nline2\r\n")).toBe(3);
+      // Only counts \n, not \r. Trailing \n terminates last line.
+      expect(countLines("line1\r\nline2\r\n")).toBe(2);
     });
 
     it("should handle large text efficiently", () => {

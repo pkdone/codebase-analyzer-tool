@@ -39,14 +39,13 @@ interface FileTypeRule {
 }
 
 /**
- * Ordered list of file type mapping rules for complex patterns.
+ * Ordered list of file type mapping rules for complex filename patterns.
  * These rules handle cases that can't be expressed as simple filename or extension maps,
  * such as patterns like "readme*", "license*", etc.
  * Rules are evaluated in order, and the first matching rule determines the file type.
- * The default rule (always matches) must be last.
+ * Checked BEFORE extension-based maps so that "license.txt" resolves to "markdown" not "default".
  */
-const FILE_TYPE_MAPPING_RULES: readonly FileTypeRule[] = [
-  // Filename pattern-based rules (for patterns that can't be simple exact matches)
+const FILE_TYPE_PATTERN_RULES: readonly FileTypeRule[] = [
   { test: (filename) => filename === "readme" || filename.startsWith("readme."), type: "markdown" },
   {
     test: (filename) => filename === "license" || filename.startsWith("license."),
@@ -61,9 +60,6 @@ const FILE_TYPE_MAPPING_RULES: readonly FileTypeRule[] = [
     test: (filename) => filename.startsWith("makefile."),
     type: "makefile",
   },
-
-  // Default rule (always matches, must be last)
-  { test: () => true, type: "default" },
 ] as const;
 
 /**
@@ -80,18 +76,17 @@ export const getCanonicalFileType = (filepath: string, type: string): CanonicalF
     return FILENAME_TYPE_REGISTRY[filename];
   }
 
-  // 2. Check extension-based mappings
+  // 2. Check filename pattern rules before extension map (e.g., "readme*", "license*")
+  //    These are more specific than extension-only matches.
+  for (const rule of FILE_TYPE_PATTERN_RULES) {
+    if (rule.test(filename, extension)) return rule.type;
+  }
+
+  // 3. Check extension-based mappings
   if (Object.hasOwn(EXTENSION_TO_TYPE_MAP, extension)) {
     return EXTENSION_TO_TYPE_MAP[extension];
   }
 
-  // 3. Fall back to rule-based system for complex patterns (e.g., "readme*", "license*")
-  for (const rule of FILE_TYPE_MAPPING_RULES) {
-    if (rule.test(filename, extension)) {
-      return rule.type;
-    }
-  }
-
-  // Fallback to default (should never reach here as last rule always matches)
+  // Fallback to default
   return "default";
 };

@@ -614,6 +614,10 @@ export const sourceSchema = z
       .optional()
       .describe("The canonical file type category (e.g., 'javascript' for .ts/.js files)."),
     linesCount: z.number().describe("The total number of lines in the source file."),
+    isCode: z
+      .boolean()
+      .default(true)
+      .describe("Whether this file is a code file (true) or non-code like documentation (false)."),
     summary: sourceSummarySchema
       .partial()
       .optional()

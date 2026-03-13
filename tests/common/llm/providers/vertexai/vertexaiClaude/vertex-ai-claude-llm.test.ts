@@ -46,7 +46,7 @@ describe("VertexAI Claude LLM", () => {
 
     it("should have appropriate retry delays", () => {
       expect(defaultVertexAIClaudeProviderConfig.minRetryDelayMillis).toBe(30 * 1000);
-      expect(defaultVertexAIClaudeProviderConfig.maxRetryDelayMillis).toBe(200 * 1000);
+      expect(defaultVertexAIClaudeProviderConfig.maxRetryDelayMillis).toBe(120 * 1000);
     });
 
     it("should have retry attempts configured", () => {

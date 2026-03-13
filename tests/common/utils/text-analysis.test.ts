@@ -15,7 +15,7 @@ describe("text-analysis", () => {
     });
 
     test("should count multiple newlines", () => {
-      expect(countLines("\n\n\n")).toBe(4);
+      expect(countLines("\n\n\n")).toBe(3);
     });
 
     test("should count lines with carriage returns", () => {
@@ -23,7 +23,7 @@ describe("text-analysis", () => {
     });
 
     test("should handle text with only newline", () => {
-      expect(countLines("\n")).toBe(2);
+      expect(countLines("\n")).toBe(1);
     });
 
     test("should count lines in code block", () => {
@@ -35,7 +35,7 @@ describe("text-analysis", () => {
     });
 
     test("should handle trailing newline", () => {
-      expect(countLines("line1\nline2\n")).toBe(3);
+      expect(countLines("line1\nline2\n")).toBe(2);
     });
   });
 });

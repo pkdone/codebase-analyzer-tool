@@ -72,6 +72,7 @@ describe("SourcesRepositoryImpl", () => {
         filepath: "src/test.ts",
         fileExtension: "ts",
         linesCount: 10,
+        isCode: true,
         content: "console.log('test');",
         summary: {
           namespace: "Test",
@@ -94,6 +95,7 @@ describe("SourcesRepositoryImpl", () => {
         filepath: "src/test.ts",
         fileExtension: "ts",
         linesCount: 10,
+        isCode: true,
         content: "console.log('test');",
       };
 
@@ -114,6 +116,7 @@ describe("SourcesRepositoryImpl", () => {
           filepath: "src/test1.ts",
           fileExtension: "ts",
           linesCount: 10,
+          isCode: true,
           content: "console.log('test1');",
         },
         {
@@ -122,6 +125,7 @@ describe("SourcesRepositoryImpl", () => {
           filepath: "src/test2.ts",
           fileExtension: "ts",
           linesCount: 20,
+          isCode: true,
           content: "console.log('test2');",
         },
       ];
@@ -147,6 +151,7 @@ describe("SourcesRepositoryImpl", () => {
           filepath: "src/test1.ts",
           fileExtension: "ts",
           linesCount: 10,
+          isCode: true,
           content: "console.log('test1');",
         },
       ];
@@ -165,6 +170,7 @@ describe("SourcesRepositoryImpl", () => {
           filepath: "src/test1.ts",
           fileExtension: "ts",
           linesCount: 10,
+          isCode: true,
           content: "console.log('test1');",
         },
       ];
@@ -297,7 +303,7 @@ describe("SourcesRepositoryImpl", () => {
         expect(result).toEqual({ fileCount: 42, linesOfCode: 1500 });
 
         const expectedPipeline = [
-          { $match: { projectName } },
+          { $match: { projectName, isCode: true } },
           {
             $group: {
               _id: null,
@@ -392,7 +398,7 @@ describe("SourcesRepositoryImpl", () => {
         expect(result).toEqual(mockResults);
 
         const expectedPipeline = [
-          { $match: { projectName } },
+          { $match: { projectName, isCode: true } },
           {
             $group: {
               _id: "$fileExtension",

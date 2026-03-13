@@ -83,6 +83,51 @@ describe("LLMExecutionStats", () => {
     });
   });
 
+  describe("reset()", () => {
+    it("should reset all counts to zero", () => {
+      // Record various events
+      stats.recordSuccess();
+      stats.recordSuccess();
+      stats.recordFailure();
+      stats.recordSwitch();
+      stats.recordOverloadRetry();
+      stats.recordHopefulRetry();
+      stats.recordCrop();
+      stats.recordJsonMutated();
+
+      // Verify counts are non-zero
+      let summary = stats.getStatusTypesStatistics();
+      expect(summary.SUCCESS.count).toBe(2);
+      expect(summary.FAILURE.count).toBe(1);
+      expect(summary.SWITCH.count).toBe(1);
+      expect(summary.OVERLOAD_RETRY.count).toBe(1);
+      expect(summary.HOPEFUL_RETRY.count).toBe(1);
+      expect(summary.CROP.count).toBe(1);
+      expect(summary.JSON_MUTATED.count).toBe(1);
+
+      // Reset and verify all counts are zero
+      stats.reset();
+      summary = stats.getStatusTypesStatistics();
+      expect(summary.SUCCESS.count).toBe(0);
+      expect(summary.FAILURE.count).toBe(0);
+      expect(summary.SWITCH.count).toBe(0);
+      expect(summary.OVERLOAD_RETRY.count).toBe(0);
+      expect(summary.HOPEFUL_RETRY.count).toBe(0);
+      expect(summary.CROP.count).toBe(0);
+      expect(summary.JSON_MUTATED.count).toBe(0);
+    });
+
+    it("should allow recording new events after reset", () => {
+      stats.recordSuccess();
+      stats.recordSuccess();
+      stats.reset();
+      stats.recordSuccess();
+
+      const summary = stats.getStatusTypesStatistics();
+      expect(summary.SUCCESS.count).toBe(1);
+    });
+  });
+
   describe("getStatusTypesStatistics()", () => {
     it("should return immutable snapshots", () => {
       stats.recordSuccess();

@@ -22,6 +22,7 @@ function createMockSourceRecord(filepath: string): SourceRecord {
     fileExtension: "ts",
     canonicalType: "javascript",
     linesCount: 10,
+    isCode: true,
     content: `// Content of ${filepath}`,
   };
 }

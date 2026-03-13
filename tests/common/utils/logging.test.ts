@@ -1,17 +1,22 @@
-import { logWarn, logErr } from "../../../src/common/utils/logging";
+import { logWarn, logErr, logInfo } from "../../../src/common/utils/logging";
 
 describe("logging", () => {
   let consoleWarnSpy: jest.SpyInstance;
   let consoleErrorSpy: jest.SpyInstance;
+  let consoleLogSpy: jest.SpyInstance;
+  const originalIsTTY = process.stdout.isTTY;
 
   beforeEach(() => {
     consoleWarnSpy = jest.spyOn(console, "warn").mockImplementation();
     consoleErrorSpy = jest.spyOn(console, "error").mockImplementation();
+    consoleLogSpy = jest.spyOn(console, "log").mockImplementation();
   });
 
   afterEach(() => {
     consoleWarnSpy.mockRestore();
     consoleErrorSpy.mockRestore();
+    consoleLogSpy.mockRestore();
+    Object.defineProperty(process.stdout, "isTTY", { value: originalIsTTY, writable: true });
   });
 
   describe("logErr", () => {
@@ -79,10 +84,33 @@ describe("logging", () => {
       const loggedMessage = consoleErrorSpy.mock.calls[0][0];
       expect(loggedMessage).not.toContain("\n");
     });
+
+    it("should prepend newline in TTY mode", () => {
+      Object.defineProperty(process.stdout, "isTTY", { value: true, writable: true });
+      const error = new Error("Test error");
+      logErr("Operation failed", error);
+
+      expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
+      const loggedMessage = consoleErrorSpy.mock.calls[0][0];
+      expect(loggedMessage[0]).toBe("\n");
+      expect(loggedMessage).toContain("Operation failed");
+    });
+
+    it("should not prepend newline in non-TTY mode", () => {
+      Object.defineProperty(process.stdout, "isTTY", { value: false, writable: true });
+      const error = new Error("Test error");
+      logErr("Operation failed", error);
+
+      expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
+      const loggedMessage = consoleErrorSpy.mock.calls[0][0];
+      expect(loggedMessage[0]).not.toBe("\n");
+      expect(loggedMessage.startsWith("Operation failed")).toBe(true);
+    });
   });
 
   describe("logSingleLineWarning", () => {
     it("should log a warning message", () => {
+      Object.defineProperty(process.stdout, "isTTY", { value: false, writable: true });
       logWarn("Warning message");
 
       expect(consoleWarnSpy).toHaveBeenCalledTimes(1);
@@ -90,6 +118,7 @@ describe("logging", () => {
     });
 
     it("should replace newlines with spaces in message", () => {
+      Object.defineProperty(process.stdout, "isTTY", { value: false, writable: true });
       logWarn("Warning\nmessage\nwith\nnewlines");
 
       expect(consoleWarnSpy).toHaveBeenCalledTimes(1);
@@ -191,6 +220,67 @@ describe("logging", () => {
       const callArg = consoleWarnSpy.mock.calls[0][0];
       expect(callArg).toContain("Warning");
       expect(callArg).toContain("Context: true");
+    });
+
+    it("should prepend newline in TTY mode", () => {
+      Object.defineProperty(process.stdout, "isTTY", { value: true, writable: true });
+      logWarn("Warning message");
+
+      expect(consoleWarnSpy).toHaveBeenCalledTimes(1);
+      const callArg = consoleWarnSpy.mock.calls[0][0];
+      expect(callArg[0]).toBe("\n");
+      expect(callArg).toContain("Warning message");
+    });
+
+    it("should not prepend newline in non-TTY mode", () => {
+      Object.defineProperty(process.stdout, "isTTY", { value: false, writable: true });
+      logWarn("Warning message");
+
+      expect(consoleWarnSpy).toHaveBeenCalledTimes(1);
+      const callArg = consoleWarnSpy.mock.calls[0][0];
+      expect(callArg[0]).not.toBe("\n");
+      expect(callArg.startsWith("Warning message")).toBe(true);
+    });
+
+    it("should prepend newline in TTY mode with context", () => {
+      Object.defineProperty(process.stdout, "isTTY", { value: true, writable: true });
+      logWarn("Warning message", { key: "value" });
+
+      expect(consoleWarnSpy).toHaveBeenCalledTimes(1);
+      const callArg = consoleWarnSpy.mock.calls[0][0];
+      expect(callArg[0]).toBe("\n");
+      expect(callArg).toContain("Warning message");
+      expect(callArg).toContain("Context:");
+    });
+  });
+
+  describe("logInfo", () => {
+    it("should log an info message in non-TTY mode", () => {
+      Object.defineProperty(process.stdout, "isTTY", { value: false, writable: true });
+      logInfo("Info message");
+
+      expect(consoleLogSpy).toHaveBeenCalledTimes(1);
+      expect(consoleLogSpy).toHaveBeenCalledWith("Info message");
+    });
+
+    it("should prepend newline in TTY mode", () => {
+      Object.defineProperty(process.stdout, "isTTY", { value: true, writable: true });
+      logInfo("Info message");
+
+      expect(consoleLogSpy).toHaveBeenCalledTimes(1);
+      const callArg = consoleLogSpy.mock.calls[0][0];
+      expect(callArg[0]).toBe("\n");
+      expect(callArg).toContain("Info message");
+    });
+
+    it("should not prepend newline in non-TTY mode", () => {
+      Object.defineProperty(process.stdout, "isTTY", { value: false, writable: true });
+      logInfo("Info message");
+
+      expect(consoleLogSpy).toHaveBeenCalledTimes(1);
+      const callArg = consoleLogSpy.mock.calls[0][0];
+      expect(callArg[0]).not.toBe("\n");
+      expect(callArg.startsWith("Info message")).toBe(true);
     });
   });
 });

@@ -27,17 +27,7 @@ taskCommand(program, "insights", "Generate insights (tech stack, DDD aggregates,
 taskCommand(program, "insights-files", "Generate insights directly from source files (bypasses database)", taskTokens.FileBasedInsightsGenerationTask);
 taskCommand(program, "report", "Generate a static HTML report from captured metadata and insights", taskTokens.ReportGenerationTask);
 taskCommand(program, "query", "Query the codebase using MongoDB Atlas Vector Search", taskTokens.CodebaseQueryTask);
-
-program
-  .command("pipeline")
-  .description("Run the full workflow: capture -> insights -> report")
-  .action(() => {
-    void (async () => {
-      await runApplication(taskTokens.CodebaseCaptureTask);
-      await runApplication(taskTokens.InsightsGenerationTask);
-      await runApplication(taskTokens.ReportGenerationTask);
-    })();
-  });
+taskCommand(program, "pipeline", "Run the full workflow: capture -> insights -> report", taskTokens.PipelineTask);
 
 // Utility commands
 taskCommand(program, "projects", "List all projects stored in the database with summary statistics", taskTokens.ListProjectsTask);
