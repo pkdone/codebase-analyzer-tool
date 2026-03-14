@@ -58,7 +58,6 @@ export const bedrockClaudeProviderManifest = createBedrockManifest(
   {
     apiVersion: "bedrock-2023-05-31",
     temperature: llmConfig.DEFAULT_ZERO_TEMP,
-    topP: llmConfig.DEFAULT_TOP_P_LOWEST,
     topK: llmConfig.DEFAULT_TOP_K_LOWEST,
     maxRetryAttempts: 3,
     minRetryDelayMillis: 30 * 1000,

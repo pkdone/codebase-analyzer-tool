@@ -89,6 +89,7 @@ export default class VertexAIClaudeLLM extends BaseLLMProvider {
     const temperature = this.providerSpecificConfig.temperature ?? llmConfig.DEFAULT_ZERO_TEMP;
     const betaFlags = this.typedProviderConfig.anthropicBetaFlags;
     // Build request parameters
+    // Note: Claude API does not allow specifying both temperature and top_p simultaneously
     const requestParams = {
       model: this.llmModelsMetadata[modelKey].urn,
       max_tokens: maxCompletionTokens,
@@ -99,7 +100,6 @@ export default class VertexAIClaudeLLM extends BaseLLMProvider {
         },
       ],
       temperature,
-      top_p: this.typedProviderConfig.topP ?? llmConfig.DEFAULT_TOP_P_LOWEST,
       top_k: this.typedProviderConfig.topK ?? llmConfig.DEFAULT_TOP_K_LOWEST,
     };
     // Use beta API when anthropicBetaFlags is configured (for 1M context), otherwise use standard API

@@ -13,7 +13,6 @@ export const BedrockClaudeProviderConfigSchema = z.object({
   maxRetryDelayMillis: z.number().int().nonnegative(),
   apiVersion: z.string().min(1),
   temperature: z.number().optional(),
-  topP: z.number().optional(),
   topK: z.number().optional(),
   anthropicBetaFlags: z.array(z.string()).optional(),
 });
@@ -25,7 +24,6 @@ export const BedrockClaudeProviderConfigSchema = z.object({
 export interface BedrockClaudeProviderConfig extends LLMProviderSpecificConfig {
   apiVersion: string;
   temperature?: number;
-  topP?: number;
   topK?: number;
   anthropicBetaFlags?: readonly string[];
 }

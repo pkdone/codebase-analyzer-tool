@@ -80,7 +80,6 @@ export const vertexAIClaudeProviderManifest: LLMProviderManifest = {
   providerSpecificConfig: {
     ...defaultVertexAIClaudeProviderConfig,
     temperature: llmConfig.DEFAULT_ZERO_TEMP,
-    topP: llmConfig.DEFAULT_TOP_P_LOWEST,
     topK: llmConfig.DEFAULT_TOP_K_LOWEST,
     anthropicBetaFlags: ["context-1m-2025-08-07"] as const,
   },
