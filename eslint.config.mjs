@@ -60,6 +60,9 @@ export default tseslint.config(
     ],
     rules: {
       "no-console": "error",
+      "no-lonely-if": "error",
+      "@typescript-eslint/default-param-last": "error",
+      "@typescript-eslint/prefer-regexp-exec": "error",
       "@typescript-eslint/explicit-member-accessibility": ["error", { "accessibility": "no-public" }],
       "@typescript-eslint/member-ordering": "error",     
       "@typescript-eslint/prefer-readonly": "error",

@@ -35,17 +35,17 @@ function extractBedrockConfig(providerParams: Record<string, unknown>): Record<s
  *
  * @param providerFamily - Unique identifier for the provider family (e.g., "BedrockClaude")
  * @param models - Model configurations with embeddings[] and completions[] arrays
+ * @param implementation - The LLM provider implementation class
  * @param envSchemaFields - Additional environment variable fields (authentication only)
  * @param providerSpecificConfig - Provider-specific configuration overrides (merged with defaults)
- * @param implementation - The LLM provider implementation class
  * @returns A complete LLMProviderManifest for the Bedrock provider
  */
 export function createBedrockManifest(
   providerFamily: string,
   models: BedrockModelsConfig,
+  implementation: new (init: ProviderInit) => LLMProvider,
   envSchemaFields: Record<string, z.ZodString> = {},
   providerSpecificConfig: Partial<LLMProviderSpecificConfig> = {},
-  implementation: new (init: ProviderInit) => LLMProvider,
 ): LLMProviderManifest {
   return {
     providerFamily,

@@ -585,13 +585,11 @@ function extractLargestJsonSpanInternal(input: string): string {
         // Otherwise, return the nested complete object
         return sliced;
       }
-    } else {
-      // No matching closing delimiter found
-      if (isFirstCandidate) {
-        // If the first candidate (outer structure) can't be completed,
-        // return input unchanged so completion sanitizer can fix it
-        return input;
-      }
+    } else if (isFirstCandidate) {
+      // No matching closing delimiter found.
+      // If the first candidate (outer structure) can't be completed,
+      // return input unchanged so completion sanitizer can fix it
+      return input;
     }
   }
 

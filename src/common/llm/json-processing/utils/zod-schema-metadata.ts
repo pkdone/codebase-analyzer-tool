@@ -346,20 +346,11 @@ function extractPropertiesFromShape(
       all.push(...nested.all);
       numeric.push(...nested.numeric);
       arrays.push(...nested.arrays);
-    } else if (isZodUnion(unwrapped) && currentDepth < options.maxDepth) {
-      // Extract from all union options
-      const nested = extractPropertiesFromSchema(unwrapped, currentDepth + 1, options);
-      all.push(...nested.all);
-      numeric.push(...nested.numeric);
-      arrays.push(...nested.arrays);
-    } else if (isZodDiscriminatedUnion(unwrapped) && currentDepth < options.maxDepth) {
-      // Extract from all discriminated union options
-      const nested = extractPropertiesFromSchema(unwrapped, currentDepth + 1, options);
-      all.push(...nested.all);
-      numeric.push(...nested.numeric);
-      arrays.push(...nested.arrays);
-    } else if (isZodIntersection(unwrapped) && currentDepth < options.maxDepth) {
-      // Extract from intersection sides
+    } else if (
+      (isZodUnion(unwrapped) || isZodDiscriminatedUnion(unwrapped) || isZodIntersection(unwrapped))
+      && currentDepth < options.maxDepth
+    ) {
+      // Extract from union, discriminated union, or intersection types
       const nested = extractPropertiesFromSchema(unwrapped, currentDepth + 1, options);
       all.push(...nested.all);
       numeric.push(...nested.numeric);

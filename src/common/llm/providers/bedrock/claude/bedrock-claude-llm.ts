@@ -23,12 +23,12 @@ const ClaudeCompletionResponseSchema = z.object({
 });
 
 /** Model keys eligible for the anthropic_beta extended-context flag. */
-const ANTHROPIC_BETA_ELIGIBLE_MODELS: readonly string[] = [
+const ANTHROPIC_BETA_ELIGIBLE_MODELS: ReadonlySet<string> = new Set([
   "bedrock-claude-opus-4.6",
   "bedrock-claude-sonnet-4.6",
   "bedrock-claude-opus-4.5",
   "bedrock-claude-sonnet-4.5",
-];
+]);
 
 /**
  * Class for the AWS Bedrock [Anthropic] Claude LLMs.
@@ -70,7 +70,7 @@ export default class BedrockClaudeLLM extends BaseBedrockLLM {
     };
 
     // Add anthropic_beta flags for Claude models (1M-token context beta) if configured
-    if (ANTHROPIC_BETA_ELIGIBLE_MODELS.includes(modelKey) && config.anthropicBetaFlags) {
+    if (ANTHROPIC_BETA_ELIGIBLE_MODELS.has(modelKey) && config.anthropicBetaFlags) {
       return {
         ...baseParams,
         anthropic_beta: config.anthropicBetaFlags,

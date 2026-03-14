@@ -34,6 +34,7 @@ export const bedrockLlamaProviderManifest = createBedrockManifest(
       },
     ],
   },
+  BedrockLlamaLLM,
   {
     [BEDROCK_LLAMA_33_70B_MODEL_URN_ID]: z.string().min(1),
     [BEDROCK_LLAMA_32_90B_MODEL_URN_ID]: z.string().min(1),
@@ -41,5 +42,4 @@ export const bedrockLlamaProviderManifest = createBedrockManifest(
   {
     maxGenLenCap: 2048,
   },
-  BedrockLlamaLLM,
 );

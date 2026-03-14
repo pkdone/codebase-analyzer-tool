@@ -40,11 +40,10 @@ export const bedrockNovaProviderManifest = createBedrockManifest(
       },
     ],
   },
+  BedrockNovaLLM,
   {
     [BEDROCK_NOVA_PRO_MODEL_URN_ID]: z.string().min(1),
     [BEDROCK_NOVA_LITE_MODEL_URN_ID]: z.string().min(1),
     [BEDROCK_TITAN_EMBEDDINGS_MODEL_URN_ID]: z.string().min(1),
   },
-  {},
-  BedrockNovaLLM,
 );

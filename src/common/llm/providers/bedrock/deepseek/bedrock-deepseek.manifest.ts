@@ -23,9 +23,8 @@ export const bedrockDeepseekProviderManifest = createBedrockManifest(
       },
     ],
   },
+  BedrockDeepseekLLM,
   {
     [BEDROCK_DEEPSEEK_R1_MODEL_URN_ID]: z.string().min(1),
   },
-  {},
-  BedrockDeepseekLLM,
 );

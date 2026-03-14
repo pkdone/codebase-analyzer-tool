@@ -183,7 +183,7 @@ export function matchPropertyName(
     const normalizedProp = opts.caseInsensitive ? prop.toLowerCase() : prop;
 
     if (normalizedFragment === normalizedProp) {
-      return { matched: prop, matchType: "exact", confidence: 1.0 };
+      return { matched: prop, matchType: "exact", confidence: 1 };
     }
   }
 
