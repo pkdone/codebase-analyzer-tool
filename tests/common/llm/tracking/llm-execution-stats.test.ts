@@ -236,7 +236,7 @@ describe("LLMExecutionStats", () => {
     it("should display status summary", () => {
       stats.displayLLMStatusSummary();
       expect(consoleLogSpy).toHaveBeenCalledWith(
-        "LLM invocation event types that will be recorded:",
+        "\nLLM invocation event types that will be recorded:",
       );
       expect(consoleTableSpy).toHaveBeenCalled();
     });

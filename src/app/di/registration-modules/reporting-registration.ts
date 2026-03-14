@@ -45,6 +45,7 @@ import {
 } from "../../components/reporting/sections/ui-analysis/analyzers";
 import { CodeQualitySection } from "../../components/reporting/sections/code-quality/code-quality-section";
 import { CodeQualityDataProvider } from "../../components/reporting/sections/code-quality/code-quality-data-provider";
+import { logInfo } from "../../../common/utils/logging";
 
 /**
  * Register reporting-related components in the DI container.
@@ -102,7 +103,7 @@ export function registerReportingComponents(): void {
   );
   container.registerSingleton(reportingTokens.JavaFrameworkAnalyzer, JavaFrameworkAnalyzer);
   container.registerSingleton(reportingTokens.JspMetricsAnalyzer, JspMetricsAnalyzer);
-  console.log("Reporting components registered");
+  logInfo("Reporting components registered");
 
   // Register report sections using multi-injection pattern
   container.registerSingleton(reportingTokens.ReportSection, FileTypesSection);

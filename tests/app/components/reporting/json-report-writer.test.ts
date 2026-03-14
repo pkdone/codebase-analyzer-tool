@@ -106,7 +106,9 @@ describe("JsonReportWriter", () => {
 
       expect(mockWriteFile).toHaveBeenCalledTimes(3);
       expect(mockConsoleLog).toHaveBeenCalledWith("Generated JSON file: entities.json");
-      expect(mockConsoleError).toHaveBeenCalledWith("Failed to write a JSON file:", fileError);
+      expect(mockConsoleError).toHaveBeenCalledWith(
+        expect.stringContaining("Failed to write a JSON file"),
+      );
       expect(mockConsoleLog).toHaveBeenCalledWith("Generated JSON file: file-types.tson");
       expect(mockConsoleLog).toHaveBeenCalledWith("Finished generating all JSON files");
     });
@@ -122,8 +124,15 @@ describe("JsonReportWriter", () => {
 
       await jsonReportWriter.writeAllJSONFiles(mockPreparedDataList);
 
-      expect(mockConsoleError).toHaveBeenCalledWith("Failed to write a JSON file:", error1);
-      expect(mockConsoleError).toHaveBeenCalledWith("Failed to write a JSON file:", error2);
+      expect(mockConsoleError).toHaveBeenCalledWith(
+        expect.stringContaining("Failed to write a JSON file"),
+      );
+      expect(mockConsoleError).toHaveBeenCalledWith(
+        expect.stringContaining("First file error"),
+      );
+      expect(mockConsoleError).toHaveBeenCalledWith(
+        expect.stringContaining("Second file error"),
+      );
       expect(mockConsoleLog).toHaveBeenCalledWith("Generated JSON file: file-types.tson");
     });
 

@@ -19,6 +19,7 @@ import path from "node:path";
 import type { OutputConfigType } from "../../config/output.config";
 import { HtmlReportAssetService } from "./services/html-report-asset.service";
 import { CORE_REQUIRED_APP_SUMMARY_FIELDS } from "./config/reporting.config";
+import { logOutputErr, logWarn } from "../../../common/utils/logging";
 
 /**
  * Class responsible for orchestrating report artifact generation using a modular section-based architecture.
@@ -73,12 +74,12 @@ export default class ReportArtifactGenerator {
       const guidance = hasCapture
         ? `Run 'cba insights' first.`
         : `Run 'cba capture' then 'cba insights' first.`;
-      console.error("");
-      console.error("=".repeat(70));
-      console.error(`  No insights data found for project "${projectName}".`);
-      console.error(`  ${guidance}`);
-      console.error("=".repeat(70));
-      console.error("");
+      logOutputErr("");
+      logOutputErr("=".repeat(70));
+      logOutputErr(`  No insights data found for project "${projectName}".`);
+      logOutputErr(`  ${guidance}`);
+      logOutputErr("=".repeat(70));
+      logOutputErr("");
       return;
     }
 
@@ -103,7 +104,7 @@ export default class ReportArtifactGenerator {
         sectionDataParts.push(result.value.data);
         sectionDataMap.set(result.value.name, result.value.data);
       } else {
-        console.warn(`Failed to get data for a report section:`, result.reason);
+        logWarn(`Failed to get data for a report section: ${String(result.reason)}`);
       }
     }
 

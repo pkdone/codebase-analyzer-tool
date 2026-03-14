@@ -20,7 +20,7 @@ import {
   buildCompletionExecutables,
   buildEmbeddingExecutables,
 } from "./utils/llm-candidate-builder";
-import { logWarn } from "../utils/logging";
+import { logInfo, logWarn } from "../utils/logging";
 import { llmConfig } from "./config/llm.config";
 
 /**
@@ -94,7 +94,7 @@ export default class LLMRouter {
     const embeddingModels = this.modelChain.embeddings
       .map((e) => `${e.providerFamily}/${e.modelKey}`)
       .join(", ");
-    console.log(
+    logInfo(
       `LLMRouter initialized with: Completions: [${completionModels}] | Embeddings: [${embeddingModels}]`,
     );
   }

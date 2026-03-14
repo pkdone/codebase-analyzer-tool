@@ -14,6 +14,7 @@ jest.mock("../../../../../src/common/utils/logging", () => ({
   logWarn: jest.fn(),
   logErr: jest.fn(),
   logInfo: jest.fn(),
+  logOutputErr: jest.fn(),
 }));
 
 describe("InsightsGenerator - Map-Reduce Strategy", () => {
@@ -284,16 +285,17 @@ describe("InsightsGenerator - Map-Reduce Strategy", () => {
     });
 
     it("should log error and return when no source summaries exist", async () => {
-      const consoleErrorSpy = jest.spyOn(console, "error").mockImplementation();
+      const mockLogging: Record<string, jest.Mock> = jest.requireMock(
+        "../../../../../src/common/utils/logging",
+      );
       mockSourcesRepository.getProjectSourcesSummariesByFileExtension.mockResolvedValue([]);
 
       await generator.generateAndStoreInsights();
 
-      const allOutput = consoleErrorSpy.mock.calls.map((c) => c[0]).join("\n");
+      const allOutput = mockLogging.logOutputErr.mock.calls.map((c: unknown[]) => c[0]).join("\n");
       expect(allOutput).toContain("No captured source data found");
       expect(allOutput).toContain("cba capture");
       expect(mockAppSummaryRepository.createOrReplaceAppSummary).not.toHaveBeenCalled();
-      consoleErrorSpy.mockRestore();
     });
   });
 });

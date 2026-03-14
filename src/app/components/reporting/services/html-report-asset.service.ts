@@ -5,6 +5,7 @@ import { coreTokens } from "../../../di/tokens";
 import type { OutputConfigType } from "../../../config/output.config";
 import { generateBrandColorCssBlock } from "../config/brand-theme.config";
 import { ENCODING_UTF8 } from "../../../../common/constants";
+import { logInfo, logWarn } from "../../../../common/utils/logging";
 
 /**
  * Interface representing the assets required for HTML report rendering.
@@ -127,7 +128,7 @@ export class HtmlReportAssetService {
       // Check if file already exists
       try {
         await fs.access(targetPath);
-        console.log(`${label} already exists in assets directory, skipping`);
+        logInfo(`${label} already exists in assets directory, skipping`);
         return;
       } catch {
         // File doesn't exist, proceed
@@ -138,13 +139,13 @@ export class HtmlReportAssetService {
         const localPath = require.resolve(nodeModulesRequire);
         const buffer = await fs.readFile(localPath);
         await fs.writeFile(targetPath, buffer);
-        console.log(`${label} copied from node_modules to ${targetPath}`);
+        logInfo(`${label} copied from node_modules to ${targetPath}`);
         return;
       } catch {
         // Fall back to CDN
       }
 
-      console.log(`Downloading ${label} for offline report support...`);
+      logInfo(`Downloading ${label} for offline report support...`);
       const response = await fetch(cdnUrl);
       if (!response.ok) {
         throw new Error(`Failed to download ${label}: ${response.status} ${response.statusText}`);
@@ -154,10 +155,10 @@ export class HtmlReportAssetService {
       const buffer = Buffer.from(arrayBuffer);
 
       await fs.writeFile(targetPath, buffer);
-      console.log(`${label} downloaded and copied to ${targetPath}`);
+      logInfo(`${label} downloaded and copied to ${targetPath}`);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      console.warn(`Warning: Failed to ensure ${label}: ${errorMessage}`);
+      logWarn(`Failed to ensure ${label}: ${errorMessage}`);
     }
   }
 }

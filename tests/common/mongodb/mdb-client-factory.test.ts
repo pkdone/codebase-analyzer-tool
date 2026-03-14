@@ -2,7 +2,7 @@ import "reflect-metadata";
 import { MongoClient, MongoClientOptions } from "mongodb";
 import { DatabaseConnectionError } from "../../../src/common/mongodb/mdb-errors";
 import { MongoDBConnectionManager } from "../../../src/common/mongodb/mdb-connection-manager";
-import { logErr, logWarn } from "../../../src/common/utils/logging";
+import { logErr, logInfo, logWarn } from "../../../src/common/utils/logging";
 import { redactUrl } from "../../../src/common/security/url-redactor";
 
 // Mock dependencies
@@ -12,15 +12,13 @@ jest.mock("../../../src/common/security/url-redactor");
 
 const MockedMongoClient = MongoClient as jest.MockedClass<typeof MongoClient>;
 const mockLogOneLineError = logErr as jest.MockedFunction<typeof logErr>;
+const mockLogInfo = logInfo as jest.MockedFunction<typeof logInfo>;
 const mockLogSingleLineWarning = logWarn as jest.MockedFunction<typeof logWarn>;
 const mockRedactUrl = redactUrl as jest.MockedFunction<typeof redactUrl>;
 
 describe("MongoDBConnectionManager", () => {
   let connectionManager: MongoDBConnectionManager;
   let mockClient: jest.Mocked<MongoClient>;
-  let mockConsoleLog: jest.SpyInstance;
-  let mockConsoleWarn: jest.SpyInstance;
-
   beforeEach(() => {
     connectionManager = new MongoDBConnectionManager();
 
@@ -34,19 +32,10 @@ describe("MongoDBConnectionManager", () => {
 
     MockedMongoClient.mockImplementation(() => mockClient);
 
-    // Mock console methods
-    mockConsoleLog = jest.spyOn(console, "log").mockImplementation();
-    mockConsoleWarn = jest.spyOn(console, "warn").mockImplementation();
-
     // Setup default mock implementations
     mockRedactUrl.mockImplementation((url: string) => `REDACTED_${url}`);
 
     jest.clearAllMocks();
-  });
-
-  afterEach(() => {
-    mockConsoleLog.mockRestore();
-    mockConsoleWarn.mockRestore();
   });
 
   describe("connect", () => {
@@ -61,7 +50,7 @@ describe("MongoDBConnectionManager", () => {
 
       expect(mockClient.connect).toHaveBeenCalledTimes(1);
       expect(mockRedactUrl).toHaveBeenCalledWith(url);
-      expect(mockConsoleLog).toHaveBeenCalledWith(`Connecting MongoDB client to: REDACTED_${url}`);
+      expect(mockLogInfo).toHaveBeenCalledWith(`Connecting MongoDB client to: REDACTED_${url}`);
       expect(result).toBe(mockClient);
     });
 
@@ -219,7 +208,7 @@ describe("MongoDBConnectionManager", () => {
 
       // Console should log closure of each client
       clients.forEach(({ id }) => {
-        expect(mockConsoleLog).toHaveBeenCalledWith(`Closed MongoDB connection for id '${id}'.`);
+        expect(mockLogInfo).toHaveBeenCalledWith(`Closed MongoDB connection for id '${id}'.`);
       });
 
       // All clients should be removed from factory
@@ -280,7 +269,7 @@ describe("MongoDBConnectionManager", () => {
       await connectionManager.shutdown();
 
       // Should not attempt to close any clients
-      expect(mockConsoleLog).not.toHaveBeenCalled();
+      expect(mockLogInfo).not.toHaveBeenCalled();
     });
   });
 

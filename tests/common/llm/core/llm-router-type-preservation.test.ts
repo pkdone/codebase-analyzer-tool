@@ -12,6 +12,7 @@ import { createLLMRouter as createLLMRouterFromFactory } from "../../../../src/c
 import { isOk } from "../../../../src/common/types/result.types";
 
 jest.mock("../../../../src/common/utils/logging", () => ({
+  logInfo: jest.fn(),
   logWarn: jest.fn(),
   logError: jest.fn(),
   logErrorMsg: jest.fn(),

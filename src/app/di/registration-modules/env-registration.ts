@@ -9,6 +9,7 @@ import { z } from "zod";
 import { LLMError, LLMErrorCode } from "../../../common/llm/types/llm-errors.types";
 import { getErrorStack } from "../../../common/utils/error-formatters";
 import { getBaseNameFromPath } from "../../../common/fs/path-utils";
+import { logInfo } from "../../../common/utils/logging";
 import dotenv from "dotenv";
 
 /**
@@ -19,7 +20,7 @@ export function registerBaseEnvDependencies(): void {
   if (!container.isRegistered(coreTokens.EnvVars)) {
     const envVars = loadBaseEnvVarsOnly();
     container.registerInstance(coreTokens.EnvVars, envVars);
-    console.log("Base environment variables loaded and registered.");
+    logInfo("Base environment variables loaded and registered.");
 
     // Register derived ProjectName immediately since env vars are already loaded
     // and won't change at runtime. Using registerInstance provides true singleton
@@ -33,7 +34,7 @@ export function registerLlmEnvDependencies(): void {
     try {
       const envVars = loadEnvIncludingLLMVars();
       container.registerInstance(coreTokens.EnvVars, envVars);
-      console.log("LLM environment variables loaded and registered.");
+      logInfo("LLM environment variables loaded and registered.");
 
       // Register derived ProjectName immediately since env vars are already loaded
       registerProjectNameFromEnvVars(envVars);
@@ -42,7 +43,7 @@ export function registerLlmEnvDependencies(): void {
       // This allows the container to be bootstrapped even when LLM isn't configured
       // Components will only be instantiated when actually resolved (lazy-loading)
       registerBaseEnvDependencies();
-      console.log("LLM environment variables not available, using base environment variables.");
+      logInfo("LLM environment variables not available, using base environment variables.");
     }
   }
 }
@@ -58,7 +59,7 @@ function registerProjectNameFromEnvVars(envVars: EnvVars): void {
   if (!container.isRegistered(coreTokens.ProjectName)) {
     const projectName = envVars.PROJECT_NAME ?? getBaseNameFromPath(envVars.CODEBASE_DIR_PATHS[0]);
     container.registerInstance(coreTokens.ProjectName, projectName);
-    console.log(`Project name '${projectName}' derived and registered.`);
+    logInfo(`Project name '${projectName}' derived and registered.`);
   }
 }
 
@@ -85,7 +86,7 @@ function loadEnvIncludingLLMVars(): EnvVars {
     const embeddingsChain = parseModelChain(LLM_EMBEDDING_MODEL_CHAIN);
     const allFamilies = getUniqueProviderFamilies([...completionsChain, ...embeddingsChain]);
 
-    console.log(
+    logInfo(
       `Loading environment for providers: ${allFamilies.join(", ")} ` +
         `(from chains: completions=${completionsChain.length} models, embeddings=${embeddingsChain.length} models)`,
     );

@@ -1,5 +1,5 @@
 import { MongoClient, MongoClientOptions } from "mongodb";
-import { logErr, logWarn } from "../utils/logging";
+import { logErr, logInfo, logWarn } from "../utils/logging";
 import { redactUrl } from "../security/url-redactor";
 import { DatabaseConnectionError } from "./mdb-errors";
 
@@ -34,7 +34,7 @@ export class MongoDBConnectionManager {
       return pending;
     }
 
-    console.log(`Connecting MongoDB client to: ${redactUrl(url)}`);
+    logInfo(`Connecting MongoDB client to: ${redactUrl(url)}`);
 
     const connectPromise = this.createConnection(id, url, options);
     this.pendingConnections.set(id, connectPromise);
@@ -121,7 +121,7 @@ export class MongoDBConnectionManager {
     const closePromises = Array.from(this.clients, async ([id, client]) => {
       try {
         await client.close();
-        console.log(`Closed MongoDB connection for id '${id}'.`);
+        logInfo(`Closed MongoDB connection for id '${id}'.`);
         return { status: "fulfilled", id };
       } catch (error: unknown) {
         logErr(`Error closing MongoDB client '${id}'`, error);

@@ -4,6 +4,7 @@ import ejs from "ejs";
 import { coreTokens, reportingTokens } from "../../di/tokens";
 import type { OutputConfigType } from "../../config/output.config";
 import { writeFile } from "../../../common/fs/file-operations";
+import { logInfo } from "../../../common/utils/logging";
 import { HtmlReportAssetService } from "./services/html-report-asset.service";
 import type {
   PreparedHtmlReportData,
@@ -55,6 +56,6 @@ export class HtmlReportWriter {
     const htmlContent = await ejs.renderFile(templatePath, fullData);
     await writeFile(htmlFilePath, htmlContent);
 
-    console.log(`View generated report in a browser: file://${path.resolve(htmlFilePath)}`);
+    logInfo(`View generated report in a browser: file://${path.resolve(htmlFilePath)}`);
   }
 }

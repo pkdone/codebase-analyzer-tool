@@ -242,10 +242,9 @@ describe("ReportArtifactGenerator", () => {
 
       await generator.generateReportArtifacts("test-project", "/output", "report.html");
 
-      // Verify that console.warn was called for the failed section
+      // Verify that logWarn was called for the failed section
       expect(consoleWarnSpy).toHaveBeenCalledWith(
-        "Failed to get data for a report section:",
-        expect.any(Error),
+        expect.stringContaining("Failed to get data for a report section"),
       );
 
       // Verify that the successful section's data is still used

@@ -5,7 +5,7 @@ import { LLMOutputFormat } from "../../../../common/llm/types/llm-request.types"
 import { isLLMOk } from "../../../../common/llm/types/llm-result.types";
 import { insightsConfig } from "../insights.config";
 import { getCategoryLabel } from "../../../config/category-labels.config";
-import { logWarn } from "../../../../common/utils/logging";
+import { logInfo, logWarn } from "../../../../common/utils/logging";
 import { isNotNull } from "../../../../common/utils/type-guards";
 import { llmTokens, insightsTokens, serviceTokens } from "../../../di/tokens";
 import { InsightGenerationStrategy } from "./insight-generation-strategy.interface";
@@ -61,7 +61,7 @@ export class MapReduceInsightStrategy implements InsightGenerationStrategy {
     const categoryLabel = getCategoryLabel(category);
 
     try {
-      console.log(`  - Using map-reduce strategy for ${categoryLabel}`);
+      logInfo(`  - Using map-reduce strategy for ${categoryLabel}`);
 
       // 1. Batch the summaries into token-appropriate sizes
       const summaryChunks = batchItemsByTokenLimit(sourceFileSummaries, {
@@ -69,7 +69,7 @@ export class MapReduceInsightStrategy implements InsightGenerationStrategy {
         chunkTokenLimitRatio: insightsConfig.CHUNK_TOKEN_LIMIT_RATIO,
       });
 
-      console.log(
+      logInfo(
         `  - Split summaries into ${summaryChunks.length} chunks for map-reduce processing`,
       );
 
@@ -78,7 +78,7 @@ export class MapReduceInsightStrategy implements InsightGenerationStrategy {
       // (categories are also processed in parallel at the generator level)
       const partialResultsPromises = summaryChunks.map(async (chunk, index) =>
         this.llmConcurrencyService.run(async () => {
-          console.log(
+          logInfo(
             `  - [MAP ${index + 1}/${summaryChunks.length}] Processing chunk for ${categoryLabel}...`,
           );
           return this.generatePartialInsightsForCategory(category, chunk);
@@ -96,7 +96,7 @@ export class MapReduceInsightStrategy implements InsightGenerationStrategy {
         return null;
       }
 
-      console.log(
+      logInfo(
         `  - [REDUCE] Consolidating ${partialResults.length} partial results for ${categoryLabel}...`,
       );
 

@@ -7,6 +7,7 @@ import { coreTokens, llmTokens, queryingTokens } from "../../di/tokens";
 import { inputConfig } from "../../config/input.config";
 import type LLMExecutionStats from "../../../common/llm/tracking/llm-execution-stats";
 import { BaseAnalysisTask } from "../base-analysis-task";
+import { logOutput, logOutputErr } from "../../../common/utils/logging";
 
 /**
  * Task to query the codebase using vector search and LLM.
@@ -57,11 +58,11 @@ export class CodebaseQueryTask extends BaseAnalysisTask {
       const question = questions[index];
 
       if (result.status === "fulfilled") {
-        console.log(
+        logOutput(
           `\n---------------\nQUESTION: ${question}\n\n${result.value}\n---------------\n`,
         );
       } else {
-        console.error(
+        logOutputErr(
           `\n---------------\nFAILED QUESTION: ${question}\n\nERROR: ${formatError(result.reason)}\n---------------\n`,
         );
       }

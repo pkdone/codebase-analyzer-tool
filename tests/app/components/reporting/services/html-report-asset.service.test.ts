@@ -277,7 +277,7 @@ describe("HtmlReportAssetService", () => {
         await service.ensureMermaidAsset(outputDir);
 
         expect(consoleWarnSpy).toHaveBeenCalledWith(
-          expect.stringContaining("Warning: Failed to ensure Mermaid.js"),
+          expect.stringContaining("Failed to ensure Mermaid.js"),
         );
       } finally {
         global.fetch = originalFetch;
@@ -375,7 +375,7 @@ describe("HtmlReportAssetService", () => {
         await service.ensurePrismAsset(outputDir);
 
         expect(consoleWarnSpy).toHaveBeenCalledWith(
-          expect.stringContaining("Warning: Failed to ensure Prism.js core"),
+          expect.stringContaining("Failed to ensure Prism.js core"),
         );
       } finally {
         global.fetch = originalFetch;

@@ -4,6 +4,7 @@ import { Task } from "../task.types";
 import { APP_PROVIDER_REGISTRY } from "../../llm/provider-registry";
 import { buildModelRegistry, getAllModelKeys } from "../../../common/llm/utils/model-registry";
 import { LLMError } from "../../../common/llm/types/llm-errors.types";
+import { logInfo, logOutput, logOutputErr, logTable } from "../../../common/utils/logging";
 
 /**
  * Represents a single row in the model table output.
@@ -43,12 +44,12 @@ export class ListAvailableModelsTask implements Task {
       return true;
     } catch (error) {
       if (error instanceof LLMError) {
-        console.error("");
-        console.error("========================================");
-        console.error("ERROR: Model Key Validation Failed");
-        console.error("========================================");
-        console.error(error.message);
-        console.error("");
+        logOutputErr("");
+        logOutputErr("========================================");
+        logOutputErr("ERROR: Model Key Validation Failed");
+        logOutputErr("========================================");
+        logOutputErr(error.message);
+        logOutputErr("");
         process.exitCode = 1;
         return false;
       }
@@ -95,17 +96,17 @@ export class ListAvailableModelsTask implements Task {
    * @param embeddingRows - The embedding model rows to display
    */
   private displayModelList(completionRows: ModelTableRow[], embeddingRows: ModelTableRow[]): void {
-    console.log("");
-    console.log("========================================");
-    console.log("LLM Completions Models Available (keys)");
-    console.log("========================================");
-    console.table(completionRows);
+    logInfo("");
+    logOutput("========================================");
+    logOutput("LLM Completions Models Available (keys)");
+    logOutput("========================================");
+    logTable(completionRows);
 
-    console.log("");
-    console.log("========================================");
-    console.log("LLM Embeddings Models Available (keys)");
-    console.log("========================================");
-    console.table(embeddingRows);
-    console.log("");
+    logInfo("");
+    logOutput("========================================");
+    logOutput("LLM Embeddings Models Available (keys)");
+    logOutput("========================================");
+    logTable(embeddingRows);
+    logOutput("");
   }
 }

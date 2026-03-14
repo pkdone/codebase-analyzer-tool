@@ -3,6 +3,7 @@ import type LLMExecutionStats from "../../common/llm/tracking/llm-execution-stat
 import type { Task } from "./task.types";
 import { outputConfig } from "../config/output.config";
 import { clearDirectory } from "../../common/fs/directory-operations";
+import { logInfo } from "../../common/utils/logging";
 
 /**
  * Abstract base class for analysis tasks that use LLM services.
@@ -35,7 +36,7 @@ export abstract class BaseAnalysisTask implements Task {
    * This is the template method that orchestrates the common lifecycle.
    */
   async execute(): Promise<void> {
-    console.log(`${this.getStartMessage()}: ${this.projectName}`);
+    logInfo(`${this.getStartMessage()}: ${this.projectName}`);
     this.llmStats.reset();
     this.llmStats.displayLLMStatusSummary();
 
@@ -44,11 +45,11 @@ export abstract class BaseAnalysisTask implements Task {
     }
 
     await this.runTask();
-    console.log(this.getFinishMessage());
-    console.log("Summary of LLM invocations outcomes:");
+    logInfo(this.getFinishMessage());
+    logInfo("Summary of LLM invocations outcomes:");
     this.llmStats.displayLLMStatusDetails();
     const postMessage = this.getPostTaskMessage();
-    if (postMessage) console.log(postMessage);
+    if (postMessage) logInfo(postMessage);
   }
 
   /**
