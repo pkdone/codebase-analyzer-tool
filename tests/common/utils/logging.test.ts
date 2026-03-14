@@ -12,18 +12,21 @@ describe("logging", () => {
   let consoleWarnSpy: jest.SpyInstance;
   let consoleErrorSpy: jest.SpyInstance;
   let consoleLogSpy: jest.SpyInstance;
+  let stdoutWriteSpy: jest.SpyInstance;
   const originalIsTTY = process.stdout.isTTY;
 
   beforeEach(() => {
     consoleWarnSpy = jest.spyOn(console, "warn").mockImplementation();
     consoleErrorSpy = jest.spyOn(console, "error").mockImplementation();
     consoleLogSpy = jest.spyOn(console, "log").mockImplementation();
+    stdoutWriteSpy = jest.spyOn(process.stdout, "write").mockImplementation(() => true);
   });
 
   afterEach(() => {
     consoleWarnSpy.mockRestore();
     consoleErrorSpy.mockRestore();
     consoleLogSpy.mockRestore();
+    stdoutWriteSpy.mockRestore();
     Object.defineProperty(process.stdout, "isTTY", { value: originalIsTTY, writable: true });
   });
 
@@ -93,8 +96,19 @@ describe("logging", () => {
       expect(loggedMessage).not.toContain("\n");
     });
 
-    it("should prepend newline in TTY mode", () => {
+    it("should not prepend newline in TTY mode without pending ticks", () => {
       Object.defineProperty(process.stdout, "isTTY", { value: true, writable: true });
+      const error = new Error("Test error");
+      logErr("Operation failed", error);
+
+      expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
+      const loggedMessage = consoleErrorSpy.mock.calls[0][0];
+      expect(loggedMessage.startsWith("Operation failed")).toBe(true);
+    });
+
+    it("should prepend newline in TTY mode after pending ticks", () => {
+      Object.defineProperty(process.stdout, "isTTY", { value: true, writable: true });
+      logTick(">");
       const error = new Error("Test error");
       logErr("Operation failed", error);
 
@@ -230,8 +244,18 @@ describe("logging", () => {
       expect(callArg).toContain("Context: true");
     });
 
-    it("should prepend newline in TTY mode", () => {
+    it("should not prepend newline in TTY mode without pending ticks", () => {
       Object.defineProperty(process.stdout, "isTTY", { value: true, writable: true });
+      logWarn("Warning message");
+
+      expect(consoleWarnSpy).toHaveBeenCalledTimes(1);
+      const callArg = consoleWarnSpy.mock.calls[0][0];
+      expect(callArg.startsWith("Warning message")).toBe(true);
+    });
+
+    it("should prepend newline in TTY mode after pending ticks", () => {
+      Object.defineProperty(process.stdout, "isTTY", { value: true, writable: true });
+      logTick(">");
       logWarn("Warning message");
 
       expect(consoleWarnSpy).toHaveBeenCalledTimes(1);
@@ -250,8 +274,9 @@ describe("logging", () => {
       expect(callArg.startsWith("Warning message")).toBe(true);
     });
 
-    it("should prepend newline in TTY mode with context", () => {
+    it("should prepend newline in TTY mode with context after pending ticks", () => {
       Object.defineProperty(process.stdout, "isTTY", { value: true, writable: true });
+      logTick(">");
       logWarn("Warning message", { key: "value" });
 
       expect(consoleWarnSpy).toHaveBeenCalledTimes(1);
@@ -271,8 +296,18 @@ describe("logging", () => {
       expect(consoleLogSpy).toHaveBeenCalledWith("Info message");
     });
 
-    it("should prepend newline in TTY mode", () => {
+    it("should not prepend newline in TTY mode without pending ticks", () => {
       Object.defineProperty(process.stdout, "isTTY", { value: true, writable: true });
+      logInfo("Info message");
+
+      expect(consoleLogSpy).toHaveBeenCalledTimes(1);
+      const callArg = consoleLogSpy.mock.calls[0][0];
+      expect(callArg.startsWith("Info message")).toBe(true);
+    });
+
+    it("should prepend newline in TTY mode after pending ticks", () => {
+      Object.defineProperty(process.stdout, "isTTY", { value: true, writable: true });
+      logTick(">");
       logInfo("Info message");
 
       expect(consoleLogSpy).toHaveBeenCalledTimes(1);
@@ -358,16 +393,6 @@ describe("logging", () => {
   });
 
   describe("logTick", () => {
-    let stdoutWriteSpy: jest.SpyInstance;
-
-    beforeEach(() => {
-      stdoutWriteSpy = jest.spyOn(process.stdout, "write").mockImplementation(() => true);
-    });
-
-    afterEach(() => {
-      stdoutWriteSpy.mockRestore();
-    });
-
     it("should use process.stdout.write in TTY mode", () => {
       Object.defineProperty(process.stdout, "isTTY", { value: true, writable: true });
       logTick(">");
