@@ -63,7 +63,6 @@ export const VertexAIClaudeProviderConfigSchema = z.object({
   minRetryDelayMillis: z.number().int().nonnegative(),
   maxRetryDelayMillis: z.number().int().nonnegative(),
   temperature: z.number().optional(),
-  topP: z.number().optional(),
   topK: z.number().optional(),
   anthropicBetaFlags: z.array(z.string()).optional(),
 });
@@ -74,7 +73,6 @@ export const VertexAIClaudeProviderConfigSchema = z.object({
  */
 export interface VertexAIClaudeProviderConfig extends LLMProviderSpecificConfig {
   temperature?: number;
-  topP?: number;
   topK?: number;
   anthropicBetaFlags?: readonly string[];
 }

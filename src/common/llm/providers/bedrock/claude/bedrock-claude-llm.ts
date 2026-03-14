@@ -63,8 +63,8 @@ export default class BedrockClaudeLLM extends BaseBedrockLLM {
           ],
         },
       ],
+      // Note: Claude API does not allow specifying both temperature and top_p simultaneously
       temperature: config.temperature ?? llmConfig.DEFAULT_ZERO_TEMP,
-      top_p: config.topP ?? llmConfig.DEFAULT_TOP_P_LOWEST,
       top_k: config.topK ?? llmConfig.DEFAULT_TOP_K_LOWEST,
       max_tokens: maxCompletionTokens,
     };

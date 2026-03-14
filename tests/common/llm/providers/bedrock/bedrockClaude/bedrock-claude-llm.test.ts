@@ -244,66 +244,14 @@ describe("BedrockClaudeLLM - Request Body Building", () => {
       expect(requestBody).toHaveProperty("max_tokens", 64000);
     });
 
-    it("should include top_p parameter in request body", () => {
+    it("should not include top_p parameter in request body", () => {
       const llm = new BedrockClaudeLLM(createTestProviderInit());
 
       // eslint-disable-next-line @typescript-eslint/dot-notation
       const requestBody = llm["buildCompletionRequestBody"](AWS_COMPLETIONS_CLAUDE_V37, "test");
 
-      // Verify top_p is present with the configured value (mockConfig has no topP, so defaults apply)
-      expect(requestBody).toHaveProperty("top_p");
-    });
-
-    it("should use configured topP value when provided", () => {
-      const configWithTopP: LLMProviderSpecificConfig = {
-        ...mockConfig,
-        topP: 0.9,
-      };
-
-      const manifest: LLMProviderManifest = {
-        ...bedrockClaudeProviderManifest,
-        providerSpecificConfig: configWithTopP,
-        models: {
-          embeddings: [],
-          completions: [
-            {
-              modelKey: AWS_COMPLETIONS_CLAUDE_V37,
-              urnEnvKey: "CLAUDE_V37_URN",
-              purpose: LLMPurpose.COMPLETIONS,
-              maxCompletionTokens:
-                mockModelsMetadata[AWS_COMPLETIONS_CLAUDE_V37].maxCompletionTokens,
-              maxTotalTokens: mockModelsMetadata[AWS_COMPLETIONS_CLAUDE_V37].maxTotalTokens,
-            },
-          ],
-        },
-      };
-      const init: ProviderInit = {
-        manifest,
-        providerParams: {},
-        extractedConfig: manifest.extractConfig({}),
-        resolvedModelChain: {
-          embeddings: [
-            {
-              providerFamily: "BedrockClaude",
-              modelKey: "EMBEDDINGS",
-              modelUrn: mockModelsMetadata.EMBEDDINGS.urn,
-            },
-          ],
-          completions: [
-            {
-              providerFamily: "BedrockClaude",
-              modelKey: AWS_COMPLETIONS_CLAUDE_V37,
-              modelUrn: mockModelsMetadata[AWS_COMPLETIONS_CLAUDE_V37].urn,
-            },
-          ],
-        },
-        errorLogging: createMockErrorLoggingConfig(),
-      };
-
-      const llm = new BedrockClaudeLLM(init);
-      // eslint-disable-next-line @typescript-eslint/dot-notation
-      const requestBody = llm["buildCompletionRequestBody"](AWS_COMPLETIONS_CLAUDE_V37, "test");
-      expect((requestBody as any).top_p).toBe(0.9);
+      // Claude API does not allow specifying both temperature and top_p simultaneously
+      expect(requestBody).not.toHaveProperty("top_p");
     });
 
     it("should use default values when config values are missing", () => {
@@ -363,7 +311,7 @@ describe("BedrockClaudeLLM - Request Body Building", () => {
 
       const body = requestBody as any;
       expect(body.temperature).toBe(llmConfig.DEFAULT_ZERO_TEMP);
-      expect(body.top_p).toBe(llmConfig.DEFAULT_TOP_P_LOWEST);
+      expect(body).not.toHaveProperty("top_p");
       expect(body.top_k).toBe(llmConfig.DEFAULT_TOP_K_LOWEST);
     });
 
