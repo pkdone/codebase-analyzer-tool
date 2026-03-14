@@ -61,7 +61,7 @@ function parseStringAsList(stringValue: string): string[] {
     } catch {
       // Try with single quotes converted to double quotes (common LLM output)
       try {
-        const normalizedQuotes = trimmed.replaceAll(/'/g, '"');
+        const normalizedQuotes = trimmed.replaceAll("'", '"');
         const parsed: unknown = JSON.parse(normalizedQuotes);
 
         if (Array.isArray(parsed)) {

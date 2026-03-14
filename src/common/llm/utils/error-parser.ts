@@ -78,7 +78,7 @@ function parseTokenUsageFromLLMError(
   const fallbackMaxTokens = llmModelsMetadata[modelKey].maxTotalTokens;
 
   for (const pattern of errorPatterns) {
-    const matches = errorMsg.match(pattern.pattern);
+    const matches = pattern.pattern.exec(errorMsg);
     if (!matches?.groups) continue;
 
     const groups = matches.groups as TokenErrorGroups;

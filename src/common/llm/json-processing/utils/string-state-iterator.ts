@@ -16,7 +16,7 @@ export interface StringStateInfo {
   /** The current character being processed */
   readonly char: string;
   /** The character code of the current character */
-  readonly charCode: number;
+
   /** The index of the character in the original string */
   readonly index: number;
   /** Whether this character is inside a JSON string literal */
@@ -238,7 +238,7 @@ class StringStateTrackerImpl implements StringStateTracker {
     const char = this._content[index];
     return {
       char,
-      charCode: char.charCodeAt(0),
+
       index,
       inString: this._inString,
       isEscaped: this._escapeNext,

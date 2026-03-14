@@ -31,10 +31,9 @@ export const bedrockMistralProviderManifest = createBedrockManifest(
       },
     ],
   },
+  BedrockMistralLLM,
   {
     [BEDROCK_MISTRAL_LARGE_2407_MODEL_URN_ID]: z.string().min(1),
     [BEDROCK_MISTRAL_LARGE_2402_MODEL_URN_ID]: z.string().min(1),
   },
-  {},
-  BedrockMistralLLM,
 );

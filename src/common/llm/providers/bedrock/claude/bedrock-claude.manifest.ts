@@ -48,6 +48,7 @@ export const bedrockClaudeProviderManifest = createBedrockManifest(
       },
     ],
   },
+  BedrockClaudeLLM,
   {
     [BEDROCK_CLAUDE_OPUS_46_MODEL_URN_ID]: z.string().min(1),
     [BEDROCK_CLAUDE_SONNET_46_MODEL_URN_ID]: z.string().min(1),
@@ -66,5 +67,4 @@ export const bedrockClaudeProviderManifest = createBedrockManifest(
     // Anthropic beta flags for specific features (e.g., extended context window)
     anthropicBetaFlags: ["context-1m-2025-08-07"] as const,
   },
-  BedrockClaudeLLM,
 );
