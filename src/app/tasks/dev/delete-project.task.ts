@@ -4,6 +4,7 @@ import { Task } from "../task.types";
 import type { SourcesRepository } from "../../repositories/sources/sources.repository.interface";
 import type { AppSummariesRepository } from "../../repositories/app-summaries/app-summaries.repository.interface";
 import { repositoryTokens } from "../../di/tokens";
+import { logInfo, logOutputErr } from "../../../common/utils/logging";
 
 /**
  * Task that deletes all data for a specified project from both the sources
@@ -27,18 +28,18 @@ export class DeleteProjectTask implements Task {
    */
   async execute(): Promise<void> {
     if (!this.targetProjectName) {
-      console.error("No project name specified. Usage: cba delete <project-name>");
+      logOutputErr("No project name specified. Usage: cba delete <project-name>");
       process.exitCode = 1;
       return;
     }
 
-    console.log(`Deleting all data for project: "${this.targetProjectName}"...`);
+    logInfo(`Deleting all data for project: "${this.targetProjectName}"...`);
 
     await Promise.all([
       this.sourcesRepository.deleteSourcesByProject(this.targetProjectName),
       this.appSummariesRepository.deleteAppSummaryByProject(this.targetProjectName),
     ]);
 
-    console.log(`Project "${this.targetProjectName}" has been deleted from the database.`);
+    logInfo(`Project "${this.targetProjectName}" has been deleted from the database.`);
   }
 }

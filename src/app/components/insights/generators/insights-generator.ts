@@ -1,7 +1,7 @@
 import { injectable, inject } from "tsyringe";
 import LLMRouter from "../../../../common/llm/llm-router";
 import type { FileProcessingRulesType } from "../../../config/file-handling";
-import { logErr, logWarn, logInfo } from "../../../../common/utils/logging";
+import { logErr, logInfo, logOutputErr, logWarn } from "../../../../common/utils/logging";
 import type { AppSummariesRepository } from "../../../repositories/app-summaries/app-summaries.repository.interface";
 import type { SourcesRepository } from "../../../repositories/sources/sources.repository.interface";
 import {
@@ -71,12 +71,12 @@ export default class InsightsGenerator {
     const sourceFileSummaries = await this.formatSourcesForLLMPrompt();
 
     if (sourceFileSummaries.length === 0) {
-      console.error("");
-      console.error("=".repeat(70));
-      console.error(`  No captured source data found for project "${this.projectName}".`);
-      console.error(`  Run 'cba capture' first.`);
-      console.error("=".repeat(70));
-      console.error("");
+      logOutputErr("");
+      logOutputErr("=".repeat(70));
+      logOutputErr(`  No captured source data found for project "${this.projectName}".`);
+      logOutputErr(`  Run 'cba capture' first.`);
+      logOutputErr("=".repeat(70));
+      logOutputErr("");
       return;
     }
 
@@ -116,7 +116,7 @@ export default class InsightsGenerator {
 
     for (const record of records) {
       if (!record.summary || Object.keys(record.summary).length === 0) {
-        console.log(`No source code summary exists for file: ${record.filepath}. Skipping.`);
+        logInfo(`No source code summary exists for file: ${record.filepath}. Skipping.`);
         continue;
       }
 
@@ -150,7 +150,7 @@ export default class InsightsGenerator {
       });
       const strategy =
         summaryChunks.length === 1 ? this.singlePassStrategy : this.mapReduceStrategy;
-      console.log(
+      logInfo(
         `Processing ${categoryLabel} (using ${summaryChunks.length === 1 ? "single-pass" : "map-reduce"} strategy)`,
       );
       // Generate insights using the selected strategy

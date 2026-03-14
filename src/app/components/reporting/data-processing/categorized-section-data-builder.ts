@@ -12,6 +12,7 @@ import {
   potentialMicroservicesHandler,
   inferredArchitectureHandler,
 } from "./handlers";
+import { logInfo, logWarn } from "../../../../common/utils/logging";
 
 // Re-export types and type guards that consumers may need
 export type { CategorizedSectionItem, BoundedContextsArray } from "./category-data-type-guards";
@@ -76,7 +77,7 @@ export class CategorizedSectionDataBuilder {
 
       if (item !== null) {
         results.push(item);
-        console.log(`Generated ${label} table`);
+        logInfo(`Generated ${label} table`);
       }
     }
 
@@ -95,7 +96,7 @@ export class CategorizedSectionDataBuilder {
     const handler = categoryHandlers.get(category);
 
     if (!handler) {
-      console.warn(`No handler registered for category: ${category}`);
+      logWarn(`No handler registered for category: ${category}`);
       return null;
     }
 

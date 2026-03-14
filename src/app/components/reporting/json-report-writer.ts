@@ -3,6 +3,7 @@ import path from "node:path";
 import { coreTokens } from "../../di/tokens";
 import type { OutputConfigType } from "../../config/output.config";
 import { writeFile } from "../../../common/fs/file-operations";
+import { logErr, logInfo } from "../../../common/utils/logging";
 
 export interface PreparedJsonData {
   filename: string;
@@ -21,7 +22,7 @@ export class JsonReportWriter {
    * Write all prepared JSON data files to the output directory.
    */
   async writeAllJSONFiles(preparedDataList: PreparedJsonData[]): Promise<void> {
-    console.log("Generating JSON files for all data sections...");
+    logInfo("Generating JSON files for all data sections...");
 
     const tasks = preparedDataList.map(async ({ filename, data }) =>
       this.writeJsonFile(filename, data),
@@ -31,10 +32,10 @@ export class JsonReportWriter {
     const failures = results.filter((r): r is PromiseRejectedResult => r.status === "rejected");
 
     for (const failure of failures) {
-      console.error(`Failed to write a JSON file:`, failure.reason);
+      logErr("Failed to write a JSON file", failure.reason);
     }
 
-    console.log("Finished generating all JSON files");
+    logInfo("Finished generating all JSON files");
   }
 
   /**
@@ -44,6 +45,6 @@ export class JsonReportWriter {
     const jsonFilePath = path.join(this.config.OUTPUT_DIR, filename);
     const jsonContent = JSON.stringify(data, null, 2);
     await writeFile(jsonFilePath, jsonContent);
-    console.log(`Generated JSON file: ${filename}`);
+    logInfo(`Generated JSON file: ${filename}`);
   }
 }

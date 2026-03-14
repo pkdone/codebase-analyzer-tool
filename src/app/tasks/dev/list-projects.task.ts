@@ -4,6 +4,7 @@ import { Task } from "../task.types";
 import type { SourcesRepository } from "../../repositories/sources/sources.repository.interface";
 import type { ProjectSummaryStats } from "../../repositories/sources/sources.model";
 import { repositoryTokens, coreTokens } from "../../di/tokens";
+import { logInfo, logOutput } from "../../../common/utils/logging";
 
 const ACTIVE_MARKER = " -->";
 const HEADERS = ["", "Project", "Files", "Lines of Code", "Summarized", "File Types"] as const;
@@ -30,7 +31,7 @@ export class ListProjectsTask implements Task {
     const projectStats = await this.sourcesRepository.getAllProjectStats();
 
     if (projectStats.length === 0) {
-      console.log("\nNo projects found in the database.\n");
+      logInfo("\nNo projects found in the database.\n");
       return;
     }
 
@@ -68,19 +69,19 @@ export class ListProjectsTask implements Task {
     const headerLine = formatRow(HEADERS);
     const separator = colWidths.map((w) => "-".repeat(w)).join("  ");
 
-    console.log("");
-    console.log("Projects In Database");
-    console.log(separator);
-    console.log(headerLine);
-    console.log(separator);
+    logInfo("");
+    logOutput("Projects In Database");
+    logOutput(separator);
+    logOutput(headerLine);
+    logOutput(separator);
 
     for (const row of rows) {
-      console.log(formatRow(row));
+      logOutput(formatRow(row));
     }
 
-    console.log(separator);
-    console.log(`Total: ${stats.length} project(s), ${totalFiles} files, ${totalLines} lines`);
-    console.log(`--> = configured project (from .env)`);
-    console.log("");
+    logOutput(separator);
+    logOutput(`Total: ${stats.length} project(s), ${totalFiles} files, ${totalLines} lines`);
+    logOutput(`--> = configured project (from .env)`);
+    logOutput("");
   }
 }

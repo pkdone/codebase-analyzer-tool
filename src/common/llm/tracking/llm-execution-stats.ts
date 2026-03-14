@@ -3,6 +3,7 @@ import {
   LLMStatsCategoriesSummary,
   LLMStatsCategoriesBase,
 } from "../types/llm-stats.types";
+import { logInfo, logTable, logTick } from "../../utils/logging";
 
 /**
  * Immutable status definition containing static metadata about each status type.
@@ -46,14 +47,13 @@ type StatusCounts = Record<keyof LLMStatsCategoriesBase, number>;
  * snapshots via getStatusTypesStatistics().
  */
 export default class LLMExecutionStats {
-  private readonly shouldPrintEventTicks: boolean;
+  private readonly shouldPrintEventTicks: boolean = true;
   private readonly counts: StatusCounts;
 
   /**
    * Constructor - initializes counts to zero.
    */
   constructor() {
-    this.shouldPrintEventTicks = true;
     this.counts = {
       SUCCESS: 0,
       FAILURE: 0,
@@ -159,15 +159,15 @@ export default class LLMExecutionStats {
    * Print the accumulated statistics of LLM invocation result types.
    */
   displayLLMStatusSummary(): void {
-    console.log("LLM invocation event types that will be recorded:");
-    console.table(this.getStatusTypesStatistics(), ["description", "symbol"]);
+    logInfo("LLM invocation event types that will be recorded:");
+    logTable(this.getStatusTypesStatistics(), ["description", "symbol"]);
   }
 
   /**
    * Print the accumulated statistics of LLM invocation result types.
    */
   displayLLMStatusDetails(): void {
-    console.table(this.getStatusTypesStatistics(true));
+    logTable(this.getStatusTypesStatistics(true));
   }
 
   /**
@@ -175,22 +175,7 @@ export default class LLMExecutionStats {
    */
   private record(statusKey: keyof LLMStatsCategoriesBase): void {
     this.counts[statusKey]++;
-    if (this.shouldPrintEventTicks) this.printChar(STATUS_DEFINITIONS[statusKey].symbol);
-  }
-
-  /**
-   * Print a single character or string, handling TTY vs. non-TTY environments.
-   * @param ch The character or string to print.
-   */
-  private printChar(ch: string): void {
-    if (process.stdout.isTTY) {
-      // Real terminal: no newline output works as expected
-      process.stdout.write(ch);
-    } else {
-      // Not a terminal (VS Code Debug Console, pipes, redirected output, CI logs, etc.)
-      // Fall back to line-based output
-      console.log(ch);
-    }
+    if (this.shouldPrintEventTicks) logTick(STATUS_DEFINITIONS[statusKey].symbol);
   }
 
   /**

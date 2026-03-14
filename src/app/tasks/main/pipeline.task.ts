@@ -5,6 +5,7 @@ import { taskTokens } from "../../di/tokens";
 import type { CodebaseCaptureTask } from "./codebase-capture.task";
 import type { InsightsGenerationTask } from "./insights-generation.task";
 import type { ReportGenerationTask } from "./report-generation.task";
+import { logInfo, logOutput } from "../../../common/utils/logging";
 
 /**
  * Task to run the full pipeline workflow: capture → insights → report.
@@ -34,27 +35,27 @@ export class PipelineTask implements Task {
    * Runs capture, insights, and report generation in sequence.
    */
   async execute(): Promise<void> {
-    console.log("========================================");
-    console.log("Starting full pipeline workflow:");
-    console.log("  1. Capture codebase metadata");
-    console.log("  2. Generate insights");
-    console.log("  3. Produce report");
-    console.log("========================================");
+    logInfo("========================================");
+    logOutput("Starting full pipeline workflow:");
+    logOutput("  1. Capture codebase metadata");
+    logOutput("  2. Generate insights");
+    logOutput("  3. Produce report");
+    logOutput("========================================");
 
     // Phase 1: Capture
-    console.log("\n--- Phase 1/3: Capture ---");
+    logInfo("\n--- Phase 1/3: Capture ---");
     await this.captureTask.execute();
 
     // Phase 2: Insights
-    console.log("\n--- Phase 2/3: Insights ---");
+    logInfo("\n--- Phase 2/3: Insights ---");
     await this.insightsTask.execute();
 
     // Phase 3: Report
-    console.log("\n--- Phase 3/3: Report ---");
+    logInfo("\n--- Phase 3/3: Report ---");
     await this.reportTask.execute();
 
-    console.log("\n========================================");
-    console.log("Pipeline workflow completed successfully");
-    console.log("========================================");
+    logInfo("\n========================================");
+    logOutput("Pipeline workflow completed successfully");
+    logOutput("========================================");
   }
 }

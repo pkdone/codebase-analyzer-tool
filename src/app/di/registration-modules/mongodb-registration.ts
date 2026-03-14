@@ -3,6 +3,7 @@ import { coreTokens } from "../tokens";
 import { MongoDBConnectionManager } from "../../../common/mongodb/mdb-connection-manager";
 import { databaseConfig } from "../../config/database.config";
 import type { EnvVars } from "../../env/env.types";
+import { logInfo } from "../../../common/utils/logging";
 
 /**
  * Register MongoDB-related dependencies.
@@ -10,13 +11,13 @@ import type { EnvVars } from "../../env/env.types";
  */
 export function registerMongoDBDependencies(): void {
   if (container.isRegistered(coreTokens.MongoDBConnectionManager)) {
-    console.log("MongoDB dependencies already registered - skipping registration");
+    logInfo("MongoDB dependencies already registered - skipping registration");
     return;
   }
 
   // Register the connection manager as singleton
   container.registerSingleton(coreTokens.MongoDBConnectionManager, MongoDBConnectionManager);
-  console.log("MongoDB Connection Manager initialized and registered as singleton");
+  logInfo("MongoDB Connection Manager initialized and registered as singleton");
 }
 
 /**
@@ -25,7 +26,7 @@ export function registerMongoDBDependencies(): void {
  */
 export async function connectAndRegisterMongoClient(): Promise<void> {
   if (container.isRegistered(coreTokens.MongoClient)) {
-    console.log("MongoDB Client already registered - skipping connection");
+    logInfo("MongoDB Client already registered - skipping connection");
     return;
   }
 
@@ -40,5 +41,5 @@ export async function connectAndRegisterMongoClient(): Promise<void> {
   );
 
   container.registerInstance(coreTokens.MongoClient, client);
-  console.log("MongoDB Client connected and registered as instance");
+  logInfo("MongoDB Client connected and registered as instance");
 }

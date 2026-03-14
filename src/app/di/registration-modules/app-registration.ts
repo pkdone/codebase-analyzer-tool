@@ -53,6 +53,7 @@ import { LlmConcurrencyService } from "../../components/concurrency";
 
 // Database component imports
 import { DatabaseInitializer } from "../../components/database/database-initializer";
+import { logInfo } from "../../../common/utils/logging";
 
 /**
  * Register all application-level dependencies (repositories, components, and tasks).
@@ -91,7 +92,7 @@ function registerRepositories(): void {
     AppSummariesRepositoryImpl,
   );
 
-  console.log("Repositories registered");
+  logInfo("Repositories registered");
 }
 
 /**
@@ -128,7 +129,7 @@ function registerComponents(): void {
   // Register reporting components (kept separate due to size)
   registerReportingComponents();
 
-  console.log("Internal helper components registered");
+  logInfo("Internal helper components registered");
 }
 
 /**
@@ -157,5 +158,5 @@ function registerTasks(): void {
   // Workflow orchestration tasks
   container.registerSingleton(taskTokens.PipelineTask, PipelineTask);
 
-  console.log("Main executable tasks registered");
+  logInfo("Main executable tasks registered");
 }

@@ -8,6 +8,7 @@ import { queryingInputConfig } from "./querying-input.config";
 import { formatFilesAsMarkdownCodeBlocks } from "../../../common/utils/markdown-formatter";
 import { buildQueryPrompt } from "../../prompts/prompt-builders";
 import { repositoryTokens, llmTokens } from "../../di/tokens";
+import { logInfo } from "../../../common/utils/logging";
 
 /**
  * Formats source file metadata into markdown code blocks for LLM prompts.
@@ -68,7 +69,7 @@ export class CodebaseQueryProcessor {
     );
 
     if (bestMatchFiles.length <= 0) {
-      console.log("Vector search on code using the question failed to return any results");
+      logInfo("Vector search on code using the question failed to return any results");
       return "Unable to answer question because no relevent code was found";
     }
 
@@ -83,7 +84,7 @@ export class CodebaseQueryProcessor {
       const referencesText = bestMatchFiles.map((match) => ` * ${match.filepath}`).join("\n");
       return `${result.value}\n\nReferences:\n${referencesText}`;
     } else {
-      console.log(
+      logInfo(
         `Called the LLM with data from Vector Search but completion failed: ${result.error.message}`,
       );
       return "Unable to answer question because no insight was generated";

@@ -3,6 +3,7 @@ import { createLLMRouter } from "../../../common/llm/llm-factory";
 import { buildLLMModuleConfig } from "../../env/llm-config-builder";
 import type { EnvVars } from "../../env/env.types";
 import { llmTokens, coreTokens } from "../tokens";
+import { logInfo } from "../../../common/utils/logging";
 
 /**
  * Initializes and registers LLM components.
@@ -11,7 +12,7 @@ import { llmTokens, coreTokens } from "../tokens";
  */
 export async function initializeAndRegisterLLMComponents(): Promise<void> {
   if (container.isRegistered(llmTokens.LLMRouter)) {
-    console.log("LLM components already registered - skipping initialization");
+    logInfo("LLM components already registered - skipping initialization");
     return;
   }
 
@@ -33,5 +34,5 @@ export async function initializeAndRegisterLLMComponents(): Promise<void> {
   container.registerInstance(llmTokens.LLMExecutionStats, stats);
   container.registerInstance(llmTokens.LLMModuleConfig, llmConfig);
 
-  console.log("LLMRouter registered as singleton");
+  logInfo("LLMRouter registered as singleton");
 }

@@ -5,6 +5,7 @@ import { coreTokens, reportingTokens } from "../../di/tokens";
 import { outputConfig } from "../../config/output.config";
 import { clearDirectory } from "../../../common/fs/directory-operations";
 import ReportArtifactGenerator from "../../components/reporting/report-artifact-generator";
+import { logInfo } from "../../../common/utils/logging";
 
 /**
  * Task to generate report artifacts for an application's composition.
@@ -32,7 +33,7 @@ export class ReportGenerationTask implements Task {
    */
   private async generateReportArtifacts(): Promise<void> {
     await clearDirectory(outputConfig.OUTPUT_DIR);
-    console.log(`Creating report artifacts for project: ${this.projectName}`);
+    logInfo(`Creating report artifacts for project: ${this.projectName}`);
     await this.reportArtifactGenerator.generateReportArtifacts(
       this.projectName,
       outputConfig.OUTPUT_DIR,

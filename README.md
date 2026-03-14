@@ -77,7 +77,7 @@ npm run build
 npm link
 ```
 
-**Note:** On some systems, `npm link` may require elevated permissions. If you get a permissions error, try `sudo npm link` (Linux/macOS) or run your terminal as Administrator (Windows).
+**Note:** On some systems, `npm link` may require elevated permissions. If you get a permissions error, try `sudo npm link` (Linux/macOS) or run your terminal as Administrator (Windows). Also, once you've successfully run `npm link` once, there is no need to run it again after every subsequent build.
 
 The `npm link` step only needs to be run once. After that, `cba` is available as a direct command.
 

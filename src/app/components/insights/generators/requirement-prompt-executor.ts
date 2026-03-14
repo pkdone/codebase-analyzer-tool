@@ -8,7 +8,7 @@ import {
   listDirectoryEntries,
   ensureDirectoryExists,
 } from "../../../../common/fs/directory-operations";
-import { logErr, logWarn } from "../../../../common/utils/logging";
+import { logErr, logInfo, logWarn } from "../../../../common/utils/logging";
 import { formatError } from "../../../../common/utils/error-formatters";
 import { llmTokens, configTokens, serviceTokens } from "../../../di/tokens";
 import LLMRouter from "../../../../common/llm/llm-router";
@@ -160,7 +160,7 @@ export class RequirementPromptExecutor {
 
     try {
       await writeFile(tempFilePath, codeBlocksContent);
-      console.log(`Project code has been dumped to: ${tempFilePath}`);
+      logInfo(`Project code has been dumped to: ${tempFilePath}`);
     } catch (error: unknown) {
       logErr("Failed to dump code blocks to temp file", error);
     }

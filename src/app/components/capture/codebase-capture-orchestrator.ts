@@ -88,7 +88,7 @@ export default class CodebaseCaptureOrchestrator {
     projectName: string,
     skipIfAlreadyIngested: boolean,
   ) {
-    console.log(
+    logInfo(
       `Ingesting data on ${files.length} files to go into the MongoDB database sources collection`,
     );
     let existingFiles: ReadonlySet<string> = new Set<string>();
@@ -98,12 +98,12 @@ export default class CodebaseCaptureOrchestrator {
       existingFiles = new Set(existingFilePaths);
 
       if (existingFiles.size > 0) {
-        console.log(
+        logInfo(
           `Not ingesting some of the metadata files into the database because they've already been ingested by a previous run - change env var 'SKIP_ALREADY_PROCESSED_FILES' to force re-processing of all files`,
         );
       }
     } else {
-      console.log(
+      logInfo(
         `Deleting older version of the project's metadata files from the database to enable the metadata to be re-generated - change env var 'SKIP_ALREADY_PROCESSED_FILES' to avoid re-processing of all files`,
       );
       await this.sourcesRepository.deleteSourcesByProject(projectName);

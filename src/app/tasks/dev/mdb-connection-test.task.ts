@@ -3,6 +3,7 @@ import { injectable, inject } from "tsyringe";
 import { Task } from "../task.types";
 import type { SourcesRepository } from "../../repositories/sources/sources.repository.interface";
 import { repositoryTokens, coreTokens } from "../../di/tokens";
+import { logInfo } from "../../../common/utils/logging";
 
 /**
  * Task to test the MongoDB connection.
@@ -27,6 +28,6 @@ export class MongoConnectionTestTask implements Task {
 
   private async testConnection(): Promise<void> {
     const result = await this.sourcesRepository.getProjectFilesPaths(this.projectName);
-    console.log("Result:", JSON.stringify(result, null, 2));
+    logInfo("Result: " + JSON.stringify(result, null, 2));
   }
 }

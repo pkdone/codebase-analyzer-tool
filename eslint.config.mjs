@@ -59,6 +59,7 @@ export default tseslint.config(
       ...tseslint.configs.stylisticTypeChecked,
     ],
     rules: {
+      "no-console": "error",
       "@typescript-eslint/explicit-member-accessibility": ["error", { "accessibility": "no-public" }],
       "@typescript-eslint/member-ordering": "error",     
       "@typescript-eslint/prefer-readonly": "error",
@@ -92,10 +93,19 @@ export default tseslint.config(
     },
   },
   
+  // Allow console usage in the centralized logging module
+  {
+    files: ['src/common/utils/logging.ts'],
+    rules: {
+      'no-console': 'off',
+    },
+  },
+
   // Relaxed rules for test files
   {
     files: ["tests/**/*.ts", "tests/**/*.test.ts"],
     rules: {
+      "no-console": "off",
       "@typescript-eslint/no-unsafe-call": "off",
       "@typescript-eslint/no-unsafe-member-access": "off", 
       "@typescript-eslint/no-unsafe-assignment": "off",

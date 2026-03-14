@@ -9,6 +9,7 @@ import type { LLMErrorLoggingConfig, LLMProviderRegistry } from "./config/llm-mo
 import { LLMError, LLMErrorCode } from "./types/llm-errors.types";
 import { loadManifestForProviderFamily } from "./utils/manifest-loader";
 import { ShutdownBehavior } from "./types/llm-shutdown.types";
+import { logInfo } from "../utils/logging";
 
 /**
  * Configuration for initializing the ProviderManager.
@@ -91,7 +92,7 @@ export class ProviderManager {
     const provider = new manifest.implementation(init);
     this.providers.set(normalizedFamily, provider);
 
-    console.log(`ProviderManager: Instantiated provider for '${providerFamily}'`);
+    logInfo(`ProviderManager: Instantiated provider for '${providerFamily}'`);
     return provider;
   }
 
@@ -174,7 +175,7 @@ export class ProviderManager {
     const shutdownPromises: Promise<void>[] = [];
 
     for (const [family, provider] of this.providers) {
-      console.log(`ProviderManager: Shutting down provider '${family}'`);
+      logInfo(`ProviderManager: Shutting down provider '${family}'`);
       shutdownPromises.push(provider.close());
     }
 

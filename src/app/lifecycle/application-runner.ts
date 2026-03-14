@@ -2,6 +2,7 @@ import "reflect-metadata";
 import { bootstrapContainer, container } from "../di/container";
 import { Task } from "../tasks/task.types";
 import { formatDateForLogging } from "../../common/utils/date-utils";
+import { logErr, logInfo } from "../../common/utils/logging";
 import { createShutdownOrchestrator } from "./shutdown-orchestrator";
 
 /**
@@ -25,13 +26,13 @@ export async function runApplication(
 
   try {
     await bootstrapContainer();
-    console.log(`START: ${formatDateForLogging()}`);
+    logInfo(`START: ${formatDateForLogging()}`);
     const task = await container.resolve<Task | Promise<Task>>(taskToken);
     configureTask?.(task);
     await task.execute();
-    console.log(`END: ${formatDateForLogging()}`);
+    logInfo(`END: ${formatDateForLogging()}`);
   } catch (error: unknown) {
-    console.error("Application error:", error);
+    logErr("Application error", error);
     process.exitCode = 1;
   } finally {
     try {
@@ -43,11 +44,11 @@ export async function runApplication(
       // See: https://github.com/googleapis/nodejs-pubsub/issues/1190
       if (result.requiresForcedExit) {
         const providerNames = result.providersRequiringExit.join(", ");
-        console.log(`LLM provider(s) require forced exit (${providerNames}) - terminating process`);
+        logInfo(`LLM provider(s) require forced exit (${providerNames}) - terminating process`);
         process.exit(process.exitCode ?? 0);
       }
     } catch (shutdownError: unknown) {
-      console.error("Failed to perform graceful shutdown:", shutdownError);
+      logErr("Failed to perform graceful shutdown", shutdownError);
     }
 
     clearInterval(keepAliveInterval);

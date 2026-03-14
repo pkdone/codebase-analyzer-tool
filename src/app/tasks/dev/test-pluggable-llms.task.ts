@@ -6,6 +6,7 @@ import { isLLMOk } from "../../../common/llm/types/llm-result.types";
 import LLMRouter from "../../../common/llm/llm-router";
 import { Task } from "../task.types";
 import { llmTokens } from "../../di/tokens";
+import { logInfo, logOutput } from "../../../common/utils/logging";
 
 /**
  * File path to the sample prompt file
@@ -34,15 +35,15 @@ export class PluggableLLMsTestTask implements Task {
    */
   private async runPluggableLLMs(): Promise<void> {
     const prompt = await readFile(SAMPLE_PROMPT_FILEPATH);
-    console.log("\n===== PROMPT =====");
-    console.log(prompt);
+    logInfo("\n===== PROMPT =====");
+    logOutput(prompt);
 
     // Test all embedding models in the chain
     await this.testEmbeddingChain(prompt);
 
     // Test all completion models in the chain
     await this.testCompletionChain(prompt);
-    console.log("\n");
+    logOutput("\n");
   }
 
   /**
@@ -51,15 +52,15 @@ export class PluggableLLMsTestTask implements Task {
   private async testEmbeddingChain(prompt: string): Promise<void> {
     const embeddingChain = this.llmRouter.getEmbeddingChain();
 
-    console.log("\n\n========================================");
-    console.log(`EMBEDDINGS CHAIN (${embeddingChain.length} model(s))`);
-    console.log("========================================");
+    logInfo("\n\n========================================");
+    logOutput(`EMBEDDINGS CHAIN (${embeddingChain.length} model(s))`);
+    logOutput("========================================");
 
     for (let i = 0; i < embeddingChain.length; i++) {
       const model = embeddingChain[i];
       const modelName = `${model.providerFamily}/${model.modelKey}`;
 
-      console.log(`\n----- [${i + 1}/${embeddingChain.length}] ${modelName} -----`);
+      logOutput(`\n----- [${i + 1}/${embeddingChain.length}] ${modelName} -----`);
 
       const result = await this.llmRouter.generateEmbeddings("test-embeddings", prompt, i);
 
@@ -68,11 +69,11 @@ export class PluggableLLMsTestTask implements Task {
           .slice(0, 5)
           .map((n) => n.toFixed(6))
           .join(", ");
-        console.log(
+        logOutput(
           `✓ Success: (${result.embeddings.length} dimensions) [${preview}, ...] using ${result.meta.modelId}`,
         );
       } else {
-        console.log("✗ Error: Failed to generate embeddings");
+        logOutput("✗ Error: Failed to generate embeddings");
       }
     }
   }
@@ -83,15 +84,15 @@ export class PluggableLLMsTestTask implements Task {
   private async testCompletionChain(prompt: string): Promise<void> {
     const completionChain = this.llmRouter.getCompletionChain();
 
-    console.log("\n\n========================================");
-    console.log(`COMPLETIONS CHAIN (${completionChain.length} model(s))`);
-    console.log("========================================");
+    logInfo("\n\n========================================");
+    logOutput(`COMPLETIONS CHAIN (${completionChain.length} model(s))`);
+    logOutput("========================================");
 
     for (let i = 0; i < completionChain.length; i++) {
       const model = completionChain[i];
       const modelName = `${model.providerFamily}/${model.modelKey}`;
 
-      console.log(`\n----- [${i + 1}/${completionChain.length}] ${modelName} -----`);
+      logOutput(`\n----- [${i + 1}/${completionChain.length}] ${modelName} -----`);
 
       const result = await this.llmRouter.executeCompletion(
         "test-completion",
@@ -104,9 +105,9 @@ export class PluggableLLMsTestTask implements Task {
         // Show first 500 chars of the response
         const preview =
           result.value.length > 500 ? result.value.substring(0, 500) + "..." : result.value;
-        console.log(`✓ Success (via ${result.meta.modelId}):\n${preview}`);
+        logOutput(`✓ Success (via ${result.meta.modelId}):\n${preview}`);
       } else {
-        console.log(`✗ Error: ${result.error.message}`);
+        logOutput(`✗ Error: ${result.error.message}`);
       }
     }
   }

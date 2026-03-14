@@ -9,7 +9,7 @@ import {
   type CollectionType,
   type DatabaseConfigType,
 } from "../../config/database.config";
-import { logErr } from "../../../common/utils/logging";
+import { logErr, logInfo } from "../../../common/utils/logging";
 import { getJSONSchema as getSourcesJSONSchema } from "../../repositories/sources/sources.model";
 import { SOURCE_FIELDS } from "../../schemas/source-file.schema";
 import { getJSONSchema as getAppSummariesJSONSchema } from "../../repositories/app-summaries/app-summaries.model";
@@ -102,7 +102,7 @@ export class DatabaseInitializer {
     try {
       // Try to create the collection first (more efficient for new collections)
       await this.db.createCollection(collectionName, validationOptions);
-      console.log(
+      logInfo(
         `Created collection '${this.db.databaseName}.${collectionName}' with JSON schema validator`,
       );
     } catch (error: unknown) {
@@ -110,7 +110,7 @@ export class DatabaseInitializer {
       if (error instanceof MongoServerError && error.code === MONGODB_NAMESPACE_EXISTS_ERROR_CODE) {
         try {
           await this.db.command({ collMod: collectionName, ...validationOptions });
-          console.log(
+          logInfo(
             `Updated JSON schema validator for collection '${this.db.databaseName}.${collectionName}'`,
           );
         } catch (updateError: unknown) {
@@ -155,7 +155,7 @@ export class DatabaseInitializer {
     }
 
     if (!unknownErrorOccurred) {
-      console.log(
+      logInfo(
         `Ensured Vector Search index exists for the MongoDB database collection: '${this.sourcesCollection.dbName}.${this.sourcesCollection.collectionName}',`,
       );
     }
@@ -170,7 +170,7 @@ export class DatabaseInitializer {
     isUnique = false,
   ): Promise<void> {
     await collection.createIndex(indexSpec, { unique: isUnique });
-    console.log(
+    logInfo(
       `Ensured regular index exists for the MongoDB database collection: '${collection.dbName}.${collection.collectionName}'`,
     );
   }
