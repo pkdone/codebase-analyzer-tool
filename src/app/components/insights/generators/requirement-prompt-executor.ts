@@ -10,13 +10,14 @@ import {
 } from "../../../../common/fs/directory-operations";
 import { logErr, logInfo, logWarn } from "../../../../common/utils/logging";
 import { formatError } from "../../../../common/utils/error-formatters";
-import { llmTokens, configTokens, serviceTokens } from "../../../di/tokens";
+import { llmTokens, configTokens, coreTokens, serviceTokens } from "../../../di/tokens";
 import LLMRouter from "../../../../common/llm/llm-router";
 import { LLMOutputFormat } from "../../../../common/llm/types/llm-request.types";
 import { isLLMOk } from "../../../../common/llm/types/llm-result.types";
 import { readAndFormatFilesAsMarkdown } from "../../../../common/utils/file-content-aggregator";
 import { formatDateForFilename } from "../../../../common/utils/date-utils";
 import { inputConfig } from "../../../config/input.config";
+import type { BaseEnvVars } from "../../../env/env.types";
 import type { LlmConcurrencyService } from "../../concurrency";
 
 /**
@@ -39,6 +40,7 @@ export class RequirementPromptExecutor {
    * @param llmRouter - Router for LLM operations
    * @param fileProcessingConfig - Configuration for file processing rules
    * @param llmConcurrencyService - Service for managing LLM call concurrency
+   * @param envVars - Environment variables for optional configuration overrides
    */
   constructor(
     @inject(llmTokens.LLMRouter) private readonly llmRouter: LLMRouter,
@@ -46,6 +48,7 @@ export class RequirementPromptExecutor {
     private readonly fileProcessingConfig: FileProcessingRulesType,
     @inject(serviceTokens.LlmConcurrencyService)
     private readonly llmConcurrencyService: LlmConcurrencyService,
+    @inject(coreTokens.EnvVars) private readonly envVars: BaseEnvVars,
   ) {}
 
   /**
@@ -125,7 +128,8 @@ export class RequirementPromptExecutor {
    * Load prompts from files in the input folder
    */
   private async loadPrompts(): Promise<FileRequirementPrompt[]> {
-    const inputDir = inputConfig.REQUIREMENTS_PROMPTS_FOLDERPATH;
+    const inputDir =
+      this.envVars.REQUIREMENTS_PROMPTS_DIR ?? inputConfig.REQUIREMENTS_PROMPTS_FOLDERPATH;
     const prompts: FileRequirementPrompt[] = [];
 
     try {

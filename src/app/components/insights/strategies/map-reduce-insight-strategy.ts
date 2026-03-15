@@ -69,9 +69,7 @@ export class MapReduceInsightStrategy implements InsightGenerationStrategy {
         chunkTokenLimitRatio: insightsConfig.CHUNK_TOKEN_LIMIT_RATIO,
       });
 
-      logInfo(
-        `  - Split summaries into ${summaryChunks.length} chunks for map-reduce processing`,
-      );
+      logInfo(`  - Split summaries into ${summaryChunks.length} chunks for map-reduce processing`);
 
       // 2. MAP: Generate partial insights for each chunk in parallel
       // Uses shared concurrency limiter to prevent rate limit issues from nested parallelism

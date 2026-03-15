@@ -3,6 +3,7 @@ import { RequirementPromptExecutor } from "../../../../../src/app/components/ins
 import LLMRouter from "../../../../../src/common/llm/llm-router";
 import type { FileProcessingRulesType } from "../../../../../src/app/config/file-handling";
 import type { LlmConcurrencyService } from "../../../../../src/app/components/concurrency";
+import type { BaseEnvVars } from "../../../../../src/app/env/env.types";
 
 jest.mock("../../../../../src/common/fs/directory-operations", () => ({
   ensureDirectoryExists: jest.fn().mockResolvedValue(undefined),
@@ -37,6 +38,8 @@ describe("RequirementPromptExecutor", () => {
     run: jest.fn().mockImplementation(async <T>(fn: () => Promise<T>) => fn()),
   } as unknown as jest.Mocked<LlmConcurrencyService>;
 
+  const mockEnvVars = {} as BaseEnvVars;
+
   it("loads prompts filtering only .prompt files and executes requirements", async () => {
     const mockExecuteCompletion = jest.fn().mockResolvedValue("LLM Response");
     const mockLlMRouter = {
@@ -46,9 +49,32 @@ describe("RequirementPromptExecutor", () => {
       mockLlMRouter,
       mockFileProcessingConfig,
       mockLlmConcurrencyService,
+      mockEnvVars,
     );
     const result = await executor.executeRequirementsToFiles(["/test/path"], "test-llm");
     expect(result).toHaveLength(1);
     expect(mockExecuteCompletion).toHaveBeenCalledTimes(1);
+  });
+
+  it("uses REQUIREMENTS_PROMPTS_DIR from env vars when specified", async () => {
+    const { ensureDirectoryExists } = jest.requireMock<{
+      ensureDirectoryExists: jest.Mock;
+    }>("../../../../../src/common/fs/directory-operations");
+    const mockExecuteCompletion = jest.fn().mockResolvedValue("LLM Response");
+    const mockLlMRouter = {
+      executeCompletion: mockExecuteCompletion,
+    } as unknown as LLMRouter;
+    const envVarsWithOverride = {
+      REQUIREMENTS_PROMPTS_DIR: "/custom/prompts/dir",
+    } as BaseEnvVars;
+    const executor = new RequirementPromptExecutor(
+      mockLlMRouter,
+      mockFileProcessingConfig,
+      mockLlmConcurrencyService,
+      envVarsWithOverride,
+    );
+
+    await executor.executeRequirementsToFiles(["/test/path"], "test-llm");
+    expect(ensureDirectoryExists).toHaveBeenCalledWith("/custom/prompts/dir");
   });
 });

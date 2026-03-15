@@ -127,12 +127,8 @@ describe("JsonReportWriter", () => {
       expect(mockConsoleError).toHaveBeenCalledWith(
         expect.stringContaining("Failed to write a JSON file"),
       );
-      expect(mockConsoleError).toHaveBeenCalledWith(
-        expect.stringContaining("First file error"),
-      );
-      expect(mockConsoleError).toHaveBeenCalledWith(
-        expect.stringContaining("Second file error"),
-      );
+      expect(mockConsoleError).toHaveBeenCalledWith(expect.stringContaining("First file error"));
+      expect(mockConsoleError).toHaveBeenCalledWith(expect.stringContaining("Second file error"));
       expect(mockConsoleLog).toHaveBeenCalledWith("Generated JSON file: file-types.tson");
     });
 

@@ -33,15 +33,52 @@ function buildTestProgram(): Command {
   program.name("cba").exitOverride();
 
   const commands: { name: string; description: string; token: symbol }[] = [
-    { name: "capture", description: "Capture LLM-generated metadata for every source file into the database", token: taskTokens.CodebaseCaptureTask },
-    { name: "insights", description: "Generate insights (tech stack, DDD aggregates, etc.) from database-captured sources", token: taskTokens.InsightsGenerationTask },
-    { name: "insights-files", description: "Generate insights directly from source files (bypasses database)", token: taskTokens.FileBasedInsightsGenerationTask },
-    { name: "report", description: "Generate a static HTML report from captured metadata and insights", token: taskTokens.ReportGenerationTask },
-    { name: "query", description: "Query the codebase using MongoDB Atlas Vector Search", token: taskTokens.CodebaseQueryTask },
-    { name: "projects", description: "List all projects stored in the database with summary statistics", token: taskTokens.ListProjectsTask },
-    { name: "models", description: "List all available LLM models for completions and embeddings", token: taskTokens.ListAvailableModelsTask },
-    { name: "test-mdb", description: "Test the MongoDB connection", token: taskTokens.MongoConnectionTestTask },
-    { name: "test-llm", description: "Test configured LLM providers", token: taskTokens.PluggableLLMsTestTask },
+    {
+      name: "capture",
+      description: "Capture LLM-generated metadata for every source file into the database",
+      token: taskTokens.CodebaseCaptureTask,
+    },
+    {
+      name: "insights",
+      description:
+        "Generate insights (tech stack, DDD aggregates, etc.) from database-captured sources",
+      token: taskTokens.InsightsGenerationTask,
+    },
+    {
+      name: "insights-files",
+      description: "Generate insights directly from source files (bypasses database)",
+      token: taskTokens.FileBasedInsightsGenerationTask,
+    },
+    {
+      name: "report",
+      description: "Generate a static HTML report from captured metadata and insights",
+      token: taskTokens.ReportGenerationTask,
+    },
+    {
+      name: "query",
+      description: "Query the codebase using MongoDB Atlas Vector Search",
+      token: taskTokens.CodebaseQueryTask,
+    },
+    {
+      name: "projects",
+      description: "List all projects stored in the database with summary statistics",
+      token: taskTokens.ListProjectsTask,
+    },
+    {
+      name: "models",
+      description: "List all available LLM models for completions and embeddings",
+      token: taskTokens.ListAvailableModelsTask,
+    },
+    {
+      name: "test-mdb",
+      description: "Test the MongoDB connection",
+      token: taskTokens.MongoConnectionTestTask,
+    },
+    {
+      name: "test-llm",
+      description: "Test configured LLM providers",
+      token: taskTokens.PluggableLLMsTestTask,
+    },
   ];
 
   for (const cmd of commands) {
@@ -152,10 +189,7 @@ describe("CBA CLI", () => {
     await program.parseAsync(["node", "cba", "delete", "my-legacy-app"]);
 
     expect(runApplication).toHaveBeenCalledTimes(1);
-    expect(runApplication).toHaveBeenCalledWith(
-      taskTokens.DeleteProjectTask,
-      expect.any(Function),
-    );
+    expect(runApplication).toHaveBeenCalledWith(taskTokens.DeleteProjectTask, expect.any(Function));
 
     const configureTask = runApplication.mock.calls[0][1];
     const mockTask = { targetProjectName: "" };

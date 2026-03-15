@@ -22,16 +22,56 @@ program
   .version("1.0.0");
 
 // Main workflow commands
-taskCommand(program, "capture", "Capture LLM-generated metadata for every source file into the database", taskTokens.CodebaseCaptureTask);
-taskCommand(program, "insights", "Generate insights (tech stack, DDD aggregates, etc.) from database-captured sources", taskTokens.InsightsGenerationTask);
-taskCommand(program, "insights-files", "Generate insights directly from source files (bypasses database)", taskTokens.FileBasedInsightsGenerationTask);
-taskCommand(program, "report", "Generate a static HTML report from captured metadata and insights", taskTokens.ReportGenerationTask);
-taskCommand(program, "query", "Query the codebase using MongoDB Atlas Vector Search", taskTokens.CodebaseQueryTask);
-taskCommand(program, "pipeline", "Run the full workflow: capture -> insights -> report", taskTokens.PipelineTask);
+taskCommand(
+  program,
+  "capture",
+  "Capture LLM-generated metadata for every source file into the database",
+  taskTokens.CodebaseCaptureTask,
+);
+taskCommand(
+  program,
+  "insights",
+  "Generate insights (tech stack, DDD aggregates, etc.) from database-captured sources",
+  taskTokens.InsightsGenerationTask,
+);
+taskCommand(
+  program,
+  "insights-files",
+  "Generate insights directly from source files (bypasses database)",
+  taskTokens.FileBasedInsightsGenerationTask,
+);
+taskCommand(
+  program,
+  "report",
+  "Generate a static HTML report from captured metadata and insights",
+  taskTokens.ReportGenerationTask,
+);
+taskCommand(
+  program,
+  "query",
+  "Query the codebase using MongoDB Atlas Vector Search",
+  taskTokens.CodebaseQueryTask,
+);
+taskCommand(
+  program,
+  "pipeline",
+  "Run the full workflow: capture -> insights -> report",
+  taskTokens.PipelineTask,
+);
 
 // Utility commands
-taskCommand(program, "projects", "List all projects stored in the database with summary statistics", taskTokens.ListProjectsTask);
-taskCommand(program, "models", "List all available LLM models for completions and embeddings", taskTokens.ListAvailableModelsTask);
+taskCommand(
+  program,
+  "projects",
+  "List all projects stored in the database with summary statistics",
+  taskTokens.ListProjectsTask,
+);
+taskCommand(
+  program,
+  "models",
+  "List all available LLM models for completions and embeddings",
+  taskTokens.ListAvailableModelsTask,
+);
 
 program
   .command("delete <project-name>")

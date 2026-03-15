@@ -58,9 +58,7 @@ export class CodebaseQueryTask extends BaseAnalysisTask {
       const question = questions[index];
 
       if (result.status === "fulfilled") {
-        logOutput(
-          `\n---------------\nQUESTION: ${question}\n\n${result.value}\n---------------\n`,
-        );
+        logOutput(`\n---------------\nQUESTION: ${question}\n\n${result.value}\n---------------\n`);
       } else {
         logOutputErr(
           `\n---------------\nFAILED QUESTION: ${question}\n\nERROR: ${formatError(result.reason)}\n---------------\n`,
