@@ -176,7 +176,9 @@ describe("CodebaseCaptureOrchestrator", () => {
         { filepath: "/src/file2.ts", size: 50, sourceRoot: "/src" },
       ];
 
-      mockDirectoryOperations.findFilesSortedBySizeFromMultiple.mockResolvedValue(mockFilesWithSize);
+      mockDirectoryOperations.findFilesSortedBySizeFromMultiple.mockResolvedValue(
+        mockFilesWithSize,
+      );
       mockPathUtils.getFileExtension.mockReturnValue("ts");
       mockPath.relative.mockReturnValueOnce("file1.ts").mockReturnValueOnce("file2.ts");
       mockPath.basename.mockReturnValueOnce("file1.ts").mockReturnValueOnce("file2.ts");
@@ -186,11 +188,14 @@ describe("CodebaseCaptureOrchestrator", () => {
 
       await service.captureCodebase("test-project", ["/src"], false);
 
-      expect(mockDirectoryOperations.findFilesSortedBySizeFromMultiple).toHaveBeenCalledWith(["/src"], {
-        folderIgnoreList: [".git", "node_modules"],
-        filenameIgnorePrefix: "test-",
-        filenameIgnoreList: ["package-lock.json"],
-      });
+      expect(mockDirectoryOperations.findFilesSortedBySizeFromMultiple).toHaveBeenCalledWith(
+        ["/src"],
+        {
+          folderIgnoreList: [".git", "node_modules"],
+          filenameIgnorePrefix: "test-",
+          filenameIgnoreList: ["package-lock.json"],
+        },
+      );
       // Files are added to the buffered writer
       expect(mockBufferedWriter.queueRecord).toHaveBeenCalledTimes(2);
       // Buffer is flushed at the end
@@ -210,7 +215,9 @@ describe("CodebaseCaptureOrchestrator", () => {
       ];
       const existingFiles = ["file1.ts"];
 
-      mockDirectoryOperations.findFilesSortedBySizeFromMultiple.mockResolvedValue(mockFilesWithSize);
+      mockDirectoryOperations.findFilesSortedBySizeFromMultiple.mockResolvedValue(
+        mockFilesWithSize,
+      );
       mockSourcesRepository.getProjectFilesPaths.mockResolvedValue(existingFiles);
       mockPathUtils.getFileExtension.mockReturnValue("ts");
       mockPath.relative.mockReturnValueOnce("file1.ts").mockReturnValueOnce("file2.ts");
@@ -248,7 +255,9 @@ describe("CodebaseCaptureOrchestrator", () => {
         { filepath: "/src/file.ts", size: 100, sourceRoot: "/src" },
       ];
 
-      mockDirectoryOperations.findFilesSortedBySizeFromMultiple.mockResolvedValue(mockFilesWithSize);
+      mockDirectoryOperations.findFilesSortedBySizeFromMultiple.mockResolvedValue(
+        mockFilesWithSize,
+      );
       mockPathUtils.getFileExtension.mockReturnValueOnce("jpg").mockReturnValueOnce("ts");
       mockPath.relative.mockReturnValue("file.ts");
       mockPath.basename.mockReturnValue("file.ts");
@@ -268,7 +277,9 @@ describe("CodebaseCaptureOrchestrator", () => {
         { filepath: "/src/file.ts", size: 100, sourceRoot: "/src" },
       ];
 
-      mockDirectoryOperations.findFilesSortedBySizeFromMultiple.mockResolvedValue(mockFilesWithSize);
+      mockDirectoryOperations.findFilesSortedBySizeFromMultiple.mockResolvedValue(
+        mockFilesWithSize,
+      );
       mockPathUtils.getFileExtension.mockReturnValue("ts");
       mockPath.relative.mockReturnValue("file.ts");
       mockPath.basename.mockReturnValue("file.ts");
@@ -287,7 +298,9 @@ describe("CodebaseCaptureOrchestrator", () => {
     it("should handle summarization errors gracefully", async () => {
       const mockFilesWithSize = [{ filepath: "/src/file1.ts", size: 100, sourceRoot: "/src" }];
 
-      mockDirectoryOperations.findFilesSortedBySizeFromMultiple.mockResolvedValue(mockFilesWithSize);
+      mockDirectoryOperations.findFilesSortedBySizeFromMultiple.mockResolvedValue(
+        mockFilesWithSize,
+      );
       mockPathUtils.getFileExtension.mockReturnValue("ts");
       mockPath.relative.mockReturnValue("file1.ts");
       mockPath.basename.mockReturnValue("file1.ts");
@@ -309,7 +322,9 @@ describe("CodebaseCaptureOrchestrator", () => {
     it("should log warnings when there are failures", async () => {
       const mockFilesWithSize = [{ filepath: "/src/file1.ts", size: 100, sourceRoot: "/src" }];
 
-      mockDirectoryOperations.findFilesSortedBySizeFromMultiple.mockResolvedValue(mockFilesWithSize);
+      mockDirectoryOperations.findFilesSortedBySizeFromMultiple.mockResolvedValue(
+        mockFilesWithSize,
+      );
       mockPathUtils.getFileExtension.mockReturnValue("ts");
       mockPath.relative.mockReturnValue("file1.ts");
       mockFileOperations.readFile.mockRejectedValue(new Error("Read failed"));
@@ -323,7 +338,9 @@ describe("CodebaseCaptureOrchestrator", () => {
       const mockFilesWithSize = [{ filepath: "/src/file1.ts", size: 100, sourceRoot: "/src" }];
       const mockEmbeddings = [0.1, 0.2, 0.3];
 
-      mockDirectoryOperations.findFilesSortedBySizeFromMultiple.mockResolvedValue(mockFilesWithSize);
+      mockDirectoryOperations.findFilesSortedBySizeFromMultiple.mockResolvedValue(
+        mockFilesWithSize,
+      );
       mockPathUtils.getFileExtension.mockReturnValue("ts");
       mockPath.relative.mockReturnValue("file1.ts");
       mockPath.basename.mockReturnValue("file1.ts");
@@ -363,7 +380,9 @@ describe("CodebaseCaptureOrchestrator", () => {
         { filepath: "/src/file.ts", size: 100, sourceRoot: "/src" },
       ];
 
-      mockDirectoryOperations.findFilesSortedBySizeFromMultiple.mockResolvedValue(mockFilesWithSize);
+      mockDirectoryOperations.findFilesSortedBySizeFromMultiple.mockResolvedValue(
+        mockFilesWithSize,
+      );
       mockPathUtils.getFileExtension.mockReturnValueOnce("js").mockReturnValueOnce("ts");
       mockPath.relative.mockReturnValue("file.ts");
       mockPath.basename.mockReturnValue("file.ts");
@@ -381,7 +400,9 @@ describe("CodebaseCaptureOrchestrator", () => {
         { filepath: "/src/file.ts", size: 100, sourceRoot: "/src" },
       ];
 
-      mockDirectoryOperations.findFilesSortedBySizeFromMultiple.mockResolvedValue(mockFilesWithSize);
+      mockDirectoryOperations.findFilesSortedBySizeFromMultiple.mockResolvedValue(
+        mockFilesWithSize,
+      );
       mockPathUtils.getFileExtension.mockReturnValueOnce("ts").mockReturnValueOnce("ts");
       mockPath.relative.mockReturnValue("file.ts");
       mockPath.basename.mockReturnValue("file.ts");
@@ -399,14 +420,12 @@ describe("CodebaseCaptureOrchestrator", () => {
         { filepath: "/src/file.ts", size: 100, sourceRoot: "/src" },
       ];
 
-      mockDirectoryOperations.findFilesSortedBySizeFromMultiple.mockResolvedValue(mockFilesWithSize);
+      mockDirectoryOperations.findFilesSortedBySizeFromMultiple.mockResolvedValue(
+        mockFilesWithSize,
+      );
       mockPathUtils.getFileExtension.mockReturnValue("ts");
-      mockPath.relative
-        .mockReturnValueOnce("generated-api.ts")
-        .mockReturnValueOnce("file.ts");
-      mockPath.basename
-        .mockReturnValueOnce("generated-api.ts")
-        .mockReturnValueOnce("file.ts");
+      mockPath.relative.mockReturnValueOnce("generated-api.ts").mockReturnValueOnce("file.ts");
+      mockPath.basename.mockReturnValueOnce("generated-api.ts").mockReturnValueOnce("file.ts");
       mockFileOperations.readFile
         .mockResolvedValueOnce("// DO NOT EDIT - this file is auto-generated\nconst api = {};")
         .mockResolvedValueOnce("const x = 1;");
@@ -418,12 +437,12 @@ describe("CodebaseCaptureOrchestrator", () => {
     });
 
     it("should count lines from raw content, not trimmed content", async () => {
-      const mockFilesWithSize = [
-        { filepath: "/src/file.ts", size: 100, sourceRoot: "/src" },
-      ];
+      const mockFilesWithSize = [{ filepath: "/src/file.ts", size: 100, sourceRoot: "/src" }];
       const rawContent = "const x = 1;\n\n";
 
-      mockDirectoryOperations.findFilesSortedBySizeFromMultiple.mockResolvedValue(mockFilesWithSize);
+      mockDirectoryOperations.findFilesSortedBySizeFromMultiple.mockResolvedValue(
+        mockFilesWithSize,
+      );
       mockPathUtils.getFileExtension.mockReturnValue("ts");
       mockPath.relative.mockReturnValue("file.ts");
       mockPath.basename.mockReturnValue("file.ts");
@@ -443,11 +462,11 @@ describe("CodebaseCaptureOrchestrator", () => {
     });
 
     it("should set isCode field on source records", async () => {
-      const mockFilesWithSize = [
-        { filepath: "/src/file.ts", size: 100, sourceRoot: "/src" },
-      ];
+      const mockFilesWithSize = [{ filepath: "/src/file.ts", size: 100, sourceRoot: "/src" }];
 
-      mockDirectoryOperations.findFilesSortedBySizeFromMultiple.mockResolvedValue(mockFilesWithSize);
+      mockDirectoryOperations.findFilesSortedBySizeFromMultiple.mockResolvedValue(
+        mockFilesWithSize,
+      );
       mockPathUtils.getFileExtension.mockReturnValue("ts");
       mockPath.relative.mockReturnValue("file.ts");
       mockPath.basename.mockReturnValue("file.ts");

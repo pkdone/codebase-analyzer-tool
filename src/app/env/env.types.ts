@@ -39,10 +39,16 @@ export const baseEnvVarsSchema = z.object({
   CODEBASE_DIR_PATHS: z
     .string()
     .min(1, "CODEBASE_DIR_PATHS cannot be empty")
-    .transform((val) => val.split(",").map((s) => s.trim()).filter((s) => s.length > 0)),
+    .transform((val) =>
+      val
+        .split(",")
+        .map((s) => s.trim())
+        .filter((s) => s.length > 0),
+    ),
   SKIP_ALREADY_PROCESSED_FILES: z
     .preprocess((val) => String(val).toLowerCase() === "true", z.boolean())
     .default(false),
+  REQUIREMENTS_PROMPTS_DIR: z.string().min(1).optional(),
   LLM_COMPLETION_MODEL_CHAIN: modelChainSchema,
   LLM_EMBEDDING_MODEL_CHAIN: modelChainSchema,
 });

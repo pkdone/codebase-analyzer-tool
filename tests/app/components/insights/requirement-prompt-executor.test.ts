@@ -3,6 +3,7 @@ import { RequirementPromptExecutor } from "../../../../src/app/components/insigh
 import LLMRouter from "../../../../src/common/llm/llm-router";
 import type { FileProcessingRulesType } from "../../../../src/app/config/file-handling";
 import type { LlmConcurrencyService } from "../../../../src/app/components/concurrency";
+import type { BaseEnvVars } from "../../../../src/app/env/env.types";
 
 jest.mock("../../../../src/common/fs/directory-operations", () => ({
   ensureDirectoryExists: jest.fn().mockResolvedValue(undefined),
@@ -46,6 +47,7 @@ describe("RequirementPromptExecutor", () => {
       mockLlMRouter,
       mockFileProcessingConfig,
       mockLlmConcurrencyService,
+      {} as BaseEnvVars,
     );
     const result = await executor.executeRequirementsToFiles(["/test/path"], "test-llm");
     expect(result).toHaveLength(1);

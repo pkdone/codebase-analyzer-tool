@@ -258,9 +258,7 @@ describe("directory-operations", () => {
 
     test("should aggregate and sort files from multiple directories by size", async () => {
       mockGlob
-        .mockResolvedValueOnce([
-          { path: "/app/small.ts", stats: { size: 100 } },
-        ] as any)
+        .mockResolvedValueOnce([{ path: "/app/small.ts", stats: { size: 100 } }] as any)
         .mockResolvedValueOnce([
           { path: "/procs/large.sql", stats: { size: 2000 } },
           { path: "/procs/medium.sql", stats: { size: 500 } },
@@ -278,9 +276,7 @@ describe("directory-operations", () => {
     });
 
     test("should handle a single directory", async () => {
-      mockGlob.mockResolvedValueOnce([
-        { path: "/app/file.ts", stats: { size: 100 } },
-      ] as any);
+      mockGlob.mockResolvedValueOnce([{ path: "/app/file.ts", stats: { size: 100 } }] as any);
 
       const result = await findFilesSortedBySizeFromMultiple(["/app"], {
         folderIgnoreList: [],

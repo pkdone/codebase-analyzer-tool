@@ -127,7 +127,10 @@ describe("ReportArtifactGenerator", () => {
     it("should suggest both capture and insights when no source data exists", async () => {
       const consoleErrorSpy = jest.spyOn(console, "error").mockImplementation();
       mockAppSummariesRepository.getProjectAppSummaryFields.mockResolvedValue(null);
-      mockSourcesRepository.getProjectFileAndLineStats.mockResolvedValue({ fileCount: 0, linesOfCode: 0 });
+      mockSourcesRepository.getProjectFileAndLineStats.mockResolvedValue({
+        fileCount: 0,
+        linesOfCode: 0,
+      });
 
       await generator.generateReportArtifacts("project", "/output", "report.html");
 
@@ -140,7 +143,10 @@ describe("ReportArtifactGenerator", () => {
     it("should suggest only insights when source data already exists", async () => {
       const consoleErrorSpy = jest.spyOn(console, "error").mockImplementation();
       mockAppSummariesRepository.getProjectAppSummaryFields.mockResolvedValue(null);
-      mockSourcesRepository.getProjectFileAndLineStats.mockResolvedValue({ fileCount: 50, linesOfCode: 5000 });
+      mockSourcesRepository.getProjectFileAndLineStats.mockResolvedValue({
+        fileCount: 50,
+        linesOfCode: 5000,
+      });
 
       await generator.generateReportArtifacts("project", "/output", "report.html");
 

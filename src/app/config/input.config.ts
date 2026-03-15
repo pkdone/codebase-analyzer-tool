@@ -19,9 +19,7 @@ export const inputConfig = {
   /**
    * Path to folder containing requirement prompt files
    */
-  // TODO: Switch
   REQUIREMENTS_PROMPTS_FOLDERPATH: `${INPUT_BASE_PATH}/requirements`,
-  //REQUIREMENTS_PROMPTS_FOLDERPATH: `${INPUT_BASE_PATH}/requirements/pulse`,
 
   /**
    * Regex pattern to match requirement prompt files

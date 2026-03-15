@@ -347,8 +347,10 @@ function extractPropertiesFromShape(
       numeric.push(...nested.numeric);
       arrays.push(...nested.arrays);
     } else if (
-      (isZodUnion(unwrapped) || isZodDiscriminatedUnion(unwrapped) || isZodIntersection(unwrapped))
-      && currentDepth < options.maxDepth
+      (isZodUnion(unwrapped) ||
+        isZodDiscriminatedUnion(unwrapped) ||
+        isZodIntersection(unwrapped)) &&
+      currentDepth < options.maxDepth
     ) {
       // Extract from union, discriminated union, or intersection types
       const nested = extractPropertiesFromSchema(unwrapped, currentDepth + 1, options);
