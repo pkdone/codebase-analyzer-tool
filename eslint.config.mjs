@@ -1,9 +1,10 @@
 // @ts-check
 
 import eslint from '@eslint/js';
+import { defineConfig } from 'eslint/config';
 import tseslint from 'typescript-eslint';
 
-export default tseslint.config(
+export default defineConfig(
   {
     ignores: ['dist/**', 'docs/**', 'node_modules/**', 'output/**'],
   },
@@ -64,7 +65,8 @@ export default tseslint.config(
       "@typescript-eslint/default-param-last": "error",
       "@typescript-eslint/prefer-regexp-exec": "error",
       "@typescript-eslint/explicit-member-accessibility": ["error", { "accessibility": "no-public" }],
-      "@typescript-eslint/member-ordering": "error",     
+      "@typescript-eslint/member-ordering": "error",
+      "@typescript-eslint/no-empty-object-type": ["error", { "allowInterfaces": "with-single-extends" }],           
       "@typescript-eslint/prefer-readonly": "error",
       "@typescript-eslint/promise-function-async": "error",
       "@typescript-eslint/require-array-sort-compare": "error",
@@ -86,6 +88,9 @@ export default tseslint.config(
           allowRegExp: false,
         },
       ],      
+      "no-nested-ternary": "error",
+      "no-negated-condition": "warn",
+      "prefer-regex-literals": "error"      
     },
     
     languageOptions: {

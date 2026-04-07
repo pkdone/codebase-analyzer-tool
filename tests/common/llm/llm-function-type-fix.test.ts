@@ -37,7 +37,7 @@ describe("LLMFunction Type Fix - Generic Type Preservation", () => {
       _content: string,
       _context: LLMExecutionContext,
       _options?: LLMCompletionOptions<S>,
-    ): Promise<LLMFunctionResponse<z.infer<S>>> => {
+    ): Promise<LLMFunctionResponse> => {
       return {
         status: LLMResponseStatus.COMPLETED,
         request: "test",
@@ -307,7 +307,7 @@ describe("LLMFunction Type Fix - Generic Type Preservation", () => {
         _content: string,
         _context: LLMExecutionContext,
         _options?: LLMCompletionOptions<S>,
-      ): Promise<LLMFunctionResponse<z.infer<S>>> => {
+      ): Promise<LLMFunctionResponse> => {
         // With discriminated union, EXCEEDED responses are LLMStatusResponse
         return {
           status: LLMResponseStatus.EXCEEDED,
@@ -333,7 +333,7 @@ describe("LLMFunction Type Fix - Generic Type Preservation", () => {
         _content: string,
         _context: LLMExecutionContext,
         _options?: LLMCompletionOptions<S>,
-      ): Promise<LLMFunctionResponse<z.infer<S>>> => {
+      ): Promise<LLMFunctionResponse> => {
         // With discriminated union, ERRORED responses must have error field
         return {
           status: LLMResponseStatus.ERRORED,
