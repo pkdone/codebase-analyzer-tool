@@ -9,7 +9,6 @@
     "moduleResolution": "nodenext",
     "isolatedModules": true,    
     "sourceMap": true,
-    "baseUrl": ".",
     "types": ["node", "mongodb", "jest"],
     "allowSyntheticDefaultImports": true,
     "skipLibCheck": true,

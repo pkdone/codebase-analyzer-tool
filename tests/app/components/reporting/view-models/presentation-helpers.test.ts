@@ -8,8 +8,6 @@ import {
   getCodeSmellRecommendation,
   getScriptletUsageInsight,
   uiAnalysisConfig,
-  type CouplingLevelPresentation,
-  type DebtLevelPresentation,
 } from "../../../../../src/app/components/reporting/presentation";
 import { CouplingLevel } from "../../../../../src/app/components/reporting/sections/architecture-analysis/module-coupling.config";
 import { DebtLevel } from "../../../../../src/app/components/reporting/sections/ui-analysis/ui-analysis.config";
@@ -21,7 +19,7 @@ describe("presentation-helpers", () => {
   describe("getCouplingLevelPresentation", () => {
     it("should return correct presentation for VERY_HIGH", () => {
       const result = getCouplingLevelPresentation(CouplingLevel.VERY_HIGH);
-      expect(result).toEqual<CouplingLevelPresentation>({
+      expect(result).toEqual({
         level: "Very High",
         cssClass: "badge-danger",
       });
@@ -29,7 +27,7 @@ describe("presentation-helpers", () => {
 
     it("should return correct presentation for HIGH", () => {
       const result = getCouplingLevelPresentation(CouplingLevel.HIGH);
-      expect(result).toEqual<CouplingLevelPresentation>({
+      expect(result).toEqual({
         level: "High",
         cssClass: "badge-high",
       });
@@ -37,7 +35,7 @@ describe("presentation-helpers", () => {
 
     it("should return correct presentation for MEDIUM", () => {
       const result = getCouplingLevelPresentation(CouplingLevel.MEDIUM);
-      expect(result).toEqual<CouplingLevelPresentation>({
+      expect(result).toEqual({
         level: "Medium",
         cssClass: "badge-warning",
       });
@@ -45,7 +43,7 @@ describe("presentation-helpers", () => {
 
     it("should return correct presentation for LOW", () => {
       const result = getCouplingLevelPresentation(CouplingLevel.LOW);
-      expect(result).toEqual<CouplingLevelPresentation>({
+      expect(result).toEqual({
         level: "Low",
         cssClass: "badge-success",
       });
@@ -55,7 +53,7 @@ describe("presentation-helpers", () => {
   describe("getDebtLevelPresentation", () => {
     it("should return correct presentation for VERY_HIGH", () => {
       const result = getDebtLevelPresentation(DebtLevel.VERY_HIGH);
-      expect(result).toEqual<DebtLevelPresentation>({
+      expect(result).toEqual({
         level: "Very High",
         cssClass: "badge-danger",
       });
@@ -63,7 +61,7 @@ describe("presentation-helpers", () => {
 
     it("should return correct presentation for HIGH", () => {
       const result = getDebtLevelPresentation(DebtLevel.HIGH);
-      expect(result).toEqual<DebtLevelPresentation>({
+      expect(result).toEqual({
         level: "High",
         cssClass: "badge-warning",
       });
@@ -71,7 +69,7 @@ describe("presentation-helpers", () => {
 
     it("should return correct presentation for MODERATE", () => {
       const result = getDebtLevelPresentation(DebtLevel.MODERATE);
-      expect(result).toEqual<DebtLevelPresentation>({
+      expect(result).toEqual({
         level: "Moderate",
         cssClass: "badge-info",
       });
@@ -79,7 +77,7 @@ describe("presentation-helpers", () => {
 
     it("should return correct presentation for LOW", () => {
       const result = getDebtLevelPresentation(DebtLevel.LOW);
-      expect(result).toEqual<DebtLevelPresentation>({
+      expect(result).toEqual({
         level: "Low",
         cssClass: "badge-success",
       });

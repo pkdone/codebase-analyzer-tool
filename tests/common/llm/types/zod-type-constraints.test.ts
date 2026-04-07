@@ -131,12 +131,7 @@ describe("ZodType<unknown> type constraints", () => {
     }
 
     it("should provide typed data on successful validation", () => {
-      interface UserType {
-        name: string;
-        age: number;
-      }
-
-      const result = createSuccessResult<UserType>({ name: "Test", age: 25 });
+      const result = createSuccessResult({ name: "Test", age: 25 });
 
       // Type narrowing via success check
       if (result.success) {

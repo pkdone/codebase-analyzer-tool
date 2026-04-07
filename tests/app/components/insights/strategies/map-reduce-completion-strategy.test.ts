@@ -1697,6 +1697,20 @@ describe("MapReduceInsightStrategy", () => {
      * rather than passing incorrectly typed data downstream.
      */
 
+    function getCategoryTestValue(category: string): unknown {
+      if (category === "appDescription") return "Test description";
+
+      if (category === "inferredArchitecture") {
+        return {
+          internalComponents: [],
+          externalDependencies: [],
+          dependencies: [],
+        };
+      }
+
+      return [];
+    }
+
     it("should handle all current category schemas without throwing", async () => {
       // This test verifies that all existing categories are properly handled
       // by running through them without errors. If the unhandled schema error
@@ -1714,16 +1728,7 @@ describe("MapReduceInsightStrategy", () => {
         // Reset mock for each category
         mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(
           ok({
-            [category]:
-              category === "appDescription"
-                ? "Test description"
-                : category === "inferredArchitecture"
-                  ? {
-                      internalComponents: [],
-                      externalDependencies: [],
-                      dependencies: [],
-                    }
-                  : [],
+            [category]: getCategoryTestValue(category),
           }),
         );
 
